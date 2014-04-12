@@ -19,6 +19,8 @@
 #include "ignition/transport/discZmq.hh"
 #include "gtest/gtest.h"
 
+using namespace ignition;
+
 bool callbackExecuted;
 
 //////////////////////////////////////////////////

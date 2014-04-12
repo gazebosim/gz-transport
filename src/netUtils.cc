@@ -29,6 +29,8 @@
 # include <ifaddrs.h>
 #endif
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 bool transport::isPrivateIP(const char *ip)
 {

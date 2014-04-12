@@ -28,6 +28,8 @@
 #include "ignition/transport/zmq/zmq.hpp"
 #include "ignition/transport/zmq/zmsg.hpp"
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 transport::Node::Node(std::string _master, bool _verbose)
 {

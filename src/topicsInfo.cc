@@ -19,6 +19,8 @@
 #include <string>
 #include "ignition/transport/topicsInfo.hh"
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
 {

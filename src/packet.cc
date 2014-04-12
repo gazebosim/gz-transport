@@ -21,6 +21,8 @@
 #include <string>
 #include "ignition/transport/packet.hh"
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 std::string transport::GetGuidStr(const uuid_t &_uuid)
 {

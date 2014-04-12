@@ -21,6 +21,8 @@
 #include "ignition/transport/packet.hh"
 #include "gtest/gtest.h"
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 TEST(PacketTest, BasicHeaderAPI)
 {
