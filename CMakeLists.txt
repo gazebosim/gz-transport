@@ -257,15 +257,12 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  set (pkgconfig_files ${PROJECT_NAME_LOWER})
-
-  foreach (pkgconfig ${pkgconfig_files})
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
-      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc
-      DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
-      COMPONENT pkgconfig)
-  endforeach()
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
+    DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
+    COMPONENT pkgconfig)
 
   ########################################
   # Make the cmake config files
@@ -275,9 +272,9 @@ else (build_errors)
   set(PKG_DEPENDS Protobuf)
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IgnitionMathConfig.cmake
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
     DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition
     COMPONENT cmake)
 
