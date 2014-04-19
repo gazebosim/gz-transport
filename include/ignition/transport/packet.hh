@@ -22,31 +22,24 @@
 #include <cstdint>
 #include <string>
 
-//  This is the version of Gazebo transport we implement
-#define TRNSP_VERSION       1
-
-// Message types
-#define ADV                 1
-#define SUB                 2
-#define ADV_SVC             3
-#define SUB_SVC             4
-#define PUB                 5
-#define REQ                 6
-#define REP_OK              7
-#define REP_ERROR           8
-
-#define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
-
-static char *msgTypesStr[] = {
-    NULL, (char*)"ADVERTISE", (char*)"SUBSCRIBE", (char*)"ADV_SRV",
-    (char*)"SUB_SVC", (char*)"PUB", (char*)"REQ", (char*)"SRV_REP_OK",
-    (char*)"SRV_REP_ERROR"
-};
-
 namespace ignition
 {
   namespace transport
   {
+    #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
+
+    //  This is the version of Gazebo transport we implement
+    static const int Version        = 1;
+    // Message types
+    static const int AdvType        = 1;
+    static const int SubType        = 2;
+    static const int AdvSvcType     = 3;
+    static const int SubSvcType     = 4;
+    static const int PubType        = 5;
+    static const int ReqType        = 6;
+    static const int RepType        = 7;
+    static const int RepErrorType   = 8;
+
     /// \brief Get the string representation of the GUID.
     /// \param[in] _uuid UUID to be converted to string.
     /// \return A string representation of the GUID.

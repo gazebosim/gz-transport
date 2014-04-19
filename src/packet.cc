@@ -19,9 +19,16 @@
 #include <uuid/uuid.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "ignition/transport/packet.hh"
 
 using namespace ignition;
+
+static char *msgTypesStr[] = {
+    NULL, (char*)"ADVERTISE", (char*)"SUBSCRIBE", (char*)"ADV_SRV",
+    (char*)"SUB_SVC", (char*)"PUB", (char*)"REQ", (char*)"SRV_REP_OK",
+    (char*)"SRV_REP_ERROR"
+};
 
 //////////////////////////////////////////////////
 std::string transport::GetGuidStr(const uuid_t &_uuid)
@@ -140,7 +147,7 @@ void transport::Header::Print()
   std::cout << "\t--------------------------------------\n";
   std::cout << "\tHeader:" << std::endl;
   std::cout << "\t\tVersion: " << this->GetVersion() << "\n";
-  std::cout << "\t\tGUID: " << this->GetGuid() << "\n";
+  std::cout << "\t\tGUID: " << transport::GetGuidStr(this->GetGuid()) << "\n";
   std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
   std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
   std::cout << "\t\tType: " << msgTypesStr[this->GetType()] << "\n";
@@ -248,10 +255,11 @@ std::string transport::AdvMsg::GetAddress() const
 void transport::AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
-  if (_header.GetType() != ADV && _header.GetType() != ADV_SVC)
+  if (_header.GetType() != transport::AdvType &&
+      _header.GetType() != transport::AdvSvcType)
     std::cerr << "You're trying to use a "
-              << msgTypesStr[_header.GetType()] << " header inside an ADV"
-              << " or ADV_SVC. Are you sure you want to do this?\n";
+              << msgTypesStr[_header.GetType()] << " header inside an AdvMsg"
+              << " or AdvSvcMsg. Are you sure you want to do this?\n";
 }
 
 //////////////////////////////////////////////////
@@ -301,10 +309,18 @@ size_t transport::AdvMsg::UnpackBody(char *_buffer)
   _buffer += sizeof(this->addressLength);
 
   // Read the address
-  char *newAddress = new char[this->addressLength + 1];
+  /*char *newAddress = new char[this->addressLength + 1];
   memcpy(newAddress, _buffer, this->addressLength);
   newAddress[this->addressLength] = '\0';
   this->address = newAddress;
+  delete[] newAddress;*/
+
+  std::vector<char> newAddress;// (this->addressLength + 1);
+  std::copy(_buffer, _buffer + this->addressLength,
+            std::back_inserter(newAddress));
+  //newAddress[this->addressLength] = '\0';
+  newAddress.push_back('\0');
+  this->address = std::string(newAddress.begin(), newAddress.end());
 
   this->UpdateMsgLength();
 

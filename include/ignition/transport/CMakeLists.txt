@@ -6,9 +6,6 @@ set (headers
   packet.hh
   topicsInfo.hh
   socket.hh
-  zmq/zhelpers.hpp
-  zmq/zmq.hpp
-  zmq/zmsg.hpp
 )
 
 #################################################

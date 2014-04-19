@@ -22,6 +22,23 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
   BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
 endif()
 
+#################################################
+# Find ZeroMQ.
+find_path (zmq_INCLUDE_DIRS zmq.hpp)
+set (ZMQ_FOUND True)
+
+if (NOT zmq_INCLUDE_DIRS)
+  message (STATUS "Looking for zmq.hpp - not found")
+  set (ZMQ_FOUND False)
+else ()
+  message (STATUS "Looking for zmq.hpp - found")
+  include_directories(${zmq_INCLUDE_DIRS})
+endif ()
+
+if (NOT ZMQ_FOUND)
+	BUILD_ERROR ("zmq not found, Please install ...")
+endif()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)

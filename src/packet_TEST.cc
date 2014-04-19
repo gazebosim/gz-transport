@@ -29,17 +29,18 @@ TEST(PacketTest, BasicHeaderAPI)
   std::string topic = "topic_test";
   uuid_t guid;
   uuid_generate(guid);
-  transport::Header header(TRNSP_VERSION, guid, topic, ADV, 0);
+  transport::Header header(transport::Version, guid, topic,
+                           transport::AdvType, 0);
 
   std::string guidStr = transport::GetGuidStr(guid);
 
   // Check Header getters
-  EXPECT_EQ(header.GetVersion(), TRNSP_VERSION);
+  EXPECT_EQ(header.GetVersion(), transport::Version);
   std::string otherGuidStr = transport::GetGuidStr(header.GetGuid());
   EXPECT_EQ(guidStr, otherGuidStr);
   EXPECT_EQ(header.GetTopicLength(), topic.size());
   EXPECT_EQ(header.GetTopic(), topic);
-  EXPECT_EQ(header.GetType(), ADV);
+  EXPECT_EQ(header.GetType(), transport::AdvType);
   EXPECT_EQ(header.GetFlags(), 0);
   int headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
     sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +
@@ -47,8 +48,8 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
   // Check Header setters
-  header.SetVersion(TRNSP_VERSION + 1);
-  EXPECT_EQ(header.GetVersion(), TRNSP_VERSION + 1);
+  header.SetVersion(transport::Version + 1);
+  EXPECT_EQ(header.GetVersion(), transport::Version + 1);
   uuid_generate(guid);
   header.SetGuid(guid);
   otherGuidStr = transport::GetGuidStr(header.GetGuid());
@@ -57,8 +58,8 @@ TEST(PacketTest, BasicHeaderAPI)
   header.SetTopic(topic);
   EXPECT_EQ(header.GetTopic(), topic);
   EXPECT_EQ(header.GetTopicLength(), topic.size());
-  header.SetType(SUB);
-  EXPECT_EQ(header.GetType(), SUB);
+  header.SetType(transport::SubType);
+  EXPECT_EQ(header.GetType(), transport::SubType);
   header.SetFlags(1);
   EXPECT_EQ(header.GetFlags(), 1);
   headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
@@ -78,7 +79,8 @@ TEST(PacketTest, HeaderIO)
   uuid_generate(guid);
 
   // Pack a Header
-  transport::Header header(TRNSP_VERSION, guid, topic, ADV_SVC, 2);
+  transport::Header header(transport::Version, guid, topic,
+                           transport::AdvSvcType, 2);
   char *buffer = new char[header.GetHeaderLength()];
   size_t bytes = header.Pack(buffer);
   EXPECT_EQ(bytes, header.GetHeaderLength());
@@ -106,7 +108,8 @@ TEST(PacketTest, BasicAdvMsgAPI)
   std::string topic = "topic_test";
   uuid_t guid;
   uuid_generate(guid);
-  transport::Header otherHeader(TRNSP_VERSION, guid, topic, ADV, 3);
+  transport::Header otherHeader(transport::Version, guid, topic,
+                                transport::AdvType, 3);
 
   std::string otherGuidStr = transport::GetGuidStr(guid);
 
@@ -134,16 +137,17 @@ TEST(PacketTest, BasicAdvMsgAPI)
   topic = "a_new_topic_test";
 
   // Check AdvMsg setters
-  transport::Header anotherHeader(TRNSP_VERSION + 1, guid, topic, ADV_SVC, 3);
+  transport::Header anotherHeader(transport::Version + 1, guid, topic,
+                                  transport::AdvSvcType, 3);
   guidStr = transport::GetGuidStr(guid);
   advMsg.SetHeader(anotherHeader);
   header = advMsg.GetHeader();
-  EXPECT_EQ(header.GetVersion(), TRNSP_VERSION + 1);
+  EXPECT_EQ(header.GetVersion(), transport::Version+ 1);
   otherGuidStr = transport::GetGuidStr(anotherHeader.GetGuid());
   EXPECT_EQ(guidStr, otherGuidStr);
   EXPECT_EQ(header.GetTopicLength(), topic.size());
   EXPECT_EQ(header.GetTopic(), topic);
-  EXPECT_EQ(header.GetType(), ADV_SVC);
+  EXPECT_EQ(header.GetType(), transport::AdvSvcType);
   EXPECT_EQ(header.GetFlags(), 3);
   int headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
     sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +
@@ -163,7 +167,8 @@ TEST(PacketTest, AdvMsgIO)
   std::string topic = "topic_test";
 
   // Pack an AdvMsg
-  transport::Header otherHeader(TRNSP_VERSION, guid, topic, ADV, 3);
+  transport::Header otherHeader(transport::Version, guid, topic,
+                                transport::AdvType, 3);
   std::string address = "tcp://10.0.0.1:6000";
   transport::AdvMsg advMsg(otherHeader, address);
   char *buffer = new char[advMsg.GetMsgLength()];

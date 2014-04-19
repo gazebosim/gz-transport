@@ -16,8 +16,10 @@
 */
 
 #include <limits.h>
+#include <uuid/uuid.h>
 #include "ignition/transport/discZmq.hh"
 #include "gtest/gtest.h"
+#include <thread>
 
 using namespace ignition;
 
@@ -30,6 +32,22 @@ void cb(const std::string &_topic, const std::string &_data)
   assert(_topic != "");
   EXPECT_EQ(_data, "someData");
   callbackExecuted = true;
+}
+
+//////////////////////////////////////////////////
+void CreateSubscriber(uuid_t *_guid)
+{
+	std::string master = "";
+	std::string topic1 = "foo";
+	bool verbose = true;
+	transport::Node node(master, verbose, _guid);
+	EXPECT_EQ(node.Subscribe(topic1, cb), 0);
+	node.SpinOnce();
+	while (!callbackExecuted)
+	{
+		sleep(1);
+		node.SpinOnce();
+	}
 }
 
 //////////////////////////////////////////////////
@@ -48,7 +66,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSub)
+/*TEST(DiscZmqTest, PubSubSameThread)
 {
 	callbackExecuted = false;
 	std::string master = "";
@@ -86,6 +104,44 @@ TEST(DiscZmqTest, PubSub)
 	s_sleep(100);
 	node.SpinOnce();
 	EXPECT_FALSE(callbackExecuted);
+}*/
+
+//////////////////////////////////////////////////
+TEST(DiscZmqTest, PubSubSameProcess)
+{
+	callbackExecuted = false;
+	std::string master = "";
+	bool verbose = false;
+	std::string topic1 = "foo";
+	std::string data = "someData";
+
+	// Create the transport node
+	uuid_t guid;
+	uuid_generate(guid);
+	transport::Node node(master, verbose, &guid);
+	EXPECT_EQ(node.Advertise(topic1), 0);
+	s_sleep(100);
+	node.SpinOnce();
+
+	getchar();
+
+	// Subscribe to topic1 in a different thread
+	std::thread subscribeThread(CreateSubscriber, &guid);
+	s_sleep(100);
+	node.SpinOnce();
+
+	getchar();
+
+	// Advertise and publish some data on topic1
+	EXPECT_EQ(node.Publish(topic1, data), 0);
+	s_sleep(100);
+	node.SpinOnce();
+
+	subscribeThread.join();
+
+	// Check that the data was received
+	EXPECT_TRUE(callbackExecuted);
+	callbackExecuted = false;
 }
 
 //////////////////////////////////////////////////

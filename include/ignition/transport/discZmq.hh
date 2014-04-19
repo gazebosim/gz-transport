@@ -20,12 +20,12 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <zmq.hpp>
+#include <zmsg.hpp>
 #include <string>
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
-#include "ignition/transport/zmq/zmq.hpp"
-#include "ignition/transport/zmq/zmsg.hpp"
 
 namespace ignition
 {
@@ -42,7 +42,8 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _master End point with the master's endpoint.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node (std::string _master, bool _verbose);
+      public: Node (const std::string &_master, bool _verbose,
+                    uuid_t *_guid = nullptr);
 
       /// \brief Destructor.
       public: virtual ~Node();

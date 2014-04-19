@@ -17,6 +17,8 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <zmq.hpp>
+#include <zmsg.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -25,13 +27,11 @@
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
-#include "ignition/transport/zmq/zmq.hpp"
-#include "ignition/transport/zmq/zmsg.hpp"
 
 using namespace ignition;
 
 //////////////////////////////////////////////////
-transport::Node::Node(std::string _master, bool _verbose)
+transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
 {
   char bindEndPoint[1024];
 
@@ -51,8 +51,11 @@ transport::Node::Node(std::string _master, bool _verbose)
   this->bcastSock = new UDPSocket(this->bcastPort);
   this->hostAddr = DetermineHost();
 
-  // Create the GUID
-  uuid_generate(this->guid);
+  if (_guid == nullptr)
+    uuid_generate(this->guid);
+  else
+    uuid_copy(this->guid, *_guid);
+
   this->guidStr = transport::GetGuidStr(this->guid);
 
   // 0MQ
@@ -143,7 +146,7 @@ int transport::Node::Advertise(const std::string &_topic)
   this->topics.SetAdvertisedByMe(_topic, true);
 
   for (auto it = this->myAddresses.begin(); it != this->myAddresses.end(); ++it)
-    this->SendAdvertiseMsg(ADV, _topic, *it);
+    this->SendAdvertiseMsg(transport::AdvType, _topic, *it);
 
   return 0;
 }
@@ -218,7 +221,7 @@ int transport::Node::Subscribe(const std::string &_topic,
   this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
 
   // Discover the list of nodes that publish on the topic
-  return this->SendSubscribeMsg(SUB, _topic);
+  return this->SendSubscribeMsg(transport::SubType, _topic);
 }
 
 //////////////////////////////////////////////////
@@ -251,7 +254,7 @@ int transport::Node::SrvAdvertise(const std::string &_topic,
 
   for (auto it = this->mySrvAddresses.begin();
        it != this->mySrvAddresses.end(); ++it)
-    this->SendAdvertiseMsg(ADV_SVC, _topic, *it);
+    this->SendAdvertiseMsg(transport::AdvSvcType, _topic, *it);
 
   return 0;
 }
@@ -282,7 +285,7 @@ int transport::Node::SrvRequest(const std::string &_topic,
   int retries = 25;
   while (!this->topicsSrvs.Connected(_topic) && retries > 0)
   {
-    this->SendSubscribeMsg(SUB_SVC, _topic);
+    this->SendSubscribeMsg(transport::SubSvcType, _topic);
     this->SpinOnce();
     s_sleep(200);
     --retries;
@@ -337,7 +340,7 @@ int transport::Node::SrvRequestAsync(const std::string &_topic,
   if (this->verbose)
     std::cout << "\nAsync request (" << _topic << ")" << std::endl;
 
-  this->SendSubscribeMsg(SUB_SVC, _topic);
+  this->SendSubscribeMsg(transport::SubSvcType, _topic);
 
   return 0;
 }
@@ -359,9 +362,9 @@ void transport::Node::Fini()
 void transport::Node::RecvDiscoveryUpdates()
 {
   char rcvStr[MaxRcvStr];     // Buffer for data
-  std::string srcAddr;           // Address of datagram source
-  unsigned short srcPort;        // Port of datagram source
-  int bytes;                 // Rcvd from the UDP broadcast socket
+  std::string srcAddr;        // Address of datagram source
+  unsigned short srcPort;     // Port of datagram source
+  int bytes;                  // Rcvd from the UDP broadcast socket
 
   try
   {
@@ -556,7 +559,7 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
 
   switch (header.GetType())
   {
-    case ADV:
+    case transport::AdvType:
       // Read the address
       advMsg.UnpackBody(pBody);
       address = advMsg.GetAddress();
@@ -566,6 +569,10 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
 
       // Register the advertised address for the topic
       this->topics.AddAdvAddress(topic, address);
+
+      std::cout << "subscribed? " << this->topics.Subscribed(topic) << std::endl;
+      std::cout << "connected? " << this->topics.Connected(topic) << std::endl;
+      std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;
 
       // Check if we are interested in this topic
       if (this->topics.Subscribed(topic) &&
@@ -587,7 +594,7 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
 
       break;
 
-    case ADV_SVC:
+    case transport::AdvSvcType:
       // Read the address
       advMsg.UnpackBody(pBody);
       address = advMsg.GetAddress();
@@ -618,19 +625,19 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
 
       break;
 
-    case SUB:
+    case transport::SubType:
       // Check if I advertise the topic requested
       if (this->topics.AdvertisedByMe(topic))
       {
         // Send to the broadcast socket an ADVERTISE message
         for (auto it = this->myAddresses.begin();
              it != this->myAddresses.end(); ++it)
-          this->SendAdvertiseMsg(ADV, topic, *it);
+          this->SendAdvertiseMsg(transport::AdvType, topic, *it);
       }
 
       break;
 
-    case SUB_SVC:
+    case transport::SubSvcType:
       // Check if I advertise the service call requested
       if (this->topicsSrvs.AdvertisedByMe(topic))
       {
@@ -638,7 +645,7 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
         for (auto it = this->mySrvAddresses.begin();
              it != this->mySrvAddresses.end(); ++it)
         {
-          this->SendAdvertiseMsg(ADV_SVC, topic, *it);
+          this->SendAdvertiseMsg(transport::AdvSvcType, topic, *it);
         }
       }
 
@@ -662,7 +669,7 @@ int transport::Node::SendAdvertiseMsg(uint8_t _type, const std::string &_topic,
     std::cout << "\t* Sending ADV msg [" << _topic << "][" << _address
               << "]" << std::endl;
 
-  Header header(TRNSP_VERSION, this->guid, _topic, _type, 0);
+  Header header(transport::Version, this->guid, _topic, _type, 0);
   AdvMsg advMsg(header, _address);
 
   char *buffer = new char[advMsg.GetMsgLength()];
@@ -693,7 +700,7 @@ int transport::Node::SendSubscribeMsg(uint8_t _type, const std::string &_topic)
   if (this->verbose)
     std::cout << "\t* Sending SUB msg [" << _topic << "]" << std::endl;
 
-  Header header(TRNSP_VERSION, this->guid, _topic, _type, 0);
+  Header header(transport::Version, this->guid, _topic, _type, 0);
 
   char *buffer = new char[header.GetHeaderLength()];
   header.Pack(buffer);
