@@ -21,10 +21,10 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <string>
+#include <zmq.hpp>
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
-#include "ignition/transport/zmq.hpp"
 
 namespace ignition
 {

@@ -20,12 +20,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <zmq.hpp>
 #include "ignition/transport/discZmq.hh"
 #include "ignition/transport/netUtils.hh"
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
-#include "ignition/transport/zmq.hpp"
 #include "ignition/transport/zmsg.hpp"
 
 using namespace ignition;
