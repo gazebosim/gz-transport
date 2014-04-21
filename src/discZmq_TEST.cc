@@ -17,9 +17,11 @@
 
 #include <limits.h>
 #include <uuid/uuid.h>
-#include "ignition/transport/discZmq.hh"
-#include "gtest/gtest.h"
 #include <thread>
+#include "ignition/transport/discZmq.hh"
+#include "ignition/transport/zhelpers.hpp"
+#include "gtest/gtest.h"
+
 
 using namespace ignition;
 
@@ -66,7 +68,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, PubSubSameThread)
+TEST(DiscZmqTest, PubSubSameThread)
 {
 	callbackExecuted = false;
 	std::string master = "";
@@ -104,10 +106,10 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 	s_sleep(100);
 	node.SpinOnce();
 	EXPECT_FALSE(callbackExecuted);
-}*/
+}
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameProcess)
+/*TEST(DiscZmqTest, PubSubSameProcess)
 {
 	callbackExecuted = false;
 	std::string master = "";
@@ -142,7 +144,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
 	// Check that the data was received
 	EXPECT_TRUE(callbackExecuted);
 	callbackExecuted = false;
-}
+}*/
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, NPubSub)

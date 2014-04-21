@@ -17,8 +17,6 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
-#include <zmq.hpp>
-#include <zmsg.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -27,6 +25,8 @@
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/zmq.hpp"
+#include "ignition/transport/zmsg.hpp"
 
 using namespace ignition;
 
