@@ -309,18 +309,7 @@ size_t transport::AdvMsg::UnpackBody(char *_buffer)
   _buffer += sizeof(this->addressLength);
 
   // Read the address
-  /*char *newAddress = new char[this->addressLength + 1];
-  memcpy(newAddress, _buffer, this->addressLength);
-  newAddress[this->addressLength] = '\0';
-  this->address = newAddress;
-  delete[] newAddress;*/
-
-  std::vector<char> newAddress;// (this->addressLength + 1);
-  std::copy(_buffer, _buffer + this->addressLength,
-            std::back_inserter(newAddress));
-  //newAddress[this->addressLength] = '\0';
-  newAddress.push_back('\0');
-  this->address = std::string(newAddress.begin(), newAddress.end());
+  this->address = std::string(_buffer, _buffer + this->addressLength);
 
   this->UpdateMsgLength();
 
