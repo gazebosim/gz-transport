@@ -1,7 +1,6 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-	aclass.cc
   discZmq.cc
   netUtils.cc
   packet.cc
