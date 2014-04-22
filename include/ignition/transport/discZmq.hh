@@ -20,6 +20,7 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <zmq.hpp>
@@ -47,12 +48,6 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~Node();
-
-      /// \brief Run one iteration of the transport.
-      public: void SpinOnce();
-
-      /// \brief Receive messages forever.
-      public: void Spin();
 
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
@@ -119,6 +114,12 @@ namespace ignition
                                   const std::string &_data,
         void(*_cb)(const std::string &_topic, int rc, const std::string &_rep));
 
+      /// \brief Run one iteration of the transport.
+      private: void SpinOnce();
+
+      /// \brief Receive messages forever.
+      private: void Spin();
+
       /// \brief Deallocate resources.
       private: void Fini();
 
@@ -184,7 +185,9 @@ namespace ignition
       private: int bcastPort;
 
       /// \brief UDP socket used for the discovery protocol.
-      private: UDPSocket *bcastSock;
+      private: UDPSocket *bcastSockIn;
+
+      private: UDPSocket *bcastSockOut;
 
       /// \brief 0MQ context.
       private: zmq::context_t *context;
@@ -220,6 +223,8 @@ namespace ignition
       private: std::string guidStr;
 
       private: std::thread *inThread;
+
+      private: std::mutex mutex;
     };
   }
 }
