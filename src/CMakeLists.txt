@@ -13,7 +13,6 @@ set (gtest_sources
   discZmq_TEST.cc
   packet_TEST.cc
   topicsInfo_TEST.cc
-  singleton_TEST.cc
 )
 
 ign_build_tests(${gtest_sources})
