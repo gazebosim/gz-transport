@@ -19,6 +19,7 @@
 #include <uuid/uuid.h>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 #include <zmq.hpp>
 #include "ignition/transport/discZmq.hh"
@@ -31,7 +32,7 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
-transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
+transport::Node::Node(const std::string &_master, bool _verbose)
 {
   char bindEndPoint[1024];
 
@@ -51,10 +52,7 @@ transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
   this->bcastSock = new UDPSocket(this->bcastPort);
   this->hostAddr = DetermineHost();
 
-  if (_guid == nullptr)
-    uuid_generate(this->guid);
-  else
-    uuid_copy(this->guid, *_guid);
+  uuid_generate(this->guid);
 
   this->guidStr = transport::GetGuidStr(this->guid);
 
@@ -96,6 +94,8 @@ transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
     std::cout << "Bind at: [" << this->srvRequesterEP << "] for reqs\n";
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
+
+  this->inThread = new std::thread(&transport::Node::Spin, this);
 }
 
 //////////////////////////////////////////////////
@@ -107,7 +107,7 @@ transport::Node::~Node()
 //////////////////////////////////////////////////
 void transport::Node::SpinOnce()
 {
-  this->SendPendingAsyncSrvCalls();
+  // this->SendPendingAsyncSrvCalls();
 
   //  Poll socket for a reply, with timeout
   zmq::pollitem_t items[] = {
@@ -403,7 +403,8 @@ void transport::Node::RecvTopicUpdates()
 
   // Read the DATA message
   std::string topic = std::string((char*)msg->pop_front().c_str());
-  msg->pop_front(); // Sender
+  std::string sender = std::string((char*)msg->pop_front().c_str()); // Sender
+  std::cout << "sender: " << sender << std::endl;
   std::string data = std::string((char*)msg->pop_front().c_str());
 
   if (this->topics.Subscribed(topic))
@@ -570,8 +571,8 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
       // Register the advertised address for the topic
       this->topics.AddAdvAddress(topic, address);
 
-      std::cout << "subscribed? " << this->topics.Subscribed(topic) << std::endl;
-      std::cout << "connected? " << this->topics.Connected(topic) << std::endl;
+      std::cout << "Subscribed? " << this->topics.Subscribed(topic) << std::endl;
+      std::cout << "Connected? " << this->topics.Connected(topic) << std::endl;
       std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;
 
       // Check if we are interested in this topic
@@ -579,6 +580,7 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
           !this->topics.Connected(topic) &&
           this->guidStr.compare(rcvdGuid) != 0)
       {
+        std::cout << "Connecting" << std::endl;
         try
         {
           this->subscriber->connect(address.c_str());

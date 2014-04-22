@@ -21,8 +21,10 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <string>
+#include <thread>
 #include <zmq.hpp>
 #include "ignition/transport/packet.hh"
+#include "ignition/transport/singleton.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
 
@@ -36,13 +38,12 @@ namespace ignition
     /// \brief ZMQ endpoint used for inproc communication.
     const std::string InprocAddr = "inproc://local";
 
-    class Node
+    class Node : public Singleton<Node>
     {
       /// \brief Constructor.
       /// \param[in] _master End point with the master's endpoint.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node (const std::string &_master, bool _verbose,
-                    uuid_t *_guid = nullptr);
+      public: Node (const std::string &_master, bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -217,6 +218,8 @@ namespace ignition
 
       /// \brief String conversion of the GUID.
       private: std::string guidStr;
+
+      private: std::thread *inThread;
     };
   }
 }

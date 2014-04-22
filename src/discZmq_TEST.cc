@@ -37,23 +37,23 @@ void cb(const std::string &_topic, const std::string &_data)
 }
 
 //////////////////////////////////////////////////
-void CreateSubscriber(uuid_t *_guid)
+void CreateSubscriber()
 {
 	std::string master = "";
 	std::string topic1 = "foo";
 	bool verbose = true;
-	transport::Node node(master, verbose, _guid);
-	EXPECT_EQ(node.Subscribe(topic1, cb), 0);
-	node.SpinOnce();
+	transport::Node *node = transport::Node::getInstance(master, verbose);
+	EXPECT_EQ(node->Subscribe(topic1, cb), 0);
+	node->SpinOnce();
 	while (!callbackExecuted)
 	{
 		sleep(1);
-		node.SpinOnce();
+		node->SpinOnce();
 	}
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubWithoutAdvertise)
+/*TEST(DiscZmqTest, PubWithoutAdvertise)
 {
 	std::string master = "";
 	bool verbose = false;
@@ -61,90 +61,88 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 	std::string data = "someData";
 
 	// Subscribe to topic1
-	transport::Node node(master, verbose);
+	transport::Node *node = transport::Node::getInstance(master, verbose);
 
 	// Publish some data on topic1 without advertising it first
-	EXPECT_NE(node.Publish(topic1, data), 0);
-}
+	EXPECT_NE(node->Publish(topic1, data), 0);
+}*/
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameThread)
+/*TEST(DiscZmqTest, PubSubSameThread)
 {
 	callbackExecuted = false;
 	std::string master = "";
-	bool verbose = false;
+	bool verbose = true;
 	std::string topic1 = "foo";
 	std::string data = "someData";
 
 	// Subscribe to topic1
-	transport::Node node(master, verbose);
-	EXPECT_EQ(node.Subscribe(topic1, cb), 0);
-	node.SpinOnce();
+	transport::Node *node = transport::Node::getInstance(master, verbose);
+	EXPECT_EQ(node->Subscribe(topic1, cb), 0);
+	node->SpinOnce();
 
 	// Advertise and publish some data on topic1
-	EXPECT_EQ(node.Advertise(topic1), 0);
-	EXPECT_EQ(node.Publish(topic1, data), 0);
+	EXPECT_EQ(node->Advertise(topic1), 0);
+	EXPECT_EQ(node->Publish(topic1, data), 0);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 
 	// Check that the data was received
 	EXPECT_TRUE(callbackExecuted);
 	callbackExecuted = false;
 
 	// Publish a second message on topic1
-	EXPECT_EQ(node.Publish(topic1, data), 0);
+	EXPECT_EQ(node->Publish(topic1, data), 0);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 
 	// Check that the data was received
 	EXPECT_TRUE(callbackExecuted);
 	callbackExecuted = false;
 
 	// Unadvertise topic1 and publish a third message
-	node.UnAdvertise(topic1);
-	EXPECT_NE(node.Publish(topic1, data), 0);
+	node->UnAdvertise(topic1);
+	EXPECT_NE(node->Publish(topic1, data), 0);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 	EXPECT_FALSE(callbackExecuted);
-}
+}*/
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, PubSubSameProcess)
+TEST(DiscZmqTest, PubSubSameProcess)
 {
 	callbackExecuted = false;
 	std::string master = "";
-	bool verbose = false;
+	bool verbose = true;
 	std::string topic1 = "foo";
 	std::string data = "someData";
 
 	// Create the transport node
-	uuid_t guid;
-	uuid_generate(guid);
-	transport::Node node(master, verbose, &guid);
-	EXPECT_EQ(node.Advertise(topic1), 0);
+	transport::Node *node = transport::Node::getInstance(master, verbose);
+	EXPECT_EQ(node->Advertise(topic1), 0);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 
-	getchar();
+	//getchar();
 
 	// Subscribe to topic1 in a different thread
-	std::thread subscribeThread(CreateSubscriber, &guid);
+	std::thread subscribeThread(CreateSubscriber);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 
-	getchar();
+	//getchar();
 
 	// Advertise and publish some data on topic1
-	EXPECT_EQ(node.Publish(topic1, data), 0);
+	EXPECT_EQ(node->Publish(topic1, data), 0);
 	s_sleep(100);
-	node.SpinOnce();
+	node->SpinOnce();
 
 	subscribeThread.join();
 
 	// Check that the data was received
 	EXPECT_TRUE(callbackExecuted);
 	callbackExecuted = false;
-}*/
+}
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, NPubSub)
