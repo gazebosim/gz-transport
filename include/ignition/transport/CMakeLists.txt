@@ -2,6 +2,7 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
   node.hh
+  nodePrivate.hh
   netUtils.hh
   packet.hh
   topicsInfo.hh

@@ -32,6 +32,8 @@
 #ifndef __ZMSG_H_INCLUDED__
 #define __ZMSG_H_INCLUDED__
 
+#pragma GCC system_header
+
 #include "zhelpers.hpp"
 
 #include <vector>

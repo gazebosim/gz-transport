@@ -20,9 +20,10 @@
 
 // Olivier Chamoux <olivier.chamoux@fr.thalesgroup.com>
 
-
 #ifndef __ZHELPERS_HPP_INCLUDED__
 #define __ZHELPERS_HPP_INCLUDED__
+
+#pragma GCC system_header
 
 //  Include a bunch of headers that we will need in the examples
 

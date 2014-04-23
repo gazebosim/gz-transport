@@ -7,10 +7,10 @@ template< class C >
 class Singleton {
 
 public:
-	static C* getInstance(const std::string &_master, bool _verbose)
+	static C* getInstance(bool _verbose)
 	{
 		if( Singleton<C>::uniqueInstance == NULL )
-			Singleton<C>::uniqueInstance = new C(_master, _verbose);
+			Singleton<C>::uniqueInstance = new C(_verbose);
 
 		return Singleton<C>::uniqueInstance;
 	}
