@@ -1,7 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  discZmq.hh
+  node.hh
   netUtils.hh
   packet.hh
   topicsInfo.hh
