@@ -20,9 +20,12 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <zmq.hpp>
 #include "ignition/transport/packet.hh"
+#include "ignition/transport/singleton.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/topicsInfo.hh"
 
@@ -36,22 +39,15 @@ namespace ignition
     /// \brief ZMQ endpoint used for inproc communication.
     const std::string InprocAddr = "inproc://local";
 
-    class Node
+    class Node : public Singleton<Node>
     {
       /// \brief Constructor.
       /// \param[in] _master End point with the master's endpoint.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node (const std::string &_master, bool _verbose,
-                    uuid_t *_guid = nullptr);
+      public: Node (const std::string &_master, bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~Node();
-
-      /// \brief Run one iteration of the transport.
-      public: void SpinOnce();
-
-      /// \brief Receive messages forever.
-      public: void Spin();
 
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
@@ -118,6 +114,12 @@ namespace ignition
                                   const std::string &_data,
         void(*_cb)(const std::string &_topic, int rc, const std::string &_rep));
 
+      /// \brief Run one iteration of the transport.
+      private: void SpinOnce();
+
+      /// \brief Receive messages forever.
+      private: void Spin();
+
       /// \brief Deallocate resources.
       private: void Fini();
 
@@ -183,7 +185,9 @@ namespace ignition
       private: int bcastPort;
 
       /// \brief UDP socket used for the discovery protocol.
-      private: UDPSocket *bcastSock;
+      private: UDPSocket *bcastSockIn;
+
+      private: UDPSocket *bcastSockOut;
 
       /// \brief 0MQ context.
       private: zmq::context_t *context;
@@ -217,6 +221,10 @@ namespace ignition
 
       /// \brief String conversion of the GUID.
       private: std::string guidStr;
+
+      private: std::thread *inThread;
+
+      private: std::mutex mutex;
     };
   }
 }

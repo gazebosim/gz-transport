@@ -19,6 +19,7 @@
 #include <uuid/uuid.h>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 #include <zmq.hpp>
 #include "ignition/transport/discZmq.hh"
@@ -31,7 +32,7 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
-transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
+transport::Node::Node(const std::string &_master, bool _verbose)
 {
   char bindEndPoint[1024];
 
@@ -48,13 +49,11 @@ transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
   // ToDo Read this from getenv or command line arguments
   this->bcastAddr = "255.255.255.255";
   this->bcastPort = 11312;
-  this->bcastSock = new UDPSocket(this->bcastPort);
+  this->bcastSockIn = new UDPSocket(this->bcastPort);
+  this->bcastSockOut = new UDPSocket();
   this->hostAddr = DetermineHost();
 
-  if (_guid == nullptr)
-    uuid_generate(this->guid);
-  else
-    uuid_copy(this->guid, *_guid);
+  uuid_generate(this->guid);
 
   this->guidStr = transport::GetGuidStr(this->guid);
 
@@ -96,6 +95,8 @@ transport::Node::Node(const std::string &_master, bool _verbose, uuid_t *_guid)
     std::cout << "Bind at: [" << this->srvRequesterEP << "] for reqs\n";
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
+
+  this->inThread = new std::thread(&transport::Node::Spin, this);
 }
 
 //////////////////////////////////////////////////
@@ -107,13 +108,13 @@ transport::Node::~Node()
 //////////////////////////////////////////////////
 void transport::Node::SpinOnce()
 {
-  this->SendPendingAsyncSrvCalls();
+  // this->SendPendingAsyncSrvCalls();
 
   //  Poll socket for a reply, with timeout
   zmq::pollitem_t items[] = {
     { *this->subscriber, 0, ZMQ_POLLIN, 0 },
     { *this->srvReplier, 0, ZMQ_POLLIN, 0 },
-    { 0, this->bcastSock->sockDesc, ZMQ_POLLIN, 0 },
+    { 0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0 },
     { *this->srvRequester, 0, ZMQ_POLLIN, 0 }
   };
   zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
@@ -141,6 +142,8 @@ void transport::Node::Spin()
 //////////////////////////////////////////////////
 int transport::Node::Advertise(const std::string &_topic)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   assert(_topic != "");
 
   this->topics.SetAdvertisedByMe(_topic, true);
@@ -154,6 +157,8 @@ int transport::Node::Advertise(const std::string &_topic)
 //////////////////////////////////////////////////
 int transport::Node::UnAdvertise(const std::string &_topic)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   assert(_topic != "");
 
   this->topics.SetAdvertisedByMe(_topic, false);
@@ -165,6 +170,8 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 int transport::Node::Publish(const std::string &_topic,
             const std::string &_data)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   assert(_topic != "");
 
   if (this->topics.AdvertisedByMe(_topic))
@@ -207,6 +214,8 @@ int transport::Node::Publish(const std::string &_topic,
 int transport::Node::Subscribe(const std::string &_topic,
   void(*_cb)(const std::string &, const std::string &))
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   assert(_topic != "");
   if (this->verbose)
     std::cout << "\nSubscribe (" << _topic << ")\n";
@@ -217,9 +226,6 @@ int transport::Node::Subscribe(const std::string &_topic,
   this->topics.SetSubscribed(_topic, true);
   this->topics.SetCallback(_topic, _cb);
 
-  // Add a filter for this topic
-  this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
-
   // Discover the list of nodes that publish on the topic
   return this->SendSubscribeMsg(transport::SubType, _topic);
 }
@@ -227,6 +233,8 @@ int transport::Node::Subscribe(const std::string &_topic,
 //////////////////////////////////////////////////
 int transport::Node::UnSubscribe(const std::string &_topic)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   assert(_topic != "");
   if (this->verbose)
     std::cout << "\nUnubscribe (" << _topic << ")\n";
@@ -348,6 +356,8 @@ int transport::Node::SrvRequestAsync(const std::string &_topic,
 //////////////////////////////////////////////////
 void transport::Node::Fini()
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   if (this->publisher) delete this->publisher;
   if (this->publisher) delete this->subscriber;
   if (this->publisher) delete this->srvRequester;
@@ -368,7 +378,7 @@ void transport::Node::RecvDiscoveryUpdates()
 
   try
   {
-    bytes = this->bcastSock->recvFrom(rcvStr, MaxRcvStr, srcAddr, srcPort);
+    bytes = this->bcastSockIn->recvFrom(rcvStr, MaxRcvStr, srcAddr, srcPort);
   }
   catch(const SocketException &e)
   {
@@ -387,6 +397,8 @@ void transport::Node::RecvDiscoveryUpdates()
 //////////////////////////////////////////////////
 void transport::Node::RecvTopicUpdates()
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   zmsg *msg = new zmsg(*this->subscriber);
   if (this->verbose)
   {
@@ -403,7 +415,7 @@ void transport::Node::RecvTopicUpdates()
 
   // Read the DATA message
   std::string topic = std::string((char*)msg->pop_front().c_str());
-  msg->pop_front(); // Sender
+  std::string sender = std::string((char*)msg->pop_front().c_str()); // Sender
   std::string data = std::string((char*)msg->pop_front().c_str());
 
   if (this->topics.Subscribed(topic))
@@ -543,6 +555,8 @@ void transport::Node::SendPendingAsyncSrvCalls()
 //////////////////////////////////////////////////
 int transport::Node::DispatchDiscoveryMsg(char *_msg)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   Header header;
   AdvMsg advMsg;
   std::string address;
@@ -570,15 +584,22 @@ int transport::Node::DispatchDiscoveryMsg(char *_msg)
       // Register the advertised address for the topic
       this->topics.AddAdvAddress(topic, address);
 
-      std::cout << "subscribed? " << this->topics.Subscribed(topic) << std::endl;
-      std::cout << "connected? " << this->topics.Connected(topic) << std::endl;
-      std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;
+      /*std::cout << "Subscribed? " << this->topics.Subscribed(topic) << std::endl;
+      std::cout << "Connected? " << this->topics.Connected(topic) << std::endl;
+      std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;*/
+
+      if (this->topics.Subscribed(topic))
+      {
+        // Add a filter for this topic
+        this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
+      }
 
       // Check if we are interested in this topic
       if (this->topics.Subscribed(topic) &&
           !this->topics.Connected(topic) &&
           this->guidStr.compare(rcvdGuid) != 0)
       {
+        std::cout << "Connecting" << std::endl;
         try
         {
           this->subscriber->connect(address.c_str());
@@ -678,7 +699,7 @@ int transport::Node::SendAdvertiseMsg(uint8_t _type, const std::string &_topic,
   // Send the data through the UDP broadcast socket
   try
   {
-    this->bcastSock->sendTo(buffer, advMsg.GetMsgLength(),
+    this->bcastSockOut->sendTo(buffer, advMsg.GetMsgLength(),
       this->bcastAddr, this->bcastPort);
   }
   catch(const SocketException &e)
@@ -708,7 +729,7 @@ int transport::Node::SendSubscribeMsg(uint8_t _type, const std::string &_topic)
   // Send the data through the UDP broadcast socket
   try
   {
-    this->bcastSock->sendTo(buffer, header.GetHeaderLength(),
+    this->bcastSockOut->sendTo(buffer, header.GetHeaderLength(),
       this->bcastAddr, this->bcastPort);
   }
   catch(const SocketException &e)
