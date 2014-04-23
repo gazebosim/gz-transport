@@ -1,7 +1,5 @@
-#ifndef SINGLETON_H_
-#define SINGLETON_H_
-
-#include <iostream>
+#ifndef __IGN_TRANSPORT_SINGLETON_HH_INCLUDED__
+#define __IGN_TRANSPORT_SINGLETON_HH_INCLUDED__
 
 template< class C >
 class Singleton {
@@ -32,4 +30,4 @@ private:
 template< class C >
 C* Singleton<C>::uniqueInstance = NULL;
 
-#endif /* SINGLETON_H_ */
+#endif

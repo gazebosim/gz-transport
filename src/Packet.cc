@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "ignition/transport/packet.hh"
+#include "ignition/transport/Packet.hh"
 
 using namespace ignition;
 

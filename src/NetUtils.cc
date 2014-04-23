@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 #include "ignition/transport/config.hh"
-#include "ignition/transport/netUtils.hh"
+#include "ignition/transport/NetUtils.hh"
 
 #ifdef HAVE_IFADDRS_H
 # include <ifaddrs.h>

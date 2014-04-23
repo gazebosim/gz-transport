@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __TOPICS_INFO_HH_INCLUDED__
-#define __TOPICS_INFO_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
+#define __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 
 #include <functional>
 #include <list>

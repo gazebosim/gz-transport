@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _NODE_PRIVATE_HH_
-#define _NODE_PRIVATE_HH_
+#ifndef _IGN_TRANSPORT_NODEPRIVATE_HH_
+#define _IGN_TRANSPORT_NODEPRIVATE_HH_
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
@@ -24,10 +24,10 @@
 #include <string>
 #include <thread>
 #include <zmq.hpp>
-#include "ignition/transport/packet.hh"
-#include "ignition/transport/singleton.hh"
+#include "ignition/transport/Packet.hh"
+#include "ignition/transport/Singleton.hh"
 #include "ignition/transport/socket.hh"
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/TopicsInfo.hh"
 
 namespace ignition
 {

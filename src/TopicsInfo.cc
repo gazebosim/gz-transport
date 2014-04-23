@@ -17,7 +17,7 @@
 
 #include <algorithm>
 #include <string>
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/TopicsInfo.hh"
 
 using namespace ignition;
 

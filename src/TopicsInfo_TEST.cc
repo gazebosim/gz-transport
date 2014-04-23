@@ -16,7 +16,7 @@
 */
 
 #include <string>
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/TopicsInfo.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;

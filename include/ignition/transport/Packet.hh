@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __PACKET_HH_INCLUDED__
-#define __PACKET_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_PACKET_HH_INCLUDED__
+#define __IGN_TRANSPORT_PACKET_HH_INCLUDED__
 
 #include <uuid/uuid.h>
 #include <cstdint>

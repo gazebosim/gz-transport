@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __NET_UTILS_HH_INCLUDED__
-#define __NET_UTILS_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
+#define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
 

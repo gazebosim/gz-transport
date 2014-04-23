@@ -15,21 +15,12 @@
  *
 */
 
-#ifndef __NODE_HH_INCLUDED__
-#define __NODE_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_NODE_HH_INCLUDED__
+#define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
-#include <memory>
-#include <mutex>
 #include <string>
-#include <thread>
-#include <zmq.hpp>
-#include "ignition/transport/packet.hh"
-#include "ignition/transport/nodePrivate.hh"
-#include "ignition/transport/singleton.hh"
-#include "ignition/transport/socket.hh"
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/NodePrivate.hh"
 
 namespace ignition
 {

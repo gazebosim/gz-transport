@@ -1,18 +1,18 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-  node.cc
-  nodePrivate.cc
-  netUtils.cc
-  packet.cc
-  topicsInfo.cc
+  Node.cc
+  NodePrivate.cc
+  NetUtils.cc
+  Packet.cc
+  TopicsInfo.cc
   socket.cc
 )
 
 set (gtest_sources
-  node_TEST.cc
-  packet_TEST.cc
-  topicsInfo_TEST.cc
+  Node_TEST.cc
+  Packet_TEST.cc
+  TopicsInfo_TEST.cc
 )
 
 ign_build_tests(${gtest_sources})

@@ -1,11 +1,11 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  node.hh
-  nodePrivate.hh
-  netUtils.hh
-  packet.hh
-  topicsInfo.hh
+  Node.hh
+  NodePrivate.hh
+  NetUtils.hh
+  Packet.hh
+  TopicsInfo.hh
   socket.hh
 )
 
