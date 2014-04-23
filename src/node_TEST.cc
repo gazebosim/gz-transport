@@ -18,7 +18,7 @@
 #include <limits.h>
 #include <uuid/uuid.h>
 #include <thread>
-#include "ignition/transport/discZmq.hh"
+#include "ignition/transport/node.hh"
 #include "ignition/transport/zhelpers.hpp"
 #include "gtest/gtest.h"
 

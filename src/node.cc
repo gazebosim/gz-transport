@@ -22,7 +22,7 @@
 #include <thread>
 #include <vector>
 #include <zmq.hpp>
-#include "ignition/transport/discZmq.hh"
+#include "ignition/transport/node.hh"
 #include "ignition/transport/netUtils.hh"
 #include "ignition/transport/packet.hh"
 #include "ignition/transport/socket.hh"

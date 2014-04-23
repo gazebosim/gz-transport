@@ -1,7 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-  discZmq.cc
+  node.cc
   netUtils.cc
   packet.cc
   topicsInfo.cc
@@ -9,7 +9,7 @@ set (sources
 )
 
 set (gtest_sources
-  discZmq_TEST.cc
+  node_TEST.cc
   packet_TEST.cc
   topicsInfo_TEST.cc
 )
