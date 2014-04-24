@@ -30,7 +30,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node (bool _verbose);
+      public: Node(bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~Node();

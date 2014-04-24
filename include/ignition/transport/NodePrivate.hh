@@ -20,10 +20,11 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <zmq.hpp>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <zmq.hpp>
+#include <vector>
 #include "ignition/transport/Singleton.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"
@@ -43,7 +44,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: NodePrivate (bool _verbose);
+      public: NodePrivate(bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~NodePrivate();

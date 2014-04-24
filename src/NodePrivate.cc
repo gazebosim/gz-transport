@@ -282,8 +282,9 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
 }
 
 //////////////////////////////////////////////////
-int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type, const std::string &_topic,
-                                      const std::string &_address)
+int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
+                                             const std::string &_topic,
+                                             const std::string &_address)
 {
   assert(_topic != "");
 
@@ -315,7 +316,8 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type, const std::string &_
 }
 
 //////////////////////////////////////////////////
-int transport::NodePrivate::SendSubscribeMsg(uint8_t _type, const std::string &_topic)
+int transport::NodePrivate::SendSubscribeMsg(uint8_t _type,
+                                             const std::string &_topic)
 {
   assert(_topic != "");
 
