@@ -16,17 +16,12 @@
 */
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <iostream>
+#include <mutex>
 #include <string>
-#include <thread>
-#include <vector>
 #include <zmq.hpp>
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/socket.hh"
-#include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/zmsg.hpp"
 
 using namespace ignition;

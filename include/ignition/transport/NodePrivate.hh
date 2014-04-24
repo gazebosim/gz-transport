@@ -24,7 +24,6 @@
 #include <string>
 #include <thread>
 #include <zmq.hpp>
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Singleton.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"

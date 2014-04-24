@@ -18,9 +18,9 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <vector>
 #include <zmq.hpp>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NetUtils.hh"
