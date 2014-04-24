@@ -280,7 +280,6 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
   Header header(transport::Version, this->guid, _topic, _type, 0);
   AdvMsg advMsg(header, _address);
 
-  //char *buffer = new char[advMsg.GetMsgLength()];
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 

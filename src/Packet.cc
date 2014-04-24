@@ -191,12 +191,8 @@ size_t transport::Header::Unpack(const char *_buffer)
   _buffer += sizeof(this->topicLength);
 
   // Read the topic
-  char *newTopic = new char[this->topicLength + 1];
-  memcpy(newTopic, _buffer, this->topicLength);
-  newTopic[this->topicLength] = '\0';
-  this->topic = newTopic;
+  this->topic = std::string(_buffer, _buffer + this->topicLength);
   _buffer += this->topicLength;
-  delete[] newTopic;
 
   // Read the message type
   memcpy(&this->type, _buffer, sizeof(this->type));
