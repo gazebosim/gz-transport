@@ -72,7 +72,7 @@ namespace ignition
 
       /// \internal
       /// \brief Pointer to private data.
-      protected: transport::NodePrivate *dataPtr;
+      protected: transport::NodePrivate &dataPtr;
     };
   }
 }

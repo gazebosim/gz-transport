@@ -26,7 +26,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "ignition/transport/Singleton.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
@@ -41,8 +40,10 @@ namespace ignition
     const std::string InprocAddr = "inproc://local";
 
     /// \brief public data for the Node class.
-    class NodePrivate : public Singleton<NodePrivate>
+    class NodePrivate
     {
+      public: static NodePrivate& GetInstance(bool _verbose);
+
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
       public: NodePrivate(bool _verbose);

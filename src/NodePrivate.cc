@@ -32,6 +32,13 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
+transport::NodePrivate& transport::NodePrivate::GetInstance(bool _verbose)
+{
+  static NodePrivate *instance = new NodePrivate(_verbose);
+  return *instance;
+}
+
+//////////////////////////////////////////////////
 transport::NodePrivate::NodePrivate(bool _verbose)
   : bcastPort(11312),
     bcastSockIn(new UDPSocket(this->bcastPort)),

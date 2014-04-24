@@ -28,7 +28,7 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::Node::Node(bool _verbose)
-  : dataPtr(transport::NodePrivate::getInstance(_verbose))
+  : dataPtr(transport::NodePrivate::GetInstance(_verbose))
 {
 }
 
@@ -40,14 +40,14 @@ transport::Node::~Node()
 //////////////////////////////////////////////////
 int transport::Node::Advertise(const std::string &_topic)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   assert(_topic != "");
 
-  this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
+  this->dataPtr.topics.SetAdvertisedByMe(_topic, true);
 
-  for (auto addr : this->dataPtr->myAddresses)
-    this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, addr);
+  for (auto addr : this->dataPtr.myAddresses)
+    this->dataPtr.SendAdvertiseMsg(transport::AdvType, _topic, addr);
 
   return 0;
 }
@@ -55,11 +55,11 @@ int transport::Node::Advertise(const std::string &_topic)
 //////////////////////////////////////////////////
 int transport::Node::UnAdvertise(const std::string &_topic)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   assert(_topic != "");
 
-  this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
+  this->dataPtr.topics.SetAdvertisedByMe(_topic, false);
 
   return 0;
 }
@@ -68,29 +68,29 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 int transport::Node::Publish(const std::string &_topic,
             const std::string &_data)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   assert(_topic != "");
 
-  if (this->dataPtr->topics.AdvertisedByMe(_topic))
+  if (this->dataPtr.topics.AdvertisedByMe(_topic))
   {
     zmsg msg;
-    std::string sender = this->dataPtr->tcpEndpoint;
+    std::string sender = this->dataPtr.tcpEndpoint;
     msg.push_back((char*)_topic.c_str());
     msg.push_back((char*)sender.c_str());
     msg.push_back((char*)_data.c_str());
 
-    if (this->dataPtr->verbose)
+    if (this->dataPtr.verbose)
     {
       std::cout << "\nPublish(" << _topic << ")" << std::endl;
       msg.dump();
     }
-    msg.send(*this->dataPtr->publisher);
+    msg.send(*this->dataPtr.publisher);
     return 0;
   }
   else
   {
-    if (this->dataPtr->verbose)
+    if (this->dataPtr.verbose)
       std::cerr << "\nNot published. (" << _topic << ") not advertised\n";
     return -1;
   }
@@ -112,36 +112,36 @@ int transport::Node::Publish(const std::string &_topic,
 int transport::Node::Subscribe(const std::string &_topic,
   void(*_cb)(const std::string &, const std::string &))
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   assert(_topic != "");
-  if (this->dataPtr->verbose)
+  if (this->dataPtr.verbose)
     std::cout << "\nSubscribe (" << _topic << ")\n";
 
   // Register our interest on the topic
   // The last subscribe call replaces previous subscriptions. If this is
   // a problem, we have to store a list of callbacks.
-  this->dataPtr->topics.SetSubscribed(_topic, true);
-  this->dataPtr->topics.SetCallback(_topic, _cb);
+  this->dataPtr.topics.SetSubscribed(_topic, true);
+  this->dataPtr.topics.SetCallback(_topic, _cb);
 
   // Discover the list of nodes that publish on the topic
-  return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
+  return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
 }
 
 //////////////////////////////////////////////////
 int transport::Node::UnSubscribe(const std::string &_topic)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   assert(_topic != "");
-  if (this->dataPtr->verbose)
+  if (this->dataPtr.verbose)
     std::cout << "\nUnubscribe (" << _topic << ")\n";
 
-  this->dataPtr->topics.SetSubscribed(_topic, false);
-  this->dataPtr->topics.SetCallback(_topic, nullptr);
+  this->dataPtr.topics.SetSubscribed(_topic, false);
+  this->dataPtr.topics.SetCallback(_topic, nullptr);
 
   // Remove the filter for this topic
-  this->dataPtr->subscriber->setsockopt(ZMQ_UNSUBSCRIBE, _topic.data(),
+  this->dataPtr.subscriber->setsockopt(ZMQ_UNSUBSCRIBE, _topic.data(),
                                        _topic.size());
   return 0;
 }
