@@ -45,13 +45,7 @@ namespace ignition
       /// \return 0 when success.
       public: int UnAdvertise(const std::string &_topic);
 
-      /// \brief Publish data.
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _data Data to publish.
-      /// \return 0 when success.
-      public: int Publish(const std::string &_topic, const std::string &_data);
-
-      /// \brief Publish data.
+      /// \ Publish data.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _message protobuf message.
       /// \return 0 when success.

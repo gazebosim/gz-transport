@@ -57,6 +57,12 @@ namespace ignition
       /// \brief Receive messages forever.
       public: void Spin();
 
+      /// \brief Publish data.
+      /// \param[in] _topic Topic to be published.
+      /// \param[in] _data Data to publish.
+      /// \return 0 when success.
+      public: int Publish(const std::string &_topic, const std::string &_data);
+
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdates();
 

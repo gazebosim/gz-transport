@@ -129,6 +129,38 @@ void transport::NodePrivate::Spin()
 }
 
 //////////////////////////////////////////////////
+int transport::NodePrivate::Publish(const std::string &_topic,
+                                    const std::string &_data)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  assert(_topic != "");
+
+  if (this->topics.AdvertisedByMe(_topic))
+  {
+    zmsg msg;
+    std::string sender = this->tcpEndpoint;
+    msg.push_back((char*)_topic.c_str());
+    msg.push_back((char*)sender.c_str());
+    msg.push_back((char*)_data.c_str());
+
+    if (this->verbose)
+    {
+      std::cout << "\nPublish(" << _topic << ")" << std::endl;
+      msg.dump();
+    }
+    msg.send(*this->publisher);
+    return 0;
+  }
+  else
+  {
+    if (this->verbose)
+      std::cerr << "\nNot published. (" << _topic << ") not advertised\n";
+    return -1;
+  }
+}
+
+//////////////////////////////////////////////////
 void transport::NodePrivate::RecvDiscoveryUpdates()
 {
   char rcvStr[MaxRcvStr];     // Buffer for data

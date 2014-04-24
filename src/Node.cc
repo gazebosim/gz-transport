@@ -66,38 +66,6 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 
 //////////////////////////////////////////////////
 int transport::Node::Publish(const std::string &_topic,
-            const std::string &_data)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
-
-  assert(_topic != "");
-
-  if (this->dataPtr.topics.AdvertisedByMe(_topic))
-  {
-    zmsg msg;
-    std::string sender = this->dataPtr.tcpEndpoint;
-    msg.push_back((char*)_topic.c_str());
-    msg.push_back((char*)sender.c_str());
-    msg.push_back((char*)_data.c_str());
-
-    if (this->dataPtr.verbose)
-    {
-      std::cout << "\nPublish(" << _topic << ")" << std::endl;
-      msg.dump();
-    }
-    msg.send(*this->dataPtr.publisher);
-    return 0;
-  }
-  else
-  {
-    if (this->dataPtr.verbose)
-      std::cerr << "\nNot published. (" << _topic << ") not advertised\n";
-    return -1;
-  }
-}
-
-//////////////////////////////////////////////////
-int transport::Node::Publish(const std::string &_topic,
             const google::protobuf::Message &_message)
 {
   assert(_topic != "");
@@ -105,7 +73,7 @@ int transport::Node::Publish(const std::string &_topic,
   std::string data;
   _message.SerializeToString(&data);
 
-  return this->Publish(_topic, data);
+  return this->dataPtr.Publish(_topic, data);
 }
 
 //////////////////////////////////////////////////

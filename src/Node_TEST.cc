@@ -33,15 +33,6 @@ bool callbackExecuted;
 void cb(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
-  EXPECT_EQ(_data, "someData");
-  callbackExecuted = true;
-}
-
-//////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic, const std::string &_data)
-{
-  assert(_topic != "");
 
   transport::StringMsg str;
   str.ParseFromString(_data);
@@ -66,12 +57,14 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
+  transport::StringMsg msg;
+  msg.set_data(data);
 
   // Subscribe to topic1
   transport::Node node(verbose);
 
   // Publish some data on topic1 without advertising it first
-  EXPECT_NE(node.Publish(topic1, data), 0);
+  EXPECT_NE(node.Publish(topic1, msg), 0);
 }
 
 //////////////////////////////////////////////////
@@ -81,6 +74,8 @@ TEST(DiscZmqTest, PubSubSameThread)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
+  transport::StringMsg msg;
+  msg.set_data(data);
 
   transport::Node node(verbose);
 
@@ -91,16 +86,16 @@ TEST(DiscZmqTest, PubSubSameThread)
   EXPECT_EQ(node.Subscribe(topic1, cb), 0);
   s_sleep(100);
 
-  // Publish some data on topic1
-  EXPECT_EQ(node.Publish(topic1, data), 0);
+  // Publish a msg on topic1
+  EXPECT_EQ(node.Publish(topic1, msg), 0);
   s_sleep(100);
 
-  // Check that the data was received
+  // Check that the msg was received
   EXPECT_TRUE(callbackExecuted);
   callbackExecuted = false;
 
   // Publish a second message on topic1
-  EXPECT_EQ(node.Publish(topic1, data), 0);
+  EXPECT_EQ(node.Publish(topic1, msg), 0);
   s_sleep(100);
 
   // Check that the data was received
@@ -109,7 +104,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   // Unadvertise topic1 and publish a third message
   node.UnAdvertise(topic1);
-  EXPECT_NE(node.Publish(topic1, data), 0);
+  EXPECT_NE(node.Publish(topic1, msg), 0);
   s_sleep(100);
   EXPECT_FALSE(callbackExecuted);
 }
@@ -121,6 +116,8 @@ TEST(DiscZmqTest, PubSubSameProcess)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
+  transport::StringMsg msg;
+  msg.set_data(data);
 
   // Create the transport node
   transport::Node node(verbose);
@@ -131,39 +128,11 @@ TEST(DiscZmqTest, PubSubSameProcess)
   std::thread subscribeThread(CreateSubscriber);
   s_sleep(100);
 
-  // Advertise and publish some data on topic1
-  EXPECT_EQ(node.Publish(topic1, data), 0);
+  // Advertise and publish a msg on topic1
+  EXPECT_EQ(node.Publish(topic1, msg), 0);
   s_sleep(100);
 
   subscribeThread.join();
-
-  // Check that the data was received
-  EXPECT_TRUE(callbackExecuted);
-  callbackExecuted = false;
-}
-
-//////////////////////////////////////////////////
-TEST(DiscZmqTest, protobufs)
-{
-  callbackExecuted = false;
-  bool verbose = false;
-  std::string topic1 = "foo";
-
-  // Create the transport node
-  transport::Node node(verbose);
-  EXPECT_EQ(node.Advertise(topic1), 0);
-  s_sleep(100);
-
-  // Subscribe to topic1
-  EXPECT_EQ(node.Subscribe(topic1, cb2), 0);
-  s_sleep(100);
-
-  // Publish some data on topic1
-  transport::StringMsg str;
-  str.set_data("someData");
-
-  EXPECT_EQ(node.Publish(topic1, str), 0);
-  s_sleep(100);
 
   // Check that the data was received
   EXPECT_TRUE(callbackExecuted);
