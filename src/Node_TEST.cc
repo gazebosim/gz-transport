@@ -22,7 +22,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/zhelpers.hpp"
 #include "gtest/gtest.h"
-#include "../build/msgs/String.pb.h"
+#include "../msgs/cpp/String.pb.h"
 
 using namespace ignition;
 
@@ -45,7 +45,7 @@ void cb2(const std::string &_topic, const std::string &_data)
 
   transport::StringMsg str;
   str.ParseFromString(_data);
-  EXPECT_EQ(str.name(), "someData");
+  EXPECT_EQ(str.data(), "someData");
   callbackExecuted = true;
 }
 
@@ -160,7 +160,7 @@ TEST(DiscZmqTest, protobufs)
 
   // Publish some data on topic1
   transport::StringMsg str;
-  str.set_name("someData");
+  str.set_data("someData");
 
   EXPECT_EQ(node.Publish(topic1, str), 0);
   s_sleep(100);

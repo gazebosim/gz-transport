@@ -247,9 +247,12 @@ else (build_errors)
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
+  set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
+                            GENERATED TRUE)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
+    #add_subdirectory(msgs)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(test)
