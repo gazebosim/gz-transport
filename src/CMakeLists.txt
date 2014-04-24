@@ -7,6 +7,7 @@ set (sources
   Packet.cc
   TopicsInfo.cc
   socket.cc
+  ../build/msgs/String.pb.cc
 )
 
 set (gtest_sources

@@ -1,0 +1,5 @@
+package ignition.transport;
+
+message StringMsg {
+  required string name = 1;
+}

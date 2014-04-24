@@ -22,6 +22,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/zhelpers.hpp"
 #include "gtest/gtest.h"
+#include "../build/msgs/String.pb.h"
 
 using namespace ignition;
 
@@ -33,6 +34,18 @@ void cb(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
   EXPECT_EQ(_data, "someData");
+  callbackExecuted = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function is called everytime a topic update is received.
+void cb2(const std::string &_topic, const std::string &_data)
+{
+  assert(_topic != "");
+
+  transport::StringMsg str;
+  str.ParseFromString(_data);
+  EXPECT_EQ(str.name(), "someData");
   callbackExecuted = true;
 }
 
@@ -123,6 +136,34 @@ TEST(DiscZmqTest, PubSubSameProcess)
   s_sleep(100);
 
   subscribeThread.join();
+
+  // Check that the data was received
+  EXPECT_TRUE(callbackExecuted);
+  callbackExecuted = false;
+}
+
+//////////////////////////////////////////////////
+TEST(DiscZmqTest, protobufs)
+{
+  callbackExecuted = false;
+  bool verbose = false;
+  std::string topic1 = "foo";
+
+  // Create the transport node
+  transport::Node node(verbose);
+  EXPECT_EQ(node.Advertise(topic1), 0);
+  s_sleep(100);
+
+  // Subscribe to topic1
+  EXPECT_EQ(node.Subscribe(topic1, cb2), 0);
+  s_sleep(100);
+
+  // Publish some data on topic1
+  transport::StringMsg str;
+  str.set_name("someData");
+
+  EXPECT_EQ(node.Publish(topic1, str), 0);
+  s_sleep(100);
 
   // Check that the data was received
   EXPECT_TRUE(callbackExecuted);
