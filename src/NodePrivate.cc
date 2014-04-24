@@ -33,6 +33,12 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::NodePrivate::NodePrivate(bool _verbose)
+  : bcastPort(11312),
+    bcastSockIn(new UDPSocket(this->bcastPort)),
+    bcastSockOut(new UDPSocket()),
+    context(new zmq::context_t(1)),
+    publisher(new zmq::socket_t(*context, ZMQ_PUB)),
+    subscriber(new zmq::socket_t(*context, ZMQ_SUB))
 {
   char bindEndPoint[1024];
 
@@ -49,9 +55,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 
   // ToDo Read this from getenv or command line arguments
   this->bcastAddr = "255.255.255.255";
-  this->bcastPort = 11312;
-  this->bcastSockIn = new UDPSocket(this->bcastPort);
-  this->bcastSockOut = new UDPSocket();
   this->hostAddr = DetermineHost();
 
   uuid_generate(this->guid);
@@ -61,9 +64,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   // 0MQ
   try
   {
-    this->context = new zmq::context_t(1);
-    this->publisher = new zmq::socket_t(*this->context, ZMQ_PUB);
-    this->subscriber = new zmq::socket_t(*this->context, ZMQ_SUB);
     std::string anyTcpEP = "tcp://" + this->hostAddr + ":*";
     this->publisher->bind(anyTcpEP.c_str());
     size_t size = sizeof(bindEndPoint);
@@ -76,7 +76,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   catch(const zmq::error_t& ze)
   {
      std::cerr << "Error: " << ze.what() << std::endl;
-     this->Fini();
      exit(EXIT_FAILURE);
   }
 
@@ -94,7 +93,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 //////////////////////////////////////////////////
 transport::NodePrivate::~NodePrivate()
 {
-  this->Fini();
 }
 
 //////////////////////////////////////////////////
@@ -121,18 +119,6 @@ void transport::NodePrivate::Spin()
   {
     this->SpinOnce();
   }
-}
-
-//////////////////////////////////////////////////
-void transport::NodePrivate::Fini()
-{
-  std::lock_guard<std::mutex> lock(this->mutex);
-
-  if (this->publisher) delete this->publisher;
-  if (this->publisher) delete this->subscriber;
-  if (this->publisher) delete this->context;
-
-  this->myAddresses.clear();
 }
 
 //////////////////////////////////////////////////
@@ -294,23 +280,22 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
   Header header(transport::Version, this->guid, _topic, _type, 0);
   AdvMsg advMsg(header, _address);
 
-  char *buffer = new char[advMsg.GetMsgLength()];
-  advMsg.Pack(buffer);
+  //char *buffer = new char[advMsg.GetMsgLength()];
+  std::vector<char> buffer(advMsg.GetMsgLength());
+  advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Send the data through the UDP broadcast socket
   try
   {
-    this->bcastSockOut->sendTo(buffer, advMsg.GetMsgLength(),
-      this->bcastAddr, this->bcastPort);
+    this->bcastSockOut->sendTo(reinterpret_cast<char*>(&buffer[0]),
+      advMsg.GetMsgLength(), this->bcastAddr, this->bcastPort);
   }
   catch(const SocketException &e)
   {
     cerr << "Exception sending an ADV msg: " << e.what() << endl;
-    delete[] buffer;
     return -1;
   }
 
-  delete[] buffer;
   return 0;
 }
 
@@ -325,22 +310,20 @@ int transport::NodePrivate::SendSubscribeMsg(uint8_t _type,
 
   Header header(transport::Version, this->guid, _topic, _type, 0);
 
-  char *buffer = new char[header.GetHeaderLength()];
-  header.Pack(buffer);
+  std::vector<char> buffer(header.GetHeaderLength());
+  header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Send the data through the UDP broadcast socket
   try
   {
-    this->bcastSockOut->sendTo(buffer, header.GetHeaderLength(),
-      this->bcastAddr, this->bcastPort);
+    this->bcastSockOut->sendTo(reinterpret_cast<char*>(&buffer[0]),
+      header.GetHeaderLength(), this->bcastAddr, this->bcastPort);
   }
   catch(const SocketException &e)
   {
     cerr << "Exception sending a SUB msg: " << e.what() << endl;
-    delete[] buffer;
     return -1;
   }
 
-  delete[] buffer;
   return 0;
 }

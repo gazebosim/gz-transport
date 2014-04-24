@@ -21,6 +21,7 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -55,9 +56,6 @@ namespace ignition
       /// \brief Receive messages forever.
       public: void Spin();
 
-      /// \brief Deallocate resources.
-      public: void Fini();
-
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdates();
 
@@ -75,7 +73,7 @@ namespace ignition
       /// \param[in] _address Address to be advertised with the topic.
       /// \return 0 when success.
       public: int SendAdvertiseMsg(uint8_t _type, const std::string &_topic,
-                                    const std::string &_address);
+                                   const std::string &_address);
 
       /// \brief Send a SUBSCRIBE message to the discovery socket.
       /// \param[in] _type SUB or SUB_SVC.
@@ -102,19 +100,19 @@ namespace ignition
       public: int bcastPort;
 
       /// \brief UDP socket used for receiving discovery messages.
-      public: UDPSocket *bcastSockIn;
+      public: std::unique_ptr<UDPSocket> bcastSockIn;
 
       /// \brief UDP socket used for sending discovery messages.
-      public: UDPSocket *bcastSockOut;
+      public: std::unique_ptr<UDPSocket> bcastSockOut;
 
       /// \brief 0MQ context.
-      public: zmq::context_t *context;
+      public: std::unique_ptr<zmq::context_t> context;
 
       /// \brief ZMQ socket to send topic updates.
-      public: zmq::socket_t *publisher;
+      public: std::unique_ptr<zmq::socket_t> publisher;
 
       /// \brief ZMQ socket to receive topic updates.
-      public: zmq::socket_t *subscriber;
+      public: std::unique_ptr<zmq::socket_t> subscriber;
 
       /// \brief ZMQ tcp local endpoint.
       public: std::string tcpEndpoint;
