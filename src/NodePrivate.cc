@@ -266,9 +266,8 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
       if (this->topics.AdvertisedByMe(topic))
       {
         // Send to the broadcast socket an ADVERTISE message
-        for (auto it = this->myAddresses.begin();
-             it != this->myAddresses.end(); ++it)
-          this->SendAdvertiseMsg(transport::AdvType, topic, *it);
+        for (auto addr : this->myAddresses)
+          this->SendAdvertiseMsg(transport::AdvType, topic, addr);
       }
 
       break;

@@ -46,9 +46,8 @@ int transport::Node::Advertise(const std::string &_topic)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
-  for (auto it = this->dataPtr->myAddresses.begin();
-            it != this->dataPtr->myAddresses.end(); ++it)
-    this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, *it);
+  for (auto addr : this->dataPtr->myAddresses)
+    this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, addr);
 
   return 0;
 }
