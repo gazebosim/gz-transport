@@ -16,6 +16,7 @@
 */
 
 #include <algorithm>
+#include <iostream>
 #include <string>
 #include "ignition/transport/TopicsInfo.hh"
 
@@ -36,8 +37,7 @@ transport::TopicInfo::TopicInfo()
 //////////////////////////////////////////////////
 transport::TopicInfo::~TopicInfo()
 {
-  this->addresses.clear();
-  this->pendingReqs.clear();
+  std::cout << "Destructor" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -48,10 +48,6 @@ transport::TopicsInfo::TopicsInfo()
 //////////////////////////////////////////////////
 transport::TopicsInfo::~TopicsInfo()
 {
-  for (auto topicInfo : this->GetTopicsInfo())
-    delete topicInfo.second;
-
-  this->topicsInfo.clear();
 }
 
 //////////////////////////////////////////////////
@@ -169,8 +165,8 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
   // If we don't have the topic registered, add a new TopicInfo
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   // If we had the topic but not the address, add the new address
@@ -202,8 +198,8 @@ void transport::TopicsInfo::SetConnected(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->connected = _value;
@@ -215,8 +211,8 @@ void transport::TopicsInfo::SetSubscribed(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->subscribed = _value;
@@ -228,8 +224,8 @@ void transport::TopicsInfo::SetRequested(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->requested = _value;
@@ -241,8 +237,8 @@ void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->advertisedByMe = _value;
@@ -254,8 +250,8 @@ void transport::TopicsInfo::SetCallback(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->cb = _cb;
@@ -267,8 +263,8 @@ void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->reqCb = _cb;
@@ -280,8 +276,8 @@ void transport::TopicsInfo::SetRepCallback(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->repCb = _cb;
@@ -293,8 +289,8 @@ void transport::TopicsInfo::AddReq(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->pendingReqs.push_back(_data);

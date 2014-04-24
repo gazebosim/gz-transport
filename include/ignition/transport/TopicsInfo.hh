@@ -21,6 +21,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -47,7 +48,8 @@ namespace ignition
                                          std::string &)> RepCallback;
 
       /// \brief Map used for store all the knowledge about a given topic.
-      public: typedef std::map<std::string, TopicInfo*> Topics_M;
+      public: typedef std::map<std::string,
+                               std::shared_ptr<TopicInfo> > Topics_M;
 
       /// \brief Constructor.
       public: TopicInfo();
