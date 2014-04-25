@@ -50,7 +50,14 @@ namespace ignition
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
       public: int Publish(const std::string &_topic,
-                          const google::protobuf::Message &_message);
+                     const std::shared_ptr<google::protobuf::Message> &_msgPtr);
+
+      /// \ Publish data.
+      /// \param[in] _topic Topic to be published.
+      /// \param[in] _message protobuf message.
+      /// \return 0 when success.
+      public: int PublishLocal(const std::string &_topic,
+                     const std::shared_ptr<google::protobuf::Message> &_msgPtr);
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be subscribed.
@@ -58,6 +65,11 @@ namespace ignition
       /// \return 0 when success.
       public: int Subscribe(const std::string &_topic,
                           void(*_cb)(const std::string &, const std::string &));
+
+
+      public: int SubscribeLocal(const std::string &_topic,
+        void(*_cb)(const std::string &,
+                   const std::shared_ptr<google::protobuf::Message> &));
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be unsubscribed.

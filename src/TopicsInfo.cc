@@ -174,6 +174,51 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
+void transport::TopicsInfo::AddLocalCallback(const std::string &_topic,
+                                             const TopicInfo::CallbackLocal &_cb)
+{
+  if (!this->HasTopic(_topic))
+  {
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+  }
+
+  this->topicsInfo[_topic]->localCallbacks.push_back(_cb);
+}
+
+//////////////////////////////////////////////////
+/*bool transport::TopicsInfo::HasLocalCallback(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  return this->topicsInfo[_topic]->localCallbacks.find(_uuid) !=
+    this->topicsInfo[_topic]->localCallbacks.end();
+}*/
+
+void transport::TopicsInfo::RunLocalCallbacks(const std::string &_topic,
+  const std::shared_ptr<google::protobuf::Message> &_msgPtr)
+{
+  if (!this->HasTopic(_topic))
+    return;
+
+  for (auto cb : this->topicsInfo[_topic]->localCallbacks)
+    cb(_topic, _msgPtr);
+}
+
+//////////////////////////////////////////////////
+/*bool transport::TopicsInfo::GetLocalCallback(const std::string &_topic,
+                                             const std::string &_uuid,
+                                             TopicInfo::CallbackLocal &_cb)
+{
+  if (!this->HasLocalCallback(_topic, _uuid))
+    return false;
+
+  _cb = this->topicsInfo[_topic]->localCallbacks[_uuid];
+  return true;
+}*/
+
+//////////////////////////////////////////////////
 void transport::TopicsInfo::RemoveAdvAddress(const std::string &_topic,
                                              const std::string &_address)
 {

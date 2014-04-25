@@ -66,14 +66,26 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 
 //////////////////////////////////////////////////
 int transport::Node::Publish(const std::string &_topic,
-            const google::protobuf::Message &_message)
+                      const std::shared_ptr<google::protobuf::Message> &_msgPtr)
 {
   assert(_topic != "");
 
   std::string data;
-  _message.SerializeToString(&data);
+  _msgPtr->SerializeToString(&data);
 
   return this->dataPtr.Publish(_topic, data);
+}
+
+//////////////////////////////////////////////////
+int transport::Node::PublishLocal(const std::string &_topic,
+                      const std::shared_ptr<google::protobuf::Message> &_msgPtr)
+{
+  assert(_topic != "");
+
+  // Execute local callbacks
+  this->dataPtr.topics.RunLocalCallbacks(_topic, _msgPtr);
+
+  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -95,6 +107,24 @@ int transport::Node::Subscribe(const std::string &_topic,
 
   // Discover the list of nodes that publish on the topic
   return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
+}
+
+//////////////////////////////////////////////////
+int transport::Node::SubscribeLocal(const std::string &_topic,
+     void(*_cb)(const std::string &,
+                const std::shared_ptr<google::protobuf::Message> &))
+{
+  assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
+
+  if (this->dataPtr.verbose)
+    std::cout << "\nSubscribe local(" << _topic << ")\n";
+
+  // Register the local callback
+  this->dataPtr.topics.AddLocalCallback(_topic, _cb);
+
+  return 0;
 }
 
 //////////////////////////////////////////////////

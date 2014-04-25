@@ -118,6 +118,9 @@ namespace ignition
       /// \brief ZMQ socket to send topic updates.
       public: std::unique_ptr<zmq::socket_t> publisher;
 
+      /// \brief ZMQ socket to send topic updates.
+      public: std::unique_ptr<zmq::socket_t> publisherLocal;
+
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
 

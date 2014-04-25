@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <uuid/uuid.h>
 #include <robot_msgs/stringmsg.pb.h>
+#include <memory>
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
@@ -54,6 +55,17 @@ void cb2(const std::string &_topic, const std::string &_data)
 }
 
 //////////////////////////////////////////////////
+/// \brief Function is called everytime a topic update is received.
+void cb3(const std::string &_topic,
+         const std::shared_ptr<robot_msgs::StringMsg> &_msgPtr)
+{
+  assert(_topic != "");
+
+  EXPECT_EQ(_msgPtr->data(), "someData");
+  cb2Executed = true;
+}
+
+//////////////////////////////////////////////////
 void CreateSubscriber()
 {
   std::string topic1 = "foo";
@@ -65,20 +77,20 @@ void CreateSubscriber()
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubWithoutAdvertise)
+/*TEST(DiscZmqTest, PubWithoutAdvertise)
 {
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
 
   // Subscribe to topic1
   transport::Node node(verbose);
 
   // Publish some data on topic1 without advertising it first
-  EXPECT_NE(node.Publish(topic1, msg), 0);
-}
+  EXPECT_NE(node.Publish(topic1, msgPtr), 0);
+}*/
 
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubSubSameThread)
@@ -87,8 +99,8 @@ TEST(DiscZmqTest, PubSubSameThread)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
 
   transport::Node node(verbose);
 
@@ -100,7 +112,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   s_sleep(100);
 
   // Publish a msg on topic1
-  EXPECT_EQ(node.Publish(topic1, msg), 0);
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
 
   // Check that the msg was received
@@ -108,7 +120,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   cb1Executed = false;
 
   // Publish a second message on topic1
-  EXPECT_EQ(node.Publish(topic1, msg), 0);
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
 
   // Check that the data was received
@@ -117,20 +129,62 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   // Unadvertise topic1 and publish a third message
   node.UnAdvertise(topic1);
-  EXPECT_NE(node.Publish(topic1, msg), 0);
+  EXPECT_NE(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
   EXPECT_FALSE(cb1Executed);
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameProcess)
+TEST(DiscZmqTest, PubSubSameThreadLocal)
 {
   cb1Executed = false;
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
+
+  transport::Node node(verbose);
+
+  // Advertise topic1
+  EXPECT_EQ(node.Advertise(topic1), 0);
+
+  // Subscribe to topic1
+  EXPECT_EQ(node.SubscribeLocal(topic1, cb3), 0);
+  s_sleep(100);
+
+  // Publish a msg on topic1
+  EXPECT_EQ(node.PublishLocal(topic1, msgPtr), 0);
+  s_sleep(100);
+
+  // Check that the msg was received
+  EXPECT_TRUE(cb1Executed);
+  cb1Executed = false;
+
+  // Publish a second message on topic1
+  EXPECT_EQ(node.PublishLocal(topic1, msgPtr), 0);
+  s_sleep(100);
+
+  // Check that the data was received
+  EXPECT_TRUE(cb1Executed);
+  cb1Executed = false;
+
+  // Unadvertise topic1 and publish a third message
+  node.UnAdvertise(topic1);
+  EXPECT_NE(node.PublishLocal(topic1, msgPtr), 0);
+  s_sleep(100);
+  EXPECT_FALSE(cb1Executed);
+}
+
+//////////////////////////////////////////////////
+/*TEST(DiscZmqTest, PubSubSameProcess)
+{
+  cb1Executed = false;
+  bool verbose = false;
+  std::string topic1 = "foo";
+  std::string data = "someData";
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
 
   // Create the transport node
   transport::Node node(verbose);
@@ -142,7 +196,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   s_sleep(100);
 
   // Advertise and publish a msg on topic1
-  EXPECT_EQ(node.Publish(topic1, msg), 0);
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
 
   subscribeThread.join();
@@ -150,7 +204,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
-}
+}*/
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, TwoSubscribersSameThread)

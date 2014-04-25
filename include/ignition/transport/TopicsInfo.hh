@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 #define __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 
+#include <google/protobuf/message.h>
 #include <functional>
 #include <list>
 #include <map>
@@ -38,6 +39,11 @@ namespace ignition
       /// \brief Callback used for receiving topic updates.
       public: typedef std::function<void (const std::string &,
                                           const std::string &)> Callback;
+
+      /// \brief Callback used for receiving topic updates.
+      public: typedef std::function<void (const std::string &,
+             const std::shared_ptr<google::protobuf::Message> &)> CallbackLocal;
+
       /// \brief Callback used for receiving a service call request.
       public: typedef std::function<void (const std::string &, int,
                                           const std::string &)> ReqCallback;
@@ -46,6 +52,9 @@ namespace ignition
       public: typedef std::function<int (const std::string &,
                                          const std::string &,
                                          std::string &)> RepCallback;
+
+      /// \brief Callback used for receiving topic updates.
+      public: typedef std::vector<CallbackLocal> CallbackLocal_V;
 
       /// \brief Map used for store all the knowledge about a given topic.
       public: typedef std::map<std::string,
@@ -71,6 +80,8 @@ namespace ignition
 
       /// brief Callback that will be executed in case of receiving new data.
       public: Callback cb;
+
+      public: CallbackLocal_V localCallbacks;
 
       /// brief Is a service call pending?
       public: bool requested;
@@ -168,6 +179,18 @@ namespace ignition
       /// \param[in] _address New address
       public: void AddAdvAddress(const std::string &_topic,
                                  const std::string &_address);
+
+      public: void AddLocalCallback(const std::string &_topic,
+                                    const TopicInfo::CallbackLocal &_cb);
+
+      /*public: bool HasLocalCallback(const std::string &_topic);
+
+      public: bool GetLocalCallback(const std::string &_topic,
+                                    const std::string &_uuid,
+                                    TopicInfo::CallbackLocal &_cb);*/
+
+      public: void RunLocalCallbacks(const std::string &_topic,
+        const std::shared_ptr<google::protobuf::Message> &_msgPtr);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
