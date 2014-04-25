@@ -49,7 +49,7 @@ namespace ignition
 
       /// \brief Map used for store all the knowledge about a given topic.
       public: typedef std::map<std::string,
-                               std::shared_ptr<TopicInfo> > Topics_M;
+                               std::shared_ptr<TopicInfo>> Topics_M;
 
       /// \brief Constructor.
       public: TopicInfo();

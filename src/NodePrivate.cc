@@ -132,9 +132,9 @@ void transport::NodePrivate::Spin()
 int transport::NodePrivate::Publish(const std::string &_topic,
                                     const std::string &_data)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
-
   assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   if (this->topics.AdvertisedByMe(_topic))
   {

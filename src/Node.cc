@@ -40,9 +40,9 @@ transport::Node::~Node()
 //////////////////////////////////////////////////
 int transport::Node::Advertise(const std::string &_topic)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
-
   assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   this->dataPtr.topics.SetAdvertisedByMe(_topic, true);
 
@@ -55,9 +55,9 @@ int transport::Node::Advertise(const std::string &_topic)
 //////////////////////////////////////////////////
 int transport::Node::UnAdvertise(const std::string &_topic)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
-
   assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
   this->dataPtr.topics.SetAdvertisedByMe(_topic, false);
 
@@ -80,9 +80,10 @@ int transport::Node::Publish(const std::string &_topic,
 int transport::Node::Subscribe(const std::string &_topic,
   void(*_cb)(const std::string &, const std::string &))
 {
+  assert(_topic != "");
+
   std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
-  assert(_topic != "");
   if (this->dataPtr.verbose)
     std::cout << "\nSubscribe (" << _topic << ")\n";
 
@@ -99,9 +100,10 @@ int transport::Node::Subscribe(const std::string &_topic,
 //////////////////////////////////////////////////
 int transport::Node::UnSubscribe(const std::string &_topic)
 {
+  assert(_topic != "");
+
   std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
-  assert(_topic != "");
   if (this->dataPtr.verbose)
     std::cout << "\nUnubscribe (" << _topic << ")\n";
 
