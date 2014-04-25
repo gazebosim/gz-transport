@@ -7,7 +7,6 @@ set (sources
   Packet.cc
   TopicsInfo.cc
   socket.cc
-  ../msgs/cpp/String.pb.cc
 )
 
 set (gtest_sources

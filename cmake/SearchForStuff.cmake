@@ -22,6 +22,16 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
   BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
 endif()
 
+########################################
+# robot_msgs used for testing
+find_package(robot_msgs REQUIRED)
+if (NOT robot_msgs_FOUND)
+  BUILD_ERROR ("Missing: Robot msgs (librobot_msgs)")
+else ()
+ 	message (STATUS "robot_msgs include: " ${ROBOT_MSGS_INCLUDE_DIRS})
+ 	include_directories(${ROBOT_MSGS_INCLUDE_DIRS})
+endif()
+
 #################################################
 # Find ZeroMQ.
 find_path (zmq_INCLUDE_DIRS zmq.hpp)

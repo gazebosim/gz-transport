@@ -1,5 +1,0 @@
-package ignition.transport;
-
-message StringMsg {
-  required string data = 1;
-}

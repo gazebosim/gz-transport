@@ -17,12 +17,12 @@
 
 #include <limits.h>
 #include <uuid/uuid.h>
+#include <robot_msgs/stringmsg.pb.h>
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/zhelpers.hpp"
 #include "gtest/gtest.h"
-#include "../msgs/cpp/String.pb.h"
 
 using namespace ignition;
 
