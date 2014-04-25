@@ -17,5 +17,6 @@ set (gtest_sources
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})
-target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf)
+target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf ${ROBOT_MSGS_LIBRARIES})
+link_directories(${ROBOT_MSGS_LIBRARY_DIRS})
 ign_install_library(${PROJECT_NAME_LOWER})

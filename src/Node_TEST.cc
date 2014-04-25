@@ -35,7 +35,7 @@ void cb(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
-  transport::StringMsg str;
+  robot_msgs::StringMsg str;
   str.ParseFromString(_data);
   EXPECT_EQ(str.data(), "someData");
   cb1Executed = true;
@@ -47,7 +47,7 @@ void cb2(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
-  transport::StringMsg str;
+  robot_msgs::StringMsg str;
   str.ParseFromString(_data);
   EXPECT_EQ(str.data(), "someData");
   cb2Executed = true;
@@ -70,7 +70,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  transport::StringMsg msg;
+  robot_msgs::StringMsg msg;
   msg.set_data(data);
 
   // Subscribe to topic1
@@ -87,7 +87,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  transport::StringMsg msg;
+  robot_msgs::StringMsg msg;
   msg.set_data(data);
 
   transport::Node node(verbose);
@@ -129,7 +129,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  transport::StringMsg msg;
+  robot_msgs::StringMsg msg;
   msg.set_data(data);
 
   // Create the transport node
@@ -160,7 +160,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
-  transport::StringMsg msg;
+  robot_msgs::StringMsg msg;
   msg.set_data(data);
 
   transport::Node node1(verbose);
