@@ -15,7 +15,11 @@
  *
 */
 
-#include <google/protobuf/message.h>
+/*#include <robot_msgs/stringmsg.pb.h>
+
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/message.h>*/
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <iostream>
@@ -192,29 +196,36 @@ void transport::NodePrivate::RecvTopicUpdates()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
-  zmsg *msg = new zmsg(*this->subscriber);
+  zmsg msg(*this->subscriber);
   if (this->verbose)
   {
     std::cout << "\nReceived topic update" << std::endl;
-    msg->dump();
+    msg.dump();
   }
 
-  if (msg->parts() != 3)
+  if (msg.parts() != 3)
   {
     std::cerr << "Unexpected topic update. Expected 3 message parts but "
-              << "received a message with " << msg->parts() << std::endl;
+              << "received a message with " << msg.parts() << std::endl;
     return;
   }
 
   // Read the DATA message
-  std::string topic = std::string((char*)msg->pop_front().c_str());
-  std::string sender = std::string((char*)msg->pop_front().c_str()); // Sender
-  std::string data = std::string((char*)msg->pop_front().c_str());
+  std::string topic = std::string((char*)msg.pop_front().c_str());
+  std::string sender = std::string((char*)msg.pop_front().c_str()); // Sender
+  std::string data = std::string((char*)msg.pop_front().c_str());
 
   if (this->topics.Subscribed(topic))
   {
     // Execute the callback registered
     TopicInfo::Callback cb;
+    /*google::protobuf::DynamicMessageFactory factory;
+
+    robot_msgs::StringMsg strMsg;
+    const google::protobuf::Descriptor *typeDescriptor = strMsg.GetDescriptor();
+
+    google::protobuf::Message *gpbMessage =
+       factory.GetPrototype(typeDescriptor)->New();*/
     if (this->topics.GetCallback(topic, cb))
       cb(topic, data);
     else
