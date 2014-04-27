@@ -29,6 +29,7 @@ using namespace ignition;
 
 bool cb1Executed;
 bool cb2Executed;
+bool cb3Executed;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -57,12 +58,14 @@ void cb2(const std::string &_topic, const std::string &_data)
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
 void cb3(const std::string &_topic,
-         const std::shared_ptr<robot_msgs::StringMsg> &_msgPtr)
+         const std::shared_ptr<google::protobuf::Message> &_msgPtr)
 {
   assert(_topic != "");
 
-  EXPECT_EQ(_msgPtr->data(), "someData");
-  cb2Executed = true;
+  robot_msgs::StringMsg *ptrMsg;
+  ptrMsg = ::google::protobuf::down_cast<robot_msgs::StringMsg*>(_msgPtr.get());
+  EXPECT_EQ(ptrMsg->data(), "someData");
+  cb3Executed = true;
 }
 
 //////////////////////////////////////////////////
@@ -77,7 +80,7 @@ void CreateSubscriber()
 }
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, PubWithoutAdvertise)
+TEST(DiscZmqTest, PubWithoutAdvertise)
 {
   bool verbose = false;
   std::string topic1 = "foo";
@@ -90,7 +93,7 @@ void CreateSubscriber()
 
   // Publish some data on topic1 without advertising it first
   EXPECT_NE(node.Publish(topic1, msgPtr), 0);
-}*/
+}
 
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubSubSameThread)
@@ -137,11 +140,12 @@ TEST(DiscZmqTest, PubSubSameThread)
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubSubSameThreadLocal)
 {
-  cb1Executed = false;
+  cb3Executed = false;
   bool verbose = false;
   std::string topic1 = "foo";
   std::string data = "someData";
   std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+
   msgPtr->set_data(data);
 
   transport::Node node(verbose);
@@ -150,34 +154,34 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   EXPECT_EQ(node.Advertise(topic1), 0);
 
   // Subscribe to topic1
-  EXPECT_EQ(node.SubscribeLocal(topic1, cb3), 0);
+  node.SubscribeLocal(topic1, cb3);
   s_sleep(100);
 
   // Publish a msg on topic1
-  EXPECT_EQ(node.PublishLocal(topic1, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
 
   // Check that the msg was received
-  EXPECT_TRUE(cb1Executed);
-  cb1Executed = false;
+  EXPECT_TRUE(cb3Executed);
+  cb3Executed = false;
 
   // Publish a second message on topic1
-  EXPECT_EQ(node.PublishLocal(topic1, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
 
   // Check that the data was received
-  EXPECT_TRUE(cb1Executed);
-  cb1Executed = false;
+  EXPECT_TRUE(cb3Executed);
+  cb3Executed = false;
 
   // Unadvertise topic1 and publish a third message
   node.UnAdvertise(topic1);
-  EXPECT_NE(node.PublishLocal(topic1, msgPtr), 0);
+  EXPECT_NE(node.Publish(topic1, msgPtr), 0);
   s_sleep(100);
-  EXPECT_FALSE(cb1Executed);
+  EXPECT_FALSE(cb3Executed);
 }
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, PubSubSameProcess)
+TEST(DiscZmqTest, PubSubSameProcess)
 {
   cb1Executed = false;
   bool verbose = false;
@@ -204,7 +208,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
-}*/
+}
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, TwoSubscribersSameThread)

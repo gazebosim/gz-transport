@@ -17,11 +17,11 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <zmq.hpp>
 #include <iostream>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <zmq.hpp>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
@@ -294,6 +294,8 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
         // Send to the broadcast socket an ADVERTISE message
         for (auto addr : this->myAddresses)
           this->SendAdvertiseMsg(transport::AdvType, topic, addr);
+
+        this->topics.AddSubscriber(topic);
       }
 
       break;

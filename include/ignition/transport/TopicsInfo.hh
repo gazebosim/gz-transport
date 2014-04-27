@@ -96,6 +96,8 @@ namespace ignition
       /// element of the list contains the serialized parameters for each
       /// request.
       public: std::list<std::string> pendingReqs;
+
+      public: unsigned int numSubscribers;
     };
 
     class TopicsInfo
@@ -183,13 +185,9 @@ namespace ignition
       public: void AddLocalCallback(const std::string &_topic,
                                     const TopicInfo::CallbackLocal &_cb);
 
-      /*public: bool HasLocalCallback(const std::string &_topic);
+      public: bool HasLocalCallback(const std::string &_topic);
 
-      public: bool GetLocalCallback(const std::string &_topic,
-                                    const std::string &_uuid,
-                                    TopicInfo::CallbackLocal &_cb);*/
-
-      public: void RunLocalCallbacks(const std::string &_topic,
+      public: int RunLocalCallbacks(const std::string &_topic,
         const std::shared_ptr<google::protobuf::Message> &_msgPtr);
 
       /// \brief Remove an address associated to a given topic.
@@ -247,6 +245,10 @@ namespace ignition
       /// \param[out] _data Parameters of the request.
       /// \return true if a request was removed.
       public: bool DelReq(const std::string &_topic, std::string &_data);
+
+      public: bool HasSubscribers(const std::string &_topic);
+
+      public: void AddSubscriber(const std::string &_topic);
 
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.

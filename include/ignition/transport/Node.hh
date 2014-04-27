@@ -52,24 +52,16 @@ namespace ignition
       public: int Publish(const std::string &_topic,
                      const std::shared_ptr<google::protobuf::Message> &_msgPtr);
 
-      /// \ Publish data.
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _message protobuf message.
-      /// \return 0 when success.
-      public: int PublishLocal(const std::string &_topic,
-                     const std::shared_ptr<google::protobuf::Message> &_msgPtr);
-
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
       /// \return 0 when success.
       public: int Subscribe(const std::string &_topic,
-                          void(*_cb)(const std::string &, const std::string &));
+                            const transport::TopicInfo::Callback &_cb);
 
 
       public: int SubscribeLocal(const std::string &_topic,
-        void(*_cb)(const std::string &,
-                   const std::shared_ptr<google::protobuf::Message> &));
+                                const transport::TopicInfo::CallbackLocal &_cb);
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be unsubscribed.

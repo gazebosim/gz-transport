@@ -70,27 +70,21 @@ int transport::Node::Publish(const std::string &_topic,
 {
   assert(_topic != "");
 
-  std::string data;
-  _msgPtr->SerializeToString(&data);
-
-  return this->dataPtr.Publish(_topic, data);
-}
-
-//////////////////////////////////////////////////
-int transport::Node::PublishLocal(const std::string &_topic,
-                      const std::shared_ptr<google::protobuf::Message> &_msgPtr)
-{
-  assert(_topic != "");
+  if (this->dataPtr.topics.HasSubscribers(_topic))
+  {
+    std::string data;
+    _msgPtr->SerializeToString(&data);
+    if (this->dataPtr.Publish(_topic, data) != 0)
+      return -1;
+  }
 
   // Execute local callbacks
-  this->dataPtr.topics.RunLocalCallbacks(_topic, _msgPtr);
-
-  return 0;
+  return this->dataPtr.topics.RunLocalCallbacks(_topic, _msgPtr);
 }
 
 //////////////////////////////////////////////////
 int transport::Node::Subscribe(const std::string &_topic,
-  void(*_cb)(const std::string &, const std::string &))
+                               const transport::TopicInfo::Callback &_cb)
 {
   assert(_topic != "");
 
@@ -111,8 +105,7 @@ int transport::Node::Subscribe(const std::string &_topic,
 
 //////////////////////////////////////////////////
 int transport::Node::SubscribeLocal(const std::string &_topic,
-     void(*_cb)(const std::string &,
-                const std::shared_ptr<google::protobuf::Message> &))
+                                 const transport::TopicInfo::CallbackLocal &_cb)
 {
   assert(_topic != "");
 
