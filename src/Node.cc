@@ -19,10 +19,8 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include <zmq.hpp>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/zmsg.hpp"
 
 using namespace ignition;
 

@@ -22,7 +22,6 @@
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/zhelpers.hpp"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -30,6 +29,14 @@ using namespace ignition;
 bool cb1Executed;
 bool cb2Executed;
 bool cb3Executed;
+
+static void s_sleep(int msecs)
+{
+  struct timespec t;
+  t.tv_sec = msecs / 1000;
+  t.tv_nsec = (msecs % 1000) * 1000000;
+  nanosleep(&t, nullptr);
+}
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -76,7 +83,7 @@ void CreateSubscriber()
   transport::Node node(verbose);
   EXPECT_EQ(node.Subscribe(topic1, cb), 0);
   while (!cb1Executed)
-    sleep(1);
+    s_sleep(100);
 }
 
 //////////////////////////////////////////////////
@@ -96,7 +103,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, PubSubSameThread)
+TEST(DiscZmqTest, PubSubSameThread)
 {
   cb1Executed = false;
   bool verbose = false;
@@ -208,7 +215,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
-}*/
+}
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, TwoSubscribersSameThread)

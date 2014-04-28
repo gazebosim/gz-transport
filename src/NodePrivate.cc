@@ -31,7 +31,6 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"
-#include "ignition/transport/zmsg.hpp"
 
 using namespace ignition;
 
@@ -55,9 +54,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 
   // Initialize random seed
   srand(time(nullptr));
-
-  // Required 0MQ minimum version
-  s_version_assert(2, 1);
 
   this->verbose = _verbose;
 
@@ -142,18 +138,20 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 
   if (this->topics.AdvertisedByMe(_topic))
   {
-    zmsg msg;
-    std::string sender = this->tcpEndpoint;
-    msg.push_back((char*)_topic.c_str());
-    msg.push_back((char*)sender.c_str());
-    msg.push_back((char*)_data.c_str());
+    zmq::message_t message;
+    message.rebuild(_topic.size() + 1);
+    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+    this->publisher->send(message, ZMQ_SNDMORE);
 
-    if (this->verbose)
-    {
-      std::cout << "\nPublish(" << _topic << ")" << std::endl;
-      msg.dump();
-    }
-    msg.send(*this->publisher);
+    message.rebuild(this->tcpEndpoint.size() + 1);
+    memcpy(message.data(), this->tcpEndpoint.c_str(),
+           this->tcpEndpoint.size() + 1);
+    this->publisher->send(message, ZMQ_SNDMORE);
+
+    message.rebuild(_data.size() + 1);
+    memcpy(message.data(), _data.c_str(), _data.size() + 1);
+    this->publisher->send(message, 0);
+
     return 0;
   }
   else
@@ -195,24 +193,30 @@ void transport::NodePrivate::RecvTopicUpdates()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
-  zmsg msg(*this->subscriber);
-  if (this->verbose)
-  {
-    std::cout << "\nReceived topic update" << std::endl;
-    msg.dump();
-  }
+  zmq::message_t message(0);
+  std::string topic;
+  std::string sender;
+  std::string data;
 
-  if (msg.parts() != 3)
+  try
   {
-    std::cerr << "Unexpected topic update. Expected 3 message parts but "
-              << "received a message with " << msg.parts() << std::endl;
+    if (!this->subscriber->recv(&message, 0))
+      return;
+    topic = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->subscriber->recv(&message, 0))
+      return;
+    sender = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->subscriber->recv(&message, 0))
+      return;
+    data = std::string(reinterpret_cast<char *>(message.data()));
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cout << "Error: " << _error.what() << std::endl;
     return;
   }
-
-  // Read the DATA message
-  std::string topic = std::string((char*)msg.pop_front().c_str());
-  std::string sender = std::string((char*)msg.pop_front().c_str()); // Sender
-  std::string data = std::string((char*)msg.pop_front().c_str());
 
   if (this->topics.Subscribed(topic))
   {
