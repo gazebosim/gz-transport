@@ -96,7 +96,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameThread)
+/*TEST(DiscZmqTest, PubSubSameThread)
 {
   cb1Executed = false;
   bool verbose = false;
@@ -208,7 +208,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
-}
+}*/
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, TwoSubscribersSameThread)
