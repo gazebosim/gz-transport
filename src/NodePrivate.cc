@@ -49,7 +49,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     bcastSockOut(new UDPSocket()),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-    //publisherLocal(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB))
 {
   char bindEndPoint[1024];
