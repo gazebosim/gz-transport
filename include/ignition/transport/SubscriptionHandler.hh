@@ -19,31 +19,48 @@
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <functional>
 #include <memory>
+#include <string>
 
 namespace ignition
 {
   namespace transport
   {
-    //
+    /// \brief Interface class used when the specific protobuf message
+    /// is not known.
     class ISubscriptionHandler
     {
-      public: virtual void RunCallback(const std::string &,
-                                       const std::string &) = 0;
+      /// \brief Executes the callback registered for this handler.
+      /// \param[in] _topic Topic to be passed to the callback.
+      /// \param[in] _data Serialized data received. The data will be used
+      /// to compose a specific protobuf message and will be passed to the
+      /// callback function.
+      /// \return 0 when success.
+      public: virtual int RunCallback(const std::string &_topic,
+                                      const std::string &_data) = 0;
     };
 
-    //
+    /// \brief generic Subscription handler class. It creates subscription
+    /// handlers for each specific protobuf messages used.
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
-      public: std::shared_ptr<T>
-        CreateMsg(const char *_data)
+      /// \brief Create a specific protobuf message given its serialized data.
+      /// \param[in] _data The serialized data.
+      public: std::shared_ptr<T> CreateMsg(const char *_data)
       {
+        // Instantiate a specific protobuf message
         std::shared_ptr<T> msgPtr(new T());
+
+        // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
+
         return msgPtr;
       }
 
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
       public: void SetCallback(
         const std::function
           <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
@@ -51,18 +68,27 @@ namespace ignition
         this->cb = _cb;
       }
 
-      public: void RunCallback(const std::string &_topic,
-                               const std::string &_data)
+      // Documentation inherited
+      public: int RunCallback(const std::string &_topic,
+                              const std::string &_data)
       {
-        std::shared_ptr<T> msg;
-        msg = this->CreateMsg(_data.c_str());
+        // Instantiate the specific protobuf message associated to this topic.
+        std::shared_ptr<T> msg = this->CreateMsg(_data.c_str());
 
+        // Execute the callback (if existing)
         if (this->cb)
+        {
           this->cb(_topic, msg);
+          return 0;
+        }
         else
+        {
           std::cerr << "Callback is NULL" << std::endl;
+          return -1;
+        }
       }
 
+      /// \brief Callback to the function registered for this handler.
       private: std::function
           <void (const std::string &, const std::shared_ptr<T> &)> cb;
     };

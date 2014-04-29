@@ -65,7 +65,7 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 
 //////////////////////////////////////////////////
 int transport::Node::Publish(const std::string &_topic,
-                      const std::shared_ptr<google::protobuf::Message> &_msgPtr)
+                             const ProtoMsgPtr &_msgPtr)
 {
   assert(_topic != "");
 
@@ -80,27 +80,6 @@ int transport::Node::Publish(const std::string &_topic,
   // Execute local callbacks
   return this->dataPtr.topics.RunLocalCallbacks(_topic, _msgPtr);
 }
-
-//////////////////////////////////////////////////
-/*int transport::Node::Subscribe(const std::string &_topic,
-                               const transport::TopicInfo::Callback &_cb)
-{
-  assert(_topic != "");
-
-  std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
-
-  if (this->dataPtr.verbose)
-    std::cout << "\nSubscribe (" << _topic << ")\n";
-
-  // Register our interest on the topic
-  // The last subscribe call replaces previous subscriptions. If this is
-  // a problem, we have to store a list of callbacks.
-  this->dataPtr.topics.SetSubscribed(_topic, true);
-  this->dataPtr.topics.SetCallback(_topic, _cb);
-
-  // Discover the list of nodes that publish on the topic
-  return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
-}*/
 
 //////////////////////////////////////////////////
 int transport::Node::SubscribeLocal(const std::string &_topic,

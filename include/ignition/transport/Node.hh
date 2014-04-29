@@ -31,6 +31,7 @@ namespace ignition
 {
   namespace transport
   {
+    /// \brief A transport node to send and receive data.
     class Node
     {
       /// \brief Constructor.
@@ -68,18 +69,24 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
       /// \return 0 when success.
-      public:
-      template<class T>
-      int Subscribe(const std::string &_topic,
+      public: template<class T> int Subscribe(
+          const std::string &_topic,
           void(*_cb)(const std::string &, const std::shared_ptr<T> &))
       {
         std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
 
-        std::shared_ptr<SubscriptionHandler<T>> subscriptionHandlerPtr(
+        // Create a new subscription handler.
+        std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
             new SubscriptionHandler<T>);
-        subscriptionHandlerPtr->SetCallback(_cb);
-        this->dataPtr.topics.AddSubscriptionHandler(_topic,
-                                                    subscriptionHandlerPtr);
+
+        // Insert the callback into the handler.
+        subscrHandlerPtr->SetCallback(_cb);
+
+        // Store the subscription handler. Each subscription handler is
+        // associated with a topic. When the receiving thread gets new data,
+        // it will recover the subscription handler associated to the topic and
+        // will invoke the callback.
+        this->dataPtr.topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
 
         // I'm now subsribed to the topic.
         this->dataPtr.topics.SetSubscribed(_topic, true);

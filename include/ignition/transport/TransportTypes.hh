@@ -36,6 +36,10 @@ namespace ignition
     /// \brief List of topics.
     typedef std::vector<std::string> Topics_L;
 
+    /// \def ProtoMsgPtr
+    /// \brief Shared pointer to any protobuf message.
+    typedef std::shared_ptr<google::protobuf::Message> ProtoMsgPtr;
+
     /// \def Callback
     /// \brief Callback used for receiving topic updates.
     typedef std::function<void (const std::string &,
@@ -44,7 +48,7 @@ namespace ignition
     /// \def CallbackLocal
     /// \brief Callback used for receiving topic updates inside the same proc.
     typedef std::function<void (const std::string &,
-         const std::shared_ptr<google::protobuf::Message> &)> CallbackLocal;
+                                const ProtoMsgPtr &)> CallbackLocal;
 
     /// \def ReqCallback
     /// \brief Callback used for receiving a service call request.
@@ -64,8 +68,6 @@ namespace ignition
     /// \def Topics_M
     /// \brief Map used for store all the knowledge about a given topic.
     typedef std::map<std::string, std::shared_ptr<TopicInfo>> Topics_M;
-
-    typedef std::shared_ptr<google::protobuf::Message> ProtoMsgPtr;
   }
 }
 
