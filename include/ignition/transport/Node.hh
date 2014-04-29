@@ -20,6 +20,7 @@
 
 #include <google/protobuf/message.h>
 #include <string>
+#include "ignition/transport/MsgSubscriber.hh"
 #include "ignition/transport/NodePrivate.hh"
 
 namespace ignition
@@ -62,6 +63,16 @@ namespace ignition
 
       public: int SubscribeLocal(const std::string &_topic,
                                 const transport::TopicInfo::CallbackLocal &_cb);
+
+      public:
+      template<class T>
+      int SubscribeT(const std::string &_topic,
+          void(*_cb)(const std::string &_topic,
+                     const std::shared_ptr<T> &_msg))
+      {
+        MsgSubscriber<T> msgSubscriber;
+        return 0;
+      }
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be unsubscribed.

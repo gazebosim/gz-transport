@@ -26,6 +26,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "ignition/transport/MsgSubscriber.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"

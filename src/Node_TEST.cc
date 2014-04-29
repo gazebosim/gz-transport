@@ -29,6 +29,7 @@ using namespace ignition;
 bool cb1Executed;
 bool cb2Executed;
 bool cb3Executed;
+bool cb4Executed;
 
 static void s_sleep(int msecs)
 {
@@ -73,6 +74,17 @@ void cb3(const std::string &_topic,
   ptrMsg = ::google::protobuf::down_cast<robot_msgs::StringMsg*>(_msgPtr.get());
   EXPECT_EQ(ptrMsg->data(), "someData");
   cb3Executed = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function is called everytime a topic update is received.
+void cb4(const std::string &_topic,
+         const std::shared_ptr<robot_msgs::StringMsg> &_msgPtr)
+{
+  assert(_topic != "");
+
+  EXPECT_EQ(_msgPtr->data(), "someData");
+  cb4Executed = true;
 }
 
 //////////////////////////////////////////////////
@@ -215,6 +227,22 @@ TEST(DiscZmqTest, PubSubSameProcess)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
+}
+
+//////////////////////////////////////////////////
+TEST(DiscZmqTest, SubscribeTemplated)
+{
+  cb1Executed = false;
+  bool verbose = false;
+  std::string topic1 = "foo";
+  std::string data = "someData";
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
+
+  // Create the transport node
+  transport::Node node(verbose);
+  EXPECT_EQ(node.SubscribeT(topic1, cb4), 0);
+  s_sleep(100);
 }
 
 //////////////////////////////////////////////////
