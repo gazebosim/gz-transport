@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 #include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/TransportTypes.hh"
+
 
 using namespace ignition;
 
@@ -59,7 +61,7 @@ bool transport::TopicsInfo::HasTopic(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
-                                            TopicInfo::Topics_L &_addresses)
+                                            transport::Topics_L &_addresses)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -118,7 +120,7 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetCallback(const std::string &_topic,
-                                        TopicInfo::Callback &_cb)
+                                        transport::Callback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -129,7 +131,7 @@ bool transport::TopicsInfo::GetCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
-                                           TopicInfo::ReqCallback &_cb)
+                                           transport::ReqCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -140,7 +142,7 @@ bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetRepCallback(const std::string &_topic,
-                                           TopicInfo::RepCallback &_cb)
+                                           transport::RepCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -176,7 +178,7 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::AddLocalCallback(const std::string &_topic,
-                                            const TopicInfo::CallbackLocal &_cb)
+                                            const transport::CallbackLocal &_cb)
 {
   if (!this->HasTopic(_topic))
   {
@@ -281,7 +283,7 @@ void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::SetCallback(const std::string &_topic,
-                                        const TopicInfo::Callback &_cb)
+                                        const transport::Callback &_cb)
 {
   if (!this->HasTopic(_topic))
   {
@@ -294,7 +296,7 @@ void transport::TopicsInfo::SetCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
-                                           const TopicInfo::ReqCallback &_cb)
+                                           const transport::ReqCallback &_cb)
 {
   if (!this->HasTopic(_topic))
   {
@@ -307,7 +309,7 @@ void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::SetRepCallback(const std::string &_topic,
-                                           const TopicInfo::RepCallback &_cb)
+                                           const transport::RepCallback &_cb)
 {
   if (!this->HasTopic(_topic))
   {
@@ -347,7 +349,7 @@ bool transport::TopicsInfo::DelReq(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-transport::TopicInfo::Topics_M& transport::TopicsInfo::GetTopicsInfo()
+transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
 {
   return this->topicsInfo;
 }

@@ -61,10 +61,10 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   transport::TopicsInfo topics;
   std::string topic = "test_topic";
   std::string address = "tcp://10.0.0.1:6000";
-  transport::TopicInfo::Topics_L v;
-  transport::TopicInfo::Callback cb;
-  transport::TopicInfo::ReqCallback reqCb;
-  transport::TopicInfo::RepCallback repCb;
+  transport::Topics_L v;
+  transport::Callback cb;
+  transport::ReqCallback reqCb;
+  transport::RepCallback repCb;
 
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));

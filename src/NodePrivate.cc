@@ -15,11 +15,6 @@
  *
 */
 
-/*#include <robot_msgs/stringmsg.pb.h>
-
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/message.h>*/
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <iostream>

@@ -20,10 +20,12 @@
 
 #include <google/protobuf/message.h>
 #include <memory>
+#include <mutex>
 #include <string>
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -53,22 +55,22 @@ namespace ignition
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
       public: int Publish(const std::string &_topic,
-                     const std::shared_ptr<google::protobuf::Message> &_msgPtr);
+                          const ProtoMsgPtr &_msgPtr);
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
       /// \return 0 when success.
-      public: int Subscribe(const std::string &_topic,
-                            const transport::TopicInfo::Callback &_cb);
-
-
       public: int SubscribeLocal(const std::string &_topic,
-                                const transport::TopicInfo::CallbackLocal &_cb);
+                                 const CallbackLocal &_cb);
 
+      /// \brief Subscribe to a topic registering a callback.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Pointer to the callback function.
+      /// \return 0 when success.
       public:
       template<class T>
-      int SubscribeT(const std::string &_topic,
+      int Subscribe(const std::string &_topic,
           void(*_cb)(const std::string &, const std::shared_ptr<T> &))
       {
         std::lock_guard<std::mutex> lock(this->dataPtr.mutex);

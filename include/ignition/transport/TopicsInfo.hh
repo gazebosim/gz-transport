@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -35,34 +36,6 @@ namespace ignition
     // Info about a topic for pub/sub
     class TopicInfo
     {
-      /// \brief Topic list
-      public: typedef std::vector<std::string> Topics_L;
-
-      /// \brief Callback used for receiving topic updates.
-      public: typedef std::function<void (const std::string &,
-                                          const std::string &)> Callback;
-      //         const std::shared_ptr<google::protobuf::Message> &)> Callback;
-
-      /// \brief Callback used for receiving topic updates.
-      public: typedef std::function<void (const std::string &,
-             const std::shared_ptr<google::protobuf::Message> &)> CallbackLocal;
-
-      /// \brief Callback used for receiving a service call request.
-      public: typedef std::function<void (const std::string &, int,
-                                          const std::string &)> ReqCallback;
-
-      /// \brief Callback used for receving a service call response.
-      public: typedef std::function<int (const std::string &,
-                                         const std::string &,
-                                         std::string &)> RepCallback;
-
-      /// \brief Callback used for receiving topic updates.
-      public: typedef std::vector<CallbackLocal> CallbackLocal_V;
-
-      /// \brief Map used for store all the knowledge about a given topic.
-      public: typedef std::map<std::string,
-                               std::shared_ptr<TopicInfo>> Topics_M;
-
       /// \brief Constructor.
       public: TopicInfo();
 
@@ -161,21 +134,21 @@ namespace ignition
       /// \param[out] A pointer to the function registered for a topic.
       /// \return true if there is a callback registered for the topic.
       public: bool GetCallback(const std::string &_topic,
-                               TopicInfo::Callback &_cb);
+                               transport::Callback &_cb);
 
       /// \brief Get the REQ callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REQ function registered for a topic.
       /// \return true if there is a REQ callback registered for the topic.
       public: bool GetReqCallback(const std::string &_topic,
-                                  TopicInfo::ReqCallback &_cb);
+                                  transport::ReqCallback &_cb);
 
       /// \brief Get the REP callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REP function registered for a topic.
       /// \return true if there is a REP callback registered for the topic.
       public: bool GetRepCallback(const std::string &_topic,
-                                  TopicInfo::RepCallback &_cb);
+                                  transport::RepCallback &_cb);
 
       /// \brief Returns if there are any pending requests in the queue.
       /// \param[in] _topic Topic name.
@@ -189,7 +162,7 @@ namespace ignition
                                  const std::string &_address);
 
       public: void AddLocalCallback(const std::string &_topic,
-                                    const TopicInfo::CallbackLocal &_cb);
+                                    const transport::CallbackLocal &_cb);
 
       public: bool HasLocalCallback(const std::string &_topic);
 
@@ -227,19 +200,19 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetCallback(const std::string &_topic,
-                               const TopicInfo::Callback &_cb);
+                               const transport::Callback &_cb);
 
       /// \brief Set a new REQ callback associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetReqCallback(const std::string &_topic,
-                                  const TopicInfo::ReqCallback &_cb);
+                                  const transport::ReqCallback &_cb);
 
       /// \brief Set a new REP callback associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetRepCallback(const std::string &_topic,
-                                  const TopicInfo::RepCallback &_cb);
+                                  const transport::RepCallback &_cb);
 
       /// \brief Add a new service call request to the queue.
       /// \param[in] _topic Topic name.
@@ -262,26 +235,12 @@ namespace ignition
       public: void AddSubscriptionHandler(const std::string &_topic,
                           const std::shared_ptr<ISubscriptionHandler> &_msgPtr);
 
-      /*public:
-      template <typename T>
-      void AddMsgSubscriber(const std::string &_topic,
-                            const std::shared_ptr<MsgSubscriber<T>> &_msgPtr)
-      {
-        if (!this->HasTopic(_topic))
-        {
-          this->topicsInfo.insert(
-            make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
-        }
-
-        this->topicsInfo[_topic]->msgSubscriber = _msgPtr;
-      }*/
-
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.
-      public: TopicInfo::Topics_M& GetTopicsInfo();
+      public: transport::Topics_M& GetTopicsInfo();
 
       // Hash with the topic/topicInfo information for pub/sub.
-      private: TopicInfo::Topics_M topicsInfo;
+      private: transport::Topics_M topicsInfo;
     };
   }
 }

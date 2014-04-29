@@ -21,6 +21,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 
@@ -81,7 +82,7 @@ int transport::Node::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-int transport::Node::Subscribe(const std::string &_topic,
+/*int transport::Node::Subscribe(const std::string &_topic,
                                const transport::TopicInfo::Callback &_cb)
 {
   assert(_topic != "");
@@ -99,11 +100,11 @@ int transport::Node::Subscribe(const std::string &_topic,
 
   // Discover the list of nodes that publish on the topic
   return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
-}
+}*/
 
 //////////////////////////////////////////////////
 int transport::Node::SubscribeLocal(const std::string &_topic,
-                                 const transport::TopicInfo::CallbackLocal &_cb)
+                                    const transport::CallbackLocal &_cb)
 {
   assert(_topic != "");
 

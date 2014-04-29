@@ -6,6 +6,7 @@ set (headers
   NetUtils.hh
   Packet.hh
   TopicsInfo.hh
+  TransportTypes.hh
   socket.hh
   SubscriberHandler.hh
 )
