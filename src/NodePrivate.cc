@@ -223,13 +223,9 @@ void transport::NodePrivate::RecvTopicUpdates()
   {
     // Execute the callback registered
     TopicInfo::Callback cb;
-    /*google::protobuf::DynamicMessageFactory factory;
+    std::shared_ptr<google::protobuf::Message> pMsg;
+    this->topics.s->CreateMsg(data.c_str(), pMsg);
 
-    robot_msgs::StringMsg strMsg;
-    const google::protobuf::Descriptor *typeDescriptor = strMsg.GetDescriptor();
-
-    google::protobuf::Message *gpbMessage =
-       factory.GetPrototype(typeDescriptor)->New();*/
     if (this->topics.GetCallback(topic, cb))
       cb(topic, data);
     else

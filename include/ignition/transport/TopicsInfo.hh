@@ -20,11 +20,13 @@
 
 #include <google/protobuf/message.h>
 #include <functional>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include "ignition/transport/MsgSubscriber.hh"
 
 namespace ignition
 {
@@ -250,12 +252,29 @@ namespace ignition
 
       public: void AddSubscriber(const std::string &_topic);
 
+
+      public:
+      template <typename T>
+      void AddMsgSubscriber(const std::string &_topic,
+                            const std::shared_ptr<MsgSubscriber<T>> &_msgPtr)
+      {
+        if (!this->HasTopic(_topic))
+        {
+          this->topicsInfo.insert(
+            make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+        }
+
+        this->s = _msgPtr;
+      }
+
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.
       public: TopicInfo::Topics_M& GetTopicsInfo();
 
       // Hash with the topic/topicInfo information for pub/sub.
       private: TopicInfo::Topics_M topicsInfo;
+
+      public: std::shared_ptr<transport::IMsgSubscriber> s;
     };
   }
 }

@@ -18,31 +18,32 @@
 #ifndef __IGN_TRANSPORT_MSGSUBSCRIBER_HH_INCLUDED__
 #define __IGN_TRANSPORT_MSGSUBSCRIBER_HH_INCLUDED__
 
+#include <google/protobuf/message.h>
+
 namespace ignition
 {
   namespace transport
   {
-    // ToDo
-    template <typename T> class IMsgSubscriber
+    //
+    class ITest
     {
-      /// \brief Constructor.
-      public: IMsgSubscriber(){};
-
-      /// \brief Destructor.
-      public: virtual ~IMsgSubscriber(){};
-
-      public: virtual void CreateMsg(const char *_data, T &_msg) = 0;
+      public: virtual void test() = 0;
     };
 
-    template <typename T> class MsgSubscriber : public IMsgSubscriber<T>
+    //
+    class IMsgSubscriber
     {
-      /// \brief Constructor.
-      public: MsgSubscriber(){};
+      protected: IMsgSubscriber() {}
+      public: virtual void CreateMsg(const char *_data,
+                                     std::shared_ptr<google::protobuf::Message> &_msg) {}
+    };
 
-      /// \brief Destructor.
-      public: virtual ~MsgSubscriber(){};
+    //
+    template <typename T> class MsgSubscriber : public IMsgSubscriber
+    {
+      public: MsgSubscriber() {}
 
-      public: void CreateMsg(const char *_data, T &_msg)
+      public: void CreateMsg(const char *_data, std::shared_ptr<T> &_msg)
       {
         _msg.ParseFromString(_data);
       }

@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <memory>
 #include <string>
 #include "ignition/transport/MsgSubscriber.hh"
 #include "ignition/transport/NodePrivate.hh"
@@ -67,10 +68,12 @@ namespace ignition
       public:
       template<class T>
       int SubscribeT(const std::string &_topic,
-          void(*_cb)(const std::string &_topic,
-                     const std::shared_ptr<T> &_msg))
+          void(*_cb)(const std::string &, const std::shared_ptr<T> &))
       {
-        MsgSubscriber<T> msgSubscriber;
+        std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
+        std::shared_ptr<MsgSubscriber<T>> msgSubscrPtr(new MsgSubscriber<T>);
+        //MsgSubscriber<T> *msgSubscrPtr = new MsgSubscriber<T>();
+        this->dataPtr.topics.AddMsgSubscriber(_topic, msgSubscrPtr);
         return 0;
       }
 
