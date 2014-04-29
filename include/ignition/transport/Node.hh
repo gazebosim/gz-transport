@@ -21,8 +21,9 @@
 #include <google/protobuf/message.h>
 #include <memory>
 #include <string>
-#include "ignition/transport/MsgSubscriber.hh"
 #include "ignition/transport/NodePrivate.hh"
+#include "ignition/transport/Packet.hh"
+#include "ignition/transport/SubscriptionHandler.hh"
 
 namespace ignition
 {
@@ -71,10 +72,18 @@ namespace ignition
           void(*_cb)(const std::string &, const std::shared_ptr<T> &))
       {
         std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
-        std::shared_ptr<MsgSubscriber<T>> msgSubscrPtr(new MsgSubscriber<T>);
-        //MsgSubscriber<T> *msgSubscrPtr = new MsgSubscriber<T>();
-        this->dataPtr.topics.AddMsgSubscriber(_topic, msgSubscrPtr);
-        return 0;
+
+        std::shared_ptr<SubscriptionHandler<T>> subscriptionHandlerPtr(
+            new SubscriptionHandler<T>);
+        subscriptionHandlerPtr->SetCallback(_cb);
+        this->dataPtr.topics.AddSubscriptionHandler(_topic,
+                                                    subscriptionHandlerPtr);
+
+        // I'm now subsribed to the topic.
+        this->dataPtr.topics.SetSubscribed(_topic, true);
+
+        // Discover the list of nodes that publish on the topic.
+        return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
       }
 
       /// \brief Subscribe to a topic registering a callback.

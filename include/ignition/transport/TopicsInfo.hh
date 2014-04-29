@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "ignition/transport/MsgSubscriber.hh"
+#include "ignition/transport/SubscriptionHandler.hh"
 
 namespace ignition
 {
@@ -41,6 +41,7 @@ namespace ignition
       /// \brief Callback used for receiving topic updates.
       public: typedef std::function<void (const std::string &,
                                           const std::string &)> Callback;
+      //         const std::shared_ptr<google::protobuf::Message> &)> Callback;
 
       /// \brief Callback used for receiving topic updates.
       public: typedef std::function<void (const std::string &,
@@ -100,6 +101,9 @@ namespace ignition
       public: std::list<std::string> pendingReqs;
 
       public: unsigned int numSubscribers;
+
+      public: std::shared_ptr<transport::ISubscriptionHandler>
+                 subscriptionHandler;
     };
 
     class TopicsInfo
@@ -252,8 +256,13 @@ namespace ignition
 
       public: void AddSubscriber(const std::string &_topic);
 
+      public: std::shared_ptr<transport::ISubscriptionHandler>
+              GetSubscriptionHandler(const std::string &_topic);
 
-      public:
+      public: void AddSubscriptionHandler(const std::string &_topic,
+                          const std::shared_ptr<ISubscriptionHandler> &_msgPtr);
+
+      /*public:
       template <typename T>
       void AddMsgSubscriber(const std::string &_topic,
                             const std::shared_ptr<MsgSubscriber<T>> &_msgPtr)
@@ -264,8 +273,8 @@ namespace ignition
             make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
         }
 
-        this->s = _msgPtr;
-      }
+        this->topicsInfo[_topic]->msgSubscriber = _msgPtr;
+      }*/
 
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.
@@ -273,8 +282,6 @@ namespace ignition
 
       // Hash with the topic/topicInfo information for pub/sub.
       private: TopicInfo::Topics_M topicsInfo;
-
-      public: std::shared_ptr<transport::IMsgSubscriber> s;
     };
   }
 }

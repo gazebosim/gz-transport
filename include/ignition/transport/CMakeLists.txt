@@ -1,13 +1,13 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-	MsgSubscriber.hh
   Node.hh
   NodePrivate.hh
   NetUtils.hh
   Packet.hh
   TopicsInfo.hh
   socket.hh
+  SubscriberHandler.hh
 )
 
 #################################################

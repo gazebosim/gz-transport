@@ -372,3 +372,26 @@ bool transport::TopicsInfo::HasSubscribers(const std::string &_topic)
 
   return this->topicsInfo[_topic]->numSubscribers > 0;
 }
+
+//////////////////////////////////////////////////
+std::shared_ptr<transport::ISubscriptionHandler>
+  transport::TopicsInfo::GetSubscriptionHandler(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+    return nullptr;
+
+  return this->topicsInfo[_topic]->subscriptionHandler;
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
+                           const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
+{
+  if (!this->HasTopic(_topic))
+  {
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+  }
+
+  this->topicsInfo[_topic]->subscriptionHandler = _msgPtr;
+}

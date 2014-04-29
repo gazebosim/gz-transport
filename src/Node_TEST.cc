@@ -88,7 +88,7 @@ void cb4(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void CreateSubscriber()
+/*void CreateSubscriber()
 {
   std::string topic1 = "foo";
   bool verbose = false;
@@ -227,7 +227,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   // Check that the data was received
   EXPECT_TRUE(cb1Executed);
   cb1Executed = false;
-}
+}*/
 
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, SubscribeTemplated)
@@ -241,8 +241,19 @@ TEST(DiscZmqTest, SubscribeTemplated)
 
   // Create the transport node
   transport::Node node(verbose);
+  EXPECT_EQ(node.Advertise(topic1), 0);
+  s_sleep(100);
+
   EXPECT_EQ(node.SubscribeT(topic1, cb4), 0);
   s_sleep(100);
+
+  // Publish a msg on topic1
+  EXPECT_EQ(node.Publish(topic1, msgPtr), 0);
+  s_sleep(100);
+
+  // Check that the data was received
+  EXPECT_TRUE(cb4Executed);
+  cb4Executed = false;
 }
 
 //////////////////////////////////////////////////

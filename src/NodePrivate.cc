@@ -26,11 +26,11 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include "ignition/transport/MsgSubscriber.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/socket.hh"
+#include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
 using namespace ignition;
@@ -222,14 +222,12 @@ void transport::NodePrivate::RecvTopicUpdates()
   if (this->topics.Subscribed(topic))
   {
     // Execute the callback registered
-    TopicInfo::Callback cb;
-    std::shared_ptr<google::protobuf::Message> pMsg;
-    this->topics.s->CreateMsg(data.c_str(), pMsg);
-
-    if (this->topics.GetCallback(topic, cb))
-      cb(topic, data);
+    std::shared_ptr<transport::ISubscriptionHandler> subscriptionHandlerPtr;
+    subscriptionHandlerPtr = this->topics.GetSubscriptionHandler(topic);
+    if (subscriptionHandlerPtr)
+      subscriptionHandlerPtr->RunCallback(topic, data);
     else
-      std::cerr << "I don't have a callback for topic [" << topic << "]\n";
+      std::cerr << "Subscription handler is NULL" << std::endl;
   }
   else
     std::cerr << "I am not subscribed to topic [" << topic << "]\n";

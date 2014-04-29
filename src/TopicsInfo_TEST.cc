@@ -15,6 +15,9 @@
  *
 */
 
+#include <google/protobuf/message.h>
+#include <robot_msgs/stringmsg.pb.h>
+#include <memory>
 #include <string>
 #include "ignition/transport/TopicsInfo.hh"
 #include "gtest/gtest.h"
@@ -41,6 +44,15 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 {
   callbackExecuted = true;
   return 0;
+}
+
+//////////////////////////////////////////////////
+void cb4(const std::string &_topic,
+         const std::shared_ptr<robot_msgs::StringMsg> &/*_msgPtr*/)
+{
+  assert(_topic != "");
+
+  callbackExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -105,6 +117,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
 
   // Check SetCallback
   topics.SetCallback(topic, myCb);
+  //topics.SetCallback(topic, cb4);
   EXPECT_TRUE(topics.GetCallback(topic, cb));
   callbackExecuted = false;
   cb("topic", "data");
