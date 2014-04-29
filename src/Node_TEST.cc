@@ -22,6 +22,7 @@
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -39,8 +40,7 @@ static void s_sleep(int msecs)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cbLocal(const std::string &_topic,
-             const std::shared_ptr<google::protobuf::Message> &_msgPtr)
+void cbLocal(const std::string &_topic, const transport::ProtoMsgPtr &_msgPtr)
 {
   assert(_topic != "");
 
