@@ -8,7 +8,7 @@ set (headers
   TopicsInfo.hh
   TransportTypes.hh
   socket.hh
-  SubscriberHandler.hh
+  SubscriptionHandler.hh
 )
 
 #################################################
