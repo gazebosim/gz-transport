@@ -54,6 +54,9 @@ else
   fi
   CPPLINT_FILES=`\
     find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h"`
+
+  # ToDo(caguero) Remove this.
+  CPPLINT_FILES=`echo $CPPLINT_FILES | sed -r 's/\.\/src\/socket.cc/ /g' | sed -r 's/\.\/include\/ignition\/transport\/socket.hh/ /g'`
 fi
 
 SUPPRESS=/tmp/cpp_check.suppress
@@ -61,7 +64,7 @@ SUPPRESS=/tmp/cpp_check.suppress
 # The follow suppression is useful when checking for missing includes.
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
-echo "missingIncludeSystem" >> $SUPPRESS
+#echo "missingIncludeSystem" >> $SUPPRESS
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
@@ -78,9 +81,9 @@ CPPCHECK_CMD2="--enable=unusedFunction $CPPCHECK_FILES"
 
 # Checking for missing includes is very time consuming. This is disabled
 # for now
-# CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES"\
-# " $CPPCHECK_INCLUDES"
-CPPCHECK_CMD3=""
+CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES"\
+" $CPPCHECK_INCLUDES"
+#CPPCHECK_CMD3=""
 
 if [ $xmlout -eq 1 ]; then
   # Performance, style, portability, and information

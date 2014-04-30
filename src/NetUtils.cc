@@ -70,7 +70,7 @@ std::string transport::DetermineHost()
 {
   char *ip_env;
   // First, did the user set DZMQ_IP?
-  ip_env = getenv("DZMQ_IP");
+  ip_env = std::getenv("DZMQ_IP");
 
   if (ip_env)
   {
@@ -93,7 +93,6 @@ std::string transport::DetermineHost()
     strcat(host, ".local");
     if (hostname_to_ip(host, hostIP) == 0)
     {
-      std::cout << hostIP << std::endl;
       return std::string(hostIP);
     }
   }
