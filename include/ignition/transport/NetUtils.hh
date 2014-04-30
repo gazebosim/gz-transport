@@ -35,7 +35,7 @@ namespace ignition
     /// \param[in] _hostname Hostname
     /// \param[out] _ip IP associated to the input hostname.
     /// \return 0 when success.
-    int hostname_to_ip(char * hostname , char* ip);
+    int hostname_to_ip(char * hostname, std::string &_ip);
 
     /// \brief Determine IP or hostname.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/

@@ -31,6 +31,8 @@ namespace ignition
     /// is not known.
     class ISubscriptionHandler
     {
+      public: virtual ~ISubscriptionHandler(){}
+
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _data Serialized data received. The data will be used

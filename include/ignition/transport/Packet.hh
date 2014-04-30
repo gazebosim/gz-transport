@@ -152,7 +152,6 @@ namespace ignition
 
     class AdvMsg
     {
-
       /// \brief Constructor.
       public: AdvMsg();
 

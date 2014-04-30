@@ -117,7 +117,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
 
   // Check SetCallback
   topics.SetCallback(topic, myCb);
-  //topics.SetCallback(topic, cb4);
+  // topics.SetCallback(topic, cb4);
   EXPECT_TRUE(topics.GetCallback(topic, cb));
   callbackExecuted = false;
   cb("topic", "data");

@@ -72,7 +72,7 @@ namespace ignition
       public: template<class T> int Subscribe(
           const std::string &_topic,
           void(*_cb)(const std::string &, const std::shared_ptr<T> &))
-          //const std::function
+          // const std::function
           //  <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
       {
         std::lock_guard<std::mutex> lock(this->dataPtr.mutex);

@@ -191,7 +191,7 @@ void transport::NodePrivate::RecvTopicUpdates()
 
   zmq::message_t message(0);
   std::string topic;
-  std::string sender;
+  // std::string sender;
   std::string data;
 
   try
@@ -202,7 +202,7 @@ void transport::NodePrivate::RecvTopicUpdates()
 
     if (!this->subscriber->recv(&message, 0))
       return;
-    sender = std::string(reinterpret_cast<char *>(message.data()));
+    // sender = std::string(reinterpret_cast<char *>(message.data()));
 
     if (!this->subscriber->recv(&message, 0))
       return;

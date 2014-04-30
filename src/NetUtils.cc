@@ -40,13 +40,13 @@ bool transport::isPrivateIP(const char *ip)
 }
 
 //////////////////////////////////////////////////
-int transport::hostname_to_ip(char * hostname , char* ip)
+int transport::hostname_to_ip(char * hostname, std::string &_ip)
 {
   struct hostent *he;
   struct in_addr **addr_list;
   int i;
 
-  if ( (he = gethostbyname( hostname ) ) == nullptr)
+  if ((he = gethostbyname(hostname)) == nullptr)
   {
     // get the host info
     herror("gethostbyname");
@@ -58,7 +58,7 @@ int transport::hostname_to_ip(char * hostname , char* ip)
   for (i = 0; addr_list[i] != nullptr; ++i)
   {
     // Return the first one;
-    strcpy(ip, inet_ntoa(*addr_list[i]) );
+    _ip = std::string(inet_ntoa(*addr_list[i]));
     return 0;
   }
 
@@ -72,7 +72,8 @@ std::string transport::DetermineHost()
   // First, did the user set DZMQ_IP?
   ip_env = getenv("DZMQ_IP");
 
-  if (ip_env) {
+  if (ip_env)
+  {
     if (strlen(ip_env) != 0)
       return ip_env;
     else
@@ -88,10 +89,11 @@ std::string transport::DetermineHost()
   // We don't want localhost to be our ip
   else if (strlen(host) && strcmp("localhost", host))
   {
-    char hostIP[INET_ADDRSTRLEN];
+    std::string hostIP;
     strcat(host, ".local");
     if (hostname_to_ip(host, hostIP) == 0)
     {
+      std::cout << hostIP << std::endl;
       return std::string(hostIP);
     }
   }
