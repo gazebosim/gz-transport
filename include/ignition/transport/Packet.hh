@@ -21,6 +21,7 @@
 #include <uuid/uuid.h>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace ignition
 {
@@ -30,15 +31,22 @@ namespace ignition
 
     //  This is the version of Gazebo transport we implement
     static const int Version        = 1;
+
     // Message types
-    static const int AdvType        = 1;
-    static const int SubType        = 2;
-    static const int AdvSvcType     = 3;
-    static const int SubSvcType     = 4;
-    static const int PubType        = 5;
-    static const int ReqType        = 6;
-    static const int RepType        = 7;
-    static const int RepErrorType   = 8;
+    static const int AdvType        = 0;
+    static const int SubType        = 1;
+    static const int AdvSvcType     = 2;
+    static const int SubSvcType     = 3;
+    static const int PubType        = 4;
+    static const int ReqType        = 5;
+    static const int RepType        = 6;
+    static const int RepErrorType   = 7;
+
+    static const std::vector<std::string> MsgTypesStr =
+    {
+      "ADVERTISE", "SUBSCRIBE", "ADV_SRV", "SUB_SVC",
+      "PUB", "REQ", "SRV_REP_OK", "SRV_REP_ERROR"
+    };
 
     /// \brief Get the string representation of the GUID.
     /// \param[in] _uuid UUID to be converted to string.

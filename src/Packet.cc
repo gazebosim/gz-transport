@@ -19,16 +19,9 @@
 #include <uuid/uuid.h>
 #include <iostream>
 #include <string>
-#include <vector>
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;
-
-static char *msgTypesStr[] = {
-    NULL, (char*)"ADVERTISE", (char*)"SUBSCRIBE", (char*)"ADV_SRV",
-    (char*)"SUB_SVC", (char*)"PUB", (char*)"REQ", (char*)"SRV_REP_OK",
-    (char*)"SRV_REP_ERROR"
-};
 
 //////////////////////////////////////////////////
 std::string transport::GetGuidStr(const uuid_t &_uuid)
@@ -151,7 +144,7 @@ void transport::Header::Print()
   std::cout << "\t\tGUID: " << transport::GetGuidStr(this->GetGuid()) << "\n";
   std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
   std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
-  std::cout << "\t\tType: " << msgTypesStr[this->GetType()] << "\n";
+  std::cout << "\t\tType: " << MsgTypesStr.at(this->GetType()) << "\n";
   std::cout << "\t\tFlags: " << this->GetFlags() << "\n";
 }
 
@@ -255,7 +248,7 @@ void transport::AdvMsg::SetHeader(const Header &_header)
   if (_header.GetType() != transport::AdvType &&
       _header.GetType() != transport::AdvSvcType)
     std::cerr << "You're trying to use a "
-              << msgTypesStr[_header.GetType()] << " header inside an AdvMsg"
+              << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
               << " or AdvSvcMsg. Are you sure you want to do this?\n";
 }
 
