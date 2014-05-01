@@ -42,7 +42,7 @@ namespace ignition
     /// \brief public data for the Node class.
     class NodePrivate
     {
-      public: static NodePrivate& GetInstance(bool _verbose);
+      public: static NodePrivatePtr GetInstance(bool _verbose);
 
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
@@ -142,6 +142,12 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access between the inbound and
       /// outbound thread.
       public: std::mutex mutex;
+
+      /// \brief Mutex to guarantee exclusive access to exit variable.
+      private: std::mutex exitMutex;
+
+      /// \brief When true, the service thread will finish.
+      private: bool exit;
     };
   }
 }

@@ -75,7 +75,7 @@ namespace ignition
           // const std::function
           //  <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr.mutex);
+        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -88,13 +88,13 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr.topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
+        this->dataPtr->topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
 
         // I'm now subsribed to the topic.
-        this->dataPtr.topics.SetSubscribed(_topic, true);
+        this->dataPtr->topics.SetSubscribed(_topic, true);
 
         // Discover the list of nodes that publish on the topic.
-        return this->dataPtr.SendSubscribeMsg(transport::SubType, _topic);
+        return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -103,8 +103,8 @@ namespace ignition
       public: int UnSubscribe(const std::string &_topic);
 
       /// \internal
-      /// \brief Pointer to private data.
-      protected: transport::NodePrivate &dataPtr;
+      /// \brief Shared pointer to private data.
+      protected: NodePrivatePtr dataPtr;
     };
   }
 }

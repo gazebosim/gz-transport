@@ -17,24 +17,26 @@
 
 #include <uuid/uuid.h>
 #include <zmq.hpp>
+#include <cstdlib>
 #include <iostream>
 #include <mutex>
 #include <string>
 #include <thread>
-#include "ignition/transport/Node.hh"
+#include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 
 //////////////////////////////////////////////////
-transport::NodePrivate& transport::NodePrivate::GetInstance(bool _verbose)
+transport::NodePrivatePtr transport::NodePrivate::GetInstance(bool _verbose)
 {
-  static NodePrivate *instance = new NodePrivate(_verbose);
-  return *instance;
+  static NodePrivatePtr instance(new NodePrivate(_verbose));
+  return instance;
 }
 
 //////////////////////////////////////////////////
@@ -48,15 +50,15 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 {
   char bindEndPoint[1024];
 
-  // Initialize random seed
+  // Initialize random seed.
   srand(time(nullptr));
 
   this->verbose = _verbose;
 
-  // msecs
+  // msecs.
   this->timeout = 250;
 
-  // ToDo Read this from getenv or command line arguments
+  // ToDo Read this from getenv or command line arguments.
   this->bcastAddr = "255.255.255.255";
   this->hostAddr = DetermineHost();
 
@@ -64,7 +66,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 
   this->guidStr = transport::GetGuidStr(this->guid);
 
-  // 0MQ
+  // Initialize the 0MQ objects.
   try
   {
     std::string anyTcpEP = "tcp://" + this->hostAddr + ":*";
@@ -79,7 +81,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   catch(const zmq::error_t& ze)
   {
      std::cerr << "Error: " << ze.what() << std::endl;
-     exit(EXIT_FAILURE);
+     std::exit(EXIT_FAILURE);
   }
 
   if (this->verbose)
@@ -90,12 +92,25 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
 
+  // We don't want to exit yet.
+  this->exitMutex.lock();
+  this->exit = false;
+  this->exitMutex.unlock();
+
+  // Start the service thread.
   this->threadInbound = new std::thread(&transport::NodePrivate::Spin, this);
 }
 
 //////////////////////////////////////////////////
 transport::NodePrivate::~NodePrivate()
 {
+  // Tell the service thread to terminate.
+  this->exitMutex.lock();
+  this->exit = true;
+  this->exitMutex.unlock();
+
+  // Wait for the service thread before exit.
+  this->threadInbound->join();
 }
 
 //////////////////////////////////////////////////
@@ -121,6 +136,13 @@ void transport::NodePrivate::Spin()
   while (true)
   {
     this->SpinOnce();
+
+    // Is it time to exit?
+    {
+      std::lock_guard<std::mutex> lock(this->exitMutex);
+      if (this->exit)
+        break;
+    }
   }
 }
 

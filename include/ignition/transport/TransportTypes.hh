@@ -30,6 +30,7 @@ namespace ignition
 {
   namespace transport
   {
+    class NodePrivate;
     class TopicInfo;
 
     /// \def Topics_L
@@ -68,6 +69,10 @@ namespace ignition
     /// \def Topics_M
     /// \brief Map used for store all the knowledge about a given topic.
     typedef std::map<std::string, std::shared_ptr<TopicInfo>> Topics_M;
+
+    /// \def NodePrivatePtr
+    /// \brief Shared pointer to NodePrivate.
+    typedef std::shared_ptr<transport::NodePrivate> NodePrivatePtr;
   }
 }
 

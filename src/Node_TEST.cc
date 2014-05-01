@@ -15,14 +15,11 @@
  *
 */
 
-#include <limits.h>
-#include <uuid/uuid.h>
 #include <robot_msgs/stringmsg.pb.h>
 #include <memory>
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -192,7 +189,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, SubscribeTemplated)
+/*TEST(DiscZmqTest, SubscribeTemplated)
 {
   cbExecuted = false;
   std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
@@ -213,7 +210,7 @@ TEST(DiscZmqTest, SubscribeTemplated)
   // Check that the data was received
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
-}
+}*/
 
 //////////////////////////////////////////////////
 /*TEST(DiscZmqTest, TwoSubscribersSameThread)
