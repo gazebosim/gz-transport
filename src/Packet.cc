@@ -19,6 +19,7 @@
 #include <uuid/uuid.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;

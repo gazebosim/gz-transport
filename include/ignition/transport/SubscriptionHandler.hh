@@ -65,7 +65,7 @@ namespace ignition
       /// \param[in] _cb The callback.
       public: void SetCallback(
         const std::function
-          <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
+          <void(const std::string &, const std::shared_ptr<const T> &)> &_cb)
       {
         this->cb = _cb;
       }

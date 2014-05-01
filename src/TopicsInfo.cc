@@ -21,7 +21,6 @@
 #include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-
 using namespace ignition;
 
 //////////////////////////////////////////////////

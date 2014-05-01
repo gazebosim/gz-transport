@@ -22,6 +22,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
