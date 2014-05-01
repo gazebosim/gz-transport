@@ -36,9 +36,6 @@ namespace ignition
     /// \brief Longest string to receive.
     const int MaxRcvStr = 65536;
 
-    /// \brief ZMQ endpoint used for inproc communication.
-    const std::string InprocAddr = "inproc://local";
-
     /// \brief public data for the Node class.
     class NodePrivate
     {

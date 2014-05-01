@@ -5,8 +5,8 @@ set (sources
   NodePrivate.cc
   NetUtils.cc
   Packet.cc
-  TopicsInfo.cc
   socket.cc
+  TopicsInfo.cc
 )
 
 set (gtest_sources

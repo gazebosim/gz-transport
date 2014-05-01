@@ -74,10 +74,8 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     this->publisher->bind(anyTcpEP.c_str());
     size_t size = sizeof(bindEndPoint);
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->publisher->bind(InprocAddr.c_str());
     this->tcpEndpoint = bindEndPoint;
     this->myAddresses.push_back(this->tcpEndpoint);
-    this->subscriber->connect(InprocAddr.c_str());
   }
   catch(const zmq::error_t& ze)
   {
@@ -89,7 +87,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Bind at: [" << this->tcpEndpoint << "] for pub/sub\n";
-    std::cout << "Bind at: [" << InprocAddr << "] for pub/sub\n";
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
 
@@ -246,6 +243,7 @@ void transport::NodePrivate::RecvTopicUpdates()
     {
       ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
       if (subscriptionHandlerPtr)
+        // ToDo(caguero): Unserialize only once.
         subscriptionHandlerPtr->RunCallback(topic, data);
       else
         std::cerr << "Subscription handler is NULL" << std::endl;

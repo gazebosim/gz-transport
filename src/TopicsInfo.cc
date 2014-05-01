@@ -30,7 +30,6 @@ transport::TopicInfo::TopicInfo()
   this->subscribed     = false;
   this->advertisedByMe = false;
   this->requested      = false;
-  this->cb             = nullptr;
   this->reqCb          = nullptr;
   this->repCb          = nullptr;
   this->numSubscribers = 0;
@@ -118,17 +117,6 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetCallback(const std::string &_topic,
-                                        transport::Callback &_cb)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  _cb = this->topicsInfo[_topic]->cb;
-  return _cb != nullptr;
-}
-
-//////////////////////////////////////////////////
 bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
                                            transport::ReqCallback &_cb)
 {
@@ -173,41 +161,6 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
   // If we had the topic but not the address, add the new address
   if (!this->HasAdvAddress(_topic, _address))
     this->topicsInfo[_topic]->addresses.push_back(_address);
-}
-
-//////////////////////////////////////////////////
-void transport::TopicsInfo::AddLocalCallback(const std::string &_topic,
-                                            const transport::CallbackLocal &_cb)
-{
-  if (!this->HasTopic(_topic))
-  {
-    this->topicsInfo.insert(
-      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
-  }
-
-  this->topicsInfo[_topic]->localCallbacks.push_back(_cb);
-}
-
-//////////////////////////////////////////////////
-bool transport::TopicsInfo::HasLocalCallback(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->localCallbacks.size() > 0;
-}
-
-//////////////////////////////////////////////////
-int transport::TopicsInfo::RunLocalCallbacks(const std::string &_topic,
-  const std::shared_ptr<google::protobuf::Message> &_msgPtr)
-{
-  if (!this->AdvertisedByMe(_topic))
-    return -1;
-
-  for (auto cb : this->topicsInfo[_topic]->localCallbacks)
-    cb(_topic, _msgPtr);
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -278,19 +231,6 @@ void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
   }
 
   this->topicsInfo[_topic]->advertisedByMe = _value;
-}
-
-//////////////////////////////////////////////////
-void transport::TopicsInfo::SetCallback(const std::string &_topic,
-                                        const transport::Callback &_cb)
-{
-  if (!this->HasTopic(_topic))
-  {
-    this->topicsInfo.insert(
-      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
-  }
-
-  this->topicsInfo[_topic]->cb = _cb;
 }
 
 //////////////////////////////////////////////////

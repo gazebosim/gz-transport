@@ -65,20 +65,35 @@ int transport::Node::UnAdvertise(const std::string &_topic)
 
 //////////////////////////////////////////////////
 int transport::Node::Publish(const std::string &_topic,
-                             const ProtoMsgPtr &_msgPtr)
+                             const transport::ProtoMsg &_msg)
 {
   assert(_topic != "");
 
-  if (this->dataPtr->topics.HasSubscriptionHandler(_topic))
+  if (!this->dataPtr->topics.AdvertisedByMe(_topic))
+    return -1;
+
+  // Local subscribers
+  transport::ISubscriptionHandler_M handlers;
+  this->dataPtr->topics.GetSubscriptionHandlers(_topic, handlers);
+  for (auto handler : handlers)
+  {
+    transport::ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+    if (subscriptionHandlerPtr)
+      subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
+    else
+      std::cerr << "Subscription handler is NULL" << std::endl;
+  }
+
+  // Remote subscribers
+  if (this->dataPtr->topics.HasSubscribers(_topic))
   {
     std::string data;
-    _msgPtr->SerializeToString(&data);
+    _msg.SerializeToString(&data);
     if (this->dataPtr->Publish(_topic, data) != 0)
       return -1;
   }
 
-  // Execute local callbacks
-  return this->dataPtr->topics.RunLocalCallbacks(_topic, _msgPtr);
+  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -92,7 +107,6 @@ int transport::Node::UnSubscribe(const std::string &_topic)
     std::cout << "\nUnubscribe (" << _topic << ")\n";
 
   this->dataPtr->topics.SetSubscribed(_topic, false);
-  this->dataPtr->topics.SetCallback(_topic, nullptr);
 
   // Remove the filter for this topic
   this->dataPtr->subscriber->setsockopt(ZMQ_UNSUBSCRIBE, _topic.data(),

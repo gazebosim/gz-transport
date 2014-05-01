@@ -56,7 +56,7 @@ namespace ignition
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
       public: int Publish(const std::string &_topic,
-                          const ProtoMsgPtr &_msgPtr);
+                          const transport::ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
       /// \param[in] _topic Topic to be subscribed.
@@ -64,9 +64,7 @@ namespace ignition
       /// \return 0 when success.
       public: template<class T> int Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &, const std::shared_ptr<const T> &))
-          // const std::function
-          //  <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
+          void(*_cb)(const std::string &, const T &))
       {
         std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 

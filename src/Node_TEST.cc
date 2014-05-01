@@ -16,7 +16,6 @@
 */
 
 #include <robot_msgs/stringmsg.pb.h>
-#include <memory>
 #include <string>
 #include <thread>
 #include "ignition/transport/Node.hh"
@@ -39,23 +38,21 @@ static void s_sleep(int msecs)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic,
-        const std::shared_ptr<const robot_msgs::StringMsg> &_msgPtr)
+void cb(const std::string &_topic, const robot_msgs::StringMsg &_msgPtr)
 {
   assert(_topic != "");
 
-  EXPECT_EQ(_msgPtr->data(), data);
+  EXPECT_EQ(_msgPtr.data(), data);
   cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic,
-         const std::shared_ptr<const robot_msgs::StringMsg> &_msgPtr)
+void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msgPtr)
 {
   assert(_topic != "");
 
-  EXPECT_EQ(_msgPtr->data(), data);
+  EXPECT_EQ(_msgPtr.data(), data);
   cb2Executed = true;
 }
 
@@ -71,22 +68,22 @@ void CreateSubscriber()
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubWithoutAdvertise)
 {
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   // Subscribe to topic1
   transport::Node node;
 
   // Publish some data on topic1 without advertising it first
-  EXPECT_NE(node.Publish(topic, msgPtr), 0);
+  EXPECT_NE(node.Publish(topic, msg), 0);
 }
 
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubSubSameThread)
 {
   cbExecuted = false;
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   transport::Node node;
 
@@ -98,7 +95,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   s_sleep(100);
 
   // Publish a msg on topic1
-  EXPECT_EQ(node.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
   // Check that the msg was received
@@ -106,7 +103,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   cbExecuted = false;
 
   // Publish a second message on topic1
-  EXPECT_EQ(node.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
   // Check that the data was received
@@ -115,7 +112,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   // Unadvertise topic1 and publish a third message
   node.UnAdvertise(topic);
-  EXPECT_NE(node.Publish(topic, msgPtr), 0);
+  EXPECT_NE(node.Publish(topic, msg), 0);
   s_sleep(100);
   EXPECT_FALSE(cbExecuted);
 }
@@ -124,9 +121,8 @@ TEST(DiscZmqTest, PubSubSameThread)
 TEST(DiscZmqTest, PubSubSameThreadLocal)
 {
   cbExecuted = false;
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   transport::Node node;
 
@@ -138,7 +134,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   s_sleep(100);
 
   // Publish a msg on topic1
-  EXPECT_EQ(node.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
   // Check that the msg was received
@@ -146,7 +142,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   cbExecuted = false;
 
   // Publish a second message on topic1
-  EXPECT_EQ(node.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
   // Check that the data was received
@@ -155,7 +151,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
 
   // Unadvertise topic1 and publish a third message
   node.UnAdvertise(topic);
-  EXPECT_NE(node.Publish(topic, msgPtr), 0);
+  EXPECT_NE(node.Publish(topic, msg), 0);
   s_sleep(100);
   EXPECT_FALSE(cbExecuted);
 }
@@ -164,8 +160,8 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
 TEST(DiscZmqTest, PubSubSameProcess)
 {
   cbExecuted = false;
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   // Create the transport node
   transport::Node node;
@@ -177,7 +173,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
   s_sleep(100);
 
   // Advertise and publish a msg on topic1
-  EXPECT_EQ(node.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
   subscribeThread.join();
@@ -192,8 +188,8 @@ TEST(DiscZmqTest, TwoSubscribersSameThread)
 {
   cbExecuted = false;
   cb2Executed = false;
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   transport::Node node1;
   transport::Node node2;
@@ -211,7 +207,7 @@ TEST(DiscZmqTest, TwoSubscribersSameThread)
   s_sleep(100);
 
   // Publish a msg on topic
-  EXPECT_EQ(node1.Publish(topic, msgPtr), 0);
+  EXPECT_EQ(node1.Publish(topic, msg), 0);
   s_sleep(100);
 
   // Check that the msg was received
@@ -224,7 +220,7 @@ TEST(DiscZmqTest, TwoSubscribersSameThread)
 
   // Unadvertise topic and publish a third message
   node1.UnAdvertise(topic);
-  EXPECT_NE(node1.Publish(topic, msgPtr), 0);
+  EXPECT_NE(node1.Publish(topic, msg), 0);
   s_sleep(100);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);

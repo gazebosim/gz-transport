@@ -19,11 +19,7 @@
 #define __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <functional>
-#include <iostream>
 #include <list>
-#include <map>
-#include <memory>
 #include <string>
 #include <vector>
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -53,11 +49,6 @@ namespace ignition
 
       /// brief Am I subscribed to the topic?
       public: bool subscribed;
-
-      /// brief Callback that will be executed in case of receiving new data.
-      public: Callback cb;
-
-      public: CallbackLocal_V localCallbacks;
 
       /// brief Is a service call pending?
       public: bool requested;
@@ -128,13 +119,6 @@ namespace ignition
       /// \return true if the service call associated to the topic is requested.
       public: bool Requested(const std::string &_topic);
 
-      /// \brief Get the callback associated to a topic subscription.
-      /// \param[in] _topic Topic name.
-      /// \param[out] A pointer to the function registered for a topic.
-      /// \return true if there is a callback registered for the topic.
-      public: bool GetCallback(const std::string &_topic,
-                               transport::Callback &_cb);
-
       /// \brief Get the REQ callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REQ function registered for a topic.
@@ -159,14 +143,6 @@ namespace ignition
       /// \param[in] _address New address
       public: void AddAdvAddress(const std::string &_topic,
                                  const std::string &_address);
-
-      public: void AddLocalCallback(const std::string &_topic,
-                                    const transport::CallbackLocal &_cb);
-
-      public: bool HasLocalCallback(const std::string &_topic);
-
-      public: int RunLocalCallbacks(const std::string &_topic,
-        const std::shared_ptr<google::protobuf::Message> &_msgPtr);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
@@ -194,12 +170,6 @@ namespace ignition
       /// \param[in] _value New value to be assigned in advertisedByMe member.
       public: void SetAdvertisedByMe(const std::string &_topic,
                                      const bool _value);
-
-      /// \brief Set a new callback associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _cb New callback.
-      public: void SetCallback(const std::string &_topic,
-                               const transport::Callback &_cb);
 
       /// \brief Set a new REQ callback associated to a given topic.
       /// \param[in] _topic Topic name.

@@ -15,9 +15,7 @@
  *
 */
 
-#include <google/protobuf/message.h>
-#include <robot_msgs/stringmsg.pb.h>
-#include <memory>
+#include <iostream>
 #include <string>
 #include "ignition/transport/TopicsInfo.hh"
 #include "gtest/gtest.h"
@@ -25,12 +23,6 @@
 using namespace ignition;
 
 bool callbackExecuted = false;
-
-//////////////////////////////////////////////////
-void myCb(const std::string &/*_p1*/, const std::string &/*_p2*/)
-{
-  callbackExecuted = true;
-}
 
 //////////////////////////////////////////////////
 void myReqCb(const std::string &/*_p1*/, int /*p2*/, const std::string &/*p3*/)
@@ -47,22 +39,12 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 }
 
 //////////////////////////////////////////////////
-void cb4(const std::string &_topic,
-         const std::shared_ptr<robot_msgs::StringMsg> &/*_msgPtr*/)
-{
-  assert(_topic != "");
-
-  callbackExecuted = true;
-}
-
-//////////////////////////////////////////////////
 TEST(PacketTest, BasicTopicsInfoAPI)
 {
   transport::TopicsInfo topics;
   std::string topic = "test_topic";
   std::string address = "tcp://10.0.0.1:6000";
   transport::Topics_L v;
-  transport::Callback cb;
   transport::ReqCallback reqCb;
   transport::RepCallback repCb;
 
@@ -74,7 +56,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetCallback(topic, cb));
   EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
@@ -89,7 +70,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetCallback(topic, cb));
   EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
@@ -114,14 +94,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   // Check SetAdvertisedByMe
   topics.SetAdvertisedByMe(topic, true);
   EXPECT_TRUE(topics.AdvertisedByMe(topic));
-
-  // Check SetCallback
-  topics.SetCallback(topic, myCb);
-  // topics.SetCallback(topic, cb4);
-  EXPECT_TRUE(topics.GetCallback(topic, cb));
-  callbackExecuted = false;
-  cb("topic", "data");
-  EXPECT_TRUE(callbackExecuted);
 
   // Check SetReqCallback
   topics.SetReqCallback(topic, myReqCb);

@@ -22,6 +22,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -31,7 +32,12 @@ namespace ignition
     /// is not known.
     class ISubscriptionHandler
     {
-      public: virtual ~ISubscriptionHandler() {}
+      public: virtual ~ISubscriptionHandler()
+      {
+      }
+
+      public: virtual int RunLocalCallback(const std::string &_topic,
+                                           const transport::ProtoMsg &_msg) = 0;
 
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
@@ -65,9 +71,26 @@ namespace ignition
       /// \param[in] _cb The callback.
       public: void SetCallback(
         const std::function
-          <void(const std::string &, const std::shared_ptr<const T> &)> &_cb)
+          <void(const std::string &, const T &)> &_cb)
       {
         this->cb = _cb;
+      }
+
+      public: int RunLocalCallback(const std::string &_topic,
+                                   const transport::ProtoMsg &_msg)
+      {
+        // Execute the callback (if existing)
+        if (this->cb)
+        {
+          const T *msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+          this->cb(_topic, *msgPtr);
+          return 0;
+        }
+        else
+        {
+          std::cerr << "Callback is NULL" << std::endl;
+          return -1;
+        }
       }
 
       // Documentation inherited
@@ -80,7 +103,7 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
-          this->cb(_topic, msg);
+          this->cb(_topic, *msg);
           return 0;
         }
         else
@@ -92,7 +115,7 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler.
       private: std::function
-          <void (const std::string &, const std::shared_ptr<T> &)> cb;
+          <void(const std::string &, const T &)> cb;
     };
   }
 }

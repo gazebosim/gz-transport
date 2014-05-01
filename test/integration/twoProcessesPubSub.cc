@@ -17,7 +17,6 @@
 
 #include <robot_msgs/stringmsg.pb.h>
 #include <sys/types.h>
-#include <memory>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -38,27 +37,26 @@ static void s_sleep(int msecs)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic,
-        const std::shared_ptr<const robot_msgs::StringMsg> &_msgPtr)
+void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
   assert(_topic != "");
 
-  EXPECT_EQ(_msgPtr->data(), data);
+  EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void runPublisher()
 {
-  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
-  msgPtr->set_data(data);
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
 
   transport::Node node1;
 
   // Advertise topic1
   node1.Advertise(topic);
   s_sleep(500);
-  node1.Publish(topic, msgPtr);
+  node1.Publish(topic, msg);
   s_sleep(500);
 }
 
@@ -78,16 +76,13 @@ void runSubscriber()
   cbExecuted = false;
 }
 
-
 //////////////////////////////////////////////////
 TEST(DiscZmqTest, PubTwoProcesses)
 {
   pid_t pid = fork();
 
   if (pid == 0)
-  {
     runPublisher();
-  }
   else
   {
     runSubscriber();

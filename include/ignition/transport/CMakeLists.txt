@@ -5,10 +5,10 @@ set (headers
   NodePrivate.hh
   NetUtils.hh
   Packet.hh
-  TopicsInfo.hh
-  TransportTypes.hh
   socket.hh
   SubscriptionHandler.hh
+  TopicsInfo.hh
+  TransportTypes.hh
 )
 
 #################################################
