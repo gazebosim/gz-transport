@@ -62,16 +62,9 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
       /// \return 0 when success.
-      public: int SubscribeLocal(const std::string &_topic,
-                                 const CallbackLocal &_cb);
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _cb Pointer to the callback function.
-      /// \return 0 when success.
       public: template<class T> int Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &, const std::shared_ptr<T> &))
+          void(*_cb)(const std::string &, const std::shared_ptr<const T> &))
           // const std::function
           //  <void (const std::string &, const std::shared_ptr<T> &)> &_cb)
       {

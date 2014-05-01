@@ -321,7 +321,9 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
         for (auto addr : this->myAddresses)
           this->SendAdvertiseMsg(transport::AdvType, topic, addr);
 
-        this->topics.AddSubscriber(topic);
+        // It's only considered a remote subscriber if the GUID is not as mine.
+        if (this->guidStr.compare(rcvdGuid) != 0)
+          this->topics.AddSubscriber(topic);
       }
 
       break;

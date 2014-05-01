@@ -229,11 +229,13 @@ namespace ignition
 
       public: void AddSubscriber(const std::string &_topic);
 
-      public: std::shared_ptr<transport::ISubscriptionHandler>
-              GetSubscriptionHandler(const std::string &_topic);
+      public: ISubscriptionHandlerPtr GetSubscriptionHandler(
+                                          const std::string &_topic);
 
       public: void AddSubscriptionHandler(const std::string &_topic,
-                          const std::shared_ptr<ISubscriptionHandler> &_msgPtr);
+                                        const ISubscriptionHandlerPtr &_msgPtr);
+
+      public: bool HasSubscriptionHandler(const std::string &_topic);
 
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.

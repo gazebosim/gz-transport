@@ -397,3 +397,12 @@ void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
 
   this->topicsInfo[_topic]->subscriptionHandler = _msgPtr;
 }
+
+//////////////////////////////////////////////////
+bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  return this->topicsInfo[_topic]->subscriptionHandler != nullptr;
+}

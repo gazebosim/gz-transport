@@ -39,7 +39,7 @@ static void s_sleep(int msecs)
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
 void cb(const std::string &_topic,
-        const std::shared_ptr<robot_msgs::StringMsg> &_msgPtr)
+        const std::shared_ptr<const robot_msgs::StringMsg> &_msgPtr)
 {
   assert(_topic != "");
 

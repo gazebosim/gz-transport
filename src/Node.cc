@@ -69,7 +69,7 @@ int transport::Node::Publish(const std::string &_topic,
 {
   assert(_topic != "");
 
-  if (this->dataPtr->topics.HasSubscribers(_topic))
+  if (this->dataPtr->topics.HasSubscriptionHandler(_topic))
   {
     std::string data;
     _msgPtr->SerializeToString(&data);
@@ -79,23 +79,6 @@ int transport::Node::Publish(const std::string &_topic,
 
   // Execute local callbacks
   return this->dataPtr->topics.RunLocalCallbacks(_topic, _msgPtr);
-}
-
-//////////////////////////////////////////////////
-int transport::Node::SubscribeLocal(const std::string &_topic,
-                                    const transport::CallbackLocal &_cb)
-{
-  assert(_topic != "");
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  if (this->dataPtr->verbose)
-    std::cout << "\nSubscribe local(" << _topic << ")\n";
-
-  // Register the local callback
-  this->dataPtr->topics.AddLocalCallback(_topic, _cb);
-
-  return 0;
 }
 
 //////////////////////////////////////////////////

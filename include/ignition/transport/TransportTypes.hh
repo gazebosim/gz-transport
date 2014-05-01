@@ -30,6 +30,7 @@ namespace ignition
 {
   namespace transport
   {
+    class ISubscriptionHandler;
     class NodePrivate;
     class TopicInfo;
 
@@ -73,6 +74,10 @@ namespace ignition
     /// \def NodePrivatePtr
     /// \brief Shared pointer to NodePrivate.
     typedef std::shared_ptr<transport::NodePrivate> NodePrivatePtr;
+
+    /// \def SubscriptionHandlerPtr
+    /// \brief Shared pointer to ISubscriptionHandler.
+    typedef std::shared_ptr<ISubscriptionHandler> ISubscriptionHandlerPtr;
   }
 }
 
