@@ -240,12 +240,16 @@ void transport::NodePrivate::RecvTopicUpdates()
   if (this->topics.Subscribed(topic))
   {
     // Execute the callback registered
-    std::shared_ptr<transport::ISubscriptionHandler> subscriptionHandlerPtr;
-    subscriptionHandlerPtr = this->topics.GetSubscriptionHandler(topic);
-    if (subscriptionHandlerPtr)
-      subscriptionHandlerPtr->RunCallback(topic, data);
-    else
-      std::cerr << "Subscription handler is NULL" << std::endl;
+    transport::ISubscriptionHandler_M handlers;
+    this->topics.GetSubscriptionHandlers(topic, handlers);
+    for (auto handler : handlers)
+    {
+      ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+      if (subscriptionHandlerPtr)
+        subscriptionHandlerPtr->RunCallback(topic, data);
+      else
+        std::cerr << "Subscription handler is NULL" << std::endl;
+    }
   }
   else
     std::cerr << "I am not subscribed to topic [" << topic << "]\n";

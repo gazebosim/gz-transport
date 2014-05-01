@@ -75,8 +75,7 @@ namespace ignition
 
       public: unsigned int numSubscribers;
 
-      public: std::shared_ptr<transport::ISubscriptionHandler>
-                 subscriptionHandler;
+      public: ISubscriptionHandler_M subscriptionHandlers;
     };
 
     class TopicsInfo
@@ -229,8 +228,8 @@ namespace ignition
 
       public: void AddSubscriber(const std::string &_topic);
 
-      public: ISubscriptionHandlerPtr GetSubscriptionHandler(
-                                          const std::string &_topic);
+      public: void GetSubscriptionHandlers(const std::string &_topic,
+                                  transport::ISubscriptionHandler_M &_handlers);
 
       public: void AddSubscriptionHandler(const std::string &_topic,
                                         const ISubscriptionHandlerPtr &_msgPtr);

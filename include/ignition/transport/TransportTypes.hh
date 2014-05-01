@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 /// \file
@@ -78,6 +79,13 @@ namespace ignition
     /// \def SubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
     typedef std::shared_ptr<ISubscriptionHandler> ISubscriptionHandlerPtr;
+
+    /// \def ISubscriptionHandler_M
+    /// \brief Map to store the different subscription handlers for a topic.
+    /// Each thread can have its own subscription handler. The thread id
+    /// is used as key.
+    typedef std::map<std::thread::id, ISubscriptionHandlerPtr>
+        ISubscriptionHandler_M;
   }
 }
 

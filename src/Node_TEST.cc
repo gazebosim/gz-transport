@@ -25,6 +25,7 @@
 using namespace ignition;
 
 bool cbExecuted;
+bool cb2Executed;
 std::string topic = "foo";
 std::string data = "bar";
 
@@ -45,6 +46,17 @@ void cb(const std::string &_topic,
 
   EXPECT_EQ(_msgPtr->data(), data);
   cbExecuted = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function is called everytime a topic update is received.
+void cb2(const std::string &_topic,
+         const std::shared_ptr<const robot_msgs::StringMsg> &_msgPtr)
+{
+  assert(_topic != "");
+
+  EXPECT_EQ(_msgPtr->data(), data);
+  cb2Executed = true;
 }
 
 //////////////////////////////////////////////////
@@ -176,49 +188,47 @@ TEST(DiscZmqTest, PubSubSameProcess)
 }
 
 //////////////////////////////////////////////////
-/*TEST(DiscZmqTest, TwoSubscribersSameThread)
+TEST(DiscZmqTest, TwoSubscribersSameThread)
 {
-  cb1Executed = false;
+  cbExecuted = false;
   cb2Executed = false;
-  bool verbose = false;
-  std::string topic1 = "foo";
-  std::string data = "someData";
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
+  std::shared_ptr<robot_msgs::StringMsg> msgPtr(new robot_msgs::StringMsg());
+  msgPtr->set_data(data);
 
-  transport::Node node1(verbose);
-  transport::Node node2(verbose);
+  transport::Node node1;
+  transport::Node node2;
 
-  // Advertise topic1
-  EXPECT_EQ(node1.Advertise(topic1), 0);
-
-  // Subscribe to topic1 from node1
-  EXPECT_EQ(node1.Subscribe(topic1, cb), 0);
+  // Advertise topic
+  EXPECT_EQ(node1.Advertise(topic), 0);
   s_sleep(100);
 
-  // Subscribe to topic1 from node2
-  EXPECT_EQ(node2.Subscribe(topic1, cb2), 0);
+  // Subscribe to topic from node1
+  EXPECT_EQ(node1.Subscribe(topic, cb), 0);
   s_sleep(100);
 
-  // Publish a msg on topic1
-  EXPECT_EQ(node1.Publish(topic1, msg), 0);
+  // Subscribe to topic from node2
+  EXPECT_EQ(node2.Subscribe(topic, cb2), 0);
+  s_sleep(100);
+
+  // Publish a msg on topic
+  EXPECT_EQ(node1.Publish(topic, msgPtr), 0);
   s_sleep(100);
 
   // Check that the msg was received
-  EXPECT_TRUE(cb1Executed);
-  cb1Executed = false;
+  EXPECT_TRUE(cbExecuted);
+  cbExecuted = false;
 
   // Check that the msg was received
   EXPECT_TRUE(cb2Executed);
   cb2Executed = false;
 
-  // Unadvertise topic1 and publish a third message
-  node1.UnAdvertise(topic1);
-  EXPECT_NE(node1.Publish(topic1, msg), 0);
+  // Unadvertise topic and publish a third message
+  node1.UnAdvertise(topic);
+  EXPECT_NE(node1.Publish(topic, msgPtr), 0);
   s_sleep(100);
-  EXPECT_FALSE(cb1Executed);
+  EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
-}*/
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

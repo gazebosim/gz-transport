@@ -375,13 +375,13 @@ bool transport::TopicsInfo::HasSubscribers(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-std::shared_ptr<transport::ISubscriptionHandler>
-  transport::TopicsInfo::GetSubscriptionHandler(const std::string &_topic)
+void transport::TopicsInfo::GetSubscriptionHandlers(
+  const std::string &_topic, transport::ISubscriptionHandler_M &_handlers)
 {
-  if (!this->HasTopic(_topic))
-    return nullptr;
-
-  return this->topicsInfo[_topic]->subscriptionHandler;
+  if (this->HasTopic(_topic))
+  {
+    _handlers = this->topicsInfo[_topic]->subscriptionHandlers;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -394,7 +394,15 @@ void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
       make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
-  this->topicsInfo[_topic]->subscriptionHandler = _msgPtr;
+  if (!this->HasSubscriptionHandler(_topic))
+  {
+    this->topicsInfo[_topic]->subscriptionHandlers.insert(
+      make_pair(
+        std::this_thread::get_id(), nullptr));
+  }
+
+  this->topicsInfo[_topic]->subscriptionHandlers[std::this_thread::get_id()] =
+    _msgPtr;
 }
 
 //////////////////////////////////////////////////
@@ -403,5 +411,7 @@ bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic)
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->topicsInfo[_topic]->subscriptionHandler != nullptr;
+  return this->topicsInfo[_topic]->subscriptionHandlers.find(
+    std::this_thread::get_id()) !=
+      this->topicsInfo[_topic]->subscriptionHandlers.end();
 }
