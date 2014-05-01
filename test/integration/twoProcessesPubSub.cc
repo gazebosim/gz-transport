@@ -53,7 +53,7 @@ void runPublisher()
 
   transport::Node node1;
 
-  // Advertise topic1
+  // Advertise topic
   node1.Advertise(topic);
   s_sleep(500);
   node1.Publish(topic, msg);
@@ -67,7 +67,7 @@ void runSubscriber()
   s_sleep(100);
   transport::Node node2;
 
-  // Advertise topic1
+  // Advertise topic
   s_sleep(100);
   node2.Subscribe(topic, cb);
   s_sleep(500);

@@ -71,10 +71,10 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
-  // Subscribe to topic1
+  // Subscribe to topic
   transport::Node node;
 
-  // Publish some data on topic1 without advertising it first
+  // Publish some data on topic without advertising it first
   EXPECT_NE(node.Publish(topic, msg), 0);
 }
 
@@ -87,14 +87,14 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   transport::Node node;
 
-  // Advertise topic1
+  // Advertise topic
   EXPECT_EQ(node.Advertise(topic), 0);
 
-  // Subscribe to topic1
+  // Subscribe to topic
   EXPECT_EQ(node.Subscribe(topic, cb), 0);
   s_sleep(100);
 
-  // Publish a msg on topic1
+  // Publish a msg on topic
   EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
@@ -102,7 +102,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 
-  // Publish a second message on topic1
+  // Publish a second message on topic
   EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
@@ -110,7 +110,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 
-  // Unadvertise topic1 and publish a third message
+  // Unadvertise topic and publish a third message
   node.UnAdvertise(topic);
   EXPECT_NE(node.Publish(topic, msg), 0);
   s_sleep(100);
@@ -126,14 +126,14 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
 
   transport::Node node;
 
-  // Advertise topic1
+  // Advertise topic
   EXPECT_EQ(node.Advertise(topic), 0);
 
-  // Subscribe to topic1
+  // Subscribe to topic
   node.Subscribe(topic, cb);
   s_sleep(100);
 
-  // Publish a msg on topic1
+  // Publish a msg on topic
   EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
@@ -141,7 +141,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 
-  // Publish a second message on topic1
+  // Publish a second message on topic
   EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
@@ -149,7 +149,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 
-  // Unadvertise topic1 and publish a third message
+  // Unadvertise topic and publish a third message
   node.UnAdvertise(topic);
   EXPECT_NE(node.Publish(topic, msg), 0);
   s_sleep(100);
@@ -168,11 +168,11 @@ TEST(DiscZmqTest, PubSubSameProcess)
   EXPECT_EQ(node.Advertise(topic), 0);
   s_sleep(100);
 
-  // Subscribe to topic1 in a different thread
+  // Subscribe to topic in a different thread
   std::thread subscribeThread(CreateSubscriber);
   s_sleep(100);
 
-  // Advertise and publish a msg on topic1
+  // Advertise and publish a msg on topic
   EXPECT_EQ(node.Publish(topic, msg), 0);
   s_sleep(100);
 
