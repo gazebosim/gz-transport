@@ -54,11 +54,6 @@ endif()
 find_path (czmq_INCLUDE_DIRS czmq.h)
 set (CZMQ_FOUND True)
 
-find_library(CZMQ_LIBRARY
-    NAMES czmq
-    HINTS "${CMAKE_PREFIX_PATH}/curl/lib"
-)
-
 if (NOT czmq_INCLUDE_DIRS)
   message (STATUS "Looking for czmq.h - not found")
   set (CZMQ_FOUND False)

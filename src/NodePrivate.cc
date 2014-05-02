@@ -86,12 +86,13 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     b.protocol[2] = 'N';
     b.version = BEACON_VERSION;
     b.port = htons(11313);
-    // zuuid_export (this->guid, beacon.uuid);
     uuid_copy(b.uuid, this->guid);
     this->beacon = zbeacon_new(ctx, b.port);
-    //zbeacon_noecho (beacon);
-    /*zbeacon_publish (self->beacon, (byte *) &beacon, sizeof (beacon_t));
-    zbeacon_subscribe (self->beacon, (byte *) "ZRE", 3);*/
+    //zbeacon_noecho(this->beacon);
+    zbeacon_publish(this->beacon, reinterpret_cast<byte *>(&b), sizeof(b));
+    zbeacon_subscribe(this->beacon, (byte *) "IGN", 3);
+
+    std::cout << zbeacon_hostname(this->beacon) << std::endl;
   }
   catch(const zmq::error_t& ze)
   {
@@ -134,14 +135,17 @@ void transport::NodePrivate::SpinOnce()
   zmq::pollitem_t items[] = {
     { *this->subscriber, 0, ZMQ_POLLIN, 0 },
     { 0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0 },
+    { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 },
   };
   zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 
   //  If we got a reply, process it
   if (items[0].revents & ZMQ_POLLIN)
-    this->RecvTopicUpdates();
+    this->RecvMsgUpdate();
   else if (items[1].revents & ZMQ_POLLIN)
-    this->RecvDiscoveryUpdates();
+    this->RecvDiscoveryUpdate();
+  else if (items[2].revents & ZMQ_POLLIN)
+    this->RecvBeaconUpdate();
 }
 
 //////////////////////////////////////////////////
@@ -195,7 +199,7 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::NodePrivate::RecvDiscoveryUpdates()
+void transport::NodePrivate::RecvDiscoveryUpdate()
 {
   char rcvStr[MaxRcvStr];     // Buffer for data
   std::string srcAddr;        // Address of datagram source
@@ -221,7 +225,7 @@ void transport::NodePrivate::RecvDiscoveryUpdates()
 }
 
 //////////////////////////////////////////////////
-void transport::NodePrivate::RecvTopicUpdates()
+void transport::NodePrivate::RecvMsgUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -267,6 +271,14 @@ void transport::NodePrivate::RecvTopicUpdates()
   }
   else
     std::cerr << "I am not subscribed to topic [" << topic << "]\n";
+}
+
+//////////////////////////////////////////////////
+void transport::NodePrivate::RecvBeaconUpdate()
+{
+  char *ipaddress = zstr_recv(zbeacon_socket(this->beacon));
+  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
+  std::cout << "Beacon (" << ipaddress << ")" << std::endl;
 }
 
 //////////////////////////////////////////////////

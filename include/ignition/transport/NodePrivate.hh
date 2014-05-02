@@ -59,10 +59,10 @@ namespace ignition
       public: virtual ~NodePrivate();
 
       /// \brief Run one iteration of the transport.
-      public: void SpinOnce();
+      private: void SpinOnce();
 
       /// \brief Receive messages forever.
-      public: void Spin();
+      private: void Spin();
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
@@ -71,15 +71,17 @@ namespace ignition
       public: int Publish(const std::string &_topic, const std::string &_data);
 
       /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdates();
+      public: void RecvDiscoveryUpdate();
 
       /// \brief Method in charge of receiving the topic updates.
-      public: void RecvTopicUpdates();
+      public: void RecvMsgUpdate();
+
+      private: void RecvBeaconUpdate();
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _msg Received message.
       /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(char *_msg);
+      private: int DispatchDiscoveryMsg(char *_msg);
 
       /// \brief Send an ADVERTISE message to the discovery socket.
       /// \param[in] _type ADV or ADV_SVC.
