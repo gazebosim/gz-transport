@@ -19,6 +19,7 @@
 #define _IGN_TRANSPORT_NODEPRIVATE_HH_
 
 #include <google/protobuf/message.h>
+#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <memory>
@@ -33,6 +34,15 @@ namespace ignition
 {
   namespace transport
   {
+    #define BEACON_VERSION 0x01
+
+    typedef struct {
+      byte protocol[3];
+      byte version;
+      byte uuid[ZUUID_LEN];
+      uint16_t port;
+    } beacon_t;
+
     /// \brief Longest string to receive.
     const int MaxRcvStr = 65536;
 
@@ -145,6 +155,8 @@ namespace ignition
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
+
+      zbeacon_t *beacon;
     };
   }
 }

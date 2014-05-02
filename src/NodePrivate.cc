@@ -76,6 +76,22 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->tcpEndpoint = bindEndPoint;
     this->myAddresses.push_back(this->tcpEndpoint);
+
+    //  Set broadcast/listen beacon
+    //  Basic test: create a service and announce it
+    zctx_t *ctx = zctx_new();
+    beacon_t b;
+    b.protocol[0] = 'I';
+    b.protocol[1] = 'G';
+    b.protocol[2] = 'N';
+    b.version = BEACON_VERSION;
+    b.port = htons(11313);
+    // zuuid_export (this->guid, beacon.uuid);
+    uuid_copy(b.uuid, this->guid);
+    this->beacon = zbeacon_new(ctx, b.port);
+    //zbeacon_noecho (beacon);
+    /*zbeacon_publish (self->beacon, (byte *) &beacon, sizeof (beacon_t));
+    zbeacon_subscribe (self->beacon, (byte *) "ZRE", 3);*/
   }
   catch(const zmq::error_t& ze)
   {

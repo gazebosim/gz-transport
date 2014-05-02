@@ -49,6 +49,28 @@ if (NOT ZMQ_FOUND)
 	BUILD_ERROR ("zmq not found, Please install ...")
 endif()
 
+#################################################
+# Find czmq.
+find_path (czmq_INCLUDE_DIRS czmq.h)
+set (CZMQ_FOUND True)
+
+find_library(CZMQ_LIBRARY
+    NAMES czmq
+    HINTS "${CMAKE_PREFIX_PATH}/curl/lib"
+)
+
+if (NOT czmq_INCLUDE_DIRS)
+  message (STATUS "Looking for czmq.h - not found")
+  set (CZMQ_FOUND False)
+else ()
+  message (STATUS "Looking for czmq.h - found")
+  include_directories(${czmq_INCLUDE_DIRS})
+endif ()
+
+if (NOT CZMQ_FOUND)
+  BUILD_ERROR ("czmq not found, Please install ...")
+endif()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)
