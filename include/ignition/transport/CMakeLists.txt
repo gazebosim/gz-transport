@@ -3,7 +3,6 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   Node.hh
   NodePrivate.hh
-  NetUtils.hh
   Packet.hh
   socket.hh
   SubscriptionHandler.hh

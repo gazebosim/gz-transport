@@ -3,7 +3,6 @@ include (${project_cmake_dir}/Utils.cmake)
 set (sources
   Node.cc
   NodePrivate.cc
-  NetUtils.cc
   Packet.cc
   socket.cc
   TopicsInfo.cc

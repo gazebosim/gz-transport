@@ -76,8 +76,6 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 
   // Publish some data on topic without advertising it first
   EXPECT_NE(node.Publish(topic, msg), 0);
-
-  getchar();
 }
 
 //////////////////////////////////////////////////

@@ -24,7 +24,6 @@
 #include <thread>
 #include <vector>
 #include "ignition/transport/NodePrivate.hh"
-#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/socket.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -61,7 +60,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
 
   // ToDo Read this from getenv or command line arguments.
   this->bcastAddr = "255.255.255.255";
-  this->hostAddr = DetermineHost();
+  // this->hostAddr = DetermineHost();
 
   uuid_generate(this->guid);
 
@@ -70,15 +69,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   // Initialize the 0MQ objects.
   try
   {
-    std::string anyTcpEP = "tcp://" + this->hostAddr + ":*";
-    this->publisher->bind(anyTcpEP.c_str());
-    size_t size = sizeof(bindEndPoint);
-    this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->tcpEndpoint = bindEndPoint;
-    this->myAddresses.push_back(this->tcpEndpoint);
-
-    //  Set broadcast/listen beacon
-    //  Basic test: create a service and announce it
+    // Set broadcast/listen beacon
     zctx_t *ctx = zctx_new();
     beacon_t b;
     b.protocol[0] = 'I';
@@ -88,11 +79,19 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     b.port = htons(11313);
     uuid_copy(b.uuid, this->guid);
     this->beacon = zbeacon_new(ctx, b.port);
-    //zbeacon_noecho(this->beacon);
-    zbeacon_publish(this->beacon, reinterpret_cast<byte *>(&b), sizeof(b));
+    // zbeacon_noecho(this->beacon);
+    zbeacon_publish(this->beacon, (byte *) &b, sizeof(b));
     zbeacon_subscribe(this->beacon, (byte *) "IGN", 3);
 
-    std::cout << zbeacon_hostname(this->beacon) << std::endl;
+    // Set the hostname's ip address
+    this->hostAddr = zbeacon_hostname(this->beacon);
+
+    std::string anyTcpEP = "tcp://" + this->hostAddr + ":*";
+    this->publisher->bind(anyTcpEP.c_str());
+    size_t size = sizeof(bindEndPoint);
+    this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->tcpEndpoint = bindEndPoint;
+    this->myAddresses.push_back(this->tcpEndpoint);
   }
   catch(const zmq::error_t& ze)
   {
