@@ -15,6 +15,7 @@
  *
 */
 
+#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <cstdlib>
@@ -25,7 +26,6 @@
 #include <vector>
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/socket.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -42,8 +42,6 @@ transport::NodePrivatePtr transport::NodePrivate::GetInstance(bool _verbose)
 //////////////////////////////////////////////////
 transport::NodePrivate::NodePrivate(bool _verbose)
   : bcastPort(11312),
-    bcastSockIn(new UDPSocket(this->bcastPort)),
-    bcastSockOut(new UDPSocket()),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB))
@@ -58,10 +56,6 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   // msecs.
   this->timeout = 250;
 
-  // ToDo Read this from getenv or command line arguments.
-  this->bcastAddr = "255.255.255.255";
-  // this->hostAddr = DetermineHost();
-
   uuid_generate(this->guid);
 
   this->guidStr = transport::GetGuidStr(this->guid);
@@ -69,19 +63,9 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   // Initialize the 0MQ objects.
   try
   {
-    // Set broadcast/listen beacon
-    zctx_t *ctx = zctx_new();
-    beacon_t b;
-    b.protocol[0] = 'I';
-    b.protocol[1] = 'G';
-    b.protocol[2] = 'N';
-    b.version = BEACON_VERSION;
-    b.port = htons(11313);
-    uuid_copy(b.uuid, this->guid);
-    this->beacon = zbeacon_new(ctx, b.port);
-    // zbeacon_noecho(this->beacon);
-    zbeacon_publish(this->beacon, (byte *) &b, sizeof(b));
-    zbeacon_subscribe(this->beacon, (byte *) "IGN", 3);
+    // Set broadcast/listen discovery beacon.
+    this->ctx = zctx_new();
+    this->beacon = zbeacon_new(ctx, this->bcastPort);
 
     // Set the hostname's ip address
     this->hostAddr = zbeacon_hostname(this->beacon);
@@ -125,6 +109,16 @@ transport::NodePrivate::~NodePrivate()
 
   // Wait for the service thread before exit.
   this->threadInbound->join();
+
+  // Stop listening discovery messages.
+  zbeacon_unsubscribe(this->beacon);
+
+  // Stop the beacon broadcasts.
+  zbeacon_silence(this->beacon);
+
+  // Destroy the beacon.
+  zbeacon_destroy(&this->beacon);
+  zctx_destroy(&this->ctx);
 }
 
 //////////////////////////////////////////////////
@@ -133,7 +127,6 @@ void transport::NodePrivate::SpinOnce()
   //  Poll socket for a reply, with timeout
   zmq::pollitem_t items[] = {
     { *this->subscriber, 0, ZMQ_POLLIN, 0 },
-    { 0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0 },
     { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 },
   };
   zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
@@ -143,8 +136,6 @@ void transport::NodePrivate::SpinOnce()
     this->RecvMsgUpdate();
   else if (items[1].revents & ZMQ_POLLIN)
     this->RecvDiscoveryUpdate();
-  else if (items[2].revents & ZMQ_POLLIN)
-    this->RecvBeaconUpdate();
 }
 
 //////////////////////////////////////////////////
@@ -200,27 +191,23 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 //////////////////////////////////////////////////
 void transport::NodePrivate::RecvDiscoveryUpdate()
 {
-  char rcvStr[MaxRcvStr];     // Buffer for data
-  std::string srcAddr;        // Address of datagram source
-  unsigned short srcPort;     // Port of datagram source
-  int bytes;                  // Rcvd from the UDP broadcast socket
+  // Address of datagram source.
+  char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
 
-  try
-  {
-    bytes = this->bcastSockIn->recvFrom(rcvStr, MaxRcvStr, srcAddr, srcPort);
-  }
-  catch(const SocketException &e)
-  {
-    cerr << "Exception receiving from the UDP socket: " << e.what() << endl;
-    return;
-  }
+  // A zmq message.
+  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
+
+  // Pointer to the raw discovery data.
+  byte *data = zframe_data(frame);
 
   if (this->verbose)
-    cout << "\nReceived discovery update from " << srcAddr <<
-            ": " << srcPort << " (" << bytes << " bytes)" << endl;
+    std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
 
-  if (this->DispatchDiscoveryMsg(rcvStr) != 0)
+  if (this->DispatchDiscoveryMsg(reinterpret_cast<char*>(&data[0])) != 0)
     std::cerr << "Something went wrong parsing a discovery message\n";
+
+  zstr_free(&srcAddr);
+  zframe_destroy(&frame);
 }
 
 //////////////////////////////////////////////////
@@ -270,14 +257,6 @@ void transport::NodePrivate::RecvMsgUpdate()
   }
   else
     std::cerr << "I am not subscribed to topic [" << topic << "]\n";
-}
-
-//////////////////////////////////////////////////
-void transport::NodePrivate::RecvBeaconUpdate()
-{
-  char *ipaddress = zstr_recv(zbeacon_socket(this->beacon));
-  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
-  std::cout << "Beacon (" << ipaddress << ")" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -384,16 +363,8 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Send the data through the UDP broadcast socket
-  try
-  {
-    this->bcastSockOut->sendTo(reinterpret_cast<char*>(&buffer[0]),
-      advMsg.GetMsgLength(), this->bcastAddr, this->bcastPort);
-  }
-  catch(const SocketException &e)
-  {
-    cerr << "Exception sending an ADV msg: " << e.what() << endl;
-    return -1;
-  }
+  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
+                  advMsg.GetMsgLength());
 
   return 0;
 }
@@ -413,16 +384,8 @@ int transport::NodePrivate::SendSubscribeMsg(uint8_t _type,
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Send the data through the UDP broadcast socket
-  try
-  {
-    this->bcastSockOut->sendTo(reinterpret_cast<char*>(&buffer[0]),
-      header.GetHeaderLength(), this->bcastAddr, this->bcastPort);
-  }
-  catch(const SocketException &e)
-  {
-    cerr << "Exception sending a SUB msg: " << e.what() << endl;
-    return -1;
-  }
+  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
+                  header.GetHeaderLength());
 
   return 0;
 }

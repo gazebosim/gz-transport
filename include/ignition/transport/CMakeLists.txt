@@ -4,7 +4,6 @@ set (headers
   Node.hh
   NodePrivate.hh
   Packet.hh
-  socket.hh
   SubscriptionHandler.hh
   TopicsInfo.hh
   TransportTypes.hh

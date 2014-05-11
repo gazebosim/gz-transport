@@ -27,7 +27,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
 namespace ignition
@@ -76,8 +75,6 @@ namespace ignition
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
 
-      private: void RecvBeaconUpdate();
-
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _msg Received message.
       /// \return 0 when success.
@@ -109,17 +106,8 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-      /// \brief Broadcast IP address.
-      public: std::string bcastAddr;
-
       /// \brief UDP broadcast port used for the transport.
       public: int bcastPort;
-
-      /// \brief UDP socket used for receiving discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockIn;
-
-      /// \brief UDP socket used for sending discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockOut;
 
       /// \brief 0MQ context.
       public: std::unique_ptr<zmq::context_t> context;
@@ -158,7 +146,11 @@ namespace ignition
       /// \brief When true, the service thread will finish.
       private: bool exit;
 
-      zbeacon_t *beacon;
+      /// \brief ZMQ context for the discovery beacon.
+      private: zctx_t *ctx;
+
+      /// \brief Discovery beacon.
+      private: zbeacon_t *beacon;
     };
   }
 }

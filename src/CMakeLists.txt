@@ -4,7 +4,6 @@ set (sources
   Node.cc
   NodePrivate.cc
   Packet.cc
-  socket.cc
   TopicsInfo.cc
 )
 
