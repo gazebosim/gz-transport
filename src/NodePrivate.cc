@@ -76,8 +76,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     this->publisher->bind(anyTcpEP.c_str());
     size_t size = sizeof(bindEndPoint);
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->tcpEndpoint = bindEndPoint;
-    this->myAddresses.push_back(this->tcpEndpoint);
+    this->myAddress = bindEndPoint;
   }
   catch(const zmq::error_t& ze)
   {
@@ -88,7 +87,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   if (this->verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
-    std::cout << "Bind at: [" << this->tcpEndpoint << "] for pub/sub\n";
+    std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
 
@@ -171,9 +170,9 @@ int transport::NodePrivate::Publish(const std::string &_topic,
     memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
     this->publisher->send(message, ZMQ_SNDMORE);
 
-    message.rebuild(this->tcpEndpoint.size() + 1);
-    memcpy(message.data(), this->tcpEndpoint.c_str(),
-           this->tcpEndpoint.size() + 1);
+    message.rebuild(this->myAddress.size() + 1);
+    memcpy(message.data(), this->myAddress.c_str(),
+           this->myAddress.size() + 1);
     this->publisher->send(message, ZMQ_SNDMORE);
 
     message.rebuild(_data.size() + 1);
@@ -331,8 +330,7 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
       if (this->topics.AdvertisedByMe(topic))
       {
         // Send to the broadcast socket an ADVERTISE message
-        for (auto addr : this->myAddresses)
-          this->SendAdvertiseMsg(transport::AdvType, topic, addr);
+        this->SendAdvertiseMsg(transport::AdvType, topic, this->myAddress);
 
         // It's only considered a remote subscriber if the GUID is not as mine.
         if (this->guidStr.compare(rcvdGuid) != 0)

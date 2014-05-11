@@ -57,7 +57,7 @@ int transport::Node::Advertise(const std::string &_topic)
     // Create the beacon content.
     transport::Header header(transport::Version, this->dataPtr->guid, _topic,
                              transport::AdvType, 0);
-    transport::AdvMsg advMsg(header, this->dataPtr->myAddresses[0]);
+    transport::AdvMsg advMsg(header, this->dataPtr->myAddress);
     std::vector<char> buffer(advMsg.GetMsgLength());
     advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
@@ -67,9 +67,6 @@ int transport::Node::Advertise(const std::string &_topic)
     zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                     advMsg.GetMsgLength());
   }
-
-  //for (auto addr : this->dataPtr->myAddresses)
-  //  this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, addr);
 
   return 0;
 }

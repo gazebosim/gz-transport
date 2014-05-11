@@ -101,7 +101,7 @@ namespace ignition
       public: TopicsInfo topics;
 
       /// \brief My pub/sub address.
-      public: std::vector<std::string> myAddresses;
+      public: std::string myAddress;
 
       /// \brief IP address of this host.
       public: std::string hostAddr;
@@ -120,9 +120,6 @@ namespace ignition
 
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
-
-      /// \brief ZMQ tcp local endpoint.
-      public: std::string tcpEndpoint;
 
       /// \brief Local GUID.
       public: uuid_t guid;
