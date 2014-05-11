@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGN_TRANSPORT_TYPES_HH_INCLUDED__
-#define _IGN_TRANSPORT_TYPES_HH_INCLUDED__
+#ifndef _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
+#define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
 #include <map>

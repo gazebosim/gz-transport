@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGN_TRANSPORT_NODEPRIVATE_HH_
-#define _IGN_TRANSPORT_NODEPRIVATE_HH_
+#ifndef _IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
+#define _IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
 #include <czmq.h>
