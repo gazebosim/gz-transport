@@ -24,13 +24,13 @@ endif()
 
 ########################################
 # robot_msgs used for testing
-find_package(robot_msgs REQUIRED)
+pkg_check_modules(robot_msgs robot_msgs)
 if (NOT robot_msgs_FOUND)
-  BUILD_ERROR ("Missing: Robot msgs (librobot_msgs)")
-else ()
- 	message (STATUS "robot_msgs include: " ${ROBOT_MSGS_INCLUDE_DIRS})
- 	include_directories(${ROBOT_MSGS_INCLUDE_DIRS})
-endif()
+  BUILD_ERROR ("robot_msgs not found.")
+else()
+  include_directories(${robot_msgs_INCLUDE_DIRS})
+  link_directories(${robot_msgs_LIBRARY_DIRS})
+endif ()
 
 #################################################
 # Find ZeroMQ.
