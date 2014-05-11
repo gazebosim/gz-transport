@@ -3,9 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (sources
   Node.cc
   NodePrivate.cc
-  NetUtils.cc
   Packet.cc
-  socket.cc
   TopicsInfo.cc
 )
 
@@ -17,6 +15,6 @@ set (gtest_sources
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})
-target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf ${ROBOT_MSGS_LIBRARIES})
+target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf robot_msgs czmq)
 link_directories(${ROBOT_MSGS_LIBRARY_DIRS})
 ign_install_library(${PROJECT_NAME_LOWER})

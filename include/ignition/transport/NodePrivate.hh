@@ -19,6 +19,7 @@
 #define _IGN_TRANSPORT_NODEPRIVATE_HH_
 
 #include <google/protobuf/message.h>
+#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <memory>
@@ -26,13 +27,21 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "ignition/transport/socket.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    #define BEACON_VERSION 0x01
+
+    typedef struct {
+      byte protocol[3];
+      byte version;
+      byte uuid[ZUUID_LEN];
+      uint16_t port;
+    } beacon_t;
+
     /// \brief Longest string to receive.
     const int MaxRcvStr = 65536;
 
@@ -49,10 +58,10 @@ namespace ignition
       public: virtual ~NodePrivate();
 
       /// \brief Run one iteration of the transport.
-      public: void SpinOnce();
+      private: void SpinOnce();
 
       /// \brief Receive messages forever.
-      public: void Spin();
+      private: void Spin();
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
@@ -61,15 +70,15 @@ namespace ignition
       public: int Publish(const std::string &_topic, const std::string &_data);
 
       /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdates();
+      public: void RecvDiscoveryUpdate();
 
       /// \brief Method in charge of receiving the topic updates.
-      public: void RecvTopicUpdates();
+      public: void RecvMsgUpdate();
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _msg Received message.
       /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(char *_msg);
+      private: int DispatchDiscoveryMsg(char *_msg);
 
       /// \brief Send an ADVERTISE message to the discovery socket.
       /// \param[in] _type ADV or ADV_SVC.
@@ -97,17 +106,8 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-      /// \brief Broadcast IP address.
-      public: std::string bcastAddr;
-
       /// \brief UDP broadcast port used for the transport.
       public: int bcastPort;
-
-      /// \brief UDP socket used for receiving discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockIn;
-
-      /// \brief UDP socket used for sending discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockOut;
 
       /// \brief 0MQ context.
       public: std::unique_ptr<zmq::context_t> context;
@@ -145,6 +145,12 @@ namespace ignition
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
+
+      /// \brief ZMQ context for the discovery beacon.
+      private: zctx_t *ctx;
+
+      /// \brief Discovery beacon.
+      private: zbeacon_t *beacon;
     };
   }
 }

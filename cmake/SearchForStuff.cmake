@@ -24,13 +24,13 @@ endif()
 
 ########################################
 # robot_msgs used for testing
-find_package(robot_msgs REQUIRED)
+pkg_check_modules(robot_msgs robot_msgs)
 if (NOT robot_msgs_FOUND)
-  BUILD_ERROR ("Missing: Robot msgs (librobot_msgs)")
-else ()
- 	message (STATUS "robot_msgs include: " ${ROBOT_MSGS_INCLUDE_DIRS})
- 	include_directories(${ROBOT_MSGS_INCLUDE_DIRS})
-endif()
+  BUILD_ERROR ("robot_msgs not found.")
+else()
+  include_directories(${robot_msgs_INCLUDE_DIRS})
+  link_directories(${robot_msgs_LIBRARY_DIRS})
+endif ()
 
 #################################################
 # Find ZeroMQ.
@@ -47,6 +47,23 @@ endif ()
 
 if (NOT ZMQ_FOUND)
 	BUILD_ERROR ("zmq not found, Please install ...")
+endif()
+
+#################################################
+# Find czmq.
+find_path (czmq_INCLUDE_DIRS czmq.h)
+set (CZMQ_FOUND True)
+
+if (NOT czmq_INCLUDE_DIRS)
+  message (STATUS "Looking for czmq.h - not found")
+  set (CZMQ_FOUND False)
+else ()
+  message (STATUS "Looking for czmq.h - found")
+  include_directories(${czmq_INCLUDE_DIRS})
+endif ()
+
+if (NOT CZMQ_FOUND)
+  BUILD_ERROR ("czmq not found, Please install ...")
 endif()
 
 ########################################
