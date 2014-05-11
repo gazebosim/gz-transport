@@ -54,9 +54,6 @@ else
   fi
   CPPLINT_FILES=`\
     find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h"`
-
-  # ToDo(caguero) Remove this.
-  CPPLINT_FILES=`echo $CPPLINT_FILES | sed -r 's/\.\/src\/socket.cc/ /g' | sed -r 's/\.\/include\/ignition\/transport\/socket.hh/ /g'`
 fi
 
 SUPPRESS=/tmp/cpp_check.suppress
