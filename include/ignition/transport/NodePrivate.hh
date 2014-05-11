@@ -140,14 +140,14 @@ namespace ignition
       /// outbound thread.
       public: std::mutex mutex;
 
+      /// \brief ZMQ context for the discovery beacon.
+      public: zctx_t *ctx;
+
       /// \brief Mutex to guarantee exclusive access to exit variable.
       private: std::mutex exitMutex;
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
-
-      /// \brief ZMQ context for the discovery beacon.
-      private: zctx_t *ctx;
 
       /// \brief Discovery beacon.
       private: zbeacon_t *beacon;

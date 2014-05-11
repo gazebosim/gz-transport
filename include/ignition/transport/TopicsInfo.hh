@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 #define __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 
+#include <czmq.h>
 #include <google/protobuf/message.h>
 #include <list>
 #include <string>
@@ -58,6 +59,9 @@ namespace ignition
 
       /// brief Callback to manage the service call's response requested by me.
       public: RepCallback repCb;
+
+      /// \brief Beacon used to periodically advertise this topic.
+      public: zbeacon_t *beacon;
 
       /// brief List that stores the pending service call requests. Every
       /// element of the list contains the serialized parameters for each
@@ -119,6 +123,12 @@ namespace ignition
       /// \return true if the service call associated to the topic is requested.
       public: bool Requested(const std::string &_topic);
 
+      /// \brief Get the beacon used to advertise the topic
+      /// \param[in] _topic Topic name.
+      /// \param[out] _beacon Beacon used to advertise the topic.
+      /// \return true if there is a beacon associated to the topicS.
+      public: bool GetBeacon(const std::string &_topic, zbeacon_t *_beacon);
+
       /// \brief Get the REQ callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REQ function registered for a topic.
@@ -170,6 +180,13 @@ namespace ignition
       /// \param[in] _value New value to be assigned in advertisedByMe member.
       public: void SetAdvertisedByMe(const std::string &_topic,
                                      const bool _value);
+
+      /// \brief Set the beacon used to advertise the topic
+      /// \param[in] _topic Topic name.
+      /// \param[in] _beacon Beacon used to advertise the topic.
+      /// \return true if there is a beacon associated to the topicS.
+      public: void SetBeacon(const std::string &_topic,
+                             zbeacon_t *_beacon);
 
       /// \brief Set a new REQ callback associated to a given topic.
       /// \param[in] _topic Topic name.

@@ -32,6 +32,7 @@ transport::TopicInfo::TopicInfo()
   this->requested      = false;
   this->reqCb          = nullptr;
   this->repCb          = nullptr;
+  this->beacon         = nullptr;
   this->numSubscribers = 0;
 }
 
@@ -114,6 +115,19 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
     return false;
 
   return this->topicsInfo[_topic]->requested;
+}
+
+//////////////////////////////////////////////////
+bool transport::TopicsInfo::GetBeacon(const std::string &_topic,
+                                      zbeacon_t *_beacon)
+{
+  if (!this->HasTopic(_topic))
+  {
+    return false;
+  }
+
+  _beacon = this->topicsInfo[_topic]->beacon;
+  return _beacon != nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -231,6 +245,19 @@ void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
   }
 
   this->topicsInfo[_topic]->advertisedByMe = _value;
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::SetBeacon(const std::string &_topic,
+                                      zbeacon_t *_beacon)
+{
+  if (!this->HasTopic(_topic))
+  {
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+  }
+
+  this->topicsInfo[_topic]->beacon = _beacon;
 }
 
 //////////////////////////////////////////////////

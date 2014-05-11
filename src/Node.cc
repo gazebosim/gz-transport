@@ -19,6 +19,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <vector>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -41,12 +42,34 @@ int transport::Node::Advertise(const std::string &_topic)
 {
   assert(_topic != "");
 
+  zbeacon_t *topicBeacon = nullptr;
+
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
-  for (auto addr : this->dataPtr->myAddresses)
-    this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, addr);
+  if (!this->dataPtr->topics.GetBeacon(_topic, topicBeacon))
+  {
+    // Create a new beacon for the topic.
+    topicBeacon = zbeacon_new(this->dataPtr->ctx, this->dataPtr->bcastPort);
+    this->dataPtr->topics.SetBeacon(_topic, topicBeacon);
+
+    // Create the beacon content.
+    transport::Header header(transport::Version, this->dataPtr->guid, _topic,
+                             transport::AdvType, 0);
+    transport::AdvMsg advMsg(header, this->dataPtr->myAddresses[0]);
+    std::vector<char> buffer(advMsg.GetMsgLength());
+    advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+    zbeacon_set_interval(topicBeacon, 2000);
+
+    // Start publishing the ADVERTISE message periodically.
+    zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
+                    advMsg.GetMsgLength());
+  }
+
+  //for (auto addr : this->dataPtr->myAddresses)
+  //  this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic, addr);
 
   return 0;
 }

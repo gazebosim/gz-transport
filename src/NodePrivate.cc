@@ -66,6 +66,8 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     // Set broadcast/listen discovery beacon.
     this->ctx = zctx_new();
     this->beacon = zbeacon_new(ctx, this->bcastPort);
+    zbeacon_subscribe(this->beacon, NULL, 0);
+    zbeacon_set_interval(this->beacon, 2500);
 
     // Set the hostname's ip address
     this->hostAddr = zbeacon_hostname(this->beacon);
@@ -191,6 +193,8 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 //////////////////////////////////////////////////
 void transport::NodePrivate::RecvDiscoveryUpdate()
 {
+  std::cout << "beacon received" << std::endl;
+
   // Address of datagram source.
   char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
 
@@ -352,19 +356,28 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
 {
   assert(_topic != "");
 
+  if (!this->topics.AdvertisedByMe(_topic))
+  {
+    std::cerr << "Topic (" << _topic << ") not advertised by this node\n";
+    return -1;
+  }
+
   if (this->verbose)
+  {
     std::cout << "\t* Sending ADV msg [" << _topic << "][" << _address
               << "]" << std::endl;
+  }
 
+  // Create the beacon content.
   Header header(transport::Version, this->guid, _topic, _type, 0);
   AdvMsg advMsg(header, _address);
-
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
-  // Send the data through the UDP broadcast socket
+  // Just send one message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                   advMsg.GetMsgLength());
+  zbeacon_silence(this->beacon);
 
   return 0;
 }
