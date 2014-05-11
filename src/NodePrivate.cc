@@ -372,7 +372,7 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
-  // Just send one message.
+  // Just send one advertise message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                   advMsg.GetMsgLength());
   zbeacon_silence(this->beacon);
@@ -394,9 +394,10 @@ int transport::NodePrivate::SendSubscribeMsg(uint8_t _type,
   std::vector<char> buffer(header.GetHeaderLength());
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
-  // Send the data through the UDP broadcast socket
+  // Just send one subscribe message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                   header.GetHeaderLength());
+  zbeacon_silence(this->beacon);
 
   return 0;
 }
