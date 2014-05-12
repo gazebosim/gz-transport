@@ -63,13 +63,15 @@ namespace ignition
       /// \brief Beacon used to periodically advertise this topic.
       public: zbeacon_t *beacon;
 
-      /// brief List that stores the pending service call requests. Every
+      /// \brief List that stores the pending service call requests. Every
       /// element of the list contains the serialized parameters for each
       /// request.
       public: std::list<std::string> pendingReqs;
 
+      /// \brief Registers the number of subscribers to this topic.
       public: unsigned int numSubscribers;
 
+      /// \brief Stores all the subscribers information for this topic.
       public: ISubscriptionHandler_M subscriptionHandlers;
     };
 
