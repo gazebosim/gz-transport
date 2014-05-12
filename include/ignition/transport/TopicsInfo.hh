@@ -211,17 +211,32 @@ namespace ignition
       /// \return true if a request was removed.
       public: bool DelReq(const std::string &_topic, std::string &_data);
 
-
+      /// \brief Check if a topic has a remote subscriber in this node.
+      /// \param[in] _topic Topic name.
+      /// \return true if a topic has a remote subscriber in this node.
       public: bool HasRemoteSubscribers(const std::string &_topic);
 
+      /// \brief Increment the counter of remote susbscribers for a topic.
+      /// \param[in] _topic Topic name.
       public: void AddRemoteSubscriber(const std::string &_topic);
 
+      /// \brief Get the subscription handlers for a topic. A subscription
+      /// handler stores the callback and types associated to a subscription.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _handlers Subscription handlers.
       public: void GetSubscriptionHandlers(const std::string &_topic,
                                   transport::ISubscriptionHandler_M &_handlers);
 
+      /// \brief Add a subscription handler to a topic. A subscription handler
+      /// stores the callback and types associated to a subscription.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _handlers Subscription handler.
       public: void AddSubscriptionHandler(const std::string &_topic,
                                         const ISubscriptionHandlerPtr &_msgPtr);
 
+      /// \brief Check if a topic has a subscription handler.
+      /// \param[in] _topic Topic name.
+      /// \return true if the topic has a subscription handler registered.
       public: bool HasSubscriptionHandler(const std::string &_topic);
 
       /// \brief Get a reference to the topics map.
