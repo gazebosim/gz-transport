@@ -39,6 +39,8 @@ namespace ignition
     /// \brief List of topics.
     typedef std::vector<std::string> Topics_L;
 
+    /// \def ProtoMsg
+    /// \brief An abbreviated protobuf message type.
     typedef google::protobuf::Message ProtoMsg;
 
     /// \def ProtoMsgPtr
