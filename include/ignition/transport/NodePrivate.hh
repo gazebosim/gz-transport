@@ -33,18 +33,6 @@ namespace ignition
 {
   namespace transport
   {
-    #define BEACON_VERSION 0x01
-
-    typedef struct {
-      byte protocol[3];
-      byte version;
-      byte uuid[ZUUID_LEN];
-      uint16_t port;
-    } beacon_t;
-
-    /// \brief Longest string to receive.
-    const int MaxRcvStr = 65536;
-
     /// \brief public data for the Node class.
     class NodePrivate
     {
