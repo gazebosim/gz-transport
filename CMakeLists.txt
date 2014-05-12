@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-set(IGN_PROJECT_NAME "Ignition project name, such as 'math', or 'transport'. The name should be one word and lower case.")
-
+set(IGN_PROJECT_NAME "transport")
 
 project (ignition_${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
@@ -247,6 +246,8 @@ else (build_errors)
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
+  set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
+                            GENERATED TRUE)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
@@ -269,7 +270,7 @@ else (build_errors)
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
 
-  set(PKG_DEPENDS)
+  set(PKG_DEPENDS Protobuf)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"

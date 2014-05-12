@@ -61,7 +61,7 @@ SUPPRESS=/tmp/cpp_check.suppress
 # The follow suppression is useful when checking for missing includes.
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
-echo "missingIncludeSystem" >> $SUPPRESS
+#echo "missingIncludeSystem" >> $SUPPRESS
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
@@ -78,9 +78,9 @@ CPPCHECK_CMD2="--enable=unusedFunction $CPPCHECK_FILES"
 
 # Checking for missing includes is very time consuming. This is disabled
 # for now
-# CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES"\
-# " $CPPCHECK_INCLUDES"
-CPPCHECK_CMD3=""
+CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES"\
+" $CPPCHECK_INCLUDES"
+#CPPCHECK_CMD3=""
 
 if [ $xmlout -eq 1 ]; then
   # Performance, style, portability, and information
@@ -105,7 +105,7 @@ elif [ $QUICK_CHECK -eq 1 ]; then
       DO_CPPCHECK=1
     elif [ $CPPCHECK_LT_157 -eq 0 ]; then
       DO_CPPCHECK=1
-    fi 
+    fi
 
     if [ $DO_CPPCHECK -eq 1 ]; then
       $CPPCHECK_BASE $CPPCHECK_CMD1A $CPPCHECK_RULES $tmp2 2>&1 \
