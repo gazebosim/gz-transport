@@ -127,7 +127,7 @@ int transport::Node::Publish(const std::string &_topic,
   }
 
   // Remote subscribers
-  if (this->dataPtr->topics.HasSubscribers(_topic))
+  if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
   {
     std::string data;
     _msg.SerializeToString(&data);

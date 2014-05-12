@@ -272,14 +272,14 @@ transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddSubscriber(const std::string &_topic)
+void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->numSubscribers++;
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasSubscribers(const std::string &_topic)
+bool transport::TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;

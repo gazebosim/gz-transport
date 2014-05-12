@@ -211,9 +211,10 @@ namespace ignition
       /// \return true if a request was removed.
       public: bool DelReq(const std::string &_topic, std::string &_data);
 
-      public: bool HasSubscribers(const std::string &_topic);
 
-      public: void AddSubscriber(const std::string &_topic);
+      public: bool HasRemoteSubscribers(const std::string &_topic);
+
+      public: void AddRemoteSubscriber(const std::string &_topic);
 
       public: void GetSubscriptionHandlers(const std::string &_topic,
                                   transport::ISubscriptionHandler_M &_handlers);

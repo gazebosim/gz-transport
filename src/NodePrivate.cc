@@ -332,7 +332,7 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
 
         // It's only considered a remote subscriber if the GUID is not as mine.
         if (this->guidStr.compare(rcvdGuid) != 0)
-          this->topics.AddSubscriber(topic);
+          this->topics.AddRemoteSubscriber(topic);
       }
 
       break;
