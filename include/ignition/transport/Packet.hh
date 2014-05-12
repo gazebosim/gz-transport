@@ -27,6 +27,7 @@ namespace ignition
 {
   namespace transport
   {
+    /// \brief Length of a GUID.
     #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
 
     //  This is the version of Gazebo transport we implement
@@ -42,6 +43,7 @@ namespace ignition
     static const int RepType        = 6;
     static const int RepErrorType   = 7;
 
+    /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
       "ADVERTISE", "SUBSCRIBE", "ADV_SRV", "SUB_SVC",
