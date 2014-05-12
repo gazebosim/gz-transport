@@ -15,6 +15,7 @@
  *
 */
 
+#include <czmq.h>
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <mutex>
@@ -35,6 +36,17 @@ transport::Node::Node(bool _verbose)
 //////////////////////////////////////////////////
 transport::Node::~Node()
 {
+  for (auto topicInfo : this->dataPtr->topics.GetTopicsInfo())
+  {
+    zbeacon_t *topicBeacon = nullptr;
+    if (this->dataPtr->topics.GetBeacon(topicInfo.first, &topicBeacon))
+    {
+      // Destroy the beacon.
+      zbeacon_silence(topicBeacon);
+      zbeacon_destroy(&topicBeacon);
+      this->dataPtr->topics.SetBeacon(topicInfo.first, nullptr);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -48,7 +60,7 @@ int transport::Node::Advertise(const std::string &_topic)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
-  if (!this->dataPtr->topics.GetBeacon(_topic, topicBeacon))
+  if (!this->dataPtr->topics.GetBeacon(_topic, &topicBeacon))
   {
     // Create a new beacon for the topic.
     topicBeacon = zbeacon_new(this->dataPtr->ctx, this->dataPtr->bcastPort);
@@ -79,6 +91,16 @@ int transport::Node::UnAdvertise(const std::string &_topic)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
+
+  // Stop broadcasting the beacon for this topic.
+  zbeacon_t *topicBeacon = nullptr;
+  if (this->dataPtr->topics.GetBeacon(_topic, &topicBeacon))
+  {
+    // Destroy the beacon.
+    zbeacon_silence(topicBeacon);
+    zbeacon_destroy(&topicBeacon);
+    this->dataPtr->topics.SetBeacon(_topic, nullptr);
+  }
 
   return 0;
 }

@@ -25,15 +25,10 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
+  : connected(false), advertisedByMe(false), subscribed(false),
+    requested(false), reqCb(nullptr), repCb(nullptr), beacon(nullptr),
+    numSubscribers(0)
 {
-  this->connected      = false;
-  this->subscribed     = false;
-  this->advertisedByMe = false;
-  this->requested      = false;
-  this->reqCb          = nullptr;
-  this->repCb          = nullptr;
-  this->beacon         = nullptr;
-  this->numSubscribers = 0;
 }
 
 //////////////////////////////////////////////////
@@ -119,15 +114,15 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetBeacon(const std::string &_topic,
-                                      zbeacon_t *_beacon)
+                                      zbeacon_t **_beacon)
 {
   if (!this->HasTopic(_topic))
   {
     return false;
   }
 
-  _beacon = this->topicsInfo[_topic]->beacon;
-  return _beacon != nullptr;
+  *_beacon = this->topicsInfo[_topic]->beacon;
+  return *_beacon != nullptr;
 }
 
 //////////////////////////////////////////////////

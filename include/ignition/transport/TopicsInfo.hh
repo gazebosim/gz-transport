@@ -127,7 +127,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _beacon Beacon used to advertise the topic.
       /// \return true if there is a beacon associated to the topicS.
-      public: bool GetBeacon(const std::string &_topic, zbeacon_t *_beacon);
+      public: bool GetBeacon(const std::string &_topic, zbeacon_t **_beacon);
 
       /// \brief Get the REQ callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
