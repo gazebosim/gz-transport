@@ -15,19 +15,14 @@
  *
 */
 
+#include <iostream>
 #include <string>
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/TopicsInfo.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
 
 bool callbackExecuted = false;
-
-//////////////////////////////////////////////////
-void myCb(const std::string &/*_p1*/, const std::string &/*_p2*/)
-{
-  callbackExecuted = true;
-}
 
 //////////////////////////////////////////////////
 void myReqCb(const std::string &/*_p1*/, int /*p2*/, const std::string &/*p3*/)
@@ -49,10 +44,9 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   transport::TopicsInfo topics;
   std::string topic = "test_topic";
   std::string address = "tcp://10.0.0.1:6000";
-  transport::TopicInfo::Topics_L v;
-  transport::TopicInfo::Callback cb;
-  transport::TopicInfo::ReqCallback reqCb;
-  transport::TopicInfo::RepCallback repCb;
+  transport::Topics_L v;
+  transport::ReqCallback reqCb;
+  transport::RepCallback repCb;
 
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));
@@ -62,7 +56,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetCallback(topic, cb));
   EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
@@ -77,7 +70,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetCallback(topic, cb));
   EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
@@ -102,13 +94,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   // Check SetAdvertisedByMe
   topics.SetAdvertisedByMe(topic, true);
   EXPECT_TRUE(topics.AdvertisedByMe(topic));
-
-  // Check SetCallback
-  topics.SetCallback(topic, myCb);
-  EXPECT_TRUE(topics.GetCallback(topic, cb));
-  callbackExecuted = false;
-  cb("topic", "data");
-  EXPECT_TRUE(callbackExecuted);
 
   // Check SetReqCallback
   topics.SetReqCallback(topic, myReqCb);

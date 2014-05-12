@@ -1,11 +1,12 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  discZmq.hh
-  netUtils.hh
-  packet.hh
-  topicsInfo.hh
-  socket.hh
+  Node.hh
+  NodePrivate.hh
+  Packet.hh
+  SubscriptionHandler.hh
+  TopicsInfo.hh
+  TransportTypes.hh
 )
 
 #################################################

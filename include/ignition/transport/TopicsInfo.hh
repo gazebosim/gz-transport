@@ -15,14 +15,16 @@
  *
 */
 
-#ifndef __TOPICS_INFO_HH_INCLUDED__
-#define __TOPICS_INFO_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
+#define __IGN_TRANSPORT_TOPICSINFO_HH_INCLUDED__
 
-#include <functional>
+#include <czmq.h>
+#include <google/protobuf/message.h>
 #include <list>
-#include <map>
 #include <string>
 #include <vector>
+#include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -31,24 +33,6 @@ namespace ignition
     // Info about a topic for pub/sub
     class TopicInfo
     {
-      /// \brief Topic list
-      public: typedef std::vector<std::string> Topics_L;
-
-      /// \brief Callback used for receiving topic updates.
-      public: typedef std::function<void (const std::string &,
-                                          const std::string &)> Callback;
-      /// \brief Callback used for receiving a service call request.
-      public: typedef std::function<void (const std::string &, int,
-                                          const std::string &)> ReqCallback;
-
-      /// \brief Callback used for receving a service call response.
-      public: typedef std::function<int (const std::string &,
-                                         const std::string &,
-                                         std::string &)> RepCallback;
-
-      /// \brief Map used for store all the knowledge about a given topic.
-      public: typedef std::map<std::string, TopicInfo*> Topics_M;
-
       /// \brief Constructor.
       public: TopicInfo();
 
@@ -67,9 +51,6 @@ namespace ignition
       /// brief Am I subscribed to the topic?
       public: bool subscribed;
 
-      /// brief Callback that will be executed in case of receiving new data.
-      public: Callback cb;
-
       /// brief Is a service call pending?
       public: bool requested;
 
@@ -79,10 +60,17 @@ namespace ignition
       /// brief Callback to manage the service call's response requested by me.
       public: RepCallback repCb;
 
+      /// \brief Beacon used to periodically advertise this topic.
+      public: zbeacon_t *beacon;
+
       /// brief List that stores the pending service call requests. Every
       /// element of the list contains the serialized parameters for each
       /// request.
       public: std::list<std::string> pendingReqs;
+
+      public: unsigned int numSubscribers;
+
+      public: ISubscriptionHandler_M subscriptionHandlers;
     };
 
     class TopicsInfo
@@ -135,26 +123,25 @@ namespace ignition
       /// \return true if the service call associated to the topic is requested.
       public: bool Requested(const std::string &_topic);
 
-      /// \brief Get the callback associated to a topic subscription.
+      /// \brief Get the beacon used to advertise the topic
       /// \param[in] _topic Topic name.
-      /// \param[out] A pointer to the function registered for a topic.
-      /// \return true if there is a callback registered for the topic.
-      public: bool GetCallback(const std::string &_topic,
-                               TopicInfo::Callback &_cb);
+      /// \param[out] _beacon Beacon used to advertise the topic.
+      /// \return true if there is a beacon associated to the topicS.
+      public: bool GetBeacon(const std::string &_topic, zbeacon_t **_beacon);
 
       /// \brief Get the REQ callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REQ function registered for a topic.
       /// \return true if there is a REQ callback registered for the topic.
       public: bool GetReqCallback(const std::string &_topic,
-                                  TopicInfo::ReqCallback &_cb);
+                                  transport::ReqCallback &_cb);
 
       /// \brief Get the REP callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REP function registered for a topic.
       /// \return true if there is a REP callback registered for the topic.
       public: bool GetRepCallback(const std::string &_topic,
-                                  TopicInfo::RepCallback &_cb);
+                                  transport::RepCallback &_cb);
 
       /// \brief Returns if there are any pending requests in the queue.
       /// \param[in] _topic Topic name.
@@ -194,23 +181,24 @@ namespace ignition
       public: void SetAdvertisedByMe(const std::string &_topic,
                                      const bool _value);
 
-      /// \brief Set a new callback associated to a given topic.
+      /// \brief Set the beacon used to advertise the topic
       /// \param[in] _topic Topic name.
-      /// \param[in] _cb New callback.
-      public: void SetCallback(const std::string &_topic,
-                               const TopicInfo::Callback &_cb);
+      /// \param[in] _beacon Beacon used to advertise the topic.
+      /// \return true if there is a beacon associated to the topicS.
+      public: void SetBeacon(const std::string &_topic,
+                             zbeacon_t *_beacon);
 
       /// \brief Set a new REQ callback associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetReqCallback(const std::string &_topic,
-                                  const TopicInfo::ReqCallback &_cb);
+                                  const transport::ReqCallback &_cb);
 
       /// \brief Set a new REP callback associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetRepCallback(const std::string &_topic,
-                                  const TopicInfo::RepCallback &_cb);
+                                  const transport::RepCallback &_cb);
 
       /// \brief Add a new service call request to the queue.
       /// \param[in] _topic Topic name.
@@ -223,12 +211,24 @@ namespace ignition
       /// \return true if a request was removed.
       public: bool DelReq(const std::string &_topic, std::string &_data);
 
+      public: bool HasSubscribers(const std::string &_topic);
+
+      public: void AddSubscriber(const std::string &_topic);
+
+      public: void GetSubscriptionHandlers(const std::string &_topic,
+                                  transport::ISubscriptionHandler_M &_handlers);
+
+      public: void AddSubscriptionHandler(const std::string &_topic,
+                                        const ISubscriptionHandlerPtr &_msgPtr);
+
+      public: bool HasSubscriptionHandler(const std::string &_topic);
+
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.
-      public: TopicInfo::Topics_M& GetTopicsInfo();
+      public: transport::Topics_M& GetTopicsInfo();
 
       // Hash with the topic/topicInfo information for pub/sub.
-      private: TopicInfo::Topics_M topicsInfo;
+      private: transport::Topics_M topicsInfo;
     };
   }
 }

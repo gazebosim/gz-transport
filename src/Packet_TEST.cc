@@ -18,7 +18,7 @@
 #include <limits.h>
 #include <uuid/uuid.h>
 #include <string>
-#include "ignition/transport/packet.hh"
+#include "ignition/transport/Packet.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;

@@ -16,28 +16,24 @@
 */
 
 #include <algorithm>
+#include <iostream>
 #include <string>
-#include "ignition/transport/topicsInfo.hh"
+#include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
+  : connected(false), advertisedByMe(false), subscribed(false),
+    requested(false), reqCb(nullptr), repCb(nullptr), beacon(nullptr),
+    numSubscribers(0)
 {
-  this->connected      = false;
-  this->subscribed     = false;
-  this->advertisedByMe = false;
-  this->requested      = false;
-  this->cb             = nullptr;
-  this->reqCb          = nullptr;
-  this->repCb          = nullptr;
 }
 
 //////////////////////////////////////////////////
 transport::TopicInfo::~TopicInfo()
 {
-  this->addresses.clear();
-  this->pendingReqs.clear();
 }
 
 //////////////////////////////////////////////////
@@ -48,10 +44,6 @@ transport::TopicsInfo::TopicsInfo()
 //////////////////////////////////////////////////
 transport::TopicsInfo::~TopicsInfo()
 {
-  for (auto topicInfo : this->GetTopicsInfo())
-    delete topicInfo.second;
-
-  this->topicsInfo.clear();
 }
 
 //////////////////////////////////////////////////
@@ -63,7 +55,7 @@ bool transport::TopicsInfo::HasTopic(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
-                                            TopicInfo::Topics_L &_addresses)
+                                            transport::Topics_L &_addresses)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -121,19 +113,21 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetCallback(const std::string &_topic,
-                                        TopicInfo::Callback &_cb)
+bool transport::TopicsInfo::GetBeacon(const std::string &_topic,
+                                      zbeacon_t **_beacon)
 {
   if (!this->HasTopic(_topic))
+  {
     return false;
+  }
 
-  _cb = this->topicsInfo[_topic]->cb;
-  return _cb != nullptr;
+  *_beacon = this->topicsInfo[_topic]->beacon;
+  return *_beacon != nullptr;
 }
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
-                                           TopicInfo::ReqCallback &_cb)
+                                           transport::ReqCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -144,7 +138,7 @@ bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetRepCallback(const std::string &_topic,
-                                           TopicInfo::RepCallback &_cb)
+                                           transport::RepCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -169,8 +163,8 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
   // If we don't have the topic registered, add a new TopicInfo
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   // If we had the topic but not the address, add the new address
@@ -202,8 +196,8 @@ void transport::TopicsInfo::SetConnected(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->connected = _value;
@@ -215,8 +209,8 @@ void transport::TopicsInfo::SetSubscribed(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->subscribed = _value;
@@ -228,8 +222,8 @@ void transport::TopicsInfo::SetRequested(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->requested = _value;
@@ -241,34 +235,34 @@ void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->advertisedByMe = _value;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetCallback(const std::string &_topic,
-                                        const TopicInfo::Callback &_cb)
+void transport::TopicsInfo::SetBeacon(const std::string &_topic,
+                                      zbeacon_t *_beacon)
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
-  this->topicsInfo[_topic]->cb = _cb;
+  this->topicsInfo[_topic]->beacon = _beacon;
 }
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
-                                           const TopicInfo::ReqCallback &_cb)
+                                           const transport::ReqCallback &_cb)
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->reqCb = _cb;
@@ -276,12 +270,12 @@ void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::SetRepCallback(const std::string &_topic,
-                                           const TopicInfo::RepCallback &_cb)
+                                           const transport::RepCallback &_cb)
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->repCb = _cb;
@@ -293,8 +287,8 @@ void transport::TopicsInfo::AddReq(const std::string &_topic,
 {
   if (!this->HasTopic(_topic))
   {
-    TopicInfo *topicInfo = new TopicInfo();
-    this->topicsInfo.insert(make_pair(_topic, topicInfo));
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 
   this->topicsInfo[_topic]->pendingReqs.push_back(_data);
@@ -316,7 +310,70 @@ bool transport::TopicsInfo::DelReq(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-transport::TopicInfo::Topics_M& transport::TopicsInfo::GetTopicsInfo()
+transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
 {
   return this->topicsInfo;
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::AddSubscriber(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+  {
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+  }
+
+  this->topicsInfo[_topic]->numSubscribers++;
+}
+
+//////////////////////////////////////////////////
+bool transport::TopicsInfo::HasSubscribers(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  return this->topicsInfo[_topic]->numSubscribers > 0;
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::GetSubscriptionHandlers(
+  const std::string &_topic, transport::ISubscriptionHandler_M &_handlers)
+{
+  if (this->HasTopic(_topic))
+  {
+    _handlers = this->topicsInfo[_topic]->subscriptionHandlers;
+  }
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
+                           const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
+{
+  if (!this->HasTopic(_topic))
+  {
+    this->topicsInfo.insert(
+      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
+  }
+
+  if (!this->HasSubscriptionHandler(_topic))
+  {
+    this->topicsInfo[_topic]->subscriptionHandlers.insert(
+      make_pair(
+        std::this_thread::get_id(), nullptr));
+  }
+
+  this->topicsInfo[_topic]->subscriptionHandlers[std::this_thread::get_id()] =
+    _msgPtr;
+}
+
+//////////////////////////////////////////////////
+bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  return this->topicsInfo[_topic]->subscriptionHandlers.find(
+    std::this_thread::get_id()) !=
+      this->topicsInfo[_topic]->subscriptionHandlers.end();
 }

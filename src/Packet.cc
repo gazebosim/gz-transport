@@ -20,30 +20,25 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "ignition/transport/packet.hh"
+#include "ignition/transport/Packet.hh"
 
 using namespace ignition;
-
-static char *msgTypesStr[] = {
-    NULL, (char*)"ADVERTISE", (char*)"SUBSCRIBE", (char*)"ADV_SRV",
-    (char*)"SUB_SVC", (char*)"PUB", (char*)"REQ", (char*)"SRV_REP_OK",
-    (char*)"SRV_REP_ERROR"
-};
 
 //////////////////////////////////////////////////
 std::string transport::GetGuidStr(const uuid_t &_uuid)
 {
-  char *guid_str = new char[GUID_STR_LEN];
+  std::vector<char> guid_str(GUID_STR_LEN);
+
   for (size_t i = 0; i < sizeof(uuid_t) && i != GUID_STR_LEN; ++i)
   {
-    snprintf(guid_str, GUID_STR_LEN,
+    snprintf(&guid_str[0], GUID_STR_LEN,
       "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
       _uuid[0], _uuid[1], _uuid[2], _uuid[3],
       _uuid[4], _uuid[5], _uuid[6], _uuid[7],
       _uuid[8], _uuid[9], _uuid[10], _uuid[11],
       _uuid[12], _uuid[13], _uuid[14], _uuid[15]);
   }
-  return std::string(guid_str);
+  return std::string(guid_str.begin(), guid_str.end());
 }
 
 //////////////////////////////////////////////////
@@ -150,7 +145,7 @@ void transport::Header::Print()
   std::cout << "\t\tGUID: " << transport::GetGuidStr(this->GetGuid()) << "\n";
   std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
   std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
-  std::cout << "\t\tType: " << msgTypesStr[this->GetType()] << "\n";
+  std::cout << "\t\tType: " << MsgTypesStr.at(this->GetType()) << "\n";
   std::cout << "\t\tFlags: " << this->GetFlags() << "\n";
 }
 
@@ -191,12 +186,8 @@ size_t transport::Header::Unpack(const char *_buffer)
   _buffer += sizeof(this->topicLength);
 
   // Read the topic
-  char *newTopic = new char[this->topicLength + 1];
-  memcpy(newTopic, _buffer, this->topicLength);
-  newTopic[this->topicLength] = '\0';
-  this->topic = newTopic;
+  this->topic = std::string(_buffer, _buffer + this->topicLength);
   _buffer += this->topicLength;
-  delete[] newTopic;
 
   // Read the message type
   memcpy(&this->type, _buffer, sizeof(this->type));
@@ -258,7 +249,7 @@ void transport::AdvMsg::SetHeader(const Header &_header)
   if (_header.GetType() != transport::AdvType &&
       _header.GetType() != transport::AdvSvcType)
     std::cerr << "You're trying to use a "
-              << msgTypesStr[_header.GetType()] << " header inside an AdvMsg"
+              << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
               << " or AdvSvcMsg. Are you sure you want to do this?\n";
 }
 
