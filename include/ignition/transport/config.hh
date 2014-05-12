@@ -1,0 +1,1 @@
+#define HAVE_IFADDRS_H 1
