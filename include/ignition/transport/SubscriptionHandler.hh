@@ -32,10 +32,15 @@ namespace ignition
     /// is not known.
     class ISubscriptionHandler
     {
+      /// \brief Destructor
       public: virtual ~ISubscriptionHandler()
       {
       }
 
+      /// \brief Executes the local callback registered for this handler.
+      /// \param[in] _topic Topic to be passed to the callback.
+      /// \param[in] _msg Protobuf message received.
+      /// \return 0 when success.
       public: virtual int RunLocalCallback(const std::string &_topic,
                                            const transport::ProtoMsg &_msg) = 0;
 
@@ -56,6 +61,7 @@ namespace ignition
     {
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
+      /// \return Pointer to the specific protobuf message.
       public: std::shared_ptr<T> CreateMsg(const char *_data)
       {
         // Instantiate a specific protobuf message
@@ -76,6 +82,7 @@ namespace ignition
         this->cb = _cb;
       }
 
+      // Documentation inherited.
       public: int RunLocalCallback(const std::string &_topic,
                                    const transport::ProtoMsg &_msg)
       {
