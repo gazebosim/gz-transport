@@ -152,6 +152,6 @@ int transport::Node::UnSubscribe(const std::string &_topic)
 
   // Remove the filter for this topic
   this->dataPtr->subscriber->setsockopt(ZMQ_UNSUBSCRIBE, _topic.data(),
-                                       _topic.size());
+                                        _topic.size());
   return 0;
 }

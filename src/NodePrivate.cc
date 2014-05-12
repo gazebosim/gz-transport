@@ -192,8 +192,6 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 //////////////////////////////////////////////////
 void transport::NodePrivate::RecvDiscoveryUpdate()
 {
-  std::cout << "beacon received" << std::endl;
-
   // Address of datagram source.
   char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
 
