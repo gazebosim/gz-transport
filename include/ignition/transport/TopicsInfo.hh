@@ -227,6 +227,10 @@ namespace ignition
       /// \return Reference to the topic map.
       public: transport::Topics_M& GetTopicsInfo();
 
+      /// \brief Check if the topic exists. If not, the topic is created.
+      /// \param[in] _topic Topic name.
+      private: void CheckAndCreate(const std::string &_topic);
+
       // Hash with the topic/topicInfo information for pub/sub.
       private: transport::Topics_M topicsInfo;
     };
