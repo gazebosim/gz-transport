@@ -57,6 +57,43 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+class MyTestClass
+{
+  /// \brief Class constructor.
+  public: MyTestClass()
+    : callbackExecuted(false)
+  {
+    this->node.Subscribe(topic, &MyTestClass::MyCb, this);
+  }
+
+  /// \brief .
+  /// \param[in] _topic Topic to be subscribed.
+  /// \param[in] _msg .
+  public: void MyCb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+  {
+    assert(_topic != "");
+
+    EXPECT_EQ(_msg.data(), data);
+    this->callbackExecuted = true;
+  };
+
+  public: void SendSomeData()
+  {
+    robot_msgs::StringMsg msg;
+    msg.set_data(data);
+
+    this->node.Advertise(topic);
+    this->node.Publish(topic, msg);
+  }
+
+  /// \brief Member variable that flags when the callback is executed.
+  public: bool callbackExecuted;
+
+  /// \brief Transport node;
+  private: transport::Node node;
+};
+
+//////////////////////////////////////////////////
 void CreateSubscriber()
 {
   transport::Node node;
@@ -66,7 +103,7 @@ void CreateSubscriber()
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubWithoutAdvertise)
+TEST(NodeTest, PubWithoutAdvertise)
 {
   robot_msgs::StringMsg msg;
   msg.set_data(data);
@@ -79,7 +116,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameThread)
+TEST(NodeTest, PubSubSameThread)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -118,7 +155,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameThreadLocal)
+TEST(NodeTest, PubSubSameThreadLocal)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -157,7 +194,7 @@ TEST(DiscZmqTest, PubSubSameThreadLocal)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubSameProcess)
+TEST(NodeTest, PubSubSameProcess)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -184,7 +221,7 @@ TEST(DiscZmqTest, PubSubSameProcess)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, TwoSubscribersSameThread)
+TEST(NodeTest, TwoSubscribersSameThread)
 {
   cbExecuted = false;
   cb2Executed = false;
@@ -224,6 +261,16 @@ TEST(DiscZmqTest, TwoSubscribersSameThread)
   s_sleep(100);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, ClassMemberCallback)
+{
+  MyTestClass client;
+  s_sleep(100);
+  client.SendSomeData();
+  s_sleep(100);
+  EXPECT_TRUE(client.callbackExecuted);
 }
 
 //////////////////////////////////////////////////
