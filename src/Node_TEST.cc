@@ -37,7 +37,7 @@ static void s_sleep(int msecs)
 }
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
   assert(_topic != "");
@@ -47,7 +47,7 @@ void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function called each time a topic update is received.
 void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
   assert(_topic != "");
@@ -57,19 +57,19 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief A class for testing subscription passing a member function
+/// as a callback.
 class MyTestClass
 {
   /// \brief Class constructor.
   public: MyTestClass()
     : callbackExecuted(false)
   {
-    this->node.Subscribe(topic, &MyTestClass::MyCb, this);
+    this->node.Subscribe(topic, &MyTestClass::Cb, this);
   }
 
-  /// \brief .
-  /// \param[in] _topic Topic to be subscribed.
-  /// \param[in] _msg .
-  public: void MyCb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+  /// \brief Member function called each time a topic update is received.
+  public: void Cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
   {
     assert(_topic != "");
 
@@ -77,6 +77,7 @@ class MyTestClass
     this->callbackExecuted = true;
   };
 
+  /// \brief Advertise a topic and publish a message.
   public: void SendSomeData()
   {
     robot_msgs::StringMsg msg;
@@ -108,7 +109,6 @@ TEST(NodeTest, PubWithoutAdvertise)
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
-  // Subscribe to topic
   transport::Node node;
 
   // Publish some data on topic without advertising it first
@@ -167,7 +167,7 @@ TEST(NodeTest, PubSubSameThreadLocal)
   EXPECT_EQ(node.Advertise(topic), 0);
 
   // Subscribe to topic
-  node.Subscribe(topic, cb);
+  EXPECT_EQ(node.Subscribe(topic, cb), 0);
   s_sleep(100);
 
   // Publish a msg on topic

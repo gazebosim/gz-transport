@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -82,7 +83,7 @@ namespace ignition
         // will invoke the callback.
         this->dataPtr->topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
 
-        // I'm now subsribed to the topic.
+        // I'm now subscribed to the topic.
         this->dataPtr->topics.SetSubscribed(_topic, true);
 
         // Discover the list of nodes that publish on the topic.
@@ -92,20 +93,22 @@ namespace ignition
       /// \brief Subscribe to a topic registering a callback. In this version
       /// the callback is a member function.
       /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _cb Pointer to the callback function.
+      /// \param[in] _cb Pointer to the callback member function.
+      /// \param[in] _obj Instance.
       /// \return 0 when success.
       public: template<class C, class T> int Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &), C* _obj)
       {
-        /*std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
             new SubscriptionHandler<T>);
 
-        // Insert the callback into the handler.
-        subscrHandlerPtr->SetCallback(_cb);
+        // Insert the callback into the handler by creating a free function.
+        subscrHandlerPtr->SetCallback(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -113,10 +116,10 @@ namespace ignition
         // will invoke the callback.
         this->dataPtr->topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
 
-        // I'm now subsribed to the topic.
+        // I'm now subscribed to the topic.
         this->dataPtr->topics.SetSubscribed(_topic, true);
 
-        // Discover the list of nodes that publish on the topic.*/
+        // Discover the list of nodes that publish on the topic.
         return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
       }
 

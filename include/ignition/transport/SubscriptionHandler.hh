@@ -56,7 +56,7 @@ namespace ignition
 
     /// \brief generic Subscription handler class. It creates subscription
     /// handlers for each specific protobuf messages used.
-    template <typename T> class SubscriptionHandler
+    template <class T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
       /// \brief Create a specific protobuf message given its serialized data.
@@ -76,8 +76,7 @@ namespace ignition
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       public: void SetCallback(
-        const std::function
-          <void(const std::string &, const T &)> &_cb)
+        const std::function<void(const std::string &, const T &)> &_cb)
       {
         this->cb = _cb;
       }
@@ -89,7 +88,7 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
-          const T *msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
           this->cb(_topic, *msgPtr);
           return 0;
         }
@@ -105,7 +104,7 @@ namespace ignition
                               const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
-        std::shared_ptr<T> msg = this->CreateMsg(_data.c_str());
+        auto msg = this->CreateMsg(_data.c_str());
 
         // Execute the callback (if existing)
         if (this->cb)
@@ -121,8 +120,7 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function
-          <void(const std::string &, const T &)> cb;
+      private: std::function<void(const std::string &, const T &)> cb;
     };
   }
 }
