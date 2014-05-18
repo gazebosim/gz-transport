@@ -50,7 +50,7 @@ transport::Node::~Node()
 }
 
 //////////////////////////////////////////////////
-int transport::Node::Advertise(const std::string &_topic)
+void transport::Node::Advertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -79,12 +79,10 @@ int transport::Node::Advertise(const std::string &_topic)
     zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                     advMsg.GetMsgLength());
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
-int transport::Node::UnAdvertise(const std::string &_topic)
+void transport::Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -101,8 +99,6 @@ int transport::Node::UnAdvertise(const std::string &_topic)
     zbeacon_destroy(&topicBeacon);
     this->dataPtr->topics.SetBeacon(_topic, nullptr);
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -139,14 +135,14 @@ int transport::Node::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-int transport::Node::UnSubscribe(const std::string &_topic)
+int transport::Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
-    std::cout << "\nUnubscribe (" << _topic << ")\n";
+    std::cout << "\nUnsubscribe (" << _topic << ")\n";
 
   this->dataPtr->topics.SetSubscribed(_topic, false);
 

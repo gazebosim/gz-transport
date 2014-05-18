@@ -43,15 +43,15 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new service.
+      /// \brief Advertise a new topic.
       /// \param[in] _topic Topic to be advertised.
       /// \return 0 when success.
-      public: int Advertise(const std::string &_topic);
+      public: void Advertise(const std::string &_topic);
 
-      /// \brief Unadvertise a new service.
+      /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic to be unadvertised.
       /// \return 0 when success.
-      public: int UnAdvertise(const std::string &_topic);
+      public: void Unadvertise(const std::string &_topic);
 
       /// \ Publish data.
       /// \param[in] _topic Topic to be published.
@@ -90,10 +90,10 @@ namespace ignition
         return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
       }
 
-      /// \brief Subscribe to a topic registering a callback.
+      /// \brief Unsubscribe to a topic.
       /// \param[in] _topic Topic to be unsubscribed.
       /// \return 0 when success.
-      public: int UnSubscribe(const std::string &_topic);
+      public: int Unsubscribe(const std::string &_topic);
 
       /// \internal
       /// \brief Shared pointer to private data.
