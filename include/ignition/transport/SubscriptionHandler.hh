@@ -28,8 +28,8 @@ namespace ignition
 {
   namespace transport
   {
-    /// \brief Interface class used when the specific protobuf message
-    /// is not known.
+    /// \class ISubscriptionHandler SubscriptionHandler.hh
+    /// \brief Interface class used to manage generic protobub messages.
     class ISubscriptionHandler
     {
       /// \brief Destructor
@@ -54,8 +54,9 @@ namespace ignition
                                       const std::string &_data) = 0;
     };
 
-    /// \brief generic Subscription handler class. It creates subscription
-    /// handlers for each specific protobuf messages used.
+    /// \class SubscriptionHandler SubscriptionHandler.hh
+    /// \brief It creates subscription handlers for each specific protobuf
+    /// message used.
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {

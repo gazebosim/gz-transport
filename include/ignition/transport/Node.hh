@@ -31,7 +31,9 @@ namespace ignition
 {
   namespace transport
   {
-    /// \brief A transport node to send and receive data.
+    /// \class Node Node.hh
+    /// \brief A transport node to send and receive data using a
+    /// publication/subscription paradigm.
     class Node
     {
       /// \brief Constructor.

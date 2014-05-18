@@ -33,6 +33,7 @@ namespace ignition
 {
   namespace transport
   {
+    /// \class NodePrivate NodePrivate.hh
     /// \brief public data for the Node class.
     class NodePrivate
     {

@@ -30,7 +30,8 @@ namespace ignition
 {
   namespace transport
   {
-    // Info about a topic for pub/sub
+    /// \class TopicInfo TopicsInfo.hh
+    /// \brief Store all the information known about a topic.
     class TopicInfo
     {
       /// \brief Constructor.
@@ -75,6 +76,8 @@ namespace ignition
       public: ISubscriptionHandler_M subscriptionHandlers;
     };
 
+    /// \class TopicsInfo TopicsInfo.hh
+    /// \brief Store all the information known about topics.
     class TopicsInfo
     {
       /// \brief Constructor.
