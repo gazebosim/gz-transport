@@ -7,6 +7,29 @@ of libraries designed to rapidly develop robot applications.
 
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
 
+## Dependencies
+
+The following dependencies are required to compile ignition transport from
+source:
+
+ - uuid-dev
+ - libprotobuf-dev
+ - libzmq-dev
+ - czmq
+ - robot_msgs
+ - ruby-ronn
+ - gcc with c++11 support (>=4.8).
+
+    sudo apt-get install uuid-dev libprotobuf-dev libzmq-dev robot_msgs ruby-ronn
+
+    git clone git://github.com/zeromq/czmq.git
+    cd czmq
+    ./autogen.sh
+    ./configure && make check
+    sudo make install
+    sudo ldconfig
+    cd ..
+
 ## Installation
 
 Standard installation can be performed in UNIX systems using the following
