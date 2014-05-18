@@ -55,6 +55,11 @@ namespace ignition
     /// \return A string representation of the GUID.
     std::string GetGuidStr(const uuid_t &_uuid);
 
+    /// \class Header Packet.hh
+    /// \brief Header included in each discovery message containing the version
+    /// of the discovery protocol, the UUID of the sender node, the topic
+    /// contained in the message, the type of message (ADV, SUB, ... ) and
+    /// optional flags.
     class Header
     {
       /// \brief Constructor.
@@ -160,6 +165,11 @@ namespace ignition
       private: int headerLength;
     };
 
+    /// \class AdvMsg Packet.hh
+    /// \brief Advertise message used in the discovery protocol to broadcast
+    /// information about the node advertising a topic. The information sent
+    /// is the ZeroMQ end point addressy where the node will be receiving
+    /// subscription requests.
     class AdvMsg
     {
       /// \brief Constructor.
