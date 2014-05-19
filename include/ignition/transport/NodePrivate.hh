@@ -37,6 +37,16 @@ namespace ignition
     /// \brief public data for the Node class.
     class NodePrivate
     {
+      /// \brief Port used to broadcast the discovery messages.
+      public: static const int DiscoveryPort = 11312;
+
+      /// \brief Broadcast interval for discovery beacons in milliseconds.
+      public: static const int BeaconInterval = 2500;
+
+      /// \brief NodePrivate is a singleton. This method gets the
+      /// NodePrivate instance shared between all the nodes.
+      /// \param[in] _verbose True if you want to see debug messages.
+      /// \return NodePrivatePtr Pointer to the current NodePrivate instance.
       public: static NodePrivatePtr GetInstance(bool _verbose);
 
       /// \brief Constructor.

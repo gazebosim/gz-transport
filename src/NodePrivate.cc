@@ -41,7 +41,7 @@ transport::NodePrivatePtr transport::NodePrivate::GetInstance(bool _verbose)
 
 //////////////////////////////////////////////////
 transport::NodePrivate::NodePrivate(bool _verbose)
-  : bcastPort(11312),
+  : bcastPort(DiscoveryPort),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB))
@@ -67,7 +67,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     this->ctx = zctx_new();
     this->beacon = zbeacon_new(ctx, this->bcastPort);
     zbeacon_subscribe(this->beacon, NULL, 0);
-    zbeacon_set_interval(this->beacon, 2500);
+    zbeacon_set_interval(this->beacon, this->BeaconInterval);
 
     // Set the hostname's ip address
     this->hostAddr = zbeacon_hostname(this->beacon);
