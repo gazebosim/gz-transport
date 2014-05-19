@@ -17,6 +17,7 @@
 
 #include <czmq.h>
 #include <google/protobuf/message.h>
+#include <algorithm>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -31,6 +32,8 @@ using namespace ignition;
 transport::Node::Node(bool _verbose)
   : dataPtr(transport::NodePrivate::GetInstance(_verbose))
 {
+  uuid_generate(this->nodeUuid);
+  this->nodeUuidStr = transport::GetGuidStr(this->nodeUuid);
 }
 
 //////////////////////////////////////////////////
@@ -47,10 +50,14 @@ transport::Node::~Node()
       this->dataPtr->topics.SetBeacon(topicInfo.first, nullptr);
     }
   }
+
+  // Unsubscribe from all the topics.
+  for (auto topic : this->topicsSubscribed)
+    this->Unsubscribe(topic);
 }
 
 //////////////////////////////////////////////////
-int transport::Node::Advertise(const std::string &_topic)
+void transport::Node::Advertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -79,12 +86,10 @@ int transport::Node::Advertise(const std::string &_topic)
     zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
                     advMsg.GetMsgLength());
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
-int transport::Node::UnAdvertise(const std::string &_topic)
+void transport::Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -101,8 +106,6 @@ int transport::Node::UnAdvertise(const std::string &_topic)
     zbeacon_destroy(&topicBeacon);
     this->dataPtr->topics.SetBeacon(_topic, nullptr);
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -139,19 +142,26 @@ int transport::Node::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-int transport::Node::UnSubscribe(const std::string &_topic)
+void transport::Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
-    std::cout << "\nUnubscribe (" << _topic << ")\n";
+    std::cout << "\nUnsubscribe (" << _topic << ")\n";
 
-  this->dataPtr->topics.SetSubscribed(_topic, false);
+  this->dataPtr->topics.RemoveSubscriptionHandler(_topic, this->nodeUuidStr);
 
-  // Remove the filter for this topic
-  this->dataPtr->subscriber->setsockopt(ZMQ_UNSUBSCRIBE, _topic.data(),
-                                        _topic.size());
-  return 0;
+  // Remove the topic from the list of subscribed topics in this node.
+  this->topicsSubscribed.resize(
+    std::remove(this->topicsSubscribed.begin(), this->topicsSubscribed.end(),
+      _topic) - this->topicsSubscribed.begin());
+
+  // Remove the filter for this topic if I am the last subscriber.
+  if (!this->dataPtr->topics.Subscribed(_topic))
+  {
+    this->dataPtr->subscriber->setsockopt(
+      ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());
+  }
 }

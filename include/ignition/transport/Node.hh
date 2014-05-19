@@ -19,10 +19,13 @@
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <uuid/uuid.h>
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -32,7 +35,9 @@ namespace ignition
 {
   namespace transport
   {
-    /// \brief A transport node to send and receive data.
+    /// \class Node Node.hh
+    /// \brief A transport node to send and receive data using a
+    /// publication/subscription paradigm.
     class Node
     {
       /// \brief Constructor.
@@ -42,17 +47,17 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new service.
+      /// \brief Advertise a new topic.
       /// \param[in] _topic Topic to be advertised.
       /// \return 0 when success.
-      public: int Advertise(const std::string &_topic);
+      public: void Advertise(const std::string &_topic);
 
-      /// \brief Unadvertise a new service.
+      /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic to be unadvertised.
       /// \return 0 when success.
-      public: int UnAdvertise(const std::string &_topic);
+      public: void Unadvertise(const std::string &_topic);
 
-      /// \ Publish data.
+      /// \brief Publish a message.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
@@ -81,10 +86,15 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
+        this->dataPtr->topics.AddSubscriptionHandler(
+          _topic, this->nodeUuidStr, subscrHandlerPtr);
 
-        // I'm now subscribed to the topic.
-        this->dataPtr->topics.SetSubscribed(_topic, true);
+        // Add the topic to the list of subscribed topics (if it was not before)
+        if (std::find(this->topicsSubscribed.begin(),
+          this->topicsSubscribed.end(), _topic) == this->topicsSubscribed.end())
+        {
+          this->topicsSubscribed.push_back(_topic);
+        }
 
         // Discover the list of nodes that publish on the topic.
         return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
@@ -114,23 +124,36 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->topics.AddSubscriptionHandler(_topic, subscrHandlerPtr);
+        this->dataPtr->topics.AddSubscriptionHandler(
+          _topic, this->nodeUuidStr, subscrHandlerPtr);
 
-        // I'm now subscribed to the topic.
-        this->dataPtr->topics.SetSubscribed(_topic, true);
+        // Add the topic to the list of subscribed topics (if it was not before)
+        if (std::find(this->topicsSubscribed.begin(),
+          this->topicsSubscribed.end(), _topic) == this->topicsSubscribed.end())
+        {
+          this->topicsSubscribed.push_back(_topic);
+        }
 
         // Discover the list of nodes that publish on the topic.
         return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
       }
 
-      /// \brief Subscribe to a topic registering a callback.
+      /// \brief Unsubscribe to a topic.
       /// \param[in] _topic Topic to be unsubscribed.
-      /// \return 0 when success.
-      public: int UnSubscribe(const std::string &_topic);
+      public: void Unsubscribe(const std::string &_topic);
 
       /// \internal
       /// \brief Shared pointer to private data.
       protected: NodePrivatePtr dataPtr;
+
+      /// \brief The list of topics subscribed by this node.
+      private: std::vector<std::string> topicsSubscribed;
+
+      /// \brief Node UUID. This ID is unique for each node.
+      private: uuid_t nodeUuid;
+
+      /// \brief Node UUID in string format.
+      private: std::string nodeUuidStr;
     };
   }
 }

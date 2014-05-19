@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <utility>
 #include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -25,9 +26,8 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
-  : connected(false), advertisedByMe(false), subscribed(false),
-    requested(false), reqCb(nullptr), repCb(nullptr), beacon(nullptr),
-    numSubscribers(0)
+  : connected(false), advertisedByMe(false), requested(false), reqCb(nullptr),
+    repCb(nullptr), beacon(nullptr), numSubscribers(0)
 {
 }
 
@@ -91,7 +91,7 @@ bool transport::TopicsInfo::Subscribed(const std::string &_topic)
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->topicsInfo[_topic]->subscribed;
+  return this->topicsInfo[_topic]->subscriptionHandlers.size() > 0;
 }
 
 //////////////////////////////////////////////////
@@ -194,14 +194,6 @@ void transport::TopicsInfo::SetConnected(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetSubscribed(const std::string &_topic,
-                                          const bool _value)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->subscribed = _value;
-}
-
-//////////////////////////////////////////////////
 void transport::TopicsInfo::SetRequested(const std::string &_topic,
                                          const bool _value)
 {
@@ -299,29 +291,36 @@ void transport::TopicsInfo::GetSubscriptionHandlers(
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
+                                                   const std::string &_nodeUuid,
                            const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
 {
   this->CheckAndCreate(_topic);
 
-  if (!this->HasSubscriptionHandler(_topic))
+  if (!this->HasSubscriptionHandler(_topic, _nodeUuid))
   {
     this->topicsInfo[_topic]->subscriptionHandlers.insert(
-      make_pair(
-        std::this_thread::get_id(), nullptr));
+      std::make_pair(_nodeUuid, nullptr));
   }
 
-  this->topicsInfo[_topic]->subscriptionHandlers[std::this_thread::get_id()] =
-    _msgPtr;
+  this->topicsInfo[_topic]->subscriptionHandlers[_nodeUuid] = _msgPtr;
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic)
+void transport::TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
+                                                   const std::string &_nodeUuid)
+{
+  if (this->HasTopic(_topic))
+    this->topicsInfo[_topic]->subscriptionHandlers.erase(_nodeUuid);
+}
+
+//////////////////////////////////////////////////
+bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
+                                                   const std::string &_nodeUuid)
 {
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->topicsInfo[_topic]->subscriptionHandlers.find(
-    std::this_thread::get_id()) !=
+  return this->topicsInfo[_topic]->subscriptionHandlers.find(_nodeUuid) !=
       this->topicsInfo[_topic]->subscriptionHandlers.end();
 }
 
