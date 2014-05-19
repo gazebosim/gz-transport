@@ -49,9 +49,6 @@ namespace ignition
       /// \brief Am I advertising this topic?
       public: bool advertisedByMe;
 
-      /// brief Am I subscribed to the topic?
-      public: bool subscribed;
-
       /// brief Is a service call pending?
       public: bool requested;
 
@@ -170,11 +167,6 @@ namespace ignition
       /// \param[in] _value New value to be assigned to the connected member.
       public: void SetConnected(const std::string &_topic, const bool _value);
 
-      /// \brief Set a new subscribed value to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _value New value to be assigned to the subscribed member.
-      public: void SetSubscribed(const std::string &_topic, const bool _value);
-
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _value New value to be assigned to the requested member.
@@ -235,14 +227,25 @@ namespace ignition
       /// \brief Add a subscription handler to a topic. A subscription handler
       /// stores the callback and types associated to a subscription.
       /// \param[in] _topic Topic name.
+      /// \param[in] _nodeUuid Node's unique identifier.
       /// \param[in] _handlers Subscription handler.
       public: void AddSubscriptionHandler(const std::string &_topic,
+                                          const std::string &_nodeUuid,
                                         const ISubscriptionHandlerPtr &_msgPtr);
+
+      /// \brief Remove a subscription handler. The node's uuid
+      /// is used as a key to remove the appropriate subscription handler.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _nodeUuid Node's unique identifier.
+      public: void RemoveSubscriptionHandler(const std::string &_topic,
+                                             const std::string &_nodeUuid);
 
       /// \brief Check if a topic has a subscription handler.
       /// \param[in] _topic Topic name.
+      /// \param[in] _nodeUuid Node's unique identifier.
       /// \return true if the topic has a subscription handler registered.
-      public: bool HasSubscriptionHandler(const std::string &_topic);
+      public: bool HasSubscriptionHandler(const std::string &_topic,
+                                          const std::string &_nodeUuid);
 
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.

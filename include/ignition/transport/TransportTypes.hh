@@ -21,16 +21,13 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 
-/// \file
-/// \ingroup ignition_transport
-/// \brief Forward declarations for transport
 namespace ignition
 {
   namespace transport
   {
+    /// \brief Forward declarations for transport
     class ISubscriptionHandler;
     class NodePrivate;
     class TopicInfo;
@@ -72,9 +69,9 @@ namespace ignition
 
     /// \def ISubscriptionHandler_M
     /// \brief Map to store the different subscription handlers for a topic.
-    /// Each thread can have its own subscription handler. The thread id
+    /// Each node can have its own subscription handler. The node id
     /// is used as key.
-    typedef std::map<std::thread::id, ISubscriptionHandlerPtr>
+    typedef std::map<std::string, ISubscriptionHandlerPtr>
         ISubscriptionHandler_M;
   }
 }

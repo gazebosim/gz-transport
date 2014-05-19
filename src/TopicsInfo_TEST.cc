@@ -83,10 +83,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   topics.SetConnected(topic, true);
   EXPECT_TRUE(topics.Connected(topic));
 
-  // Check SetSubscribed
-  topics.SetSubscribed(topic, true);
-  EXPECT_TRUE(topics.Subscribed(topic));
-
   // Check SetRequested
   topics.SetRequested(topic, true);
   EXPECT_TRUE(topics.Requested(topic));

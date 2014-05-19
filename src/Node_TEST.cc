@@ -57,6 +57,7 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// brief Subscribe to a topic.
 void CreateSubscriber()
 {
   transport::Node node;
@@ -66,6 +67,7 @@ void CreateSubscriber()
 }
 
 //////////////////////////////////////////////////
+/// \brief A message should not be published if it is not advertised before.
 TEST(DiscZmqTest, PubWithoutAdvertise)
 {
   robot_msgs::StringMsg msg;
@@ -78,6 +80,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 }
 
 //////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
 TEST(DiscZmqTest, PubSubSameThread)
 {
   cbExecuted = false;
@@ -116,7 +119,9 @@ TEST(DiscZmqTest, PubSubSameThread)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubSubDifferentThreads)
+/// \brief Use two threads using their own transport nodes. One thread
+/// will publish a message, whereas the other thread is subscribed to the topic.
+TEST(DiscZmqTest, PubSubTwoThreadsSameTopic)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -144,7 +149,10 @@ TEST(DiscZmqTest, PubSubDifferentThreads)
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, TwoSubscribersSameThread)
+/// \brief Use two different transport node on the same thread. Check that
+/// both receive the updates when they are subscribed to the same topic. Check
+/// also that when one of the nodes unsubscribes, no longer receives updates.
+TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
 {
   cbExecuted = false;
   cb2Executed = false;
@@ -176,11 +184,29 @@ TEST(DiscZmqTest, TwoSubscribersSameThread)
   EXPECT_TRUE(cb2Executed);
   cb2Executed = false;
 
+  // Node1 is not interested in the topic anymore.
+  node1.Unsubscribe(topic);
+  s_sleep(500);
+
+  // Publish a second message.
+  EXPECT_EQ(node1.Publish(topic, msg), 0);
+  s_sleep(100);
+
+  // Check that the msg was no received by node1.
+  EXPECT_FALSE(cbExecuted);
+  cbExecuted = false;
+
+  // Check that the msg was received by node2.
+  EXPECT_TRUE(cb2Executed);
+  cb2Executed = false;
+
   node1.Unadvertise(topic);
 
   // Publish a third message
   EXPECT_NE(node1.Publish(topic, msg), 0);
   s_sleep(100);
+
+  // Anybody should have received the message.
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
   cbExecuted = false;

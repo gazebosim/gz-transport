@@ -24,6 +24,7 @@
 using namespace ignition;
 
 bool cbExecuted;
+bool cb2Executed;
 std::string topic = "foo";
 std::string data = "bar";
 
@@ -46,6 +47,16 @@ void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief Function is called everytime a topic update is received.
+void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+{
+  assert(_topic != "");
+
+  EXPECT_EQ(_msg.data(), data);
+  cb2Executed = true;
+}
+
+//////////////////////////////////////////////////
 void runPublisher()
 {
   robot_msgs::StringMsg msg;
@@ -55,7 +66,9 @@ void runPublisher()
 
   node1.Advertise(topic);
   s_sleep(500);
-  node1.Publish(topic, msg);
+  EXPECT_EQ(node1.Publish(topic, msg), 0);
+  s_sleep(500);
+  EXPECT_EQ(node1.Publish(topic, msg), 0);
   s_sleep(500);
 }
 
@@ -67,15 +80,20 @@ void runSubscriber()
   transport::Node node2;
 
   s_sleep(100);
-  node2.Subscribe(topic, cb);
+  EXPECT_EQ(node2.Subscribe(topic, cb), 0);
   s_sleep(500);
 
-  // Check that the data was received
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 }
 
 //////////////////////////////////////////////////
-TEST(DiscZmqTest, PubTwoProcesses)
+/// \brief Three different nodes running in two different processes. In the
+/// subscriber processs there are two nodes. Both should receive the message.
+/// After some time one of them unsubscribe. After that check that only one
+/// node receives the message.
+TEST(DiscZmqTest, PubSubTwoProcsTwoNodes)
 {
   pid_t pid = fork();
 
@@ -83,7 +101,31 @@ TEST(DiscZmqTest, PubTwoProcesses)
     runPublisher();
   else
   {
-    runSubscriber();
+    cbExecuted = false;
+    cb2Executed = false;
+    s_sleep(100);
+    transport::Node node2;
+    transport::Node node3;
+
+    s_sleep(100);
+    node2.Subscribe(topic, cb);
+    node3.Subscribe(topic, cb2);
+    s_sleep(500);
+
+    // Check that the message was received.
+    EXPECT_TRUE(cbExecuted);
+    EXPECT_TRUE(cb2Executed);
+    cbExecuted = false;
+    cb2Executed = false;
+
+    node2.Unsubscribe(topic);
+    s_sleep(600);
+
+    // Check that the message was only received in node3.
+    EXPECT_FALSE(cbExecuted);
+    EXPECT_TRUE(cb2Executed);
+    cbExecuted = false;
+    cb2Executed = false;
 
     // Wait for the child process to return.
     int status;
