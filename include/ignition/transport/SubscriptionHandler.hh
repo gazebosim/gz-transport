@@ -20,6 +20,7 @@
 
 #include <google/protobuf/message.h>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
 #include "ignition/transport/TransportTypes.hh"
