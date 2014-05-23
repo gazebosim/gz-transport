@@ -40,6 +40,9 @@ namespace ignition
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
+      /// \brief Port used to receive connection updates.
+      public: static const int ControlPort = 11315;
+
       /// \brief Broadcast interval for discovery beacons in milliseconds.
       public: static const int BeaconInterval = 2500;
 
@@ -74,6 +77,10 @@ namespace ignition
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
 
+      /// \brief Method in charge of receiving the control updates (new remote
+      /// subscriber).
+      public: void RecvControlUpdate();
+
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _msg Received message.
       /// \return 0 when success.
@@ -92,6 +99,8 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \return 0 when success.
       public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
+
+      private: void Monitor();
 
       /// \brief Print activity to stdout.
       public: int verbose;
@@ -119,6 +128,8 @@ namespace ignition
 
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
+
+      public: std::unique_ptr<zmq::socket_t> control;
 
       /// \brief Local GUID.
       public: uuid_t guid;

@@ -44,8 +44,14 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   : bcastPort(DiscoveryPort),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-    subscriber(new zmq::socket_t(*context, ZMQ_SUB))
+    subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
+    control(new zmq::socket_t(*context, ZMQ_ROUTER))
 {
+  int major, minor, patch;
+  zmq::version(&major, &minor, &patch);
+
+  std::cout << "Version: " << major << "." << minor << "." << patch << std::endl;
+
   char bindEndPoint[1024];
 
   // Initialize random seed.
@@ -65,7 +71,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   {
     // Set broadcast/listen discovery beacon.
     this->ctx = zctx_new();
-    this->beacon = zbeacon_new(ctx, this->bcastPort);
+    this->beacon = zbeacon_new(this->ctx, this->bcastPort);
     zbeacon_subscribe(this->beacon, NULL, 0);
     zbeacon_set_interval(this->beacon, this->BeaconInterval);
 
@@ -77,6 +83,10 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     size_t size = sizeof(bindEndPoint);
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myAddress = bindEndPoint;
+
+    // control socket listening in a well-known port.
+    std::string controlEP = "tcp://" + this->hostAddr + ":" + std::to_string(this->ControlPort);
+    this->control->bind(controlEP.c_str());
   }
   catch(const zmq::error_t& ze)
   {
@@ -128,6 +138,7 @@ void transport::NodePrivate::SpinOnce()
   //  Poll socket for a reply, with timeout
   zmq::pollitem_t items[] = {
     { *this->subscriber, 0, ZMQ_POLLIN, 0 },
+    { *this->control, 0, ZMQ_POLLIN, 0 },
     { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 },
   };
   zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
@@ -135,7 +146,9 @@ void transport::NodePrivate::SpinOnce()
   //  If we got a reply, process it
   if (items[0].revents & ZMQ_POLLIN)
     this->RecvMsgUpdate();
-  else if (items[1].revents & ZMQ_POLLIN)
+  if (items[1].revents & ZMQ_POLLIN)
+    this->RecvControlUpdate();
+  else if (items[2].revents & ZMQ_POLLIN)
     this->RecvDiscoveryUpdate();
 }
 
@@ -261,6 +274,12 @@ void transport::NodePrivate::RecvMsgUpdate()
 }
 
 //////////////////////////////////////////////////
+void transport::NodePrivate::RecvControlUpdate()
+{
+  std::cout << "New control updated" << std::endl;
+}
+
+//////////////////////////////////////////////////
 int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
@@ -292,28 +311,32 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
       // Register the advertised address for the topic
       this->topics.AddAdvAddress(topic, address);
 
-      /*std::cout << "Subscribed? " << this->topics.Subscribed(topic) << std::endl;
+      /*
+      std::cout << "Subscribd? " << this->topics.Subscribed(topic) << std::endl;
       std::cout << "Connected? " << this->topics.Connected(topic) << std::endl;
       std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;*/
-
-      if (this->topics.Subscribed(topic))
-      {
-        // Add a filter for this topic
-        this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
-      }
 
       // Check if we are interested in this topic
       if (this->topics.Subscribed(topic) &&
           !this->topics.Connected(topic) &&
           this->guidStr.compare(rcvdGuid) != 0)
       {
-        std::cout << "Connecting" << std::endl;
+        std::cout << "Connecting to a remote publisher" << std::endl;
         try
         {
           this->subscriber->connect(address.c_str());
+          this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
           this->topics.SetConnected(topic, true);
           if (this->verbose)
             std::cout << "\t* Connected to [" << address << "]\n";
+
+          // Send a message to the control socket of the publisher to notify
+          // that I am a new remote subscriber.
+          zmq::socket_t socket (*this->context, ZMQ_DEALER);
+          std::size_t found = address.find(":");
+          std::string controlEP = address.substr(0, found);
+          std::cout << controlEP << std::endl;
+          // socket.connect(address)
         }
         catch(const zmq::error_t& ze)
         {

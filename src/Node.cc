@@ -130,13 +130,13 @@ int transport::Node::Publish(const std::string &_topic,
   }
 
   // Remote subscribers
-  if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
-  {
+  // if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
+  // {
     std::string data;
     _msg.SerializeToString(&data);
     if (this->dataPtr->Publish(_topic, data) != 0)
       return -1;
-  }
+  // }
 
   return 0;
 }

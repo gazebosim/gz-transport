@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+#	beaconTest.cc
 	twoProcessesPubSub.cc
 )
 
