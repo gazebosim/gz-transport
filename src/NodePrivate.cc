@@ -393,6 +393,12 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
           zmq::socket_t socket(*this->context, ZMQ_DEALER);
           socket.connect(controlAddress.c_str());
 
+          // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
+          // discarded immediately when the socket is closed. That avoids infinite
+          // waits if the publisher is disconnected.
+          int lingerVal = 0;
+          socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+
           transport::ISubscriptionHandler_M handlers;
           this->topics.GetSubscriptionHandlers(topic, handlers);
           for (auto handler : handlers)

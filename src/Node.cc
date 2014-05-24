@@ -186,6 +186,13 @@ void transport::Node::Unsubscribe(const std::string &_topic)
     std::cout << "\tNode: [" << this->nodeUuidStr << "]\n";
 
     zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
+
+    // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
+    // discarded immediately when the socket is closed. That avoids infinite
+    // waits if the publisher is disconnected.
+    int lingerVal = 0;
+    socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+
     socket.connect(controlAddress.c_str());
 
     zmq::message_t message;
