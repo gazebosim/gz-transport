@@ -274,9 +274,7 @@ void transport::NodePrivate::RecvMsgUpdate()
 //////////////////////////////////////////////////
 void transport::NodePrivate::RecvControlUpdate()
 {
-  //std::lock_guard<std::mutex> lock(this->mutex);
-
-  std::cout << "Control update received" << std::endl;
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   zmq::message_t message(0);
   std::string topic;
@@ -310,23 +308,23 @@ void transport::NodePrivate::RecvControlUpdate()
 
   if (std::stoi(data) == transport::NewConnection)
   {
-    //if (this->verbose)
-    //{
+    if (this->verbose)
+    {
       std::cout << "Registering a new remote connection" << std::endl;
       std::cout << "\tAddress: [" << sender << "]\n";
       std::cout << "\tNode: [" << nodeUuid << "]\n";
-   // }
+    }
 
     this->topics.AddRemoteSubscriber(topic, sender, nodeUuid);
   }
   else if (std::stoi(data) == transport::EndConnection)
   {
-    //if (this->verbose)
-    //{
+    if (this->verbose)
+    {
       std::cout << "Registering the end of a remote connection" << std::endl;
       std::cout << "\t Address: " << sender << std::endl;
       std::cout << "\tNode: [" << nodeUuid << "]\n";
-   // }
+    }
 
     this->topics.DelRemoteSubscriber(topic, sender, nodeUuid);
   }
@@ -384,14 +382,15 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
         try
         {
           this->subscriber->connect(address.c_str());
-          this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
+          this->subscriber->setsockopt(
+            ZMQ_SUBSCRIBE, topic.data(), topic.size());
           this->topics.SetConnected(topic, true);
           if (this->verbose)
             std::cout << "\t* Connected to [" << address << "]\n";
 
           // Send a message to the publisher's control socket to notify it
           // about all my subscribers.
-          zmq::socket_t socket (*this->context, ZMQ_DEALER);
+          zmq::socket_t socket(*this->context, ZMQ_DEALER);
           socket.connect(controlAddress.c_str());
 
           transport::ISubscriptionHandler_M handlers;

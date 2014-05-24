@@ -151,7 +151,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
-  //std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
     std::cout << "\nUnsubscribe (" << _topic << ")\n";
@@ -185,7 +185,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
     std::cout << "\tAddress: [" << publisher.first << "]\n";
     std::cout << "\tNode: [" << this->nodeUuidStr << "]\n";
 
-    zmq::socket_t socket (*this->dataPtr->context, ZMQ_DEALER);
+    zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
     socket.connect(controlAddress.c_str());
 
     zmq::message_t message;

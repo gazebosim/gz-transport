@@ -297,9 +297,10 @@ void transport::AdvMsg::PrintBody()
   std::cout << "\tBody:" << std::endl;
   std::cout << "\t\tAddr size: " << this->GetAddressLength() << std::endl;
   std::cout << "\t\tAddress: " << this->GetAddress() << std::endl;
-  std::cout << "\t\tControl addr size: " <<
-    this->GetControlAddressLength() << std::endl;
-  std::cout << "\t\tControl address: " << this->GetControlAddress() << std::endl;
+  std::cout << "\t\tControl addr size: "
+            << this->GetControlAddressLength() << std::endl;
+  std::cout << "\t\tControl address: "
+            << this->GetControlAddress() << std::endl;
 }
 
 //////////////////////////////////////////////////
