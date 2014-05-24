@@ -114,7 +114,8 @@ TEST(PacketTest, BasicAdvMsgAPI)
   std::string otherGuidStr = transport::GetGuidStr(guid);
 
   std::string address = "tcp://10.0.0.1:6000";
-  transport::AdvMsg advMsg(otherHeader, address);
+  std::string controlAddress = "tcp://10.0.0.1:6001";
+  transport::AdvMsg advMsg(otherHeader, address, controlAddress);
 
   // Check AdvMsg getters
   transport::Header header = advMsg.GetHeader();
@@ -129,8 +130,12 @@ TEST(PacketTest, BasicAdvMsgAPI)
 
   EXPECT_EQ(advMsg.GetAddressLength(), address.size());
   EXPECT_EQ(advMsg.GetAddress(), address);
+  EXPECT_EQ(advMsg.GetControlAddressLength(), controlAddress.size());
+  EXPECT_EQ(advMsg.GetControlAddress(), controlAddress);
   size_t msgLength = advMsg.GetHeader().GetHeaderLength() +
-    sizeof(advMsg.GetAddressLength()) + advMsg.GetAddress().size();
+    sizeof(advMsg.GetAddressLength()) + advMsg.GetAddress().size() +
+    sizeof(advMsg.GetControlAddressLength()) +
+    advMsg.GetControlAddress().size();
   EXPECT_EQ(advMsg.GetMsgLength(), msgLength);
 
   uuid_generate(guid);
@@ -155,8 +160,11 @@ TEST(PacketTest, BasicAdvMsgAPI)
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
   address = "inproc://local";
+  controlAddress = "inproc://control";
   advMsg.SetAddress(address);
   EXPECT_EQ(advMsg.GetAddress(), address);
+  advMsg.SetControlAddress(controlAddress);
+  EXPECT_EQ(advMsg.GetControlAddress(), controlAddress);
 }
 
 //////////////////////////////////////////////////
@@ -170,7 +178,8 @@ TEST(PacketTest, AdvMsgIO)
   transport::Header otherHeader(transport::Version, guid, topic,
                                 transport::AdvType, 3);
   std::string address = "tcp://10.0.0.1:6000";
-  transport::AdvMsg advMsg(otherHeader, address);
+  std::string controlAddress = "tcp://10.0.0.1:6001";
+  transport::AdvMsg advMsg(otherHeader, address, controlAddress);
   char *buffer = new char[advMsg.GetMsgLength()];
   size_t bytes = advMsg.Pack(buffer);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());
@@ -188,6 +197,9 @@ TEST(PacketTest, AdvMsgIO)
   // Check that after Pack() and Unpack() the data does not change
   EXPECT_EQ(otherAdvMsg.GetAddressLength(), advMsg.GetAddressLength());
   EXPECT_EQ(otherAdvMsg.GetAddress(), advMsg.GetAddress());
+  EXPECT_EQ(otherAdvMsg.GetControlAddressLength(),
+            advMsg.GetControlAddressLength());
+  EXPECT_EQ(otherAdvMsg.GetControlAddress(), advMsg.GetControlAddress());
   EXPECT_EQ(otherAdvMsg.GetMsgLength(), advMsg.GetMsgLength());
   EXPECT_EQ(otherAdvMsg.GetMsgLength() -
             otherAdvMsg.GetHeader().GetHeaderLength(), advMsg.GetMsgLength() -

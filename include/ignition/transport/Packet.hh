@@ -42,6 +42,8 @@ namespace ignition
     static const int ReqType        = 5;
     static const int RepType        = 6;
     static const int RepErrorType   = 7;
+    static const int NewConnection  = 8;
+    static const int EndConnection  = 9;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
@@ -178,7 +180,9 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _header Message header
       /// \param[in] _address ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
-      public: AdvMsg(const Header &_header, const std::string &_address);
+      /// \param[in] _controlAddress ZeroMQ control address.
+      public: AdvMsg(const Header &_header, const std::string &_address,
+                     const std::string &_controlAddress);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -192,6 +196,14 @@ namespace ignition
       /// \return Return the ZMQ address.
       public: std::string GetAddress() const;
 
+      /// \brief Get the control address length.
+      /// \brief Return the ZMQ control address length (num of bytes).
+      public: uint16_t GetControlAddressLength() const;
+
+      /// \brief Get the ZMQ control address.
+      /// \return Return the ZMQ control address.
+      public: std::string GetControlAddress() const;
+
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
       public: void SetHeader(const Header &_header);
@@ -199,6 +211,10 @@ namespace ignition
       /// \brief Set the ZMQ address.
       /// \param[in] _address ZMQ address to be contained in the message.
       public: void SetAddress(const std::string &_address);
+
+      /// \brief Set the ZMQ control address.
+      /// \param[in] _address ZMQ control address to be contained in the msg.
+      public: void SetControlAddress(const std::string &_address);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
@@ -228,6 +244,12 @@ namespace ignition
 
       /// \brief ZMQ valid address (e.g., "tcp://10.0.0.1:6000").
       private: std::string address;
+
+      /// \brief Length of the address contained in this message (bytes).
+      private: uint16_t controlAddressLength;
+
+      /// \brief ZMQ valid address (e.g., "tcp://10.0.0.1:6000").
+      private: std::string controlAddress;
 
       /// \brief Length of the message in bytes.
       private: int msgLength;

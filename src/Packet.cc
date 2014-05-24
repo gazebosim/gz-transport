@@ -217,10 +217,12 @@ transport::AdvMsg::AdvMsg()
 
 //////////////////////////////////////////////////
 transport::AdvMsg::AdvMsg(const Header &_header,
-                          const std::string &_address)
+                          const std::string &_address,
+                          const std::string &_controlAddress)
 {
   this->SetHeader(_header);
   this->SetAddress(_address);
+  this->SetControlAddress(_controlAddress);
   this->UpdateMsgLength();
 }
 
@@ -243,6 +245,18 @@ std::string transport::AdvMsg::GetAddress() const
 }
 
 //////////////////////////////////////////////////
+uint16_t transport::AdvMsg::GetControlAddressLength() const
+{
+  return this->controlAddressLength;
+}
+
+//////////////////////////////////////////////////
+std::string transport::AdvMsg::GetControlAddress() const
+{
+  return this->controlAddress;
+}
+
+//////////////////////////////////////////////////
 void transport::AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
@@ -262,10 +276,19 @@ void transport::AdvMsg::SetAddress(const std::string &_address)
 }
 
 //////////////////////////////////////////////////
+void transport::AdvMsg::SetControlAddress(const std::string &_address)
+{
+  this->controlAddress = _address;
+  this->controlAddressLength = this->controlAddress.size();
+  this->UpdateMsgLength();
+}
+
+//////////////////////////////////////////////////
 size_t transport::AdvMsg::GetMsgLength()
 {
-  return this->header.GetHeaderLength() + sizeof(this->addressLength) +
-         this->address.size();
+  return this->header.GetHeaderLength() +
+         sizeof(this->addressLength) + this->addressLength +
+         sizeof(this->controlAddressLength) + this->controlAddressLength;
 }
 
 //////////////////////////////////////////////////
@@ -274,6 +297,9 @@ void transport::AdvMsg::PrintBody()
   std::cout << "\tBody:" << std::endl;
   std::cout << "\t\tAddr size: " << this->GetAddressLength() << std::endl;
   std::cout << "\t\tAddress: " << this->GetAddress() << std::endl;
+  std::cout << "\t\tControl addr size: " <<
+    this->GetControlAddressLength() << std::endl;
+  std::cout << "\t\tControl address: " << this->GetControlAddress() << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -287,7 +313,12 @@ size_t transport::AdvMsg::Pack(char *_buffer)
 
   memcpy(_buffer, &this->addressLength, sizeof(this->addressLength));
   _buffer += sizeof(this->addressLength);
-  memcpy(_buffer, this->address.data(), this->address.size());
+  memcpy(_buffer, this->address.data(), this->addressLength);
+  _buffer += this->addressLength;
+  memcpy(_buffer, &this->controlAddressLength,
+         sizeof(this->controlAddressLength));
+  _buffer += sizeof(this->controlAddressLength);
+  memcpy(_buffer, this->controlAddress.data(), this->controlAddressLength);
 
   return this->GetMsgLength();
 }
@@ -295,21 +326,33 @@ size_t transport::AdvMsg::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t transport::AdvMsg::UnpackBody(char *_buffer)
 {
-  // Read the address length
+  // Read the address length.
   memcpy(&this->addressLength, _buffer, sizeof(this->addressLength));
   _buffer += sizeof(this->addressLength);
 
-  // Read the address
+  // Read the address.
   this->address = std::string(_buffer, _buffer + this->addressLength);
+  _buffer += this->addressLength;
+
+  // Read the control address length.
+  memcpy(&this->controlAddressLength, _buffer,
+         sizeof(this->controlAddressLength));
+  _buffer += sizeof(this->controlAddressLength);
+
+  // Read the control address.
+  this->controlAddress =
+    std::string(_buffer, _buffer + this->controlAddressLength);
 
   this->UpdateMsgLength();
 
-  return sizeof(this->addressLength) + this->address.size();
+  return sizeof(this->addressLength) + this->addressLength +
+         sizeof(this->controlAddressLength) + this->controlAddressLength;
 }
 
 //////////////////////////////////////////////////
 void transport::AdvMsg::UpdateMsgLength()
 {
   this->msgLength = this->GetHeader().GetHeaderLength() +
-    sizeof(this->addressLength) + this->address.size();
+    sizeof(this->addressLength) + this->addressLength +
+    sizeof(this->controlAddressLength) + this->controlAddressLength;
 }

@@ -25,6 +25,7 @@ using namespace ignition;
 
 bool cbExecuted;
 bool cb2Executed;
+
 std::string topic = "foo";
 std::string data = "bar";
 
@@ -57,35 +58,33 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-void runPublisher()
-{
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
-
-  transport::Node node1;
-
-  node1.Advertise(topic);
-  s_sleep(500);
-  EXPECT_EQ(node1.Publish(topic, msg), 0);
-  s_sleep(500);
-  EXPECT_EQ(node1.Publish(topic, msg), 0);
-  s_sleep(500);
-}
-
-//////////////////////////////////////////////////
 void runSubscriber()
 {
   cbExecuted = false;
+  cb2Executed = false;
   s_sleep(100);
+  transport::Node node;
   transport::Node node2;
 
   s_sleep(100);
-  EXPECT_EQ(node2.Subscribe(topic, cb), 0);
+  node.Subscribe(topic, cb);
+  node2.Subscribe(topic, cb2);
   s_sleep(500);
 
-  // Check that the data was received.
+  // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
+  EXPECT_TRUE(cb2Executed);
   cbExecuted = false;
+  cb2Executed = false;
+
+  node.Unsubscribe(topic);
+  s_sleep(600);
+
+  // Check that the message was only received in node3.
+  EXPECT_FALSE(cbExecuted);
+  EXPECT_TRUE(cb2Executed);
+  cbExecuted = false;
+  cb2Executed = false;
 }
 
 //////////////////////////////////////////////////
@@ -98,34 +97,21 @@ TEST(DiscZmqTest, PubSubTwoProcsTwoNodes)
   pid_t pid = fork();
 
   if (pid == 0)
-    runPublisher();
+  {
+    runSubscriber();
+  }
   else
   {
-    cbExecuted = false;
-    cb2Executed = false;
-    s_sleep(100);
-    transport::Node node2;
-    transport::Node node3;
+    robot_msgs::StringMsg msg;
+    msg.set_data(data);
 
-    s_sleep(100);
-    node2.Subscribe(topic, cb);
-    node3.Subscribe(topic, cb2);
+    transport::Node node1;
+
+    node1.Advertise(topic);
     s_sleep(500);
-
-    // Check that the message was received.
-    EXPECT_TRUE(cbExecuted);
-    EXPECT_TRUE(cb2Executed);
-    cbExecuted = false;
-    cb2Executed = false;
-
-    node2.Unsubscribe(topic);
-    s_sleep(600);
-
-    // Check that the message was only received in node3.
-    EXPECT_FALSE(cbExecuted);
-    EXPECT_TRUE(cb2Executed);
-    cbExecuted = false;
-    cb2Executed = false;
+    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    s_sleep(500);
+    EXPECT_EQ(node1.Publish(topic, msg), 0);
 
     // Wait for the child process to return.
     int status;

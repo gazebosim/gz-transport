@@ -77,7 +77,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>);
+            new SubscriptionHandler<T>(this->nodeUuidStr));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -114,7 +114,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>);
+            new SubscriptionHandler<T>(this->nodeUuidStr));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(

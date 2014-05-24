@@ -27,7 +27,7 @@ using namespace ignition;
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
   : connected(false), advertisedByMe(false), requested(false), reqCb(nullptr),
-    repCb(nullptr), beacon(nullptr), numSubscribers(0)
+    repCb(nullptr), beacon(nullptr)
 {
 }
 
@@ -55,7 +55,7 @@ bool transport::TopicsInfo::HasTopic(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
-                                            transport::Topics_L &_addresses)
+                                            transport::Addresses_M &_addresses)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -71,9 +71,8 @@ bool transport::TopicsInfo::HasAdvAddress(const std::string &_topic,
   if (!this->HasTopic(_topic))
     return false;
 
-  return std::find(this->topicsInfo[_topic]->addresses.begin(),
-            this->topicsInfo[_topic]->addresses.end(), _address)
-              != this->topicsInfo[_topic]->addresses.end();
+  return this->topicsInfo[_topic]->addresses.find(_address) !=
+         this->topicsInfo[_topic]->addresses.end();
 }
 
 //////////////////////////////////////////////////
@@ -158,13 +157,11 @@ bool transport::TopicsInfo::PendingReqs(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
-                                          const std::string &_address)
+                                          const std::string &_address,
+                                          const std::string &_controlAddress)
 {
   this->CheckAndCreate(_topic);
-
-  // If we had the topic but not the address, add the new address
-  if (!this->HasAdvAddress(_topic, _address))
-    this->topicsInfo[_topic]->addresses.push_back(_address);
+  this->topicsInfo[_topic]->addresses[_address] = _controlAddress;
 }
 
 //////////////////////////////////////////////////
@@ -174,10 +171,7 @@ void transport::TopicsInfo::RemoveAdvAddress(const std::string &_topic,
   // Remove the address if we have the topic
   if (this->HasTopic(_topic))
   {
-    this->topicsInfo[_topic]->addresses.resize(
-      std::remove(this->topicsInfo[_topic]->addresses.begin(),
-        this->topicsInfo[_topic]->addresses.end(), _address) -
-          this->topicsInfo[_topic]->addresses.begin());
+    this->topicsInfo[_topic]->addresses.erase(_address);
 
     // If the addresses list is empty, just remove the topic info
     if (this->topicsInfo[_topic]->addresses.empty())
@@ -264,10 +258,28 @@ transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic)
+void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
+                                                const std::string &_address,
+                                                const std::string &_nodeUuid)
 {
   this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->numSubscribers++;
+
+  // The address does not exist yet.
+  if (this->topicsInfo[_topic]->subscribers.find(_address) ==
+      this->topicsInfo[_topic]->subscribers.end())
+  {
+    this->topicsInfo[_topic]->subscribers[_address] =
+      std::vector<std::string>();
+  }
+
+  // Add the node UUID if was not existing before.
+  if (std::find(this->topicsInfo[_topic]->subscribers[_address].begin(),
+                this->topicsInfo[_topic]->subscribers[_address].end(),
+                _nodeUuid) ==
+                this->topicsInfo[_topic]->subscribers[_address].end())
+  {
+    this->topicsInfo[_topic]->subscribers[_address].push_back(_nodeUuid);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -276,7 +288,32 @@ bool transport::TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->topicsInfo[_topic]->numSubscribers > 0;
+  return !this->topicsInfo[_topic]->subscribers.empty();
+}
+
+//////////////////////////////////////////////////
+void transport::TopicsInfo::DelRemoteSubscriber(const std::string &_topic,
+                                                const std::string &_address,
+                                                const std::string &_nodeUuid)
+{
+  if (this->HasTopic(_topic))
+  {
+    // The address exists.
+    if (this->topicsInfo[_topic]->subscribers.find(_address) !=
+        this->topicsInfo[_topic]->subscribers.end())
+    {
+      std::vector<std::string> v =
+        this->topicsInfo[_topic]->subscribers[_address];
+
+      // Remove the remote subscriber from the vector.
+      v.erase(std::remove(v.begin(), v.end(), _nodeUuid), v.end());
+
+      this->topicsInfo[_topic]->subscribers[_address] = v;
+
+      if (v.empty())
+        this->topicsInfo[_topic]->subscribers.erase(_address);
+    }
+  }
 }
 
 //////////////////////////////////////////////////

@@ -45,13 +45,8 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-    control(new zmq::socket_t(*context, ZMQ_ROUTER))
+    control(new zmq::socket_t(*context, ZMQ_DEALER))
 {
-  int major, minor, patch;
-  zmq::version(&major, &minor, &patch);
-
-  std::cout << "Version: " << major << "." << minor << "." << patch << std::endl;
-
   char bindEndPoint[1024];
 
   // Initialize random seed.
@@ -78,15 +73,17 @@ transport::NodePrivate::NodePrivate(bool _verbose)
     // Set the hostname's ip address
     this->hostAddr = zbeacon_hostname(this->beacon);
 
-    std::string anyTcpEP = "tcp://" + this->hostAddr + ":*";
-    this->publisher->bind(anyTcpEP.c_str());
+    // Publisher socket listening in a random port.
+    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+    this->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myAddress = bindEndPoint;
 
-    // control socket listening in a well-known port.
-    std::string controlEP = "tcp://" + this->hostAddr + ":" + std::to_string(this->ControlPort);
-    this->control->bind(controlEP.c_str());
+    // Control socket listening in a random port.
+    this->control->bind(anyTcpEp.c_str());
+    this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myControlAddress = bindEndPoint;
   }
   catch(const zmq::error_t& ze)
   {
@@ -98,6 +95,7 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
+    std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
 
@@ -276,7 +274,62 @@ void transport::NodePrivate::RecvMsgUpdate()
 //////////////////////////////////////////////////
 void transport::NodePrivate::RecvControlUpdate()
 {
-  std::cout << "New control updated" << std::endl;
+  //std::lock_guard<std::mutex> lock(this->mutex);
+
+  std::cout << "Control update received" << std::endl;
+
+  zmq::message_t message(0);
+  std::string topic;
+  std::string sender;
+  std::string nodeUuid;
+  std::string data;
+
+  try
+  {
+    if (!this->control->recv(&message, 0))
+      return;
+    topic = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->control->recv(&message, 0))
+      return;
+    sender = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->control->recv(&message, 0))
+      return;
+    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->control->recv(&message, 0))
+      return;
+    data = std::string(reinterpret_cast<char *>(message.data()));
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cout << "Error: " << _error.what() << std::endl;
+    return;
+  }
+
+  if (std::stoi(data) == transport::NewConnection)
+  {
+    //if (this->verbose)
+    //{
+      std::cout << "Registering a new remote connection" << std::endl;
+      std::cout << "\tAddress: [" << sender << "]\n";
+      std::cout << "\tNode: [" << nodeUuid << "]\n";
+   // }
+
+    this->topics.AddRemoteSubscriber(topic, sender, nodeUuid);
+  }
+  else if (std::stoi(data) == transport::EndConnection)
+  {
+    //if (this->verbose)
+    //{
+      std::cout << "Registering the end of a remote connection" << std::endl;
+      std::cout << "\t Address: " << sender << std::endl;
+      std::cout << "\tNode: [" << nodeUuid << "]\n";
+   // }
+
+    this->topics.DelRemoteSubscriber(topic, sender, nodeUuid);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -287,6 +340,7 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
   Header header;
   AdvMsg advMsg;
   std::string address;
+  std::string controlAddress;
   char *pBody = _msg;
 
   header.Unpack(_msg);
@@ -304,12 +358,17 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
       // Read the address
       advMsg.UnpackBody(pBody);
       address = advMsg.GetAddress();
+      controlAddress = advMsg.GetControlAddress();
+
+      // Discard our own discovery messages.
+      if (address == this->myAddress)
+        return 0;
 
       if (this->verbose)
         advMsg.PrintBody();
 
       // Register the advertised address for the topic
-      this->topics.AddAdvAddress(topic, address);
+      this->topics.AddAdvAddress(topic, address, controlAddress);
 
       /*
       std::cout << "Subscribd? " << this->topics.Subscribed(topic) << std::endl;
@@ -330,13 +389,36 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
           if (this->verbose)
             std::cout << "\t* Connected to [" << address << "]\n";
 
-          // Send a message to the control socket of the publisher to notify
-          // that I am a new remote subscriber.
+          // Send a message to the publisher's control socket to notify it
+          // about all my subscribers.
           zmq::socket_t socket (*this->context, ZMQ_DEALER);
-          std::size_t found = address.find(":");
-          std::string controlEP = address.substr(0, found);
-          std::cout << controlEP << std::endl;
-          // socket.connect(address)
+          socket.connect(controlAddress.c_str());
+
+          transport::ISubscriptionHandler_M handlers;
+          this->topics.GetSubscriptionHandlers(topic, handlers);
+          for (auto handler : handlers)
+          {
+            std::string nodeUuid = handler.second->GetNodeUuid();
+
+            zmq::message_t message;
+            message.rebuild(topic.size() + 1);
+            memcpy(message.data(), topic.c_str(), topic.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
+
+            message.rebuild(this->myAddress.size() + 1);
+            memcpy(message.data(), this->myAddress.c_str(),
+                   this->myAddress.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
+
+            message.rebuild(nodeUuid.size() + 1);
+            memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
+
+            std::string data = std::to_string(transport::NewConnection);
+            message.rebuild(data.size() + 1);
+            memcpy(message.data(), data.c_str(), data.size() + 1);
+            socket.send(message, 0);
+          }
         }
         catch(const zmq::error_t& ze)
         {
@@ -351,11 +433,7 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
       if (this->topics.AdvertisedByMe(topic))
       {
         // Send to the broadcast socket an ADVERTISE message
-        this->SendAdvertiseMsg(transport::AdvType, topic, this->myAddress);
-
-        // It's only considered a remote subscriber if the GUID is not as mine.
-        if (this->guidStr.compare(rcvdGuid) != 0)
-          this->topics.AddRemoteSubscriber(topic);
+        this->SendAdvertiseMsg(transport::AdvType, topic);
       }
 
       break;
@@ -370,8 +448,7 @@ int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
 
 //////////////////////////////////////////////////
 int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
-                                             const std::string &_topic,
-                                             const std::string &_address)
+                                             const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -383,13 +460,13 @@ int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
 
   if (this->verbose)
   {
-    std::cout << "\t* Sending ADV msg [" << _topic << "][" << _address
-              << "]" << std::endl;
+    std::cout << "\t* Sending ADV msg [" << _topic << "][" << this->myAddress
+              << "][" << this->myControlAddress << "]" << std::endl;
   }
 
   // Create the beacon content.
   Header header(transport::Version, this->guid, _topic, _type, 0);
-  AdvMsg advMsg(header, _address);
+  AdvMsg advMsg(header, this->myAddress, this->myControlAddress);
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 

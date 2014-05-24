@@ -44,13 +44,14 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   transport::TopicsInfo topics;
   std::string topic = "test_topic";
   std::string address = "tcp://10.0.0.1:6000";
-  transport::Topics_L v;
+  std::string controlAddress = "tcp://10.0.0.1:6001";
+  transport::Addresses_M m;
   transport::ReqCallback reqCb;
   transport::RepCallback repCb;
 
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));
-  EXPECT_FALSE(topics.GetAdvAddresses(topic, v));
+  EXPECT_FALSE(topics.GetAdvAddresses(topic, m));
   EXPECT_FALSE(topics.HasAdvAddress(topic, address));
   EXPECT_FALSE(topics.Connected(topic));
   EXPECT_FALSE(topics.Subscribed(topic));
@@ -61,11 +62,11 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.PendingReqs(topic));
 
   // Check getters after inserting a topic in a TopicsInfo object
-  topics.AddAdvAddress(topic, address);
+  topics.AddAdvAddress(topic, address, controlAddress);
   EXPECT_TRUE(topics.HasTopic(topic));
   EXPECT_TRUE(topics.HasAdvAddress(topic, address));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, v));
-  EXPECT_EQ(v.at(0), address);
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  EXPECT_EQ(m[address], controlAddress);
   EXPECT_FALSE(topics.Connected(topic));
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
@@ -73,11 +74,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
-
-  // Check that there's only one copy stored of the same address
-  topics.AddAdvAddress(topic, address);
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, v));
-  EXPECT_EQ(v.size(), 1);
 
   // Check SetConnected
   topics.SetConnected(topic, true);
@@ -109,7 +105,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   // Check the address removal
   topics.RemoveAdvAddress(topic, address);
   EXPECT_FALSE(topics.HasAdvAddress(topic, address));
-  EXPECT_FALSE(topics.GetAdvAddresses(topic, v));
+  EXPECT_FALSE(topics.GetAdvAddresses(topic, m));
 
   // Check the addition of asynchronous service call requests
   std::string req1 = "paramsReq1";

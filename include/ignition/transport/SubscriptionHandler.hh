@@ -33,6 +33,13 @@ namespace ignition
     /// \brief Interface class used to manage generic protobub messages.
     class ISubscriptionHandler
     {
+      /// \brief Constructor
+      /// \param[in] _uuid UUID of the node registering the subscription handler
+      public: ISubscriptionHandler(const std::string &_uuid)
+        : nodeUuidStr(_uuid)
+      {
+      }
+
       /// \brief Destructor
       public: virtual ~ISubscriptionHandler()
       {
@@ -53,6 +60,13 @@ namespace ignition
       /// \return 0 when success.
       public: virtual int RunCallback(const std::string &_topic,
                                       const std::string &_data) = 0;
+
+      /// \brief Get the node UUID.
+      /// \return The string representation of the node UUID.
+      public: std::string GetNodeUuid() {return this->nodeUuidStr;}
+
+      /// \brief Node UUID (string).
+      private: std::string nodeUuidStr;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -61,6 +75,12 @@ namespace ignition
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
+      // Documentation inherited.
+      public: SubscriptionHandler(const std::string &_uuid)
+        : ISubscriptionHandler(_uuid)
+      {
+      }
+
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.

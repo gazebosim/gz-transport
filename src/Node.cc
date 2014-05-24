@@ -76,11 +76,13 @@ void transport::Node::Advertise(const std::string &_topic)
     // Create the beacon content.
     transport::Header header(transport::Version, this->dataPtr->guid, _topic,
                              transport::AdvType, 0);
-    transport::AdvMsg advMsg(header, this->dataPtr->myAddress);
+    transport::AdvMsg advMsg(header, this->dataPtr->myAddress,
+                             this->dataPtr->myControlAddress);
     std::vector<char> buffer(advMsg.GetMsgLength());
     advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
     zbeacon_set_interval(topicBeacon, 2000);
+    zbeacon_noecho(topicBeacon);
 
     // Start publishing the ADVERTISE message periodically.
     zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
@@ -130,13 +132,16 @@ int transport::Node::Publish(const std::string &_topic,
   }
 
   // Remote subscribers
-  // if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
-  // {
+  if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
+  {
+    std::cout << "Sending data to remote subscribers" << std::endl;
     std::string data;
     _msg.SerializeToString(&data);
     if (this->dataPtr->Publish(_topic, data) != 0)
       return -1;
-  // }
+  }
+  else
+    std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return 0;
 }
@@ -146,7 +151,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  //std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
     std::cout << "\nUnsubscribe (" << _topic << ")\n";
@@ -163,5 +168,44 @@ void transport::Node::Unsubscribe(const std::string &_topic)
   {
     this->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());
+  }
+
+  // Notify the publisher
+  transport::Addresses_M addresses;
+  if (!this->dataPtr->topics.GetAdvAddresses(_topic, addresses))
+  {
+    std::cout << "Don't have information for topic [" << _topic
+              << "]" << std::endl;
+  }
+
+  for (auto publisher : addresses)
+  {
+    std::string controlAddress = publisher.second;
+    std::cout << "Unregistering address for topic [" << _topic << "]\n";
+    std::cout << "\tAddress: [" << publisher.first << "]\n";
+    std::cout << "\tNode: [" << this->nodeUuidStr << "]\n";
+
+    zmq::socket_t socket (*this->dataPtr->context, ZMQ_DEALER);
+    socket.connect(controlAddress.c_str());
+
+    zmq::message_t message;
+    message.rebuild(_topic.size() + 1);
+    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+    socket.send(message, ZMQ_SNDMORE);
+
+    message.rebuild(this->dataPtr->myAddress.size() + 1);
+    memcpy(message.data(), this->dataPtr->myAddress.c_str(),
+           this->dataPtr->myAddress.size() + 1);
+    socket.send(message, ZMQ_SNDMORE);
+
+    message.rebuild(this->nodeUuidStr.size() + 1);
+    memcpy(message.data(), this->nodeUuidStr.c_str(),
+           this->nodeUuidStr.size() + 1);
+    socket.send(message, ZMQ_SNDMORE);
+
+    std::string data = std::to_string(transport::EndConnection);
+    message.rebuild(data.size() + 1);
+    memcpy(message.data(), data.c_str(), data.size() + 1);
+    socket.send(message, 0);
   }
 }

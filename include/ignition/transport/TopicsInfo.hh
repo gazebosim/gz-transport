@@ -41,7 +41,7 @@ namespace ignition
       public: virtual ~TopicInfo();
 
       /// \brief List of addresses known for a topic.
-      public: Topics_L addresses;
+      public: Addresses_M addresses;
 
       /// \brief Am I connected to the topic?
       public: bool connected;
@@ -66,8 +66,8 @@ namespace ignition
       /// request.
       public: std::list<std::string> pendingReqs;
 
-      /// \brief Registers the number of subscribers to this topic.
-      public: unsigned int numSubscribers;
+      /// \brief Subscribers info for this topic.
+      public: transport::SubscriptionInfo_M subscribers;
 
       /// \brief Stores all the subscribers information for this topic.
       public: ISubscriptionHandler_M subscriptionHandlers;
@@ -93,7 +93,7 @@ namespace ignition
       /// \param[out] _addresses List of addresses
       /// \return true when we have info about this topic.
       public: bool GetAdvAddresses(const std::string &_topic,
-                                   std::vector<std::string> &_addresses);
+                                   Addresses_M &_addresses);
 
       /// \brief Return if an address is registered associated to a given topic.
       /// \param[in] _topic Topic name.
@@ -152,9 +152,11 @@ namespace ignition
 
       /// \brief Add a new address associated to a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address New address
+      /// \param[in] _address New address.
+      /// \param[in] _controlAddress New control address.
       public: void AddAdvAddress(const std::string &_topic,
-                                 const std::string &_address);
+                                 const std::string &_address,
+                                 const std::string &_controlAddress);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
@@ -213,9 +215,21 @@ namespace ignition
       /// \return true if a topic has a remote subscriber in this node.
       public: bool HasRemoteSubscribers(const std::string &_topic);
 
-      /// \brief Increment the counter of remote susbscribers for a topic.
+      /// \brief Add a new remote subscriber for a topic.
       /// \param[in] _topic Topic name.
-      public: void AddRemoteSubscriber(const std::string &_topic);
+      /// \param[in] _address Subscriber 0MQ address.
+      /// \param[in] _nodeUuid UUID of the subscribed node.
+      public: void AddRemoteSubscriber(const std::string &_topic,
+                                       const std::string &_address,
+                                       const std::string &_nodeUuid);
+
+      /// \brief Delete a new remote subscriber for a topic.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _address Subscriber 0MQ address.
+      /// \param[in] _nodeUuid UUID of the subscribed node.
+      public: void DelRemoteSubscriber(const std::string &_topic,
+                                       const std::string &_address,
+                                       const std::string &_nodeUuid);
 
       /// \brief Get the subscription handlers for a topic. A subscription
       /// handler stores the callback and types associated to a subscription.

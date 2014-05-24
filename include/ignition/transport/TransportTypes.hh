@@ -18,6 +18,7 @@
 #define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -32,9 +33,9 @@ namespace ignition
     class NodePrivate;
     class TopicInfo;
 
-    /// \def Topics_L
-    /// \brief List of topics.
-    typedef std::vector<std::string> Topics_L;
+    /// \def Addresses_M
+    /// \brief 0MQ address is the key and 0MQ control address is the value.
+    typedef std::map<std::string, std::string> Addresses_M;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
@@ -63,7 +64,7 @@ namespace ignition
     /// \brief Shared pointer to NodePrivate.
     typedef std::shared_ptr<transport::NodePrivate> NodePrivatePtr;
 
-    /// \def SubscriptionHandlerPtr
+    /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
     typedef std::shared_ptr<ISubscriptionHandler> ISubscriptionHandlerPtr;
 
@@ -73,9 +74,12 @@ namespace ignition
     /// is used as key.
     typedef std::map<std::string, ISubscriptionHandlerPtr>
         ISubscriptionHandler_M;
+
+    /// \def SubscriptionInfo_M
+    /// \brief Map to store information about remote subscribers for a topic.
+    /// The key is the 0MQ address of the node, and the value is a list of
+    /// node UUIDs.
+    typedef std::map<std::string, std::vector<std::string>> SubscriptionInfo_M;
   }
 }
-
 #endif
-
-

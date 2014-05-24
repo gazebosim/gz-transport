@@ -40,9 +40,6 @@ namespace ignition
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
-      /// \brief Port used to receive connection updates.
-      public: static const int ControlPort = 11315;
-
       /// \brief Broadcast interval for discovery beacons in milliseconds.
       public: static const int BeaconInterval = 2500;
 
@@ -89,10 +86,8 @@ namespace ignition
       /// \brief Send an ADVERTISE message to the discovery socket.
       /// \param[in] _type ADV or ADV_SVC.
       /// \param[in] _topic Topic to be advertised.
-      /// \param[in] _address Address to be advertised with the topic.
       /// \return 0 when success.
-      public: int SendAdvertiseMsg(uint8_t _type, const std::string &_topic,
-                                   const std::string &_address);
+      public: int SendAdvertiseMsg(uint8_t _type, const std::string &_topic);
 
       /// \brief Send a SUBSCRIBE message to the discovery socket.
       /// \param[in] _type SUB or SUB_SVC.
@@ -110,6 +105,9 @@ namespace ignition
 
       /// \brief My pub/sub address.
       public: std::string myAddress;
+
+      /// \brief My pub/sub control address.
+      public: std::string myControlAddress;
 
       /// \brief IP address of this host.
       public: std::string hostAddr;
@@ -129,6 +127,7 @@ namespace ignition
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
 
+      /// \brief ZMQ socket to receive control updates (new connections, ...).
       public: std::unique_ptr<zmq::socket_t> control;
 
       /// \brief Local GUID.
