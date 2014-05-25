@@ -137,7 +137,7 @@ void transport::NodePrivate::SpinOnce()
   zmq::pollitem_t items[] = {
     { *this->subscriber, 0, ZMQ_POLLIN, 0 },
     { *this->control, 0, ZMQ_POLLIN, 0 },
-    { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 },
+    { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 }
   };
   zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 
@@ -146,7 +146,7 @@ void transport::NodePrivate::SpinOnce()
     this->RecvMsgUpdate();
   if (items[1].revents & ZMQ_POLLIN)
     this->RecvControlUpdate();
-  else if (items[2].revents & ZMQ_POLLIN)
+  if (items[2].revents & ZMQ_POLLIN)
     this->RecvDiscoveryUpdate();
 }
 

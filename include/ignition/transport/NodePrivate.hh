@@ -95,8 +95,6 @@ namespace ignition
       /// \return 0 when success.
       public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
 
-      private: void Monitor();
-
       /// \brief Print activity to stdout.
       public: int verbose;
 
