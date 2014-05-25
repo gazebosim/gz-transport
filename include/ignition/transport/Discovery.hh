@@ -61,7 +61,25 @@ namespace ignition
 
       public: void RegisterDiscoverResp(const transport::DiscResponse &_cb);
 
+      public: template<class C> void RegisterDiscoverResp(
+        void(C::*_cb)(const std::string &, const std::string &,
+          const std::string &, const std::string &, const std::string &),
+            C* _obj)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+
+        if (_cb != nullptr)
+        {
+          this->newDiscoveryEvent =
+            std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+              std::placeholders::_3, std::placeholders::_4,
+              std::placeholders::_5);
+        }
+      }
+
       public: void RegisterDisconnectResp(const transport::DiscResponse &_cb);
+
+
 
       /// \brief Run one iteration of the discovery.
       private: void SpinOnce();

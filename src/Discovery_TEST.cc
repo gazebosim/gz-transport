@@ -34,6 +34,44 @@ void OnDiscoveryResponse(const std::string &_topic, const std::string &_addr,
   std::cout << "\t Node UUID: " << _nodeUuid << std::endl;
 }
 
+class MyClass
+{
+  public: MyClass(const std::string &_addr, const std::string &_ctrl,
+                  const uuid_t &_uuid)
+  {
+    this->addr = _addr;
+    this->ctrl = _ctrl;
+    uuid_copy(this->uuid, _uuid);
+
+    this->discovery = new transport::Discovery(this->addr, this->ctrl,
+      this->uuid, this->uuid);
+
+    this->discovery->RegisterDiscoverResp(&MyClass::OnDiscResponse, this);
+  }
+
+  public: virtual ~MyClass()
+  {
+    delete discovery;
+  }
+
+  public: void OnDiscResponse(const std::string &_topic,
+    const std::string &_addr, const std::string &_ctrl,
+    const std::string &_procUuid, const std::string &_nodeUuid)
+  {
+    std::cout << "New discovery event received (member function)" << std::endl;
+    std::cout << "\t Topic: " << _topic << std::endl;
+    std::cout << "\t Address: " << _addr << std::endl;
+    std::cout << "\t Control address: " << _ctrl << std::endl;
+    std::cout << "\t Proc UUID: " << _procUuid << std::endl;
+    std::cout << "\t Node UUID: " << _nodeUuid << std::endl;
+  }
+
+  private: uuid_t uuid;
+  private: std::string addr;
+  private: std::string ctrl;
+  private: transport::Discovery *discovery;
+};
+
 //////////////////////////////////////////////////
 TEST(DiscoveryTest, Test1)
 {
@@ -70,6 +108,8 @@ TEST(DiscoveryTest, Test1)
   // getchar();
 
   delete discovery1;
+
+  MyClass obj(localAddr1, controlAddr1, uuid1);
   // getchar();
 }
 
