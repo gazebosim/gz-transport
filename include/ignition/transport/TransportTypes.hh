@@ -18,6 +18,7 @@
 #define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -80,6 +81,16 @@ namespace ignition
     /// The key is the 0MQ address of the node, and the value is a list of
     /// node UUIDs.
     typedef std::map<std::string, std::vector<std::string>> SubscriptionInfo_M;
+
+    /// \brief Address, control, proc UUID, node UUID.
+    typedef std::tuple<std::string, std::string, std::string, std::string>
+      DiscTopicInfo;
+
+    typedef std::function<void(const std::string &, const std::string &,
+      const std::string &, const std::string &, const std::string &)>
+        DiscResponse;
+
+    typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
   }
 }
 #endif

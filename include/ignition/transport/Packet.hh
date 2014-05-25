@@ -36,20 +36,23 @@ namespace ignition
     // Message types
     static const int AdvType        = 0;
     static const int SubType        = 1;
-    static const int AdvSvcType     = 2;
-    static const int SubSvcType     = 3;
-    static const int PubType        = 4;
-    static const int ReqType        = 5;
-    static const int RepType        = 6;
-    static const int RepErrorType   = 7;
-    static const int NewConnection  = 8;
-    static const int EndConnection  = 9;
+    static const int UnadvType      = 2;
+    static const int HelloType      = 3;
+    static const int ByeType        = 4;
+    static const int AdvSvcType     = 5;
+    static const int SubSvcType     = 6;
+    static const int PubType        = 7;
+    static const int ReqType        = 8;
+    static const int RepType        = 9;
+    static const int RepErrorType   = 10;
+    static const int NewConnection  = 11;
+    static const int EndConnection  = 12;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
-      "ADVERTISE", "SUBSCRIBE", "ADV_SRV", "SUB_SVC",
-      "PUB", "REQ", "SRV_REP_OK", "SRV_REP_ERROR"
+      "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HELLO", "BYE", "ADV_SVC",
+      "SUB_SVC", "PUB", "REQ", "SRV_REP_OK", "SRV_REP_ERROR"
     };
 
     /// \brief Get the string representation of the GUID.
