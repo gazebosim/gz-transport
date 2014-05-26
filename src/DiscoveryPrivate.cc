@@ -449,6 +449,9 @@ int transport::DiscoveryPrivate::SendSubscribeMsg(uint8_t _type,
 //////////////////////////////////////////////////
 bool transport::DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
 {
-  return std::find(this->advTopics.begin(), this->advTopics.end(), _topic) !=
-    this->advTopics.end();
+  if (this->info.find(_topic) == this->info.end())
+    return false;
+
+  return std::get<2>(this->info[_topic]) ==
+    transport::GetGuidStr(this->procUuid);
 }

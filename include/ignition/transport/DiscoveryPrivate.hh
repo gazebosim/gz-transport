@@ -100,7 +100,6 @@ namespace ignition
       public: transport::DiscResponse newDiscoveryEvent;
       public: transport::DiscResponse newDisconnectionEvent;
 
-      public: std::vector<std::string> advTopics;
       public: std::vector<std::string> unknownTopics;
       public: std::map<std::string, transport::DiscTopicInfo> info;
       public: std::map<std::string, transport::Timestamp> activity;

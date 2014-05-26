@@ -48,9 +48,6 @@ void transport::Discovery::Advertise(const std::string &_topic,
   if (this->dataPtr->AdvertisedByMe(_topic))
     return;
 
-  // Add the topic to the list of advertised topics.
-  this->dataPtr->advTopics.push_back(_topic);
-
   // Add the addressing information.
   this->dataPtr->info[_topic] = transport::DiscTopicInfo(_addr, _ctrl,
     transport::GetGuidStr(this->dataPtr->procUuid));
@@ -96,12 +93,11 @@ void transport::Discovery::Unadvertise(const std::string &_topic)
   if (!this->dataPtr->AdvertisedByMe(_topic))
     return;
 
-  // Remove the topic from the list of advertised topics.
-  this->dataPtr->advTopics.erase(std::remove(this->dataPtr->advTopics.begin(),
-    this->dataPtr->advTopics.end(), _topic), this->dataPtr->advTopics.end());
-
   // Send the UNADVERTISE message.
   this->dataPtr->SendAdvertiseMsg(transport::UnadvType, _topic);
+
+  // Remove the topic information.
+  this->dataPtr->info.erase(_topic);
 }
 
 //////////////////////////////////////////////////
