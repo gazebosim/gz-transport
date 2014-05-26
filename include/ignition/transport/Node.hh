@@ -49,12 +49,10 @@ namespace ignition
 
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic to be advertised.
-      /// \return 0 when success.
       public: void Advertise(const std::string &_topic);
 
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic to be unadvertised.
-      /// \return 0 when success.
       public: void Unadvertise(const std::string &_topic);
 
       /// \brief Publish a message.
@@ -68,7 +66,6 @@ namespace ignition
       /// the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
-      /// \return 0 when success.
       public: template<class T> int Subscribe(
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
@@ -105,7 +102,6 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback member function.
       /// \param[in] _obj Instance.
-      /// \return 0 when success.
       public: template<class C, class T> int Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &), C* _obj)

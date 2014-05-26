@@ -34,7 +34,7 @@ namespace ignition
   namespace transport
   {
     /// \class NodePrivate NodePrivate.hh
-    /// \brief public data for the Node class.
+    /// \brief Private data for the Node class.
     class NodePrivate
     {
       /// \brief Port used to broadcast the discovery messages.
