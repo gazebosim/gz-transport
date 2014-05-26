@@ -38,22 +38,38 @@ namespace ignition
     /// \brief Private data for the Discovery class.
     class DiscoveryPrivate
     {
+      /// \def Timestamp
+      /// \brief Used to evaluate the validity of a discovery entry.
+      typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
+
+      /// \brief Constructor.
+      /// \param[in] _procUuid This discovery instance will run inside a
+      /// transport process. This parameter is the transport process' UUID.
+      /// \param[in] _verbose true for enabling verbose mode.
       public: DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose);
 
+      /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
-
-      /// \brief Run one iteration of the discovery.
-      public: void SpinOnce();
 
       /// \brief Receive discovery messages forever.
       public: void Spin();
 
+      /// \brief Check the validity of the topic information. Each topic update
+      /// has its own timestamp. This method iterates over the list of topics
+      /// and invalid the old topics.
       public: void UpdateActivity();
 
+      /// \brief Broadcast periodic heartbeats.
       public: void SendHello();
 
+      /// \brief Broadcast a BYE message to trigger the remote cancelation of
+      /// all the topics that I advertised in the past.
       public: void SendBye();
 
+      /// \brief Each time the client calls Discover(), the discovery will try
+      /// to discover the addressing information for the requested topic. This
+      /// method will periodically retransmit the request to discover until
+      /// the advertiser answers.
       public: void RetransmitSubscriptions();
 
       /// \brief Method in charge of receiving the discovery updates.
@@ -76,36 +92,83 @@ namespace ignition
       /// \return 0 when success.
       public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
 
+      /// \brief Check if a topic has been advertised by me.
+      /// \return true if the topic was advertised by me before.
       public: bool AdvertisedByMe(const std::string &_topic);
 
-      /// \brief Timeout used for receiving requests.
+      /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
 
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
-      public: static const int DefSilenceInterval = 3000;
-      public: static const int DefPollingInterval = 250;
-      public: static const int DefSubInterval = 1000;
-      public: static const int DefHelloInterval = 1000;
+      /// \brief Default silence interval value.
+      /// \sa GetMaxSilenceInterval.
+      /// \sa SetMaxSilenceInterval.
+      public: static const unsigned int DefSilenceInterval = 3000;
+
+      /// \brief Default activity interval value.
+      /// \sa GetActivityInterval.
+      /// \sa SetActivityInterval.
+      public: static const unsigned int DefActivityInterval = 250;
+
+      /// \brief Default subscription interval value.
+      /// \sa GetSubscriptionInterval.
+      /// \sa SetSubscriptionInterval.
+      public: static const unsigned int DefSubscriptionInterval = 1000;
+
+      /// \brief Default hello interval value.
+      /// \sa GetHelloInterval.
+      /// \sa SetHelloInterval.
+      public: static const unsigned int DefHelloInterval = 1000;
 
       /// \brief Process UUID.
-      public: uuid_t procUuid;
+      public: uuid_t uuid;
 
+      /// \brief UUID in string format.
+      public: std::string uuidStr;
+
+      /// \brief Silence interval value.
+      /// \sa GetMaxSilenceInterval.
+      /// \sa SetMaxSilenceInterval.
       public: unsigned int silenceInterval;
-      public: unsigned int pollingInterval;
-      public: unsigned int subInterval;
+
+      /// \brief Activity interval value.
+      /// \sa GetActivityInterval.
+      /// \sa SetActivityInterval.
+      public: unsigned int activityInterval;
+
+      /// \brief Subscription interval value.
+      /// \sa GetSubscriptionInterval.
+      /// \sa SetSubscriptionInterval.
+      public: unsigned int subscriptionInterval;
+
+      /// \brief Hello interval value.
+      /// \sa GetHelloInterval.
+      /// \sa SetHelloInterval.
       public: unsigned int helloInterval;
 
-      public: transport::DiscResponse newDiscoveryEvent;
-      public: transport::DiscResponse newDisconnectionEvent;
+      /// \brief Callback executed when new topics are discovered.
+      public: transport::DiscoveryCallback connectionCb;
 
+      /// \brief Callback executed when new topics are invalid.
+      public: transport::DiscoveryCallback disconnectionCb;
+
+      /// \brief Topics requested to discover but with no information yet.
       public: std::vector<std::string> unknownTopics;
-      public: std::map<std::string, transport::DiscTopicInfo> info;
-      public: std::map<std::string, transport::Timestamp> activity;
+
+      /// \brief Main topic information. For each topic we store a tuple that
+      /// contains the 0MQ address, 0MQ control, and process UUID of the
+      /// publisher.
+      public: std::map<std::string, transport::DiscoveryInfo> info;
+
+      /// \brief Activity information. Every time there is a message from a
+      /// remote node, its activity information is updated. If we do not hear
+      /// from a node in a while, its entries in 'info' will be invalided.
+      public: std::map<std::string, Timestamp> activity;
 
       /// \brief Print activity to stdout.
-      public: int verbose;
+      public: bool verbose;
 
       /// \brief ZMQ context for the discovery beacon.
       public: zctx_t *ctx;
@@ -113,25 +176,25 @@ namespace ignition
       /// \brief Discovery beacon.
       public: zbeacon_t *beacon;
 
-      /// \brief Mutex to guarantee exclusive access between the sockets.
+      /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
 
-      /// \brief thread in charge of receiving and handling incoming messages.
+      /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadInbound;
 
-      /// \brief thread in charge of sending HELLOs.
+      /// \brief Thread in charge of sending HELLOs.
       public: std::thread *threadHello;
 
-      /// \brief thread in charge of update the activity.
+      /// \brief Thread in charge of update the activity.
       public: std::thread *threadActivity;
 
-      /// \brief thread in charge of sending periodic SUB messages (if needed).
+      /// \brief Thread in charge of sending periodic SUB messages (if needed).
       public: std::thread *threadSub;
 
-      /// \brief Mutex to guarantee exclusive access to exit variable.
+      /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::mutex exitMutex;
 
-      /// \brief When true, the service thread will finish.
+      /// \brief When true, the service threads will finish.
       public: bool exit;
     };
   }

@@ -49,8 +49,8 @@ void transport::Discovery::Advertise(const std::string &_topic,
     return;
 
   // Add the addressing information.
-  this->dataPtr->info[_topic] = transport::DiscTopicInfo(_addr, _ctrl,
-    transport::GetGuidStr(this->dataPtr->procUuid));
+  this->dataPtr->info[_topic] = transport::DiscoveryInfo(_addr, _ctrl,
+    this->dataPtr->uuidStr);
 
   this->dataPtr->SendAdvertiseMsg(transport::AdvType, _topic);
 }
@@ -74,10 +74,10 @@ void transport::Discovery::Discover(const std::string &_topic)
       this->dataPtr->unknownTopics.push_back(_topic);
     }
   }
-  else if (this->dataPtr->newDiscoveryEvent)
+  else if (this->dataPtr->connectionCb)
   {
-    transport::DiscTopicInfo topicInfo = this->dataPtr->info[_topic];
-    this->dataPtr->newDiscoveryEvent(_topic, std::get<0>(topicInfo),
+    transport::DiscoveryInfo topicInfo = this->dataPtr->info[_topic];
+    this->dataPtr->connectionCb(_topic, std::get<0>(topicInfo),
       std::get<1>(topicInfo), std::get<2>(topicInfo));
   }
 }
@@ -108,17 +108,24 @@ unsigned int transport::Discovery::GetMaxSilenceInterval()
 }
 
 //////////////////////////////////////////////////
-unsigned int transport::Discovery::GetPollingInterval()
+unsigned int transport::Discovery::GetActivityInterval()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  return this->dataPtr->pollingInterval;
+  return this->dataPtr->activityInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int transport::Discovery::GetSubInterval()
+unsigned int transport::Discovery::GetSubscriptionInterval()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  return this->dataPtr->subInterval;
+  return this->dataPtr->subscriptionInterval;
+}
+
+//////////////////////////////////////////////////
+unsigned int transport::Discovery::GetHelloInterval()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->helloInterval;
 }
 
 //////////////////////////////////////////////////
@@ -129,35 +136,42 @@ void transport::Discovery::SetMaxSilenceInterval(unsigned int _ms)
 }
 
 //////////////////////////////////////////////////
-void transport::Discovery::SetPollingInterval(unsigned int _ms)
+void transport::Discovery::SetActivityInterval(unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->pollingInterval = _ms;
+  this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void transport::Discovery::SetSubInterval(unsigned int _ms)
+void transport::Discovery::SetSubscriptionInterval(unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->subInterval = _ms;
+  this->dataPtr->subscriptionInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void transport::Discovery::RegisterDiscoverResp(
-  const transport::DiscResponse &_cb)
+void transport::Discovery::SetHelloInterval(unsigned int _ms)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->helloInterval = _ms;
+}
+
+//////////////////////////////////////////////////
+void transport::Discovery::SetConnectionsCb(
+  const transport::DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (_cb != nullptr)
-    this->dataPtr->newDiscoveryEvent = _cb;
+    this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void transport::Discovery::RegisterDisconnectResp(
-  const transport::DiscResponse &_cb)
+void transport::Discovery::SetDisconnectionsCb(
+  const transport::DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (_cb != nullptr)
-    this->dataPtr->newDisconnectionEvent = _cb;
+    this->dataPtr->disconnectionCb = _cb;
 }

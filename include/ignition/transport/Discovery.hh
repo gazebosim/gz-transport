@@ -19,8 +19,8 @@
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
 #include <uuid/uuid.h>
+#include <functional>
 #include <memory>
-#include <mutex>
 #include <string>
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -36,7 +36,7 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _procUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
-      /// \param[in] _verbose true for enabling verbose mode..
+      /// \param[in] _verbose true for enabling verbose mode.
       public: Discovery(const uuid_t &_procUuid, bool _verbose = false);
 
       /// \brief Destructor.
@@ -59,70 +59,83 @@ namespace ignition
       public: void Unadvertise(const std::string &_topic);
 
       /// \brief Get the maximum time allowed without receiving any discovery
-      /// information from a node before cancel its entry.
+      /// information from a node before canceling its entry.
       /// \return The value in milliseconds.
       public: unsigned int GetMaxSilenceInterval();
 
-      /// \brief
-      /// \return
-      public: unsigned int GetPollingInterval();
+      /// \brief The discovery checks the validity of the topic information
+      /// every 'activity interval' time.
+      /// \return The value in milliseconds.
+      public: unsigned int GetActivityInterval();
 
-      /// \brief
-      /// \return
-      public: unsigned int GetSubInterval();
+      /// \brief After a discover request, the discovery will send periodic
+      /// discovery requests every 'subscription interval' time.
+      /// \return The value in milliseconds.
+      public: unsigned int GetSubscriptionInterval();
 
-      /// \brief
-      /// \param[in]
+      /// \brief Each node broadcasts periodic heartbeats to keep its topic
+      /// information alive in the remote nodes. A HELLO message is sent after
+      /// 'hello interval' time.
+      /// \return The value in milliseconds.
+      public: unsigned int GetHelloInterval();
+
+      /// \brief Set the maximum silence interval.
+      /// \sa GetMaxSilenceInterval.
+      /// \param[in] _ms New value in milliseconds.
       public: void SetMaxSilenceInterval(unsigned int _ms);
 
-      /// \brief
-      /// \param[in]
-      public: void SetPollingInterval(unsigned int _ms);
+      /// \brief Set the activity interval.
+      /// \sa GetActivityInterval.
+      /// \param[in] _ms New value in milliseconds.
+      public: void SetActivityInterval(unsigned int _ms);
 
-      /// \brief
-      /// \param[in]
-      public: void SetSubInterval(unsigned int _ms);
+      /// \brief Set the subscription interval.
+      /// \sa GetSubscriptionInterval.
+      /// \param[in] _ms New value in milliseconds.
+      public: void SetSubscriptionInterval(unsigned int _ms);
 
-      /// \brief
-      /// \param[in]
-      public: void RegisterDiscoverResp(const transport::DiscResponse &_cb);
+      /// \brief Set the hello interval.
+      /// \sa GetHelloInterval.
+      /// \param[in] _ms New value in milliseconds.
+      public: void SetHelloInterval(unsigned int _ms);
 
-      /// \brief
-      /// \param[in]
-      public: template<class C> void RegisterDiscoverResp(
+      /// \brief Register a callback to receive discovery connection events.
+      /// Each time a new node is connected, the callback will be execute. This
+      /// version uses a free function as callback.
+      /// \param[in] _cb Function callback.
+      public: void SetConnectionsCb(const DiscoveryCallback &_cb);
+
+      /// \brief Register a callback to receive discovery connection events.
+      /// Each time a new node is connected, the callback will be execute. This
+      /// version uses a member functions as callback.
+      /// \param[in] _cb Function callback.
+      public: template<class C> void SetConnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &),
-            C* _obj)
+          const std::string &, const std::string &), C* _obj)
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-        if (_cb != nullptr)
-        {
-          this->dataPtr->newDiscoveryEvent =
-            std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-              std::placeholders::_3, std::placeholders::_4);
-        }
+        this->SetConnectionsCb(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4));
       }
 
-      /// \brief
-      /// \param[in]
-      public: void RegisterDisconnectResp(const transport::DiscResponse &_cb);
+      /// \brief Register a callback to receive discovery disconnection events.
+      /// Each time a new node is disconnected, the callback will be execute.
+      /// This version uses a free function as callback.
+      /// \param[in] _cb Function callback.
+      public: void SetDisconnectionsCb(const transport::DiscoveryCallback &_cb);
 
-      /// \brief
-      /// \param[in]
-      public: template<class C> void RegisterDisconnectResp(
+      /// \brief Register a callback to receive discovery disconnection events.
+      /// Each time a new node is disconnected, the callback will be execute.
+      /// This version uses a member function as callback.
+      /// \param[in] _cb Function callback.
+      public: template<class C> void SetDisconnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
           const std::string &, const std::string &),
             C* _obj)
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-        if (_cb != nullptr)
-        {
-          this->dataPtr->newDisconnectionEvent =
-            std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-              std::placeholders::_3, std::placeholders::_4);
-        }
+        this->SetDisconnectionsCb(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+              std::placeholders::_3, std::placeholders::_4));
       }
 
       /// \internal

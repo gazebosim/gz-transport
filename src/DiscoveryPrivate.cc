@@ -28,23 +28,29 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
+#define Addr 0
+#define Ctrl 1
+#define Uuid 2
+
 using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
   bool _verbose)
   : silenceInterval(DefSilenceInterval),
-    pollingInterval(DefPollingInterval),
-    subInterval(DefSubInterval),
+    activityInterval(DefActivityInterval),
+    subscriptionInterval(DefSubscriptionInterval),
     helloInterval(DefHelloInterval),
-    newDiscoveryEvent(nullptr),
-    newDisconnectionEvent(nullptr),
+    connectionCb(nullptr),
+    disconnectionCb(nullptr),
     verbose(_verbose),
     exit(false)
 {
   this->ctx = zctx_new();
 
-  uuid_copy(this->procUuid, _procUuid);
+  // Store the UUID and its string version.
+  uuid_copy(this->uuid, _procUuid);
+  this->uuidStr = transport::GetGuidStr(this->uuid);
 
   // Discovery beacon.
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
@@ -89,25 +95,19 @@ transport::DiscoveryPrivate::~DiscoveryPrivate()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::SpinOnce()
-{
-  // Poll socket for a reply, with timeout.
-  zmq::pollitem_t items[] = {
-    { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 }
-  };
-  zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
-
-  //  If we got a reply, process it
-  if (items[0].revents & ZMQ_POLLIN)
-    this->RecvDiscoveryUpdate();
-}
-
-//////////////////////////////////////////////////
 void transport::DiscoveryPrivate::Spin()
 {
   while (true)
   {
-    this->SpinOnce();
+    // Poll socket for a reply, with timeout.
+    zmq::pollitem_t items[] = {
+      { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 }
+    };
+    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
+
+    //  If we got a reply, process it
+    if (items[0].revents & ZMQ_POLLIN)
+      this->RecvDiscoveryUpdate();
 
     // Is it time to exit?
     {
@@ -126,11 +126,11 @@ void transport::DiscoveryPrivate::UpdateActivity()
     // Updating activity
     this->mutex.lock();
 
-    transport::Timestamp now = std::chrono::steady_clock::now();
+    Timestamp now = std::chrono::steady_clock::now();
     for (auto it = this->activity.cbegin(); it != this->activity.cend();)
     {
       // Skip my own entry
-      if (it->first == transport::GetGuidStr(this->procUuid))
+      if (it->first == this->uuidStr)
         continue;
 
       std::chrono::duration<double> elapsed = now - it->second;
@@ -140,14 +140,14 @@ void transport::DiscoveryPrivate::UpdateActivity()
         // Remove all the info entries for this proc UUID.
         for (auto it2 = this->info.cbegin(); it2 != this->info.cend();)
         {
-          if (std::get<2>(it2->second) == it->first)
+          if (std::get<Uuid>(it2->second) == it->first)
           {
-            if (this->newDisconnectionEvent)
+            if (this->connectionCb)
             {
               // Notify the new disconnection.
-              transport::DiscTopicInfo topicInfo = it2->second;
-              this->newDisconnectionEvent(it2->first, std::get<0>(topicInfo),
-                std::get<1>(topicInfo), std::get<2>(topicInfo));
+              transport::DiscoveryInfo topicInfo = it2->second;
+              this->connectionCb(it2->first, std::get<Addr>(topicInfo),
+                std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
             }
 
             this->info.erase(it2++);
@@ -165,7 +165,7 @@ void transport::DiscoveryPrivate::UpdateActivity()
     this->mutex.unlock();
 
     std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->pollingInterval));
+      std::chrono::milliseconds(this->activityInterval));
 
     // Is it time to exit?
     {
@@ -184,7 +184,7 @@ void transport::DiscoveryPrivate::SendHello()
     this->mutex.lock();
 
     // Send a HELLO message.
-    Header header(transport::Version, this->procUuid, "",
+    Header header(transport::Version, this->uuid, "",
       transport::HelloType, 0);
 
     std::vector<char> buffer(header.GetHeaderLength());
@@ -214,7 +214,7 @@ void transport::DiscoveryPrivate::SendBye()
   this->mutex.lock();
 
   // Send a BYE message.
-  Header header(transport::Version, this->procUuid, "", transport::ByeType, 0);
+  Header header(transport::Version, this->uuid, "", transport::ByeType, 0);
 
   std::vector<char> buffer(header.GetHeaderLength());
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
@@ -239,7 +239,8 @@ void transport::DiscoveryPrivate::RetransmitSubscriptions()
 
     this->mutex.unlock();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(this->subInterval));
+    std::this_thread::sleep_for(
+      std::chrono::milliseconds(this->subscriptionInterval));
 
     // Is it time to exit?
     {
@@ -290,7 +291,7 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
   std::string recvProcUuid = transport::GetGuidStr(header.GetGuid());
 
   // Discard our own discovery messages.
-  if (recvProcUuid == transport::GetGuidStr(this->procUuid))
+  if (recvProcUuid == this->uuidStr)
     return 0;
 
   // Update timestamp.
@@ -312,17 +313,17 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
       // Register the advertised address for the topic.
       this->info[topic] =
-        transport::DiscTopicInfo(address, controlAddress, recvProcUuid);
+        transport::DiscoveryInfo(address, controlAddress, recvProcUuid);
 
       // Remove topic from unkown topics.
       this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
         this->unknownTopics.end(), topic), this->unknownTopics.end());
 
-      if (this->newDiscoveryEvent)
+      if (this->connectionCb)
       {
-        transport::DiscTopicInfo topicInfo = this->info[topic];
-        this->newDiscoveryEvent(topic, std::get<0>(topicInfo),
-          std::get<1>(topicInfo), std::get<2>(topicInfo));
+        transport::DiscoveryInfo topicInfo = this->info[topic];
+        this->connectionCb(topic, std::get<Addr>(topicInfo),
+          std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
       }
       break;
 
@@ -347,14 +348,14 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       // Remove all the topic information that has the same proc UUID.
       for (auto it = this->info.cbegin(); it != this->info.cend();)
       {
-        if (std::get<2>(it->second) == recvProcUuid)
+        if (std::get<Uuid>(it->second) == recvProcUuid)
         {
-          if (this->newDisconnectionEvent)
+          if (this->disconnectionCb)
           {
             // Notify the new disconnection.
-            transport::DiscTopicInfo topicInfo = it->second;
-            this->newDisconnectionEvent(it->first, std::get<0>(topicInfo),
-              std::get<1>(topicInfo), std::get<2>(topicInfo));
+            transport::DiscoveryInfo topicInfo = it->second;
+            this->disconnectionCb(it->first, std::get<Addr>(topicInfo),
+              std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
           }
 
           this->info.erase(it++);
@@ -367,12 +368,12 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
     case transport::UnadvType:
 
-      if (this->newDisconnectionEvent)
+      if (this->disconnectionCb)
       {
         // Notify the new disconnection.
-        transport::DiscTopicInfo topicInfo = this->info[topic];
-        this->newDisconnectionEvent(topic, std::get<0>(topicInfo),
-          std::get<1>(topicInfo), std::get<2>(topicInfo));
+        transport::DiscoveryInfo topicInfo = this->info[topic];
+        this->disconnectionCb(topic, std::get<Addr>(topicInfo),
+          std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
       }
 
       // Remove the topic info.
@@ -401,8 +402,8 @@ int transport::DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type,
     return -1;
   }
   // Get the addresses associated to the topic.
-  std::string addr = std::get<0>(this->info[_topic]);
-  std::string ctrlAddr = std::get<1>(this->info[_topic]);
+  std::string addr = std::get<Addr>(this->info[_topic]);
+  std::string ctrlAddr = std::get<Ctrl>(this->info[_topic]);
 
   if (this->verbose)
   {
@@ -411,7 +412,7 @@ int transport::DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type,
   }
 
   // Create the beacon content.
-  Header header(transport::Version, this->procUuid, _topic, _type, 0);
+  Header header(transport::Version, this->uuid, _topic, _type, 0);
   AdvMsg advMsg(header, addr, ctrlAddr);
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
@@ -433,7 +434,7 @@ int transport::DiscoveryPrivate::SendSubscribeMsg(uint8_t _type,
   if (this->verbose)
     std::cout << "\t* Sending SUB msg [" << _topic << "]" << std::endl;
 
-  Header header(transport::Version, this->procUuid, _topic, _type, 0);
+  Header header(transport::Version, this->uuid, _topic, _type, 0);
 
   std::vector<char> buffer(header.GetHeaderLength());
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
@@ -452,6 +453,5 @@ bool transport::DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
   if (this->info.find(_topic) == this->info.end())
     return false;
 
-  return std::get<2>(this->info[_topic]) ==
-    transport::GetGuidStr(this->procUuid);
+  return std::get<Uuid>(this->info[_topic]) == this->uuidStr;
 }

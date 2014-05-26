@@ -82,13 +82,21 @@ namespace ignition
     /// node UUIDs.
     typedef std::map<std::string, std::vector<std::string>> SubscriptionInfo_M;
 
-    /// \brief Address, control, proc UUID.
-    typedef std::tuple<std::string, std::string, std::string> DiscTopicInfo;
-
+    /// \def DiscoveryCallback
+    /// \brief The user can register callbacks of this type when new connections
+    /// or disconnections are detected by the discovery. The prototype of the
+    /// callback is: topic name, 0MQ address, 0MQ control address, UUDI of the
+    /// node advertising the topic.
+    /// E.g.: void onDiscoveryResponse(const std::string &_topic,
+    /// const std::string &_addr, const std::string &_ctrl,
+    //  const std::string &_procUuid).
     typedef std::function<void(const std::string &, const std::string &,
-      const std::string &, const std::string &)> DiscResponse;
+      const std::string &, const std::string &)> DiscoveryCallback;
 
-    typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
+    /// \def DiscoveryInfo
+    /// \brief This is the addressing information stored for each topic. The
+    /// tuple contains three fields: 0MQ address, 0MQ control address, UUID.
+    typedef std::tuple<std::string, std::string, std::string> DiscoveryInfo;
   }
 }
 #endif

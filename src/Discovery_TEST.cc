@@ -34,10 +34,10 @@ std::string uuid1Str = "";
 std::string uuidNode1Str = "";
 std::string uuid2Str = "";
 std::string uuidNode2Str = "";
-bool discoverResponseExecuted = false;
-bool discoverResponseExecutedMF = false;
-bool disconnectResponseExecuted = false;
-bool disconnectResponseExecutedMF = false;
+bool connectionExecuted = false;
+bool connectionExecutedMF = false;
+bool disconnectionExecuted = false;
+bool disconnectionExecutedMF = false;
 
 void setupUUIDs(uuid_t & _uuid1, uuid_t & _uuid2)
 {
@@ -58,19 +58,19 @@ void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
   EXPECT_EQ(_addr, localAddr1);
   EXPECT_EQ(_ctrl, controlAddr1);
   EXPECT_EQ(_procUuid, uuid1Str);
-  discoverResponseExecuted = true;
+  connectionExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDisconnectResponse(const std::string &_topic, const std::string &_addr,
+void ondisconnection(const std::string &_topic, const std::string &_addr,
   const std::string &_ctrl, const std::string &_procUuid)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_addr, localAddr1);
   EXPECT_EQ(_ctrl, controlAddr1);
   EXPECT_EQ(_procUuid, uuid1Str);
-  disconnectResponseExecuted = true;
+  disconnectionExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -92,13 +92,13 @@ class MyClass
   /// \brief Register a member function as a discovery callback.
   public: void RegisterConnections()
   {
-    this->discov->RegisterDiscoverResp(&MyClass::OnConnectResponse, this);
+    this->discov->SetConnectionsCb(&MyClass::OnConnectResponse, this);
   }
 
   /// \brief Register a member function as a discovery disconnection callback.
   public: void RegisterDisconnections()
   {
-    this->discov->RegisterDisconnectResp(&MyClass::OnDisconnectResponse, this);
+    this->discov->SetDisconnectionsCb(&MyClass::Ondisconnection, this);
   }
 
   /// \brief Member function called each time a discovery update is received.
@@ -110,11 +110,11 @@ class MyClass
     EXPECT_EQ(_addr, localAddr1);
     EXPECT_EQ(_ctrl, controlAddr1);
     EXPECT_EQ(_procUuid, uuid1Str);
-    discoverResponseExecutedMF = true;
+    connectionExecutedMF = true;
   }
 
   /// \brief Member function called each time a disconnect. update is received.
-  public: void OnDisconnectResponse(const std::string &_topic,
+  public: void Ondisconnection(const std::string &_topic,
     const std::string &_addr, const std::string &_ctrl,
     const std::string &_procUuid)
   {
@@ -122,7 +122,7 @@ class MyClass
     EXPECT_EQ(_addr, localAddr1);
     EXPECT_EQ(_ctrl, controlAddr1);
     EXPECT_EQ(_procUuid, uuid1Str);
-    disconnectResponseExecutedMF = true;
+    disconnectionExecutedMF = true;
   }
 
   private: std::unique_ptr<transport::Discovery> discov;
@@ -131,9 +131,10 @@ class MyClass
 //////////////////////////////////////////////////
 TEST(DiscoveryTest, TestBasicAPI)
 {
-  int newSilenceInterval = 100;
-  int newPollingInterval = 200;
-  int newSubInterval = 300;
+  unsigned int newSilenceInterval = 100;
+  unsigned int newActivityInterval = 200;
+  unsigned int newSubscriptionInterval = 300;
+  unsigned int newHelloInterval = 400;
 
   uuid_t uuid1;
   uuid_generate(uuid1);
@@ -143,11 +144,13 @@ TEST(DiscoveryTest, TestBasicAPI)
   transport::Discovery discovery1(uuid1);
 
   discovery1.SetMaxSilenceInterval(newSilenceInterval);
-  discovery1.SetPollingInterval(newPollingInterval);
-  discovery1.SetSubInterval(newSubInterval);
+  discovery1.SetActivityInterval(newActivityInterval);
+  discovery1.SetSubscriptionInterval(newSubscriptionInterval);
+  discovery1.SetHelloInterval(newHelloInterval);
   EXPECT_EQ(discovery1.GetMaxSilenceInterval(), newSilenceInterval);
-  EXPECT_EQ(discovery1.GetPollingInterval(), newPollingInterval);
-  EXPECT_EQ(discovery1.GetSubInterval(), newSubInterval);
+  EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
+  EXPECT_EQ(discovery1.GetSubscriptionInterval(), newSubscriptionInterval);
+  EXPECT_EQ(discovery1.GetHelloInterval(), newHelloInterval);
 }
 
 //////////////////////////////////////////////////
@@ -156,8 +159,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
@@ -168,17 +171,17 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !discoverResponseExecuted)
+  while (i < 100 && !connectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was not received.
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -187,8 +190,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 
   // This should generate discovery traffic but no response on object because
   // there is no callback registered.
@@ -199,17 +202,17 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !discoverResponseExecutedMF)
+  while (i < 100 && !connectionExecutedMF)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was not received.
-  EXPECT_FALSE(discoverResponseExecutedMF);
-  EXPECT_FALSE(disconnectResponseExecutedMF);
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  EXPECT_FALSE(connectionExecutedMF);
+  EXPECT_FALSE(disconnectionExecutedMF);
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 }
 
 //////////////////////////////////////////////////
@@ -218,31 +221,31 @@ TEST(DiscoveryTest, TestAdvertise)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
   transport::Discovery discovery2(uuid2);
 
   // Register one callback for receiving notifications.
-  discovery2.RegisterDiscoverResp(onDiscoveryResponse);
+  discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // This should trigger a discovery response on discovery2.
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !discoverResponseExecuted)
+  while (i < 100 && !connectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was received.
-  EXPECT_TRUE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_TRUE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -256,8 +259,8 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   uuid_generate(uuid2);
   uuid2Str = transport::GetGuidStr(uuid2);
 
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 
   // Create two discovery nodes (one is embedded in an object).
   transport::Discovery discovery1(uuid1);
@@ -268,16 +271,16 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !discoverResponseExecutedMF)
+  while (i < 100 && !connectionExecutedMF)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
-  EXPECT_TRUE(discoverResponseExecutedMF);
-  EXPECT_FALSE(disconnectResponseExecutedMF);
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  EXPECT_TRUE(connectionExecutedMF);
+  EXPECT_FALSE(disconnectionExecutedMF);
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 }
 
 //////////////////////////////////////////////////
@@ -286,8 +289,8 @@ TEST(DiscoveryTest, TestDiscover)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(uuid1);
@@ -300,28 +303,28 @@ TEST(DiscoveryTest, TestDiscover)
   transport::Discovery discovery2(uuid2);
 
   // Register one callback for receiving notifications.
-  discovery2.RegisterDiscoverResp(onDiscoveryResponse);
+  discovery2.SetConnectionsCb(onDiscoveryResponse);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // I should not see any discovery updates
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
 
   // Request the discovery of a topic.
   discovery2.Discover(topic);
 
   int i = 0;
-  while (i < 100 && !discoverResponseExecuted)
+  while (i < 100 && !connectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was received.
-  EXPECT_TRUE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_TRUE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
@@ -329,10 +332,10 @@ TEST(DiscoveryTest, TestDiscover)
   discovery2.Discover(topic);
 
   // Check that the discovery response was received.
-  EXPECT_TRUE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_TRUE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -341,46 +344,46 @@ TEST(DiscoveryTest, TestUnadvertise)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
   transport::Discovery discovery2(uuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.RegisterDisconnectResp(onDisconnectResponse);
+  discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !disconnectResponseExecuted)
+  while (i < 100 && !disconnectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that no discovery response was received.
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
 
   // This should trigger a disconnect response on discovery2.
   discovery1.Unadvertise(topic);
 
   i = 0;
-  while (i < 100 && !disconnectResponseExecuted)
+  while (i < 100 && !disconnectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was received.
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_TRUE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_TRUE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -389,8 +392,8 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
@@ -403,32 +406,32 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   discovery1.Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !disconnectResponseExecutedMF)
+  while (i < 100 && !disconnectionExecutedMF)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that no discovery response were received.
-  EXPECT_FALSE(discoverResponseExecutedMF);
-  EXPECT_FALSE(disconnectResponseExecutedMF);
-  disconnectResponseExecutedMF = false;
+  EXPECT_FALSE(connectionExecutedMF);
+  EXPECT_FALSE(disconnectionExecutedMF);
+  disconnectionExecutedMF = false;
 
   // This should trigger a disconnect response on discovery2.
   discovery1.Unadvertise(topic);
 
   i = 0;
-  while (i < 100 && !disconnectResponseExecutedMF)
+  while (i < 100 && !disconnectionExecutedMF)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was received.
-  EXPECT_FALSE(discoverResponseExecutedMF);
-  EXPECT_TRUE(disconnectResponseExecutedMF);
-  disconnectResponseExecutedMF = false;
-  discoverResponseExecutedMF = false;
+  EXPECT_FALSE(connectionExecutedMF);
+  EXPECT_TRUE(disconnectionExecutedMF);
+  disconnectionExecutedMF = false;
+  connectionExecutedMF = false;
 }
 
 //////////////////////////////////////////////////
@@ -437,8 +440,8 @@ TEST(DiscoveryTest, TestNodeBye)
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
 
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 
   // Create two discovery nodes.
   std::unique_ptr<transport::Discovery> discovery1(
@@ -446,39 +449,39 @@ TEST(DiscoveryTest, TestNodeBye)
   transport::Discovery discovery2(uuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.RegisterDisconnectResp(onDisconnectResponse);
+  discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   discovery1->Advertise(topic, localAddr1, controlAddr1);
 
   int i = 0;
-  while (i < 100 && !disconnectResponseExecuted)
+  while (i < 100 && !disconnectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that no discovery response was received.
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_FALSE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+  disconnectionExecuted = false;
 
   // Destroy discovery1. It's destructor should send a BYE message and that
   // should be discovered by discovery2.
   discovery1.reset();
 
   i = 0;
-  while (i < 100 && !disconnectResponseExecuted)
+  while (i < 100 && !disconnectionExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the discovery response was received.
-  EXPECT_FALSE(discoverResponseExecuted);
-  EXPECT_TRUE(disconnectResponseExecuted);
-  disconnectResponseExecuted = false;
-  discoverResponseExecuted = false;
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_TRUE(disconnectionExecuted);
+  disconnectionExecuted = false;
+  connectionExecuted = false;
 }
 
 //////////////////////////////////////////////////
