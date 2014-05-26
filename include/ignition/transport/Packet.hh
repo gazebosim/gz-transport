@@ -30,10 +30,10 @@ namespace ignition
     /// \brief Length of a GUID.
     #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
 
-    //  This is the version of Gazebo transport we implement
+    //  This is the version of Gazebo transport we implement.
     static const int Version        = 1;
 
-    // Message types
+    // Message types.
     static const int AdvType        = 0;
     static const int SubType        = 1;
     static const int UnadvType      = 2;
@@ -45,14 +45,15 @@ namespace ignition
     static const int ReqType        = 8;
     static const int RepType        = 9;
     static const int RepErrorType   = 10;
-    static const int NewConnection  = 11;
-    static const int EndConnection  = 12;
+    static const int NewConnection   = 11;
+    static const int EndConnection   = 12;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
       "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HELLO", "BYE", "ADV_SVC",
-      "SUB_SVC", "PUB", "REQ", "SRV_REP_OK", "SRV_REP_ERROR"
+      "SUB_SVC", "PUB", "REQ", "REP", "SRV_REP_ERROR", "NEW_CONNECTION",
+      "END_CONNECTION"
     };
 
     /// \brief Get the string representation of the GUID.
@@ -73,7 +74,7 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _version Version of the transport library.
       /// \param[in] _guid Global identifier. Every process has a unique guid.
-      /// \param[in] _topic Topic
+      /// \param[in] _topic Topic.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
       /// \param[in] _flags Optional flags included in the header.
       public: Header(const uint16_t _version,
@@ -119,7 +120,7 @@ namespace ignition
       public: void SetTopic(const std::string &_topic);
 
       /// \brief Set the message type.
-      /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
+      /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
       public: void SetType(const uint8_t _type);
 
       /// \brief Set the message flags.
@@ -181,7 +182,7 @@ namespace ignition
       public: AdvMsg();
 
       /// \brief Constructor.
-      /// \param[in] _header Message header
+      /// \param[in] _header Message header.
       /// \param[in] _address ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
       /// \param[in] _controlAddress ZeroMQ control address.
       public: AdvMsg(const Header &_header, const std::string &_address,
@@ -239,7 +240,7 @@ namespace ignition
       /// \brief Update the ADV message length.
       private: void UpdateMsgLength();
 
-      /// \brief Message header
+      /// \brief Message header.
       private: Header header;
 
       /// \brief Length of the address contained in this message (bytes).

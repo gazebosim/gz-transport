@@ -84,7 +84,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
-  this->SendBye();
+  this->SendMsg(ByeType, "");
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   zctx_destroy(&this->ctx);
@@ -96,8 +96,9 @@ void DiscoveryPrivate::Spin()
   while (true)
   {
     // Poll socket for a reply, with timeout.
-    zmq::pollitem_t items[] = {
-      { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 }
+    zmq::pollitem_t items[] =
+    {
+      {zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -181,18 +182,7 @@ void DiscoveryPrivate::SendHello()
   while (true)
   {
     this->mutex.lock();
-
-    // Prepare a HELLO header.
-    Header header(Version, this->uuid, "", HelloType, 0);
-
-    std::vector<char> buffer(header.GetHeaderLength());
-    header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-    // Just send one subscribe message.
-    zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-      header.GetHeaderLength());
-    zbeacon_silence(this->beacon);
-
+    this->SendMsg(HelloType, "");
     this->mutex.unlock();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(this->helloInterval));
@@ -207,25 +197,6 @@ void DiscoveryPrivate::SendHello()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::SendBye()
-{
-  this->mutex.lock();
-
-  // Prepare a BYE header.
-  Header header(Version, this->uuid, "", ByeType, 0);
-
-  std::vector<char> buffer(header.GetHeaderLength());
-  header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-  // Just send one BYE message.
-  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-    header.GetHeaderLength());
-  zbeacon_silence(this->beacon);
-
-  this->mutex.unlock();
-}
-
-//////////////////////////////////////////////////
 void DiscoveryPrivate::RetransmitSubscriptions()
 {
   while (true)
@@ -234,7 +205,7 @@ void DiscoveryPrivate::RetransmitSubscriptions()
 
     // Iterate over the list of topics that have no discovery information yet.
     for (auto topic : this->unknownTopics)
-      this->SendSubscribeMsg(SubType, topic);
+      this->SendMsg(SubType, topic);
 
     this->mutex.unlock();
 
@@ -332,7 +303,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       if (this->AdvertisedByMe(topic))
       {
         // Answer an ADVERTISE message.
-        this->SendAdvertiseMsg(AdvType, topic);
+        this->SendMsg(AdvType, topic);
       }
 
       break;
@@ -392,57 +363,63 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 }
 
 //////////////////////////////////////////////////
-int DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type, const std::string &_topic)
+int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
+  int _flags)
 {
-  assert(_topic != "");
+  // Create the header.
+  Header header(Version, this->uuid, _topic, _type, _flags);
 
-  if (this->info.find(_topic) == this->info.end())
+  switch (_type)
   {
-    std::cerr << "SendAdvertiseMsg() Do not have information for topic ["
-              << _topic << std::endl;
-    return -1;
+    case AdvType:
+    {
+      // Check if I have addressing information for this topic.
+      if (this->info.find(_topic) == this->info.end())
+        return -1;
+
+      // Get the addresses associated to the topic.
+      std::string addr = std::get<Addr>(this->info[_topic]);
+      std::string ctrlAddr = std::get<Ctrl>(this->info[_topic]);
+
+      // Create the ADVERTISE message.
+      AdvMsg advMsg(header, addr, ctrlAddr);
+
+      // Create a buffer and serialize the message.
+      std::vector<char> buffer(advMsg.GetMsgLength());
+      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+      // Broadcast the message.
+      zbeacon_publish(this->beacon,
+        reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
+
+      break;
+    }
+    case SubType:
+    case UnadvType:
+    case HelloType:
+    case ByeType:
+    {
+      // Create a buffer and serialize the message.
+      std::vector<char> buffer(header.GetHeaderLength());
+      header.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+      // Broadcast the message.
+      zbeacon_publish(this->beacon,
+        reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
+
+      break;
+    }
+    default:
+      break;
   }
-  // Get the addresses associated to the topic.
-  std::string addr = std::get<Addr>(this->info[_topic]);
-  std::string ctrlAddr = std::get<Ctrl>(this->info[_topic]);
+
+  zbeacon_silence(this->beacon);
 
   if (this->verbose)
   {
-    std::cout << "\t* Sending " << _type << " msg [" << _topic << "]["
-              << addr << "][" << ctrlAddr << "]" << std::endl;
+    std::cout << "\t* Sending " << MsgTypesStr[_type] << " msg [" << _topic
+              << "]" << std::endl;
   }
-
-  // Create the beacon content.
-  Header header(Version, this->uuid, _topic, _type, 0);
-  AdvMsg advMsg(header, addr, ctrlAddr);
-  std::vector<char> buffer(advMsg.GetMsgLength());
-  advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-  // Just send one advertise message.
-  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-    advMsg.GetMsgLength());
-  zbeacon_silence(this->beacon);
-
-  return 0;
-}
-
-//////////////////////////////////////////////////
-int DiscoveryPrivate::SendSubscribeMsg(uint8_t _type, const std::string &_topic)
-{
-  assert(_topic != "");
-
-  if (this->verbose)
-    std::cout << "\t* Sending SUB msg [" << _topic << "]" << std::endl;
-
-  Header header(Version, this->uuid, _topic, _type, 0);
-
-  std::vector<char> buffer(header.GetHeaderLength());
-  header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-  // Just send one subscribe message.
-  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-    header.GetHeaderLength());
-  zbeacon_silence(this->beacon);
 
   return 0;
 }

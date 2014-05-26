@@ -54,7 +54,7 @@ void Discovery::Advertise(const std::string &_topic,
     this->dataPtr->uuidStr);
 
   // Broadcast my topic information.
-  this->dataPtr->SendAdvertiseMsg(AdvType, _topic);
+  this->dataPtr->SendMsg(AdvType, _topic);
 }
 
 //////////////////////////////////////////////////
@@ -68,7 +68,7 @@ void Discovery::Discover(const std::string &_topic)
   if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
   {
     // Broadcast a discovery request for this topic.
-    this->dataPtr->SendSubscribeMsg(SubType, _topic);
+    this->dataPtr->SendMsg(SubType, _topic);
 
     // Add the topic to the unknown topic list if it was not before.
     if (std::find(this->dataPtr->unknownTopics.begin(),
@@ -100,7 +100,7 @@ void Discovery::Unadvertise(const std::string &_topic)
     return;
 
   // Send the UNADVERTISE message.
-  this->dataPtr->SendAdvertiseMsg(UnadvType, _topic);
+  this->dataPtr->SendMsg(UnadvType, _topic);
 
   // Remove the topic information.
   this->dataPtr->info.erase(_topic);

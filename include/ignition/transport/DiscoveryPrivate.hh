@@ -67,10 +67,6 @@ namespace ignition
       /// \brief Broadcast periodic heartbeats.
       public: void SendHello();
 
-      /// \brief Broadcast a BYE message to trigger the remote cancelation of
-      /// all the topics that I advertised in the past.
-      public: void SendBye();
-
       /// \brief Each time the client calls Discover(), the discovery will try
       /// to discover the addressing information for the requested topic. This
       /// method will periodically retransmit the request to discover until
@@ -96,6 +92,9 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \return 0 when success.
       public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
+
+      public: int SendMsg(uint8_t _type, const std::string &_topic,
+        int _flags = 0);
 
       /// \brief Check if a topic has been advertised by me.
       /// \return true if the topic was advertised by me before.
