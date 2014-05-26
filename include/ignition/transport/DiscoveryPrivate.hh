@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_DISCOVERY_public_HH_INCLUDED__
-#define __IGN_TRANSPORT_DISCOVERY_public_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
+#define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
 #include <czmq.h>
 #include <uuid/uuid.h>
@@ -29,6 +29,11 @@
 #include <vector>
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
+
+// \brief Used to read a DiscoveryInfo tuple.
+#define Addr 0
+#define Ctrl 1
+#define Uuid 2
 
 namespace ignition
 {
@@ -110,7 +115,7 @@ namespace ignition
       /// \brief Default activity interval value.
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
-      public: static const unsigned int DefActivityInterval = 250;
+      public: static const unsigned int DefActivityInterval = 100;
 
       /// \brief Default subscription interval value.
       /// \sa GetSubscriptionInterval.
@@ -149,10 +154,10 @@ namespace ignition
       public: unsigned int helloInterval;
 
       /// \brief Callback executed when new topics are discovered.
-      public: transport::DiscoveryCallback connectionCb;
+      public: DiscoveryCallback connectionCb;
 
       /// \brief Callback executed when new topics are invalid.
-      public: transport::DiscoveryCallback disconnectionCb;
+      public: DiscoveryCallback disconnectionCb;
 
       /// \brief Topics requested to discover but with no information yet.
       public: std::vector<std::string> unknownTopics;
@@ -160,7 +165,7 @@ namespace ignition
       /// \brief Main topic information. For each topic we store a tuple that
       /// contains the 0MQ address, 0MQ control, and process UUID of the
       /// publisher.
-      public: std::map<std::string, transport::DiscoveryInfo> info;
+      public: std::map<std::string, DiscoveryInfo> info;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

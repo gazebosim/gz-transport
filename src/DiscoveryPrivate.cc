@@ -28,14 +28,11 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-#define Addr 0
-#define Ctrl 1
-#define Uuid 2
-
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
-transport::DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
+DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
   bool _verbose)
   : silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
@@ -50,44 +47,43 @@ transport::DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
 
   // Store the UUID and its string version.
   uuid_copy(this->uuid, _procUuid);
-  this->uuidStr = transport::GetGuidStr(this->uuid);
+  this->uuidStr = GetGuidStr(this->uuid);
 
   // Discovery beacon.
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
   zbeacon_subscribe(this->beacon, NULL, 0);
 
-  // Start the service thread.
-  this->threadInbound =
-    new std::thread(&transport::DiscoveryPrivate::Spin, this);
+  // Start the thread that receives discovery information.
+  this->threadInbound = new std::thread(&DiscoveryPrivate::Spin, this);
 
-  // Start the service thread.
-  this->threadHello =
-     new std::thread(&transport::DiscoveryPrivate::SendHello, this);
+  // Start the thread that sends heartbeats.
+  this->threadHello = new std::thread(&DiscoveryPrivate::SendHello, this);
 
-  // Start the service thread.
+  // Start the thread that checks the topic information validity.
   this->threadActivity =
-    new std::thread(&transport::DiscoveryPrivate::UpdateActivity, this);
+    new std::thread(&DiscoveryPrivate::UpdateActivity, this);
 
-  // Start the service thread.
+  // Start the thread that retransmits the discovery requests.
   this->threadSub =
-    new std::thread(&transport::DiscoveryPrivate::RetransmitSubscriptions,
-      this);
+    new std::thread(&DiscoveryPrivate::RetransmitSubscriptions, this);
 }
 
 //////////////////////////////////////////////////
-transport::DiscoveryPrivate::~DiscoveryPrivate()
+DiscoveryPrivate::~DiscoveryPrivate()
 {
   // Tell the service thread to terminate.
   this->exitMutex.lock();
   this->exit = true;
   this->exitMutex.unlock();
 
-  // Wait for the service threads before exit.
+  // Wait for the service threads to finish before exit.
   this->threadInbound->join();
   this->threadHello->join();
   this->threadActivity->join();
   this->threadSub->join();
 
+  // Broadcast a BYE message to trigger the remote cancellation of
+  // all our advertised topics.
   this->SendBye();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -95,7 +91,7 @@ transport::DiscoveryPrivate::~DiscoveryPrivate()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::Spin()
+void DiscoveryPrivate::Spin()
 {
   while (true)
   {
@@ -105,7 +101,7 @@ void transport::DiscoveryPrivate::Spin()
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
-    //  If we got a reply, process it
+    //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
       this->RecvDiscoveryUpdate();
 
@@ -119,11 +115,10 @@ void transport::DiscoveryPrivate::Spin()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::UpdateActivity()
+void DiscoveryPrivate::UpdateActivity()
 {
   while (true)
   {
-    // Updating activity
     this->mutex.lock();
 
     Timestamp now = std::chrono::steady_clock::now();
@@ -133,23 +128,27 @@ void transport::DiscoveryPrivate::UpdateActivity()
       if (it->first == this->uuidStr)
         continue;
 
+      // Elapsed time since the last update from this publisher.
       std::chrono::duration<double> elapsed = now - it->second;
+
+      // This publisher has expired.
       if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()
           > this->silenceInterval)
       {
-        // Remove all the info entries for this proc UUID.
+        // Remove all the info entries for this process UUID.
         for (auto it2 = this->info.cbegin(); it2 != this->info.cend();)
         {
+          // UUID matches
           if (std::get<Uuid>(it2->second) == it->first)
           {
             if (this->connectionCb)
             {
               // Notify the new disconnection.
-              transport::DiscoveryInfo topicInfo = it2->second;
+              DiscoveryInfo topicInfo = it2->second;
               this->connectionCb(it2->first, std::get<Addr>(topicInfo),
                 std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
             }
-
+            // Remove the info entry.
             this->info.erase(it2++);
           }
           else
@@ -177,22 +176,21 @@ void transport::DiscoveryPrivate::UpdateActivity()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::SendHello()
+void DiscoveryPrivate::SendHello()
 {
   while (true)
   {
     this->mutex.lock();
 
-    // Send a HELLO message.
-    Header header(transport::Version, this->uuid, "",
-      transport::HelloType, 0);
+    // Prepare a HELLO header.
+    Header header(Version, this->uuid, "", HelloType, 0);
 
     std::vector<char> buffer(header.GetHeaderLength());
     header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
     // Just send one subscribe message.
     zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                    header.GetHeaderLength());
+      header.GetHeaderLength());
     zbeacon_silence(this->beacon);
 
     this->mutex.unlock();
@@ -209,33 +207,34 @@ void transport::DiscoveryPrivate::SendHello()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::SendBye()
+void DiscoveryPrivate::SendBye()
 {
   this->mutex.lock();
 
-  // Send a BYE message.
-  Header header(transport::Version, this->uuid, "", transport::ByeType, 0);
+  // Prepare a BYE header.
+  Header header(Version, this->uuid, "", ByeType, 0);
 
   std::vector<char> buffer(header.GetHeaderLength());
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
-  // Just send one subscribe message.
+  // Just send one BYE message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                  header.GetHeaderLength());
+    header.GetHeaderLength());
   zbeacon_silence(this->beacon);
 
   this->mutex.unlock();
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::RetransmitSubscriptions()
+void DiscoveryPrivate::RetransmitSubscriptions()
 {
   while (true)
   {
     this->mutex.lock();
 
+    // Iterate over the list of topics that have no discovery information yet.
     for (auto topic : this->unknownTopics)
-      this->SendSubscribeMsg(transport::SubType, topic);
+      this->SendSubscribeMsg(SubType, topic);
 
     this->mutex.unlock();
 
@@ -252,7 +251,7 @@ void transport::DiscoveryPrivate::RetransmitSubscriptions()
 }
 
 //////////////////////////////////////////////////
-void transport::DiscoveryPrivate::RecvDiscoveryUpdate()
+void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -276,7 +275,7 @@ void transport::DiscoveryPrivate::RecvDiscoveryUpdate()
 }
 
 //////////////////////////////////////////////////
-int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
+int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 {
   Header header;
   AdvMsg advMsg;
@@ -284,11 +283,12 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
   std::string controlAddress;
   char *pBody = _msg;
 
+  // Create the header from the raw bytes.
   header.Unpack(_msg);
   pBody += header.GetHeaderLength();
 
   std::string topic = header.GetTopic();
-  std::string recvProcUuid = transport::GetGuidStr(header.GetGuid());
+  std::string recvProcUuid = GetGuidStr(header.GetGuid());
 
   // Discard our own discovery messages.
   if (recvProcUuid == this->uuidStr)
@@ -299,8 +299,8 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
   switch (header.GetType())
   {
-    case transport::AdvType:
-      // Read the address
+    case AdvType:
+      // Read the addresses.
       advMsg.UnpackBody(pBody);
       address = advMsg.GetAddress();
       controlAddress = advMsg.GetControlAddress();
@@ -312,8 +312,7 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       }
 
       // Register the advertised address for the topic.
-      this->info[topic] =
-        transport::DiscoveryInfo(address, controlAddress, recvProcUuid);
+      this->info[topic] = DiscoveryInfo(address, controlAddress, recvProcUuid);
 
       // Remove topic from unkown topics.
       this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
@@ -321,43 +320,46 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
       if (this->connectionCb)
       {
-        transport::DiscoveryInfo topicInfo = this->info[topic];
+        // Execute the client's callback.
+        DiscoveryInfo topicInfo = this->info[topic];
         this->connectionCb(topic, std::get<Addr>(topicInfo),
           std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
       }
       break;
 
-    case transport::SubType:
+    case SubType:
       // Check if I advertise the topic requested.
       if (this->AdvertisedByMe(topic))
       {
-        // Send to the broadcast socket an ADVERTISE message.
-        this->SendAdvertiseMsg(transport::AdvType, topic);
+        // Answer an ADVERTISE message.
+        this->SendAdvertiseMsg(AdvType, topic);
       }
 
       break;
 
-    case transport::HelloType:
+    case HelloType:
       // The timestamp has already been updated.
       break;
 
-    case transport::ByeType:
-      // The process is removed (disconnected).
+    case ByeType:
+      // Remove the activity entry for this publisher.
       this->activity.erase(recvProcUuid);
 
-      // Remove all the topic information that has the same proc UUID.
+      // Remove all the topic information that has the same process UUID.
       for (auto it = this->info.cbegin(); it != this->info.cend();)
       {
+        // UUID matches.
         if (std::get<Uuid>(it->second) == recvProcUuid)
         {
           if (this->disconnectionCb)
           {
             // Notify the new disconnection.
-            transport::DiscoveryInfo topicInfo = it->second;
+            DiscoveryInfo topicInfo = it->second;
             this->disconnectionCb(it->first, std::get<Addr>(topicInfo),
               std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
           }
 
+          // Remove the info entry for this topic.
           this->info.erase(it++);
         }
         else
@@ -366,17 +368,17 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
       break;
 
-    case transport::UnadvType:
+    case UnadvType:
 
       if (this->disconnectionCb)
       {
         // Notify the new disconnection.
-        transport::DiscoveryInfo topicInfo = this->info[topic];
+        DiscoveryInfo topicInfo = this->info[topic];
         this->disconnectionCb(topic, std::get<Addr>(topicInfo),
           std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
       }
 
-      // Remove the topic info.
+      // Remove the info entry for this topic.
       this->info.erase(topic);
 
       break;
@@ -390,8 +392,7 @@ int transport::DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 }
 
 //////////////////////////////////////////////////
-int transport::DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type,
-                                           const std::string &_topic)
+int DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type, const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -412,43 +413,42 @@ int transport::DiscoveryPrivate::SendAdvertiseMsg(uint8_t _type,
   }
 
   // Create the beacon content.
-  Header header(transport::Version, this->uuid, _topic, _type, 0);
+  Header header(Version, this->uuid, _topic, _type, 0);
   AdvMsg advMsg(header, addr, ctrlAddr);
   std::vector<char> buffer(advMsg.GetMsgLength());
   advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Just send one advertise message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                  advMsg.GetMsgLength());
+    advMsg.GetMsgLength());
   zbeacon_silence(this->beacon);
 
   return 0;
 }
 
 //////////////////////////////////////////////////
-int transport::DiscoveryPrivate::SendSubscribeMsg(uint8_t _type,
-                                           const std::string &_topic)
+int DiscoveryPrivate::SendSubscribeMsg(uint8_t _type, const std::string &_topic)
 {
   assert(_topic != "");
 
   if (this->verbose)
     std::cout << "\t* Sending SUB msg [" << _topic << "]" << std::endl;
 
-  Header header(transport::Version, this->uuid, _topic, _type, 0);
+  Header header(Version, this->uuid, _topic, _type, 0);
 
   std::vector<char> buffer(header.GetHeaderLength());
   header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
   // Just send one subscribe message.
   zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                  header.GetHeaderLength());
+    header.GetHeaderLength());
   zbeacon_silence(this->beacon);
 
   return 0;
 }
 
 //////////////////////////////////////////////////
-bool transport::DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
+bool DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
 {
   if (this->info.find(_topic) == this->info.end())
     return false;
