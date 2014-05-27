@@ -23,6 +23,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ignition
@@ -78,8 +79,8 @@ namespace ignition
 
     /// \def SubscriptionInfo_M
     /// \brief Map to store information about remote subscribers for a topic.
-    /// The key is the 0MQ address of the node, and the value is a list of
-    /// node UUIDs.
+    /// The key is the process UUID of the remote node, and the value is a list
+    /// of node UUIDs.
     typedef std::map<std::string, std::vector<std::string>> SubscriptionInfo_M;
 
     /// \def DiscoveryCallback

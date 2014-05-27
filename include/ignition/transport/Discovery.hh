@@ -58,6 +58,10 @@ namespace ignition
       /// \param[in] _topic Topic to be unadvertised.
       public: void Unadvertise(const std::string &_topic);
 
+      /// \brief Get the IP address of the host.
+      /// \return A string with the host's IP address.
+      public: std::string GetHostAddr();
+
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' time.
       /// \return The value in milliseconds.

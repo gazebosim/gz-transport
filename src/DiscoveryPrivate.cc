@@ -126,7 +126,7 @@ void DiscoveryPrivate::RunActivityService()
             {
               // Notify the new disconnection.
               DiscoveryInfo topicInfo = it2->second;
-              this->connectionCb(it2->first, std::get<Addr>(topicInfo),
+              this->disconnectionCb(it2->first, std::get<Addr>(topicInfo),
                 std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
 
               if (this->verbose)
@@ -138,6 +138,11 @@ void DiscoveryPrivate::RunActivityService()
           else
             ++it2;
         }
+
+        // Notify without topic information. This is useful to inform the client
+        // that a remote node is gone, even if we were not interested in its
+        // topics.
+        this->disconnectionCb("", "", "", it->first);
 
         // Remove the activity entry.
         this->activity.erase(it++);
@@ -445,6 +450,13 @@ bool DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
     return false;
 
   return std::get<Uuid>(this->info[_topic]) == this->uuidStr;
+}
+
+//////////////////////////////////////////////////
+std::string DiscoveryPrivate::GetHostAddr()
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  return zbeacon_hostname(this->beacon);
 }
 
 //////////////////////////////////////////////////

@@ -42,7 +42,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node(bool _verbose = false);
+      public: Node(bool _verbose = true);
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -66,7 +66,7 @@ namespace ignition
       /// the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
-      public: template<class T> int Subscribe(
+      public: template<class T> void Subscribe(
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
       {
@@ -94,7 +94,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
+        this->dataPtr->discovery->Discover(_topic);
       }
 
       /// \brief Subscribe to a topic registering a callback. In this version
@@ -102,7 +102,7 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback member function.
       /// \param[in] _obj Instance.
-      public: template<class C, class T> int Subscribe(
+      public: template<class C, class T> void Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &), C* _obj)
       {
@@ -131,7 +131,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        return this->dataPtr->SendSubscribeMsg(transport::SubType, _topic);
+        this->dataPtr->discovery->Discover(_topic);
       }
 
       /// \brief Unsubscribe to a topic.

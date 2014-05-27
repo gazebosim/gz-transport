@@ -98,7 +98,7 @@ class MyTestClass
 void CreateSubscriber()
 {
   transport::Node node;
-  EXPECT_EQ(node.Subscribe(topic, cb), 0);
+  node.Subscribe(topic, cb);
   while (!cbExecuted)
     s_sleep(100);
 }
@@ -127,7 +127,7 @@ TEST(DiscZmqTest, PubSubSameThread)
   transport::Node node;
   node.Advertise(topic);
 
-  EXPECT_EQ(node.Subscribe(topic, cb), 0);
+  node.Subscribe(topic, cb);
   s_sleep(100);
 
   // Publish a first message.
@@ -203,11 +203,11 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
   s_sleep(100);
 
   // Subscribe to topic in node1.
-  EXPECT_EQ(node1.Subscribe(topic, cb), 0);
+  node1.Subscribe(topic, cb);
   s_sleep(100);
 
   // Subscribe to topic in node2.
-  EXPECT_EQ(node2.Subscribe(topic, cb2), 0);
+  node2.Subscribe(topic, cb2);
   s_sleep(100);
 
   EXPECT_EQ(node1.Publish(topic, msg), 0);

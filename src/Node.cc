@@ -39,18 +39,6 @@ transport::Node::Node(bool _verbose)
 //////////////////////////////////////////////////
 transport::Node::~Node()
 {
-  for (auto topicInfo : this->dataPtr->topics.GetTopicsInfo())
-  {
-    zbeacon_t *topicBeacon = nullptr;
-    if (this->dataPtr->topics.GetBeacon(topicInfo.first, &topicBeacon))
-    {
-      // Destroy the beacon.
-      zbeacon_silence(topicBeacon);
-      zbeacon_destroy(&topicBeacon);
-      this->dataPtr->topics.SetBeacon(topicInfo.first, nullptr);
-    }
-  }
-
   // Unsubscribe from all the topics.
   for (auto topic : this->topicsSubscribed)
     this->Unsubscribe(topic);
@@ -61,33 +49,12 @@ void transport::Node::Advertise(const std::string &_topic)
 {
   assert(_topic != "");
 
-  zbeacon_t *topicBeacon = nullptr;
-
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
-  if (!this->dataPtr->topics.GetBeacon(_topic, &topicBeacon))
-  {
-    // Create a new beacon for the topic.
-    topicBeacon = zbeacon_new(this->dataPtr->ctx, this->dataPtr->bcastPort);
-    this->dataPtr->topics.SetBeacon(_topic, topicBeacon);
-
-    // Create the beacon content.
-    transport::Header header(transport::Version, this->dataPtr->guid, _topic,
-                             transport::AdvType, 0);
-    transport::AdvMsg advMsg(header, this->dataPtr->myAddress,
-                             this->dataPtr->myControlAddress);
-    std::vector<char> buffer(advMsg.GetMsgLength());
-    advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-    zbeacon_set_interval(topicBeacon, 2000);
-    zbeacon_noecho(topicBeacon);
-
-    // Start publishing the ADVERTISE message periodically.
-    zbeacon_publish(topicBeacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                    advMsg.GetMsgLength());
-  }
+  this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
+    this->dataPtr->myControlAddress);
 }
 
 //////////////////////////////////////////////////
@@ -99,15 +66,7 @@ void transport::Node::Unadvertise(const std::string &_topic)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
 
-  // Stop broadcasting the beacon for this topic.
-  zbeacon_t *topicBeacon = nullptr;
-  if (this->dataPtr->topics.GetBeacon(_topic, &topicBeacon))
-  {
-    // Destroy the beacon.
-    zbeacon_silence(topicBeacon);
-    zbeacon_destroy(&topicBeacon);
-    this->dataPtr->topics.SetBeacon(_topic, nullptr);
-  }
+  this->dataPtr->discovery->Unadvertise(_topic);
 }
 
 //////////////////////////////////////////////////
@@ -181,16 +140,13 @@ void transport::Node::Unsubscribe(const std::string &_topic)
   for (auto publisher : addresses)
   {
     std::string controlAddress = publisher.second;
-    std::cout << "Unregistering address for topic [" << _topic << "]\n";
-    std::cout << "\tAddress: [" << publisher.first << "]\n";
-    std::cout << "\tNode: [" << this->nodeUuidStr << "]\n";
 
     zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
 
     // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
     // discarded immediately when the socket is closed. That avoids infinite
     // waits if the publisher is disconnected.
-    int lingerVal = 0;
+    int lingerVal = 1000;
     socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
     socket.connect(controlAddress.c_str());
@@ -200,6 +156,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
     memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
     socket.send(message, ZMQ_SNDMORE);
 
+    // Not needed.
     message.rebuild(this->dataPtr->myAddress.size() + 1);
     memcpy(message.data(), this->dataPtr->myAddress.c_str(),
            this->dataPtr->myAddress.size() + 1);

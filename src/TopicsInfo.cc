@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
 #include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -259,26 +260,25 @@ transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
-                                                const std::string &_address,
+                                                const std::string &_procUuid,
                                                 const std::string &_nodeUuid)
 {
   this->CheckAndCreate(_topic);
 
-  // The address does not exist yet.
-  if (this->topicsInfo[_topic]->subscribers.find(_address) ==
+  // The process UUID does not exist yet.
+  if (this->topicsInfo[_topic]->subscribers.find(_procUuid) ==
       this->topicsInfo[_topic]->subscribers.end())
   {
-    this->topicsInfo[_topic]->subscribers[_address] =
+    this->topicsInfo[_topic]->subscribers[_procUuid] =
       std::vector<std::string>();
   }
 
-  // Add the node UUID if was not existing before.
-  if (std::find(this->topicsInfo[_topic]->subscribers[_address].begin(),
-                this->topicsInfo[_topic]->subscribers[_address].end(),
-                _nodeUuid) ==
-                this->topicsInfo[_topic]->subscribers[_address].end())
+  // Add the UUID if were not existing before.
+  if (std::find(this->topicsInfo[_topic]->subscribers[_procUuid].begin(),
+        this->topicsInfo[_topic]->subscribers[_procUuid].end(), _nodeUuid) ==
+          this->topicsInfo[_topic]->subscribers[_procUuid].end())
   {
-    this->topicsInfo[_topic]->subscribers[_address].push_back(_nodeUuid);
+    this->topicsInfo[_topic]->subscribers[_procUuid].push_back(_nodeUuid);
   }
 }
 
@@ -292,26 +292,23 @@ bool transport::TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::DelRemoteSubscriber(const std::string &_topic,
-                                                const std::string &_address,
+void transport::TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
+                                                const std::string &_procUuid,
                                                 const std::string &_nodeUuid)
 {
-  if (this->HasTopic(_topic))
+  for (auto topicInfo : this->topicsInfo)
   {
-    // The address exists.
-    if (this->topicsInfo[_topic]->subscribers.find(_address) !=
-        this->topicsInfo[_topic]->subscribers.end())
+    for (auto it = topicInfo.second->subscribers.begin();
+         it != topicInfo.second->subscribers.end();)
     {
-      std::vector<std::string> v =
-        this->topicsInfo[_topic]->subscribers[_address];
-
-      // Remove the remote subscriber from the vector.
+      std::vector<std::string> v = it->second;
       v.erase(std::remove(v.begin(), v.end(), _nodeUuid), v.end());
+      it->second = v;
 
-      this->topicsInfo[_topic]->subscribers[_address] = v;
-
-      if (v.empty())
-        this->topicsInfo[_topic]->subscribers.erase(_address);
+      if (v.empty() || it->first == _procUuid)
+        topicInfo.second->subscribers.erase(it++);
+      else
+        ++it;
     }
   }
 }

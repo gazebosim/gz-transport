@@ -19,7 +19,6 @@
 #define _IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <memory>
@@ -27,6 +26,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "ignition/transport/Discovery.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
 namespace ignition
@@ -37,12 +37,6 @@ namespace ignition
     /// \brief Private data for the Node class.
     class NodePrivate
     {
-      /// \brief Port used to broadcast the discovery messages.
-      public: static const int DiscoveryPort = 11312;
-
-      /// \brief Broadcast interval for discovery beacons in milliseconds.
-      public: static const int BeaconInterval = 2500;
-
       /// \brief NodePrivate is a singleton. This method gets the
       /// NodePrivate instance shared between all the nodes.
       /// \param[in] _verbose True if you want to see debug messages.
@@ -56,11 +50,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~NodePrivate();
 
-      /// \brief Run one iteration of the transport.
-      private: void SpinOnce();
-
-      /// \brief Receive messages forever.
-      private: void Spin();
+      /// \brief Receive data and control messages.
+      public: void RunReceptionService();
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
@@ -78,22 +69,16 @@ namespace ignition
       /// subscriber).
       public: void RecvControlUpdate();
 
-      /// \brief Parse a discovery message received via the UDP broadcast socket
-      /// \param[in] _msg Received message.
-      /// \return 0 when success.
-      private: int DispatchDiscoveryMsg(char *_msg);
+      public: void OnNewConnection(const std::string &_topic,
+        const std::string &_addr, const std::string &_ctrlAddr,
+        const std::string &_uuid);
 
-      /// \brief Send an ADVERTISE message to the discovery socket.
-      /// \param[in] _type ADV or ADV_SVC.
-      /// \param[in] _topic Topic to be advertised.
-      /// \return 0 when success.
-      public: int SendAdvertiseMsg(uint8_t _type, const std::string &_topic);
+      public: void OnNewDisconnection(const std::string &_topic,
+        const std::string &_addr, const std::string &_ctrlAddr,
+        const std::string &_uuid);
 
-      /// \brief Send a SUBSCRIBE message to the discovery socket.
-      /// \param[in] _type SUB or SUB_SVC.
-      /// \param[in] _topic Topic name.
-      /// \return 0 when success.
-      public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
+      /// \brief Timeout used for receiving messages.
+      public: static const int Timeout = 250;
 
       /// \brief Print activity to stdout.
       public: int verbose;
@@ -110,17 +95,14 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-      /// \brief UDP broadcast port used for the transport.
-      public: int bcastPort;
+      /// \brief Discovery service.
+      public: std::unique_ptr<Discovery> discovery;
 
       /// \brief 0MQ context.
       public: std::unique_ptr<zmq::context_t> context;
 
       /// \brief ZMQ socket to send topic updates.
       public: std::unique_ptr<zmq::socket_t> publisher;
-
-      /// \brief ZMQ socket to send topic updates.
-      public: std::unique_ptr<zmq::socket_t> publisherLocal;
 
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
@@ -138,23 +120,17 @@ namespace ignition
       public: int timeout;
 
       /// \brief thread in charge of receiving and handling incoming messages.
-      public: std::thread *threadInbound;
+      public: std::thread *threadReception;
 
       /// \brief Mutex to guarantee exclusive access between the inbound and
       /// outbound thread.
       public: std::mutex mutex;
-
-      /// \brief ZMQ context for the discovery beacon.
-      public: zctx_t *ctx;
 
       /// \brief Mutex to guarantee exclusive access to exit variable.
       private: std::mutex exitMutex;
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
-
-      /// \brief Discovery beacon.
-      private: zbeacon_t *beacon;
     };
   }
 }

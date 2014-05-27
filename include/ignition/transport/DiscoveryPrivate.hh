@@ -93,6 +93,10 @@ namespace ignition
       /// \return true if the topic was advertised by me before.
       public: bool AdvertisedByMe(const std::string &_topic);
 
+      /// \brief Get the IP address of the host.
+      /// \return A string with the host's IP address.
+      public: std::string GetHostAddr();
+
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 

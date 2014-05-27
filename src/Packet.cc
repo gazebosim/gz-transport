@@ -38,7 +38,7 @@ std::string transport::GetGuidStr(const uuid_t &_uuid)
       _uuid[8], _uuid[9], _uuid[10], _uuid[11],
       _uuid[12], _uuid[13], _uuid[14], _uuid[15]);
   }
-  return std::string(guid_str.begin(), guid_str.end());
+  return std::string(guid_str.begin(), guid_str.end() - 1);
 }
 
 //////////////////////////////////////////////////

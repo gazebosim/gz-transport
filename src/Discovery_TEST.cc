@@ -151,6 +151,8 @@ TEST(DiscoveryTest, TestBasicAPI)
   EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
   EXPECT_EQ(discovery1.GetRetransmissionInterval(), newRetransmissionInterval);
   EXPECT_EQ(discovery1.GetHeartbitInterval(), newHeartbitInterval);
+
+  EXPECT_NE(discovery1.GetHostAddr(), "");
 }
 
 //////////////////////////////////////////////////
@@ -226,7 +228,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
-  transport::Discovery discovery2(uuid2, true);
+  transport::Discovery discovery2(uuid2);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);

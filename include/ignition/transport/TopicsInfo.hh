@@ -210,26 +210,28 @@ namespace ignition
       /// \return true if a request was removed.
       public: bool DelReq(const std::string &_topic, std::string &_data);
 
-      /// \brief Check if a topic has a remote subscriber in this node.
+      /// \brief Check if a topic has remote subscribers in this node.
       /// \param[in] _topic Topic name.
-      /// \return true if a topic has a remote subscriber in this node.
+      /// \return true if a topic has remote subscribers in this node.
       public: bool HasRemoteSubscribers(const std::string &_topic);
 
       /// \brief Add a new remote subscriber for a topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address Subscriber 0MQ address.
-      /// \param[in] _nodeUuid UUID of the subscribed node.
+      /// \param[in] _proc Uuid UUID of the subscribed process.
+      /// \param[in] _node Uuid UUID of the subscribed node.
       public: void AddRemoteSubscriber(const std::string &_topic,
-                                       const std::string &_address,
+                                       const std::string &_procUuid,
                                        const std::string &_nodeUuid);
 
       /// \brief Delete a new remote subscriber for a topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address Subscriber 0MQ address.
-      /// \param[in] _nodeUuid UUID of the subscribed node.
+      /// \param[in] _uuid UUID of the subscriber (might be process or node).
+      /// If the UUID belongs to a node, only the entry for this node will be
+      /// removed. However, if the UUUID belongs to a process, all the remote
+      /// subscribers within this process will be removed.
       public: void DelRemoteSubscriber(const std::string &_topic,
-                                       const std::string &_address,
-                                       const std::string &_nodeUuid);
+                                       const std::string &_procUuid,
+                                       const std::string &_uuid);
 
       /// \brief Get the subscription handlers for a topic. A subscription
       /// handler stores the callback and types associated to a subscription.

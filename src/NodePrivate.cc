@@ -15,7 +15,6 @@
  *
 */
 
-#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <cstdlib>
@@ -24,54 +23,48 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodePrivate.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
-transport::NodePrivatePtr transport::NodePrivate::GetInstance(bool _verbose)
+NodePrivatePtr NodePrivate::GetInstance(bool _verbose)
 {
   static NodePrivatePtr instance(new NodePrivate(_verbose));
   return instance;
 }
 
 //////////////////////////////////////////////////
-transport::NodePrivate::NodePrivate(bool _verbose)
-  : bcastPort(DiscoveryPort),
+NodePrivate::NodePrivate(bool _verbose)
+  : verbose(_verbose),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-    control(new zmq::socket_t(*context, ZMQ_DEALER))
+    control(new zmq::socket_t(*context, ZMQ_DEALER)),
+    timeout(Timeout)
 {
   char bindEndPoint[1024];
 
   // Initialize random seed.
   srand(time(nullptr));
 
-  this->verbose = _verbose;
-
-  // msecs.
-  this->timeout = 250;
-
+  // My UUID.
   uuid_generate(this->guid);
+  this->guidStr = GetGuidStr(this->guid);
 
-  this->guidStr = transport::GetGuidStr(this->guid);
+  // Initialize my discovery service.
+  this->discovery.reset(new Discovery(this->guid, false));
 
   // Initialize the 0MQ objects.
   try
   {
-    // Set broadcast/listen discovery beacon.
-    this->ctx = zctx_new();
-    this->beacon = zbeacon_new(this->ctx, this->bcastPort);
-    zbeacon_subscribe(this->beacon, NULL, 0);
-    zbeacon_set_interval(this->beacon, this->BeaconInterval);
-
-    // Set the hostname's ip address
-    this->hostAddr = zbeacon_hostname(this->beacon);
+    // Set the hostname's ip address.
+    this->hostAddr = this->discovery->GetHostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -105,11 +98,18 @@ transport::NodePrivate::NodePrivate(bool _verbose)
   this->exitMutex.unlock();
 
   // Start the service thread.
-  this->threadInbound = new std::thread(&transport::NodePrivate::Spin, this);
+  this->threadReception =
+    new std::thread(&NodePrivate::RunReceptionService, this);
+
+  // Set the callback to notify discovery updates (new connections).
+  discovery->SetConnectionsCb(&NodePrivate::OnNewConnection, this);
+
+  // Set the callback to notify discovery updates (new disconnections).
+  discovery->SetDisconnectionsCb(&NodePrivate::OnNewDisconnection, this);
 }
 
 //////////////////////////////////////////////////
-transport::NodePrivate::~NodePrivate()
+NodePrivate::~NodePrivate()
 {
   // Tell the service thread to terminate.
   this->exitMutex.lock();
@@ -117,45 +117,27 @@ transport::NodePrivate::~NodePrivate()
   this->exitMutex.unlock();
 
   // Wait for the service thread before exit.
-  this->threadInbound->join();
-
-  // Stop listening discovery messages.
-  zbeacon_unsubscribe(this->beacon);
-
-  // Stop the beacon broadcasts.
-  zbeacon_silence(this->beacon);
-
-  // Destroy the beacon.
-  zbeacon_destroy(&this->beacon);
-  zctx_destroy(&this->ctx);
+  this->threadReception->join();
 }
 
 //////////////////////////////////////////////////
-void transport::NodePrivate::SpinOnce()
-{
-  //  Poll socket for a reply, with timeout
-  zmq::pollitem_t items[] = {
-    { *this->subscriber, 0, ZMQ_POLLIN, 0 },
-    { *this->control, 0, ZMQ_POLLIN, 0 },
-    { zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0 }
-  };
-  zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
-
-  //  If we got a reply, process it
-  if (items[0].revents & ZMQ_POLLIN)
-    this->RecvMsgUpdate();
-  if (items[1].revents & ZMQ_POLLIN)
-    this->RecvControlUpdate();
-  if (items[2].revents & ZMQ_POLLIN)
-    this->RecvDiscoveryUpdate();
-}
-
-//////////////////////////////////////////////////
-void transport::NodePrivate::Spin()
+void NodePrivate::RunReceptionService()
 {
   while (true)
   {
-    this->SpinOnce();
+    // Poll socket for a reply, with timeout.
+    zmq::pollitem_t items[] =
+    {
+      {*this->subscriber, 0, ZMQ_POLLIN, 0},
+      {*this->control, 0, ZMQ_POLLIN, 0}
+    };
+    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+
+    //  If we got a reply, process it
+    if (items[0].revents & ZMQ_POLLIN)
+      this->RecvMsgUpdate();
+    if (items[1].revents & ZMQ_POLLIN)
+      this->RecvControlUpdate();
 
     // Is it time to exit?
     {
@@ -167,8 +149,7 @@ void transport::NodePrivate::Spin()
 }
 
 //////////////////////////////////////////////////
-int transport::NodePrivate::Publish(const std::string &_topic,
-                                    const std::string &_data)
+int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
@@ -201,29 +182,7 @@ int transport::NodePrivate::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::NodePrivate::RecvDiscoveryUpdate()
-{
-  // Address of datagram source.
-  char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
-
-  // A zmq message.
-  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
-
-  // Pointer to the raw discovery data.
-  byte *data = zframe_data(frame);
-
-  if (this->verbose)
-    std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
-
-  if (this->DispatchDiscoveryMsg(reinterpret_cast<char*>(&data[0])) != 0)
-    std::cerr << "Something went wrong parsing a discovery message\n";
-
-  zstr_free(&srcAddr);
-  zframe_destroy(&frame);
-}
-
-//////////////////////////////////////////////////
-void transport::NodePrivate::RecvMsgUpdate()
+void NodePrivate::RecvMsgUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -255,7 +214,7 @@ void transport::NodePrivate::RecvMsgUpdate()
   if (this->topics.Subscribed(topic))
   {
     // Execute the callback registered
-    transport::ISubscriptionHandler_M handlers;
+    ISubscriptionHandler_M handlers;
     this->topics.GetSubscriptionHandlers(topic, handlers);
     for (auto handler : handlers)
     {
@@ -272,13 +231,15 @@ void transport::NodePrivate::RecvMsgUpdate()
 }
 
 //////////////////////////////////////////////////
-void transport::NodePrivate::RecvControlUpdate()
+void NodePrivate::RecvControlUpdate()
 {
+  std::cout << "Control update" << std::endl;
+
   std::lock_guard<std::mutex> lock(this->mutex);
 
   zmq::message_t message(0);
   std::string topic;
-  std::string sender;
+  std::string procUuid;
   std::string nodeUuid;
   std::string data;
 
@@ -290,7 +251,7 @@ void transport::NodePrivate::RecvControlUpdate()
 
     if (!this->control->recv(&message, 0))
       return;
-    sender = std::string(reinterpret_cast<char *>(message.data()));
+    procUuid = std::string(reinterpret_cast<char *>(message.data()));
 
     if (!this->control->recv(&message, 0))
       return;
@@ -306,201 +267,114 @@ void transport::NodePrivate::RecvControlUpdate()
     return;
   }
 
-  if (std::stoi(data) == transport::NewConnection)
+  if (std::stoi(data) == NewConnection)
   {
     if (this->verbose)
     {
       std::cout << "Registering a new remote connection" << std::endl;
-      std::cout << "\tAddress: [" << sender << "]\n";
-      std::cout << "\tNode: [" << nodeUuid << "]\n";
+      std::cout << "\tProc UUID: [" << procUuid << "]\n";
+      std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->topics.AddRemoteSubscriber(topic, sender, nodeUuid);
+    this->topics.AddRemoteSubscriber(topic, procUuid, nodeUuid);
   }
-  else if (std::stoi(data) == transport::EndConnection)
+  else if (std::stoi(data) == EndConnection)
   {
     if (this->verbose)
     {
       std::cout << "Registering the end of a remote connection" << std::endl;
-      std::cout << "\t Address: " << sender << std::endl;
-      std::cout << "\tNode: [" << nodeUuid << "]\n";
+      std::cout << "\tProc UUID: " << procUuid << std::endl;
+      std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->topics.DelRemoteSubscriber(topic, sender, nodeUuid);
+    this->topics.DelRemoteSubscriber(topic, procUuid, nodeUuid);
   }
 }
 
 //////////////////////////////////////////////////
-int transport::NodePrivate::DispatchDiscoveryMsg(char *_msg)
+void NodePrivate::OnNewConnection(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrlAddr,
+  const std::string &_uuid)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  // Register the advertised address for the topic.
+  std::cout << "Connection callback" << std::endl;
+  std::cout << "Topic: " << _topic << std::endl;
+  std::cout << "Addr: " << _addr << std::endl;
+  std::cout << "Ctrl Addr: " << _ctrlAddr << std::endl;
+  std::cout << "UUID: [" << _uuid << "]" << std::endl;
 
-  Header header;
-  AdvMsg advMsg;
-  std::string address;
-  std::string controlAddress;
-  char *pBody = _msg;
+  this->topics.AddAdvAddress(_topic, _addr, _ctrlAddr);
 
-  header.Unpack(_msg);
-  pBody += header.GetHeaderLength();
-
-  std::string topic = header.GetTopic();
-  std::string rcvdGuid = transport::GetGuidStr(header.GetGuid());
-
-  if (this->verbose)
-    header.Print();
-
-  switch (header.GetType())
+  // Check if we are interested in this topic.
+  if (this->topics.Subscribed(_topic) &&
+      !this->topics.Connected(_topic) &&
+      this->guidStr.compare(_uuid) != 0)
   {
-    case transport::AdvType:
-      // Read the address
-      advMsg.UnpackBody(pBody);
-      address = advMsg.GetAddress();
-      controlAddress = advMsg.GetControlAddress();
+    std::cout << "Connecting to a remote publisher" << std::endl;
+    try
+    {
+      this->subscriber->connect(_addr.c_str());
+      this->subscriber->setsockopt(
+        ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
+      this->topics.SetConnected(_topic, true);
 
-      // Discard our own discovery messages.
-      if (address == this->myAddress)
-        return 0;
+      // Send a message to the publisher's control socket to notify it
+      // about all my subscribers.
+      zmq::socket_t socket(*this->context, ZMQ_DEALER);
+      socket.connect(_ctrlAddr.c_str());
 
       if (this->verbose)
-        advMsg.PrintBody();
-
-      // Register the advertised address for the topic
-      this->topics.AddAdvAddress(topic, address, controlAddress);
-
-      /*
-      std::cout << "Subscribd? " << this->topics.Subscribed(topic) << std::endl;
-      std::cout << "Connected? " << this->topics.Connected(topic) << std::endl;
-      std::cout << "GUID? " << this->guidStr.compare(rcvdGuid) << std::endl;*/
-
-      // Check if we are interested in this topic
-      if (this->topics.Subscribed(topic) &&
-          !this->topics.Connected(topic) &&
-          this->guidStr.compare(rcvdGuid) != 0)
       {
-        std::cout << "Connecting to a remote publisher" << std::endl;
-        try
-        {
-          this->subscriber->connect(address.c_str());
-          this->subscriber->setsockopt(
-            ZMQ_SUBSCRIBE, topic.data(), topic.size());
-          this->topics.SetConnected(topic, true);
-          if (this->verbose)
-            std::cout << "\t* Connected to [" << address << "]\n";
-
-          // Send a message to the publisher's control socket to notify it
-          // about all my subscribers.
-          zmq::socket_t socket(*this->context, ZMQ_DEALER);
-          socket.connect(controlAddress.c_str());
-
-          // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
-          // be discarded immediately when the socket is closed. That avoids
-          // infinite waits if the publisher is disconnected.
-          int lingerVal = 0;
-          socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-
-          transport::ISubscriptionHandler_M handlers;
-          this->topics.GetSubscriptionHandlers(topic, handlers);
-          for (auto handler : handlers)
-          {
-            std::string nodeUuid = handler.second->GetNodeUuid();
-
-            zmq::message_t message;
-            message.rebuild(topic.size() + 1);
-            memcpy(message.data(), topic.c_str(), topic.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
-
-            message.rebuild(this->myAddress.size() + 1);
-            memcpy(message.data(), this->myAddress.c_str(),
-                   this->myAddress.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
-
-            message.rebuild(nodeUuid.size() + 1);
-            memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
-
-            std::string data = std::to_string(transport::NewConnection);
-            message.rebuild(data.size() + 1);
-            memcpy(message.data(), data.c_str(), data.size() + 1);
-            socket.send(message, 0);
-          }
-        }
-        catch(const zmq::error_t& ze)
-        {
-          std::cout << "Error connecting [" << ze.what() << "]\n";
-        }
+        std::cout << "\t* Connected to [" << _addr << "] for data\n";
+        std::cout << "\t* Connected to [" << _ctrlAddr << "] for control\n";
       }
 
-      break;
+      // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
+      // be discarded immediately when the socket is closed. That avoids
+      // infinite waits if the publisher is disconnected.
+      int lingerVal = 1000;
+      socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-    case transport::SubType:
-      // Check if I advertise the topic requested
-      if (this->topics.AdvertisedByMe(topic))
+      ISubscriptionHandler_M handlers;
+      this->topics.GetSubscriptionHandlers(_topic, handlers);
+      for (auto handler : handlers)
       {
-        // Send to the broadcast socket an ADVERTISE message
-        this->SendAdvertiseMsg(transport::AdvType, topic);
+        std::cout << "Sending control message" << std::endl;
+        std::string nodeUuid = handler.second->GetNodeUuid();
+
+        zmq::message_t message;
+        message.rebuild(_topic.size() + 1);
+        memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(this->guidStr.size() + 1);
+        memcpy(message.data(), this->guidStr.c_str(), this->guidStr.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(nodeUuid.size() + 1);
+        memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        std::string data = std::to_string(NewConnection);
+        message.rebuild(data.size() + 1);
+        memcpy(message.data(), data.c_str(), data.size() + 1);
+        socket.send(message, 0);
       }
-
-      break;
-
-    default:
-      std::cerr << "Unknown message type [" << header.GetType() << "]\n";
-      break;
+    }
+    catch(const zmq::error_t& ze)
+    {
+      std::cout << "Error connecting [" << ze.what() << "]\n";
+    }
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
-int transport::NodePrivate::SendAdvertiseMsg(uint8_t _type,
-                                             const std::string &_topic)
+void NodePrivate::OnNewDisconnection(const std::string &_topic,
+  const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
+  const std::string &_uuid)
 {
-  assert(_topic != "");
+  // Check if a subscriber[s] has been disconnected.
+  this->topics.DelRemoteSubscriber(_topic, _uuid, "");
 
-  if (!this->topics.AdvertisedByMe(_topic))
-  {
-    std::cerr << "Topic (" << _topic << ") not advertised by this node\n";
-    return -1;
-  }
-
-  if (this->verbose)
-  {
-    std::cout << "\t* Sending ADV msg [" << _topic << "][" << this->myAddress
-              << "][" << this->myControlAddress << "]" << std::endl;
-  }
-
-  // Create the beacon content.
-  Header header(transport::Version, this->guid, _topic, _type, 0);
-  AdvMsg advMsg(header, this->myAddress, this->myControlAddress);
-  std::vector<char> buffer(advMsg.GetMsgLength());
-  advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-  // Just send one advertise message.
-  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                  advMsg.GetMsgLength());
-  zbeacon_silence(this->beacon);
-
-  return 0;
-}
-
-//////////////////////////////////////////////////
-int transport::NodePrivate::SendSubscribeMsg(uint8_t _type,
-                                             const std::string &_topic)
-{
-  assert(_topic != "");
-
-  if (this->verbose)
-    std::cout << "\t* Sending SUB msg [" << _topic << "]" << std::endl;
-
-  Header header(transport::Version, this->guid, _topic, _type, 0);
-
-  std::vector<char> buffer(header.GetHeaderLength());
-  header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-  // Just send one subscribe message.
-  zbeacon_publish(this->beacon, reinterpret_cast<unsigned char*>(&buffer[0]),
-                  header.GetHeaderLength());
-  zbeacon_silence(this->beacon);
-
-  return 0;
+  // Check if one of my publishers has been disconnected.
 }

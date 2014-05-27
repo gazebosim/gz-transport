@@ -107,6 +107,12 @@ void Discovery::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+std::string Discovery::GetHostAddr()
+{
+  return this->dataPtr->GetHostAddr();
+}
+
+//////////////////////////////////////////////////
 unsigned int Discovery::GetActivityInterval()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
