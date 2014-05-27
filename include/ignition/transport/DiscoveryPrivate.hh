@@ -56,22 +56,22 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
 
-      /// \brief Receive discovery messages forever.
-      public: void Spin();
-
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalid the old topics.
-      public: void UpdateActivity();
+      public: void RunActivityService();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void SendHello();
+      public: void RunHeartbitService();
+
+      /// \brief Receive discovery messages.
+      public: void RunReceptionService();
 
       /// \brief Each time the client calls Discover(), the discovery will try
       /// to discover the addressing information for the requested topic. This
       /// method will periodically retransmit the request to discover until
       /// the advertiser answers.
-      public: void RetransmitSubscriptions();
+      public: void RunRetransmissionService();
 
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdate();
@@ -81,18 +81,11 @@ namespace ignition
       /// \return 0 when success.
       public: int DispatchDiscoveryMsg(char *_msg);
 
-      /// \brief Send an ADVERTISE message to the discovery socket.
-      /// \param[in] _type ADV or ADV_SVC.
-      /// \param[in] _topic Topic to be advertised.
-      /// \return 0 when success.
-      public: int SendAdvertiseMsg(uint8_t _type, const std::string &_topic);
-
-      /// \brief Send a SUBSCRIBE message to the discovery socket.
-      /// \param[in] _type SUB or SUB_SVC.
+      /// \brief Broadcast a discovery message.
+      /// \param[in] _type Message type.
       /// \param[in] _topic Topic name.
+      /// \param[in] _flags Optional flags.
       /// \return 0 when success.
-      public: int SendSubscribeMsg(uint8_t _type, const std::string &_topic);
-
       public: int SendMsg(uint8_t _type, const std::string &_topic,
         int _flags = 0);
 
@@ -100,31 +93,34 @@ namespace ignition
       /// \return true if the topic was advertised by me before.
       public: bool AdvertisedByMe(const std::string &_topic);
 
-      /// \brief Timeout used for receiving messages.
-      public: static const int Timeout = 250;
-
-      /// \brief Port used to broadcast the discovery messages.
-      public: static const int DiscoveryPort = 11312;
-
-      /// \brief Default silence interval value.
-      /// \sa GetMaxSilenceInterval.
-      /// \sa SetMaxSilenceInterval.
-      public: static const unsigned int DefSilenceInterval = 3000;
+      /// \brief Print the current discovery state (info, activity, unknown).
+      public: void PrintCurrentState();
 
       /// \brief Default activity interval value.
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
-      /// \brief Default subscription interval value.
-      /// \sa GetSubscriptionInterval.
-      /// \sa SetSubscriptionInterval.
-      public: static const unsigned int DefSubscriptionInterval = 1000;
-
       /// \brief Default hello interval value.
       /// \sa GetHelloInterval.
       /// \sa SetHelloInterval.
-      public: static const unsigned int DefHelloInterval = 1000;
+      public: static const unsigned int DefHeartbitInterval = 1000;
+
+      /// \brief Default silence interval value.
+      /// \sa GetMaxSilenceInterval.
+      /// \sa SetMaxSilenceInterval.
+      public: static const unsigned int DefSilenceInterval = 3000;
+
+      /// \brief Default retransmission interval value.
+      /// \sa GetRetransmissionInterval.
+      /// \sa SetRetransmissionInterval.
+      public: static const unsigned int DefRetransmissionInterval = 1000;
+
+      /// \brief Port used to broadcast the discovery messages.
+      public: static const int DiscoveryPort = 11312;
+
+      /// \brief Timeout used for receiving messages.
+      public: static const int Timeout = 250;
 
       /// \brief Process UUID.
       public: uuid_t uuid;
@@ -142,15 +138,15 @@ namespace ignition
       /// \sa SetActivityInterval.
       public: unsigned int activityInterval;
 
-      /// \brief Subscription interval value.
-      /// \sa GetSubscriptionInterval.
-      /// \sa SetSubscriptionInterval.
-      public: unsigned int subscriptionInterval;
+      /// \brief Retransmission interval value.
+      /// \sa GetRetransmissionInterval.
+      /// \sa SetRetransmissionInterval.
+      public: unsigned int retransmissionInterval;
 
-      /// \brief Hello interval value.
-      /// \sa GetHelloInterval.
-      /// \sa SetHelloInterval.
-      public: unsigned int helloInterval;
+      /// \brief Heartbit interval value.
+      /// \sa GetHeartbitInterval.
+      /// \sa SetHeartbitInterval.
+      public: unsigned int heartbitInterval;
 
       /// \brief Callback executed when new topics are discovered.
       public: DiscoveryCallback connectionCb;
@@ -184,16 +180,16 @@ namespace ignition
       public: std::mutex mutex;
 
       /// \brief tTread in charge of receiving and handling incoming messages.
-      public: std::thread *threadInbound;
+      public: std::thread *threadReception;
 
       /// \brief Thread in charge of sending HELLOs.
-      public: std::thread *threadHello;
+      public: std::thread *threadHeartbit;
 
       /// \brief Thread in charge of update the activity.
       public: std::thread *threadActivity;
 
       /// \brief Thread in charge of sending periodic SUB messages (if needed).
-      public: std::thread *threadSub;
+      public: std::thread *threadRetransmission;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::mutex exitMutex;

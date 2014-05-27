@@ -58,46 +58,46 @@ namespace ignition
       /// \param[in] _topic Topic to be unadvertised.
       public: void Unadvertise(const std::string &_topic);
 
-      /// \brief Get the maximum time allowed without receiving any discovery
-      /// information from a node before canceling its entry.
-      /// \return The value in milliseconds.
-      public: unsigned int GetMaxSilenceInterval();
-
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' time.
       /// \return The value in milliseconds.
       public: unsigned int GetActivityInterval();
 
-      /// \brief After a discover request, the discovery will send periodic
-      /// discovery requests every 'subscription interval' time.
-      /// \return The value in milliseconds.
-      public: unsigned int GetSubscriptionInterval();
-
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in the remote nodes. A HELLO message is sent after
-      /// 'hello interval' time.
+      /// 'heartbit interval' time.
       /// \return The value in milliseconds.
-      public: unsigned int GetHelloInterval();
+      public: unsigned int GetHeartbitInterval();
 
-      /// \brief Set the maximum silence interval.
-      /// \sa GetMaxSilenceInterval.
-      /// \param[in] _ms New value in milliseconds.
-      public: void SetMaxSilenceInterval(unsigned int _ms);
+      /// \brief After a discover request, the discovery will send periodic
+      /// discovery requests every 'retransmission interval' time.
+      /// \return The value in milliseconds.
+      public: unsigned int GetRetransmissionInterval();
+
+      /// \brief Get the maximum time allowed without receiving any discovery
+      /// information from a node before canceling its entry.
+      /// \return The value in milliseconds.
+      public: unsigned int GetSilenceInterval();
 
       /// \brief Set the activity interval.
       /// \sa GetActivityInterval.
       /// \param[in] _ms New value in milliseconds.
       public: void SetActivityInterval(unsigned int _ms);
 
-      /// \brief Set the subscription interval.
-      /// \sa GetSubscriptionInterval.
-      /// \param[in] _ms New value in milliseconds.
-      public: void SetSubscriptionInterval(unsigned int _ms);
-
       /// \brief Set the hello interval.
-      /// \sa GetHelloInterval.
+      /// \sa GetHeartbitInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetHelloInterval(unsigned int _ms);
+      public: void SetHeartbitInterval(unsigned int _ms);
+
+      /// \brief Set the retransmission interval.
+      /// \sa GetRetransmissionInterval.
+      /// \param[in] _ms New value in milliseconds.
+      public: void SetRetransmissionInterval(unsigned int _ms);
+
+      /// \brief Set the maximum silence interval.
+      /// \sa GetSilenceInterval.
+      /// \param[in] _ms New value in milliseconds.
+      public: void SetSilenceInterval(unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new node is connected, the callback will be execute. This

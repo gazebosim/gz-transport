@@ -133,8 +133,8 @@ TEST(DiscoveryTest, TestBasicAPI)
 {
   unsigned int newSilenceInterval = 100;
   unsigned int newActivityInterval = 200;
-  unsigned int newSubscriptionInterval = 300;
-  unsigned int newHelloInterval = 400;
+  unsigned int newRetransmissionInterval = 300;
+  unsigned int newHeartbitInterval = 400;
 
   uuid_t uuid1;
   uuid_generate(uuid1);
@@ -143,14 +143,14 @@ TEST(DiscoveryTest, TestBasicAPI)
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
 
-  discovery1.SetMaxSilenceInterval(newSilenceInterval);
+  discovery1.SetSilenceInterval(newSilenceInterval);
   discovery1.SetActivityInterval(newActivityInterval);
-  discovery1.SetSubscriptionInterval(newSubscriptionInterval);
-  discovery1.SetHelloInterval(newHelloInterval);
-  EXPECT_EQ(discovery1.GetMaxSilenceInterval(), newSilenceInterval);
+  discovery1.SetRetransmissionInterval(newRetransmissionInterval);
+  discovery1.SetHeartbitInterval(newHeartbitInterval);
+  EXPECT_EQ(discovery1.GetSilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
-  EXPECT_EQ(discovery1.GetSubscriptionInterval(), newSubscriptionInterval);
-  EXPECT_EQ(discovery1.GetHelloInterval(), newHelloInterval);
+  EXPECT_EQ(discovery1.GetRetransmissionInterval(), newRetransmissionInterval);
+  EXPECT_EQ(discovery1.GetHeartbitInterval(), newHeartbitInterval);
 }
 
 //////////////////////////////////////////////////
@@ -226,7 +226,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery2(uuid2, true);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);

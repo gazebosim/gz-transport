@@ -36,8 +36,8 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
   bool _verbose)
   : silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
-    subscriptionInterval(DefSubscriptionInterval),
-    helloInterval(DefHelloInterval),
+    retransmissionInterval(DefRetransmissionInterval),
+    heartbitInterval(DefHeartbitInterval),
     connectionCb(nullptr),
     disconnectionCb(nullptr),
     verbose(_verbose),
@@ -54,18 +54,23 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
   zbeacon_subscribe(this->beacon, NULL, 0);
 
   // Start the thread that receives discovery information.
-  this->threadInbound = new std::thread(&DiscoveryPrivate::Spin, this);
+  this->threadReception =
+    new std::thread(&DiscoveryPrivate::RunReceptionService, this);
 
   // Start the thread that sends heartbeats.
-  this->threadHello = new std::thread(&DiscoveryPrivate::SendHello, this);
+  this->threadHeartbit =
+    new std::thread(&DiscoveryPrivate::RunHeartbitService, this);
 
   // Start the thread that checks the topic information validity.
   this->threadActivity =
-    new std::thread(&DiscoveryPrivate::UpdateActivity, this);
+    new std::thread(&DiscoveryPrivate::RunActivityService, this);
 
   // Start the thread that retransmits the discovery requests.
-  this->threadSub =
-    new std::thread(&DiscoveryPrivate::RetransmitSubscriptions, this);
+  this->threadRetransmission =
+    new std::thread(&DiscoveryPrivate::RunRetransmissionService, this);
+
+  if (this->verbose)
+    this->PrintCurrentState();
 }
 
 //////////////////////////////////////////////////
@@ -77,10 +82,10 @@ DiscoveryPrivate::~DiscoveryPrivate()
   this->exitMutex.unlock();
 
   // Wait for the service threads to finish before exit.
-  this->threadInbound->join();
-  this->threadHello->join();
+  this->threadReception->join();
+  this->threadHeartbit->join();
   this->threadActivity->join();
-  this->threadSub->join();
+  this->threadRetransmission->join();
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
@@ -91,32 +96,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::Spin()
-{
-  while (true)
-  {
-    // Poll socket for a reply, with timeout.
-    zmq::pollitem_t items[] =
-    {
-      {zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
-    };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
-
-    //  If we got a reply, process it.
-    if (items[0].revents & ZMQ_POLLIN)
-      this->RecvDiscoveryUpdate();
-
-    // Is it time to exit?
-    {
-      std::lock_guard<std::mutex> lock(this->exitMutex);
-      if (this->exit)
-        break;
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void DiscoveryPrivate::UpdateActivity()
+void DiscoveryPrivate::RunActivityService()
 {
   while (true)
   {
@@ -148,6 +128,9 @@ void DiscoveryPrivate::UpdateActivity()
               DiscoveryInfo topicInfo = it2->second;
               this->connectionCb(it2->first, std::get<Addr>(topicInfo),
                 std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
+
+              if (this->verbose)
+                this->PrintCurrentState();
             }
             // Remove the info entry.
             this->info.erase(it2++);
@@ -177,7 +160,7 @@ void DiscoveryPrivate::UpdateActivity()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::SendHello()
+void DiscoveryPrivate::RunHeartbitService()
 {
   while (true)
   {
@@ -185,7 +168,8 @@ void DiscoveryPrivate::SendHello()
     this->SendMsg(HelloType, "");
     this->mutex.unlock();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(this->helloInterval));
+    std::this_thread::sleep_for(
+      std::chrono::milliseconds(this->heartbitInterval));
 
     // Is it time to exit?
     {
@@ -197,7 +181,37 @@ void DiscoveryPrivate::SendHello()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RetransmitSubscriptions()
+void DiscoveryPrivate::RunReceptionService()
+{
+  while (true)
+  {
+    // Poll socket for a reply, with timeout.
+    zmq::pollitem_t items[] =
+    {
+      {zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
+    };
+    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
+
+    //  If we got a reply, process it.
+    if (items[0].revents & ZMQ_POLLIN)
+    {
+      this->RecvDiscoveryUpdate();
+
+      if (this->verbose)
+        this->PrintCurrentState();
+    }
+
+    // Is it time to exit?
+    {
+      std::lock_guard<std::mutex> lock(this->exitMutex);
+      if (this->exit)
+        break;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::RunRetransmissionService()
 {
   while (true)
   {
@@ -210,7 +224,7 @@ void DiscoveryPrivate::RetransmitSubscriptions()
     this->mutex.unlock();
 
     std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->subscriptionInterval));
+      std::chrono::milliseconds(this->retransmissionInterval));
 
     // Is it time to exit?
     {
@@ -268,6 +282,9 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
   // Update timestamp.
   this->activity[recvProcUuid] = std::chrono::steady_clock::now();
 
+  if (this->verbose)
+    header.Print();
+
   switch (header.GetType())
   {
     case AdvType:
@@ -277,10 +294,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       controlAddress = advMsg.GetControlAddress();
 
       if (this->verbose)
-      {
-        header.Print();
         advMsg.PrintBody();
-      }
 
       // Register the advertised address for the topic.
       this->info[topic] = DiscoveryInfo(address, controlAddress, recvProcUuid);
@@ -431,4 +445,62 @@ bool DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
     return false;
 
   return std::get<Uuid>(this->info[_topic]) == this->uuidStr;
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::PrintCurrentState()
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  std::cout << "---------------" << std::endl;
+  std::cout << "Discovery state" << std::endl;
+  std::cout << "\tUUID: " << this->uuidStr << std::endl;
+  std::cout << "Settings" << std::endl;
+  std::cout << "\tActivity: " << this->activityInterval << " ms." << std::endl;
+  std::cout << "\tHeartbit: " << this->heartbitInterval << " ms." << std::endl;
+  std::cout << "\tRetrans.: " << this->retransmissionInterval << " ms."
+    << std::endl;
+  std::cout << "\tSilence: " << this->silenceInterval << " ms." << std::endl;
+  std::cout << "Known topics" << std::endl;
+  if (this->info.empty())
+    std::cout << "\t<empty>" << std::endl;
+  else
+  {
+    for (auto topicInfo : this->info)
+    {
+      std::cout << "\t" << topicInfo.first << std::endl;
+      std::cout << "\t\t" << std::get<Addr>(topicInfo.second) << std::endl;
+      std::cout << "\t\t" << std::get<Ctrl>(topicInfo.second) << std::endl;
+      std::cout << "\t\t" << std::get<Uuid>(topicInfo.second) << std::endl;
+    }
+  }
+
+  // Used to calculate the elapsed time.
+  Timestamp now = std::chrono::steady_clock::now();
+
+  std::cout << "Activity" << std::endl;
+  if (this->activity.empty())
+    std::cout << "\t<empty>" << std::endl;
+  else
+  {
+    for (auto proc : this->activity)
+    {
+      // Elapsed time since the last update from this publisher.
+      std::chrono::duration<double> elapsed = now - proc.second;
+
+      std::cout << "\t" << proc.first << std::endl;
+      std::cout << "\t\t" << "Since: " << std::chrono::duration_cast<
+        std::chrono::milliseconds>(elapsed).count() << " ms. ago. "
+        << std::endl;
+    }
+  }
+  std::cout << "Unknown topics" << std::endl;
+  if (this->unknownTopics.empty())
+    std::cout << "\t<empty>" << std::endl;
+  else
+  {
+    for (auto topic : this->unknownTopics)
+      std::cout << "\t" << topic << std::endl;
+  }
+  std::cout << "---------------" << std::endl;
 }
