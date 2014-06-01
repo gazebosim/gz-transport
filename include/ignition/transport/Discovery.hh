@@ -56,7 +56,10 @@ namespace ignition
       /// \brief Unadvertise a topic. Broadcast a discovery message that will
       /// cancel all the discovery information for this topic.
       /// \param[in] _topic Topic to be unadvertised.
-      public: void Unadvertise(const std::string &_topic);
+      /// \param[in] _addr 0MQ Address of the node unadvertising the topic.
+      /// \param[in] _ctrl 0MQ Control addr of the node unadvertising the topic.
+      public: void Unadvertise(const std::string &_topic,
+        const std::string &_addr, const std::string &_ctrl);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.

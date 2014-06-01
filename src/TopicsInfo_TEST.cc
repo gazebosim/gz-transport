@@ -42,9 +42,17 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 TEST(PacketTest, BasicTopicsInfoAPI)
 {
   transport::TopicsInfo topics;
-  std::string topic = "test_topic";
-  std::string address = "tcp://10.0.0.1:6000";
-  std::string controlAddress = "tcp://10.0.0.1:6001";
+  std::string topic = "foo";
+  std::string addr1 = "tcp://10.0.0.1:6000";
+  std::string ctrl1 = "tcp://10.0.0.1:6001";
+  std::string addr2 = "tcp://10.0.0.1:6002";
+  std::string ctrl2 = "tcp://10.0.0.1:6003";
+  std::string addr3 = "tcp://10.0.0.1:6004";
+  std::string ctrl3 = "tcp://10.0.0.1:6005";
+  std::string addr4 = "tcp://10.0.0.1:6006";
+  std::string ctrl4 = "tcp://10.0.0.1:6007";
+  std::string uuid1 = "uuid1";
+  std::string uuid2 = "uuid2";
   transport::Addresses_M m;
   transport::ReqCallback reqCb;
   transport::RepCallback repCb;
@@ -52,8 +60,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));
   EXPECT_FALSE(topics.GetAdvAddresses(topic, m));
-  EXPECT_FALSE(topics.HasAdvAddress(topic, address));
-  EXPECT_FALSE(topics.Connected(topic));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr1));
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
@@ -61,13 +68,54 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
 
-  // Check getters after inserting a topic in a TopicsInfo object
-  topics.AddAdvAddress(topic, address, controlAddress);
+  // Insert one node address.
+  topics.AddAdvAddress(topic, addr1, ctrl1, uuid1);
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasTopic(topic));
-  EXPECT_TRUE(topics.HasAdvAddress(topic, address));
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  EXPECT_EQ(m[address], controlAddress);
-  EXPECT_FALSE(topics.Connected(topic));
+  // Only contains information about one process.
+  EXPECT_EQ(m.size(), 1);
+  ASSERT_NE(m.find(uuid1), m.end());
+  auto v = m[uuid1];
+  // Only contains information about one node.
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0).addr, addr1);
+  EXPECT_EQ(v.at(0).ctrl, ctrl1);
+
+  // Insert one node address on the same process.
+  topics.AddAdvAddress(topic, addr2, ctrl2, uuid1);
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_TRUE(topics.HasTopic(topic));
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  // Only contains information about one process.
+  EXPECT_EQ(m.size(), 1);
+  ASSERT_NE(m.find(uuid1), m.end());
+  v = m[uuid1];
+  // Only contains information about one node.
+  ASSERT_EQ(v.size(), 2);
+  EXPECT_EQ(v.at(0).addr, addr1);
+  EXPECT_EQ(v.at(0).ctrl, ctrl1);
+  EXPECT_EQ(v.at(1).addr, addr2);
+  EXPECT_EQ(v.at(1).ctrl, ctrl2);
+
+  // Insert one node address on a second process.
+  topics.AddAdvAddress(topic, addr3, ctrl3, uuid2);
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));
+  EXPECT_TRUE(topics.HasTopic(topic));
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  // Contains information about two processes.
+  EXPECT_EQ(m.size(), 2);
+  EXPECT_NE(m.find(uuid1), m.end());
+  ASSERT_NE(m.find(uuid2), m.end());
+  v = m[uuid2];
+  // Only contains information about one node.
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0).addr, addr3);
+  EXPECT_EQ(v.at(0).ctrl, ctrl3);
+
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
   EXPECT_FALSE(topics.Requested(topic));
@@ -75,9 +123,50 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
   EXPECT_FALSE(topics.PendingReqs(topic));
 
-  // Check SetConnected
-  topics.SetConnected(topic, true);
-  EXPECT_TRUE(topics.Connected(topic));
+  // Insert another node on process2.
+  topics.AddAdvAddress(topic, addr4, ctrl4, uuid2);
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr4));
+
+  // Remove one address of process2.
+  topics.DelAdvAddress(topic, addr4, "");
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr4));
+  EXPECT_TRUE(topics.HasTopic(topic));
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  // Contains information about two processes.
+  EXPECT_EQ(m.size(), 2);
+  EXPECT_NE(m.find(uuid1), m.end());
+  ASSERT_NE(m.find(uuid2), m.end());
+  v = m[uuid2];
+  // Only contains information about node4.
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_NE(v.at(0).addr, addr4);
+  EXPECT_NE(v.at(0).ctrl, ctrl4);
+
+  // Remove the remaining address of process2.
+  topics.DelAdvAddress(topic, addr3, "");
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr3));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr4));
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  // Contains information about 1 process.
+  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.find(uuid2), m.end());
+
+  // Remove all the addresses of process1.
+  topics.DelAdvAddress(topic, "", uuid1);
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr1));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr2));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr3));
+  EXPECT_FALSE(topics.HasAdvAddress(topic, addr4));
+  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
+  EXPECT_TRUE(m.empty());
 
   // Check SetRequested
   topics.SetRequested(topic, true);
@@ -101,11 +190,6 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   std::string result;
   EXPECT_EQ(repCb("topic", "ReqParams", result), 0);
   EXPECT_TRUE(callbackExecuted);
-
-  // Check the address removal
-  topics.RemoveAdvAddress(topic, address);
-  EXPECT_FALSE(topics.HasAdvAddress(topic, address));
-  EXPECT_FALSE(topics.GetAdvAddresses(topic, m));
 
   // Check the addition of asynchronous service call requests
   std::string req1 = "paramsReq1";

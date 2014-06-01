@@ -16,6 +16,7 @@
 */
 
 #include <robot_msgs/stringmsg.pb.h>
+#include <chrono>
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
@@ -27,14 +28,6 @@ bool cbExecuted;
 bool cb2Executed;
 std::string topic = "foo";
 std::string data = "bar";
-
-static void s_sleep(int msecs)
-{
-  struct timespec t;
-  t.tv_sec = msecs / 1000;
-  t.tv_nsec = (msecs % 1000) * 1000000;
-  nanosleep(&t, nullptr);
-}
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
@@ -100,7 +93,7 @@ void CreateSubscriber()
   transport::Node node;
   node.Subscribe(topic, cb);
   while (!cbExecuted)
-    s_sleep(100);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 //////////////////////////////////////////////////
@@ -128,11 +121,11 @@ TEST(DiscZmqTest, PubSubSameThread)
   node.Advertise(topic);
 
   node.Subscribe(topic, cb);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
   EXPECT_EQ(node.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was received.
   EXPECT_TRUE(cbExecuted);
@@ -140,7 +133,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   // Publish a second message on topic.
   EXPECT_EQ(node.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -150,7 +143,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 
   // Publish a third message.
   EXPECT_NE(node.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_FALSE(cbExecuted);
   cbExecuted = false;
 }
@@ -166,16 +159,16 @@ TEST(DiscZmqTest, PubSubTwoThreadsSameTopic)
 
   transport::Node node;
   node.Advertise(topic);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Subscribe to topic in a different thread and wait until the callback is
   // received.
   std::thread subscribeThread(CreateSubscriber);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a msg on topic.
   EXPECT_EQ(node.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Wait until the subscribe thread finishes.
   subscribeThread.join();
@@ -200,18 +193,18 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
   transport::Node node2;
 
   node1.Advertise(topic);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Subscribe to topic in node1.
   node1.Subscribe(topic, cb);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Subscribe to topic in node2.
   node2.Subscribe(topic, cb2);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   EXPECT_EQ(node1.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was received by node1.
   EXPECT_TRUE(cbExecuted);
@@ -223,11 +216,11 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
 
   // Node1 is not interested in the topic anymore.
   node1.Unsubscribe(topic);
-  s_sleep(500);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a second message.
   EXPECT_EQ(node1.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was no received by node1.
   EXPECT_FALSE(cbExecuted);
@@ -241,7 +234,7 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
 
   // Publish a third message
   EXPECT_NE(node1.Publish(topic, msg), 0);
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Anybody should have received the message.
   EXPECT_FALSE(cbExecuted);
@@ -254,9 +247,9 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
 TEST(NodeTest, ClassMemberCallback)
 {
   MyTestClass client;
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   client.SendSomeData();
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
 }
 

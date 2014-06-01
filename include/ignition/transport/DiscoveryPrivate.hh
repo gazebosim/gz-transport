@@ -84,14 +84,19 @@ namespace ignition
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
       /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ Address.
+      /// \param[in] _ctrl 0MQ control address.
       /// \param[in] _flags Optional flags.
       /// \return 0 when success.
       public: int SendMsg(uint8_t _type, const std::string &_topic,
-        int _flags = 0);
+        const std::string &_addr, const std::string &_ctrl, int _flags = 0);
 
       /// \brief Check if a topic has been advertised by me.
-      /// \return true if the topic was advertised by me before.
-      public: bool AdvertisedByMe(const std::string &_topic);
+      /// \param[in] _topic Topic name.
+      /// \param[in] _uuid Process' UUID.
+      /// \return true if the topic is advertised by any of my nodes.
+      public: bool AdvertisedByProc(const std::string &_topic,
+        const std::string &_uuid);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
@@ -99,6 +104,26 @@ namespace ignition
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
+
+      /// \brief Add a new address associated to a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr New address.
+      /// \param[in] _ctrl New control address.
+      /// \param[in] _uuid Process' UUID of the publisher.
+      /// \return true if the new address is added or false if the address
+      /// was already stored.
+      public: bool AddTopicAddress(const std::string &_topic,
+                                   const std::string &_addr,
+                                   const std::string &_ctrl,
+                                   const std::string &_uuid);
+
+      /// \brief Remove an address associated to a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _address Address to remove.
+      /// \param[in] _uuid Process' UUID of the publisher.
+      public: void DelTopicAddress(const std::string &_topic,
+                                   const std::string &_addr,
+                                   const std::string &_uuid);
 
       /// \brief Default activity interval value.
       /// \sa GetActivityInterval.
@@ -161,14 +186,17 @@ namespace ignition
       /// \brief Topics requested to discover but with no information yet.
       public: std::vector<std::string> unknownTopics;
 
-      /// \brief Main topic information. For each topic we store a tuple that
-      /// contains the 0MQ address, 0MQ control, and process UUID of the
-      /// publisher.
-      public: std::map<std::string, DiscoveryInfo> info;
+      public: std::map<std::string, Addresses_M> advertised;
+
+      /// \brief Addressing information. For each topic we store a map that
+      /// contains the process UUID as key and the 0MQ address and 0MQ control
+      //  address of the publisher as value.
+      public: std::map<std::string, Addresses_M> info;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear
-      /// from a node in a while, its entries in 'info' will be invalided.
+      /// from a node in a while, its entries in 'info' will be invalided. The
+      /// key is the process uuid.
       public: std::map<std::string, Timestamp> activity;
 
       /// \brief Print activity to stdout.

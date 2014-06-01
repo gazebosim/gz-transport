@@ -66,7 +66,8 @@ void transport::Node::Unadvertise(const std::string &_topic)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
 
-  this->dataPtr->discovery->Unadvertise(_topic);
+  this->dataPtr->discovery->Unadvertise(_topic, this->dataPtr->myAddress,
+    this->dataPtr->myControlAddress);
 }
 
 //////////////////////////////////////////////////
@@ -137,39 +138,42 @@ void transport::Node::Unsubscribe(const std::string &_topic)
               << "]" << std::endl;
   }
 
-  for (auto publisher : addresses)
+  for (auto proc : addresses)
   {
-    std::string controlAddress = publisher.second;
+    for (auto node : proc.second)
+    {
+      std::string controlAddress = node.ctrl;
 
-    zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
+      zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
 
-    // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
-    // discarded immediately when the socket is closed. That avoids infinite
-    // waits if the publisher is disconnected.
-    int lingerVal = 1000;
-    socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+      // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
+      // discarded immediately when the socket is closed. That avoids infinite
+      // waits if the publisher is disconnected.
+      int lingerVal = 1000;
+      socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-    socket.connect(controlAddress.c_str());
+      socket.connect(controlAddress.c_str());
 
-    zmq::message_t message;
-    message.rebuild(_topic.size() + 1);
-    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-    socket.send(message, ZMQ_SNDMORE);
+      zmq::message_t message;
+      message.rebuild(_topic.size() + 1);
+      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+      socket.send(message, ZMQ_SNDMORE);
 
-    // Not needed.
-    message.rebuild(this->dataPtr->myAddress.size() + 1);
-    memcpy(message.data(), this->dataPtr->myAddress.c_str(),
-           this->dataPtr->myAddress.size() + 1);
-    socket.send(message, ZMQ_SNDMORE);
+      // Not needed.
+      message.rebuild(this->dataPtr->myAddress.size() + 1);
+      memcpy(message.data(), this->dataPtr->myAddress.c_str(),
+             this->dataPtr->myAddress.size() + 1);
+      socket.send(message, ZMQ_SNDMORE);
 
-    message.rebuild(this->nodeUuidStr.size() + 1);
-    memcpy(message.data(), this->nodeUuidStr.c_str(),
-           this->nodeUuidStr.size() + 1);
-    socket.send(message, ZMQ_SNDMORE);
+      message.rebuild(this->nodeUuidStr.size() + 1);
+      memcpy(message.data(), this->nodeUuidStr.c_str(),
+             this->nodeUuidStr.size() + 1);
+      socket.send(message, ZMQ_SNDMORE);
 
-    std::string data = std::to_string(transport::EndConnection);
-    message.rebuild(data.size() + 1);
-    memcpy(message.data(), data.c_str(), data.size() + 1);
-    socket.send(message, 0);
+      std::string data = std::to_string(transport::EndConnection);
+      message.rebuild(data.size() + 1);
+      memcpy(message.data(), data.c_str(), data.size() + 1);
+      socket.send(message, 0);
+    }
   }
 }

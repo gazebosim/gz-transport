@@ -11,6 +11,7 @@ set (sources
 
 set (gtest_sources
   Discovery_TEST.cc
+  NodePrivate_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
   TopicsInfo_TEST.cc

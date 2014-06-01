@@ -89,7 +89,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
-  this->SendMsg(ByeType, "");
+  this->SendMsg(ByeType, "", "", "");
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   zctx_destroy(&this->ctx);
@@ -105,7 +105,7 @@ void DiscoveryPrivate::RunActivityService()
     Timestamp now = std::chrono::steady_clock::now();
     for (auto it = this->activity.cbegin(); it != this->activity.cend();)
     {
-      // Skip my own entry
+      // Skip my own entry.
       if (it->first == this->uuidStr)
         continue;
 
@@ -117,27 +117,7 @@ void DiscoveryPrivate::RunActivityService()
           > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        for (auto it2 = this->info.cbegin(); it2 != this->info.cend();)
-        {
-          // UUID matches
-          if (std::get<Uuid>(it2->second) == it->first)
-          {
-            if (this->connectionCb)
-            {
-              // Notify the new disconnection.
-              DiscoveryInfo topicInfo = it2->second;
-              this->disconnectionCb(it2->first, std::get<Addr>(topicInfo),
-                std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
-
-              if (this->verbose)
-                this->PrintCurrentState();
-            }
-            // Remove the info entry.
-            this->info.erase(it2++);
-          }
-          else
-            ++it2;
-        }
+        this->DelTopicAddress("", "", it->first);
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -170,7 +150,7 @@ void DiscoveryPrivate::RunHeartbitService()
   while (true)
   {
     this->mutex.lock();
-    this->SendMsg(HelloType, "");
+    this->SendMsg(HelloType, "", "", "");
     this->mutex.unlock();
 
     std::this_thread::sleep_for(
@@ -224,7 +204,7 @@ void DiscoveryPrivate::RunRetransmissionService()
 
     // Iterate over the list of topics that have no discovery information yet.
     for (auto topic : this->unknownTopics)
-      this->SendMsg(SubType, topic);
+      this->SendMsg(SubType, topic, "", "");
 
     this->mutex.unlock();
 
@@ -293,7 +273,8 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
   switch (header.GetType())
   {
     case AdvType:
-      // Read the addresses.
+    {
+      // Read the address.
       advMsg.UnpackBody(pBody);
       address = advMsg.GetAddress();
       controlAddress = advMsg.GetControlAddress();
@@ -301,81 +282,81 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       if (this->verbose)
         advMsg.PrintBody();
 
-      // Register the advertised address for the topic.
-      this->info[topic] = DiscoveryInfo(address, controlAddress, recvProcUuid);
+      // Register an advertised address for the topic.
+      bool added =
+        this->AddTopicAddress(topic, address, controlAddress, recvProcUuid);
 
       // Remove topic from unkown topics.
       this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
         this->unknownTopics.end(), topic), this->unknownTopics.end());
 
-      if (this->connectionCb)
+      if (added && this->connectionCb)
       {
         // Execute the client's callback.
-        DiscoveryInfo topicInfo = this->info[topic];
-        this->connectionCb(topic, std::get<Addr>(topicInfo),
-          std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
+        this->connectionCb(topic, address, controlAddress, recvProcUuid);
       }
       break;
-
+    }
     case SubType:
-      // Check if I advertise the topic requested.
-      if (this->AdvertisedByMe(topic))
+    {
+      std::cout << "Receiving SUB" << std::endl;
+      // Check if at least one of my nodes advertises the topic requested.
+      if (this->AdvertisedByProc(topic, this->uuidStr))
       {
-        // Answer an ADVERTISE message.
-        this->SendMsg(AdvType, topic);
+        for (auto nodeInfo : this->info[topic][this->uuidStr])
+        {
+          std::cout << "Answering ADV" << std::endl;
+          // Answer an ADVERTISE message.
+          this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl);
+        }
       }
 
       break;
-
+    }
     case HelloType:
+    {
       // The timestamp has already been updated.
       break;
-
+    }
     case ByeType:
+    {
       // Remove the activity entry for this publisher.
       this->activity.erase(recvProcUuid);
-
-      // Remove all the topic information that has the same process UUID.
-      for (auto it = this->info.cbegin(); it != this->info.cend();)
-      {
-        // UUID matches.
-        if (std::get<Uuid>(it->second) == recvProcUuid)
-        {
-          if (this->disconnectionCb)
-          {
-            // Notify the new disconnection.
-            DiscoveryInfo topicInfo = it->second;
-            this->disconnectionCb(it->first, std::get<Addr>(topicInfo),
-              std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
-          }
-
-          // Remove the info entry for this topic.
-          this->info.erase(it++);
-        }
-        else
-          ++it;
-      }
-
-      break;
-
-    case UnadvType:
 
       if (this->disconnectionCb)
       {
         // Notify the new disconnection.
-        DiscoveryInfo topicInfo = this->info[topic];
-        this->disconnectionCb(topic, std::get<Addr>(topicInfo),
-          std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
+        this->disconnectionCb("", "", "", recvProcUuid);
       }
 
-      // Remove the info entry for this topic.
-      this->info.erase(topic);
+      // Remove the address entry for this topic.
+      this->DelTopicAddress("", "", recvProcUuid);
 
       break;
+    }
+    case UnadvType:
+    {
+      // Read the address.
+      advMsg.UnpackBody(pBody);
+      address = advMsg.GetAddress();
+      controlAddress = advMsg.GetControlAddress();
 
+      if (this->disconnectionCb)
+      {
+        // Notify the new disconnection.
+        this->disconnectionCb(topic, address, controlAddress, recvProcUuid);
+      }
+
+      // Remove the address entry for this topic.
+      this->DelTopicAddress(topic, address, recvProcUuid);
+
+      break;
+    }
     default:
+    {
       std::cerr << "Unknown message type [" << header.GetType() << "]\n";
       break;
+    }
   }
 
   return 0;
@@ -383,7 +364,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 
 //////////////////////////////////////////////////
 int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
-  int _flags)
+  const std::string &_addr, const std::string &_ctrl, int _flags)
 {
   // Create the header.
   Header header(Version, this->uuid, _topic, _type, _flags);
@@ -392,16 +373,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   {
     case AdvType:
     {
-      // Check if I have addressing information for this topic.
-      if (this->info.find(_topic) == this->info.end())
-        return -1;
-
-      // Get the addresses associated to the topic.
-      std::string addr = std::get<Addr>(this->info[_topic]);
-      std::string ctrlAddr = std::get<Ctrl>(this->info[_topic]);
-
       // Create the ADVERTISE message.
-      AdvMsg advMsg(header, addr, ctrlAddr);
+      AdvMsg advMsg(header, _addr, _ctrl);
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(advMsg.GetMsgLength());
@@ -444,12 +417,14 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool DiscoveryPrivate::AdvertisedByMe(const std::string &_topic)
+bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
+  const std::string &_uuid)
 {
+  // I do not have the topic.
   if (this->info.find(_topic) == this->info.end())
     return false;
 
-  return std::get<Uuid>(this->info[_topic]) == this->uuidStr;
+  return this->info[_topic].find(_uuid) != this->info[_topic].end();
 }
 
 //////////////////////////////////////////////////
@@ -457,6 +432,64 @@ std::string DiscoveryPrivate::GetHostAddr()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   return zbeacon_hostname(this->beacon);
+}
+
+//////////////////////////////////////////////////
+bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_uuid)
+{
+  // The topic does not exist
+  if (this->info.find(_topic) == this->info.end())
+  {
+    Addresses_M addresses;
+    this->info[_topic] = addresses;
+  }
+
+  // Check if the process uuid exists.
+  auto &m = this->info[_topic];
+  if (m.find(_uuid) != m.end())
+  {
+    // Check that the {_addr, _ctrl} does not exist.
+    auto &v = m[_uuid];
+    auto found = std::find_if(v.begin(), v.end(),
+      [=](Address_t _addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      });
+
+    // _addr was already existing, just exit.
+    if (found != v.end())
+      return false;
+  }
+
+  // Add a new address.
+  m[_uuid].push_back({_addr, _ctrl});
+  return true;
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::DelTopicAddress(const std::string &/*_topic*/,
+  const std::string &_addr, const std::string &_uuid)
+{
+  for (auto topicInfo : this->info)
+  {
+    auto m = topicInfo.second;
+    for (auto it = m.begin(); it != m.end();)
+    {
+      auto &v = it->second;
+      v.erase(std::remove_if(v.begin(), v.end(), [=](Address_t _addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      }), v.end());
+
+      it->second = v;
+
+      if (v.empty() || it->first == _uuid)
+        m.erase(it++);
+      else
+        ++it;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -481,9 +514,15 @@ void DiscoveryPrivate::PrintCurrentState()
     for (auto topicInfo : this->info)
     {
       std::cout << "\t" << topicInfo.first << std::endl;
-      std::cout << "\t\t" << std::get<Addr>(topicInfo.second) << std::endl;
-      std::cout << "\t\t" << std::get<Ctrl>(topicInfo.second) << std::endl;
-      std::cout << "\t\t" << std::get<Uuid>(topicInfo.second) << std::endl;
+      for (auto proc : topicInfo.second)
+      {
+        std::cout << "\t\tProcess UUID: " << proc.first << std::endl;
+        for (auto node : proc.second)
+        {
+          std::cout << "\t\t\tAddress: " << node.addr << std::endl;
+          std::cout << "\t\t\tControl: " << node.ctrl << std::endl;
+        }
+      }
     }
   }
 

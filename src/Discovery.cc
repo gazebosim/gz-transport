@@ -45,16 +45,11 @@ void Discovery::Advertise(const std::string &_topic,
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  // Don't do anything if the topic is already advertised.
-  if (this->dataPtr->AdvertisedByMe(_topic))
-    return;
-
-  // Add the addressing information.
-  this->dataPtr->info[_topic] = DiscoveryInfo(_addr, _ctrl,
-    this->dataPtr->uuidStr);
+  // Add the addressing information (local node).
+  this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl, this->dataPtr->uuidStr);
 
   // Broadcast my topic information.
-  this->dataPtr->SendMsg(AdvType, _topic);
+  this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl);
 }
 
 //////////////////////////////////////////////////
@@ -64,12 +59,12 @@ void Discovery::Discover(const std::string &_topic)
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
+  // Broadcast a discovery request for this topic.
+  this->dataPtr->SendMsg(SubType, _topic, "", "");
+
   // I do not have information about this topic.
   if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
   {
-    // Broadcast a discovery request for this topic.
-    this->dataPtr->SendMsg(SubType, _topic);
-
     // Add the topic to the unknown topic list if it was not before.
     if (std::find(this->dataPtr->unknownTopics.begin(),
         this->dataPtr->unknownTopics.end(), _topic) ==
@@ -81,29 +76,34 @@ void Discovery::Discover(const std::string &_topic)
   // I have information stored for this topic.
   else if (this->dataPtr->connectionCb)
   {
-    // Execute the user's callback
-    DiscoveryInfo topicInfo = this->dataPtr->info[_topic];
-    this->dataPtr->connectionCb(_topic, std::get<Addr>(topicInfo),
-      std::get<Ctrl>(topicInfo), std::get<Uuid>(topicInfo));
+    for (auto proc : this->dataPtr->info[_topic])
+    {
+      for (auto node : proc.second)
+      {
+        // Execute the user's callback.
+        this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first);
+      }
+    }
   }
 }
 
 //////////////////////////////////////////////////
-void Discovery::Unadvertise(const std::string &_topic)
+void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
+  const std::string &_ctrl)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  // Don't do anything if the topic is not advertised by me.
-  if (!this->dataPtr->AdvertisedByMe(_topic))
+  // Don't do anything if the topic is not advertised by any of my nodes.
+  if (!this->dataPtr->AdvertisedByProc(_topic, this->dataPtr->uuidStr))
     return;
 
   // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic);
+  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl);
 
   // Remove the topic information.
-  this->dataPtr->info.erase(_topic);
+  this->dataPtr->DelTopicAddress(_topic, _addr, this->dataPtr->uuidStr);
 }
 
 //////////////////////////////////////////////////

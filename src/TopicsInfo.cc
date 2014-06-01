@@ -27,8 +27,11 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 transport::TopicInfo::TopicInfo()
-  : connected(false), advertisedByMe(false), requested(false), reqCb(nullptr),
-    repCb(nullptr), beacon(nullptr)
+  : advertisedByMe(false),
+    requested(false),
+    reqCb(nullptr),
+    repCb(nullptr),
+    beacon(nullptr)
 {
 }
 
@@ -67,22 +70,26 @@ bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool transport::TopicsInfo::HasAdvAddress(const std::string &_topic,
-                                          const std::string &_address)
+                                          const std::string &_addr)
 {
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->topicsInfo[_topic]->addresses.find(_address) !=
-         this->topicsInfo[_topic]->addresses.end();
-}
+  auto &m = this->topicsInfo[_topic]->addresses;
+  for (auto proc : m)
+  {
+    auto &v = proc.second;
+    auto found = std::find_if(v.begin(), v.end(),
+      [=](Address_t _addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      });
+    // Address found!
+    if (found != v.end())
+      return true;
+  }
 
-//////////////////////////////////////////////////
-bool transport::TopicsInfo::Connected(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->connected;
+  return false;
 }
 
 //////////////////////////////////////////////////
@@ -158,34 +165,58 @@ bool transport::TopicsInfo::PendingReqs(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
-                                          const std::string &_address,
-                                          const std::string &_controlAddress)
+                                          const std::string &_addr,
+                                          const std::string &_ctrl,
+                                          const std::string &_uuid)
 {
   this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->addresses[_address] = _controlAddress;
-}
 
-//////////////////////////////////////////////////
-void transport::TopicsInfo::RemoveAdvAddress(const std::string &_topic,
-                                             const std::string &_address)
-{
-  // Remove the address if we have the topic
-  if (this->HasTopic(_topic))
+  // Check if the process uuid exists.
+  auto &m = this->topicsInfo[_topic]->addresses;
+  if (m.find(_uuid) != m.end())
   {
-    this->topicsInfo[_topic]->addresses.erase(_address);
+    // Check that the {_addr, _ctrl} does not exist.
+    auto &v = m[_uuid];
+    auto found = std::find_if(v.begin(), v.end(),
+      [=](Address_t _addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      });
 
-    // If the addresses list is empty, just remove the topic info
-    if (this->topicsInfo[_topic]->addresses.empty())
-      this->topicsInfo.erase(_topic);
+    // _addr was already existing, just exit.
+    if (found != v.end())
+      return;
   }
+
+  // Add a new address.
+  m[_uuid].push_back({_addr, _ctrl});
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetConnected(const std::string &_topic,
-                                         const bool _value)
+void transport::TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
+                                          const std::string &_addr,
+                                          const std::string &_uuid)
 {
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->connected = _value;
+  for (auto topicInfo : this->topicsInfo)
+  {
+    auto m = topicInfo.second;
+    for (auto it = m->addresses.begin();
+         it != m->addresses.end();)
+    {
+      auto &v = it->second;
+      v.erase(std::remove_if(v.begin(), v.end(), [=](Address_t _addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      }), v.end());
+
+      it->second = v;
+
+      if (v.empty() || it->first == _uuid)
+        m->addresses.erase(it++);
+      else
+        ++it;
+    }
+  }
 }
 
 //////////////////////////////////////////////////

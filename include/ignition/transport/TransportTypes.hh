@@ -35,9 +35,19 @@ namespace ignition
     class NodePrivate;
     class TopicInfo;
 
+    /// \def Address_t All the data associated to a topic's publisher.
+    struct Address_t
+    {
+      std::string addr;
+      std::string ctrl;
+    };
+
     /// \def Addresses_M
-    /// \brief 0MQ address is the key and 0MQ control address is the value.
-    typedef std::map<std::string, std::string> Addresses_M;
+    /// \brief The map stores all the publishers advertising this topic.
+    /// The keys are the process uuid of the nodes. For each uuid key, the
+    /// value contains the list of {0MQ and 0MQ control addresses} advertising
+    /// the topic within the same process uuid.
+    typedef std::map<std::string, std::vector<Address_t>> Addresses_M;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
@@ -93,11 +103,6 @@ namespace ignition
     //  const std::string &_procUuid).
     typedef std::function<void(const std::string &, const std::string &,
       const std::string &, const std::string &)> DiscoveryCallback;
-
-    /// \def DiscoveryInfo
-    /// \brief This is the addressing information stored for each topic. The
-    /// tuple contains three fields: 0MQ address, 0MQ control address, UUID.
-    typedef std::tuple<std::string, std::string, std::string> DiscoveryInfo;
   }
 }
 #endif

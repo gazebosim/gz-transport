@@ -45,7 +45,7 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: NodePrivate(bool _verbose);
+      public: NodePrivate(bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~NodePrivate();
@@ -77,6 +77,12 @@ namespace ignition
         const std::string &_addr, const std::string &_ctrlAddr,
         const std::string &_uuid);
 
+      public: bool Connected(const std::string &_addr);
+      public: void AddConnection(const std::string &_uuid,
+        const std::string &_addr, const std::string &_ctrl);
+      public: void DelConnection(const std::string &_uuid,
+        const std::string &_addr);
+
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
 
@@ -105,7 +111,7 @@ namespace ignition
       public: std::unique_ptr<zmq::socket_t> publisher;
 
       /// \brief ZMQ socket to receive topic updates.
-      public: std::unique_ptr<zmq::socket_t> subscriber;
+      public: std::shared_ptr<zmq::socket_t> subscriber;
 
       /// \brief ZMQ socket to receive control updates (new connections, ...).
       public: std::unique_ptr<zmq::socket_t> control;
@@ -131,6 +137,8 @@ namespace ignition
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
+
+      private: Addresses_M connections;
     };
   }
 }

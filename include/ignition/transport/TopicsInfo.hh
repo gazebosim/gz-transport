@@ -40,11 +40,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~TopicInfo();
 
-      /// \brief List of addresses known for a topic.
+      /// \brief Publisher's information for the topic.
       public: Addresses_M addresses;
-
-      /// \brief Am I connected to the topic?
-      public: bool connected;
 
       /// \brief Am I advertising this topic?
       public: bool advertisedByMe;
@@ -67,7 +64,7 @@ namespace ignition
       public: std::list<std::string> pendingReqs;
 
       /// \brief Subscribers info for this topic.
-      public: transport::SubscriptionInfo_M subscribers;
+      public: SubscriptionInfo_M subscribers;
 
       /// \brief Stores all the subscribers information for this topic.
       public: ISubscriptionHandler_M subscriptionHandlers;
@@ -97,16 +94,10 @@ namespace ignition
 
       /// \brief Return if an address is registered associated to a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address Address to check.
+      /// \param[in] _addr Address to check.
       /// \return true if the address is registered with the topic.
       public: bool HasAdvAddress(const std::string &_topic,
-                                 const std::string &_address);
-
-      /// \brief Return true if we are connected to a node
-      /// advertising the topic.
-      /// \param[in] _topic Topic name.
-      /// \return true if we are connected.
-      public: bool Connected(const std::string &_topic);
+                                 const std::string &_addr);
 
       /// \brief Return true if we are subscribed to a node advertising
       /// the topic.
@@ -136,14 +127,14 @@ namespace ignition
       /// \param[out] A pointer to the REQ function registered for a topic.
       /// \return true if there is a REQ callback registered for the topic.
       public: bool GetReqCallback(const std::string &_topic,
-                                  transport::ReqCallback &_cb);
+                                  ReqCallback &_cb);
 
       /// \brief Get the REP callback associated to a topic subscription.
       /// \param[in] _topic Topic name.
       /// \param[out] A pointer to the REP function registered for a topic.
       /// \return true if there is a REP callback registered for the topic.
       public: bool GetRepCallback(const std::string &_topic,
-                                  transport::RepCallback &_cb);
+                                  RepCallback &_cb);
 
       /// \brief Returns if there are any pending requests in the queue.
       /// \param[in] _topic Topic name.
@@ -155,19 +146,16 @@ namespace ignition
       /// \param[in] _address New address.
       /// \param[in] _controlAddress New control address.
       public: void AddAdvAddress(const std::string &_topic,
-                                 const std::string &_address,
-                                 const std::string &_controlAddress);
+                                 const std::string &_addr,
+                                 const std::string &_ctrl,
+                                 const std::string &_uuid);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[int] _address Address to remove.
-      public: void RemoveAdvAddress(const std::string &_topic,
-                                    const std::string &_address);
-
-      /// \brief Set a new connected value to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _value New value to be assigned to the connected member.
-      public: void SetConnected(const std::string &_topic, const bool _value);
+      /// \param[in] _address Address to remove.
+      public: void DelAdvAddress(const std::string &_topic,
+                                 const std::string &_address,
+                                 const std::string &_uuid);
 
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.
@@ -191,13 +179,13 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetReqCallback(const std::string &_topic,
-                                  const transport::ReqCallback &_cb);
+                                  const ReqCallback &_cb);
 
       /// \brief Set a new REP callback associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _cb New callback.
       public: void SetRepCallback(const std::string &_topic,
-                                  const transport::RepCallback &_cb);
+                                  const RepCallback &_cb);
 
       /// \brief Add a new service call request to the queue.
       /// \param[in] _topic Topic name.
@@ -238,7 +226,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _handlers Subscription handlers.
       public: void GetSubscriptionHandlers(const std::string &_topic,
-                                  transport::ISubscriptionHandler_M &_handlers);
+                                           ISubscriptionHandler_M &_handlers);
 
       /// \brief Add a subscription handler to a topic. A subscription handler
       /// stores the callback and types associated to a subscription.
@@ -265,14 +253,14 @@ namespace ignition
 
       /// \brief Get a reference to the topics map.
       /// \return Reference to the topic map.
-      public: transport::Topics_M& GetTopicsInfo();
+      public: Topics_M& GetTopicsInfo();
 
       /// \brief Check if the topic exists. If not, the topic is created.
       /// \param[in] _topic Topic name.
       private: void CheckAndCreate(const std::string &_topic);
 
       // Hash with the topic/topicInfo information for pub/sub.
-      private: transport::Topics_M topicsInfo;
+      private: Topics_M topicsInfo;
     };
   }
 }

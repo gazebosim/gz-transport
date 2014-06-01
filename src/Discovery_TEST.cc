@@ -63,12 +63,13 @@ void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void ondisconnection(const std::string &_topic, const std::string &_addr,
-  const std::string &_ctrl, const std::string &_procUuid)
+void ondisconnection(const std::string &/*_topic*/,
+  const std::string &/*_addr*/, const std::string &/*_ctrl*/,
+  const std::string &_procUuid)
 {
-  EXPECT_EQ(_topic, topic);
+  /*EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_addr, localAddr1);
-  EXPECT_EQ(_ctrl, controlAddr1);
+  EXPECT_EQ(_ctrl, controlAddr1);*/
   EXPECT_EQ(_procUuid, uuid1Str);
   disconnectionExecuted = true;
 }
@@ -114,13 +115,13 @@ class MyClass
   }
 
   /// \brief Member function called each time a disconnect. update is received.
-  public: void Ondisconnection(const std::string &_topic,
-    const std::string &_addr, const std::string &_ctrl,
+  public: void Ondisconnection(const std::string &/*_topic*/,
+    const std::string &/*_addr*/, const std::string &/*_ctrl*/,
     const std::string &_procUuid)
   {
-    EXPECT_EQ(_topic, topic);
+    /*EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_addr, localAddr1);
-    EXPECT_EQ(_ctrl, controlAddr1);
+    EXPECT_EQ(_ctrl, controlAddr1);*/
     EXPECT_EQ(_procUuid, uuid1Str);
     disconnectionExecutedMF = true;
   }
@@ -372,7 +373,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   disconnectionExecuted = false;
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic);
+  discovery1.Unadvertise(topic, localAddr1, controlAddr1);
 
   i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -420,7 +421,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   disconnectionExecutedMF = false;
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic);
+  discovery1.Unadvertise(topic, localAddr1, controlAddr1);
 
   i = 0;
   while (i < 100 && !disconnectionExecutedMF)
