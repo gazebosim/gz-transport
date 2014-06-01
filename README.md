@@ -7,6 +7,14 @@ of libraries designed to rapidly develop robot applications.
 
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
 
+## Continuous integration
+
+Please refer to the [drone.io
+job](https://drone.io/bitbucket.org/ignitionrobotics/ign_math).
+
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/latest)
+
+
 ## Dependencies
 
 The following dependencies are required to compile ignition-transport from

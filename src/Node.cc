@@ -27,17 +27,18 @@
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
-transport::Node::Node(bool _verbose)
-  : dataPtr(transport::NodePrivate::GetInstance(_verbose))
+Node::Node(bool _verbose)
+  : dataPtr(NodePrivate::GetInstance(_verbose))
 {
   uuid_generate(this->nodeUuid);
-  this->nodeUuidStr = transport::GetGuidStr(this->nodeUuid);
+  this->nodeUuidStr = GetGuidStr(this->nodeUuid);
 }
 
 //////////////////////////////////////////////////
-transport::Node::~Node()
+Node::~Node()
 {
   // Unsubscribe from all the topics.
   for (auto topic : this->topicsSubscribed)
@@ -45,7 +46,7 @@ transport::Node::~Node()
 }
 
 //////////////////////////////////////////////////
-void transport::Node::Advertise(const std::string &_topic)
+void Node::Advertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -58,7 +59,7 @@ void transport::Node::Advertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void transport::Node::Unadvertise(const std::string &_topic)
+void Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -71,8 +72,7 @@ void transport::Node::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-int transport::Node::Publish(const std::string &_topic,
-                             const transport::ProtoMsg &_msg)
+int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   assert(_topic != "");
 
@@ -80,11 +80,11 @@ int transport::Node::Publish(const std::string &_topic,
     return -1;
 
   // Local subscribers
-  transport::ISubscriptionHandler_M handlers;
+  ISubscriptionHandler_M handlers;
   this->dataPtr->topics.GetSubscriptionHandlers(_topic, handlers);
   for (auto handler : handlers)
   {
-    transport::ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+    ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
     if (subscriptionHandlerPtr)
       subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
     else
@@ -94,7 +94,6 @@ int transport::Node::Publish(const std::string &_topic,
   // Remote subscribers
   if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
   {
-    std::cout << "Sending data to remote subscribers" << std::endl;
     std::string data;
     _msg.SerializeToString(&data);
     if (this->dataPtr->Publish(_topic, data) != 0)
@@ -107,7 +106,7 @@ int transport::Node::Publish(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::Node::Unsubscribe(const std::string &_topic)
+void Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
@@ -131,7 +130,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
   }
 
   // Notify the publisher
-  transport::Addresses_M addresses;
+  Addresses_M addresses;
   if (!this->dataPtr->topics.GetAdvAddresses(_topic, addresses))
   {
     std::cout << "Don't have information for topic [" << _topic
@@ -170,7 +169,7 @@ void transport::Node::Unsubscribe(const std::string &_topic)
              this->nodeUuidStr.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
-      std::string data = std::to_string(transport::EndConnection);
+      std::string data = std::to_string(EndConnection);
       message.rebuild(data.size() + 1);
       memcpy(message.data(), data.c_str(), data.size() + 1);
       socket.send(message, 0);

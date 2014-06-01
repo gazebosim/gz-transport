@@ -21,6 +21,7 @@
 #include <string>
 #include "gtest/gtest.h"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Packet.hh"
 
 using namespace ignition;
 
@@ -42,7 +43,7 @@ bool disconnectionExecutedMF = false;
 void setupUUIDs(uuid_t & _uuid1, uuid_t & _uuid2)
 {
   uuid_generate(_uuid1);
-  uuid1Str = transport::GetGuidStr(_uuid1);
+  uuid1Str = ignition::transport::GetGuidStr(_uuid1);
 
   uuid_generate(_uuid2);
   uuid2Str = transport::GetGuidStr(_uuid2);

@@ -29,8 +29,7 @@ TEST(PacketTest, BasicHeaderAPI)
   std::string topic = "topic_test";
   uuid_t guid;
   uuid_generate(guid);
-  transport::Header header(transport::Version, guid, topic,
-                           transport::AdvType, 0);
+  transport::Header header(transport::Version, guid, topic, transport::AdvType);
 
   std::string guidStr = transport::GetGuidStr(guid);
 
@@ -80,7 +79,7 @@ TEST(PacketTest, HeaderIO)
 
   // Pack a Header
   transport::Header header(transport::Version, guid, topic,
-                           transport::AdvSvcType, 2);
+    transport::AdvSvcType, 2);
   char *buffer = new char[header.GetHeaderLength()];
   size_t bytes = header.Pack(buffer);
   EXPECT_EQ(bytes, header.GetHeaderLength());
@@ -109,7 +108,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   uuid_t guid;
   uuid_generate(guid);
   transport::Header otherHeader(transport::Version, guid, topic,
-                                transport::AdvType, 3);
+    transport::AdvType, 3);
 
   std::string otherGuidStr = transport::GetGuidStr(guid);
 
@@ -143,7 +142,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
 
   // Check AdvMsg setters
   transport::Header anotherHeader(transport::Version + 1, guid, topic,
-                                  transport::AdvSvcType, 3);
+    transport::AdvSvcType, 3);
   guidStr = transport::GetGuidStr(guid);
   advMsg.SetHeader(anotherHeader);
   header = advMsg.GetHeader();
@@ -176,7 +175,7 @@ TEST(PacketTest, AdvMsgIO)
 
   // Pack an AdvMsg
   transport::Header otherHeader(transport::Version, guid, topic,
-                                transport::AdvType, 3);
+    transport::AdvType, 3);
   std::string address = "tcp://10.0.0.1:6000";
   std::string controlAddress = "tcp://10.0.0.1:6001";
   transport::AdvMsg advMsg(otherHeader, address, controlAddress);

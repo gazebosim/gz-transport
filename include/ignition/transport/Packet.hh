@@ -45,8 +45,8 @@ namespace ignition
     static const int ReqType        = 8;
     static const int RepType        = 9;
     static const int RepErrorType   = 10;
-    static const int NewConnection   = 11;
-    static const int EndConnection   = 12;
+    static const int NewConnection  = 11;
+    static const int EndConnection  = 12;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
@@ -81,7 +81,7 @@ namespace ignition
                      const uuid_t &_guid,
                      const std::string &_topic,
                      const uint8_t _type,
-                     const uint16_t _flags);
+                     const uint16_t _flags = 0);
 
       /// \brief Get the transport library version.
       /// \return Transport library version.

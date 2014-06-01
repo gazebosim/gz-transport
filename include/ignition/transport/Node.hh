@@ -59,8 +59,7 @@ namespace ignition
       /// \param[in] _topic Topic to be published.
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
-      public: int Publish(const std::string &_topic,
-                          const transport::ProtoMsg &_msg);
+      public: int Publish(const std::string &_topic, const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback. In this version
       /// the callback is a free function.

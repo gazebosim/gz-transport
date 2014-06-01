@@ -24,9 +24,10 @@
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
-transport::TopicInfo::TopicInfo()
+TopicInfo::TopicInfo()
   : advertisedByMe(false),
     requested(false),
     reqCb(nullptr),
@@ -36,30 +37,30 @@ transport::TopicInfo::TopicInfo()
 }
 
 //////////////////////////////////////////////////
-transport::TopicInfo::~TopicInfo()
+TopicInfo::~TopicInfo()
 {
 }
 
 //////////////////////////////////////////////////
-transport::TopicsInfo::TopicsInfo()
+TopicsInfo::TopicsInfo()
 {
 }
 
 //////////////////////////////////////////////////
-transport::TopicsInfo::~TopicsInfo()
+TopicsInfo::~TopicsInfo()
 {
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasTopic(const std::string &_topic)
+bool TopicsInfo::HasTopic(const std::string &_topic)
 {
   return this->topicsInfo.find(_topic) != this->topicsInfo.end();
 }
 
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
-                                            transport::Addresses_M &_addresses)
+bool TopicsInfo::GetAdvAddresses(const std::string &_topic,
+  Addresses_M &_addresses)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -69,8 +70,8 @@ bool transport::TopicsInfo::GetAdvAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasAdvAddress(const std::string &_topic,
-                                          const std::string &_addr)
+bool TopicsInfo::HasAdvAddress(const std::string &_topic,
+  const std::string &_addr)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -93,7 +94,7 @@ bool transport::TopicsInfo::HasAdvAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::Subscribed(const std::string &_topic)
+bool TopicsInfo::Subscribed(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -102,7 +103,7 @@ bool transport::TopicsInfo::Subscribed(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::AdvertisedByMe(const std::string &_topic)
+bool TopicsInfo::AdvertisedByMe(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -111,7 +112,7 @@ bool transport::TopicsInfo::AdvertisedByMe(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::Requested(const std::string &_topic)
+bool TopicsInfo::Requested(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -120,8 +121,7 @@ bool transport::TopicsInfo::Requested(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetBeacon(const std::string &_topic,
-                                      zbeacon_t **_beacon)
+bool TopicsInfo::GetBeacon(const std::string &_topic, zbeacon_t **_beacon)
 {
   if (!this->HasTopic(_topic))
   {
@@ -133,8 +133,7 @@ bool transport::TopicsInfo::GetBeacon(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
-                                           transport::ReqCallback &_cb)
+bool TopicsInfo::GetReqCallback(const std::string &_topic, ReqCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -144,8 +143,7 @@ bool transport::TopicsInfo::GetReqCallback(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::GetRepCallback(const std::string &_topic,
-                                           transport::RepCallback &_cb)
+bool TopicsInfo::GetRepCallback(const std::string &_topic, RepCallback &_cb)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -155,7 +153,7 @@ bool transport::TopicsInfo::GetRepCallback(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::PendingReqs(const std::string &_topic)
+bool TopicsInfo::PendingReqs(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -164,10 +162,8 @@ bool transport::TopicsInfo::PendingReqs(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
-                                          const std::string &_addr,
-                                          const std::string &_ctrl,
-                                          const std::string &_uuid)
+void TopicsInfo::AddAdvAddress(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_uuid)
 {
   this->CheckAndCreate(_topic);
 
@@ -193,9 +189,8 @@ void transport::TopicsInfo::AddAdvAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
-                                          const std::string &_addr,
-                                          const std::string &_uuid)
+void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
+  const std::string &_addr, const std::string &_uuid)
 {
   for (auto topicInfo : this->topicsInfo)
   {
@@ -220,48 +215,44 @@ void transport::TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetRequested(const std::string &_topic,
-                                         const bool _value)
+void TopicsInfo::SetRequested(const std::string &_topic, const bool _value)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->requested = _value;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetAdvertisedByMe(const std::string &_topic,
-                                              const bool _value)
+void TopicsInfo::SetAdvertisedByMe(const std::string &_topic, const bool _value)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->advertisedByMe = _value;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetBeacon(const std::string &_topic,
-                                      zbeacon_t *_beacon)
+void TopicsInfo::SetBeacon(const std::string &_topic, zbeacon_t *_beacon)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->beacon = _beacon;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetReqCallback(const std::string &_topic,
-                                           const transport::ReqCallback &_cb)
+void TopicsInfo::SetReqCallback(const std::string &_topic,
+  const ReqCallback &_cb)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->reqCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::SetRepCallback(const std::string &_topic,
-                                           const transport::RepCallback &_cb)
+void TopicsInfo::SetRepCallback(const std::string &_topic,
+  const RepCallback &_cb)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->repCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddReq(const std::string &_topic,
-                                   const std::string &_data)
+void TopicsInfo::AddReq(const std::string &_topic, const std::string &_data)
 {
   this->CheckAndCreate(_topic);
 
@@ -269,8 +260,7 @@ void transport::TopicsInfo::AddReq(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::DelReq(const std::string &_topic,
-                                   std::string &_data)
+bool TopicsInfo::DelReq(const std::string &_topic, std::string &_data)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -284,15 +274,14 @@ bool transport::TopicsInfo::DelReq(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-transport::Topics_M& transport::TopicsInfo::GetTopicsInfo()
+Topics_M& TopicsInfo::GetTopicsInfo()
 {
   return this->topicsInfo;
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
-                                                const std::string &_procUuid,
-                                                const std::string &_nodeUuid)
+void TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
+  const std::string &_procUuid, const std::string &_nodeUuid)
 {
   this->CheckAndCreate(_topic);
 
@@ -314,7 +303,7 @@ void transport::TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
+bool TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -323,9 +312,8 @@ bool transport::TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
-                                                const std::string &_procUuid,
-                                                const std::string &_nodeUuid)
+void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
+  const std::string &_procUuid, const std::string &_nodeUuid)
 {
   for (auto topicInfo : this->topicsInfo)
   {
@@ -345,8 +333,8 @@ void transport::TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::GetSubscriptionHandlers(
-  const std::string &_topic, transport::ISubscriptionHandler_M &_handlers)
+void TopicsInfo::GetSubscriptionHandlers(
+  const std::string &_topic, ISubscriptionHandler_M &_handlers)
 {
   if (this->HasTopic(_topic))
   {
@@ -355,9 +343,9 @@ void transport::TopicsInfo::GetSubscriptionHandlers(
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
-                                                   const std::string &_nodeUuid,
-                           const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
+void TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
+  const std::string &_nodeUuid,
+  const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
 {
   this->CheckAndCreate(_topic);
 
@@ -371,16 +359,16 @@ void transport::TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
-                                                   const std::string &_nodeUuid)
+void TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
+  const std::string &_nodeUuid)
 {
   if (this->HasTopic(_topic))
     this->topicsInfo[_topic]->subscriptionHandlers.erase(_nodeUuid);
 }
 
 //////////////////////////////////////////////////
-bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
-                                                   const std::string &_nodeUuid)
+bool TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
+  const std::string &_nodeUuid)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -390,7 +378,7 @@ bool transport::TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void transport::TopicsInfo::CheckAndCreate(const std::string &_topic)
+void TopicsInfo::CheckAndCreate(const std::string &_topic)
 {
   if (!this->HasTopic(_topic))
   {

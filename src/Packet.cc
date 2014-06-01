@@ -142,7 +142,7 @@ void transport::Header::Print()
   std::cout << "\t--------------------------------------\n";
   std::cout << "\tHeader:" << std::endl;
   std::cout << "\t\tVersion: " << this->GetVersion() << "\n";
-  std::cout << "\t\tGUID: " << transport::GetGuidStr(this->GetGuid()) << "\n";
+  std::cout << "\t\tGUID: " << GetGuidStr(this->GetGuid()) << "\n";
   std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
   std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
   std::cout << "\t\tType: " << MsgTypesStr.at(this->GetType()) << "\n";
@@ -260,8 +260,8 @@ std::string transport::AdvMsg::GetControlAddress() const
 void transport::AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
-  if (_header.GetType() != transport::AdvType &&
-      _header.GetType() != transport::AdvSvcType)
+  if (_header.GetType() != AdvType &&
+      _header.GetType() != AdvSvcType)
     std::cerr << "You're trying to use a "
               << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
               << " or AdvSvcMsg. Are you sure you want to do this?\n";
