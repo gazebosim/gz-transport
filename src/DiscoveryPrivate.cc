@@ -299,13 +299,11 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
     }
     case SubType:
     {
-      std::cout << "Receiving SUB" << std::endl;
       // Check if at least one of my nodes advertises the topic requested.
       if (this->AdvertisedByProc(topic, this->uuidStr))
       {
         for (auto nodeInfo : this->info[topic][this->uuidStr])
         {
-          std::cout << "Answering ADV" << std::endl;
           // Answer an ADVERTISE message.
           this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl);
         }

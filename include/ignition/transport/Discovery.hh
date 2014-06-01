@@ -137,8 +137,7 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: template<class C> void SetDisconnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &),
-            C* _obj)
+          const std::string &, const std::string &), C* _obj)
       {
         this->SetDisconnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
