@@ -24,6 +24,7 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
+/// \brief Check the getters and setters.
 TEST(PacketTest, BasicHeaderAPI)
 {
   std::string topic = "topic_test";
@@ -33,7 +34,7 @@ TEST(PacketTest, BasicHeaderAPI)
 
   std::string guidStr = transport::GetGuidStr(guid);
 
-  // Check Header getters
+  // Check Header getters.
   EXPECT_EQ(header.GetVersion(), transport::Version);
   std::string otherGuidStr = transport::GetGuidStr(header.GetGuid());
   EXPECT_EQ(guidStr, otherGuidStr);
@@ -46,7 +47,7 @@ TEST(PacketTest, BasicHeaderAPI)
     sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
-  // Check Header setters
+  // Check Header setters.
   header.SetVersion(transport::Version + 1);
   EXPECT_EQ(header.GetVersion(), transport::Version + 1);
   uuid_generate(guid);
@@ -68,6 +69,7 @@ TEST(PacketTest, BasicHeaderAPI)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the serialization and unserialization of a header.
 TEST(PacketTest, HeaderIO)
 {
   std::string guidStr;
@@ -102,6 +104,7 @@ TEST(PacketTest, HeaderIO)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the basic API for creating/reading an ADV message.
 TEST(PacketTest, BasicAdvMsgAPI)
 {
   std::string topic = "topic_test";
@@ -116,7 +119,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   std::string controlAddress = "tcp://10.0.0.1:6001";
   transport::AdvMsg advMsg(otherHeader, address, controlAddress);
 
-  // Check AdvMsg getters
+  // Check AdvMsg getters.
   transport::Header header = advMsg.GetHeader();
   EXPECT_EQ(header.GetVersion(), otherHeader.GetVersion());
   std::string guidStr = transport::GetGuidStr(header.GetGuid());
@@ -140,7 +143,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   uuid_generate(guid);
   topic = "a_new_topic_test";
 
-  // Check AdvMsg setters
+  // Check AdvMsg setters.
   transport::Header anotherHeader(transport::Version + 1, guid, topic,
     transport::AdvSvcType, 3);
   guidStr = transport::GetGuidStr(guid);
@@ -167,13 +170,14 @@ TEST(PacketTest, BasicAdvMsgAPI)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the serialization and unserialization of an ADV message.
 TEST(PacketTest, AdvMsgIO)
 {
   uuid_t guid;
   uuid_generate(guid);
   std::string topic = "topic_test";
 
-  // Pack an AdvMsg
+  // Pack an AdvMsg.
   transport::Header otherHeader(transport::Version, guid, topic,
     transport::AdvType, 3);
   std::string address = "tcp://10.0.0.1:6000";
@@ -183,7 +187,7 @@ TEST(PacketTest, AdvMsgIO)
   size_t bytes = advMsg.Pack(buffer);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());
 
-  // Unpack an AdvMsg
+  // Unpack an AdvMsg.
   transport::Header header;
   transport::AdvMsg otherAdvMsg;
   size_t headerBytes = header.Unpack(buffer);
@@ -193,7 +197,7 @@ TEST(PacketTest, AdvMsgIO)
   size_t bodyBytes = otherAdvMsg.UnpackBody(pBody);
   delete[] buffer;
 
-  // Check that after Pack() and Unpack() the data does not change
+  // Check that after Pack() and Unpack() the data does not change.
   EXPECT_EQ(otherAdvMsg.GetAddressLength(), advMsg.GetAddressLength());
   EXPECT_EQ(otherAdvMsg.GetAddress(), advMsg.GetAddress());
   EXPECT_EQ(otherAdvMsg.GetControlAddressLength(),

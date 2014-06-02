@@ -89,12 +89,18 @@ class MyTestClass
 };
 
 //////////////////////////////////////////////////
+/// \brief Create a subscriber and wait for a callback to be executed.
 void CreateSubscriber()
 {
   transport::Node node;
   node.Subscribe(topic, cb);
-  while (!cbExecuted)
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  int i = 0;
+  while (i < 100 && !cbExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -245,6 +251,8 @@ TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
 }
 
 //////////////////////////////////////////////////
+/// \brief Use the transport inside a class and check advertise, subscribe and
+/// publish.
 TEST(NodeTest, ClassMemberCallback)
 {
   MyTestClass client;
@@ -254,6 +262,11 @@ TEST(NodeTest, ClassMemberCallback)
   EXPECT_TRUE(client.callbackExecuted);
 }
 
+//////////////////////////////////////////////////
+/// \brief Create a publisher that sends messages forever. This function will
+/// be used emiting a SIGINT or SIGTERM signal, to make sure that the transport
+/// library captures the signals, stop all the tasks and signal the event with
+/// the method Interrupted().
 void createInfinitePublisher()
 {
   robot_msgs::StringMsg msg;
@@ -266,6 +279,9 @@ void createInfinitePublisher()
 }
 
 //////////////////////////////////////////////////
+/// \brief Create a transport client in a loop (and in a separate thread) and
+/// emit a SIGINT signal. Check that the transport library captures the signal
+/// and is able to terminate.
 TEST(NodeTest, TerminateSIGINT)
 {
   std::thread publisherThread(createInfinitePublisher);
@@ -274,6 +290,9 @@ TEST(NodeTest, TerminateSIGINT)
 }
 
 //////////////////////////////////////////////////
+/// \brief Create a transport client in a loop (and in a separate thread) and
+/// emit a SIGTERM signal. Check that the transport library captures the signal
+/// and is able to terminate.
 TEST(NodeTest, TerminateSIGTERM)
 {
   std::thread publisherThread(createInfinitePublisher);

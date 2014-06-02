@@ -98,8 +98,7 @@ NodePrivate::NodePrivate(bool _verbose)
   this->exitMutex.unlock();
 
   // Start the service thread.
-  this->threadReception =
-    new std::thread(&NodePrivate::RunReceptionService, this);
+  this->threadReception = new std::thread(&NodePrivate::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new connections).
   discovery->SetConnectionsCb(&NodePrivate::OnNewConnection, this);
@@ -121,7 +120,7 @@ NodePrivate::~NodePrivate()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RunReceptionService()
+void NodePrivate::RunReceptionTask()
 {
   while (!this->discovery->Interrupted())
   {
@@ -165,8 +164,7 @@ int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
     this->publisher->send(message, ZMQ_SNDMORE);
 
     message.rebuild(this->myAddress.size() + 1);
-    memcpy(message.data(), this->myAddress.c_str(),
-           this->myAddress.size() + 1);
+    memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
     this->publisher->send(message, ZMQ_SNDMORE);
 
     message.rebuild(_data.size() + 1);
@@ -235,8 +233,6 @@ void NodePrivate::RecvMsgUpdate()
 //////////////////////////////////////////////////
 void NodePrivate::RecvControlUpdate()
 {
-  std::cout << "Control update" << std::endl;
-
   std::lock_guard<std::mutex> lock(this->mutex);
 
   zmq::message_t message(0);
@@ -265,7 +261,8 @@ void NodePrivate::RecvControlUpdate()
   }
   catch(const zmq::error_t &_error)
   {
-    std::cout << "Error: " << _error.what() << std::endl;
+    std::cerr << "NodePrivate::RecvControlUpdate() error: "
+              << _error.what() << std::endl;
     return;
   }
 
@@ -298,13 +295,16 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrlAddr,
   const std::string &_uuid)
 {
-  // Register the advertised address for the topic.
-  std::cout << "Connection callback" << std::endl;
-  std::cout << "Topic: " << _topic << std::endl;
-  std::cout << "Addr: " << _addr << std::endl;
-  std::cout << "Ctrl Addr: " << _ctrlAddr << std::endl;
-  std::cout << "UUID: [" << _uuid << "]" << std::endl;
+  if (this->verbose)
+  {
+    std::cout << "Connection callback" << std::endl;
+    std::cout << "Topic: " << _topic << std::endl;
+    std::cout << "Addr: " << _addr << std::endl;
+    std::cout << "Ctrl Addr: " << _ctrlAddr << std::endl;
+    std::cout << "UUID: [" << _uuid << "]" << std::endl;
+  }
 
+  // Register the advertised address for the topic.
   this->topics.AddAdvAddress(_topic, _addr, _ctrlAddr, _uuid);
 
   // Check if we are interested in this topic.
@@ -312,7 +312,9 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       !this->Connected(_addr) &&
       this->guidStr.compare(_uuid) != 0)
   {
-    std::cout << "Connecting to a remote publisher" << std::endl;
+    if (this->verbose)
+      std::cout << "Connecting to a remote publisher" << std::endl;
+
     try
     {
       this->subscriber->connect(_addr.c_str());
@@ -333,14 +335,13 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
       // be discarded immediately when the socket is closed. That avoids
       // infinite waits if the publisher is disconnected.
-      int lingerVal = 1000;
+      int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
       ISubscriptionHandler_M handlers;
       this->topics.GetSubscriptionHandlers(_topic, handlers);
       for (auto handler : handlers)
       {
-        std::cout << "Sending control message" << std::endl;
         std::string nodeUuid = handler.second->GetNodeUuid();
 
         zmq::message_t message;
@@ -364,7 +365,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     }
     catch(const zmq::error_t& ze)
     {
-      std::cout << "Error connecting [" << ze.what() << "]\n";
+      // std::cerr << "Error connecting [" << ze.what() << "]\n";
     }
   }
 }
@@ -374,8 +375,11 @@ void NodePrivate::OnNewDisconnection(const std::string &/*_topic*/,
   const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
   const std::string &_uuid)
 {
-  std::cout << "New disconnection detected " << std::endl;
-  std::cout << "\tUUID: " << _uuid << std::endl;
+  if (this->verbose)
+  {
+    std::cout << "New disconnection detected " << std::endl;
+    std::cout << "\tUUID: " << _uuid << std::endl;
+  }
 
   // A remote subscriber[s] has been disconnected.
   this->topics.DelRemoteSubscriber("", _uuid, "");
@@ -419,30 +423,31 @@ void NodePrivate::AddConnection(const std::string &_uuid,
 
   auto &v = this->connections[_uuid];
   auto found = std::find_if(v.begin(), v.end(),
-      [=](Address_t _addrInfo)
-      {
-        return _addrInfo.addr == _addr;
-      });
+    [&](const Address_t &_addrInfo)
+    {
+      return _addrInfo.addr == _addr;
+    });
+
   // If the address was not existing before, just add it.
   if (found == v.end())
-  {
     v.push_back({_addr, _ctrl});
-  }
 }
 
 //////////////////////////////////////////////////
 void NodePrivate::DelConnection(const std::string &_uuid,
-  const std::string &_addr)
+                                const std::string &_addr)
 {
   for (auto it = this->connections.begin(); it != this->connections.end();)
   {
     auto &v = it->second;
-    v.erase(std::remove_if(v.begin(), v.end(), [=](Address_t _addrInfo)
-    {
-      return _addrInfo.addr == _addr;
-    }), v.end());
+    v.erase(std::remove_if(v.begin(), v.end(),
+      [&](const Address_t &_addrInfo)
+      {
+        return _addrInfo.addr == _addr;
+      }),
+      v.end());
 
-    it->second = v;
+    // it->second = v;
 
     if (v.empty() || it->first == _uuid)
       this->connections.erase(it++);

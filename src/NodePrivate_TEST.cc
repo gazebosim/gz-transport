@@ -23,6 +23,8 @@
 
 using namespace ignition;
 
+//////////////////////////////////////////////////
+/// \brief Checking the helper functions for adding/deleting remote connections.
 TEST(DiszZmqTest, Connections)
 {
   std::string addr1 = "addr1";

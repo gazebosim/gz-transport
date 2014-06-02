@@ -17,6 +17,7 @@
 
 #include <robot_msgs/stringmsg.pb.h>
 #include <sys/types.h>
+#include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -28,14 +29,6 @@ bool cb2Executed;
 
 std::string topic = "foo";
 std::string data = "bar";
-
-static void s_sleep(int msecs)
-{
-  struct timespec t;
-  t.tv_sec = msecs / 1000;
-  t.tv_nsec = (msecs % 1000) * 1000000;
-  nanosleep(&t, nullptr);
-}
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -62,14 +55,14 @@ void runSubscriber()
 {
   cbExecuted = false;
   cb2Executed = false;
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   transport::Node node;
   transport::Node node2;
 
-  s_sleep(100);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   node.Subscribe(topic, cb);
   node2.Subscribe(topic, cb2);
-  s_sleep(500);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -78,7 +71,7 @@ void runSubscriber()
   cb2Executed = false;
 
   node.Unsubscribe(topic);
-  s_sleep(600);
+  std::this_thread::sleep_for(std::chrono::milliseconds(600));
 
   // Check that the message was only received in node3.
   EXPECT_FALSE(cbExecuted);
@@ -108,9 +101,9 @@ TEST(DiscZmqTest, PubSubTwoProcsTwoNodes)
     transport::Node node1;
 
     node1.Advertise(topic);
-    s_sleep(500);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(node1.Publish(topic, msg), 0);
-    s_sleep(500);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(node1.Publish(topic, msg), 0);
 
     // Wait for the child process to return.

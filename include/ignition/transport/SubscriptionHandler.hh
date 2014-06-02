@@ -33,14 +33,14 @@ namespace ignition
     /// \brief Interface class used to manage generic protobub messages.
     class ISubscriptionHandler
     {
-      /// \brief Constructor
+      /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the subscription handler
       public: ISubscriptionHandler(const std::string &_uuid)
         : nodeUuidStr(_uuid)
       {
       }
 
-      /// \brief Destructor
+      /// \brief Destructor.
       public: virtual ~ISubscriptionHandler()
       {
       }
@@ -63,7 +63,10 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string GetNodeUuid() {return this->nodeUuidStr;}
+      public: std::string GetNodeUuid()
+      {
+        return this->nodeUuidStr;
+      }
 
       /// \brief Node UUID (string).
       private: std::string nodeUuidStr;
@@ -116,12 +119,13 @@ namespace ignition
         }
         else
         {
-          std::cerr << "Callback is NULL" << std::endl;
+          std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
+                    << "Callback is NULL" << std::endl;
           return -1;
         }
       }
 
-      // Documentation inherited
+      // Documentation inherited.
       public: int RunCallback(const std::string &_topic,
                               const std::string &_data)
       {
@@ -136,7 +140,8 @@ namespace ignition
         }
         else
         {
-          std::cerr << "Callback is NULL" << std::endl;
+          std::cerr << "SubscriptionHandler::RunCallback() error: "
+                    << "Callback is NULL" << std::endl;
           return -1;
         }
       }

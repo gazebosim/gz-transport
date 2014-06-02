@@ -79,7 +79,7 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (!this->dataPtr->topics.AdvertisedByMe(_topic))
     return -1;
 
-  // Local subscribers
+  // Local subscribers.
   ISubscriptionHandler_M handlers;
   this->dataPtr->topics.GetSubscriptionHandlers(_topic, handlers);
   for (auto handler : handlers)
@@ -88,10 +88,10 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     if (subscriptionHandlerPtr)
       subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
     else
-      std::cerr << "Subscription handler is NULL" << std::endl;
+      std::cerr << "Node::Publish(): Subscription handler is NULL" << std::endl;
   }
 
-  // Remote subscribers
+  // Remote subscribers.
   if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
   {
     std::string data;
@@ -99,8 +99,9 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     if (this->dataPtr->Publish(_topic, data) != 0)
       return -1;
   }
-  else
-    std::cout << "There are no remote subscribers...SKIP" << std::endl;
+  // Debug output.
+  // else
+  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return 0;
 }
@@ -129,7 +130,7 @@ void Node::Unsubscribe(const std::string &_topic)
       ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());
   }
 
-  // Notify the publisher
+  // Notify the publisher.
   Addresses_M addresses;
   if (!this->dataPtr->topics.GetAdvAddresses(_topic, addresses))
   {
@@ -148,7 +149,7 @@ void Node::Unsubscribe(const std::string &_topic)
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
       // discarded immediately when the socket is closed. That avoids infinite
       // waits if the publisher is disconnected.
-      int lingerVal = 1000;
+      int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
       socket.connect(controlAddress.c_str());

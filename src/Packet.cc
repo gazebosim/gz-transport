@@ -23,6 +23,7 @@
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
 std::string transport::GetGuidStr(const uuid_t &_uuid)
@@ -42,17 +43,17 @@ std::string transport::GetGuidStr(const uuid_t &_uuid)
 }
 
 //////////////////////////////////////////////////
-transport::Header::Header()
+Header::Header()
   : headerLength(0)
 {
 }
 
 //////////////////////////////////////////////////
-transport::Header::Header(const uint16_t _version,
-                          const uuid_t &_guid,
-                          const std::string &_topic,
-                          const uint8_t _type,
-                          const uint16_t _flags)
+Header::Header(const uint16_t _version,
+               const uuid_t &_guid,
+               const std::string &_topic,
+               const uint8_t _type,
+               const uint16_t _flags)
 {
   this->SetVersion(_version);
   this->SetGuid(_guid);
@@ -63,55 +64,55 @@ transport::Header::Header(const uint16_t _version,
 }
 
 //////////////////////////////////////////////////
-uint16_t transport::Header::GetVersion() const
+uint16_t Header::GetVersion() const
 {
   return this->version;
 }
 
 //////////////////////////////////////////////////
-uuid_t& transport::Header::GetGuid()
+uuid_t& Header::GetGuid()
 {
   return this->guid;
 }
 
 //////////////////////////////////////////////////
-uint16_t transport::Header::GetTopicLength() const
+uint16_t Header::GetTopicLength() const
 {
   return this->topicLength;
 }
 
 //////////////////////////////////////////////////
-std::string transport::Header::GetTopic() const
+std::string Header::GetTopic() const
 {
   return this->topic;
 }
 
 //////////////////////////////////////////////////
-uint8_t transport::Header::GetType() const
+uint8_t Header::GetType() const
 {
   return this->type;
 }
 
 //////////////////////////////////////////////////
-uint16_t transport::Header::GetFlags() const
+uint16_t Header::GetFlags() const
 {
   return this->flags;
 }
 
 //////////////////////////////////////////////////
-void transport::Header::SetVersion(const uint16_t _version)
+void Header::SetVersion(const uint16_t _version)
 {
   this->version = _version;
 }
 
 //////////////////////////////////////////////////
-void transport::Header::SetGuid(const uuid_t &_guid)
+void Header::SetGuid(const uuid_t &_guid)
 {
   uuid_copy(this->guid, _guid);
 }
 
 //////////////////////////////////////////////////
-void transport::Header::SetTopic(const std::string &_topic)
+void Header::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
   this->topicLength = this->topic.size();
@@ -119,25 +120,25 @@ void transport::Header::SetTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void transport::Header::SetType(const uint8_t _type)
+void Header::SetType(const uint8_t _type)
 {
   this->type = _type;
 }
 
 //////////////////////////////////////////////////
-void transport::Header::SetFlags(const uint16_t _flags)
+void Header::SetFlags(const uint16_t _flags)
 {
   this->flags = _flags;
 }
 
 //////////////////////////////////////////////////
-int transport::Header::GetHeaderLength()
+int Header::GetHeaderLength()
 {
   return this->headerLength;
 }
 
 //////////////////////////////////////////////////
-void transport::Header::Print()
+void Header::Print()
 {
   std::cout << "\t--------------------------------------\n";
   std::cout << "\tHeader:" << std::endl;
@@ -150,7 +151,7 @@ void transport::Header::Print()
 }
 
 //////////////////////////////////////////////////
-size_t transport::Header::Pack(char *_buffer)
+size_t Header::Pack(char *_buffer)
 {
   if (this->headerLength == 0)
     return 0;
@@ -171,29 +172,29 @@ size_t transport::Header::Pack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t transport::Header::Unpack(const char *_buffer)
+size_t Header::Unpack(const char *_buffer)
 {
-  // Read the version
+  // Read the version.
   memcpy(&this->version, _buffer, sizeof(this->version));
   _buffer += sizeof(this->version);
 
-  // Read the GUID
+  // Read the GUID.
   memcpy(&this->guid, _buffer, sizeof(this->guid));
   _buffer += sizeof(this->guid);
 
-  // Read the topic length
+  // Read the topic length.
   memcpy(&this->topicLength, _buffer, sizeof(this->topicLength));
   _buffer += sizeof(this->topicLength);
 
-  // Read the topic
+  // Read the topic.
   this->topic = std::string(_buffer, _buffer + this->topicLength);
   _buffer += this->topicLength;
 
-  // Read the message type
+  // Read the message type.
   memcpy(&this->type, _buffer, sizeof(this->type));
   _buffer += sizeof(this->type);
 
-  // Read the flags
+  // Read the flags.
   memcpy(&this->flags, _buffer, sizeof(this->flags));
   _buffer += sizeof(this->flags);
 
@@ -202,7 +203,7 @@ size_t transport::Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
-void transport::Header::UpdateHeaderLength()
+void Header::UpdateHeaderLength()
 {
   this->headerLength = sizeof(this->version) + sizeof(this->guid) +
                        sizeof(this->topicLength) + this->topic.size() +
@@ -210,15 +211,15 @@ void transport::Header::UpdateHeaderLength()
 }
 
 //////////////////////////////////////////////////
-transport::AdvMsg::AdvMsg()
+AdvMsg::AdvMsg()
   :  msgLength(0)
 {
 }
 
 //////////////////////////////////////////////////
-transport::AdvMsg::AdvMsg(const Header &_header,
-                          const std::string &_address,
-                          const std::string &_controlAddress)
+AdvMsg::AdvMsg(const Header &_header,
+               const std::string &_address,
+               const std::string &_controlAddress)
 {
   this->SetHeader(_header);
   this->SetAddress(_address);
@@ -227,48 +228,49 @@ transport::AdvMsg::AdvMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-transport::Header& transport::AdvMsg::GetHeader()
+Header& AdvMsg::GetHeader()
 {
   return this->header;
 }
 
 //////////////////////////////////////////////////
-uint16_t transport::AdvMsg::GetAddressLength() const
+uint16_t AdvMsg::GetAddressLength() const
 {
   return this->addressLength;
 }
 
 //////////////////////////////////////////////////
-std::string transport::AdvMsg::GetAddress() const
+std::string AdvMsg::GetAddress() const
 {
   return this->address;
 }
 
 //////////////////////////////////////////////////
-uint16_t transport::AdvMsg::GetControlAddressLength() const
+uint16_t AdvMsg::GetControlAddressLength() const
 {
   return this->controlAddressLength;
 }
 
 //////////////////////////////////////////////////
-std::string transport::AdvMsg::GetControlAddress() const
+std::string AdvMsg::GetControlAddress() const
 {
   return this->controlAddress;
 }
 
 //////////////////////////////////////////////////
-void transport::AdvMsg::SetHeader(const Header &_header)
+void AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
-  if (_header.GetType() != AdvType &&
-      _header.GetType() != AdvSvcType)
+  if (_header.GetType() != AdvType &&_header.GetType() != AdvSvcType)
+  {
     std::cerr << "You're trying to use a "
               << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
               << " or AdvSvcMsg. Are you sure you want to do this?\n";
+  }
 }
 
 //////////////////////////////////////////////////
-void transport::AdvMsg::SetAddress(const std::string &_address)
+void AdvMsg::SetAddress(const std::string &_address)
 {
   this->address = _address;
   this->addressLength = this->address.size();
@@ -276,7 +278,7 @@ void transport::AdvMsg::SetAddress(const std::string &_address)
 }
 
 //////////////////////////////////////////////////
-void transport::AdvMsg::SetControlAddress(const std::string &_address)
+void AdvMsg::SetControlAddress(const std::string &_address)
 {
   this->controlAddress = _address;
   this->controlAddressLength = this->controlAddress.size();
@@ -284,7 +286,7 @@ void transport::AdvMsg::SetControlAddress(const std::string &_address)
 }
 
 //////////////////////////////////////////////////
-size_t transport::AdvMsg::GetMsgLength()
+size_t AdvMsg::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
          sizeof(this->addressLength) + this->addressLength +
@@ -292,7 +294,7 @@ size_t transport::AdvMsg::GetMsgLength()
 }
 
 //////////////////////////////////////////////////
-void transport::AdvMsg::PrintBody()
+void AdvMsg::PrintBody()
 {
   std::cout << "\tBody:" << std::endl;
   std::cout << "\t\tAddr size: " << this->GetAddressLength() << std::endl;
@@ -304,7 +306,7 @@ void transport::AdvMsg::PrintBody()
 }
 
 //////////////////////////////////////////////////
-size_t transport::AdvMsg::Pack(char *_buffer)
+size_t AdvMsg::Pack(char *_buffer)
 {
   if (this->msgLength == 0)
   return 0;
@@ -325,7 +327,7 @@ size_t transport::AdvMsg::Pack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t transport::AdvMsg::UnpackBody(char *_buffer)
+size_t AdvMsg::UnpackBody(char *_buffer)
 {
   // Read the address length.
   memcpy(&this->addressLength, _buffer, sizeof(this->addressLength));
@@ -351,7 +353,7 @@ size_t transport::AdvMsg::UnpackBody(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-void transport::AdvMsg::UpdateMsgLength()
+void AdvMsg::UpdateMsgLength()
 {
   this->msgLength = this->GetHeader().GetHeaderLength() +
     sizeof(this->addressLength) + this->addressLength +

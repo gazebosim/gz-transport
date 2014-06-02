@@ -81,7 +81,7 @@ bool TopicsInfo::HasAdvAddress(const std::string &_topic,
   {
     auto &v = proc.second;
     auto found = std::find_if(v.begin(), v.end(),
-      [=](Address_t _addrInfo)
+      [&](const Address_t &_addrInfo)
       {
         return _addrInfo.addr == _addr;
       });
@@ -124,9 +124,7 @@ bool TopicsInfo::Requested(const std::string &_topic)
 bool TopicsInfo::GetBeacon(const std::string &_topic, zbeacon_t **_beacon)
 {
   if (!this->HasTopic(_topic))
-  {
     return false;
-  }
 
   *_beacon = this->topicsInfo[_topic]->beacon;
   return *_beacon != nullptr;
@@ -174,7 +172,7 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
     // Check that the {_addr, _ctrl} does not exist.
     auto &v = m[_uuid];
     auto found = std::find_if(v.begin(), v.end(),
-      [=](Address_t _addrInfo)
+      [&](const Address_t &_addrInfo)
       {
         return _addrInfo.addr == _addr;
       });
@@ -194,17 +192,16 @@ void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
 {
   for (auto topicInfo : this->topicsInfo)
   {
-    auto m = topicInfo.second;
-    for (auto it = m->addresses.begin();
-         it != m->addresses.end();)
+    auto &m = topicInfo.second;
+    for (auto it = m->addresses.begin(); it != m->addresses.end();)
     {
       auto &v = it->second;
-      v.erase(std::remove_if(v.begin(), v.end(), [=](Address_t _addrInfo)
-      {
-        return _addrInfo.addr == _addr;
-      }), v.end());
-
-      it->second = v;
+      v.erase(std::remove_if(v.begin(), v.end(),
+        [&](const Address_t &_addrInfo)
+        {
+          return _addrInfo.addr == _addr;
+        }),
+        v.end());
 
       if (v.empty() || it->first == _uuid)
         m->addresses.erase(it++);
@@ -255,7 +252,6 @@ void TopicsInfo::SetRepCallback(const std::string &_topic,
 void TopicsInfo::AddReq(const std::string &_topic, const std::string &_data)
 {
   this->CheckAndCreate(_topic);
-
   this->topicsInfo[_topic]->pendingReqs.push_back(_data);
 }
 
@@ -285,20 +281,16 @@ void TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
 {
   this->CheckAndCreate(_topic);
 
+  auto &m = this->topicsInfo[_topic]->subscribers;
   // The process UUID does not exist yet.
-  if (this->topicsInfo[_topic]->subscribers.find(_procUuid) ==
-      this->topicsInfo[_topic]->subscribers.end())
-  {
-    this->topicsInfo[_topic]->subscribers[_procUuid] =
-      std::vector<std::string>();
-  }
+  if (m.find(_procUuid) == m.end())
+    m[_procUuid] = {};
 
   // Add the UUID if were not existing before.
-  if (std::find(this->topicsInfo[_topic]->subscribers[_procUuid].begin(),
-        this->topicsInfo[_topic]->subscribers[_procUuid].end(), _nodeUuid) ==
-          this->topicsInfo[_topic]->subscribers[_procUuid].end())
+  if (std::find(m[_procUuid].begin(), m[_procUuid].end(), _nodeUuid) ==
+      m[_procUuid].end())
   {
-    this->topicsInfo[_topic]->subscribers[_procUuid].push_back(_nodeUuid);
+    m[_procUuid].push_back(_nodeUuid);
   }
 }
 
@@ -320,9 +312,8 @@ void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
     for (auto it = topicInfo.second->subscribers.begin();
          it != topicInfo.second->subscribers.end();)
     {
-      std::vector<std::string> v = it->second;
+      auto &v = it->second;
       v.erase(std::remove(v.begin(), v.end(), _nodeUuid), v.end());
-      it->second = v;
 
       if (v.empty() || it->first == _procUuid)
         topicInfo.second->subscribers.erase(it++);
@@ -337,9 +328,7 @@ void TopicsInfo::GetSubscriptionHandlers(
   const std::string &_topic, ISubscriptionHandler_M &_handlers)
 {
   if (this->HasTopic(_topic))
-  {
     _handlers = this->topicsInfo[_topic]->subscriptionHandlers;
-  }
 }
 
 //////////////////////////////////////////////////
@@ -360,7 +349,7 @@ void TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
-  const std::string &_nodeUuid)
+                                           const std::string &_nodeUuid)
 {
   if (this->HasTopic(_topic))
     this->topicsInfo[_topic]->subscriptionHandlers.erase(_nodeUuid);
@@ -368,7 +357,7 @@ void TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
-  const std::string &_nodeUuid)
+                                        const std::string &_nodeUuid)
 {
   if (!this->HasTopic(_topic))
     return false;

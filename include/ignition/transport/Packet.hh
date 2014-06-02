@@ -185,7 +185,8 @@ namespace ignition
       /// \param[in] _header Message header.
       /// \param[in] _address ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
       /// \param[in] _controlAddress ZeroMQ control address.
-      public: AdvMsg(const Header &_header, const std::string &_address,
+      public: AdvMsg(const Header &_header,
+                     const std::string &_address,
                      const std::string &_controlAddress);
 
       /// \brief Get the message header.

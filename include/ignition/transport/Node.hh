@@ -42,7 +42,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Node(bool _verbose = true);
+      public: Node(bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -59,13 +59,14 @@ namespace ignition
       /// \param[in] _topic Topic to be published.
       /// \param[in] _message protobuf message.
       /// \return 0 when success.
-      public: int Publish(const std::string &_topic, const ProtoMsg &_msg);
+      public: int Publish(const std::string &_topic,
+                          const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback. In this version
       /// the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
-      public: template<class T> void Subscribe(
+      public: template<typename T> void Subscribe(
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
       {
@@ -101,7 +102,7 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback member function.
       /// \param[in] _obj Instance.
-      public: template<class C, class T> void Subscribe(
+      public: template<typename C, typename T> void Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &), C* _obj)
       {

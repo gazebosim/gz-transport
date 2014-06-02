@@ -25,7 +25,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include <vector>
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/TopicsInfo.hh"
 
@@ -51,13 +50,14 @@ namespace ignition
       public: virtual ~NodePrivate();
 
       /// \brief Receive data and control messages.
-      public: void RunReceptionService();
+      public: void RunReceptionTask();
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _data Data to publish.
       /// \return 0 when success.
-      public: int Publish(const std::string &_topic, const std::string &_data);
+      public: int Publish(const std::string &_topic,
+                          const std::string &_data);
 
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdate();
@@ -69,19 +69,44 @@ namespace ignition
       /// subscriber).
       public: void RecvControlUpdate();
 
+      /// \brief Callback executed when the discovery detects new connections.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ address of the publisher.
+      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _uuid Publisher's UUID.
       public: void OnNewConnection(const std::string &_topic,
-        const std::string &_addr, const std::string &_ctrlAddr,
-        const std::string &_uuid);
+                                   const std::string &_addr,
+                                   const std::string &_ctrl,
+                                   const std::string &_uuid);
 
+      /// \brief Callback executed when the discovery detects disconnections.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ address of the publisher.
+      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _uuid Publisher's UUID.
       public: void OnNewDisconnection(const std::string &_topic,
-        const std::string &_addr, const std::string &_ctrlAddr,
-        const std::string &_uuid);
+                                      const std::string &_addr,
+                                      const std::string &_ctrl,
+                                      const std::string &_uuid);
 
+      /// \brief Check if this node is connected to a remote 0MQ address.
+      /// \param[in] _addr 0MQ address to check.
+      /// \return true when this node is remotely connected to the address.
       public: bool Connected(const std::string &_addr);
+
+      /// \brief Register a new remote connection.
+      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _addr 0MQ address of the publisher.
+      /// \param[in] _ctrl 0MQ control address of the publisher.
       public: void AddConnection(const std::string &_uuid,
-        const std::string &_addr, const std::string &_ctrl);
+                                 const std::string &_addr,
+                                 const std::string &_ctrl);
+
+      /// \brief Remove a new remote connection.
+      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _addr 0MQ address of the publisher.
       public: void DelConnection(const std::string &_uuid,
-        const std::string &_addr);
+                                 const std::string &_addr);
 
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
@@ -111,7 +136,7 @@ namespace ignition
       public: std::unique_ptr<zmq::socket_t> publisher;
 
       /// \brief ZMQ socket to receive topic updates.
-      public: std::shared_ptr<zmq::socket_t> subscriber;
+      public: std::unique_ptr<zmq::socket_t> subscriber;
 
       /// \brief ZMQ socket to receive control updates (new connections, ...).
       public: std::unique_ptr<zmq::socket_t> control;
@@ -138,6 +163,7 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access to exit variable.
       private: std::mutex exitMutex;
 
+      /// \brief Remote connections.
       private: Addresses_M connections;
     };
   }

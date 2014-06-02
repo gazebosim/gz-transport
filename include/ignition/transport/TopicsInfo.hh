@@ -143,8 +143,9 @@ namespace ignition
 
       /// \brief Add a new address associated to a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address New address.
-      /// \param[in] _controlAddress New control address.
+      /// \param[in] _addr New address.
+      /// \param[in] _ctrl New control address.
+      /// \param[in] _uuid New UUID.
       public: void AddAdvAddress(const std::string &_topic,
                                  const std::string &_addr,
                                  const std::string &_ctrl,
@@ -152,15 +153,17 @@ namespace ignition
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[in] _address Address to remove.
+      /// \param[in] _addr Address to remove.
+      /// \param[in] _uuid UUID to remove.
       public: void DelAdvAddress(const std::string &_topic,
-                                 const std::string &_address,
+                                 const std::string &_addr,
                                  const std::string &_uuid);
 
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _value New value to be assigned to the requested member.
-      public: void SetRequested(const std::string &_topic, const bool _value);
+      public: void SetRequested(const std::string &_topic,
+                                const bool _value);
 
       /// \brief Set a new advertised value to a given topic.
       /// \param[in] _topic Topic name.
@@ -171,7 +174,6 @@ namespace ignition
       /// \brief Set the beacon used to advertise the topic
       /// \param[in] _topic Topic name.
       /// \param[in] _beacon Beacon used to advertise the topic.
-      /// \return true if there is a beacon associated to the topicS.
       public: void SetBeacon(const std::string &_topic,
                              zbeacon_t *_beacon);
 
@@ -190,13 +192,15 @@ namespace ignition
       /// \brief Add a new service call request to the queue.
       /// \param[in] _topic Topic name.
       /// \param[in] _data Parameters of the request.
-      public: void AddReq(const std::string &_topic, const std::string &_data);
+      public: void AddReq(const std::string &_topic,
+                          const std::string &_data);
 
       /// \brief Add a new service call request to the queue.
       /// \param[in] _topic Topic name.
       /// \param[out] _data Parameters of the request.
       /// \return true if a request was removed.
-      public: bool DelReq(const std::string &_topic, std::string &_data);
+      public: bool DelReq(const std::string &_topic,
+                          std::string &_data);
 
       /// \brief Check if a topic has remote subscribers in this node.
       /// \param[in] _topic Topic name.
@@ -212,11 +216,12 @@ namespace ignition
                                        const std::string &_nodeUuid);
 
       /// \brief Delete a new remote subscriber for a topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _uuid UUID of the subscriber (might be process or node).
-      /// If the UUID belongs to a node, only the entry for this node will be
-      /// removed. However, if the UUUID belongs to a process, all the remote
+      /// If the node UUID is found, only the entry for this node will be
+      /// removed. However, if the UUID process is found, all the remote
       /// subscribers within this process will be removed.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _procUuid UUID Subscriber's process UUID.
+      /// \param[in] _uuid UUID Subscriber's node UUID.
       public: void DelRemoteSubscriber(const std::string &_topic,
                                        const std::string &_procUuid,
                                        const std::string &_uuid);
@@ -232,7 +237,7 @@ namespace ignition
       /// stores the callback and types associated to a subscription.
       /// \param[in] _topic Topic name.
       /// \param[in] _nodeUuid Node's unique identifier.
-      /// \param[in] _handlers Subscription handler.
+      /// \param[in] _msgPtr Subscription handler.
       public: void AddSubscriptionHandler(const std::string &_topic,
                                           const std::string &_nodeUuid,
                                         const ISubscriptionHandlerPtr &_msgPtr);
