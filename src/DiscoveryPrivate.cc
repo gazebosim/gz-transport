@@ -32,8 +32,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid,
-  bool _verbose)
+DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
   : silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     retransmissionInterval(DefRetransmissionInterval),
@@ -93,12 +92,13 @@ DiscoveryPrivate::~DiscoveryPrivate()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   zctx_destroy(&this->ctx);
+  std::cout << "~DiscoveryPrivate()" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunActivityService()
 {
-  while (true)
+  while (!zctx_interrupted)
   {
     this->mutex.lock();
 
@@ -147,7 +147,7 @@ void DiscoveryPrivate::RunActivityService()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunHeartbitService()
 {
-  while (true)
+  while (!zctx_interrupted)
   {
     this->mutex.lock();
     this->SendMsg(HelloType, "", "", "");
@@ -168,7 +168,7 @@ void DiscoveryPrivate::RunHeartbitService()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunReceptionService()
 {
-  while (true)
+  while (!zctx_interrupted)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -193,12 +193,14 @@ void DiscoveryPrivate::RunReceptionService()
         break;
     }
   }
+
+  this->exit = true;
 }
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunRetransmissionService()
 {
-  while (true)
+  while (!zctx_interrupted)
   {
     this->mutex.lock();
 

@@ -17,6 +17,7 @@
 
 #include <robot_msgs/stringmsg.pb.h>
 #include <chrono>
+#include <csignal>
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
@@ -251,6 +252,33 @@ TEST(NodeTest, ClassMemberCallback)
   client.SendSomeData();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
+}
+
+void createInfinitePublisher()
+{
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
+  transport::Node node;
+
+  node.Advertise(topic);
+  while (!node.Interrupted())
+    node.Publish(topic, msg);
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, TerminateSIGINT)
+{
+  std::thread publisherThread(createInfinitePublisher);
+  raise(SIGINT);
+  publisherThread.join();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, TerminateSIGTERM)
+{
+  std::thread publisherThread(createInfinitePublisher);
+  raise(SIGTERM);
+  publisherThread.join();
 }
 
 //////////////////////////////////////////////////

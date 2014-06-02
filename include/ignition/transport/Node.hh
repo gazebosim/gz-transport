@@ -137,6 +137,12 @@ namespace ignition
       /// \param[in] _topic Topic to be unsubscribed.
       public: void Unsubscribe(const std::string &_topic);
 
+      /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
+      /// the function will return true in that case. All the task threads
+      /// will terminate.
+      /// \return true if SIGINT or SIGTERM has been captured.
+      public: bool Interrupted();
+
       /// \internal
       /// \brief Shared pointer to private data.
       protected: NodePrivatePtr dataPtr;

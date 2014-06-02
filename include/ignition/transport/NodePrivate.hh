@@ -132,11 +132,11 @@ namespace ignition
       /// outbound thread.
       public: std::mutex mutex;
 
+      /// \brief When true, the service thread will finish.
+      public: bool exit;
+
       /// \brief Mutex to guarantee exclusive access to exit variable.
       private: std::mutex exitMutex;
-
-      /// \brief When true, the service thread will finish.
-      private: bool exit;
 
       private: Addresses_M connections;
     };

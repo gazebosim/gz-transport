@@ -123,7 +123,7 @@ NodePrivate::~NodePrivate()
 //////////////////////////////////////////////////
 void NodePrivate::RunReceptionService()
 {
-  while (true)
+  while (!this->discovery->Interrupted())
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -146,6 +146,8 @@ void NodePrivate::RunReceptionService()
         break;
     }
   }
+
+  this->exit = true;
 }
 
 //////////////////////////////////////////////////

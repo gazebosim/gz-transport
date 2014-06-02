@@ -176,3 +176,9 @@ void Node::Unsubscribe(const std::string &_topic)
     }
   }
 }
+
+//////////////////////////////////////////////////
+bool Node::Interrupted()
+{
+  return this->dataPtr->exit;
+}
