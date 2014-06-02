@@ -30,11 +30,6 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-// \brief Used to read a DiscoveryInfo tuple.
-#define Addr 0
-#define Ctrl 1
-#define Uuid 2
-
 namespace ignition
 {
   namespace transport
@@ -51,7 +46,8 @@ namespace ignition
       /// \param[in] _procUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose);
+      public: DiscoveryPrivate(const uuid_t &_procUuid,
+                               bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
@@ -59,19 +55,19 @@ namespace ignition
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalid the old topics.
-      public: void RunActivityService();
+      public: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbitService();
+      public: void RunHeartbitTask();
 
       /// \brief Receive discovery messages.
-      public: void RunReceptionService();
+      public: void RunReceptionTask();
 
       /// \brief Each time the client calls Discover(), the discovery will try
       /// to discover the addressing information for the requested topic. This
       /// method will periodically retransmit the request to discover until
       /// the advertiser answers.
-      public: void RunRetransmissionService();
+      public: void RunRetransmissionTask();
 
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdate();
@@ -88,15 +84,18 @@ namespace ignition
       /// \param[in] _ctrl 0MQ control address.
       /// \param[in] _flags Optional flags.
       /// \return 0 when success.
-      public: int SendMsg(uint8_t _type, const std::string &_topic,
-        const std::string &_addr, const std::string &_ctrl, int _flags = 0);
+      public: int SendMsg(uint8_t _type,
+                          const std::string &_topic,
+                          const std::string &_addr,
+                          const std::string &_ctrl,
+                          int _flags = 0);
 
       /// \brief Check if a topic has been advertised by me.
       /// \param[in] _topic Topic name.
       /// \param[in] _uuid Process' UUID.
       /// \return true if the topic is advertised by any of my nodes.
       public: bool AdvertisedByProc(const std::string &_topic,
-        const std::string &_uuid);
+                                    const std::string &_uuid);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
@@ -118,11 +117,9 @@ namespace ignition
                                    const std::string &_uuid);
 
       /// \brief Remove an address associated to a given topic.
-      /// \param[in] _topic Topic name.
       /// \param[in] _address Address to remove.
       /// \param[in] _uuid Process' UUID of the publisher.
-      public: void DelTopicAddress(const std::string &_topic,
-                                   const std::string &_addr,
+      public: void DelTopicAddress(const std::string &_addr,
                                    const std::string &_uuid);
 
       /// \brief Default activity interval value.
@@ -185,8 +182,6 @@ namespace ignition
 
       /// \brief Topics requested to discover but with no information yet.
       public: std::vector<std::string> unknownTopics;
-
-      public: std::map<std::string, Addresses_M> advertised;
 
       /// \brief Addressing information. For each topic we store a map that
       /// contains the process UUID as key and the 0MQ address and 0MQ control

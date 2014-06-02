@@ -47,7 +47,8 @@ namespace ignition
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       public: void Advertise(const std::string &_topic,
-        const std::string &_addr, const std::string &_ctrl);
+                             const std::string &_addr,
+                             const std::string &_ctrl);
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic requested.
@@ -59,7 +60,8 @@ namespace ignition
       /// \param[in] _addr 0MQ Address of the node unadvertising the topic.
       /// \param[in] _ctrl 0MQ Control addr of the node unadvertising the topic.
       public: void Unadvertise(const std::string &_topic,
-        const std::string &_addr, const std::string &_ctrl);
+                               const std::string &_addr,
+                               const std::string &_ctrl);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
@@ -116,7 +118,7 @@ namespace ignition
       /// Each time a new node is connected, the callback will be execute. This
       /// version uses a member functions as callback.
       /// \param[in] _cb Function callback.
-      public: template<class C> void SetConnectionsCb(
+      public: template<typename C> void SetConnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
           const std::string &, const std::string &), C* _obj)
       {
@@ -135,7 +137,7 @@ namespace ignition
       /// Each time a new node is disconnected, the callback will be execute.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback.
-      public: template<class C> void SetDisconnectionsCb(
+      public: template<typename C> void SetDisconnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
           const std::string &, const std::string &), C* _obj)
       {

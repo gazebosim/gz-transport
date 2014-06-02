@@ -54,19 +54,19 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
 
   // Start the thread that receives discovery information.
   this->threadReception =
-    new std::thread(&DiscoveryPrivate::RunReceptionService, this);
+    new std::thread(&DiscoveryPrivate::RunReceptionTask, this);
 
   // Start the thread that sends heartbeats.
   this->threadHeartbit =
-    new std::thread(&DiscoveryPrivate::RunHeartbitService, this);
+    new std::thread(&DiscoveryPrivate::RunHeartbitTask, this);
 
   // Start the thread that checks the topic information validity.
   this->threadActivity =
-    new std::thread(&DiscoveryPrivate::RunActivityService, this);
+    new std::thread(&DiscoveryPrivate::RunActivityTask, this);
 
   // Start the thread that retransmits the discovery requests.
   this->threadRetransmission =
-    new std::thread(&DiscoveryPrivate::RunRetransmissionService, this);
+    new std::thread(&DiscoveryPrivate::RunRetransmissionTask, this);
 
   if (this->verbose)
     this->PrintCurrentState();
@@ -92,11 +92,13 @@ DiscoveryPrivate::~DiscoveryPrivate()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   zctx_destroy(&this->ctx);
-  std::cout << "~DiscoveryPrivate()" << std::endl;
+
+  // Debug
+  // std::cout << "~DiscoveryPrivate()" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunActivityService()
+void DiscoveryPrivate::RunActivityTask()
 {
   while (!zctx_interrupted)
   {
@@ -113,11 +115,11 @@ void DiscoveryPrivate::RunActivityService()
       std::chrono::duration<double> elapsed = now - it->second;
 
       // This publisher has expired.
-      if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()
-          > this->silenceInterval)
+      if (std::chrono::duration_cast<std::chrono::milliseconds>
+           (elapsed).count() > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        this->DelTopicAddress("", "", it->first);
+        this->DelTopicAddress("", it->first);
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -145,7 +147,7 @@ void DiscoveryPrivate::RunActivityService()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunHeartbitService()
+void DiscoveryPrivate::RunHeartbitTask()
 {
   while (!zctx_interrupted)
   {
@@ -166,7 +168,7 @@ void DiscoveryPrivate::RunHeartbitService()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunReceptionService()
+void DiscoveryPrivate::RunReceptionTask()
 {
   while (!zctx_interrupted)
   {
@@ -198,7 +200,7 @@ void DiscoveryPrivate::RunReceptionService()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunRetransmissionService()
+void DiscoveryPrivate::RunRetransmissionTask()
 {
   while (!zctx_interrupted)
   {
@@ -250,9 +252,6 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
 int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
 {
   Header header;
-  AdvMsg advMsg;
-  std::string address;
-  std::string controlAddress;
   char *pBody = _msg;
 
   // Create the header from the raw bytes.
@@ -260,14 +259,14 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
   pBody += header.GetHeaderLength();
 
   std::string topic = header.GetTopic();
-  std::string recvProcUuid = GetGuidStr(header.GetGuid());
+  std::string recvUuid = GetGuidStr(header.GetGuid());
 
   // Discard our own discovery messages.
-  if (recvProcUuid == this->uuidStr)
+  if (recvUuid == this->uuidStr)
     return 0;
 
   // Update timestamp.
-  this->activity[recvProcUuid] = std::chrono::steady_clock::now();
+  this->activity[recvUuid] = std::chrono::steady_clock::now();
 
   if (this->verbose)
     header.Print();
@@ -277,16 +276,16 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
     case AdvType:
     {
       // Read the address.
+      AdvMsg advMsg;
       advMsg.UnpackBody(pBody);
-      address = advMsg.GetAddress();
-      controlAddress = advMsg.GetControlAddress();
+      auto recvAddr = advMsg.GetAddress();
+      auto recvCtrl = advMsg.GetControlAddress();
 
       if (this->verbose)
         advMsg.PrintBody();
 
       // Register an advertised address for the topic.
-      bool added =
-        this->AddTopicAddress(topic, address, controlAddress, recvProcUuid);
+      bool added = this->AddTopicAddress(topic, recvAddr, recvCtrl, recvUuid);
 
       // Remove topic from unkown topics.
       this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
@@ -295,7 +294,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       if (added && this->connectionCb)
       {
         // Execute the client's callback.
-        this->connectionCb(topic, address, controlAddress, recvProcUuid);
+        this->connectionCb(topic, recvAddr, recvCtrl, recvUuid);
       }
       break;
     }
@@ -321,34 +320,35 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
     case ByeType:
     {
       // Remove the activity entry for this publisher.
-      this->activity.erase(recvProcUuid);
+      this->activity.erase(recvUuid);
 
       if (this->disconnectionCb)
       {
         // Notify the new disconnection.
-        this->disconnectionCb("", "", "", recvProcUuid);
+        this->disconnectionCb("", "", "", recvUuid);
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress("", "", recvProcUuid);
+      this->DelTopicAddress("", recvUuid);
 
       break;
     }
     case UnadvType:
     {
       // Read the address.
+      AdvMsg advMsg;
       advMsg.UnpackBody(pBody);
-      address = advMsg.GetAddress();
-      controlAddress = advMsg.GetControlAddress();
+      auto recvAddr = advMsg.GetAddress();
+      auto recvCtrl = advMsg.GetControlAddress();
 
       if (this->disconnectionCb)
       {
         // Notify the new disconnection.
-        this->disconnectionCb(topic, address, controlAddress, recvProcUuid);
+        this->disconnectionCb(topic, recvAddr, recvCtrl, recvUuid);
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress(topic, address, recvProcUuid);
+      this->DelTopicAddress(recvAddr, recvUuid);
 
       break;
     }
@@ -409,8 +409,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 
   if (this->verbose)
   {
-    std::cout << "\t* Sending " << MsgTypesStr[_type] << " msg [" << _topic
-              << "]" << std::endl;
+    std::cout << "\t* Sending " << MsgTypesStr[_type]
+              << " msg [" << _topic << "]" << std::endl;
   }
 
   return 0;
@@ -418,7 +418,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
-  const std::string &_uuid)
+                                        const std::string &_uuid)
 {
   // I do not have the topic.
   if (this->info.find(_topic) == this->info.end())
@@ -438,12 +438,9 @@ std::string DiscoveryPrivate::GetHostAddr()
 bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_uuid)
 {
-  // The topic does not exist
+  // The topic does not exist.
   if (this->info.find(_topic) == this->info.end())
-  {
-    Addresses_M addresses;
-    this->info[_topic] = addresses;
-  }
+    this->info[_topic] = {};
 
   // Check if the process uuid exists.
   auto &m = this->info[_topic];
@@ -452,7 +449,7 @@ bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
     // Check that the {_addr, _ctrl} does not exist.
     auto &v = m[_uuid];
     auto found = std::find_if(v.begin(), v.end(),
-      [=](Address_t _addrInfo)
+      [&](const Address_t &_addrInfo)
       {
         return _addrInfo.addr == _addr;
       });
@@ -468,21 +465,22 @@ bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::DelTopicAddress(const std::string &/*_topic*/,
-  const std::string &_addr, const std::string &_uuid)
+void DiscoveryPrivate::DelTopicAddress(const std::string &_addr,
+                                       const std::string &_uuid)
 {
+  // Each topic.
   for (auto topicInfo : this->info)
   {
-    auto m = topicInfo.second;
+    auto &m = topicInfo.second;
+    // Each proccessUUID->{address, controlAddress}.
     for (auto it = m.begin(); it != m.end();)
     {
+      // Vector of 0MQ known addresses for a given topic.
       auto &v = it->second;
-      v.erase(std::remove_if(v.begin(), v.end(), [=](Address_t _addrInfo)
+      v.erase(std::remove_if(v.begin(), v.end(), [&](const Address_t &_addrInfo)
       {
         return _addrInfo.addr == _addr;
       }), v.end());
-
-      it->second = v;
 
       if (v.empty() || it->first == _uuid)
         m.erase(it++);

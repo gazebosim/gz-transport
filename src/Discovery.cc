@@ -38,8 +38,8 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::Advertise(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl)
+void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
+                          const std::string &_ctrl)
 {
   assert(_topic != "");
 
@@ -89,7 +89,7 @@ void Discovery::Discover(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
-  const std::string &_ctrl)
+                            const std::string &_ctrl)
 {
   assert(_topic != "");
 
@@ -103,7 +103,7 @@ void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
   this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl);
 
   // Remove the topic information.
-  this->dataPtr->DelTopicAddress(_topic, _addr, this->dataPtr->uuidStr);
+  this->dataPtr->DelTopicAddress(_addr, this->dataPtr->uuidStr);
 }
 
 //////////////////////////////////////////////////
