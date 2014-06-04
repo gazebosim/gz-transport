@@ -330,13 +330,8 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       return;
 
     // Topic out of scope.
-    if (_scope == Scope::Thread  ||
-        _scope == Scope::Process ||
-        (_scope == Scope::Host && this->hostAddr != publisherHost))
-
-    {
+    if (_scope == Scope::Host && this->hostAddr != publisherHost)
       return;
-    }
 
     try
     {

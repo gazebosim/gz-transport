@@ -54,6 +54,15 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
+  // Register the advertised address for the topic.
+  this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
+    this->dataPtr->myControlAddress, this->dataPtr->guidStr, this->nodeUuidStr,
+    _scope);
+
+  // Do not advertise a message outside if the scope is restricted.
+  if (_scope == Scope::Thread || _scope == Scope::Process)
+    return;
+
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->nodeUuidStr, _scope);
 }
@@ -79,15 +88,12 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (!this->dataPtr->topics.AdvertisedByMe(_topic))
     return -1;
 
-  /*Address_t addrInfo;
+  Address_t addrInfo;
   if (!this->dataPtr->topics.GetInfo(_topic, this->nodeUuidStr, addrInfo))
   {
     std::cout << "Node::Publish() error: Don't have information for topic ["
               << _topic << "]" << std::endl;
   }
-
-  if (addrInfo.scope == Scope::Process)
-    std::cout << "Scope is process!" << std::endl;*/
 
   // Local subscribers.
   ISubscriptionHandler_M handlers;
@@ -100,6 +106,7 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     else
       std::cerr << "Node::Publish(): Subscription handler is NULL" << std::endl;
   }
+
 
   // Remote subscribers.
   if (this->dataPtr->topics.HasRemoteSubscribers(_topic))

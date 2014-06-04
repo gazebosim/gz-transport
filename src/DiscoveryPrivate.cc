@@ -52,6 +52,8 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
   zbeacon_subscribe(this->beacon, NULL, 0);
 
+  this->hostname = this->GetHostAddr();
+
   // Start the thread that receives discovery information.
   this->threadReception =
     new std::thread(&DiscoveryPrivate::RunReceptionTask, this);
@@ -241,15 +243,19 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   if (this->verbose)
     std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
 
-  if (this->DispatchDiscoveryMsg(reinterpret_cast<char*>(&data[0])) != 0)
+  if (this->DispatchDiscoveryMsg(std::string(srcAddr),
+        reinterpret_cast<char*>(&data[0])) != 0)
+  {
     std::cerr << "Something went wrong parsing a discovery message\n";
+  }
 
   zstr_free(&srcAddr);
   zframe_destroy(&frame);
 }
 
 //////////////////////////////////////////////////
-int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
+int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
+                                           char *_msg)
 {
   Header header;
   char *pBody = _msg;
@@ -309,6 +315,14 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
       {
         for (auto nodeInfo : this->info[topic][this->uuidStr])
         {
+          // Check scope of the topic.
+          if ((nodeInfo.scope == Scope::Thread)  ||
+              (nodeInfo.scope == Scope::Process) ||
+              (nodeInfo.scope == Scope::Host && _fromIp != this->hostname))
+          {
+            return 0;
+          }
+
           // Answer an ADVERTISE message.
           this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
             nodeInfo.nUuid, nodeInfo.scope);

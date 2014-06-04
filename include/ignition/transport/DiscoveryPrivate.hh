@@ -74,8 +74,9 @@ namespace ignition
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _msg Received message.
+      /// \param[in] _fromIp IP address of the message sender.
       /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(char *_msg);
+      public: int DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -154,6 +155,8 @@ namespace ignition
 
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
+
+      public: std::string hostname;
 
       /// \brief Process UUID.
       public: uuid_t uuid;
