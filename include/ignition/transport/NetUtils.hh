@@ -32,7 +32,7 @@ namespace ignition
       /// \brief Cast an IP address into an int.
       /// \param[in] _ip IP address in string format.
       /// \return an int where each byte contains a field of the IP address.
-      public: static uint32_t IpToInt(const std::string &_ip);
+      /*public: static uint32_t IpToInt(const std::string &_ip);
 
       /// \brief Cast an int into a string IP address.
       /// \param[in] _ip IP address in int format.
@@ -48,6 +48,11 @@ namespace ignition
       public: static bool IsIpInRange(const std::string &_ip,
                                       const std::string &_network,
                                       const std::string &_mask);
+
+      /// \brief Return the network mask of the main network interface.
+      /// \return The netmask. Ex: "255.255.255.0"
+      /// ToDo(caguero) Make it portable.
+      public: static std::string GetNetmask();*/
 
       /// \brief Return the ip address of a 0MQ endpoint. Ex: 'tcp://10.0.0.1'
       /// \param[in] _addr 0MQ address.

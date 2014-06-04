@@ -66,12 +66,12 @@ NodePrivate::NodePrivate(bool _verbose)
   {
     // Set the hostname's ip address.
     this->hostAddr = this->discovery->GetHostAddr();
-    // ToDo (caguero): Read this from the system.
-    std::string hostNetmask = "255.255.255.0";
+    // Read network configuration.
+    /* std::string hostNetmask = NetUtils::GetNetmask();
     uint32_t ipAddr = NetUtils::IpToInt(this->hostAddr);
     uint32_t netmask = NetUtils::IpToInt(hostNetmask);
     uint32_t net_lower = (ipAddr & netmask);
-    this->hostSubnet = NetUtils::IntToIp(net_lower);
+    this->hostSubnet = NetUtils::IntToIp(net_lower); */
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -96,6 +96,7 @@ NodePrivate::NodePrivate(bool _verbose)
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
+    // std::cout << "Current subnet: " << this->hostSubnet << std::endl;
     std::cout << "GUID: " << this->guidStr << std::endl;
   }
 
@@ -328,13 +329,11 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     if (!NetUtils::ZmqToIp(_addr, publisherHost))
       return;
 
-    std::string publisherSubnet = "192.168.1.0";
-
     // Topic out of scope.
     if (_scope == Scope::Thread  ||
         _scope == Scope::Process ||
-        (_scope == Scope::Host && this->hostAddr != publisherHost) ||
-        (_scope == Scope::Lan && this->hostSubnet != publisherSubnet))
+        (_scope == Scope::Host && this->hostAddr != publisherHost))
+
     {
       return;
     }

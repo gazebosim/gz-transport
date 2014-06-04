@@ -24,25 +24,25 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-uint32_t NetUtils::IpToInt(const std::string &_ip)
+/*uint32_t NetUtils::IpToInt(const std::string &_ip)
 {
   int a, b, c, d;
   uint32_t addr = 0;
 
-  /*const std::regex ipPattern("(\\d{1,3}):(\\d{1,3}):(\\d{1,3}):(\\d{1,3})");
+  // const std::regex ipPattern("(\\d{1,3}):(\\d{1,3}):(\\d{1,3}):(\\d{1,3})");
 
   // Sequence of sub-matches.
-  std::match_results<std::string::const_iterator> result;
+  // std::match_results<std::string::const_iterator> result;
 
   // Match the IP address with the regular expression.
-  bool valid = std::regex_match(_ip, result, ipPattern);
+  // bool valid = std::regex_match(_ip, result, ipPattern);
 
-  if (!valid)
-  {
-    std::cerr << "NetUtils::IpToInt() error: [" << _ip << "] is not a valid "
-              << "IP address." << std::endl;
-    return 0;
-  }*/
+  // if (!valid)
+  // {
+  //   std::cerr << "NetUtils::IpToInt() error: [" << _ip << "] is not a valid "
+  //             << "IP address." << std::endl;
+  //   return 0;
+  // }
 
   if (sscanf(_ip.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d) != 4)
     return 0;
@@ -80,6 +80,12 @@ bool NetUtils::IsIpInRange(const std::string &_ip,
 
   return ip_addr >= net_lower && ip_addr <= net_upper;
 }
+
+//////////////////////////////////////////////////
+std::string NetUtils::GetNetmask()
+{
+  return std::string("255.255.255.0");
+}*/
 
 //////////////////////////////////////////////////
 bool NetUtils::ZmqToIp(const std::string &_addr, std::string &_ip)

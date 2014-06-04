@@ -139,7 +139,7 @@ namespace ignition
       public: std::string hostAddr;
 
       /// \brief Subnet of this host. Ex: 192.168.1.0
-      public: std::string hostSubnet;
+      // public: std::string hostSubnet;
 
       /// \brief Discovery service.
       public: std::unique_ptr<Discovery> discovery;

@@ -24,7 +24,7 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 /// \brief Checking the functions for dealing with IPs and subnets.
-TEST(NodePrivateTest, Subnets)
+/*TEST(NodePrivateTest, Subnets)
 {
   EXPECT_TRUE(
     NetUtils::IsIpInRange("192.168.1.1", "192.168.1.0", "255.255.255.0"));
@@ -44,7 +44,7 @@ TEST(NodePrivateTest, Subnets)
     NetUtils::IsIpInRange("0.0.0.1", "0.0.0.0", "0.0.0.0"));
   EXPECT_FALSE(
     NetUtils::IsIpInRange("192.168.1.2", "10.0.0.1", "255.255.255.255"));
-}
+}*/
 
 //////////////////////////////////////////////////
 /// \brief Checking the 0MQ utilites.
