@@ -24,6 +24,7 @@
 #include <thread>
 #include <vector>
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
@@ -65,13 +66,12 @@ NodePrivate::NodePrivate(bool _verbose)
   {
     // Set the hostname's ip address.
     this->hostAddr = this->discovery->GetHostAddr();
+    // ToDo (caguero): Read this from the system.
     std::string hostNetmask = "255.255.255.0";
-    uint32_t ipAddr = IPToUInt(this->hostAddr);
-    uint32_t netmask = IPToUInt(hostNetmask);
+    uint32_t ipAddr = NetUtils::IpToInt(this->hostAddr);
+    uint32_t netmask = NetUtils::IpToInt(hostNetmask);
     uint32_t net_lower = (ipAddr & netmask);
-    std::cout << "Net lower: " << std::hex << net_lower << std::endl;
-    this->hostSubnet = this->UIntToIP(net_lower);
-    std::cout << "Subnet: " << this->hostSubnet << std::endl;
+    this->hostSubnet = NetUtils::IntToIp(net_lower);
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -324,9 +324,11 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     if (this->verbose)
       std::cout << "Connecting to a remote publisher" << std::endl;
 
+    std::string publisherHost;
+    if (!NetUtils::ZmqToIp(_addr, publisherHost))
+      return;
 
-    std::string publisherHost = "";
-    std::string publisherSubnet = "";
+    std::string publisherSubnet = "192.168.1.0";
 
     // Topic out of scope.
     if (_scope == Scope::Thread  ||
@@ -476,46 +478,4 @@ void NodePrivate::DelConnection(const std::string &_pUuid,
     else
       ++it;
   }
-}
-
-//////////////////////////////////////////////////
-uint32_t NodePrivate::IPToUInt(const std::string &_ip)
-{
-  int a, b, c, d;
-  uint32_t addr = 0;
-
-  if (sscanf(_ip.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d) != 4)
-    return 0;
-
-  addr = a << 24;
-  addr |= b << 16;
-  addr |= c << 8;
-  addr |= d;
-  return addr;
-}
-
-//////////////////////////////////////////////////
-std::string NodePrivate::UIntToIP(uint32_t _ipNum)
-{
-  auto a = (_ipNum >> 24) & 0xFF;
-  auto b = (_ipNum >> 16) & 0xFF;
-  auto c = (_ipNum >> 8) & 0xFF;
-  auto d = _ipNum & 0xFF;
-
-  return std::to_string(a) + "." + std::to_string(b) + "." + std::to_string(c) +
-         "." + std::to_string(d);
-}
-
-//////////////////////////////////////////////////
-bool NodePrivate::IsIPInRange(const std::string &_ip,
-  const std::string &_network, const std::string &_mask)
-{
-  auto ip_addr = IPToUInt(_ip);
-  auto network_addr = IPToUInt(_network);
-  auto mask_addr = IPToUInt(_mask);
-
-  auto net_lower = (network_addr & mask_addr);
-  auto net_upper = (net_lower | (~mask_addr));
-
-  return ip_addr >= net_lower && ip_addr <= net_upper;
 }

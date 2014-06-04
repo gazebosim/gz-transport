@@ -72,21 +72,6 @@ TEST(NodePrivateTest, Connections)
   EXPECT_FALSE(node.Connected(addr4));
 }
 
-TEST(NodePrivateTest, Subnets)
-{
-  transport::NodePrivate node;
-
-  EXPECT_TRUE(node.IsIPInRange("192.168.1.1", "192.168.1.0", "255.255.255.0"));
-  EXPECT_FALSE(node.IsIPInRange("192.168.1.1", "192.168.1.2", "255.255.255.255"));
-  EXPECT_FALSE(node.IsIPInRange("192.168.1.3", "192.168.1.2", "255.255.255.255"));
-  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "192.168.1.0", "255.255.255.0"));
-  EXPECT_TRUE(node.IsIPInRange("220.1.1.22", "220.1.1.22", "255.255.255.255"));
-  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "220.1.1.23", "255.255.255.255"));
-  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "220.1.1.21", "255.255.255.255"));
-  EXPECT_TRUE(node.IsIPInRange("0.0.0.1", "0.0.0.0", "0.0.0.0"));
-  EXPECT_FALSE(node.IsIPInRange("192.168.1.2", "10.0.0.1", "255.255.255.255"));
-}
-
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {

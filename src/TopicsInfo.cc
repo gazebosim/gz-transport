@@ -70,6 +70,34 @@ bool TopicsInfo::GetAdvAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
+bool TopicsInfo::GetInfo(const std::string &_topic,
+                         const std::string &_nUuid,
+                         Address_t &_info)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  auto &m = this->topicsInfo[_topic]->addresses;
+  for (auto proc : m)
+  {
+    auto &v = proc.second;
+    auto found = std::find_if(v.begin(), v.end(),
+      [&](const Address_t &_addrInfo)
+      {
+        return _addrInfo.nUuid == _nUuid;
+      });
+    // Address found!
+    if (found != v.end())
+    {
+      _info = *found;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//////////////////////////////////////////////////
 bool TopicsInfo::HasAdvAddress(const std::string &_topic,
   const std::string &_addr)
 {

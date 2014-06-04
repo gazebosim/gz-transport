@@ -311,7 +311,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(char *_msg)
         {
           // Answer an ADVERTISE message.
           this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
-            nodeInfo.nUuid, Scope::All);
+            nodeInfo.nUuid, nodeInfo.scope);
         }
       }
 

@@ -344,7 +344,7 @@ void AdvMsg::PrintBody()
             << this->GetControlAddress() << std::endl;
   std::cout << "\t\tNode UUID: "
             << this->GetNodeUuid() << std::endl;
-  //std::cout << "\t\tTopic Scope: "
+  // std::cout << "\t\tTopic Scope: "
   //          << this->GetScope() << std::endl;
 }
 

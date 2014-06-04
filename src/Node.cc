@@ -79,6 +79,16 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (!this->dataPtr->topics.AdvertisedByMe(_topic))
     return -1;
 
+  Address_t addrInfo;
+  if (!this->dataPtr->topics.GetInfo(_topic, this->nodeUuidStr, addrInfo))
+  {
+    std::cout << "Node::Publish() error: Don't have information for topic ["
+              << _topic << "]" << std::endl;
+  }
+
+  if (addrInfo.scope == Scope::Process)
+    std::cout << "Scope is process!" << std::endl;
+
   // Local subscribers.
   ISubscriptionHandler_M handlers;
   this->dataPtr->topics.GetSubscriptionHandlers(_topic, handlers);

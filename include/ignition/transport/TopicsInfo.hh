@@ -92,6 +92,10 @@ namespace ignition
       public: bool GetAdvAddresses(const std::string &_topic,
                                    Addresses_M &_addresses);
 
+      public: bool GetInfo(const std::string &_topic,
+                           const std::string &_nUuid,
+                           Address_t &_info);
+
       /// \brief Return if an address is registered associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr Address to check.

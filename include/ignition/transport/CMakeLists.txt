@@ -3,6 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   Discovery.hh
   DiscoveryPrivate.hh
+  NetUtils.hh
   Node.hh
   NodePrivate.hh
   Packet.hh

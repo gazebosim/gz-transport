@@ -120,14 +120,6 @@ namespace ignition
       public: void DelConnection(const std::string &_pUuid,
                                  const std::string &_addr);
 
-      uint32_t IPToUInt(const std::string &_ip);
-
-      std::string UIntToIP(uint32_t _ipNum);
-
-      bool IsIPInRange(const std::string &_ip,
-                       const std::string &_network,
-                       const std::string &_mask);
-
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
 

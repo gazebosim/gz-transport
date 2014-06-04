@@ -90,9 +90,7 @@ TEST(DiscZmqTest, PubSubTwoProcsTwoNodes)
   pid_t pid = fork();
 
   if (pid == 0)
-  {
     runSubscriber();
-  }
   else
   {
     robot_msgs::StringMsg msg;
