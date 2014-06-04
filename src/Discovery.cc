@@ -39,17 +39,19 @@ Discovery::~Discovery()
 
 //////////////////////////////////////////////////
 void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
-                          const std::string &_ctrl)
+                          const std::string &_ctrl, const std::string &_nUuid,
+                          const Scope &_scope)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Add the addressing information (local node).
-  this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl, this->dataPtr->uuidStr);
+  this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl,
+    this->dataPtr->uuidStr, _nUuid, _scope);
 
   // Broadcast my topic information.
-  this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl);
+  this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
@@ -60,7 +62,7 @@ void Discovery::Discover(const std::string &_topic)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Broadcast a discovery request for this topic.
-  this->dataPtr->SendMsg(SubType, _topic, "", "");
+  this->dataPtr->SendMsg(SubType, _topic, "", "", "", Scope::All);
 
   // I do not have information about this topic.
   if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
@@ -81,7 +83,8 @@ void Discovery::Discover(const std::string &_topic)
       for (auto node : proc.second)
       {
         // Execute the user's callback.
-        this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first);
+        this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first,
+          node.nUuid, node.scope);
       }
     }
   }
@@ -100,7 +103,7 @@ void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
     return;
 
   // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl);
+  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl, "", Scope::All);
 
   // Remove the topic information.
   this->dataPtr->DelTopicAddress(_addr, this->dataPtr->uuidStr);

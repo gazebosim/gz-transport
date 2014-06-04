@@ -25,7 +25,7 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 /// \brief Checking the helper functions for adding/deleting remote connections.
-TEST(DiszZmqTest, Connections)
+TEST(NodePrivateTest, Connections)
 {
   std::string addr1 = "addr1";
   std::string addr2 = "addr2";
@@ -35,21 +35,24 @@ TEST(DiszZmqTest, Connections)
   std::string ctrl2 = "ctrl2";
   std::string ctrl3 = "ctrl3";
   std::string ctrl4 = "ctrl4";
-  std::string uuid1 = "uuid1";
-  std::string uuid2 = "uuid2";
-  std::string uuid3 = "uuid3";
-  std::string uuid4 = "uuid4";
+  std::string pUuid1 = "pUuid1";
+  std::string pUuid2 = "pUuid2";
+  std::string nUuid1 = "nUuid1";
+  std::string nUuid2 = "nUuid2";
+  std::string nUuid3 = "nUuid3";
+  std::string nUuid4 = "nUuid4";
+  transport::Scope scope = transport::Scope::All;
 
   transport::NodePrivate node;
 
   EXPECT_FALSE(node.Connected(addr1));
-  node.AddConnection(uuid1, addr1, ctrl1);
+  node.AddConnection(pUuid1, addr1, ctrl1, nUuid1, scope);
   EXPECT_TRUE(node.Connected(addr1));
-  node.AddConnection(uuid1, addr2, ctrl2);
+  node.AddConnection(pUuid1, addr2, ctrl2, nUuid2, scope);
   EXPECT_TRUE(node.Connected(addr2));
-  node.AddConnection(uuid2, addr3, ctrl3);
+  node.AddConnection(pUuid2, addr3, ctrl3, nUuid3, scope);
   EXPECT_TRUE(node.Connected(addr3));
-  node.AddConnection(uuid2, addr4, ctrl4);
+  node.AddConnection(pUuid2, addr4, ctrl4, nUuid4, scope);
   EXPECT_TRUE(node.Connected(addr4));
 
   node.DelConnection("", addr1);
@@ -62,11 +65,26 @@ TEST(DiszZmqTest, Connections)
   EXPECT_FALSE(node.Connected(addr2));
   EXPECT_TRUE(node.Connected(addr3));
   EXPECT_TRUE(node.Connected(addr4));
-  node.DelConnection(uuid2, "");
+  node.DelConnection(pUuid2, "");
   EXPECT_FALSE(node.Connected(addr1));
   EXPECT_FALSE(node.Connected(addr2));
   EXPECT_FALSE(node.Connected(addr3));
   EXPECT_FALSE(node.Connected(addr4));
+}
+
+TEST(NodePrivateTest, Subnets)
+{
+  transport::NodePrivate node;
+
+  EXPECT_TRUE(node.IsIPInRange("192.168.1.1", "192.168.1.0", "255.255.255.0"));
+  EXPECT_FALSE(node.IsIPInRange("192.168.1.1", "192.168.1.2", "255.255.255.255"));
+  EXPECT_FALSE(node.IsIPInRange("192.168.1.3", "192.168.1.2", "255.255.255.255"));
+  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "192.168.1.0", "255.255.255.0"));
+  EXPECT_TRUE(node.IsIPInRange("220.1.1.22", "220.1.1.22", "255.255.255.255"));
+  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "220.1.1.23", "255.255.255.255"));
+  EXPECT_FALSE(node.IsIPInRange("220.1.1.22", "220.1.1.21", "255.255.255.255"));
+  EXPECT_TRUE(node.IsIPInRange("0.0.0.1", "0.0.0.0", "0.0.0.0"));
+  EXPECT_FALSE(node.IsIPInRange("192.168.1.2", "10.0.0.1", "255.255.255.255"));
 }
 
 //////////////////////////////////////////////////

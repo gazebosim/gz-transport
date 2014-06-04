@@ -43,17 +43,26 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 TEST(PacketTest, BasicTopicsInfoAPI)
 {
   transport::TopicsInfo topics;
-  std::string topic = "foo";
-  std::string addr1 = "tcp://10.0.0.1:6000";
-  std::string ctrl1 = "tcp://10.0.0.1:6001";
-  std::string addr2 = "tcp://10.0.0.1:6002";
-  std::string ctrl2 = "tcp://10.0.0.1:6003";
-  std::string addr3 = "tcp://10.0.0.1:6004";
-  std::string ctrl3 = "tcp://10.0.0.1:6005";
-  std::string addr4 = "tcp://10.0.0.1:6006";
-  std::string ctrl4 = "tcp://10.0.0.1:6007";
-  std::string uuid1 = "uuid1";
-  std::string uuid2 = "uuid2";
+  std::string topic  = "foo";
+  std::string addr1  = "tcp://10.0.0.1:6000";
+  std::string ctrl1  = "tcp://10.0.0.1:60011";
+  std::string nUuid1 = "node-UUID-1";
+  transport::Scope scope1 = transport::Scope::Thread;
+  std::string addr2  = "tcp://10.0.0.1:6002";
+  std::string ctrl2  = "tcp://10.0.0.1:60033";
+  std::string nUuid2  = "node-UUID-2";
+  transport::Scope scope2 = transport::Scope::Process;
+  std::string addr3  = "tcp://10.0.0.1:6004";
+  std::string ctrl3  = "tcp://10.0.0.1:60055";
+  std::string nUuid3  = "node-UUID-3";
+  transport::Scope scope3 = transport::Scope::Host;
+  std::string addr4  = "tcp://10.0.0.1:6006";
+  std::string ctrl4  = "tcp://10.0.0.1:60077";
+  std::string nUuid4  = "node-UUID-4";
+  transport::Scope scope4 = transport::Scope::Lan;
+  std::string pUuid1 = "process-UUID-1";
+  std::string pUuid2  = "process-UUID-2";
+
   transport::Addresses_M m;
   transport::ReqCallback reqCb;
   transport::RepCallback repCb;
@@ -70,38 +79,44 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.PendingReqs(topic));
 
   // Insert one node address.
-  topics.AddAdvAddress(topic, addr1, ctrl1, uuid1);
+  topics.AddAdvAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1);
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasTopic(topic));
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
   // Only contains information about one process.
   EXPECT_EQ(m.size(), 1);
-  ASSERT_NE(m.find(uuid1), m.end());
-  auto v = m[uuid1];
+  ASSERT_NE(m.find(pUuid1), m.end());
+  auto v = m[pUuid1];
   // Only contains information about one node.
   ASSERT_EQ(v.size(), 1);
   EXPECT_EQ(v.at(0).addr, addr1);
   EXPECT_EQ(v.at(0).ctrl, ctrl1);
+  EXPECT_EQ(v.at(0).nUuid, nUuid1);
+  EXPECT_EQ(v.at(0).scope, scope1);
 
   // Insert one node address on the same process.
-  topics.AddAdvAddress(topic, addr2, ctrl2, uuid1);
+  topics.AddAdvAddress(topic, addr2, ctrl2, pUuid1, nUuid2, scope2);
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
   EXPECT_TRUE(topics.HasTopic(topic));
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
   // Only contains information about one process.
   EXPECT_EQ(m.size(), 1);
-  ASSERT_NE(m.find(uuid1), m.end());
-  v = m[uuid1];
+  ASSERT_NE(m.find(pUuid1), m.end());
+  v = m[pUuid1];
   // Only contains information about one node.
   ASSERT_EQ(v.size(), 2);
   EXPECT_EQ(v.at(0).addr, addr1);
   EXPECT_EQ(v.at(0).ctrl, ctrl1);
+  EXPECT_EQ(v.at(0).nUuid, nUuid1);
+  EXPECT_EQ(v.at(0).scope, scope1);
   EXPECT_EQ(v.at(1).addr, addr2);
   EXPECT_EQ(v.at(1).ctrl, ctrl2);
+  EXPECT_EQ(v.at(1).nUuid, nUuid2);
+  EXPECT_EQ(v.at(1).scope, scope2);
 
   // Insert one node address on a second process.
-  topics.AddAdvAddress(topic, addr3, ctrl3, uuid2);
+  topics.AddAdvAddress(topic, addr3, ctrl3, pUuid2, nUuid3, scope3);
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));
@@ -109,13 +124,15 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
   // Contains information about two processes.
   EXPECT_EQ(m.size(), 2);
-  EXPECT_NE(m.find(uuid1), m.end());
-  ASSERT_NE(m.find(uuid2), m.end());
-  v = m[uuid2];
+  EXPECT_NE(m.find(pUuid1), m.end());
+  ASSERT_NE(m.find(pUuid2), m.end());
+  v = m[pUuid2];
   // Only contains information about one node.
   ASSERT_EQ(v.size(), 1);
   EXPECT_EQ(v.at(0).addr, addr3);
   EXPECT_EQ(v.at(0).ctrl, ctrl3);
+  EXPECT_EQ(v.at(0).nUuid, nUuid3);
+  EXPECT_EQ(v.at(0).scope, scope3);
 
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
@@ -125,7 +142,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_FALSE(topics.PendingReqs(topic));
 
   // Insert another node on process2.
-  topics.AddAdvAddress(topic, addr4, ctrl4, uuid2);
+  topics.AddAdvAddress(topic, addr4, ctrl4, pUuid2, nUuid4, scope4);
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));
@@ -141,13 +158,15 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
   // Contains information about two processes.
   EXPECT_EQ(m.size(), 2);
-  EXPECT_NE(m.find(uuid1), m.end());
-  ASSERT_NE(m.find(uuid2), m.end());
-  v = m[uuid2];
-  // Only contains information about node4.
+  EXPECT_NE(m.find(pUuid1), m.end());
+  ASSERT_NE(m.find(pUuid2), m.end());
+  v = m[pUuid2];
+  // Only contains information about node3.
   ASSERT_EQ(v.size(), 1);
-  EXPECT_NE(v.at(0).addr, addr4);
-  EXPECT_NE(v.at(0).ctrl, ctrl4);
+  EXPECT_EQ(v.at(0).addr, addr3);
+  EXPECT_EQ(v.at(0).ctrl, ctrl3);
+  EXPECT_EQ(v.at(0).nUuid, nUuid3);
+  EXPECT_EQ(v.at(0).scope, scope3);
 
   // Remove the remaining address of process2.
   topics.DelAdvAddress(topic, addr3, "");
@@ -158,10 +177,10 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
   // Contains information about 1 process.
   EXPECT_EQ(m.size(), 1);
-  EXPECT_EQ(m.find(uuid2), m.end());
+  EXPECT_EQ(m.find(pUuid2), m.end());
 
   // Remove all the addresses of process1.
-  topics.DelAdvAddress(topic, "", uuid1);
+  topics.DelAdvAddress(topic, "", pUuid1);
   EXPECT_FALSE(topics.HasAdvAddress(topic, addr1));
   EXPECT_FALSE(topics.HasAdvAddress(topic, addr2));
   EXPECT_FALSE(topics.HasAdvAddress(topic, addr3));

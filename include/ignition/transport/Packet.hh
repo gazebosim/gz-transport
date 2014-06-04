@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -185,9 +186,13 @@ namespace ignition
       /// \param[in] _header Message header.
       /// \param[in] _address ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
       /// \param[in] _controlAddress ZeroMQ control address.
+      /// \param[in] _nodeUuid Node's UUID.
+      /// \param[in] _scope Topic scope.
       public: AdvMsg(const Header &_header,
                      const std::string &_address,
-                     const std::string &_controlAddress);
+                     const std::string &_controlAddress,
+                     const std::string &_nodeUuid,
+                     const Scope &_scope);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -209,6 +214,18 @@ namespace ignition
       /// \return Return the ZMQ control address.
       public: std::string GetControlAddress() const;
 
+      /// \brief Get the node UUID length.
+      /// \brief Return the node UUID length (num of bytes).
+      public: uint16_t GetNodeUuidLength() const;
+
+      /// \brief Get the node UUID.
+      /// \return Return the node UUID.
+      public: std::string GetNodeUuid() const;
+
+      /// \brief Get the topic scope.
+      /// \return Return the topic scope.
+      public: Scope GetScope() const;
+
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
       public: void SetHeader(const Header &_header);
@@ -220,6 +237,14 @@ namespace ignition
       /// \brief Set the ZMQ control address.
       /// \param[in] _address ZMQ control address to be contained in the msg.
       public: void SetControlAddress(const std::string &_address);
+
+      /// \brief Set the node UUID.
+      /// \param[in] _nUuid Node UUID.
+      public: void SetNodeUuid(const std::string &_nUuid);
+
+      /// \brief Set the topic scope.
+      /// \param[in] _scope Topic scope.
+      public: void SetScope(const Scope &_scope);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
@@ -255,6 +280,15 @@ namespace ignition
 
       /// \brief ZMQ valid address (e.g., "tcp://10.0.0.1:6000").
       private: std::string controlAddress;
+
+      /// \brief Length of the node UUID (bytes).
+      private: uint16_t nodeUuidLength;
+
+      /// \brief Node's UUID.
+      private: std::string nodeUuid;
+
+      // Topic scope;
+      private: Scope scope;
 
       /// \brief Length of the message in bytes.
       private: int msgLength;

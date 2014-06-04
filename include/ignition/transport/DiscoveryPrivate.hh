@@ -82,12 +82,15 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ Address.
       /// \param[in] _ctrl 0MQ control address.
+      /// \param[in] _nUuid Node's UUID.
       /// \param[in] _flags Optional flags.
       /// \return 0 when success.
       public: int SendMsg(uint8_t _type,
                           const std::string &_topic,
                           const std::string &_addr,
                           const std::string &_ctrl,
+                          const std::string &_nUuid,
+                          const Scope &_scope,
                           int _flags = 0);
 
       /// \brief Check if a topic has been advertised by me.
@@ -108,13 +111,17 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr New address.
       /// \param[in] _ctrl New control address.
-      /// \param[in] _uuid Process' UUID of the publisher.
+      /// \param[in] _pUuid Process' UUID of the publisher.
+      /// \param[in] _nUuid Node's UUID of the publisher.
+      /// \param[in] _scope Topic Scope.
       /// \return true if the new address is added or false if the address
       /// was already stored.
       public: bool AddTopicAddress(const std::string &_topic,
                                    const std::string &_addr,
                                    const std::string &_ctrl,
-                                   const std::string &_uuid);
+                                   const std::string &_pUuid,
+                                   const std::string &_nUuid,
+                                   const Scope &_scope);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _address Address to remove.

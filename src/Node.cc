@@ -46,7 +46,7 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-void Node::Advertise(const std::string &_topic)
+void Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
   assert(_topic != "");
 
@@ -55,7 +55,7 @@ void Node::Advertise(const std::string &_topic)
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
-    this->dataPtr->myControlAddress);
+    this->dataPtr->myControlAddress, this->nodeUuidStr, _scope);
 }
 
 //////////////////////////////////////////////////

@@ -219,11 +219,15 @@ AdvMsg::AdvMsg()
 //////////////////////////////////////////////////
 AdvMsg::AdvMsg(const Header &_header,
                const std::string &_address,
-               const std::string &_controlAddress)
+               const std::string &_controlAddress,
+               const std::string &_nodeUuid,
+               const Scope &_scope)
 {
   this->SetHeader(_header);
   this->SetAddress(_address);
   this->SetControlAddress(_controlAddress);
+  this->SetNodeUuid(_nodeUuid);
+  this->SetScope(_scope);
   this->UpdateMsgLength();
 }
 
@@ -258,6 +262,24 @@ std::string AdvMsg::GetControlAddress() const
 }
 
 //////////////////////////////////////////////////
+uint16_t AdvMsg::GetNodeUuidLength() const
+{
+  return this->nodeUuidLength;
+}
+
+//////////////////////////////////////////////////
+std::string AdvMsg::GetNodeUuid() const
+{
+  return this->nodeUuid;
+}
+
+//////////////////////////////////////////////////
+transport::Scope AdvMsg::GetScope() const
+{
+  return this->scope;
+}
+
+//////////////////////////////////////////////////
 void AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
@@ -286,11 +308,28 @@ void AdvMsg::SetControlAddress(const std::string &_address)
 }
 
 //////////////////////////////////////////////////
+void AdvMsg::SetNodeUuid(const std::string &_nUuid)
+{
+  this->nodeUuid = _nUuid;
+  this->nodeUuidLength = this->nodeUuid.size();
+  this->UpdateMsgLength();
+}
+
+//////////////////////////////////////////////////
+void AdvMsg::SetScope(const Scope &_scope)
+{
+  this->scope = _scope;
+  this->UpdateMsgLength();
+}
+
+//////////////////////////////////////////////////
 size_t AdvMsg::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
          sizeof(this->addressLength) + this->addressLength +
-         sizeof(this->controlAddressLength) + this->controlAddressLength;
+         sizeof(this->controlAddressLength) + this->controlAddressLength +
+         sizeof(this->nodeUuidLength) + this->nodeUuidLength +
+         sizeof(this->scope);
 }
 
 //////////////////////////////////////////////////
@@ -303,6 +342,10 @@ void AdvMsg::PrintBody()
             << this->GetControlAddressLength() << std::endl;
   std::cout << "\t\tControl address: "
             << this->GetControlAddress() << std::endl;
+  std::cout << "\t\tNode UUID: "
+            << this->GetNodeUuid() << std::endl;
+  //std::cout << "\t\tTopic Scope: "
+  //          << this->GetScope() << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -322,6 +365,12 @@ size_t AdvMsg::Pack(char *_buffer)
          sizeof(this->controlAddressLength));
   _buffer += sizeof(this->controlAddressLength);
   memcpy(_buffer, this->controlAddress.data(), this->controlAddressLength);
+  _buffer += this->controlAddressLength;
+  memcpy(_buffer, &this->nodeUuidLength, sizeof(this->nodeUuidLength));
+  _buffer += sizeof(this->nodeUuidLength);
+  memcpy(_buffer, this->nodeUuid.data(), this->nodeUuidLength);
+  _buffer += this->nodeUuidLength;
+  memcpy(_buffer, &this->scope, sizeof(this->scope));
 
   return this->GetMsgLength();
 }
@@ -339,17 +388,31 @@ size_t AdvMsg::UnpackBody(char *_buffer)
 
   // Read the control address length.
   memcpy(&this->controlAddressLength, _buffer,
-         sizeof(this->controlAddressLength));
+    sizeof(this->controlAddressLength));
   _buffer += sizeof(this->controlAddressLength);
 
   // Read the control address.
   this->controlAddress =
     std::string(_buffer, _buffer + this->controlAddressLength);
+  _buffer += this->controlAddressLength;
+
+  // Read the node UUID length.
+  memcpy(&this->nodeUuidLength, _buffer, sizeof(this->nodeUuidLength));
+  _buffer += sizeof(this->nodeUuidLength);
+
+  // Read the node UUID.
+  this->nodeUuid = std::string(_buffer, _buffer + this->nodeUuidLength);
+  _buffer += this->nodeUuidLength;
+
+  // Read the topic scope.
+  memcpy(&this->scope, _buffer, sizeof(this->scope));
 
   this->UpdateMsgLength();
 
   return sizeof(this->addressLength) + this->addressLength +
-         sizeof(this->controlAddressLength) + this->controlAddressLength;
+         sizeof(this->controlAddressLength) + this->controlAddressLength +
+         sizeof(this->nodeUuidLength) + this->nodeUuidLength +
+         sizeof(this->scope);
 }
 
 //////////////////////////////////////////////////
@@ -357,5 +420,7 @@ void AdvMsg::UpdateMsgLength()
 {
   this->msgLength = this->GetHeader().GetHeaderLength() +
     sizeof(this->addressLength) + this->addressLength +
-    sizeof(this->controlAddressLength) + this->controlAddressLength;
+    sizeof(this->controlAddressLength) + this->controlAddressLength +
+    sizeof(this->nodeUuidLength) + this->nodeUuidLength +
+    sizeof(this->scope);
 }

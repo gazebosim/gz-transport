@@ -115,9 +115,11 @@ TEST(PacketTest, BasicAdvMsgAPI)
 
   std::string otherGuidStr = transport::GetGuidStr(guid);
 
-  std::string address = "tcp://10.0.0.1:6000";
-  std::string controlAddress = "tcp://10.0.0.1:6001";
-  transport::AdvMsg advMsg(otherHeader, address, controlAddress);
+  std::string addr = "tcp://10.0.0.1:6000";
+  std::string ctrl = "tcp://10.0.0.1:60011";
+  std::string nodeUuid = "nodeUUID";
+  transport::Scope scope = transport::Scope::All;
+  transport::AdvMsg advMsg(otherHeader, addr, ctrl, nodeUuid, scope);
 
   // Check AdvMsg getters.
   transport::Header header = advMsg.GetHeader();
@@ -130,14 +132,19 @@ TEST(PacketTest, BasicAdvMsgAPI)
   EXPECT_EQ(header.GetFlags(), otherHeader.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), otherHeader.GetHeaderLength());
 
-  EXPECT_EQ(advMsg.GetAddressLength(), address.size());
-  EXPECT_EQ(advMsg.GetAddress(), address);
-  EXPECT_EQ(advMsg.GetControlAddressLength(), controlAddress.size());
-  EXPECT_EQ(advMsg.GetControlAddress(), controlAddress);
+  EXPECT_EQ(advMsg.GetAddressLength(), addr.size());
+  EXPECT_EQ(advMsg.GetAddress(), addr);
+  EXPECT_EQ(advMsg.GetControlAddressLength(), ctrl.size());
+  EXPECT_EQ(advMsg.GetControlAddress(), ctrl);
+  EXPECT_EQ(advMsg.GetNodeUuidLength(), nodeUuid.size());
+  EXPECT_EQ(advMsg.GetNodeUuid(), nodeUuid);
+  EXPECT_EQ(advMsg.GetScope(), scope);
+
   size_t msgLength = advMsg.GetHeader().GetHeaderLength() +
-    sizeof(advMsg.GetAddressLength()) + advMsg.GetAddress().size() +
-    sizeof(advMsg.GetControlAddressLength()) +
-    advMsg.GetControlAddress().size();
+    sizeof(advMsg.GetAddressLength()) + addr.size() +
+    sizeof(advMsg.GetControlAddressLength()) + ctrl.size() +
+    sizeof(advMsg.GetNodeUuidLength()) + nodeUuid.size() +
+    sizeof(advMsg.GetScope());
   EXPECT_EQ(advMsg.GetMsgLength(), msgLength);
 
   uuid_generate(guid);
@@ -161,12 +168,18 @@ TEST(PacketTest, BasicAdvMsgAPI)
     sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
-  address = "inproc://local";
-  controlAddress = "inproc://control";
-  advMsg.SetAddress(address);
-  EXPECT_EQ(advMsg.GetAddress(), address);
-  advMsg.SetControlAddress(controlAddress);
-  EXPECT_EQ(advMsg.GetControlAddress(), controlAddress);
+  addr = "inproc://local";
+  ctrl = "inproc://control";
+  nodeUuid = "nodeUUID2";
+  scope = transport::Scope::Host;
+  advMsg.SetAddress(addr);
+  EXPECT_EQ(advMsg.GetAddress(), addr);
+  advMsg.SetControlAddress(ctrl);
+  EXPECT_EQ(advMsg.GetControlAddress(), ctrl);
+  advMsg.SetNodeUuid(nodeUuid);
+  EXPECT_EQ(advMsg.GetNodeUuid(), nodeUuid);
+  advMsg.SetScope(scope);
+  EXPECT_EQ(advMsg.GetScope(), scope);
 }
 
 //////////////////////////////////////////////////
@@ -180,9 +193,12 @@ TEST(PacketTest, AdvMsgIO)
   // Pack an AdvMsg.
   transport::Header otherHeader(transport::Version, guid, topic,
     transport::AdvType, 3);
-  std::string address = "tcp://10.0.0.1:6000";
-  std::string controlAddress = "tcp://10.0.0.1:6001";
-  transport::AdvMsg advMsg(otherHeader, address, controlAddress);
+  std::string addr = "tcp://10.0.0.1:6000";
+  std::string ctrl = "tcp://10.0.0.1:60011";
+  std::string nodeUuid = "nodeUUID";
+  transport::Scope scope = transport::Scope::Host;
+
+  transport::AdvMsg advMsg(otherHeader, addr, ctrl, nodeUuid, scope);
   char *buffer = new char[advMsg.GetMsgLength()];
   size_t bytes = advMsg.Pack(buffer);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());
@@ -203,6 +219,9 @@ TEST(PacketTest, AdvMsgIO)
   EXPECT_EQ(otherAdvMsg.GetControlAddressLength(),
             advMsg.GetControlAddressLength());
   EXPECT_EQ(otherAdvMsg.GetControlAddress(), advMsg.GetControlAddress());
+  EXPECT_EQ(otherAdvMsg.GetNodeUuidLength(), advMsg.GetNodeUuidLength());
+  EXPECT_EQ(otherAdvMsg.GetNodeUuid(), advMsg.GetNodeUuid());
+  EXPECT_EQ(otherAdvMsg.GetScope(), advMsg.GetScope());
   EXPECT_EQ(otherAdvMsg.GetMsgLength(), advMsg.GetMsgLength());
   EXPECT_EQ(otherAdvMsg.GetMsgLength() -
             otherAdvMsg.GetHeader().GetHeaderLength(), advMsg.GetMsgLength() -

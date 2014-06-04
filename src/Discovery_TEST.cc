@@ -26,15 +26,16 @@
 using namespace ignition;
 
 // Global variables used for multiple tests.
-std::string topic = "foo";
-std::string localAddr1 = "tcp://127.0.0.1:12345";
+std::string topic        = "foo";
+std::string localAddr1   = "tcp://127.0.0.1:12345";
 std::string controlAddr1 = "tcp://127.0.0.1:12346";
-std::string localAddr2 = "tcp://127.0.0.1:12347";
-std::string controlAddr2  = "tcp://127.0.0.1:12348";
-std::string uuid1Str = "";
-std::string uuidNode1Str = "";
-std::string uuid2Str = "";
-std::string uuidNode2Str = "";
+std::string uuidProc1Str = "";
+std::string uuidNode1Str = "UUID-Node-1";
+std::string localAddr2   = "tcp://127.0.0.1:12347";
+std::string controlAddr2 = "tcp://127.0.0.1:12348";
+std::string uuidProc2Str = "";
+std::string uuidNode2Str = "UUID-Node-2";
+transport::Scope scope = transport::Scope::All;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
 bool disconnectionExecuted = false;
@@ -46,21 +47,24 @@ int counter = 0;
 void setupUUIDs(uuid_t & _uuid1, uuid_t & _uuid2)
 {
   uuid_generate(_uuid1);
-  uuid1Str = ignition::transport::GetGuidStr(_uuid1);
+  uuidProc1Str = ignition::transport::GetGuidStr(_uuid1);
 
   uuid_generate(_uuid2);
-  uuid2Str = transport::GetGuidStr(_uuid2);
+  uuidProc2Str = transport::GetGuidStr(_uuid2);
 }
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
 void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
-  const std::string &_ctrl, const std::string &_procUuid)
+  const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const transport::Scope &_scope)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_addr, localAddr1);
   EXPECT_EQ(_ctrl, controlAddr1);
-  EXPECT_EQ(_procUuid, uuid1Str);
+  EXPECT_EQ(_pUuid, uuidProc1Str);
+  EXPECT_EQ(_nUuid, uuidNode1Str);
+  EXPECT_EQ(_scope, scope);
   connectionExecuted = true;
 }
 
@@ -69,12 +73,14 @@ void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
 /// used in the case of multiple publishers.
 void onDiscoveryResponseMultiple(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
-  const std::string &_procUuid)
+  const std::string &_pUuid, const std::string &_nUuid,
+  const transport::Scope &/*_scope*/)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_NE(_addr, "");
   EXPECT_NE(_ctrl, "");
-  EXPECT_NE(_procUuid, "");
+  EXPECT_NE(_pUuid, "");
+  EXPECT_NE(_nUuid, "");
   connectionExecuted = true;
   ++counter;
 }
@@ -83,9 +89,10 @@ void onDiscoveryResponseMultiple(const std::string &_topic,
 /// \brief Function called each time a discovery update is received.
 void ondisconnection(const std::string &/*_topic*/,
   const std::string &/*_addr*/, const std::string &/*_ctrl*/,
-  const std::string &_procUuid)
+  const std::string &_pUuid, const std::string &/*_nUuid*/,
+  const transport::Scope &/*_scope*/)
 {
-  EXPECT_EQ(_procUuid, uuid1Str);
+  EXPECT_EQ(_pUuid, uuidProc1Str);
   disconnectionExecuted = true;
 }
 
@@ -120,21 +127,25 @@ class MyClass
   /// \brief Member function called each time a discovery update is received.
   public: void OnConnectResponse(const std::string &_topic,
     const std::string &_addr, const std::string &_ctrl,
-    const std::string &_procUuid)
+    const std::string &_pUuid, const std::string &_nUuid,
+    const transport::Scope &_scope)
   {
     EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_addr, localAddr1);
     EXPECT_EQ(_ctrl, controlAddr1);
-    EXPECT_EQ(_procUuid, uuid1Str);
+    EXPECT_EQ(_pUuid, uuidProc1Str);
+    EXPECT_EQ(_nUuid, uuidNode1Str);
+    EXPECT_EQ(_scope, scope);
     connectionExecutedMF = true;
   }
 
   /// \brief Member function called each time a disconnect. update is received.
   public: void Ondisconnection(const std::string &/*_topic*/,
     const std::string &/*_addr*/, const std::string &/*_ctrl*/,
-    const std::string &_procUuid)
+    const std::string &_pUuid, const std::string &/*_nUuid*/,
+    const transport::Scope &/*_scope*/)
   {
-    EXPECT_EQ(_procUuid, uuid1Str);
+    EXPECT_EQ(_pUuid, uuidProc1Str);
     disconnectionExecutedMF = true;
   }
 
@@ -153,7 +164,7 @@ TEST(DiscoveryTest, TestBasicAPI)
 
   uuid_t uuid1;
   uuid_generate(uuid1);
-  uuid1Str = transport::GetGuidStr(uuid1);
+  uuidProc1Str = transport::GetGuidStr(uuid1);
 
   // Create two discovery nodes.
   transport::Discovery discovery1(uuid1);
@@ -186,7 +197,7 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecuted)
@@ -219,7 +230,7 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
   MyClass object(uuid2);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecutedMF)
@@ -253,7 +264,7 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecuted)
@@ -274,13 +285,8 @@ TEST(DiscoveryTest, TestAdvertise)
 /// This test uses a discovery object within a class.
 TEST(DiscoveryTest, TestAdvertiseMF)
 {
-  uuid_t uuid1;
-  uuid_generate(uuid1);
-  uuid1Str = transport::GetGuidStr(uuid1);
-
-  uuid_t uuid2;
-  uuid_generate(uuid2);
-  uuid2Str = transport::GetGuidStr(uuid2);
+  uuid_t uuid1, uuid2;
+  setupUUIDs(uuid1, uuid2);
 
   disconnectionExecutedMF = false;
   connectionExecutedMF = false;
@@ -291,7 +297,7 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   object.RegisterConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecutedMF)
@@ -319,7 +325,7 @@ TEST(DiscoveryTest, TestDiscover)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(uuid1);
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   // Wait a while.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -382,7 +388,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -432,7 +438,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   object.RegisterDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecutedMF)
@@ -483,7 +489,7 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1->Advertise(topic, localAddr1, controlAddr1);
+  discovery1->Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -529,9 +535,9 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // Create two discovery nodes and advertise the same topic.
   transport::Discovery discovery1(uuid1);
-  discovery1.Advertise(topic, localAddr1, controlAddr1);
+  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
   transport::Discovery discovery2(uuid2);
-  discovery2.Advertise(topic, localAddr2, controlAddr2);
+  discovery2.Advertise(topic, localAddr2, controlAddr2, uuidNode2Str, scope);
 
   // Wait a while.
   // std::this_thread::sleep_for(std::chrono::milliseconds(500));

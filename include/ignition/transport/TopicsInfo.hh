@@ -145,11 +145,15 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr New address.
       /// \param[in] _ctrl New control address.
-      /// \param[in] _uuid New UUID.
+      /// \param[in] _pUuid New process UUID.
+      /// \param[in] _nUuid New node UUID.
+      /// \param[in] _scope Topic scope.
       public: void AddAdvAddress(const std::string &_topic,
                                  const std::string &_addr,
                                  const std::string &_ctrl,
-                                 const std::string &_uuid);
+                                 const std::string &_pUuid,
+                                 const std::string &_nUuid,
+                                 const Scope &_scope);
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.

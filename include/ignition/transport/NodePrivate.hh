@@ -73,21 +73,29 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[in] _scope Topic scope.
       public: void OnNewConnection(const std::string &_topic,
                                    const std::string &_addr,
                                    const std::string &_ctrl,
-                                   const std::string &_uuid);
+                                   const std::string &_pUuid,
+                                   const std::string &_nUuid,
+                                   const Scope &_scope);
 
       /// \brief Callback executed when the discovery detects disconnections.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[in] _scope Topic scope.
       public: void OnNewDisconnection(const std::string &_topic,
                                       const std::string &_addr,
                                       const std::string &_ctrl,
-                                      const std::string &_uuid);
+                                      const std::string &_pUuid,
+                                      const std::string &_nUuid,
+                                      const Scope &_scope);
 
       /// \brief Check if this node is connected to a remote 0MQ address.
       /// \param[in] _addr 0MQ address to check.
@@ -95,18 +103,30 @@ namespace ignition
       public: bool Connected(const std::string &_addr);
 
       /// \brief Register a new remote connection.
-      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _pUuid Publisher's process UUID.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
-      public: void AddConnection(const std::string &_uuid,
+      /// \param[in] _nUuid Publisher's node UUID.
+      /// \param[in] _scope Topic scope.
+      public: void AddConnection(const std::string &_pUuid,
                                  const std::string &_addr,
-                                 const std::string &_ctrl);
+                                 const std::string &_ctrl,
+                                 const std::string &_nUuid,
+                                 const Scope &_scope);
 
       /// \brief Remove a new remote connection.
-      /// \param[in] _uuid Publisher's UUID.
+      /// \param[in] _uuid Process UUID of the publisher.
       /// \param[in] _addr 0MQ address of the publisher.
-      public: void DelConnection(const std::string &_uuid,
+      public: void DelConnection(const std::string &_pUuid,
                                  const std::string &_addr);
+
+      uint32_t IPToUInt(const std::string &_ip);
+
+      std::string UIntToIP(uint32_t _ipNum);
+
+      bool IsIPInRange(const std::string &_ip,
+                       const std::string &_network,
+                       const std::string &_mask);
 
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
@@ -125,6 +145,9 @@ namespace ignition
 
       /// \brief IP address of this host.
       public: std::string hostAddr;
+
+      /// \brief Subnet of this host. Ex: 192.168.1.0
+      public: std::string hostSubnet;
 
       /// \brief Discovery service.
       public: std::unique_ptr<Discovery> discovery;

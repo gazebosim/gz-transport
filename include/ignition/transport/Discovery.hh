@@ -46,9 +46,13 @@ namespace ignition
       /// \param[in] _topic Topic to be advertised.
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _scope Topic scope.
       public: void Advertise(const std::string &_topic,
                              const std::string &_addr,
-                             const std::string &_ctrl);
+                             const std::string &_ctrl,
+                             const std::string &_nUuid,
+                             const Scope &_scope);
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic requested.
@@ -120,11 +124,13 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetConnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &), C* _obj)
+          const std::string &, const std::string &, const std::string &,
+          const Scope &), C* _obj)
       {
         this->SetConnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4));
+            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
+            std::placeholders::_6));
       }
 
       /// \brief Register a callback to receive discovery disconnection events.
@@ -139,11 +145,13 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetDisconnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &), C* _obj)
+          const std::string &, const std::string &, const std::string &,
+          const Scope &), C* _obj)
       {
         this->SetDisconnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-              std::placeholders::_3, std::placeholders::_4));
+            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
+            std::placeholders::_6));
       }
 
       /// \brief The discovery captures SIGINT and SIGTERM (czmq does) and

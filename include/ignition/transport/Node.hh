@@ -49,7 +49,9 @@ namespace ignition
 
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic to be advertised.
-      public: void Advertise(const std::string &_topic);
+      /// \param[in] _scope Topic scope.
+      public: void Advertise(const std::string &_topic,
+                             const Scope &_scope = Scope::All);
 
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic to be unadvertised.

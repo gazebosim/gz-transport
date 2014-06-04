@@ -161,16 +161,17 @@ bool TopicsInfo::PendingReqs(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void TopicsInfo::AddAdvAddress(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_uuid)
+  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const Scope &_scope)
 {
   this->CheckAndCreate(_topic);
 
   // Check if the process uuid exists.
   auto &m = this->topicsInfo[_topic]->addresses;
-  if (m.find(_uuid) != m.end())
+  if (m.find(_pUuid) != m.end())
   {
-    // Check that the {_addr, _ctrl} does not exist.
-    auto &v = m[_uuid];
+    // Check that the structure {_addr, _ctrl, nUuid, scope} does not exist.
+    auto &v = m[_pUuid];
     auto found = std::find_if(v.begin(), v.end(),
       [&](const Address_t &_addrInfo)
       {
@@ -183,12 +184,12 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
   }
 
   // Add a new address.
-  m[_uuid].push_back({_addr, _ctrl});
+  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
 }
 
 //////////////////////////////////////////////////
 void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
-  const std::string &_addr, const std::string &_uuid)
+  const std::string &_addr, const std::string &_pUuid)
 {
   for (auto topicInfo : this->topicsInfo)
   {
@@ -203,7 +204,7 @@ void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
         }),
         v.end());
 
-      if (v.empty() || it->first == _uuid)
+      if (v.empty() || it->first == _pUuid)
         m->addresses.erase(it++);
       else
         ++it;

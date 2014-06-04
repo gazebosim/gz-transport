@@ -65,6 +65,13 @@ NodePrivate::NodePrivate(bool _verbose)
   {
     // Set the hostname's ip address.
     this->hostAddr = this->discovery->GetHostAddr();
+    std::string hostNetmask = "255.255.255.0";
+    uint32_t ipAddr = IPToUInt(this->hostAddr);
+    uint32_t netmask = IPToUInt(hostNetmask);
+    uint32_t net_lower = (ipAddr & netmask);
+    std::cout << "Net lower: " << std::hex << net_lower << std::endl;
+    this->hostSubnet = this->UIntToIP(net_lower);
+    std::cout << "Subnet: " << this->hostSubnet << std::endl;
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -293,7 +300,8 @@ void NodePrivate::RecvControlUpdate()
 //////////////////////////////////////////////////
 void NodePrivate::OnNewConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrlAddr,
-  const std::string &_uuid)
+  const std::string &_pUuid, const std::string &_nUuid,
+  const Scope &_scope)
 {
   if (this->verbose)
   {
@@ -301,25 +309,39 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     std::cout << "Topic: " << _topic << std::endl;
     std::cout << "Addr: " << _addr << std::endl;
     std::cout << "Ctrl Addr: " << _ctrlAddr << std::endl;
-    std::cout << "UUID: [" << _uuid << "]" << std::endl;
+    std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
+    std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
   // Register the advertised address for the topic.
-  this->topics.AddAdvAddress(_topic, _addr, _ctrlAddr, _uuid);
+  this->topics.AddAdvAddress(_topic, _addr, _ctrlAddr, _pUuid, _nUuid, _scope);
 
   // Check if we are interested in this topic.
   if (this->topics.Subscribed(_topic) &&
       !this->Connected(_addr) &&
-      this->guidStr.compare(_uuid) != 0)
+      this->guidStr.compare(_pUuid) != 0)
   {
     if (this->verbose)
       std::cout << "Connecting to a remote publisher" << std::endl;
+
+
+    std::string publisherHost = "";
+    std::string publisherSubnet = "";
+
+    // Topic out of scope.
+    if (_scope == Scope::Thread  ||
+        _scope == Scope::Process ||
+        (_scope == Scope::Host && this->hostAddr != publisherHost) ||
+        (_scope == Scope::Lan && this->hostSubnet != publisherSubnet))
+    {
+      return;
+    }
 
     try
     {
       this->subscriber->connect(_addr.c_str());
       this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
-      this->AddConnection(_uuid, _addr, _ctrlAddr);
+      this->AddConnection(_pUuid, _addr, _ctrlAddr, _nUuid, _scope);
 
       // Send a message to the publisher's control socket to notify it
       // about all my subscribers.
@@ -373,28 +395,29 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
 //////////////////////////////////////////////////
 void NodePrivate::OnNewDisconnection(const std::string &/*_topic*/,
   const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
-  const std::string &_uuid)
+  const std::string &_pUuid, const std::string &/*_nUuid*/,
+  const Scope &/*_scope*/)
 {
   if (this->verbose)
   {
     std::cout << "New disconnection detected " << std::endl;
-    std::cout << "\tUUID: " << _uuid << std::endl;
+    std::cout << "\tProcess UUID: " << _pUuid << std::endl;
   }
 
   // A remote subscriber[s] has been disconnected.
-  this->topics.DelRemoteSubscriber("", _uuid, "");
+  this->topics.DelRemoteSubscriber("", _pUuid, "");
 
   // A remote publisher[s] has been disconnected.
-  this->topics.DelAdvAddress("", "", _uuid);
+  this->topics.DelAdvAddress("", "", _pUuid);
 
-  if (this->connections.find(_uuid) == this->connections.end())
+  if (this->connections.find(_pUuid) == this->connections.end())
     return;
 
   // Disconnect the sockets.
-  for (auto connection : this->connections[_uuid])
+  for (auto connection : this->connections[_pUuid])
     this->subscriber->disconnect(connection.addr.c_str());
 
-  this->DelConnection(_uuid, "");
+  this->DelConnection(_pUuid, "");
 }
 
 //////////////////////////////////////////////////
@@ -412,16 +435,17 @@ bool NodePrivate::Connected(const std::string &_addr)
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::AddConnection(const std::string &_uuid,
-  const std::string &_addr, const std::string &_ctrl)
+void NodePrivate::AddConnection(const std::string &_pUuid,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
+  const Scope &_scope)
 {
-  if (this->connections.find(_uuid) == this->connections.end())
+  if (this->connections.find(_pUuid) == this->connections.end())
   {
-    this->connections[_uuid] = {{_addr, _ctrl}};
+    this->connections[_pUuid] = {{_addr, _ctrl, _nUuid, _scope}};
     return;
   }
 
-  auto &v = this->connections[_uuid];
+  auto &v = this->connections[_pUuid];
   auto found = std::find_if(v.begin(), v.end(),
     [&](const Address_t &_addrInfo)
     {
@@ -430,11 +454,11 @@ void NodePrivate::AddConnection(const std::string &_uuid,
 
   // If the address was not existing before, just add it.
   if (found == v.end())
-    v.push_back({_addr, _ctrl});
+    v.push_back({_addr, _ctrl, _nUuid, _scope});
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::DelConnection(const std::string &_uuid,
+void NodePrivate::DelConnection(const std::string &_pUuid,
                                 const std::string &_addr)
 {
   for (auto it = this->connections.begin(); it != this->connections.end();)
@@ -447,11 +471,51 @@ void NodePrivate::DelConnection(const std::string &_uuid,
       }),
       v.end());
 
-    // it->second = v;
-
-    if (v.empty() || it->first == _uuid)
+    if (v.empty() || it->first == _pUuid)
       this->connections.erase(it++);
     else
       ++it;
   }
+}
+
+//////////////////////////////////////////////////
+uint32_t NodePrivate::IPToUInt(const std::string &_ip)
+{
+  int a, b, c, d;
+  uint32_t addr = 0;
+
+  if (sscanf(_ip.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d) != 4)
+    return 0;
+
+  addr = a << 24;
+  addr |= b << 16;
+  addr |= c << 8;
+  addr |= d;
+  return addr;
+}
+
+//////////////////////////////////////////////////
+std::string NodePrivate::UIntToIP(uint32_t _ipNum)
+{
+  auto a = (_ipNum >> 24) & 0xFF;
+  auto b = (_ipNum >> 16) & 0xFF;
+  auto c = (_ipNum >> 8) & 0xFF;
+  auto d = _ipNum & 0xFF;
+
+  return std::to_string(a) + "." + std::to_string(b) + "." + std::to_string(c) +
+         "." + std::to_string(d);
+}
+
+//////////////////////////////////////////////////
+bool NodePrivate::IsIPInRange(const std::string &_ip,
+  const std::string &_network, const std::string &_mask)
+{
+  auto ip_addr = IPToUInt(_ip);
+  auto network_addr = IPToUInt(_network);
+  auto mask_addr = IPToUInt(_mask);
+
+  auto net_lower = (network_addr & mask_addr);
+  auto net_upper = (net_lower | (~mask_addr));
+
+  return ip_addr >= net_lower && ip_addr <= net_upper;
 }
