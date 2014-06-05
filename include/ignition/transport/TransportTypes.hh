@@ -98,12 +98,6 @@ namespace ignition
     typedef std::map<std::string, ISubscriptionHandlerPtr>
         ISubscriptionHandler_M;
 
-    /// \def SubscriptionInfo_M
-    /// \brief Map to store information about remote subscribers for a topic.
-    /// The key is the process UUID of the remote node, and the value is a list
-    /// of node UUIDs.
-    typedef std::map<std::string, std::vector<std::string>> SubscriptionInfo_M;
-
     /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the

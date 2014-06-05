@@ -74,13 +74,30 @@ bool AddressInfo::HasTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasAddresses(const std::string &_topic,
+bool AddressInfo::HasAnyAddresses(const std::string &_topic,
   const std::string &_pUuid)
 {
   if (!this->HasTopic(_topic))
     return false;
 
   return this->data[_topic].find(_pUuid) != this->data[_topic].end();
+}
+
+//////////////////////////////////////////////////
+bool AddressInfo::HasAddress(const std::string &_addr)
+{
+  for (auto &topic : this->data)
+  {
+    for (auto &proc : topic.second)
+    {
+      for (auto &info : proc.second)
+      {
+        if (info.addr == _addr)
+          return true;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -197,10 +214,7 @@ void AddressInfo::Print()
 
 //////////////////////////////////////////////////
 TopicInfo::TopicInfo()
-  : requested(false),
-    reqCb(nullptr),
-    repCb(nullptr),
-    beacon(nullptr)
+  : beacon(nullptr)
 {
 }
 
@@ -235,15 +249,6 @@ bool TopicsInfo::Subscribed(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool TopicsInfo::Requested(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->requested;
-}
-
-//////////////////////////////////////////////////
 bool TopicsInfo::GetBeacon(const std::string &_topic, zbeacon_t **_beacon)
 {
   if (!this->HasTopic(_topic))
@@ -254,42 +259,6 @@ bool TopicsInfo::GetBeacon(const std::string &_topic, zbeacon_t **_beacon)
 }
 
 //////////////////////////////////////////////////
-bool TopicsInfo::GetReqCallback(const std::string &_topic, ReqCallback &_cb)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  _cb = this->topicsInfo[_topic]->reqCb;
-  return _cb != nullptr;
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::GetRepCallback(const std::string &_topic, RepCallback &_cb)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  _cb = this->topicsInfo[_topic]->repCb;
-  return _cb != nullptr;
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::PendingReqs(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return !this->topicsInfo[_topic]->pendingReqs.empty();
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::SetRequested(const std::string &_topic, const bool _value)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->requested = _value;
-}
-
-//////////////////////////////////////////////////
 void TopicsInfo::SetBeacon(const std::string &_topic, zbeacon_t *_beacon)
 {
   this->CheckAndCreate(_topic);
@@ -297,116 +266,9 @@ void TopicsInfo::SetBeacon(const std::string &_topic, zbeacon_t *_beacon)
 }
 
 //////////////////////////////////////////////////
-void TopicsInfo::SetReqCallback(const std::string &_topic,
-  const ReqCallback &_cb)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->reqCb = _cb;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::SetRepCallback(const std::string &_topic,
-  const RepCallback &_cb)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->repCb = _cb;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::AddReq(const std::string &_topic, const std::string &_data)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->pendingReqs.push_back(_data);
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::DelReq(const std::string &_topic, std::string &_data)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  if (this->topicsInfo[_topic]->pendingReqs.empty())
-    return false;
-
-  _data = this->topicsInfo[_topic]->pendingReqs.front();
-  this->topicsInfo[_topic]->pendingReqs.pop_front();
-  return true;
-}
-
-//////////////////////////////////////////////////
 Topics_M& TopicsInfo::GetTopicsInfo()
 {
   return this->topicsInfo;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
-  const std::string &_procUuid, const std::string &_nodeUuid)
-{
-  this->CheckAndCreate(_topic);
-
-  auto &m = this->topicsInfo[_topic]->subscribers;
-  // The process UUID does not exist yet.
-  if (m.find(_procUuid) == m.end())
-    m[_procUuid] = {};
-
-  // Add the UUID if was not existing before.
-  if (std::find(m[_procUuid].begin(), m[_procUuid].end(), _nodeUuid) ==
-      m[_procUuid].end())
-  {
-    m[_procUuid].push_back(_nodeUuid);
-  }
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return !this->topicsInfo[_topic]->subscribers.empty();
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::DelRemoteSubscriberByNode(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid)
-{
-  // Iterate over all the topics.
-  if (this->topicsInfo.find(_topic) != this->topicsInfo.end())
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = this->topicsInfo[_topic]->subscribers;
-
-    // The pUuid exists.
-    if (m.find(_pUuid) != m.end())
-    {
-      // Vector of 0MQ known addresses for a given topic and pUuid.
-      auto &v = m[_pUuid];
-      v.erase(std::remove(v.begin(), v.end(), _nUuid), v.end());
-
-      if (v.empty())
-        m.erase(_pUuid);
-
-      // if (m.empty())
-      //  this->topicsInfo.erase(_topic);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::DelRemoteSubscriberByProc(const std::string &_pUuid)
-{
-  // Iterate over all the topics.
-  for (auto it = this->topicsInfo.begin(); it != this->topicsInfo.end();)
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = it->second->subscribers;
-    m.erase(_pUuid);
-    // if (m.empty())
-    //   this->topicsInfo.erase(it++);
-    // else
-    ++it;
-  }
 }
 
 //////////////////////////////////////////////////

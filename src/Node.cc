@@ -112,7 +112,8 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (this->dataPtr->topics.HasRemoteSubscribers(_topic))
+  if (this->dataPtr->subscribers.HasAnyAddresses(
+    _topic, this->dataPtr->pUuidStr))
   {
     std::string data;
     _msg.SerializeToString(&data);

@@ -98,46 +98,6 @@ namespace ignition
                                       const std::string &_nUuid,
                                       const Scope &_scope);
 
-      /// \brief Check if this node is connected to a remote 0MQ address.
-      /// \param[in] _addr 0MQ address to check.
-      /// \return true when this node is remotely connected to the address.
-      public: bool Connected(const std::string &_addr);
-
-      /// \brief Register a new remote connection.
-      /// \param[in] _topic Topic name
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Publisher's process UUID.
-      /// \param[in] _nUuid Publisher's node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void AddConnection(const std::string &_topic,
-                                 const std::string &_addr,
-                                 const std::string &_ctrl,
-                                 const std::string &_pUuid,
-                                 const std::string &_nUuid,
-                                 const Scope &_scope);
-
-      /// \brief Get information about a node that I am connected.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node's UUID.
-      /// \param[out] _info Information requested.
-      /// \return true when the connection requested is found.
-      public: bool GetConnection(const std::string &_topic,
-                                 const std::string &_nUuid,
-                                 Address_t &_info);
-
-      /// \brief Remove a new remote connection.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _uuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node's UUID.
-      public: void DelConnectionByNode(const std::string &_topic,
-                                       const std::string &_pUuid,
-                                       const std::string &_nUuid);
-
-      /// \brief Remove all the remote connections against a process pUuid.
-      /// \param[in] _uuid Process UUID of the publisher.
-      public: void DelConnectionByProc(const std::string &_pUuid);
-
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
@@ -194,7 +154,10 @@ namespace ignition
       private: std::mutex exitMutex;
 
       /// \brief Remote connections.
-      private: std::map<std::string, Addresses_M> connections;
+      private: AddressInfo connections;
+
+      /// \brief Remote subscribers.
+      public: AddressInfo subscribers;
     };
   }
 }

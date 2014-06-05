@@ -319,7 +319,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubType:
     {
       // Check if at least one of my nodes advertises the topic requested.
-      if (this->info.HasAddresses(topic, this->pUuidStr))
+      if (this->info.HasAnyAddresses(topic, this->pUuidStr))
       {
         Addresses_M addresses;
         if (this->info.GetAddresses(topic, addresses))
@@ -458,132 +458,11 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-/*bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
-                                        const std::string &_pUuid)
-{
-  // I do not have the topic.
-  if (this->info.find(_topic) == this->info.end())
-    return false;
-
-  return this->info[_topic].find(_pUuid) != this->info[_topic].end();
-}*/
-
-//////////////////////////////////////////////////
 std::string DiscoveryPrivate::GetHostAddr()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   return zbeacon_hostname(this->beacon);
 }
-
-//////////////////////////////////////////////////
-/*bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope &_scope)
-{
-  // The topic does not exist.
-  if (this->info.find(_topic) == this->info.end())
-    this->info[_topic] = {};
-
-  // Check if the process uuid exists.
-  auto &m = this->info[_topic];
-  if (m.find(_pUuid) != m.end())
-  {
-    // Check that the structure {_addr, _ctrl, _nUuid, scope} does not exist.
-    auto &v = m[_pUuid];
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
-      });
-
-    // _addr was already existing, just exit.
-    if (found != v.end())
-      return false;
-  }
-
-  // Add a new address information entry.
-  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool DiscoveryPrivate::GetTopicAddress(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
-{
-  // Topic not found.
-  if (this->info.find(_topic) == this->info.end())
-    return false;
-
-  // m is pUUID->{addr, ctrl, nUuid, scope}.
-  auto &m = this->info[_topic];
-
-  // pUuid not found.
-  if (m.find(_pUuid) == m.end())
-    return false;
-
-  // Vector of 0MQ known addresses for a given topic and pUuid.
-  auto &v = m[_pUuid];
-  auto found = std::find_if(v.begin(), v.end(),
-    [&](const Address_t &_addrInfo)
-    {
-      return _addrInfo.nUuid == _nUuid;
-    });
-  // Address found!
-  if (found != v.end())
-  {
-    _info = *found;
-    return true;
-  }
-
-  return false;
-}
-
-//////////////////////////////////////////////////
-void DiscoveryPrivate::DelTopicAddrByNode(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid)
-{
-  // Iterate over all the topics.
-  if (this->info.find(_topic) != this->info.end())
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = this->info[_topic];
-
-    // The pUuid exists.
-    if (m.find(_pUuid) != m.end())
-    {
-      // Vector of 0MQ known addresses for a given topic and pUuid.
-      auto &v = m[_pUuid];
-      v.erase(std::remove_if(v.begin(), v.end(),
-        [&](const Address_t &_addrInfo)
-        {
-          return _addrInfo.nUuid == _nUuid;
-        }),
-        v.end());
-
-      if (v.empty())
-        m.erase(_pUuid);
-
-      if (m.empty())
-        this->info.erase(_topic);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void DiscoveryPrivate::DelTopicAddrByProc(const std::string &_pUuid)
-{
-  // Iterate over all the topics.
-  for (auto it = this->info.begin(); it != this->info.end();)
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = it->second;
-    m.erase(_pUuid);
-    if (m.empty())
-      this->info.erase(it++);
-    else
-      ++it;
-  }
-}*/
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::PrintCurrentState()

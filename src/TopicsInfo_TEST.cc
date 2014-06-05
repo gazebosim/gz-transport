@@ -142,51 +142,6 @@ TEST(TopicsInfoTest, BasicTopicsInfoAPI)
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));
   EXPECT_FALSE(topics.Subscribed(topic));
-  EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
-  EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
-  EXPECT_FALSE(topics.PendingReqs(topic));
-
-  // Check SetRequested
-  topics.SetRequested(topic, true);
-  EXPECT_TRUE(topics.Requested(topic));
-
-  // Check SetReqCallback
-  topics.SetReqCallback(topic, myReqCb);
-  EXPECT_TRUE(topics.GetReqCallback(topic, reqCb));
-  callbackExecuted = false;
-  reqCb("topic", 0, "answer");
-  EXPECT_TRUE(callbackExecuted);
-
-  // Check SetRepCallback
-  topics.SetRepCallback(topic, myRepCb);
-  EXPECT_TRUE(topics.GetRepCallback(topic, repCb));
-  callbackExecuted = false;
-  std::string result;
-  EXPECT_EQ(repCb("topic", "ReqParams", result), 0);
-  EXPECT_TRUE(callbackExecuted);
-
-  // Check the addition of asynchronous service call requests
-  std::string req1 = "paramsReq1";
-  std::string req2 = "paramsReq2";
-  EXPECT_FALSE(topics.DelReq(topic, req1));
-  for (auto topicInfo : topics.GetTopicsInfo())
-    EXPECT_FALSE(topics.PendingReqs(topicInfo.first));
-
-  topics.AddReq(topic, req1);
-  EXPECT_TRUE(topics.PendingReqs(topic));
-
-  topics.AddReq(topic, req2);
-  EXPECT_TRUE(topics.PendingReqs(topic));
-
-  EXPECT_TRUE(topics.DelReq(topic, req2));
-  EXPECT_TRUE(topics.PendingReqs(topic));
-
-  EXPECT_TRUE(topics.DelReq(topic, req1));
-  EXPECT_FALSE(topics.PendingReqs(topic));
-
-  EXPECT_FALSE(topics.DelReq(topic, req1));
-  EXPECT_FALSE(topics.PendingReqs(topic));
 }
 
 //////////////////////////////////////////////////

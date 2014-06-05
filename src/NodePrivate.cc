@@ -264,7 +264,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->topics.AddRemoteSubscriber(topic, procUuid, nodeUuid);
+    this->subscribers.AddAddress(topic, "", "", procUuid, nodeUuid);
   }
   else if (std::stoi(data) == EndConnection)
   {
@@ -275,7 +275,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->topics.DelRemoteSubscriberByNode(topic, procUuid, nodeUuid);
+    this->subscribers.DelAddressByNode(topic, procUuid, nodeUuid);
   }
 }
 
@@ -297,9 +297,12 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
+  // ToDo(caguero): Connected before and now want to connect for a different
+  // topic. I shouldn't reconnect but I should apply the filter.
+
   // Check if we are interested in this topic.
   if (this->topics.Subscribed(_topic) &&
-      !this->Connected(_addr) &&
+      !this->connections.HasAddress(_addr) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
     if (this->verbose)
@@ -309,7 +312,8 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     {
       this->subscriber->connect(_addr.c_str());
       this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
-      this->AddConnection(_topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
+      this->connections.AddAddress(
+        _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
 
       // Send a message to the publisher's control socket to notify it
       // about all my subscribers.
@@ -378,10 +382,10 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
   // A remote subscriber[s] has been disconnected.
   if (_topic != "" && _nUuid != "")
   {
-    this->topics.DelRemoteSubscriberByNode(_topic, _pUuid, _nUuid);
+    this->subscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
 
     Address_t info;
-    if (!this->GetConnection(_topic, _nUuid, info))
+    if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, info))
       return;
 
     // Disconnect the sockets.
@@ -389,138 +393,14 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
     //   this->subscriber->disconnect(connection.addr.c_str());
     this->subscriber->disconnect(info.addr.c_str());
 
-    this->DelConnectionByNode(_topic, _pUuid, _nUuid);
+    this->connections.DelAddressByNode(_topic, _pUuid, _nUuid);
   }
   else
   {
-    this->topics.DelRemoteSubscriberByProc(_pUuid);
+    this->subscribers.DelAddressesByProc(_pUuid);
 
     // ToDo(caguero): Disconnect from all the remote publishers.
 
-    this->DelConnectionByProc(_pUuid);
-  }
-}
-
-//////////////////////////////////////////////////
-bool NodePrivate::Connected(const std::string &_addr)
-{
-  for (auto &topic : this->connections)
-  {
-    for (auto &proc : topic.second)
-    {
-      for (auto &info : proc.second)
-      {
-        if (info.addr == _addr)
-          return true;
-      }
-    }
-  }
-  return false;
-}
-
-//////////////////////////////////////////////////
-void NodePrivate::AddConnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope &_scope)
-{
-  // The topic does not exist.
-  if (this->connections.find(_topic) == this->connections.end())
-    this->connections[_topic] = {};
-
-  // Check if the process uuid exists.
-  auto &m = this->connections[_topic];
-  if (m.find(_pUuid) != m.end())
-  {
-    // Check that the structure {_addr, _ctrl, _nUuid, scope} does not exist.
-    auto &v = m[_pUuid];
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
-      });
-
-    // _addr was already existing, just exit.
-    if (found != v.end())
-      return;
-  }
-
-  // Add a new address information entry.
-  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
-}
-
-//////////////////////////////////////////////////
-bool NodePrivate::GetConnection(const std::string &_topic,
-                                const std::string &_nUuid,
-                                Address_t &_info)
-{
-  // The topic does not exist.
-  if (this->connections.find(_topic) == this->connections.end())
-    return false;
-
-  auto &m = this->connections[_topic];
-
-  for (auto proc : m)
-  {
-    auto &v = proc.second;
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.nUuid == _nUuid;
-      });
-    // Address found!
-    if (found != v.end())
-    {
-      _info = *found;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//////////////////////////////////////////////////
-void NodePrivate::DelConnectionByNode(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid)
-{
-  // Iterate over all the topics.
-  if (this->connections.find(_topic) != this->connections.end())
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = this->connections[_topic];
-
-    // The pUuid exists.
-    if (m.find(_pUuid) != m.end())
-    {
-      // Vector of 0MQ known addresses for a given topic and pUuid.
-      auto &v = m[_pUuid];
-      v.erase(std::remove_if(v.begin(), v.end(),
-        [&](const Address_t &_addrInfo)
-        {
-          return _addrInfo.nUuid == _nUuid;
-        }),
-        v.end());
-
-      if (v.empty())
-        m.erase(_pUuid);
-
-      if (m.empty())
-        this->connections.erase(_topic);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void NodePrivate::DelConnectionByProc(const std::string &_pUuid)
-{
-  // Iterate over all the topics.
-  for (auto it = this->connections.begin(); it != this->connections.end();)
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = it->second;
-    m.erase(_pUuid);
-    if (m.empty())
-      this->connections.erase(it++);
-    else
-      ++it;
+    this->connections.DelAddressesByProc(_pUuid);
   }
 }

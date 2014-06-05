@@ -55,7 +55,7 @@ namespace ignition
                               const std::string &_ctrl,
                               const std::string &_pUuid,
                               const std::string &_nUuid,
-                              const Scope &_scope);
+                              const Scope &_scope = Scope::All);
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
@@ -68,8 +68,13 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \return True if there is at least one address stored for the topic and
       /// process UUID.
-      public: bool HasAddresses(const std::string &_topic,
-                                const std::string &_pUuid);
+      public: bool HasAnyAddresses(const std::string &_topic,
+                                   const std::string &_pUuid);
+
+      /// \brief Return if the requested address is stored.
+      /// \param[in] _addr Address requested
+      /// \return true if the address is stored.
+      public: bool HasAddress(const std::string &_addr);
 
       /// \brief Get the address information for a given topic and node UUID.
       /// \param[in] _topic Topic name.
@@ -120,25 +125,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~TopicInfo();
 
-      /// brief Is a service call pending?
-      public: bool requested;
-
-      /// brief Callback to handle service calls requested by other nodes.
-      public: ReqCallback reqCb;
-
-      /// brief Callback to manage the service call's response requested by me.
-      public: RepCallback repCb;
-
       /// \brief Beacon used to periodically advertise this topic.
       public: zbeacon_t *beacon;
-
-      /// \brief List that stores the pending service call requests. Every
-      /// element of the list contains the serialized parameters for each
-      /// request.
-      public: std::list<std::string> pendingReqs;
-
-      /// \brief Subscribers info for this topic.
-      public: SubscriptionInfo_M subscribers;
 
       /// \brief Stores all the subscribers information for this topic.
       public: ISubscriptionHandler_M subscriptionHandlers;
@@ -165,101 +153,17 @@ namespace ignition
       /// \return true if we are subscribed.
       public: bool Subscribed(const std::string &_topic);
 
-      /// \brief Return true if I am requesting the service call associated to
-      /// the topic.
-      /// \param[in] _topic Topic name.
-      /// \return true if the service call associated to the topic is requested.
-      public: bool Requested(const std::string &_topic);
-
       /// \brief Get the beacon used to advertise the topic
       /// \param[in] _topic Topic name.
       /// \param[out] _beacon Beacon used to advertise the topic.
       /// \return true if there is a beacon associated to the topicS.
       public: bool GetBeacon(const std::string &_topic, zbeacon_t **_beacon);
 
-      /// \brief Get the REQ callback associated to a topic subscription.
-      /// \param[in] _topic Topic name.
-      /// \param[out] A pointer to the REQ function registered for a topic.
-      /// \return true if there is a REQ callback registered for the topic.
-      public: bool GetReqCallback(const std::string &_topic,
-                                  ReqCallback &_cb);
-
-      /// \brief Get the REP callback associated to a topic subscription.
-      /// \param[in] _topic Topic name.
-      /// \param[out] A pointer to the REP function registered for a topic.
-      /// \return true if there is a REP callback registered for the topic.
-      public: bool GetRepCallback(const std::string &_topic,
-                                  RepCallback &_cb);
-
-      /// \brief Returns if there are any pending requests in the queue.
-      /// \param[in] _topic Topic name.
-      /// \return true if there is any pending request in the queue.
-      public: bool PendingReqs(const std::string &_topic);
-
-      /// \brief Set a new service call request to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _value New value to be assigned to the requested member.
-      public: void SetRequested(const std::string &_topic,
-                                const bool _value);
-
       /// \brief Set the beacon used to advertise the topic
       /// \param[in] _topic Topic name.
       /// \param[in] _beacon Beacon used to advertise the topic.
       public: void SetBeacon(const std::string &_topic,
                              zbeacon_t *_beacon);
-
-      /// \brief Set a new REQ callback associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _cb New callback.
-      public: void SetReqCallback(const std::string &_topic,
-                                  const ReqCallback &_cb);
-
-      /// \brief Set a new REP callback associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _cb New callback.
-      public: void SetRepCallback(const std::string &_topic,
-                                  const RepCallback &_cb);
-
-      /// \brief Add a new service call request to the queue.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _data Parameters of the request.
-      public: void AddReq(const std::string &_topic,
-                          const std::string &_data);
-
-      /// \brief Add a new service call request to the queue.
-      /// \param[in] _topic Topic name.
-      /// \param[out] _data Parameters of the request.
-      /// \return true if a request was removed.
-      public: bool DelReq(const std::string &_topic,
-                          std::string &_data);
-
-      /// \brief Check if a topic has remote subscribers in this node.
-      /// \param[in] _topic Topic name.
-      /// \return true if a topic has remote subscribers in this node.
-      public: bool HasRemoteSubscribers(const std::string &_topic);
-
-      /// \brief Add a new remote subscriber for a topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _proc Uuid UUID of the subscribed process.
-      /// \param[in] _node Uuid UUID of the subscribed node.
-      public: void AddRemoteSubscriber(const std::string &_topic,
-                                       const std::string &_procUuid,
-                                       const std::string &_nodeUuid);
-
-      /// \brief Delete a new remote subscriber for a topic.
-      /// If the node UUID is found, only the entry for this node will be
-      /// removed. However, if the UUID process is found, all the remote
-      /// subscribers within this process will be removed.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _pUuid Subscriber's process UUID.
-      /// \param[in] _nUuid Subscriber's node UUID.
-      public: void DelRemoteSubscriberByNode(const std::string &_topic,
-                                             const std::string &_pUuid,
-                                             const std::string &_nUuid);
-
-      /// \brief Delete all the subscriptions of a given process UUID.
-      /// \param[in] _pUuid Subscriber's process UUID.
-      public: void DelRemoteSubscriberByProc(const std::string &_pUuid);
 
       /// \brief Get the subscription handlers for a topic. A subscription
       /// handler stores the callback and types associated to a subscription.

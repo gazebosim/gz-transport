@@ -96,59 +96,12 @@ namespace ignition
                           const Scope &_scope,
                           int _flags = 0);
 
-      /// \brief Check if a topic has been advertised by me.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _pUuid Process' UUID.
-      /// \return true if the topic is advertised by any of my nodes.
-      /*public: bool AdvertisedByProc(const std::string &_topic,
-                                    const std::string &_pUuid);*/
-
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
       public: std::string GetHostAddr();
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
-
-      /*/// \brief Add a new address associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr New address.
-      /// \param[in] _ctrl New control address.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic Scope.
-      /// \return true if the new address is added or false if the address
-      /// was already stored.
-      public: bool AddTopicAddress(const std::string &_topic,
-                                   const std::string &_addr,
-                                   const std::string &_ctrl,
-                                   const std::string &_pUuid,
-                                   const std::string &_nUuid,
-                                   const Scope &_scope);
-
-      /// \brief Get the address information for a given topic and node.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[out] _info Address information requested.
-      /// \return true if an entry is found for the given topic and node UUID.
-      /// was already stored.
-      public: bool GetTopicAddress(const std::string &_topic,
-                                   const std::string &_pUuid,
-                                   const std::string &_nUuid,
-                                   Address_t &_info);
-
-      /// \brief Remove an address associated to a given topic, process and node
-      /// \param[in] _topic Topic name
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      public: void DelTopicAddrByNode(const std::string &_topic,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid);
-
-      /// \brief Remove all the addresses associated to a given process. This is
-      /// probably caused by a BYE message or a disconnected process.
-      public: void DelTopicAddrByProc(const std::string &_pUuid);*/
 
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
