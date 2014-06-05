@@ -1,7 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  scopedTopics.cc
+  scopedTopic.cc
 	twoProcessesPubSub.cc
 )
 
