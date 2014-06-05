@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -99,8 +100,8 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _pUuid Process' UUID.
       /// \return true if the topic is advertised by any of my nodes.
-      public: bool AdvertisedByProc(const std::string &_topic,
-                                    const std::string &_pUuid);
+      /*public: bool AdvertisedByProc(const std::string &_topic,
+                                    const std::string &_pUuid);*/
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
@@ -109,7 +110,7 @@ namespace ignition
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
-      /// \brief Add a new address associated to a given topic.
+      /*/// \brief Add a new address associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr New address.
       /// \param[in] _ctrl New control address.
@@ -147,7 +148,7 @@ namespace ignition
 
       /// \brief Remove all the addresses associated to a given process. This is
       /// probably caused by a BYE message or a disconnected process.
-      public: void DelTopicAddrByProc(const std::string &_pUuid);
+      public: void DelTopicAddrByProc(const std::string &_pUuid);*/
 
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
@@ -216,7 +217,7 @@ namespace ignition
       /// \brief Addressing information. For each topic we store a map that
       /// contains the process UUID as key and the 0MQ address and 0MQ control
       //  address of the publisher as value.
-      public: std::map<std::string, Addresses_M> info;
+      public: AddressInfo info;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

@@ -27,9 +27,177 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
+AddressInfo::AddressInfo()
+{
+}
+
+//////////////////////////////////////////////////
+AddressInfo::~AddressInfo()
+{
+}
+
+//////////////////////////////////////////////////
+bool AddressInfo::AddAddress(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const Scope &_scope)
+{
+  // The topic does not exist.
+  if (this->data.find(_topic) == this->data.end())
+    this->data[_topic] = {};
+
+  // Check if the process uuid exists.
+  auto &m = this->data[_topic];
+  if (m.find(_pUuid) != m.end())
+  {
+    // Check that the structure {_addr, _ctrl, _nUuid, scope} does not exist.
+    auto &v = m[_pUuid];
+    auto found = std::find_if(v.begin(), v.end(),
+      [&](const Address_t &_addrInfo)
+      {
+        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
+      });
+
+    // _addr was already existing, just exit.
+    if (found != v.end())
+      return false;
+  }
+
+  // Add a new address information entry.
+  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool AddressInfo::HasTopic(const std::string &_topic)
+{
+  return this->data.find(_topic) != this->data.end();
+}
+
+//////////////////////////////////////////////////
+bool AddressInfo::HasAddresses(const std::string &_topic,
+  const std::string &_pUuid)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  return this->data[_topic].find(_pUuid) != this->data[_topic].end();
+}
+
+
+//////////////////////////////////////////////////
+bool AddressInfo::GetAddress(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
+{
+  // Topic not found.
+  if (this->data.find(_topic) == this->data.end())
+    return false;
+
+  // m is pUUID->{addr, ctrl, nUuid, scope}.
+  auto &m = this->data[_topic];
+
+  // pUuid not found.
+  if (m.find(_pUuid) == m.end())
+    return false;
+
+  // Vector of 0MQ known addresses for a given topic and pUuid.
+  auto &v = m[_pUuid];
+  auto found = std::find_if(v.begin(), v.end(),
+    [&](const Address_t &_addrInfo)
+    {
+      return _addrInfo.nUuid == _nUuid;
+    });
+  // Address found!
+  if (found != v.end())
+  {
+    _info = *found;
+    return true;
+  }
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool AddressInfo::GetAddresses(const std::string &_topic, Addresses_M &_info)
+{
+  if (!this->HasTopic(_topic))
+    return false;
+
+  _info = this->data[_topic];
+  return true;
+}
+
+//////////////////////////////////////////////////
+void AddressInfo::DelAddressByNode(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid)
+{
+  // Iterate over all the topics.
+  if (this->data.find(_topic) != this->data.end())
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = this->data[_topic];
+
+    // The pUuid exists.
+    if (m.find(_pUuid) != m.end())
+    {
+      // Vector of 0MQ known addresses for a given topic and pUuid.
+      auto &v = m[_pUuid];
+      v.erase(std::remove_if(v.begin(), v.end(),
+        [&](const Address_t &_addrInfo)
+        {
+          return _addrInfo.nUuid == _nUuid;
+        }),
+        v.end());
+
+      if (v.empty())
+        m.erase(_pUuid);
+
+      if (m.empty())
+        this->data.erase(_topic);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void AddressInfo::DelAddressesByProc(const std::string &_pUuid)
+{
+  // Iterate over all the topics.
+  for (auto it = this->data.begin(); it != this->data.end();)
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = it->second;
+    m.erase(_pUuid);
+    if (m.empty())
+      this->data.erase(it++);
+    else
+      ++it;
+  }
+}
+
+//////////////////////////////////////////////////
+void AddressInfo::Print()
+{
+  std::cout << "---" << std::endl;
+  for (auto &topic : this->data)
+  {
+    std::cout << "[" << topic.first << "]" << std::endl;
+    auto &m = topic.second;
+    for (auto &proc : m)
+    {
+      std::cout << "\tProc. UUID: " << proc.first << std::endl;
+      auto &v = proc.second;
+      for (auto &info : v)
+      {
+        std::cout << "\t\tAddr:" << info.addr << std::endl;
+        std::cout << "\t\tCtrl:" << info.ctrl << std::endl;
+        std::cout << "\t\tNUUID:" << info.nUuid << std::endl;
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 TopicInfo::TopicInfo()
-  : advertisedByMe(false),
-    requested(false),
+  : requested(false),
     reqCb(nullptr),
     repCb(nullptr),
     beacon(nullptr)
@@ -57,93 +225,6 @@ bool TopicsInfo::HasTopic(const std::string &_topic)
   return this->topicsInfo.find(_topic) != this->topicsInfo.end();
 }
 
-
-//////////////////////////////////////////////////
-bool TopicsInfo::GetAdvAddresses(const std::string &_topic,
-  Addresses_M &_addresses)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  _addresses = topicsInfo[_topic]->addresses;
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::GetInfo(const std::string &_topic,
-                         const std::string &_nUuid,
-                         Address_t &_info)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  auto &m = this->topicsInfo[_topic]->addresses;
-
-  for (auto proc : m)
-  {
-    auto &v = proc.second;
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.nUuid == _nUuid;
-      });
-    // Address found!
-    if (found != v.end())
-    {
-      _info = *found;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::ShowInfo()
-{
-  std::cout << "Topic info" << std::endl;
-  for (auto topic : this->topicsInfo)
-  {
-    std::cout << "Topic: " << topic.first << std::endl;
-    auto &m = topic.second->addresses;
-    for (auto proc : m)
-    {
-      std::cout << "\tProc. UUID: " << proc.first << std::endl;
-      auto &v = proc.second;
-      for (auto info : v)
-      {
-        std::cout << "\t\tAddr:" << info.addr << std::endl;
-        std::cout << "\t\tCtrl:" << info.ctrl << std::endl;
-        std::cout << "\t\tNUUID:" << info.nUuid << std::endl;
-      }
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::HasAdvAddress(const std::string &_topic,
-  const std::string &_addr)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  auto &m = this->topicsInfo[_topic]->addresses;
-  for (auto proc : m)
-  {
-    auto &v = proc.second;
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.addr == _addr;
-      });
-    // Address found!
-    if (found != v.end())
-      return true;
-  }
-
-  return false;
-}
-
 //////////////////////////////////////////////////
 bool TopicsInfo::Subscribed(const std::string &_topic)
 {
@@ -151,15 +232,6 @@ bool TopicsInfo::Subscribed(const std::string &_topic)
     return false;
 
   return this->topicsInfo[_topic]->subscriptionHandlers.size() > 0;
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::AdvertisedByMe(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->advertisedByMe;
 }
 
 //////////////////////////////////////////////////
@@ -211,92 +283,10 @@ bool TopicsInfo::PendingReqs(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void TopicsInfo::AddAdvAddress(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope &_scope)
-{
-  this->CheckAndCreate(_topic);
-
-  // Check if the process uuid exists.
-  auto &m = this->topicsInfo[_topic]->addresses;
-  if (m.find(_pUuid) != m.end())
-  {
-    // Check that the structure {_addr, _ctrl, nUuid, scope} does not exist.
-    auto &v = m[_pUuid];
-    auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
-      });
-
-    // _addr was already existing, just exit.
-    if (found != v.end())
-      return;
-  }
-
-  // Add a new address.
-  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::DelAddressByNode(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid)
-{
-  // Iterate over all the topics.
-  if (this->topicsInfo.find(_topic) != this->topicsInfo.end())
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = this->topicsInfo[_topic]->addresses;
-
-    // The pUuid exists.
-    if (m.find(_pUuid) != m.end())
-    {
-      // Vector of 0MQ known addresses for a given topic and pUuid.
-      auto &v = m[_pUuid];
-      v.erase(std::remove_if(v.begin(), v.end(),
-        [&](const Address_t &_addrInfo)
-        {
-          return _addrInfo.nUuid == _nUuid;
-        }),
-        v.end());
-
-      if (v.empty())
-        m.erase(_pUuid);
-
-      // if (m.empty())
-      //   this->topicsInfo.erase(_topic);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::DelAddressesByProc(const std::string &_pUuid)
-{
-  // Iterate over all the topics.
-  for (auto it = this->topicsInfo.begin(); it != this->topicsInfo.end();)
-  {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
-    auto &m = it->second->addresses;
-    m.erase(_pUuid);
-    // if (m.empty())
-    //   this->topicsInfo.erase(it++);
-    // else
-    ++it;
-  }
-}
-
-//////////////////////////////////////////////////
 void TopicsInfo::SetRequested(const std::string &_topic, const bool _value)
 {
   this->CheckAndCreate(_topic);
   this->topicsInfo[_topic]->requested = _value;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::SetAdvertisedByMe(const std::string &_topic, const bool _value)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->advertisedByMe = _value;
 }
 
 //////////////////////////////////////////////////
@@ -376,26 +366,6 @@ bool TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 
   return !this->topicsInfo[_topic]->subscribers.empty();
 }
-
-//////////////////////////////////////////////////
-// void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
-/*  const std::string &_procUuid, const std::string &_nodeUuid)
-{
-  for (auto &topicInfo : this->topicsInfo)
-  {
-    for (auto it = topicInfo.second->subscribers.begin();
-         it != topicInfo.second->subscribers.end();)
-    {
-      auto &v = it->second;
-      v.erase(std::remove(v.begin(), v.end(), _nodeUuid), v.end());
-
-      if (v.empty() || it->first == _procUuid)
-        topicInfo.second->subscribers.erase(it++);
-      else
-        ++it;
-    }
-  }
-}*/
 
 //////////////////////////////////////////////////
 void TopicsInfo::DelRemoteSubscriberByNode(const std::string &_topic,

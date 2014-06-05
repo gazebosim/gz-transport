@@ -48,8 +48,8 @@ void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Add the addressing information (local node).
-  this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl,
-    this->dataPtr->pUuidStr, _nUuid, _scope);
+  this->dataPtr->info.AddAddress(_topic, _addr, _ctrl, this->dataPtr->pUuidStr,
+    _nUuid, _scope);
 
   // Do not advertise a message outside the process.
   if (_scope == Scope::Process)
@@ -70,7 +70,7 @@ void Discovery::Discover(const std::string &_topic)
   this->dataPtr->SendMsg(SubType, _topic, "", "", "", Scope::All);
 
   // I do not have information about this topic.
-  if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
+  if (!this->dataPtr->info.HasTopic(_topic))
   {
     // Add the topic to the unknown topic list if it was not before.
     if (std::find(this->dataPtr->unknownTopics.begin(),
@@ -83,13 +83,17 @@ void Discovery::Discover(const std::string &_topic)
   // I have information stored for this topic.
   else if (this->dataPtr->connectionCb)
   {
-    for (auto proc : this->dataPtr->info[_topic])
+    Addresses_M addresses;
+    if (this->dataPtr->info.GetAddresses(_topic, addresses))
     {
-      for (auto node : proc.second)
+      for (auto proc : addresses)
       {
-        // Execute the user's callback.
-        this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first,
-          node.nUuid, node.scope);
+        for (auto node : proc.second)
+        {
+          // Execute the user's callback.
+          this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first,
+            node.nUuid, node.scope);
+        }
       }
     }
   }
@@ -99,12 +103,7 @@ void Discovery::Discover(const std::string &_topic)
 bool Discovery::GetTopicAddresses(const std::string &_topic,
                                   Addresses_M &_addresses)
 {
-  // Topic not found.
-  if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
-    return false;
-
-  _addresses = this->dataPtr->info[_topic];
-  return true;
+  return this->dataPtr->info.GetAddresses(_topic, _addresses);
 }
 
 //////////////////////////////////////////////////
@@ -117,12 +116,12 @@ void Discovery::Unadvertise(const std::string &_topic,
 
   // Don't do anything if the topic is not advertised by any of my nodes.
   Address_t info;
-  if (!this->dataPtr->GetTopicAddress(_topic, this->dataPtr->pUuidStr,
+  if (!this->dataPtr->info.GetAddress(_topic, this->dataPtr->pUuidStr,
         _nUuid, info))
     return;
 
   // Remove the topic information.
-  this->dataPtr->DelTopicAddrByNode(_topic, this->dataPtr->pUuidStr, _nUuid);
+  this->dataPtr->info.DelAddressByNode(_topic, this->dataPtr->pUuidStr, _nUuid);
 
   // Do not advertise a message outside the process.
   if (info.scope == Scope::Process)

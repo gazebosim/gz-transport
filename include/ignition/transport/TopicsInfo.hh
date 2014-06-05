@@ -21,6 +21,7 @@
 #include <czmq.h>
 #include <google/protobuf/message.h>
 #include <list>
+#include <map>
 #include <string>
 #include <vector>
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -30,6 +31,85 @@ namespace ignition
 {
   namespace transport
   {
+    /// \class TopicInformation TopicsInfo.hh
+    /// \brief Store addressing information.
+    class AddressInfo
+    {
+      /// \brief Constructor.
+      public: AddressInfo();
+
+      /// \brief Destructor.
+      public: virtual ~AddressInfo();
+
+      /// \brief Add a new address associated to a given topic and node UUID.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr New address.
+      /// \param[in] _ctrl New control address.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[in] _scope Topic Scope.
+      /// \return true if the new address is added or false if the address
+      /// was already stored.
+      public: bool AddAddress(const std::string &_topic,
+                              const std::string &_addr,
+                              const std::string &_ctrl,
+                              const std::string &_pUuid,
+                              const std::string &_nUuid,
+                              const Scope &_scope);
+
+      /// \brief Return if there is any address stored for the given topic.
+      /// \param[in] _topic Topic name.
+      /// \return True if there is at least one address stored for the topic.
+      public: bool HasTopic(const std::string &_topic);
+
+      /// \brief Return if there is any address stored for the given topic and
+      /// process UUID.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \return True if there is at least one address stored for the topic and
+      /// process UUID.
+      public: bool HasAddresses(const std::string &_topic,
+                                const std::string &_pUuid);
+
+      /// \brief Get the address information for a given topic and node UUID.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[out] _info Address information requested.
+      /// \return true if an entry is found for the given topic and node UUID.
+      public: bool GetAddress(const std::string &_topic,
+                              const std::string &_pUuid,
+                              const std::string &_nUuid,
+                              Address_t &_info);
+
+      /// \brief Get the map of addresses stored for a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _info Map of addresses requested.
+      /// \return true if at least there is one address stored.
+      public: bool GetAddresses(const std::string &_topic,
+                                Addresses_M &_info);
+
+      /// \brief Remove an address associated to a given topic, process and node
+      /// \param[in] _topic Topic name
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      public: void DelAddressByNode(const std::string &_topic,
+                                    const std::string &_pUuid,
+                                    const std::string &_nUuid);
+
+      /// \brief Remove all the addresses associated to a given process.
+      public: void DelAddressesByProc(const std::string &_pUuid);
+
+      /// \brief Print all the information for debugging purposes.
+      public: void Print();
+
+      // The keys are topics. The values are another map, where the key is
+      // the process UUID and the value a vector of Address_t (0MQ address,
+      // 0MQ control address, node UUID and topic scope).
+      private: std::map<std::string, Addresses_M> data;
+
+    };
+
     /// \class TopicInfo TopicsInfo.hh
     /// \brief Store all the information known about a topic.
     class TopicInfo
@@ -39,12 +119,6 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~TopicInfo();
-
-      /// \brief Publisher's information for the topic.
-      public: Addresses_M addresses;
-
-      /// \brief Am I advertising this topic?
-      public: bool advertisedByMe;
 
       /// brief Is a service call pending?
       public: bool requested;
@@ -85,34 +159,11 @@ namespace ignition
       /// \return true If there is information about the topic.
       public: bool HasTopic(const std::string &_topic);
 
-      /// \brief Get the known list of addresses associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[out] _addresses List of addresses
-      /// \return true when we have info about this topic.
-      public: bool GetAdvAddresses(const std::string &_topic,
-                                   Addresses_M &_addresses);
-
-      public: bool GetInfo(const std::string &_topic,
-                           const std::string &_nUuid,
-                           Address_t &_info);
-
-      /// \brief Return if an address is registered associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr Address to check.
-      /// \return true if the address is registered with the topic.
-      public: bool HasAdvAddress(const std::string &_topic,
-                                 const std::string &_addr);
-
       /// \brief Return true if we are subscribed to a node advertising
       /// the topic.
       /// \param[in] _topic Topic name.
       /// \return true if we are subscribed.
       public: bool Subscribed(const std::string &_topic);
-
-      /// \brief Return true if I am advertising the topic.
-      /// \param[in] _topic Topic name.
-      /// \return true if the topic is advertised by me.
-      public: bool AdvertisedByMe(const std::string &_topic);
 
       /// \brief Return true if I am requesting the service call associated to
       /// the topic.
@@ -145,46 +196,11 @@ namespace ignition
       /// \return true if there is any pending request in the queue.
       public: bool PendingReqs(const std::string &_topic);
 
-      /// \brief Add a new address associated to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr New address.
-      /// \param[in] _ctrl New control address.
-      /// \param[in] _pUuid New process UUID.
-      /// \param[in] _nUuid New node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void AddAdvAddress(const std::string &_topic,
-                                 const std::string &_addr,
-                                 const std::string &_ctrl,
-                                 const std::string &_pUuid,
-                                 const std::string &_nUuid,
-                                 const Scope &_scope);
-
-      public: void ShowInfo();
-
-      /// \brief Remove an address associated to a given topic, process and node
-      /// \param[in] _topic Topic name.
-      /// \param[in] _pUuid If present, all addresses of this process
-      ///                   will be removed.
-      /// \param[in] _nUuid Node UUID associated to the address.
-      public: void DelAddressByNode(const std::string &_topic,
-                                    const std::string &_pUuid,
-                                    const std::string &_nUuid);
-
-      /// \brief Remove all the addresses associated to a given process. This is
-      /// probably caused by a BYE message or a disconnected process.
-      public: void DelAddressesByProc(const std::string &_pUuid);
-
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _value New value to be assigned to the requested member.
       public: void SetRequested(const std::string &_topic,
                                 const bool _value);
-
-      /// \brief Set a new advertised value to a given topic.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _value New value to be assigned in advertisedByMe member.
-      public: void SetAdvertisedByMe(const std::string &_topic,
-                                     const bool _value);
 
       /// \brief Set the beacon used to advertise the topic
       /// \param[in] _topic Topic name.

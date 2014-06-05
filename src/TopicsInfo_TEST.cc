@@ -40,9 +40,8 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 
 //////////////////////////////////////////////////
 /// \brief Check all the methods of the TopicsInfo helper class.
-TEST(TopicsInfoTest, BasicTopicsInfoAPI)
+TEST(TopicsInfoTest, AddressInfoAPI)
 {
-  transport::TopicsInfo topics;
   std::string topic  = "foo";
 
   std::string nUuid1 = "node-UUID-1";
@@ -62,154 +61,95 @@ TEST(TopicsInfoTest, BasicTopicsInfoAPI)
   std::string ctrl2  = "tcp://10.0.0.1:60022";
 
   transport::Addresses_M m;
-  transport::ReqCallback reqCb;
-  transport::RepCallback repCb;
   transport::Address_t info;
-
-  // Check getters with an empty TopicsInfo object
-  EXPECT_FALSE(topics.HasTopic(topic));
-  EXPECT_FALSE(topics.GetAdvAddresses(topic, m));
-  EXPECT_FALSE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_FALSE(topics.Subscribed(topic));
-  EXPECT_FALSE(topics.AdvertisedByMe(topic));
-  EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
-  EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
-  EXPECT_FALSE(topics.PendingReqs(topic));
+  transport::AddressInfo test;
 
   // Insert one node address.
-  topics.AddAdvAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1);
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_TRUE(topics.HasTopic(topic));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  // Only contains information about one process.
-  EXPECT_EQ(m.size(), 1);
-  ASSERT_NE(m.find(pUuid1), m.end());
-  auto v = m[pUuid1];
-  // Only contains information about one node.
-  ASSERT_EQ(v.size(), 1);
-  EXPECT_EQ(v.at(0).addr, addr1);
-  EXPECT_EQ(v.at(0).ctrl, ctrl1);
-  EXPECT_EQ(v.at(0).nUuid, nUuid1);
-  EXPECT_EQ(v.at(0).scope, scope1);
-  // Check GetInfo
-  topics.GetInfo(topic, nUuid1, info);
+  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  EXPECT_FALSE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  // Check GetAddress.
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
   EXPECT_EQ(info.addr, addr1);
   EXPECT_EQ(info.ctrl, ctrl1);
   EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.addr, addr1);
   EXPECT_EQ(info.scope, scope1);
 
   // Insert one node address on the same process.
-  topics.AddAdvAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2);
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_TRUE(topics.HasTopic(topic));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  // Only contains information about one process.
-  EXPECT_EQ(m.size(), 1);
-  ASSERT_NE(m.find(pUuid1), m.end());
-  v = m[pUuid1];
-  // Only contains information about one node.
-  ASSERT_EQ(v.size(), 2);
-  EXPECT_EQ(v.at(0).addr, addr1);
-  EXPECT_EQ(v.at(0).ctrl, ctrl1);
-  EXPECT_EQ(v.at(0).nUuid, nUuid1);
-  EXPECT_EQ(v.at(0).scope, scope1);
-  EXPECT_EQ(v.at(1).addr, addr1);
-  EXPECT_EQ(v.at(1).ctrl, ctrl1);
-  EXPECT_EQ(v.at(1).nUuid, nUuid2);
-  EXPECT_EQ(v.at(1).scope, scope2);
-  // Check GetInfo
-  topics.GetInfo(topic, nUuid2, info);
+  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
+  EXPECT_FALSE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
+  // Check GetAddress/
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
   EXPECT_EQ(info.addr, addr1);
   EXPECT_EQ(info.ctrl, ctrl1);
   EXPECT_EQ(info.nUuid, nUuid2);
   EXPECT_EQ(info.scope, scope2);
 
   // Insert a node address on a second process.
-  topics.AddAdvAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3);
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
-  EXPECT_TRUE(topics.HasTopic(topic));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  // Contains information about two processes.
-  EXPECT_EQ(m.size(), 2);
-  EXPECT_NE(m.find(pUuid1), m.end());
-  ASSERT_NE(m.find(pUuid2), m.end());
-  v = m[pUuid2];
-  // Only contains information about one node.
-  ASSERT_EQ(v.size(), 1);
-  EXPECT_EQ(v.at(0).addr, addr2);
-  EXPECT_EQ(v.at(0).ctrl, ctrl2);
-  EXPECT_EQ(v.at(0).nUuid, nUuid3);
-  EXPECT_EQ(v.at(0).scope, scope3);
-  // Check GetInfo
-  topics.GetInfo(topic, nUuid3, info);
+  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
+  EXPECT_FALSE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
+  // Check GetAddress.
+  test.GetAddress(topic, pUuid2, nUuid3, info);
   EXPECT_EQ(info.addr, addr2);
   EXPECT_EQ(info.ctrl, ctrl2);
   EXPECT_EQ(info.nUuid, nUuid3);
   EXPECT_EQ(info.scope, scope3);
 
-  EXPECT_FALSE(topics.Subscribed(topic));
-  EXPECT_FALSE(topics.AdvertisedByMe(topic));
-  EXPECT_FALSE(topics.Requested(topic));
-  EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
-  EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
-  EXPECT_FALSE(topics.PendingReqs(topic));
-
   // Insert another node on process2.
-  topics.AddAdvAddress(topic, addr2, ctrl2, pUuid2, nUuid4, scope4);
-  // Check GetInfo
-  topics.GetInfo(topic, nUuid4, info);
+  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid4, scope4));
+  EXPECT_FALSE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid4, scope4));
+  // Check GetAddress.
+  EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid4, info));
   EXPECT_EQ(info.addr, addr2);
   EXPECT_EQ(info.ctrl, ctrl2);
   EXPECT_EQ(info.nUuid, nUuid4);
   EXPECT_EQ(info.scope, scope4);
 
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
-
   // Remove the node4's address advertised for topic.
-  topics.DelAddressByNode(topic, pUuid2, nUuid4);
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
-  EXPECT_TRUE(topics.HasTopic(topic));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  // Contains information about two processes.
-  EXPECT_EQ(m.size(), 2);
-  EXPECT_NE(m.find(pUuid1), m.end());
-  ASSERT_NE(m.find(pUuid2), m.end());
-  v = m[pUuid2];
-  // Only contains information about node3.
-  ASSERT_EQ(v.size(), 1);
-  EXPECT_EQ(v.at(0).addr, addr2);
-  EXPECT_EQ(v.at(0).ctrl, ctrl2);
-  EXPECT_EQ(v.at(0).nUuid, nUuid3);
-  EXPECT_EQ(v.at(0).scope, scope3);
+  test.DelAddressByNode(topic, pUuid2, nUuid4);
+  // Check GetAddress.
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
+  EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid3, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid4, info));
 
   // Remove the node3's address advertised for topic.
-  topics.DelAddressByNode(topic, pUuid2, nUuid3);
-  EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_FALSE(topics.HasAdvAddress(topic, addr2));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  // Contains information about 1 process.
-  EXPECT_EQ(m.size(), 1);
-  EXPECT_EQ(m.find(pUuid2), m.end());
+  test.DelAddressByNode(topic, pUuid2, nUuid3);
+  // Check GetAddress.
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
+  EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid3, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid4, info));
 
   // Remove all the addresses of process1.
-  topics.DelAddressesByProc(pUuid1);
-  EXPECT_FALSE(topics.HasAdvAddress(topic, addr1));
-  EXPECT_FALSE(topics.HasAdvAddress(topic, addr2));
-  EXPECT_TRUE(topics.GetAdvAddresses(topic, m));
-  EXPECT_TRUE(m.empty());
+  test.DelAddressesByProc(pUuid1);
+  // Check GetAddress.
+  EXPECT_FALSE(test.GetAddress(topic, pUuid1, nUuid1, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid1, nUuid2, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid3, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid4, info));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check all the methods of the TopicsInfo helper class.
+TEST(TopicsInfoTest, BasicTopicsInfoAPI)
+{
+  transport::TopicsInfo topics;
+  std::string topic  = "foo";
+
+  transport::ReqCallback reqCb;
+  transport::RepCallback repCb;
+
+  // Check getters with an empty TopicsInfo object
+  EXPECT_FALSE(topics.HasTopic(topic));
+  EXPECT_FALSE(topics.Subscribed(topic));
+  EXPECT_FALSE(topics.Requested(topic));
+  EXPECT_FALSE(topics.GetReqCallback(topic, reqCb));
+  EXPECT_FALSE(topics.GetRepCallback(topic, repCb));
+  EXPECT_FALSE(topics.PendingReqs(topic));
 
   // Check SetRequested
   topics.SetRequested(topic, true);
   EXPECT_TRUE(topics.Requested(topic));
-
-  // Check SetAdvertisedByMe
-  topics.SetAdvertisedByMe(topic, true);
-  EXPECT_TRUE(topics.AdvertisedByMe(topic));
 
   // Check SetReqCallback
   topics.SetReqCallback(topic, myReqCb);

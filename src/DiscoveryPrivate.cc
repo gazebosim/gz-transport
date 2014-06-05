@@ -122,7 +122,7 @@ void DiscoveryPrivate::RunActivityTask()
            (elapsed).count() > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        this->DelTopicAddrByProc(it->first);
+        this->info.DelAddressesByProc(it->first);
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -301,7 +301,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         advMsg.PrintBody();
 
       // Register an advertised address for the topic.
-      bool added = this->AddTopicAddress(topic, recvAddr, recvCtrl,
+      bool added = this->info.AddAddress(topic, recvAddr, recvCtrl,
         recvPUuid, recvNUuid, recvScope);
 
       // Remove topic from unkown topics.
@@ -319,20 +319,24 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubType:
     {
       // Check if at least one of my nodes advertises the topic requested.
-      if (this->AdvertisedByProc(topic, this->pUuidStr))
+      if (this->info.HasAddresses(topic, this->pUuidStr))
       {
-        for (auto nodeInfo : this->info[topic][this->pUuidStr])
+        Addresses_M addresses;
+        if (this->info.GetAddresses(topic, addresses))
         {
-          // Check scope of the topic.
-          if ((nodeInfo.scope == Scope::Process) ||
-              (nodeInfo.scope == Scope::Host && _fromIp != this->hostAddr))
+          for (auto nodeInfo : addresses[this->pUuidStr])
           {
-            continue;
-          }
+            // Check scope of the topic.
+            if ((nodeInfo.scope == Scope::Process) ||
+                (nodeInfo.scope == Scope::Host && _fromIp != this->hostAddr))
+            {
+              continue;
+            }
 
-          // Answer an ADVERTISE message.
-          this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
-            nodeInfo.nUuid, nodeInfo.scope);
+            // Answer an ADVERTISE message.
+            this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
+              nodeInfo.nUuid, nodeInfo.scope);
+          }
         }
       }
 
@@ -355,7 +359,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddrByProc(recvPUuid);
+      this->info.DelAddressesByProc(recvPUuid);
 
       break;
     }
@@ -384,7 +388,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddrByNode(topic, recvPUuid, recvNUuid);
+      this->info.DelAddressByNode(topic, recvPUuid, recvNUuid);
 
       break;
     }
@@ -454,7 +458,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
+/*bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
                                         const std::string &_pUuid)
 {
   // I do not have the topic.
@@ -462,7 +466,7 @@ bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
     return false;
 
   return this->info[_topic].find(_pUuid) != this->info[_topic].end();
-}
+}*/
 
 //////////////////////////////////////////////////
 std::string DiscoveryPrivate::GetHostAddr()
@@ -472,7 +476,7 @@ std::string DiscoveryPrivate::GetHostAddr()
 }
 
 //////////////////////////////////////////////////
-bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
+/*bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope &_scope)
 {
@@ -579,7 +583,7 @@ void DiscoveryPrivate::DelTopicAddrByProc(const std::string &_pUuid)
     else
       ++it;
   }
-}
+}*/
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::PrintCurrentState()
@@ -594,25 +598,7 @@ void DiscoveryPrivate::PrintCurrentState()
     << std::endl;
   std::cout << "\tSilence: " << this->silenceInterval << " ms." << std::endl;
   std::cout << "Known topics" << std::endl;
-  if (this->info.empty())
-    std::cout << "\t<empty>" << std::endl;
-  else
-  {
-    for (auto topicInfo : this->info)
-    {
-      std::cout << "\t" << topicInfo.first << std::endl;
-      for (auto proc : topicInfo.second)
-      {
-        std::cout << "\t\tProcess UUID: " << proc.first << std::endl;
-        for (auto node : proc.second)
-        {
-          std::cout << "\t\t\tAddress: " << node.addr << std::endl;
-          std::cout << "\t\t\tControl: " << node.ctrl << std::endl;
-          std::cout << "\t\t\tNode UUID: " << node.nUuid << std::endl;
-        }
-      }
-    }
-  }
+  this->info.Print();
 
   // Used to calculate the elapsed time.
   Timestamp now = std::chrono::steady_clock::now();
