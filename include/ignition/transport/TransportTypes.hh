@@ -37,16 +37,12 @@ namespace ignition
 
     /// \def Scope This strongly typed enum defines the different options for
     /// the scope of a topic:
-    /// * Thread:  The topic will be only available to subscribers on the same
-    ///            thread as the publisher.
-    /// * Process: Topic only available to subscribers on the same process as
+    /// * Process: Topic only available to subscribers in the same process as
     ///            the publisher.
-    /// * Host:    Topic only available to subscribers on the same machine as
+    /// * Host:    Topic only available to subscribers in the same machine as
     ///            the publisher.
-    /// * Lan:     Topic only available to subscribers on the same LAN as the
-    ///            publisher.
     /// * All:     Topic available to any subscriber. This is the default scope.
-    enum class Scope {Thread, Process, Host, Lan, All};
+    enum class Scope {Process, Host, All};
 
     /// \def Address_t All the data associated to a topic's publisher.
     struct Address_t

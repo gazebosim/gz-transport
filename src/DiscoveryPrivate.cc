@@ -316,8 +316,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         for (auto nodeInfo : this->info[topic][this->uuidStr])
         {
           // Check scope of the topic.
-          if ((nodeInfo.scope == Scope::Thread)  ||
-              (nodeInfo.scope == Scope::Process) ||
+          if ((nodeInfo.scope == Scope::Process) ||
               (nodeInfo.scope == Scope::Host && _fromIp != this->hostname))
           {
             return 0;

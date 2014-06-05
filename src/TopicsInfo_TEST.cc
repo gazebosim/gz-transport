@@ -47,7 +47,7 @@ TEST(TopicsInfoTest, BasicTopicsInfoAPI)
   std::string addr1  = "tcp://10.0.0.1:6000";
   std::string ctrl1  = "tcp://10.0.0.1:60011";
   std::string nUuid1 = "node-UUID-1";
-  transport::Scope scope1 = transport::Scope::Thread;
+  transport::Scope scope1 = transport::Scope::All;
   std::string addr2  = "tcp://10.0.0.1:6002";
   std::string ctrl2  = "tcp://10.0.0.1:60033";
   std::string nUuid2  = "node-UUID-2";
@@ -59,7 +59,7 @@ TEST(TopicsInfoTest, BasicTopicsInfoAPI)
   std::string addr4  = "tcp://10.0.0.1:6006";
   std::string ctrl4  = "tcp://10.0.0.1:60077";
   std::string nUuid4  = "node-UUID-4";
-  transport::Scope scope4 = transport::Scope::Lan;
+  transport::Scope scope4 = transport::Scope::All;
   std::string pUuid1 = "process-UUID-1";
   std::string pUuid2  = "process-UUID-2";
 

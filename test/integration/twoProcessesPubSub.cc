@@ -85,7 +85,7 @@ void runSubscriber()
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(DiscZmqTest, PubSubTwoProcsTwoNodes)
+TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 {
   pid_t pid = fork();
 

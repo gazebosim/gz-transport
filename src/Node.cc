@@ -74,7 +74,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
     _scope);
 
   // Do not advertise a message outside if the scope is restricted.
-  if (_scope == Scope::Thread || _scope == Scope::Process)
+  if (_scope == Scope::Process)
     return;
 
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
@@ -124,14 +124,7 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
     if (subscriptionHandlerPtr)
-    {
-      // Check scope.
-      std::string nUuid = subscriptionHandlerPtr->GetNodeUuid();
-      if (addrInfo.scope == Scope::Thread && nUuid != this->nodeUuidStr)
-        continue;
-
       subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
-    }
     else
       std::cerr << "Node::Publish(): Subscription handler is NULL" << std::endl;
   }

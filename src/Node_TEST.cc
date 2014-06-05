@@ -104,6 +104,37 @@ void CreateSubscriber()
 }
 
 //////////////////////////////////////////////////
+/// \brief Use two threads using their own transport nodes. One thread
+/// will publish a message, whereas the other thread is subscribed to the topic.
+/// \param[in] _scope Scope used to advertise the topic.
+void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
+{
+  cbExecuted = false;
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  node.Advertise(topic, _sc);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Subscribe to topic in a different thread and wait until the callback is
+  // received.
+  std::thread subscribeThread(CreateSubscriber);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a msg on topic.
+  EXPECT_EQ(node.Publish(topic, msg), 0);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Wait until the subscribe thread finishes.
+  subscribeThread.join();
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+  cbExecuted = false;
+}
+
+//////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
 TEST(NodeTest, PubWithoutAdvertise)
 {
@@ -160,29 +191,7 @@ TEST(NodeTest, PubSubSameThread)
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
 {
-  cbExecuted = false;
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
-
-  transport::Node node;
-  node.Advertise(topic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // Subscribe to topic in a different thread and wait until the callback is
-  // received.
-  std::thread subscribeThread(CreateSubscriber);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // Publish a msg on topic.
-  EXPECT_EQ(node.Publish(topic, msg), 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // Wait until the subscribe thread finishes.
-  subscribeThread.join();
-
-  // Check that the message was received.
-  EXPECT_TRUE(cbExecuted);
-  cbExecuted = false;
+  CreatePubSubTwoThreads();
 }
 
 //////////////////////////////////////////////////
@@ -264,11 +273,27 @@ TEST(NodeTest, ClassMemberCallback)
 }
 
 //////////////////////////////////////////////////
-/// \brief Use the transport inside a class and check advertise, subscribe and
-/// publish.
-TEST(NodeTest, ScopedTopics)
+/// \brief Check that two nodes in diffetent threads are able to communicate
+/// advertising a topic with "Process" scope.
+TEST(NodeTest, ScopeProcess)
 {
+  CreatePubSubTwoThreads(transport::Scope::Process);
+}
 
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in diffetent threads are able to communicate
+/// advertising a topic with "Host" scope.
+TEST(NodeTest, ScopeHost)
+{
+  CreatePubSubTwoThreads(transport::Scope::Host);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in diffetent threads are able to communicate
+/// advertising a topic with "All" scope.
+TEST(NodeTest, ScopeAll)
+{
+  CreatePubSubTwoThreads(transport::Scope::All);
 }
 
 //////////////////////////////////////////////////
