@@ -55,11 +55,11 @@ NodePrivate::NodePrivate(bool _verbose)
   srand(time(nullptr));
 
   // My process UUID.
-  uuid_generate(this->guid);
-  this->guidStr = GetGuidStr(this->guid);
+  uuid_generate(this->pUuid);
+  this->pUuidStr = GetGuidStr(this->pUuid);
 
   // Initialize my discovery service.
-  this->discovery.reset(new Discovery(this->guid, false));
+  this->discovery.reset(new Discovery(this->pUuid, false));
 
   // Initialize the 0MQ objects.
   try
@@ -90,7 +90,7 @@ NodePrivate::NodePrivate(bool _verbose)
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
-    std::cout << "GUID: " << this->guidStr << std::endl;
+    std::cout << "Process UUID: " << this->pUuidStr << std::endl;
   }
 
   // We don't want to exit yet.
@@ -301,7 +301,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   // Check if we are interested in this topic.
   if (this->topics.Subscribed(_topic) &&
       !this->Connected(_addr) &&
-      this->guidStr.compare(_pUuid) != 0)
+      this->pUuidStr.compare(_pUuid) != 0)
   {
     if (this->verbose)
       std::cout << "Connecting to a remote publisher" << std::endl;
@@ -340,8 +340,9 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
         memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
         socket.send(message, ZMQ_SNDMORE);
 
-        message.rebuild(this->guidStr.size() + 1);
-        memcpy(message.data(), this->guidStr.c_str(), this->guidStr.size() + 1);
+        message.rebuild(this->pUuidStr.size() + 1);
+        memcpy(message.data(), this->pUuidStr.c_str(),
+          this->pUuidStr.size() + 1);
         socket.send(message, ZMQ_SNDMORE);
 
         message.rebuild(nodeUuid.size() + 1);

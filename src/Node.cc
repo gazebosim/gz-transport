@@ -33,8 +33,8 @@ using namespace transport;
 Node::Node(bool _verbose)
   : dataPtr(NodePrivate::GetInstance(_verbose))
 {
-  uuid_generate(this->nodeUuid);
-  this->nodeUuidStr = GetGuidStr(this->nodeUuid);
+  uuid_generate(this->nUuid);
+  this->nUuidStr = GetGuidStr(this->nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -65,7 +65,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   // Notify the discovery service to register and advertise my topic.
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
-    this->dataPtr->myControlAddress, this->nodeUuidStr, _scope);
+    this->dataPtr->myControlAddress, this->nUuidStr, _scope);
 }
 
 //////////////////////////////////////////////////
@@ -81,7 +81,7 @@ void Node::Unadvertise(const std::string &_topic)
       _topic) - this->topicsAdvertised.begin());
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->discovery->Unadvertise(_topic, this->nodeUuidStr);
+  this->dataPtr->discovery->Unadvertise(_topic, this->nUuidStr);
 }
 
 //////////////////////////////////////////////////
@@ -139,7 +139,7 @@ void Node::Unsubscribe(const std::string &_topic)
   if (this->dataPtr->verbose)
     std::cout << "\nUnsubscribe (" << _topic << ")\n";
 
-  this->dataPtr->topics.RemoveSubscriptionHandler(_topic, this->nodeUuidStr);
+  this->dataPtr->topics.RemoveSubscriptionHandler(_topic, this->nUuidStr);
 
   // Remove the topic from the list of subscribed topics in this node.
   this->topicsSubscribed.resize(
@@ -183,9 +183,8 @@ void Node::Unsubscribe(const std::string &_topic)
              this->dataPtr->myAddress.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
-      message.rebuild(this->nodeUuidStr.size() + 1);
-      memcpy(message.data(), this->nodeUuidStr.c_str(),
-             this->nodeUuidStr.size() + 1);
+      message.rebuild(this->nUuidStr.size() + 1);
+      memcpy(message.data(), this->nUuidStr.c_str(), this->nUuidStr.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
       std::string data = std::to_string(EndConnection);

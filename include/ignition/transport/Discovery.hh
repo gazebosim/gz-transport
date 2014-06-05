@@ -34,10 +34,10 @@ namespace ignition
     class Discovery
     {
       /// \brief Constructor.
-      /// \param[in] _procUuid This discovery instance will run inside a
+      /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Discovery(const uuid_t &_procUuid, bool _verbose = false);
+      public: Discovery(const uuid_t &_pUuid, bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Discovery();

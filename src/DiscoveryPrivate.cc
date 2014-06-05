@@ -32,7 +32,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
+DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
   : silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     retransmissionInterval(DefRetransmissionInterval),
@@ -45,8 +45,8 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
   this->ctx = zctx_new();
 
   // Store the UUID and its string version.
-  uuid_copy(this->uuid, _procUuid);
-  this->uuidStr = GetGuidStr(this->uuid);
+  uuid_copy(this->pUuid, _pUuid);
+  this->pUuidStr = GetGuidStr(this->pUuid);
 
   // Discovery beacon.
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
@@ -111,7 +111,7 @@ void DiscoveryPrivate::RunActivityTask()
     for (auto it = this->activity.cbegin(); it != this->activity.cend();)
     {
       // Skip my own entry.
-      if (it->first == this->uuidStr)
+      if (it->first == this->pUuidStr)
         continue;
 
       // Elapsed time since the last update from this publisher.
@@ -269,7 +269,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
   std::string recvPUuid = GetGuidStr(header.GetGuid());
 
   // Discard our own discovery messages.
-  if (recvPUuid == this->uuidStr)
+  if (recvPUuid == this->pUuidStr)
     return 0;
 
   // Update timestamp.
@@ -319,9 +319,9 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubType:
     {
       // Check if at least one of my nodes advertises the topic requested.
-      if (this->AdvertisedByProc(topic, this->uuidStr))
+      if (this->AdvertisedByProc(topic, this->pUuidStr))
       {
-        for (auto nodeInfo : this->info[topic][this->uuidStr])
+        for (auto nodeInfo : this->info[topic][this->pUuidStr])
         {
           // Check scope of the topic.
           if ((nodeInfo.scope == Scope::Process) ||
@@ -404,7 +404,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const Scope &_scope, int _flags)
 {
   // Create the header.
-  Header header(Version, this->uuid, _topic, _type, _flags);
+  Header header(Version, this->pUuid, _topic, _type, _flags);
 
   switch (_type)
   {
@@ -586,7 +586,7 @@ void DiscoveryPrivate::PrintCurrentState()
 {
   std::cout << "---------------" << std::endl;
   std::cout << "Discovery state" << std::endl;
-  std::cout << "\tUUID: " << this->uuidStr << std::endl;
+  std::cout << "\tUUID: " << this->pUuidStr << std::endl;
   std::cout << "Settings" << std::endl;
   std::cout << "\tActivity: " << this->activityInterval << " ms." << std::endl;
   std::cout << "\tHeartbit: " << this->heartbitInterval << " ms." << std::endl;

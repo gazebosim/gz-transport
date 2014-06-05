@@ -28,8 +28,8 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Discovery::Discovery(const uuid_t &_procUuid, bool _verbose)
-: dataPtr(new DiscoveryPrivate(_procUuid, _verbose))
+Discovery::Discovery(const uuid_t &_pUuid, bool _verbose)
+: dataPtr(new DiscoveryPrivate(_pUuid, _verbose))
 {
 }
 
@@ -49,7 +49,7 @@ void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
 
   // Add the addressing information (local node).
   this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl,
-    this->dataPtr->uuidStr, _nUuid, _scope);
+    this->dataPtr->pUuidStr, _nUuid, _scope);
 
   // Do not advertise a message outside the process.
   if (_scope == Scope::Process)
@@ -117,12 +117,12 @@ void Discovery::Unadvertise(const std::string &_topic,
 
   // Don't do anything if the topic is not advertised by any of my nodes.
   Address_t info;
-  if (!this->dataPtr->GetTopicAddress(_topic, this->dataPtr->uuidStr,
+  if (!this->dataPtr->GetTopicAddress(_topic, this->dataPtr->pUuidStr,
         _nUuid, info))
     return;
 
   // Remove the topic information.
-  this->dataPtr->DelTopicAddrByNode(_topic, this->dataPtr->uuidStr, _nUuid);
+  this->dataPtr->DelTopicAddrByNode(_topic, this->dataPtr->pUuidStr, _nUuid);
 
   // Do not advertise a message outside the process.
   if (info.scope == Scope::Process)

@@ -171,11 +171,11 @@ namespace ignition
       /// \brief ZMQ socket to receive control updates (new connections, ...).
       public: std::unique_ptr<zmq::socket_t> control;
 
-      /// \brief Local GUID.
-      public: uuid_t guid;
+      /// \brief Process UUID.
+      public: uuid_t pUuid;
 
       /// \brief String conversion of the GUID.
-      public: std::string guidStr;
+      public: std::string pUuidStr;
 
       /// \brief Timeout used for receiving requests.
       public: int timeout;

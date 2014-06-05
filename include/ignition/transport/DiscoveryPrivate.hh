@@ -179,10 +179,10 @@ namespace ignition
       public: std::string hostAddr;
 
       /// \brief Process UUID.
-      public: uuid_t uuid;
+      public: uuid_t pUuid;
 
       /// \brief UUID in string format.
-      public: std::string uuidStr;
+      public: std::string pUuidStr;
 
       /// \brief Silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.

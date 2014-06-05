@@ -76,7 +76,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->nodeUuidStr));
+            new SubscriptionHandler<T>(this->nUuidStr));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -86,7 +86,7 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->topics.AddSubscriptionHandler(
-          _topic, this->nodeUuidStr, subscrHandlerPtr);
+          _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
         if (std::find(this->topicsSubscribed.begin(),
@@ -112,7 +112,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->nodeUuidStr));
+            new SubscriptionHandler<T>(this->nUuidStr));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(
@@ -123,7 +123,7 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->topics.AddSubscriptionHandler(
-          _topic, this->nodeUuidStr, subscrHandlerPtr);
+          _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
         if (std::find(this->topicsSubscribed.begin(),
@@ -157,10 +157,10 @@ namespace ignition
       private: std::vector<std::string> topicsAdvertised;
 
       /// \brief Node UUID. This ID is unique for each node.
-      private: uuid_t nodeUuid;
+      private: uuid_t nUuid;
 
       /// \brief Node UUID in string format.
-      private: std::string nodeUuidStr;
+      private: std::string nUuidStr;
     };
   }
 }
