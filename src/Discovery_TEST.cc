@@ -155,7 +155,7 @@ class MyClass
 
 //////////////////////////////////////////////////
 /// \brief Test the setters, getters and basic functions.
-/*TEST(DiscoveryTest, TestBasicAPI)
+TEST(DiscoveryTest, TestBasicAPI)
 {
   unsigned int newSilenceInterval = 100;
   unsigned int newActivityInterval = 200;
@@ -368,7 +368,7 @@ TEST(DiscoveryTest, TestDiscover)
   disconnectionExecuted = false;
   connectionExecuted = false;
 }
-*/
+
 //////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the disconnection callback after
 /// an unadvertise.
@@ -422,7 +422,7 @@ TEST(DiscoveryTest, TestUnadvertise)
 //////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the disconnection callback after
 /// an unadvertise. This test uses a discovery object within a class.
-/*TEST(DiscoveryTest, TestUnadvertiseMF)
+TEST(DiscoveryTest, TestUnadvertiseMF)
 {
   uuid_t uuid1, uuid2;
   setupUUIDs(uuid1, uuid2);
@@ -579,7 +579,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   EXPECT_EQ(counter, 2);
   disconnectionExecuted = false;
   connectionExecuted = false;
-}*/
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

@@ -66,7 +66,7 @@ namespace ignition
       public: void RecvMsgUpdate();
 
       /// \brief Method in charge of receiving the control updates (new remote
-      /// subscriber).
+      /// subscriber for example).
       public: void RecvControlUpdate();
 
       /// \brief Callback executed when the discovery detects new connections.
@@ -137,7 +137,7 @@ namespace ignition
       /// \param[in] _uuid Process UUID of the publisher.
       public: void DelConnectionByProc(const std::string &_pUuid);
 
-      /// \brief Timeout used for receiving messages.
+      /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
       /// \brief Print activity to stdout.

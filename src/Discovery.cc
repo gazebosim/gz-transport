@@ -134,78 +134,76 @@ void Discovery::Unadvertise(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-std::string Discovery::GetHostAddr()
+std::string Discovery::GetHostAddr() const
 {
   return this->dataPtr->GetHostAddr();
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetActivityInterval()
+unsigned int Discovery::GetActivityInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->activityInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbitInterval()
+unsigned int Discovery::GetHeartbitInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->heartbitInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetRetransmissionInterval()
+unsigned int Discovery::GetRetransmissionInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->retransmissionInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetSilenceInterval()
+unsigned int Discovery::GetSilenceInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->silenceInterval;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetActivityInterval(unsigned int _ms)
+void Discovery::SetActivityInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbitInterval(unsigned int _ms)
+void Discovery::SetHeartbitInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->heartbitInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetRetransmissionInterval(unsigned int _ms)
+void Discovery::SetRetransmissionInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->retransmissionInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetSilenceInterval(unsigned int _ms)
+void Discovery::SetSilenceInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->silenceInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsCb(
-  const DiscoveryCallback &_cb)
+void Discovery::SetConnectionsCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsCb(
-  const DiscoveryCallback &_cb)
+void Discovery::SetDisconnectionsCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionCb = _cb;

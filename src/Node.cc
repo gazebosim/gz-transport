@@ -56,8 +56,6 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-  // this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
-
   // Add the topic to the list of advertised topics (if it was not before)
   if (std::find(this->topicsAdvertised.begin(),
     this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
@@ -65,11 +63,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
     this->topicsAdvertised.push_back(_topic);
   }
 
-  // Register the advertised address for the topic.
-  /*this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
-    this->dataPtr->myControlAddress, this->dataPtr->guidStr, this->nodeUuidStr,
-    _scope);*/
-
+  // Notify the discovery service to register and advertise my topic.
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->nodeUuidStr, _scope);
 }
@@ -81,16 +75,12 @@ void Node::Unadvertise(const std::string &_topic)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-  // this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
-
   // Remove the topic from the list of advertised topics in this node.
   this->topicsAdvertised.resize(
     std::remove(this->topicsAdvertised.begin(), this->topicsAdvertised.end(),
       _topic) - this->topicsAdvertised.begin());
 
-  // this->dataPtr->topics.DelAddressByNode(_topic, this->dataPtr->guidStr,
-  //  this->nodeUuidStr);
-
+  // Notify the discovery service to unregister and unadvertise my topic.
   this->dataPtr->discovery->Unadvertise(_topic, this->nodeUuidStr);
 }
 
@@ -101,22 +91,12 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
+  // Topic not advertised before.
   if (std::find(this->topicsAdvertised.begin(),
     this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
   {
     return -1;
   }
-  // if (!this->dataPtr->topics.AdvertisedByMe(_topic))
-  //   return -1;
-
-  /*Address_t addrInfo;
-  if (!this->dataPtr->topics.GetInfo(_topic, this->nodeUuidStr, addrInfo))
-  {
-    std::cout << "Node::Publish() error: Don't have information for topic ["
-              << _topic << "] and node (" << this->nodeUuidStr << ")"
-              << std::endl;
-    return -1;
-  }*/
 
   // Local subscribers.
   ISubscriptionHandler_M handlers;
@@ -137,7 +117,10 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     std::string data;
     _msg.SerializeToString(&data);
     if (this->dataPtr->Publish(_topic, data) != 0)
+    {
+      std::cout << "Call private publish(). Return -1" << std::endl;
       return -1;
+    }
   }
   // Debug output.
   // else
@@ -170,13 +153,10 @@ void Node::Unsubscribe(const std::string &_topic)
       ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());
   }
 
-  // Notify the publisher.
+  // Notify the publishers that I am no longer insterested in the topic.
   Addresses_M addresses;
   if (!this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
-  {
-    std::cout << "Node::Unsubscribe() Don't have information for topic ["
-              << _topic << "]" << std::endl;
-  }
+    return;
 
   for (const auto &proc : addresses)
   {

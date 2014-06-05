@@ -54,7 +54,7 @@ NodePrivate::NodePrivate(bool _verbose)
   // Initialize random seed.
   srand(time(nullptr));
 
-  // My UUID.
+  // My process UUID.
   uuid_generate(this->guid);
   this->guidStr = GetGuidStr(this->guid);
 
@@ -155,31 +155,20 @@ int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  zmq::message_t message;
+  message.rebuild(_topic.size() + 1);
+  memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+  this->publisher->send(message, ZMQ_SNDMORE);
 
-  if (this->topics.AdvertisedByMe(_topic))
-  {
-    zmq::message_t message;
-    message.rebuild(_topic.size() + 1);
-    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-    this->publisher->send(message, ZMQ_SNDMORE);
+  message.rebuild(this->myAddress.size() + 1);
+  memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
+  this->publisher->send(message, ZMQ_SNDMORE);
 
-    message.rebuild(this->myAddress.size() + 1);
-    memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
-    this->publisher->send(message, ZMQ_SNDMORE);
+  message.rebuild(_data.size() + 1);
+  memcpy(message.data(), _data.c_str(), _data.size() + 1);
+  this->publisher->send(message, 0);
 
-    message.rebuild(_data.size() + 1);
-    memcpy(message.data(), _data.c_str(), _data.size() + 1);
-    this->publisher->send(message, 0);
-
-    return 0;
-  }
-  else
-  {
-    if (this->verbose)
-      std::cerr << "\nNot published. (" << _topic << ") not advertised\n";
-    return -1;
-  }
+  return 0;
 }
 
 //////////////////////////////////////////////////
@@ -309,10 +298,6 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
-  // Register the advertised address for the topic.
-  // this->topics.AddAdvAddress(
-  //  _topic, _addr, _ctrlAddr, _pUuid, _nUuid, _scope);
-
   // Check if we are interested in this topic.
   if (this->topics.Subscribed(_topic) &&
       !this->Connected(_addr) &&
@@ -320,17 +305,6 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   {
     if (this->verbose)
       std::cout << "Connecting to a remote publisher" << std::endl;
-
-    /*std::string publisherHost;
-    if (!NetUtils::ZmqToIp(_addr, publisherHost))
-      return;
-
-    // Topic out of scope.
-    if ((_scope == Scope::Host && this->hostAddr != publisherHost) ||
-        (_scope == Scope::Process && _nUuid != this->guidStr))
-    {
-      return;
-    }*/
 
     try
     {

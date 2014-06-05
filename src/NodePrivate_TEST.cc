@@ -47,7 +47,7 @@ TEST(NodePrivateTest, Connections)
   node.AddConnection(topic1, addr1, ctrl1, pUuid1, nUuid1, scope);
   EXPECT_TRUE(node.Connected(addr1));
   node.AddConnection(topic1, addr1, ctrl1, pUuid1, nUuid2, scope);
-  EXPECT_TRUE(node.Connected(addr2));
+  EXPECT_TRUE(node.Connected(addr1));
   node.AddConnection(topic2, addr2, ctrl2, pUuid2, nUuid3, scope);
   EXPECT_TRUE(node.Connected(addr1));
   EXPECT_TRUE(node.Connected(addr2));

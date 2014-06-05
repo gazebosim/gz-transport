@@ -283,12 +283,12 @@ transport::Scope AdvMsg::GetScope() const
 void AdvMsg::SetHeader(const Header &_header)
 {
   this->header = _header;
-  if (_header.GetType() != AdvType &&_header.GetType() != AdvSvcType)
+  /*if (_header.GetType() != AdvType &&_header.GetType() != AdvSvcType)
   {
     std::cerr << "You're trying to use a "
               << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
               << " or AdvSvcMsg. Are you sure you want to do this?\n";
-  }
+  }*/
 }
 
 //////////////////////////////////////////////////

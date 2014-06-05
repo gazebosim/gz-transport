@@ -327,7 +327,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
           if ((nodeInfo.scope == Scope::Process) ||
               (nodeInfo.scope == Scope::Host && _fromIp != this->hostAddr))
           {
-            return 0;
+            continue;
           }
 
           // Answer an ADVERTISE message.
@@ -361,7 +361,6 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     }
     case UnadvType:
     {
-      std::cout << "UNADV recv" << std::endl;
       // Read the address.
       AdvMsg advMsg;
       advMsg.UnpackBody(pBody);
@@ -374,13 +373,11 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       if ((recvScope == Scope::Process) ||
           (recvScope == Scope::Host && _fromIp != this->hostAddr))
       {
-        std::cout << "Scope!" << std::endl;
         return 0;
       }
 
       if (this->disconnectionCb)
       {
-        std::cout << "Notifying" << std::endl;
         // Notify the new disconnection.
         this->disconnectionCb(topic, recvAddr, recvCtrl, recvPUuid,
           recvNUuid, recvScope);
@@ -412,8 +409,9 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   switch (_type)
   {
     case AdvType:
+    case UnadvType:
     {
-      // Create the ADVERTISE message.
+      // Create the [UN]ADVERTISE message.
       AdvMsg advMsg(header, _addr, _ctrl, _nUuid, _scope);
 
       // Create a buffer and serialize the message.
@@ -427,7 +425,6 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       break;
     }
     case SubType:
-    case UnadvType:
     case HelloType:
     case ByeType:
     {
@@ -458,13 +455,13 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool DiscoveryPrivate::AdvertisedByProc(const std::string &_topic,
-                                        const std::string &_uuid)
+                                        const std::string &_pUuid)
 {
   // I do not have the topic.
   if (this->info.find(_topic) == this->info.end())
     return false;
 
-  return this->info[_topic].find(_uuid) != this->info[_topic].end();
+  return this->info[_topic].find(_pUuid) != this->info[_topic].end();
 }
 
 //////////////////////////////////////////////////

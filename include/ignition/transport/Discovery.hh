@@ -75,48 +75,48 @@ namespace ignition
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
-      public: std::string GetHostAddr();
+      public: std::string GetHostAddr() const;
 
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' time.
       /// \return The value in milliseconds.
-      public: unsigned int GetActivityInterval();
+      public: unsigned int GetActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in the remote nodes. A HELLO message is sent after
       /// 'heartbit interval' time.
       /// \return The value in milliseconds.
-      public: unsigned int GetHeartbitInterval();
+      public: unsigned int GetHeartbitInterval() const;
 
       /// \brief After a discover request, the discovery will send periodic
       /// discovery requests every 'retransmission interval' time.
       /// \return The value in milliseconds.
-      public: unsigned int GetRetransmissionInterval();
+      public: unsigned int GetRetransmissionInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entry.
       /// \return The value in milliseconds.
-      public: unsigned int GetSilenceInterval();
+      public: unsigned int GetSilenceInterval() const;
 
       /// \brief Set the activity interval.
       /// \sa GetActivityInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetActivityInterval(unsigned int _ms);
+      public: void SetActivityInterval(const unsigned int _ms);
 
       /// \brief Set the hello interval.
       /// \sa GetHeartbitInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetHeartbitInterval(unsigned int _ms);
+      public: void SetHeartbitInterval(const unsigned int _ms);
 
       /// \brief Set the retransmission interval.
       /// \sa GetRetransmissionInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetRetransmissionInterval(unsigned int _ms);
+      public: void SetRetransmissionInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
       /// \sa GetSilenceInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetSilenceInterval(unsigned int _ms);
+      public: void SetSilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new node is connected, the callback will be execute. This

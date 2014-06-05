@@ -73,10 +73,11 @@ namespace ignition
       public: void RecvDiscoveryUpdate();
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
-      /// \param[in] _msg Received message.
       /// \param[in] _fromIp IP address of the message sender.
+      /// \param[in] _msg Received message.
       /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg);
+      public: int DispatchDiscoveryMsg(const std::string &_fromIp,
+                                       char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -96,10 +97,10 @@ namespace ignition
 
       /// \brief Check if a topic has been advertised by me.
       /// \param[in] _topic Topic name.
-      /// \param[in] _uuid Process' UUID.
+      /// \param[in] _pUuid Process' UUID.
       /// \return true if the topic is advertised by any of my nodes.
       public: bool AdvertisedByProc(const std::string &_topic,
-                                    const std::string &_uuid);
+                                    const std::string &_pUuid);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.
@@ -112,8 +113,8 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr New address.
       /// \param[in] _ctrl New control address.
-      /// \param[in] _pUuid Process' UUID of the publisher.
-      /// \param[in] _nUuid Node's UUID of the publisher.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic Scope.
       /// \return true if the new address is added or false if the address
       /// was already stored.
@@ -148,22 +149,22 @@ namespace ignition
       /// probably caused by a BYE message or a disconnected process.
       public: void DelTopicAddrByProc(const std::string &_pUuid);
 
-      /// \brief Default activity interval value.
+      /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
-      /// \brief Default hello interval value.
+      /// \brief Default hello interval value (ms.).
       /// \sa GetHelloInterval.
       /// \sa SetHelloInterval.
       public: static const unsigned int DefHeartbitInterval = 1000;
 
-      /// \brief Default silence interval value.
+      /// \brief Default silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: static const unsigned int DefSilenceInterval = 3000;
 
-      /// \brief Default retransmission interval value.
+      /// \brief Default retransmission interval value (ms.).
       /// \sa GetRetransmissionInterval.
       /// \sa SetRetransmissionInterval.
       public: static const unsigned int DefRetransmissionInterval = 1000;
@@ -171,7 +172,7 @@ namespace ignition
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
-      /// \brief Timeout used for receiving messages.
+      /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
       /// \brief Host IP address.
@@ -183,22 +184,22 @@ namespace ignition
       /// \brief UUID in string format.
       public: std::string uuidStr;
 
-      /// \brief Silence interval value.
+      /// \brief Silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: unsigned int silenceInterval;
 
-      /// \brief Activity interval value.
+      /// \brief Activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
       public: unsigned int activityInterval;
 
-      /// \brief Retransmission interval value.
+      /// \brief Retransmission interval value (ms.).
       /// \sa GetRetransmissionInterval.
       /// \sa SetRetransmissionInterval.
       public: unsigned int retransmissionInterval;
 
-      /// \brief Heartbit interval value.
+      /// \brief Heartbit interval value (ms.).
       /// \sa GetHeartbitInterval.
       /// \sa SetHeartbitInterval.
       public: unsigned int heartbitInterval;
@@ -223,7 +224,7 @@ namespace ignition
       /// key is the process uuid.
       public: std::map<std::string, Timestamp> activity;
 
-      /// \brief Print activity to stdout.
+      /// \brief Print discovery information to stdout.
       public: bool verbose;
 
       /// \brief ZMQ context for the discovery beacon.
