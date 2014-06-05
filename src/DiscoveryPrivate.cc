@@ -121,7 +121,7 @@ void DiscoveryPrivate::RunActivityTask()
            (elapsed).count() > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        this->DelTopicAddress("", it->first);
+        this->DelTopicAddress("", it->first, "");
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -323,6 +323,8 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
             return 0;
           }
 
+          std::cout << "Receive a SUB and answering" << std::endl;
+
           // Answer an ADVERTISE message.
           this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
             nodeInfo.nUuid, nodeInfo.scope);
@@ -348,7 +350,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress("", recvPUuid);
+      this->DelTopicAddress("", recvPUuid, "");
 
       break;
     }
@@ -370,7 +372,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress(recvAddr, recvPUuid);
+      this->DelTopicAddress(recvAddr, "", recvNUuid);
 
       break;
     }
@@ -490,7 +492,8 @@ bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::DelTopicAddress(const std::string &_addr,
-                                       const std::string &_uuid)
+                                       const std::string &_pUuid,
+                                       const std::string &_nUuid)
 {
   // Each topic.
   for (auto topicInfo : this->info)
@@ -503,10 +506,10 @@ void DiscoveryPrivate::DelTopicAddress(const std::string &_addr,
       auto &v = it->second;
       v.erase(std::remove_if(v.begin(), v.end(), [&](const Address_t &_addrInfo)
       {
-        return _addrInfo.addr == _addr;
+        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
       }), v.end());
 
-      if (v.empty() || it->first == _uuid)
+      if (v.empty() || it->first == _pUuid)
         m.erase(it++);
       else
         ++it;

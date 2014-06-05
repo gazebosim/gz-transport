@@ -153,6 +153,9 @@ namespace ignition
       /// \brief The list of topics subscribed by this node.
       private: std::vector<std::string> topicsSubscribed;
 
+      /// \brief The list of topics advertised by this node.
+      private: std::vector<std::string> topicsAdvertised;
+
       /// \brief Node UUID. This ID is unique for each node.
       private: uuid_t nodeUuid;
 

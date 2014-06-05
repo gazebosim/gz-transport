@@ -159,6 +159,8 @@ namespace ignition
                                  const std::string &_nUuid,
                                  const Scope &_scope);
 
+      public: void ShowInfo();
+
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr Address to remove.
@@ -166,6 +168,8 @@ namespace ignition
       public: void DelAdvAddress(const std::string &_topic,
                                  const std::string &_addr,
                                  const std::string &_uuid);
+
+      public: void DelAdvAddressByNode(const std::string &_nUuid);
 
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.

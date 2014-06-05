@@ -66,6 +66,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   transport::Addresses_M m;
   transport::ReqCallback reqCb;
   transport::RepCallback repCb;
+  transport::Address_t info;
 
   // Check getters with an empty TopicsInfo object
   EXPECT_FALSE(topics.HasTopic(topic));
@@ -93,6 +94,13 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_EQ(v.at(0).ctrl, ctrl1);
   EXPECT_EQ(v.at(0).nUuid, nUuid1);
   EXPECT_EQ(v.at(0).scope, scope1);
+  // Check GetInfo
+  topics.GetInfo(topic, nUuid1, info);
+  EXPECT_EQ(info.addr, addr1);
+  EXPECT_EQ(info.ctrl, ctrl1);
+  EXPECT_EQ(info.nUuid, nUuid1);
+  EXPECT_EQ(info.addr, addr1);
+  EXPECT_EQ(info.scope, scope1);
 
   // Insert one node address on the same process.
   topics.AddAdvAddress(topic, addr2, ctrl2, pUuid1, nUuid2, scope2);
@@ -114,6 +122,13 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_EQ(v.at(1).ctrl, ctrl2);
   EXPECT_EQ(v.at(1).nUuid, nUuid2);
   EXPECT_EQ(v.at(1).scope, scope2);
+  // Check GetInfo
+  topics.GetInfo(topic, nUuid2, info);
+  EXPECT_EQ(info.addr, addr2);
+  EXPECT_EQ(info.ctrl, ctrl2);
+  EXPECT_EQ(info.nUuid, nUuid2);
+  EXPECT_EQ(info.addr, addr2);
+  EXPECT_EQ(info.scope, scope2);
 
   // Insert one node address on a second process.
   topics.AddAdvAddress(topic, addr3, ctrl3, pUuid2, nUuid3, scope3);
@@ -133,6 +148,13 @@ TEST(PacketTest, BasicTopicsInfoAPI)
   EXPECT_EQ(v.at(0).ctrl, ctrl3);
   EXPECT_EQ(v.at(0).nUuid, nUuid3);
   EXPECT_EQ(v.at(0).scope, scope3);
+  // Check GetInfo
+  topics.GetInfo(topic, nUuid3, info);
+  EXPECT_EQ(info.addr, addr3);
+  EXPECT_EQ(info.ctrl, ctrl3);
+  EXPECT_EQ(info.nUuid, nUuid3);
+  EXPECT_EQ(info.addr, addr3);
+  EXPECT_EQ(info.scope, scope3);
 
   EXPECT_FALSE(topics.Subscribed(topic));
   EXPECT_FALSE(topics.AdvertisedByMe(topic));
@@ -143,6 +165,14 @@ TEST(PacketTest, BasicTopicsInfoAPI)
 
   // Insert another node on process2.
   topics.AddAdvAddress(topic, addr4, ctrl4, pUuid2, nUuid4, scope4);
+   // Check GetInfo
+  topics.GetInfo(topic, nUuid4, info);
+  EXPECT_EQ(info.addr, addr4);
+  EXPECT_EQ(info.ctrl, ctrl4);
+  EXPECT_EQ(info.nUuid, nUuid4);
+  EXPECT_EQ(info.addr, addr4);
+  EXPECT_EQ(info.scope, scope4);
+
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr1));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr2));
   EXPECT_TRUE(topics.HasAdvAddress(topic, addr3));

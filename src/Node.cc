@@ -35,6 +35,8 @@ Node::Node(bool _verbose)
 {
   uuid_generate(this->nodeUuid);
   this->nodeUuidStr = GetGuidStr(this->nodeUuid);
+
+  this->dataPtr->topics.ShowInfo();
 }
 
 //////////////////////////////////////////////////
@@ -43,6 +45,13 @@ Node::~Node()
   // Unsubscribe from all the topics.
   for (auto topic : this->topicsSubscribed)
     this->Unsubscribe(topic);
+
+  // Unadvertise all my topics.
+  for (auto topic : this->topicsAdvertised)
+    this->Unadvertise(topic);
+
+  // Remote my advertised topic info.
+  this->dataPtr->topics.DelAdvAddressByNode(this->nodeUuidStr);
 }
 
 //////////////////////////////////////////////////
@@ -55,9 +64,22 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
   // Register the advertised address for the topic.
+  std::cout << "Before Advertise" << std::endl;
+  this->dataPtr->topics.ShowInfo();
+
+  // Add the topic to the list of advertised topics (if it was not before)
+  if (std::find(this->topicsAdvertised.begin(),
+    this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
+  {
+    this->topicsAdvertised.push_back(_topic);
+  }
+
   this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->dataPtr->guidStr, this->nodeUuidStr,
     _scope);
+
+  std::cout << "After Advertise" << std::endl;
+  this->dataPtr->topics.ShowInfo();
 
   // Do not advertise a message outside if the scope is restricted.
   if (_scope == Scope::Thread || _scope == Scope::Process)
@@ -76,8 +98,13 @@ void Node::Unadvertise(const std::string &_topic)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
 
+  // Remove the topic from the list of advertised topics in this node.
+  this->topicsAdvertised.resize(
+    std::remove(this->topicsAdvertised.begin(), this->topicsAdvertised.end(),
+      _topic) - this->topicsAdvertised.begin());
+
   this->dataPtr->discovery->Unadvertise(_topic, this->dataPtr->myAddress,
-    this->dataPtr->myControlAddress);
+    this->dataPtr->myControlAddress, this->nodeUuidStr);
 }
 
 //////////////////////////////////////////////////
@@ -92,7 +119,9 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (!this->dataPtr->topics.GetInfo(_topic, this->nodeUuidStr, addrInfo))
   {
     std::cout << "Node::Publish() error: Don't have information for topic ["
-              << _topic << "]" << std::endl;
+              << _topic << "] and node (" << this->nodeUuidStr << ")"
+              << std::endl;
+    return -1;
   }
 
   // Local subscribers.
@@ -101,12 +130,19 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   for (auto handler : handlers)
   {
     ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
     if (subscriptionHandlerPtr)
+    {
+      // Check scope.
+      std::string nUuid = subscriptionHandlerPtr->GetNodeUuid();
+      if (addrInfo.scope == Scope::Thread && nUuid != this->nodeUuidStr)
+        continue;
+
       subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
+    }
     else
       std::cerr << "Node::Publish(): Subscription handler is NULL" << std::endl;
   }
-
 
   // Remote subscribers.
   if (this->dataPtr->topics.HasRemoteSubscribers(_topic))

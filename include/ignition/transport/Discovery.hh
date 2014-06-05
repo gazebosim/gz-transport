@@ -63,9 +63,11 @@ namespace ignition
       /// \param[in] _topic Topic to be unadvertised.
       /// \param[in] _addr 0MQ Address of the node unadvertising the topic.
       /// \param[in] _ctrl 0MQ Control addr of the node unadvertising the topic.
+      /// \param[in] _nUuid Node UUID of the publisher.
       public: void Unadvertise(const std::string &_topic,
                                const std::string &_addr,
-                               const std::string &_ctrl);
+                               const std::string &_ctrl,
+                               const std::string &_nUuid);
 
       /// \brief Get the IP address of the host.
       /// \return A string with the host's IP address.

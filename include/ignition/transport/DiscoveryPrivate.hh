@@ -126,9 +126,11 @@ namespace ignition
 
       /// \brief Remove an address associated to a given topic.
       /// \param[in] _address Address to remove.
-      /// \param[in] _uuid Process' UUID of the publisher.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
       public: void DelTopicAddress(const std::string &_addr,
-                                   const std::string &_uuid);
+                                   const std::string &_pUuid,
+                                   const std::string &_nUuid);
 
       /// \brief Default activity interval value.
       /// \sa GetActivityInterval.

@@ -17,6 +17,7 @@
 
 #include <uuid/uuid.h>
 #include <algorithm>
+#include <iostream>
 #include <mutex>
 #include <string>
 #include "ignition/transport/Discovery.hh"
@@ -78,6 +79,7 @@ void Discovery::Discover(const std::string &_topic)
   // I have information stored for this topic.
   else if (this->dataPtr->connectionCb)
   {
+    std::cout << "Discover with prior information" << std::endl;
     for (auto proc : this->dataPtr->info[_topic])
     {
       for (auto node : proc.second)
@@ -92,7 +94,7 @@ void Discovery::Discover(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
-                            const std::string &_ctrl)
+                            const std::string &_ctrl, const std::string &_nUuid)
 {
   assert(_topic != "");
 
@@ -103,10 +105,10 @@ void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
     return;
 
   // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl, "", Scope::All);
+  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl, _nUuid, Scope::All);
 
   // Remove the topic information.
-  this->dataPtr->DelTopicAddress(_addr, this->dataPtr->uuidStr);
+  this->dataPtr->DelTopicAddress(_addr, "", _nUuid);
 }
 
 //////////////////////////////////////////////////

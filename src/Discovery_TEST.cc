@@ -403,7 +403,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   disconnectionExecuted = false;
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic, localAddr1, controlAddr1);
+  discovery1.Unadvertise(topic, localAddr1, controlAddr1, "");
 
   i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -453,7 +453,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   disconnectionExecutedMF = false;
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic, localAddr1, controlAddr1);
+  discovery1.Unadvertise(topic, localAddr1, controlAddr1, "");
 
   i = 0;
   while (i < 100 && !disconnectionExecutedMF)

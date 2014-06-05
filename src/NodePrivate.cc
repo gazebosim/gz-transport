@@ -315,7 +315,11 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   }
 
   // Register the advertised address for the topic.
+  std::cout << "Before Adding address onNewConnection()" << std::endl;
+  this->topics.ShowInfo();
   this->topics.AddAdvAddress(_topic, _addr, _ctrlAddr, _pUuid, _nUuid, _scope);
+  std::cout << "After Adding address onNewConnection()" << std::endl;
+  this->topics.ShowInfo();
 
   // Check if we are interested in this topic.
   if (this->topics.Subscribed(_topic) &&
@@ -330,8 +334,11 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       return;
 
     // Topic out of scope.
-    if (_scope == Scope::Host && this->hostAddr != publisherHost)
+    if ((_scope == Scope::Host && this->hostAddr != publisherHost) ||
+        (_scope == Scope::Process && _nUuid != this->guidStr))
+    {
       return;
+    }
 
     try
     {
