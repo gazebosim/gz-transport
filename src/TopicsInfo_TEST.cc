@@ -165,7 +165,7 @@ TEST(PacketTest, BasicTopicsInfoAPI)
 
   // Insert another node on process2.
   topics.AddAdvAddress(topic, addr4, ctrl4, pUuid2, nUuid4, scope4);
-   // Check GetInfo
+  // Check GetInfo
   topics.GetInfo(topic, nUuid4, info);
   EXPECT_EQ(info.addr, addr4);
   EXPECT_EQ(info.ctrl, ctrl4);

@@ -105,7 +105,7 @@ void CreateSubscriber()
 
 //////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
-/*TEST(DiscZmqTest, PubWithoutAdvertise)
+TEST(DiscZmqTest, PubWithoutAdvertise)
 {
   robot_msgs::StringMsg msg;
   msg.set_data(data);
@@ -183,7 +183,7 @@ TEST(DiscZmqTest, PubSubTwoThreadsSameTopic)
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
-}*/
+}
 
 //////////////////////////////////////////////////
 /// \brief Use two different transport node on the same thread. Check that
@@ -258,9 +258,9 @@ TEST(NodeTest, ClassMemberCallback)
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   MyTestClass client;
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //client.SendSomeData();
+  client.SendSomeData();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //EXPECT_TRUE(client.callbackExecuted);
+  EXPECT_TRUE(client.callbackExecuted);
 }
 
 //////////////////////////////////////////////////
@@ -283,7 +283,7 @@ void createInfinitePublisher()
 /// \brief Create a transport client in a loop (and in a separate thread) and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
-/*TEST(NodeTest, TerminateSIGINT)
+TEST(NodeTest, TerminateSIGINT)
 {
   std::thread publisherThread(createInfinitePublisher);
   raise(SIGINT);
@@ -299,7 +299,7 @@ TEST(NodeTest, TerminateSIGTERM)
   std::thread publisherThread(createInfinitePublisher);
   raise(SIGTERM);
   publisherThread.join();
-}*/
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

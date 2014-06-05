@@ -79,8 +79,6 @@ bool TopicsInfo::GetInfo(const std::string &_topic,
 
   auto &m = this->topicsInfo[_topic]->addresses;
 
-  std::cout << "Size m: " << m.size() << std::endl;
-
   for (auto proc : m)
   {
     auto &v = proc.second;
@@ -96,8 +94,6 @@ bool TopicsInfo::GetInfo(const std::string &_topic,
       return true;
     }
   }
-
-  std::cout << "Not found" << std::endl;
 
   return false;
 }
@@ -219,8 +215,6 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope &_scope)
 {
-  std::cout << "Adding address (" << _addr << ")" << std::endl;
-
   this->CheckAndCreate(_topic);
 
   // Check if the process uuid exists.
@@ -248,7 +242,6 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
 void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
   const std::string &_addr, const std::string &_pUuid)
 {
-  std::cout << "Deleting address (" << _addr << ")" << std::endl;
   for (auto topicInfo : this->topicsInfo)
   {
     auto &m = topicInfo.second;
@@ -273,7 +266,6 @@ void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
 //////////////////////////////////////////////////
 void TopicsInfo::DelAdvAddressByNode(const std::string &_nUuid)
 {
-  std::cout << "Deleting address for node (" << _nUuid << ")" << std::endl;
   for (auto topicInfo : this->topicsInfo)
   {
     auto &m = topicInfo.second;

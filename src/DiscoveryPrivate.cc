@@ -323,8 +323,6 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
             return 0;
           }
 
-          std::cout << "Receive a SUB and answering" << std::endl;
-
           // Answer an ADVERTISE message.
           this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
             nodeInfo.nUuid, nodeInfo.scope);
@@ -496,32 +494,36 @@ void DiscoveryPrivate::DelTopicAddress(const std::string &_addr,
                                        const std::string &_nUuid)
 {
   // Each topic.
-  for (auto topicInfo : this->info)
+  for (auto it = this->info.begin(); it != this->info.end();)
   {
-    auto &m = topicInfo.second;
-    // Each proccessUUID->{address, controlAddress}.
-    for (auto it = m.begin(); it != m.end();)
+    auto &m = it->second;
+    // Each proccessUUID->{addr, ctrl, nUuid, scope}.
+    for (auto it2 = m.begin(); it2 != m.end();)
     {
       // Vector of 0MQ known addresses for a given topic.
-      auto &v = it->second;
-      v.erase(std::remove_if(v.begin(), v.end(), [&](const Address_t &_addrInfo)
-      {
-        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
-      }), v.end());
+      auto &v = it2->second;
+      v.erase(std::remove_if(v.begin(), v.end(),
+        [&](const Address_t &_addrInfo)
+        {
+          return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
+        }),
+        v.end());
 
-      if (v.empty() || it->first == _pUuid)
-        m.erase(it++);
+      if (v.empty() || it2->first == _pUuid)
+        m.erase(it2++);
       else
-        ++it;
+        ++it2;
     }
+    if (m.empty())
+      this->info.erase(it++);
+    else
+      ++it;
   }
 }
 
 //////////////////////////////////////////////////
 void DiscoveryPrivate::PrintCurrentState()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
-
   std::cout << "---------------" << std::endl;
   std::cout << "Discovery state" << std::endl;
   std::cout << "\tUUID: " << this->uuidStr << std::endl;
@@ -546,6 +548,7 @@ void DiscoveryPrivate::PrintCurrentState()
         {
           std::cout << "\t\t\tAddress: " << node.addr << std::endl;
           std::cout << "\t\t\tControl: " << node.ctrl << std::endl;
+          std::cout << "\t\t\tNode UUID: " << node.nUuid << std::endl;
         }
       }
     }

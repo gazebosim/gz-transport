@@ -35,8 +35,6 @@ Node::Node(bool _verbose)
 {
   uuid_generate(this->nodeUuid);
   this->nodeUuidStr = GetGuidStr(this->nodeUuid);
-
-  this->dataPtr->topics.ShowInfo();
 }
 
 //////////////////////////////////////////////////
@@ -63,10 +61,6 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
-  // Register the advertised address for the topic.
-  std::cout << "Before Advertise" << std::endl;
-  this->dataPtr->topics.ShowInfo();
-
   // Add the topic to the list of advertised topics (if it was not before)
   if (std::find(this->topicsAdvertised.begin(),
     this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
@@ -74,12 +68,10 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
     this->topicsAdvertised.push_back(_topic);
   }
 
+  // Register the advertised address for the topic.
   this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->dataPtr->guidStr, this->nodeUuidStr,
     _scope);
-
-  std::cout << "After Advertise" << std::endl;
-  this->dataPtr->topics.ShowInfo();
 
   // Do not advertise a message outside if the scope is restricted.
   if (_scope == Scope::Thread || _scope == Scope::Process)

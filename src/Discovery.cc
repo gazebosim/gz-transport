@@ -79,7 +79,6 @@ void Discovery::Discover(const std::string &_topic)
   // I have information stored for this topic.
   else if (this->dataPtr->connectionCb)
   {
-    std::cout << "Discover with prior information" << std::endl;
     for (auto proc : this->dataPtr->info[_topic])
     {
       for (auto node : proc.second)
