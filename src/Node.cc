@@ -47,11 +47,6 @@ Node::~Node()
   // Unadvertise all my topics.
   for (auto topic : this->topicsAdvertised)
     this->Unadvertise(topic);
-
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
-  // Remote my advertised topic info.
-  this->dataPtr->topics.DelAdvAddressByNode(this->nodeUuidStr);
 }
 
 //////////////////////////////////////////////////
@@ -61,7 +56,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-  this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
+  // this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
   // Add the topic to the list of advertised topics (if it was not before)
   if (std::find(this->topicsAdvertised.begin(),
@@ -71,13 +66,9 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
   }
 
   // Register the advertised address for the topic.
-  this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
+  /*this->dataPtr->topics.AddAdvAddress(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->dataPtr->guidStr, this->nodeUuidStr,
-    _scope);
-
-  // Do not advertise a message outside if the scope is restricted.
-  if (_scope == Scope::Process)
-    return;
+    _scope);*/
 
   this->dataPtr->discovery->Advertise(_topic, this->dataPtr->myAddress,
     this->dataPtr->myControlAddress, this->nodeUuidStr, _scope);
@@ -90,15 +81,17 @@ void Node::Unadvertise(const std::string &_topic)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-  this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
+  // this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
 
   // Remove the topic from the list of advertised topics in this node.
   this->topicsAdvertised.resize(
     std::remove(this->topicsAdvertised.begin(), this->topicsAdvertised.end(),
       _topic) - this->topicsAdvertised.begin());
 
-  this->dataPtr->discovery->Unadvertise(_topic, this->dataPtr->myAddress,
-    this->dataPtr->myControlAddress, this->nodeUuidStr);
+  // this->dataPtr->topics.DelAddressByNode(_topic, this->dataPtr->guidStr,
+  //  this->nodeUuidStr);
+
+  this->dataPtr->discovery->Unadvertise(_topic, this->nodeUuidStr);
 }
 
 //////////////////////////////////////////////////
@@ -108,17 +101,22 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-  if (!this->dataPtr->topics.AdvertisedByMe(_topic))
+  if (std::find(this->topicsAdvertised.begin(),
+    this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
+  {
     return -1;
+  }
+  // if (!this->dataPtr->topics.AdvertisedByMe(_topic))
+  //   return -1;
 
-  Address_t addrInfo;
+  /*Address_t addrInfo;
   if (!this->dataPtr->topics.GetInfo(_topic, this->nodeUuidStr, addrInfo))
   {
     std::cout << "Node::Publish() error: Don't have information for topic ["
               << _topic << "] and node (" << this->nodeUuidStr << ")"
               << std::endl;
     return -1;
-  }
+  }*/
 
   // Local subscribers.
   ISubscriptionHandler_M handlers;
@@ -174,18 +172,16 @@ void Node::Unsubscribe(const std::string &_topic)
 
   // Notify the publisher.
   Addresses_M addresses;
-  if (!this->dataPtr->topics.GetAdvAddresses(_topic, addresses))
+  if (!this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
   {
-    std::cout << "Don't have information for topic [" << _topic
-              << "]" << std::endl;
+    std::cout << "Node::Unsubscribe() Don't have information for topic ["
+              << _topic << "]" << std::endl;
   }
 
-  for (auto proc : addresses)
+  for (const auto &proc : addresses)
   {
-    for (auto node : proc.second)
+    for (const auto &node : proc.second)
     {
-      std::string controlAddress = node.ctrl;
-
       zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
 
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
@@ -194,7 +190,7 @@ void Node::Unsubscribe(const std::string &_topic)
       int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-      socket.connect(controlAddress.c_str());
+      socket.connect(node.ctrl.c_str());
 
       zmq::message_t message;
       message.rebuild(_topic.size() + 1);

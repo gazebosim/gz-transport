@@ -124,13 +124,29 @@ namespace ignition
                                    const std::string &_nUuid,
                                    const Scope &_scope);
 
-      /// \brief Remove an address associated to a given topic.
-      /// \param[in] _address Address to remove.
+      /// \brief Get the address information for a given topic and node.
+      /// \param[in] _topic Topic name.
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
-      public: void DelTopicAddress(const std::string &_addr,
+      /// \param[out] _info Address information requested.
+      /// \return true if an entry is found for the given topic and node UUID.
+      /// was already stored.
+      public: bool GetTopicAddress(const std::string &_topic,
                                    const std::string &_pUuid,
-                                   const std::string &_nUuid);
+                                   const std::string &_nUuid,
+                                   Address_t &_info);
+
+      /// \brief Remove an address associated to a given topic, process and node
+      /// \param[in] _topic Topic name
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      public: void DelTopicAddrByNode(const std::string &_topic,
+                                      const std::string &_pUuid,
+                                      const std::string &_nUuid);
+
+      /// \brief Remove all the addresses associated to a given process. This is
+      /// probably caused by a BYE message or a disconnected process.
+      public: void DelTopicAddrByProc(const std::string &_pUuid);
 
       /// \brief Default activity interval value.
       /// \sa GetActivityInterval.

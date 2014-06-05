@@ -52,21 +52,25 @@ namespace ignition
                              const std::string &_addr,
                              const std::string &_ctrl,
                              const std::string &_nUuid,
-                             const Scope &_scope);
+                             const Scope &_scope = Scope::All);
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic requested.
       public: void Discover(const std::string &_topic);
 
+      /// \brief Get all the addresses for a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _addresses Map of addresses requested.
+      /// \return true if the topic is found.
+      public: bool GetTopicAddresses(const std::string &_topic,
+                                     Addresses_M &_addresses);
+
       /// \brief Unadvertise a topic. Broadcast a discovery message that will
-      /// cancel all the discovery information for this topic.
+      /// cancel all the discovery information for the topic advertised by a
+      /// specific node.
       /// \param[in] _topic Topic to be unadvertised.
-      /// \param[in] _addr 0MQ Address of the node unadvertising the topic.
-      /// \param[in] _ctrl 0MQ Control addr of the node unadvertising the topic.
       /// \param[in] _nUuid Node UUID of the publisher.
       public: void Unadvertise(const std::string &_topic,
-                               const std::string &_addr,
-                               const std::string &_ctrl,
                                const std::string &_nUuid);
 
       /// \brief Get the IP address of the host.

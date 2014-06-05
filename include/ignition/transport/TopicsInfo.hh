@@ -161,15 +161,18 @@ namespace ignition
 
       public: void ShowInfo();
 
-      /// \brief Remove an address associated to a given topic.
+      /// \brief Remove an address associated to a given topic, process and node
       /// \param[in] _topic Topic name.
-      /// \param[in] _addr Address to remove.
-      /// \param[in] _uuid UUID to remove.
-      public: void DelAdvAddress(const std::string &_topic,
-                                 const std::string &_addr,
-                                 const std::string &_uuid);
+      /// \param[in] _pUuid If present, all addresses of this process
+      ///                   will be removed.
+      /// \param[in] _nUuid Node UUID associated to the address.
+      public: void DelAddressByNode(const std::string &_topic,
+                                    const std::string &_pUuid,
+                                    const std::string &_nUuid);
 
-      public: void DelAdvAddressByNode(const std::string &_nUuid);
+      /// \brief Remove all the addresses associated to a given process. This is
+      /// probably caused by a BYE message or a disconnected process.
+      public: void DelAddressesByProc(const std::string &_pUuid);
 
       /// \brief Set a new service call request to a given topic.
       /// \param[in] _topic Topic name.
@@ -232,11 +235,15 @@ namespace ignition
       /// removed. However, if the UUID process is found, all the remote
       /// subscribers within this process will be removed.
       /// \param[in] _topic Topic name.
-      /// \param[in] _procUuid UUID Subscriber's process UUID.
-      /// \param[in] _uuid UUID Subscriber's node UUID.
-      public: void DelRemoteSubscriber(const std::string &_topic,
-                                       const std::string &_procUuid,
-                                       const std::string &_uuid);
+      /// \param[in] _pUuid Subscriber's process UUID.
+      /// \param[in] _nUuid Subscriber's node UUID.
+      public: void DelRemoteSubscriberByNode(const std::string &_topic,
+                                             const std::string &_pUuid,
+                                             const std::string &_nUuid);
+
+      /// \brief Delete all the subscriptions of a given process UUID.
+      /// \param[in] _pUuid Subscriber's process UUID.
+      public: void DelRemoteSubscriberByProc(const std::string &_pUuid);
 
       /// \brief Get the subscription handlers for a topic. A subscription
       /// handler stores the callback and types associated to a subscription.

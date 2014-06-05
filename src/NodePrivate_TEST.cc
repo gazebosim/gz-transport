@@ -27,14 +27,12 @@ using namespace ignition;
 /// \brief Checking the helper functions for adding/deleting remote connections.
 TEST(NodePrivateTest, Connections)
 {
-  std::string addr1 = "addr1";
-  std::string addr2 = "addr2";
-  std::string addr3 = "addr3";
-  std::string addr4 = "addr4";
-  std::string ctrl1 = "ctrl1";
-  std::string ctrl2 = "ctrl2";
-  std::string ctrl3 = "ctrl3";
-  std::string ctrl4 = "ctrl4";
+  std::string topic1 = "topic1";
+  std::string topic2 = "topic2";
+  std::string addr1  = "addr1";
+  std::string addr2  = "addr2";
+  std::string ctrl1  = "ctrl1";
+  std::string ctrl2  = "ctrl2";
   std::string pUuid1 = "pUuid1";
   std::string pUuid2 = "pUuid2";
   std::string nUuid1 = "nUuid1";
@@ -46,30 +44,26 @@ TEST(NodePrivateTest, Connections)
   transport::NodePrivate node;
 
   EXPECT_FALSE(node.Connected(addr1));
-  node.AddConnection(pUuid1, addr1, ctrl1, nUuid1, scope);
+  node.AddConnection(topic1, addr1, ctrl1, pUuid1, nUuid1, scope);
   EXPECT_TRUE(node.Connected(addr1));
-  node.AddConnection(pUuid1, addr2, ctrl2, nUuid2, scope);
+  node.AddConnection(topic1, addr1, ctrl1, pUuid1, nUuid2, scope);
   EXPECT_TRUE(node.Connected(addr2));
-  node.AddConnection(pUuid2, addr3, ctrl3, nUuid3, scope);
-  EXPECT_TRUE(node.Connected(addr3));
-  node.AddConnection(pUuid2, addr4, ctrl4, nUuid4, scope);
-  EXPECT_TRUE(node.Connected(addr4));
+  node.AddConnection(topic2, addr2, ctrl2, pUuid2, nUuid3, scope);
+  EXPECT_TRUE(node.Connected(addr1));
+  EXPECT_TRUE(node.Connected(addr2));
+  node.AddConnection(topic2, addr2, ctrl2, pUuid2, nUuid4, scope);
+  EXPECT_TRUE(node.Connected(addr1));
+  EXPECT_TRUE(node.Connected(addr2));
 
-  node.DelConnection("", addr1);
+  node.DelConnectionByNode(topic1, pUuid1, nUuid1);
+  EXPECT_TRUE(node.Connected(addr1));
+  EXPECT_TRUE(node.Connected(addr2));
+  node.DelConnectionByNode(topic1, pUuid1, nUuid2);
   EXPECT_FALSE(node.Connected(addr1));
   EXPECT_TRUE(node.Connected(addr2));
-  EXPECT_TRUE(node.Connected(addr3));
-  EXPECT_TRUE(node.Connected(addr4));
-  node.DelConnection("", addr2);
+  node.DelConnectionByProc(pUuid2);
   EXPECT_FALSE(node.Connected(addr1));
   EXPECT_FALSE(node.Connected(addr2));
-  EXPECT_TRUE(node.Connected(addr3));
-  EXPECT_TRUE(node.Connected(addr4));
-  node.DelConnection(pUuid2, "");
-  EXPECT_FALSE(node.Connected(addr1));
-  EXPECT_FALSE(node.Connected(addr2));
-  EXPECT_FALSE(node.Connected(addr3));
-  EXPECT_FALSE(node.Connected(addr4));
 }
 
 //////////////////////////////////////////////////

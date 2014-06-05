@@ -29,6 +29,7 @@ bool cbExecuted;
 bool cb2Executed;
 std::string topic = "foo";
 std::string data = "bar";
+int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
@@ -38,6 +39,7 @@ void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
+  counter++;
 }
 
 //////////////////////////////////////////////////
@@ -141,10 +143,30 @@ TEST(NodeTest, PubWithoutAdvertise)
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
-  transport::Node node;
+  transport::Node node1;
+  transport::Node node2;
 
   // Publish some data on topic without advertising it first.
-  EXPECT_NE(node.Publish(topic, msg), 0);
+  EXPECT_NE(node1.Publish(topic, msg), 0);
+
+  // Two publishers
+  node1.Advertise(topic);
+  node2.Advertise(topic);
+  cbExecuted = false;
+  counter = 0;
+  node2.Subscribe(topic, cb);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a message by each node.
+  EXPECT_EQ(node1.Publish(topic, msg), 0);
+  EXPECT_EQ(node2.Publish(topic, msg), 0);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the msg was received twice.
+  EXPECT_TRUE(cbExecuted);
+  EXPECT_EQ(counter, 2);
+  cbExecuted = false;
+  counter = 0;
 }
 
 //////////////////////////////////////////////////

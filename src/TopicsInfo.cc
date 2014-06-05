@@ -226,7 +226,7 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
     auto found = std::find_if(v.begin(), v.end(),
       [&](const Address_t &_addrInfo)
       {
-        return _addrInfo.addr == _addr;
+        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
       });
 
     // _addr was already existing, just exit.
@@ -239,39 +239,20 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
-  const std::string &_addr, const std::string &_pUuid)
+void TopicsInfo::DelAddressByNode(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid)
 {
-  for (auto &topicInfo : this->topicsInfo)
+  // Iterate over all the topics.
+  if (this->topicsInfo.find(_topic) != this->topicsInfo.end())
   {
-    auto &m = topicInfo.second;
-    for (auto it = m->addresses.begin(); it != m->addresses.end();)
-    {
-      auto &v = it->second;
-      v.erase(std::remove_if(v.begin(), v.end(),
-        [&](const Address_t &_addrInfo)
-        {
-          return _addrInfo.addr == _addr;
-        }),
-        v.end());
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = this->topicsInfo[_topic]->addresses;
 
-      if (v.empty() || it->first == _pUuid)
-        m->addresses.erase(it++);
-      else
-        ++it;
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::DelAdvAddressByNode(const std::string &_nUuid)
-{
-  for (auto &topicInfo : this->topicsInfo)
-  {
-    auto &m = topicInfo.second;
-    for (auto it = m->addresses.begin(); it != m->addresses.end();)
+    // The pUuid exists.
+    if (m.find(_pUuid) != m.end())
     {
-      auto &v = it->second;
+      // Vector of 0MQ known addresses for a given topic and pUuid.
+      auto &v = m[_pUuid];
       v.erase(std::remove_if(v.begin(), v.end(),
         [&](const Address_t &_addrInfo)
         {
@@ -280,10 +261,27 @@ void TopicsInfo::DelAdvAddressByNode(const std::string &_nUuid)
         v.end());
 
       if (v.empty())
-        m->addresses.erase(it++);
-      else
-        ++it;
+        m.erase(_pUuid);
+
+      //if (m.empty())
+      //  this->topicsInfo.erase(_topic);
     }
+  }
+}
+
+//////////////////////////////////////////////////
+void TopicsInfo::DelAddressesByProc(const std::string &_pUuid)
+{
+  // Iterate over all the topics.
+  for (auto it = this->topicsInfo.begin(); it != this->topicsInfo.end();)
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = it->second->addresses;
+    m.erase(_pUuid);
+    // if (m.empty())
+    //   this->topicsInfo.erase(it++);
+    // else
+    ++it;
   }
 }
 
@@ -362,7 +360,7 @@ void TopicsInfo::AddRemoteSubscriber(const std::string &_topic,
   if (m.find(_procUuid) == m.end())
     m[_procUuid] = {};
 
-  // Add the UUID if were not existing before.
+  // Add the UUID if was not existing before.
   if (std::find(m[_procUuid].begin(), m[_procUuid].end(), _nodeUuid) ==
       m[_procUuid].end())
   {
@@ -380,8 +378,8 @@ bool TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
-  const std::string &_procUuid, const std::string &_nodeUuid)
+// void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
+/*  const std::string &_procUuid, const std::string &_nodeUuid)
 {
   for (auto &topicInfo : this->topicsInfo)
   {
@@ -396,6 +394,48 @@ void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
       else
         ++it;
     }
+  }
+}*/
+
+//////////////////////////////////////////////////
+void TopicsInfo::DelRemoteSubscriberByNode(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid)
+{
+  // Iterate over all the topics.
+  if (this->topicsInfo.find(_topic) != this->topicsInfo.end())
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = this->topicsInfo[_topic]->subscribers;
+
+    // The pUuid exists.
+    if (m.find(_pUuid) != m.end())
+    {
+      // Vector of 0MQ known addresses for a given topic and pUuid.
+      auto &v = m[_pUuid];
+      v.erase(std::remove(v.begin(), v.end(), _nUuid), v.end());
+
+      if (v.empty())
+        m.erase(_pUuid);
+
+      // if (m.empty())
+      //  this->topicsInfo.erase(_topic);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void TopicsInfo::DelRemoteSubscriberByProc(const std::string &_pUuid)
+{
+  // Iterate over all the topics.
+  for (auto it = this->topicsInfo.begin(); it != this->topicsInfo.end();)
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = it->second->subscribers;
+    m.erase(_pUuid);
+    // if (m.empty())
+    //   this->topicsInfo.erase(it++);
+    // else
+    ++it;
   }
 }
 

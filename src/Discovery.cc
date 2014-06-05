@@ -51,6 +51,10 @@ void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
   this->dataPtr->AddTopicAddress(_topic, _addr, _ctrl,
     this->dataPtr->uuidStr, _nUuid, _scope);
 
+  // Do not advertise a message outside the process.
+  if (_scope == Scope::Process)
+    return;
+
   // Broadcast my topic information.
   this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
 }
@@ -92,22 +96,41 @@ void Discovery::Discover(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void Discovery::Unadvertise(const std::string &_topic, const std::string &_addr,
-                            const std::string &_ctrl, const std::string &_nUuid)
+bool Discovery::GetTopicAddresses(const std::string &_topic,
+                                  Addresses_M &_addresses)
+{
+  // Topic not found.
+  if (this->dataPtr->info.find(_topic) == this->dataPtr->info.end())
+    return false;
+
+  _addresses = this->dataPtr->info[_topic];
+  return true;
+}
+
+//////////////////////////////////////////////////
+void Discovery::Unadvertise(const std::string &_topic,
+                            const std::string &_nUuid)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Don't do anything if the topic is not advertised by any of my nodes.
-  if (!this->dataPtr->AdvertisedByProc(_topic, this->dataPtr->uuidStr))
+  Address_t info;
+  if (!this->dataPtr->GetTopicAddress(_topic, this->dataPtr->uuidStr,
+        _nUuid, info))
+    return;
+
+  // Remove the topic information.
+  this->dataPtr->DelTopicAddrByNode(_topic, this->dataPtr->uuidStr, _nUuid);
+
+  // Do not advertise a message outside the process.
+  if (info.scope == Scope::Process)
     return;
 
   // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic, _addr, _ctrl, _nUuid, Scope::All);
-
-  // Remove the topic information.
-  this->dataPtr->DelTopicAddress(_addr, "", _nUuid);
+  this->dataPtr->SendMsg(UnadvType, _topic, info.addr, info.ctrl,
+    _nUuid, info.scope);
 }
 
 //////////////////////////////////////////////////

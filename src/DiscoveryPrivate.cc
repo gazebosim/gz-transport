@@ -122,7 +122,7 @@ void DiscoveryPrivate::RunActivityTask()
            (elapsed).count() > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        this->DelTopicAddress("", it->first, "");
+        this->DelTopicAddrByProc(it->first);
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -290,6 +290,13 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       auto recvNUuid = advMsg.GetNodeUuid();
       auto recvScope = advMsg.GetScope();
 
+      // Check scope of the topic.
+      if ((recvScope == Scope::Process) ||
+          (recvScope == Scope::Host && _fromIp != this->hostAddr))
+      {
+        return 0;
+      }
+
       if (this->verbose)
         advMsg.PrintBody();
 
@@ -348,12 +355,13 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress("", recvPUuid, "");
+      this->DelTopicAddrByProc(recvPUuid);
 
       break;
     }
     case UnadvType:
     {
+      std::cout << "UNADV recv" << std::endl;
       // Read the address.
       AdvMsg advMsg;
       advMsg.UnpackBody(pBody);
@@ -362,15 +370,24 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       auto recvNUuid = advMsg.GetNodeUuid();
       auto recvScope = advMsg.GetScope();
 
+      // Check scope of the topic.
+      if ((recvScope == Scope::Process) ||
+          (recvScope == Scope::Host && _fromIp != this->hostAddr))
+      {
+        std::cout << "Scope!" << std::endl;
+        return 0;
+      }
+
       if (this->disconnectionCb)
       {
+        std::cout << "Notifying" << std::endl;
         // Notify the new disconnection.
         this->disconnectionCb(topic, recvAddr, recvCtrl, recvPUuid,
           recvNUuid, recvScope);
       }
 
       // Remove the address entry for this topic.
-      this->DelTopicAddress(recvAddr, "", recvNUuid);
+      this->DelTopicAddrByNode(topic, recvPUuid, recvNUuid);
 
       break;
     }
@@ -475,7 +492,7 @@ bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
     auto found = std::find_if(v.begin(), v.end(),
       [&](const Address_t &_addrInfo)
       {
-        return _addrInfo.addr == _addr;
+        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
       });
 
     // _addr was already existing, just exit.
@@ -489,31 +506,77 @@ bool DiscoveryPrivate::AddTopicAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::DelTopicAddress(const std::string &_addr,
-                                       const std::string &_pUuid,
-                                       const std::string &_nUuid)
+bool DiscoveryPrivate::GetTopicAddress(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
 {
-  // Each topic.
-  for (auto it = this->info.begin(); it != this->info.end();)
-  {
-    auto &m = it->second;
-    // Each proccessUUID->{addr, ctrl, nUuid, scope}.
-    for (auto it2 = m.begin(); it2 != m.end();)
+  // Topic not found.
+  if (this->info.find(_topic) == this->info.end())
+    return false;
+
+  // m is pUUID->{addr, ctrl, nUuid, scope}.
+  auto &m = this->info[_topic];
+
+  // pUuid not found.
+  if (m.find(_pUuid) == m.end())
+    return false;
+
+  // Vector of 0MQ known addresses for a given topic and pUuid.
+  auto &v = m[_pUuid];
+  auto found = std::find_if(v.begin(), v.end(),
+    [&](const Address_t &_addrInfo)
     {
-      // Vector of 0MQ known addresses for a given topic.
-      auto &v = it2->second;
+      return _addrInfo.nUuid == _nUuid;
+    });
+  // Address found!
+  if (found != v.end())
+  {
+    _info = *found;
+    return true;
+  }
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::DelTopicAddrByNode(const std::string &_topic,
+  const std::string &_pUuid, const std::string &_nUuid)
+{
+  // Iterate over all the topics.
+  if (this->info.find(_topic) != this->info.end())
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = this->info[_topic];
+
+    // The pUuid exists.
+    if (m.find(_pUuid) != m.end())
+    {
+      // Vector of 0MQ known addresses for a given topic and pUuid.
+      auto &v = m[_pUuid];
       v.erase(std::remove_if(v.begin(), v.end(),
         [&](const Address_t &_addrInfo)
         {
-          return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
+          return _addrInfo.nUuid == _nUuid;
         }),
         v.end());
 
-      if (v.empty() || it2->first == _pUuid)
-        m.erase(it2++);
-      else
-        ++it2;
+      if (v.empty())
+        m.erase(_pUuid);
+
+      if (m.empty())
+        this->info.erase(_topic);
     }
+  }
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::DelTopicAddrByProc(const std::string &_pUuid)
+{
+  // Iterate over all the topics.
+  for (auto it = this->info.begin(); it != this->info.end();)
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = it->second;
+    m.erase(_pUuid);
     if (m.empty())
       this->info.erase(it++);
     else
