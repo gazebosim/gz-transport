@@ -404,11 +404,11 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
 //////////////////////////////////////////////////
 bool NodePrivate::Connected(const std::string &_addr)
 {
-  for (const auto &topic : this->connections)
+  for (auto &topic : this->connections)
   {
-    for (const auto &proc : topic.second)
+    for (auto &proc : topic.second)
     {
-      for (const auto &info : proc.second)
+      for (auto &info : proc.second)
       {
         if (info.addr == _addr)
           return true;

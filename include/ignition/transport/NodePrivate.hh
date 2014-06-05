@@ -21,6 +21,7 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>

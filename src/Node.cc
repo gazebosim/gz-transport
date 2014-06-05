@@ -158,9 +158,9 @@ void Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
     return;
 
-  for (const auto &proc : addresses)
+  for (auto &proc : addresses)
   {
-    for (const auto &node : proc.second)
+    for (auto &node : proc.second)
     {
       zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
 

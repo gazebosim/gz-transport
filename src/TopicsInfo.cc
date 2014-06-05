@@ -263,8 +263,8 @@ void TopicsInfo::DelAddressByNode(const std::string &_topic,
       if (v.empty())
         m.erase(_pUuid);
 
-      //if (m.empty())
-      //  this->topicsInfo.erase(_topic);
+      // if (m.empty())
+      //   this->topicsInfo.erase(_topic);
     }
   }
 }
