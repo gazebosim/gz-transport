@@ -242,7 +242,7 @@ void TopicsInfo::AddAdvAddress(const std::string &_topic,
 void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
   const std::string &_addr, const std::string &_pUuid)
 {
-  for (auto topicInfo : this->topicsInfo)
+  for (auto &topicInfo : this->topicsInfo)
   {
     auto &m = topicInfo.second;
     for (auto it = m->addresses.begin(); it != m->addresses.end();)
@@ -266,7 +266,7 @@ void TopicsInfo::DelAdvAddress(const std::string &/*_topic*/,
 //////////////////////////////////////////////////
 void TopicsInfo::DelAdvAddressByNode(const std::string &_nUuid)
 {
-  for (auto topicInfo : this->topicsInfo)
+  for (auto &topicInfo : this->topicsInfo)
   {
     auto &m = topicInfo.second;
     for (auto it = m->addresses.begin(); it != m->addresses.end();)
@@ -383,7 +383,7 @@ bool TopicsInfo::HasRemoteSubscribers(const std::string &_topic)
 void TopicsInfo::DelRemoteSubscriber(const std::string &/*_topic*/,
   const std::string &_procUuid, const std::string &_nodeUuid)
 {
-  for (auto topicInfo : this->topicsInfo)
+  for (auto &topicInfo : this->topicsInfo)
   {
     for (auto it = topicInfo.second->subscribers.begin();
          it != topicInfo.second->subscribers.end();)
