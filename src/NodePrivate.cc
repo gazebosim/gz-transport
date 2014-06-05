@@ -24,7 +24,6 @@
 #include <thread>
 #include <vector>
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicsInfo.hh"
