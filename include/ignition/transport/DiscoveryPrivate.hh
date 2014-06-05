@@ -158,7 +158,8 @@ namespace ignition
       /// \brief Timeout used for receiving messages.
       public: static const int Timeout = 250;
 
-      public: std::string hostname;
+      /// \brief Host IP address.
+      public: std::string hostAddr;
 
       /// \brief Process UUID.
       public: uuid_t uuid;

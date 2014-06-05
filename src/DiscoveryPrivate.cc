@@ -52,7 +52,8 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_procUuid, bool _verbose)
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
   zbeacon_subscribe(this->beacon, NULL, 0);
 
-  this->hostname = this->GetHostAddr();
+  // Get the host IP address.
+  this->hostAddr = this->GetHostAddr();
 
   // Start the thread that receives discovery information.
   this->threadReception =
@@ -317,7 +318,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         {
           // Check scope of the topic.
           if ((nodeInfo.scope == Scope::Process) ||
-              (nodeInfo.scope == Scope::Host && _fromIp != this->hostname))
+              (nodeInfo.scope == Scope::Host && _fromIp != this->hostAddr))
           {
             return 0;
           }
