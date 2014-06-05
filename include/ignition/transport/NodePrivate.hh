@@ -170,7 +170,7 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access between the inbound and
       /// outbound thread.
-      public: std::mutex mutex;
+      public: std::recursive_mutex mutex;
 
       /// \brief When true, the service thread will finish.
       public: bool exit;

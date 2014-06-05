@@ -72,7 +72,7 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -108,7 +108,7 @@ namespace ignition
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &), C* _obj)
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(

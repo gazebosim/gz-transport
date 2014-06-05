@@ -48,6 +48,8 @@ Node::~Node()
   for (auto topic : this->topicsAdvertised)
     this->Unadvertise(topic);
 
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
   // Remote my advertised topic info.
   this->dataPtr->topics.DelAdvAddressByNode(this->nodeUuidStr);
 }
@@ -57,7 +59,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, true);
 
@@ -86,7 +88,7 @@ void Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->topics.SetAdvertisedByMe(_topic, false);
 
@@ -103,6 +105,8 @@ void Node::Unadvertise(const std::string &_topic)
 int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   assert(_topic != "");
+
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   if (!this->dataPtr->topics.AdvertisedByMe(_topic))
     return -1;
@@ -149,7 +153,7 @@ void Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
     std::cout << "\nUnsubscribe (" << _topic << ")\n";

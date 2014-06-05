@@ -162,7 +162,7 @@ int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   if (this->topics.AdvertisedByMe(_topic))
   {
@@ -192,7 +192,7 @@ int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
 //////////////////////////////////////////////////
 void NodePrivate::RecvMsgUpdate()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   zmq::message_t message(0);
   std::string topic;
@@ -241,7 +241,7 @@ void NodePrivate::RecvMsgUpdate()
 //////////////////////////////////////////////////
 void NodePrivate::RecvControlUpdate()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   zmq::message_t message(0);
   std::string topic;
@@ -304,6 +304,8 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &_scope)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
   if (this->verbose)
   {
     std::cout << "Connection callback" << std::endl;
@@ -397,6 +399,8 @@ void NodePrivate::OnNewDisconnection(const std::string &/*_topic*/,
   const std::string &_pUuid, const std::string &/*_nUuid*/,
   const Scope &/*_scope*/)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
   if (this->verbose)
   {
     std::cout << "New disconnection detected " << std::endl;
