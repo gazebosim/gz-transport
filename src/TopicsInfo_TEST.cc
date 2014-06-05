@@ -40,7 +40,7 @@ int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
 
 //////////////////////////////////////////////////
 /// \brief Check all the methods of the TopicsInfo helper class.
-TEST(PacketTest, BasicTopicsInfoAPI)
+TEST(TopicsInfoTest, BasicTopicsInfoAPI)
 {
   transport::TopicsInfo topics;
   std::string topic  = "foo";

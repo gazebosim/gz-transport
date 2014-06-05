@@ -105,7 +105,7 @@ void CreateSubscriber()
 
 //////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
-TEST(DiscZmqTest, PubWithoutAdvertise)
+TEST(NodeTest, PubWithoutAdvertise)
 {
   robot_msgs::StringMsg msg;
   msg.set_data(data);
@@ -118,7 +118,7 @@ TEST(DiscZmqTest, PubWithoutAdvertise)
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-TEST(DiscZmqTest, PubSubSameThread)
+TEST(NodeTest, PubSubSameThread)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -158,7 +158,7 @@ TEST(DiscZmqTest, PubSubSameThread)
 //////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
-TEST(DiscZmqTest, PubSubTwoThreadsSameTopic)
+TEST(NodeTest, PubSubTwoThreadsSameTopic)
 {
   cbExecuted = false;
   robot_msgs::StringMsg msg;
@@ -189,7 +189,7 @@ TEST(DiscZmqTest, PubSubTwoThreadsSameTopic)
 /// \brief Use two different transport node on the same thread. Check that
 /// both receive the updates when they are subscribed to the same topic. Check
 /// also that when one of the nodes unsubscribes, no longer receives updates.
-TEST(DiscZmqTest, PubSubOneThreadTwoSubs)
+TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
   cbExecuted = false;
   cb2Executed = false;
@@ -261,6 +261,14 @@ TEST(NodeTest, ClassMemberCallback)
   client.SendSomeData();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Use the transport inside a class and check advertise, subscribe and
+/// publish.
+TEST(NodeTest, ScopedTopics)
+{
+
 }
 
 //////////////////////////////////////////////////

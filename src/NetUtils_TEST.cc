@@ -24,7 +24,7 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 /// \brief Checking the functions for dealing with IPs and subnets.
-/*TEST(NodePrivateTest, Subnets)
+/*TEST(NetUtilsTest, Subnets)
 {
   EXPECT_TRUE(
     NetUtils::IsIpInRange("192.168.1.1", "192.168.1.0", "255.255.255.0"));
@@ -48,7 +48,7 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 /// \brief Checking the 0MQ utilites.
-TEST(NodePrivateTest, zmqUtils)
+TEST(NetUtilsTest, zmqUtils)
 {
   std::string zmqEndPoint1 = "tcp://192.168.1.1:29222";
   std::string ip;
