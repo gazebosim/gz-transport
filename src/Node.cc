@@ -100,7 +100,7 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   // Local subscribers.
   ISubscriptionHandler_M handlers;
-  this->dataPtr->topics.GetSubscriptionHandlers(_topic, handlers);
+  this->dataPtr->localSubscriptions.GetSubscriptionHandlers(_topic, handlers);
   for (auto handler : handlers)
   {
     ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
@@ -112,20 +112,15 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (this->dataPtr->subscribers.HasAnyAddresses(
-    _topic, this->dataPtr->pUuidStr))
+  if (this->dataPtr->remoteSubscribers.HasTopic(_topic))
   {
     std::string data;
     _msg.SerializeToString(&data);
-    if (this->dataPtr->Publish(_topic, data) != 0)
-    {
-      std::cout << "Call private publish(). Return -1" << std::endl;
-      return -1;
-    }
+    this->dataPtr->Publish(_topic, data);
   }
   // Debug output.
   // else
-  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
+  //  std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return 0;
 }
@@ -140,7 +135,8 @@ void Node::Unsubscribe(const std::string &_topic)
   if (this->dataPtr->verbose)
     std::cout << "\nUnsubscribe (" << _topic << ")\n";
 
-  this->dataPtr->topics.RemoveSubscriptionHandler(_topic, this->nUuidStr);
+  this->dataPtr->localSubscriptions.RemoveSubscriptionHandler(
+    _topic, this->nUuidStr);
 
   // Remove the topic from the list of subscribed topics in this node.
   this->topicsSubscribed.resize(
@@ -148,7 +144,7 @@ void Node::Unsubscribe(const std::string &_topic)
       _topic) - this->topicsSubscribed.begin());
 
   // Remove the filter for this topic if I am the last subscriber.
-  if (!this->dataPtr->topics.Subscribed(_topic))
+  if (!this->dataPtr->localSubscriptions.Subscribed(_topic))
   {
     this->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());

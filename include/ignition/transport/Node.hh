@@ -29,6 +29,7 @@
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -85,7 +86,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->topics.AddSubscriptionHandler(
+        this->dataPtr->localSubscriptions.AddSubscriptionHandler(
           _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
@@ -122,7 +123,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->topics.AddSubscriptionHandler(
+        this->dataPtr->localSubscriptions.AddSubscriptionHandler(
           _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)

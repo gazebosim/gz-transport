@@ -23,10 +23,10 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
@@ -200,11 +200,11 @@ void NodePrivate::RecvMsgUpdate()
     return;
   }
 
-  if (this->topics.Subscribed(topic))
+  if (this->localSubscriptions.Subscribed(topic))
   {
     // Execute the callback registered
     ISubscriptionHandler_M handlers;
-    this->topics.GetSubscriptionHandlers(topic, handlers);
+    this->localSubscriptions.GetSubscriptionHandlers(topic, handlers);
     for (auto handler : handlers)
     {
       ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
@@ -264,7 +264,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->subscribers.AddAddress(topic, "", "", procUuid, nodeUuid);
+    this->remoteSubscribers.AddAddress(topic, "", "", procUuid, nodeUuid);
   }
   else if (std::stoi(data) == EndConnection)
   {
@@ -275,7 +275,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
-    this->subscribers.DelAddressByNode(topic, procUuid, nodeUuid);
+    this->remoteSubscribers.DelAddressByNode(topic, procUuid, nodeUuid);
   }
 }
 
@@ -301,7 +301,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   // topic. I shouldn't reconnect but I should apply the filter.
 
   // Check if we are interested in this topic.
-  if (this->topics.Subscribed(_topic) &&
+  if (this->localSubscriptions.Subscribed(_topic) &&
       !this->connections.HasAddress(_addr) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
@@ -316,7 +316,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
         _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
 
       // Send a message to the publisher's control socket to notify it
-      // about all my subscribers.
+      // about all my remoteSubscribers.
       zmq::socket_t socket(*this->context, ZMQ_DEALER);
       socket.connect(_ctrl.c_str());
 
@@ -333,7 +333,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
       ISubscriptionHandler_M handlers;
-      this->topics.GetSubscriptionHandlers(_topic, handlers);
+      this->localSubscriptions.GetSubscriptionHandlers(_topic, handlers);
       for (auto handler : handlers)
       {
         std::string nodeUuid = handler.second->GetNodeUuid();
@@ -382,7 +382,7 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
   // A remote subscriber[s] has been disconnected.
   if (_topic != "" && _nUuid != "")
   {
-    this->subscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
+    this->remoteSubscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
 
     Address_t info;
     if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, info))
@@ -397,7 +397,7 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
   }
   else
   {
-    this->subscribers.DelAddressesByProc(_pUuid);
+    this->remoteSubscribers.DelAddressesByProc(_pUuid);
 
     // ToDo(caguero): Disconnect from all the remote publishers.
 

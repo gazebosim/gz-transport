@@ -17,30 +17,14 @@
 
 #include <iostream>
 #include <string>
-#include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/AddressInfo.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
 
-bool callbackExecuted = false;
-
 //////////////////////////////////////////////////
-void myReqCb(const std::string &/*_p1*/, int /*p2*/, const std::string &/*p3*/)
-{
-  callbackExecuted = true;
-}
-
-//////////////////////////////////////////////////
-int myRepCb(const std::string &/*p1*/, const std::string &/*p2*/,
-            std::string &/*p3*/)
-{
-  callbackExecuted = true;
-  return 0;
-}
-
-//////////////////////////////////////////////////
-/// \brief Check all the methods of the TopicsInfo helper class.
-TEST(TopicsInfoTest, AddressInfoAPI)
+/// \brief Check all the methods of the AddressInfo helper class.
+TEST(AddressInfoTest, AddressInfoAPI)
 {
   std::string topic  = "foo";
 
@@ -127,21 +111,6 @@ TEST(TopicsInfoTest, AddressInfoAPI)
   EXPECT_FALSE(test.GetAddress(topic, pUuid1, nUuid2, info));
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid3, info));
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid4, info));
-}
-
-//////////////////////////////////////////////////
-/// \brief Check all the methods of the TopicsInfo helper class.
-TEST(TopicsInfoTest, BasicTopicsInfoAPI)
-{
-  transport::TopicsInfo topics;
-  std::string topic  = "foo";
-
-  transport::ReqCallback reqCb;
-  transport::RepCallback repCb;
-
-  // Check getters with an empty TopicsInfo object
-  EXPECT_FALSE(topics.HasTopic(topic));
-  EXPECT_FALSE(topics.Subscribed(topic));
 }
 
 //////////////////////////////////////////////////

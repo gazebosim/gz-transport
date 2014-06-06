@@ -27,8 +27,8 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/TopicsInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition

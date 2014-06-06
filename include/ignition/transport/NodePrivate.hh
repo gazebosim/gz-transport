@@ -26,8 +26,9 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/SubscriptionStorage.hh"
 
 namespace ignition
 {
@@ -104,9 +105,6 @@ namespace ignition
       /// \brief Print activity to stdout.
       public: int verbose;
 
-      /// \brief Topic information.
-      public: TopicsInfo topics;
-
       /// \brief My pub/sub address.
       public: std::string myAddress;
 
@@ -157,7 +155,10 @@ namespace ignition
       private: AddressInfo connections;
 
       /// \brief Remote subscribers.
-      public: AddressInfo subscribers;
+      public: AddressInfo remoteSubscribers;
+
+      // \brief Local subscriptions.
+      public: SubscriptionStorage localSubscriptions;
     };
   }
 }

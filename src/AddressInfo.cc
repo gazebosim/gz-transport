@@ -20,7 +20,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "ignition/transport/TopicsInfo.hh"
+#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
@@ -209,117 +209,5 @@ void AddressInfo::Print()
         std::cout << "\t\tNUUID:" << info.nUuid << std::endl;
       }
     }
-  }
-}
-
-//////////////////////////////////////////////////
-TopicInfo::TopicInfo()
-  : beacon(nullptr)
-{
-}
-
-//////////////////////////////////////////////////
-TopicInfo::~TopicInfo()
-{
-}
-
-//////////////////////////////////////////////////
-TopicsInfo::TopicsInfo()
-{
-}
-
-//////////////////////////////////////////////////
-TopicsInfo::~TopicsInfo()
-{
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::HasTopic(const std::string &_topic)
-{
-  return this->topicsInfo.find(_topic) != this->topicsInfo.end();
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::Subscribed(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->subscriptionHandlers.size() > 0;
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::GetBeacon(const std::string &_topic, zbeacon_t **_beacon)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  *_beacon = this->topicsInfo[_topic]->beacon;
-  return *_beacon != nullptr;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::SetBeacon(const std::string &_topic, zbeacon_t *_beacon)
-{
-  this->CheckAndCreate(_topic);
-  this->topicsInfo[_topic]->beacon = _beacon;
-}
-
-//////////////////////////////////////////////////
-Topics_M& TopicsInfo::GetTopicsInfo()
-{
-  return this->topicsInfo;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::GetSubscriptionHandlers(
-  const std::string &_topic, ISubscriptionHandler_M &_handlers)
-{
-  if (this->HasTopic(_topic))
-    _handlers = this->topicsInfo[_topic]->subscriptionHandlers;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::AddSubscriptionHandler(const std::string &_topic,
-  const std::string &_nodeUuid,
-  const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
-{
-  this->CheckAndCreate(_topic);
-
-  if (!this->HasSubscriptionHandler(_topic, _nodeUuid))
-  {
-    this->topicsInfo[_topic]->subscriptionHandlers.insert(
-      std::make_pair(_nodeUuid, nullptr));
-  }
-
-  this->topicsInfo[_topic]->subscriptionHandlers[_nodeUuid] = _msgPtr;
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::RemoveSubscriptionHandler(const std::string &_topic,
-                                           const std::string &_nodeUuid)
-{
-  if (this->HasTopic(_topic))
-    this->topicsInfo[_topic]->subscriptionHandlers.erase(_nodeUuid);
-}
-
-//////////////////////////////////////////////////
-bool TopicsInfo::HasSubscriptionHandler(const std::string &_topic,
-                                        const std::string &_nodeUuid)
-{
-  if (!this->HasTopic(_topic))
-    return false;
-
-  return this->topicsInfo[_topic]->subscriptionHandlers.find(_nodeUuid) !=
-      this->topicsInfo[_topic]->subscriptionHandlers.end();
-}
-
-//////////////////////////////////////////////////
-void TopicsInfo::CheckAndCreate(const std::string &_topic)
-{
-  if (!this->HasTopic(_topic))
-  {
-    this->topicsInfo.insert(
-      make_pair(_topic, std::unique_ptr<TopicInfo>(new TopicInfo())));
   }
 }
