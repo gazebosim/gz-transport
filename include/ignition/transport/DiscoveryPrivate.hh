@@ -103,6 +103,14 @@ namespace ignition
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
+      /// \brief Create a new beacon for a given topic advertised by a node.
+      public: void NewBeacon(const std::string &_topic,
+                             const std::string &_nUuid);
+
+      /// \brief Delete a beacon.
+      public: void DelBeacon(const std::string &_topic,
+                             const std::string &_nUuid);
+
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
@@ -118,10 +126,10 @@ namespace ignition
       /// \sa SetMaxSilenceInterval.
       public: static const unsigned int DefSilenceInterval = 3000;
 
-      /// \brief Default retransmission interval value (ms.).
-      /// \sa GetRetransmissionInterval.
-      /// \sa SetRetransmissionInterval.
-      public: static const unsigned int DefRetransmissionInterval = 1000;
+      /// \brief Default advertise interval value (ms.).
+      /// \sa GetAdvertiseInterval.
+      /// \sa SetAdvertiseInterval.
+      public: static const unsigned int DefAdvertiseInterval = 1000;
 
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
@@ -148,10 +156,10 @@ namespace ignition
       /// \sa SetActivityInterval.
       public: unsigned int activityInterval;
 
-      /// \brief Retransmission interval value (ms.).
-      /// \sa GetRetransmissionInterval.
-      /// \sa SetRetransmissionInterval.
-      public: unsigned int retransmissionInterval;
+      /// \brief Advertise interval value (ms.).
+      /// \sa GetAdvertiseInterval.
+      /// \sa SetAdvertiseInterval.
+      public: unsigned int advertiseInterval;
 
       /// \brief Heartbit interval value (ms.).
       /// \sa GetHeartbitInterval.
@@ -164,8 +172,9 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       public: DiscoveryCallback disconnectionCb;
 
-      /// \brief Topics requested to discover but with no information yet.
-      public: std::vector<std::string> unknownTopics;
+      /// \brief Beacons to advertise topics periodically. The key is the topic
+      /// name. The value is another map, where the key is the node UUID.
+      public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
 
       /// \brief Addressing information. For each topic we store a map that
       /// contains the process UUID as key and the 0MQ address and 0MQ control
@@ -198,9 +207,6 @@ namespace ignition
 
       /// \brief Thread in charge of update the activity.
       public: std::thread *threadActivity;
-
-      /// \brief Thread in charge of sending periodic SUB messages (if needed).
-      public: std::thread *threadRetransmission;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::mutex exitMutex;

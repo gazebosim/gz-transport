@@ -35,7 +35,7 @@ using namespace transport;
 DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
   : silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
-    retransmissionInterval(DefRetransmissionInterval),
+    advertiseInterval(DefAdvertiseInterval),
     heartbitInterval(DefHeartbitInterval),
     connectionCb(nullptr),
     disconnectionCb(nullptr),
@@ -67,10 +67,6 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
   this->threadActivity =
     new std::thread(&DiscoveryPrivate::RunActivityTask, this);
 
-  // Start the thread that retransmits the discovery requests.
-  this->threadRetransmission =
-    new std::thread(&DiscoveryPrivate::RunRetransmissionTask, this);
-
   if (this->verbose)
     this->PrintCurrentState();
 }
@@ -87,13 +83,25 @@ DiscoveryPrivate::~DiscoveryPrivate()
   this->threadReception->join();
   this->threadHeartbit->join();
   this->threadActivity->join();
-  this->threadRetransmission->join();
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   this->SendMsg(ByeType, "", "", "", "", Scope::All);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  // Stop all the beacons.
+  for (auto &topic : this->beacons)
+  {
+    for (auto &proc : topic.second)
+    {
+      zbeacon_t *b = proc.second;
+      // Destroy the beacon.
+      zbeacon_silence(b);
+      zbeacon_destroy(&b);
+    }
+  }
+
+  zbeacon_destroy(&this->beacon);
   zctx_destroy(&this->ctx);
 
   // Debug
@@ -203,31 +211,6 @@ void DiscoveryPrivate::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunRetransmissionTask()
-{
-  while (!zctx_interrupted)
-  {
-    this->mutex.lock();
-
-    // Iterate over the list of topics that have no discovery information yet.
-    for (auto topic : this->unknownTopics)
-      this->SendMsg(SubType, topic, "", "", "", Scope::All);
-
-    this->mutex.unlock();
-
-    std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->retransmissionInterval));
-
-    // Is it time to exit?
-    {
-      std::lock_guard<std::mutex> lock(this->exitMutex);
-      if (this->exit)
-        break;
-    }
-  }
-}
-
-//////////////////////////////////////////////////
 void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
@@ -305,8 +288,8 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         recvPUuid, recvNUuid, recvScope);
 
       // Remove topic from unkown topics.
-      this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
-        this->unknownTopics.end(), topic), this->unknownTopics.end());
+      /*this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
+        this->unknownTopics.end(), topic), this->unknownTopics.end());*/
 
       if (added && this->connectionCb)
       {
@@ -473,7 +456,7 @@ void DiscoveryPrivate::PrintCurrentState()
   std::cout << "Settings" << std::endl;
   std::cout << "\tActivity: " << this->activityInterval << " ms." << std::endl;
   std::cout << "\tHeartbit: " << this->heartbitInterval << " ms." << std::endl;
-  std::cout << "\tRetrans.: " << this->retransmissionInterval << " ms."
+  std::cout << "\tRetrans.: " << this->advertiseInterval << " ms."
     << std::endl;
   std::cout << "\tSilence: " << this->silenceInterval << " ms." << std::endl;
   std::cout << "Known topics" << std::endl;
@@ -498,13 +481,53 @@ void DiscoveryPrivate::PrintCurrentState()
         << std::endl;
     }
   }
-  std::cout << "Unknown topics" << std::endl;
-  if (this->unknownTopics.empty())
-    std::cout << "\t<empty>" << std::endl;
-  else
-  {
-    for (auto topic : this->unknownTopics)
-      std::cout << "\t" << topic << std::endl;
-  }
   std::cout << "---------------" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::NewBeacon(const std::string &_topic,
+                                 const std::string &_nUuid)
+{
+  if (this->beacons.find(_topic) == this->beacons.end() ||
+      (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end()))
+  {
+    // Create a new beacon and set the advertise interval.
+    zbeacon_t *b = zbeacon_new(this->ctx, this->DiscoveryPort);
+    zbeacon_set_interval(b, this->advertiseInterval);
+    this->beacons[_topic][_nUuid] = b;
+
+    // Prepare the content for the beacon.
+    Address_t node;
+    if (!this->info.GetAddress(_topic, this->pUuidStr, _nUuid, node))
+      return;
+
+    // Create the ADVERTISE message.
+    // Create the header.
+    Header header(Version, this->pUuid, _topic, AdvType);
+    AdvMsg advMsg(header, node.addr, node.ctrl, node.nUuid, node.scope);
+    std::vector<char> buffer(advMsg.GetMsgLength());
+    advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+    // Setup the beacon.
+    zbeacon_publish(this->beacon,
+        reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
+  }
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::DelBeacon(const std::string &_topic,
+                                 const std::string &_nUuid)
+{
+  if (this->beacons.find(_topic) == this->beacons.end())
+    return;
+
+  if (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
+    return;
+
+  // Get the beacon.
+  zbeacon_t *b = this->beacons[_topic][_nUuid];
+
+  // Destroy the beacon.
+  zbeacon_silence(b);
+  zbeacon_destroy(&b);
 }

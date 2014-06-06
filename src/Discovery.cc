@@ -55,8 +55,10 @@ void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
   if (_scope == Scope::Process)
     return;
 
+  this->dataPtr->NewBeacon(_topic, _nUuid);
+
   // Broadcast my topic information.
-  this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  // this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
@@ -73,12 +75,12 @@ void Discovery::Discover(const std::string &_topic)
   if (!this->dataPtr->info.HasTopic(_topic))
   {
     // Add the topic to the unknown topic list if it was not before.
-    if (std::find(this->dataPtr->unknownTopics.begin(),
+    /*if (std::find(this->dataPtr->unknownTopics.begin(),
         this->dataPtr->unknownTopics.end(), _topic) ==
           this->dataPtr->unknownTopics.end())
     {
       this->dataPtr->unknownTopics.push_back(_topic);
-    }
+    }*/
   }
   // I have information stored for this topic.
   else if (this->dataPtr->connectionCb)
@@ -130,6 +132,9 @@ void Discovery::Unadvertise(const std::string &_topic,
   // Send the UNADVERTISE message.
   this->dataPtr->SendMsg(UnadvType, _topic, info.addr, info.ctrl,
     _nUuid, info.scope);
+
+  // Remove the beacon for this topic in this node.
+  this->dataPtr->NewBeacon(_topic, _nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -153,10 +158,10 @@ unsigned int Discovery::GetHeartbitInterval() const
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetRetransmissionInterval() const
+unsigned int Discovery::GetAdvertiseInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  return this->dataPtr->retransmissionInterval;
+  return this->dataPtr->advertiseInterval;
 }
 
 //////////////////////////////////////////////////
@@ -181,10 +186,10 @@ void Discovery::SetHeartbitInterval(const unsigned int _ms)
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetRetransmissionInterval(const unsigned int _ms)
+void Discovery::SetAdvertiseInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->retransmissionInterval = _ms;
+  this->dataPtr->advertiseInterval = _ms;
 }
 
 //////////////////////////////////////////////////

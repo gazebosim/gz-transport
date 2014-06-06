@@ -157,10 +157,10 @@ class MyClass
 /// \brief Test the setters, getters and basic functions.
 TEST(DiscoveryTest, TestBasicAPI)
 {
-  unsigned int newSilenceInterval = 100;
-  unsigned int newActivityInterval = 200;
-  unsigned int newRetransmissionInterval = 300;
-  unsigned int newHeartbitInterval = 400;
+  unsigned int newSilenceInterval   = 100;
+  unsigned int newActivityInterval  = 200;
+  unsigned int newAdvertiseInterval = 300;
+  unsigned int newHeartbitInterval  = 400;
 
   uuid_t uuid1;
   uuid_generate(uuid1);
@@ -171,11 +171,11 @@ TEST(DiscoveryTest, TestBasicAPI)
 
   discovery1.SetSilenceInterval(newSilenceInterval);
   discovery1.SetActivityInterval(newActivityInterval);
-  discovery1.SetRetransmissionInterval(newRetransmissionInterval);
+  discovery1.SetAdvertiseInterval(newAdvertiseInterval);
   discovery1.SetHeartbitInterval(newHeartbitInterval);
   EXPECT_EQ(discovery1.GetSilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
-  EXPECT_EQ(discovery1.GetRetransmissionInterval(), newRetransmissionInterval);
+  EXPECT_EQ(discovery1.GetAdvertiseInterval(), newAdvertiseInterval);
   EXPECT_EQ(discovery1.GetHeartbitInterval(), newHeartbitInterval);
 
   EXPECT_NE(discovery1.GetHostAddr(), "");

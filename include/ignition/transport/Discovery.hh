@@ -88,10 +88,10 @@ namespace ignition
       /// \return The value in milliseconds.
       public: unsigned int GetHeartbitInterval() const;
 
-      /// \brief After a discover request, the discovery will send periodic
-      /// discovery requests every 'retransmission interval' time.
+      /// \brief While a topic is advertised by a node, a new beacon is sent
+      /// periodically every 'advertise interval'.
       /// \return The value in milliseconds.
-      public: unsigned int GetRetransmissionInterval() const;
+      public: unsigned int GetAdvertiseInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entry.
@@ -108,10 +108,10 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetHeartbitInterval(const unsigned int _ms);
 
-      /// \brief Set the retransmission interval.
-      /// \sa GetRetransmissionInterval.
+      /// \brief Set the advertise interval.
+      /// \sa GetAdvertiseInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetRetransmissionInterval(const unsigned int _ms);
+      public: void SetAdvertiseInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
       /// \sa GetSilenceInterval.
