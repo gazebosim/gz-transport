@@ -302,7 +302,6 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
 
   // Check if we are interested in this topic.
   if (this->localSubscriptions.Subscribed(_topic) &&
-      !this->connections.HasAddress(_addr) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
     if (this->verbose)
@@ -310,8 +309,14 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
 
     try
     {
-      this->subscriber->connect(_addr.c_str());
+      // I am not connected to the process.
+      if (!this->connections.HasAddress(_addr))
+        this->subscriber->connect(_addr.c_str());
+
+      // Add a new filter for the topic.
       this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
+
+      // Register the new connection with the publisher.
       this->connections.AddAddress(
         _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
 
@@ -384,23 +389,31 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
   {
     this->remoteSubscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
 
-    Address_t info;
-    if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, info))
+    Address_t connection;
+    if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, connection))
       return;
 
-    // Disconnect the sockets.
+    // Disconnect from a publisher's socket.
     // for (const auto &connection : this->connections[_pUuid])
     //   this->subscriber->disconnect(connection.addr.c_str());
-    this->subscriber->disconnect(info.addr.c_str());
+    this->subscriber->disconnect(connection.addr.c_str());
 
+    // I am no longer connected.
     this->connections.DelAddressByNode(_topic, _pUuid, _nUuid);
   }
   else
   {
     this->remoteSubscribers.DelAddressesByProc(_pUuid);
 
-    // ToDo(caguero): Disconnect from all the remote publishers.
+    Addresses_M info;
+    if (!this->connections.GetAddresses(_topic, info))
+      return;
 
+    // Disconnect from all the connections of that publisher.
+    for (auto &connection : info[_pUuid])
+      this->subscriber->disconnect(connection.addr.c_str());
+
+    // Remove all the connections from the process disonnected.
     this->connections.DelAddressesByProc(_pUuid);
   }
 }
