@@ -202,15 +202,17 @@ void NodePrivate::RecvMsgUpdate()
 
   if (this->localSubscriptions.Subscribed(topic))
   {
-    // Execute the callback registered
+    // Execute the callbacks registered.
     ISubscriptionHandler_M handlers;
     this->localSubscriptions.GetSubscriptionHandlers(topic, handlers);
-    for (auto handler : handlers)
+    for (auto &handler : handlers)
     {
       ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
       if (subscriptionHandlerPtr)
+      {
         // ToDo(caguero): Unserialize only once.
         subscriptionHandlerPtr->RunCallback(topic, data);
+      }
       else
         std::cerr << "Subscription handler is NULL" << std::endl;
     }

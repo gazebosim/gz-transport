@@ -132,7 +132,7 @@ namespace ignition
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data.c_str());
 
-        // Execute the callback (if existing)
+        // Execute the callback (if existing).
         if (this->cb)
         {
           this->cb(_topic, *msg);
