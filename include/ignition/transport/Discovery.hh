@@ -121,13 +121,13 @@ namespace ignition
       public: void SetSilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
-      /// Each time a new node is connected, the callback will be execute. This
+      /// Each time a new node is connected, the callback will be executed. This
       /// version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetConnectionsCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
-      /// Each time a new node is connected, the callback will be execute. This
+      /// Each time a new node is connected, the callback will be executed. This
       /// version uses a member functions as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetConnectionsCb(
@@ -142,13 +142,13 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a new node is disconnected, the callback will be execute.
+      /// Each time a new node is disconnected, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetDisconnectionsCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a new node is disconnected, the callback will be execute.
+      /// Each time a new node is disconnected, the callback will be executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetDisconnectionsCb(
@@ -161,6 +161,21 @@ namespace ignition
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
       }
+
+      /// \brief Register a callback to receive discovery connection events for
+      /// service calls.
+      /// Each time a new node is connected, the callback will be executed. This
+      /// version uses a free function as callback.
+      /// \param[in] _cb Function callback.
+      public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
+
+      /// \brief Register a callback to receive discovery disconnection events
+      /// for service calls.
+      /// Each time a new node is disconnected, the callback will be executed.
+      /// This version uses a free function as callback.
+      /// \param[in] _cb Function callback.
+      public: void SetDisconnectionsSrvCb(
+        const transport::DiscoveryCallback &_cb);
 
       /// \brief The discovery captures SIGINT and SIGTERM (czmq does) and
       /// the function will return true in that case. All the task threads

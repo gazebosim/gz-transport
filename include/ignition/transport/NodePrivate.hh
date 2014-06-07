@@ -100,6 +100,36 @@ namespace ignition
                                       const std::string &_nUuid,
                                       const Scope &_scope);
 
+      /// \brief Callback executed when the discovery detects a new service
+      /// call connection.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ address of the publisher.
+      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[in] _scope Topic scope.
+      public: void OnNewSrvConnection(const std::string &_topic,
+                                      const std::string &_addr,
+                                      const std::string &_ctrl,
+                                      const std::string &_pUuid,
+                                      const std::string &_nUuid,
+                                      const Scope &_scope);
+
+      /// \brief Callback executed when the discovery detects a service call
+      /// disconnection.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ address of the publisher.
+      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _pUuid Process UUID of the publisher.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      /// \param[in] _scope Topic scope.
+      public: void OnNewSrvDisconnection(const std::string &_topic,
+                                         const std::string &_addr,
+                                         const std::string &_ctrl,
+                                         const std::string &_pUuid,
+                                         const std::string &_nUuid,
+                                         const Scope &_scope);
+
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 

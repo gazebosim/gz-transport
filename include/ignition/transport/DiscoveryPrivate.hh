@@ -179,6 +179,12 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       public: DiscoveryCallback disconnectionCb;
 
+      /// \brief Callback executed when new service call topics are discovered.
+      public: DiscoveryCallback connectionSrvCb;
+
+      /// \brief Callback executed when new service call topics are invalid.
+      public: DiscoveryCallback disconnectionSrvCb;
+
       /// \brief Beacons to advertise topics periodically. The key is the topic
       /// name. The value is another map, where the key is the node UUID.
       public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;

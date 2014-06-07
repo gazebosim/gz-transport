@@ -81,7 +81,7 @@ TEST(PacketTest, HeaderIO)
 
   // Pack a Header
   transport::Header header(transport::Version, guid, topic,
-    transport::AdvSvcType, 2);
+    transport::AdvSrvType, 2);
   char *buffer = new char[header.GetHeaderLength()];
   size_t bytes = header.Pack(buffer);
   EXPECT_EQ(bytes, header.GetHeaderLength());
@@ -152,7 +152,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
 
   // Check AdvMsg setters.
   transport::Header anotherHeader(transport::Version + 1, guid, topic,
-    transport::AdvSvcType, 3);
+    transport::AdvSrvType, 3);
   guidStr = transport::GetGuidStr(guid);
   advMsg.SetHeader(anotherHeader);
   header = advMsg.GetHeader();
@@ -161,7 +161,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   EXPECT_EQ(guidStr, otherGuidStr);
   EXPECT_EQ(header.GetTopicLength(), topic.size());
   EXPECT_EQ(header.GetTopic(), topic);
-  EXPECT_EQ(header.GetType(), transport::AdvSvcType);
+  EXPECT_EQ(header.GetType(), transport::AdvSrvType);
   EXPECT_EQ(header.GetFlags(), 3);
   int headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
     sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +

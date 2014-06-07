@@ -105,6 +105,12 @@ NodePrivate::NodePrivate(bool _verbose)
 
   // Set the callback to notify discovery updates (new disconnections).
   discovery->SetDisconnectionsCb(&NodePrivate::OnNewDisconnection, this);
+
+  // Set the callback to notify svc calls discovery updates (new connections).
+  discovery->SetConnectionsCb(&NodePrivate::OnNewSrvConnection, this);
+
+  // Set the callback to notify svc calls discovery updates (new disconnections)
+  discovery->SetDisconnectionsCb(&NodePrivate::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -419,3 +425,38 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
     this->connections.DelAddressesByProc(_pUuid);
   }
 }
+
+//////////////////////////////////////////////////
+void NodePrivate::OnNewSrvConnection(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl,
+  const std::string &_pUuid, const std::string &_nUuid,
+  const Scope &_scope)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  if (this->verbose)
+  {
+    std::cout << "Service call connection callback" << std::endl;
+    std::cout << "Topic: " << _topic << std::endl;
+    std::cout << "Addr: " << _addr << std::endl;
+    std::cout << "Ctrl Addr: " << _ctrl << std::endl;
+    std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
+    std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+void NodePrivate::OnNewSrvDisconnection(const std::string &_topic,
+  const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
+  const std::string &_pUuid, const std::string &_nUuid,
+  const Scope &/*_scope*/)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  if (this->verbose)
+  {
+    std::cout << "New service call disconnection detected " << std::endl;
+    std::cout << "\tProcess UUID: " << _pUuid << std::endl;
+  }
+}
+

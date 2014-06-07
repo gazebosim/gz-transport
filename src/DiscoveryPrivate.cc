@@ -264,6 +264,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
   switch (header.GetType())
   {
     case AdvType:
+    case AdvSrvType:
     {
       // Read the address.
       AdvMsg advMsg;
@@ -287,15 +288,20 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       bool added = this->info.AddAddress(topic, recvAddr, recvCtrl,
         recvPUuid, recvNUuid, recvScope);
 
-      // Remove topic from unkown topics.
-      /*this->unknownTopics.erase(std::remove(this->unknownTopics.begin(),
-        this->unknownTopics.end(), topic), this->unknownTopics.end());*/
-
-      if (added && this->connectionCb)
+      if (added)
       {
-        // Execute the client's callback.
-        this->connectionCb(topic, recvAddr, recvCtrl, recvPUuid,
-          recvNUuid, recvScope);
+        if (header.GetType() == AdvType && this->connectionCb)
+        {
+          // Execute the client's callback.
+          this->connectionCb(topic, recvAddr, recvCtrl, recvPUuid,
+            recvNUuid, recvScope);
+        }
+        else if (header.GetType() == AdvSrvType && this->connectionSrvCb)
+        {
+          // Execute the client's callback for service calls.
+          this->connectionSrvCb(topic, recvAddr, recvCtrl, recvPUuid,
+            recvNUuid, recvScope);
+        }
       }
       break;
     }
@@ -509,7 +515,7 @@ void DiscoveryPrivate::NewBeacon(const AdvertiseType &_advType,
     if (_advType == AdvertiseType::Msg)
       header.reset(new Header(Version, this->pUuid, _topic, AdvType));
     else
-      header.reset(new Header(Version, this->pUuid, _topic, AdvSvcType));
+      header.reset(new Header(Version, this->pUuid, _topic, AdvSrvType));
 
     // Create the ADVERTISE message.
     AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope);

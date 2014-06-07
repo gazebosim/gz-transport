@@ -214,6 +214,20 @@ void Discovery::SetDisconnectionsCb(const DiscoveryCallback &_cb)
 }
 
 //////////////////////////////////////////////////
+void Discovery::SetConnectionsSrvCb(const DiscoveryCallback &_cb)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->connectionSrvCb = _cb;
+}
+
+//////////////////////////////////////////////////
+void Discovery::SetDisconnectionsSrvCb(const DiscoveryCallback &_cb)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->disconnectionSrvCb = _cb;
+}
+
+//////////////////////////////////////////////////
 bool Discovery::Interrupted()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
