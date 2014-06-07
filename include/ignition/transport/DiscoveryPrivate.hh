@@ -104,10 +104,17 @@ namespace ignition
       public: void PrintCurrentState();
 
       /// \brief Create a new beacon for a given topic advertised by a node.
-      public: void NewBeacon(const std::string &_topic,
+      /// \param[in] _advType Used to distinguish between regular pub/sub
+      /// messages or service calls.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _nUuid Node UUID of the advertiser.
+      public: void NewBeacon(const AdvertiseType &_advType,
+                             const std::string &_topic,
                              const std::string &_nUuid);
 
       /// \brief Delete a beacon.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _nUuid Node UUID of the advertiser.
       public: void DelBeacon(const std::string &_topic,
                              const std::string &_nUuid);
 

@@ -7,6 +7,7 @@ set (headers
   Node.hh
   NodePrivate.hh
   Packet.hh
+  SrvReplyHandler.hh
   SubscriptionHandler.hh
   SubscriptionStorage.hh
   TransportTypes.hh

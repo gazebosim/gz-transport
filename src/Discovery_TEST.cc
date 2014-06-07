@@ -22,6 +22,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 
@@ -197,7 +198,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecuted)
@@ -230,7 +232,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
   MyClass object(uuid2);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecutedMF)
@@ -264,7 +267,8 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecuted)
@@ -297,7 +301,8 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   object.RegisterConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !connectionExecutedMF)
@@ -325,7 +330,8 @@ TEST(DiscoveryTest, TestDiscover)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(uuid1);
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   // Wait a while.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -388,7 +394,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -438,7 +445,8 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   object.RegisterDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecutedMF)
@@ -489,7 +497,8 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1->Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1->Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
 
   int i = 0;
   while (i < 100 && !disconnectionExecuted)
@@ -535,9 +544,11 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // Create two discovery nodes and advertise the same topic.
   transport::Discovery discovery1(uuid1);
-  discovery1.Advertise(topic, localAddr1, controlAddr1, uuidNode1Str, scope);
+  discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
+    controlAddr1, uuidNode1Str, scope);
   transport::Discovery discovery2(uuid2);
-  discovery2.Advertise(topic, localAddr2, controlAddr2, uuidNode2Str, scope);
+  discovery2.Advertise(transport::AdvertiseType::Msg, topic, localAddr2,
+    controlAddr2, uuidNode2Str, scope);
 
   // Wait a while.
   // std::this_thread::sleep_for(std::chrono::milliseconds(500));

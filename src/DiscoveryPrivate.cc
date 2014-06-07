@@ -485,9 +485,13 @@ void DiscoveryPrivate::PrintCurrentState()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::NewBeacon(const std::string &_topic,
-                                 const std::string &_nUuid)
+void DiscoveryPrivate::NewBeacon(const AdvertiseType &_advType,
+  const std::string &_topic, const std::string &_nUuid)
 {
+  assert(_topic != "");
+
+  std::unique_ptr<Header> header;
+
   if (this->beacons.find(_topic) == this->beacons.end() ||
       (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end()))
   {
@@ -501,10 +505,14 @@ void DiscoveryPrivate::NewBeacon(const std::string &_topic,
     if (!this->info.GetAddress(_topic, this->pUuidStr, _nUuid, node))
       return;
 
-    // Create the ADVERTISE message.
     // Create the header.
-    Header header(Version, this->pUuid, _topic, AdvType);
-    AdvMsg advMsg(header, node.addr, node.ctrl, node.nUuid, node.scope);
+    if (_advType == AdvertiseType::Msg)
+      header.reset(new Header(Version, this->pUuid, _topic, AdvType));
+    else
+      header.reset(new Header(Version, this->pUuid, _topic, AdvSvcType));
+
+    // Create the ADVERTISE message.
+    AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope);
     std::vector<char> buffer(advMsg.GetMsgLength());
     advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
@@ -518,6 +526,8 @@ void DiscoveryPrivate::NewBeacon(const std::string &_topic,
 void DiscoveryPrivate::DelBeacon(const std::string &_topic,
                                  const std::string &_nUuid)
 {
+  assert(_topic != "");
+
   if (this->beacons.find(_topic) == this->beacons.end())
     return;
 
@@ -530,4 +540,9 @@ void DiscoveryPrivate::DelBeacon(const std::string &_topic,
   // Destroy the beacon.
   zbeacon_silence(b);
   zbeacon_destroy(&b);
+
+  // Remove the beacon from the map.
+  this->beacons[_topic].erase(_nUuid);
+  if (this->beacons[_topic].empty())
+    this->beacons.erase(_topic);
 }

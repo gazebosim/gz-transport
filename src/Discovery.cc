@@ -39,9 +39,9 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
-                          const std::string &_ctrl, const std::string &_nUuid,
-                          const Scope &_scope)
+void Discovery::Advertise(const AdvertiseType &_advType,
+  const std::string &_topic, const std::string &_addr, const std::string &_ctrl,
+  const std::string &_nUuid, const Scope &_scope)
 {
   assert(_topic != "");
 
@@ -55,7 +55,7 @@ void Discovery::Advertise(const std::string &_topic, const std::string &_addr,
   if (_scope == Scope::Process)
     return;
 
-  this->dataPtr->NewBeacon(_topic, _nUuid);
+  this->dataPtr->NewBeacon(_advType, _topic, _nUuid);
 
   // Broadcast my topic information.
   // this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
@@ -134,7 +134,7 @@ void Discovery::Unadvertise(const std::string &_topic,
     _nUuid, info.scope);
 
   // Remove the beacon for this topic in this node.
-  this->dataPtr->NewBeacon(_topic, _nUuid);
+  this->dataPtr->DelBeacon(_topic, _nUuid);
 }
 
 //////////////////////////////////////////////////

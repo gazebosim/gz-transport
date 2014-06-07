@@ -28,6 +28,7 @@
 #include <vector>
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -113,7 +114,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->nUuidStr));
+          new SubscriptionHandler<T>(this->nUuidStr));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(
@@ -141,6 +142,44 @@ namespace ignition
       /// \param[in] _topic Topic to be unsubscribed.
       public: void Unsubscribe(const std::string &_topic);
 
+      /// \brief Advertise a new service call.
+      /// \param[in] _topic Topic name associated to the service call.
+      /// \param[in] _cb Callback to handle the service request.
+      /// \param[in] _scope Topic scope.
+      public: template<typename T1, typename T2> void Advertise(
+        const std::string &_topic,
+        bool(*_cb)(const std::string &, const T1 &, T2 &),
+        const Scope &_scope = Scope::All)
+      {
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+        // Add the topic to the list of advertised service calls
+        if (std::find(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
+              _topic) == this->srvsAdvertised.end())
+        {
+          this->srvsAdvertised.push_back(_topic);
+        }
+
+        // Create a new service reply handler.
+        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
+          new RepHandler<T1, T2>(this->nUuidStr));
+
+        // Insert the callback into the handler.
+        repHandlerPtr->SetCallback(_cb);
+
+        // Store the replier handler. Each replier handler is
+        // associated with a topic. When the receiving thread gets new requests,
+        // it will recover the replier handler associated to the topic and
+        // will invoke the service call.
+        this->dataPtr->repliers.AddRepHandler(
+          _topic, this->nUuidStr, repHandlerPtr);
+
+        // Notify the discovery service to register and advertise my responser.
+        this->dataPtr->discovery->Advertise(AdvertiseType::Srv, _topic,
+          this->dataPtr->myAddress, this->dataPtr->myControlAddress,
+          this->nUuidStr, _scope);
+      }
+
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
       /// the function will return true in that case. All the task threads
       /// will terminate.
@@ -156,6 +195,9 @@ namespace ignition
 
       /// \brief The list of topics advertised by this node.
       private: std::vector<std::string> topicsAdvertised;
+
+      /// \brief The list of service calls advertised by this node.
+      private: std::vector<std::string> srvsAdvertised;
 
       /// \brief Node UUID. This ID is unique for each node.
       private: uuid_t nUuid;

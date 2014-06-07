@@ -43,7 +43,7 @@ void SubscriptionStorage::GetSubscriptionHandlers(
 //////////////////////////////////////////////////
 void SubscriptionStorage::AddSubscriptionHandler(const std::string &_topic,
   const std::string &_nodeUuid,
-  const std::shared_ptr<ISubscriptionHandler> &_msgPtr)
+  const std::shared_ptr<ISubscriptionHandler> &_handler)
 {
   // Create the topic entry.
   if (this->subscribers.find(_topic) == this->subscribers.end())
@@ -54,7 +54,7 @@ void SubscriptionStorage::AddSubscriptionHandler(const std::string &_topic,
     this->subscribers[_topic].insert(std::make_pair(_nodeUuid, nullptr));
 
   // Add/Replace the subscription handler.
-  this->subscribers[_topic][_nodeUuid] = _msgPtr;
+  this->subscribers[_topic][_nodeUuid] = _handler;
 }
 
 //////////////////////////////////////////////////
@@ -68,11 +68,11 @@ bool SubscriptionStorage::Subscribed(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void SubscriptionStorage::RemoveSubscriptionHandler(const std::string &_topic,
-  const std::string &_nodeUuid)
+  const std::string &_nUuid)
 {
   if (this->subscribers.find(_topic) != this->subscribers.end())
   {
-    this->subscribers[_topic].erase(_nodeUuid);
+    this->subscribers[_topic].erase(_nUuid);
     if (this->subscribers[_topic].empty())
       this->subscribers.erase(_topic);
   }
@@ -80,11 +80,11 @@ void SubscriptionStorage::RemoveSubscriptionHandler(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool SubscriptionStorage::HasSubscriptionHandler(const std::string &_topic,
-  const std::string &_nodeUuid)
+  const std::string &_nUuid)
 {
   if (this->subscribers.find(_topic) == this->subscribers.end())
     return false;
 
-  return this->subscribers[_topic].find(_nodeUuid) !=
+  return this->subscribers[_topic].find(_nUuid) !=
     this->subscribers[_topic].end();
 }

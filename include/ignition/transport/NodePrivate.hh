@@ -28,6 +28,7 @@
 #include <thread>
 #include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/RepStorage.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 
 namespace ignition
@@ -157,8 +158,11 @@ namespace ignition
       /// \brief Remote subscribers.
       public: AddressInfo remoteSubscribers;
 
-      // \brief Local subscriptions.
+      /// \brief Local subscriptions.
       public: SubscriptionStorage localSubscriptions;
+
+      /// \brief Local service call repliers.
+      public: RepStorage repliers;
     };
   }
 }

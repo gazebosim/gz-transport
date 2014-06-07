@@ -6,6 +6,7 @@ set (sources
   DiscoveryPrivate.cc
   Node.cc
   NodePrivate.cc
+  RepStorage.cc
   SubscriptionStorage.cc
   Packet.cc
 )

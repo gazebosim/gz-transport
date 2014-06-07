@@ -27,6 +27,7 @@ using namespace ignition;
 
 bool cbExecuted;
 bool cb2Executed;
+bool srvExecuted;
 std::string topic = "foo";
 std::string data = "bar";
 int counter = 0;
@@ -50,6 +51,16 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Provide a service.
+bool srv(const std::string &_topic, const robot_msgs::StringMsg &/*_req*/,
+  robot_msgs::StringMsg &/*_rep*/)
+{
+  assert(_topic != "");
+
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -332,6 +343,19 @@ void createInfinitePublisher()
   node.Advertise(topic);
   while (!node.Interrupted())
     node.Publish(topic, msg);
+}
+
+//////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
+TEST(NodeTest, BasicServiceCall)
+{
+  srvExecuted = false;
+  robot_msgs::StringMsg req;
+  robot_msgs::StringMsg rep;
+  req.set_data(data);
+
+  transport::Node node;
+  node.Advertise(topic, srv);
 }
 
 //////////////////////////////////////////////////

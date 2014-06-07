@@ -31,6 +31,7 @@ namespace ignition
   namespace transport
   {
     /// \brief Forward declarations for transport
+    class IRepHandler;
     class ISubscriptionHandler;
     class NodePrivate;
     class TopicInfo;
@@ -43,6 +44,11 @@ namespace ignition
     ///            the publisher.
     /// * All:     Topic available to any subscriber. This is the default scope.
     enum class Scope {Process, Host, All};
+
+    /// \def The discovery layer can advertise two different types:
+    /// * Msg: Regular pub/sub message.
+    /// * Srv: Service call.
+    enum class AdvertiseType {Msg, Srv};
 
     /// \def Address_t All the data associated to a topic's publisher.
     struct Address_t
@@ -97,6 +103,16 @@ namespace ignition
     /// is used as key.
     typedef std::map<std::string, ISubscriptionHandlerPtr>
         ISubscriptionHandler_M;
+
+    /// \def IRepHandlerPtr
+    /// \brief Shared pointer to IRepHandler.
+    typedef std::shared_ptr<IRepHandler> IRepHandlerPtr;
+
+    /// \def IRepHandler_M
+    /// \brief Map to store the different response handlers for a topic.
+    /// Each node can have its own response handler. The node id
+    /// is used as key.
+    typedef std::map<std::string, IRepHandlerPtr> IRepHandler_M;
 
     /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections

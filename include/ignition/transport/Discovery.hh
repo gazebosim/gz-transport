@@ -43,12 +43,14 @@ namespace ignition
       public: virtual ~Discovery();
 
       /// \brief Advertise a new topic.
+      /// \param[in] _advType Type of advertise requested.
       /// \param[in] _topic Topic to be advertised.
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void Advertise(const std::string &_topic,
+      public: void Advertise(const AdvertiseType &_advType,
+                             const std::string &_topic,
                              const std::string &_addr,
                              const std::string &_ctrl,
                              const std::string &_nUuid,

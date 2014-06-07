@@ -47,11 +47,11 @@ namespace ignition
       /// \brief Add a subscription handler to a topic. A subscription handler
       /// stores the callback and types associated to a subscription.
       /// \param[in] _topic Topic name.
-      /// \param[in] _nodeUuid Node's unique identifier.
+      /// \param[in] _nUuid Node's unique identifier.
       /// \param[in] _msgPtr Subscription handler.
       public: void AddSubscriptionHandler(const std::string &_topic,
-                                          const std::string &_nodeUuid,
-                                        const ISubscriptionHandlerPtr &_msgPtr);
+                                          const std::string &_nUuid,
+                                       const ISubscriptionHandlerPtr &_handler);
 
       /// \brief Return true if we are subscribed to a node advertising
       /// the topic.
@@ -62,16 +62,16 @@ namespace ignition
       /// \brief Remove a subscription handler. The node's uuid
       /// is used as a key to remove the appropriate subscription handler.
       /// \param[in] _topic Topic name.
-      /// \param[in] _nodeUuid Node's unique identifier.
+      /// \param[in] _nUuid Node's unique identifier.
       public: void RemoveSubscriptionHandler(const std::string &_topic,
-                                             const std::string &_nodeUuid);
+                                             const std::string &_nUuid);
 
       /// \brief Check if a topic has a subscription handler.
       /// \param[in] _topic Topic name.
-      /// \param[in] _nodeUuid Node's unique identifier.
+      /// \param[in] _nUuid Node's unique identifier.
       /// \return true if the topic has a subscription handler registered.
       public: bool HasSubscriptionHandler(const std::string &_topic,
-                                          const std::string &_nodeUuid);
+                                          const std::string &_nUuid);
 
       /// \brief Stores all the subscribers information for each topic.
       private: std::map<std::string, ISubscriptionHandler_M> subscribers;
