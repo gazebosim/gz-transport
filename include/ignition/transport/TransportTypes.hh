@@ -70,14 +70,14 @@ namespace ignition
 
     /// \def ReqCallback
     /// \brief Callback used for receiving a service call request.
-    typedef std::function<void (const std::string &, int,
-                                const std::string &)> ReqCallback;
+    typedef std::function<bool (const std::string &, const ProtoMsgPtr,
+                                ProtoMsgPtr)> ReqCallback;
 
     /// \def RepCallback
     /// \brief Callback used for receving a service call response.
-    typedef std::function<int (const std::string &,
-                               const std::string &,
-                               std::string &)> RepCallback;
+    typedef std::function<void (const std::string &,
+                                const ProtoMsgPtr,
+                                bool)> RepCallback;
 
     /// \def Topics_M
     /// \brief Map used for store all the knowledge about a given topic.
