@@ -19,10 +19,12 @@
 #define __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <uuid/uuid.h>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -38,6 +40,9 @@ namespace ignition
       public: IReqHandler(const std::string &_nUuid)
         : nUuidStr(_nUuid)
       {
+        uuid_t uuid;
+        uuid_generate(uuid);
+        this->reqUuid = GetGuidStr(uuid);
       }
 
       /// \brief Destructor.
@@ -70,6 +75,14 @@ namespace ignition
       }
 
       public: virtual std::string Unserialize() = 0;
+
+      public: std::string GetReqUuid() const
+      {
+        return this->nUuidStr;
+      }
+
+      /// \brief Request's UUID.
+      protected: std::string reqUuid;
 
       /// \brief Node UUID (string).
       private: std::string nUuidStr;

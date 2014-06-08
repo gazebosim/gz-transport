@@ -64,15 +64,10 @@ namespace ignition
       /// remove the appropriate request handler.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
+      /// \param[in] _reqUuid Request's UUID to remove.
       public: void RemoveReqHandler(const std::string &_topic,
-                                    const std::string &_nUuid);
-
-      /// \brief Check if a topic has a request handler.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node's unique identifier.
-      /// \return true if the topic has a request handler registered.
-      public: bool HasReqHandler(const std::string &_topic,
-                                 const std::string &_nUuid);
+                                    const std::string &_nUuid,
+                                    const std::string, &_reqUuid);
 
       /// \brief Stores all the service call requests for each topic.
       private: std::map<std::string, IReqHandler_M> requests;

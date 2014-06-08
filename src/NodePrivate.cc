@@ -615,28 +615,31 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
   // Send all the pending REQs.
   IReqHandler_M reqs;
   this->requests.GetReqHandlers(_topic, reqs);
-  for (auto &req : reqs)
+  for (auto &node : reqs)
   {
-    auto data = req.second->Unserialize();
-    auto nodeUuid = req.second->GetNodeUuid();
+    for (auto &req : node.second)
+    {
+      auto data = req.second->Unserialize();
+      auto nodeUuid = req.second->GetNodeUuid();
 
-    zmq::message_t message;
-    message.rebuild(_topic.size() + 1);
-    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-    requester->send(message, ZMQ_SNDMORE);
+      zmq::message_t message;
+      message.rebuild(_topic.size() + 1);
+      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
 
-    message.rebuild(this->myRequesterAddress.size() + 1);
-    memcpy(message.data(), this->myRequesterAddress.c_str(),
-      this->myRequesterAddress.size() + 1);
-    requester->send(message, ZMQ_SNDMORE);
+      message.rebuild(this->myRequesterAddress.size() + 1);
+      memcpy(message.data(), this->myRequesterAddress.c_str(),
+        this->myRequesterAddress.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
 
-    message.rebuild(nodeUuid.size() + 1);
-    memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-    requester->send(message, ZMQ_SNDMORE);
+      message.rebuild(nodeUuid.size() + 1);
+      memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
 
-    message.rebuild(data.size() + 1);
-    memcpy(message.data(), data.c_str(), data.size() + 1);
-    requester->send(message, 0);
+      message.rebuild(data.size() + 1);
+      memcpy(message.data(), data.c_str(), data.size() + 1);
+      requester->send(message, 0);
+    }
   }
 }
 

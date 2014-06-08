@@ -50,11 +50,12 @@ void ReqStorage::AddReqHandler(const std::string &_topic,
     this->requests[_topic] = {};
 
   // Create the Node UUID entry.
-  if (!this->HasReqHandler(_topic, _nodeUuid))
+  if (this->requests[_topic].find(_nUuid) == this->requests[_topic].end())
     this->requests[_topic].insert(std::make_pair(_nodeUuid, nullptr));
 
   // Add/Replace the Req handler.
-  this->requests[_topic][_nodeUuid] = _handler;
+  this->requests[_topic][_nodeUuid].insert(
+    std::make_pair(_handler->GetReqUuid(), _handler));
 }
 
 //////////////////////////////////////////////////
@@ -68,23 +69,17 @@ bool ReqStorage::Requested(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void ReqStorage::RemoveReqHandler(const std::string &_topic,
-  const std::string &_nUuid)
+  const std::string &_nUuid, const std::string, &_reqUuid)
 {
   if (this->requests.find(_topic) != this->requests.end())
   {
-    this->requests[_topic].erase(_nUuid);
-    if (this->requests[_topic].empty())
-      this->requests.erase(_topic);
+    if (this->requests[_topic].find(_nUuid) != this->requests[_topic].end())
+    {
+      this->requests[_topic][_nUuid].erase(_reqUuid);
+      if (this->requests[_topic][_nUuid].empty())
+        this->requests[_topic].erase(_nUuid);
+      if (this->requests[_topic].empty())
+        this->requests.erase(_topic);
+    }
   }
-}
-
-//////////////////////////////////////////////////
-bool ReqStorage::HasReqHandler(const std::string &_topic,
-  const std::string &_nUuid)
-{
-  if (this->requests.find(_topic) == this->requests.end())
-    return false;
-
-  return this->requests[_topic].find(_nUuid) !=
-    this->requests[_topic].end();
 }

@@ -123,7 +123,8 @@ namespace ignition
     /// \brief Map to store the different service call request handlers for a
     /// topic. Each node can have its own request handler. The node id
     /// is used as key.
-    typedef std::map<std::string, IReqHandlerPtr> IReqHandler_M;
+    typedef std::map<std::string, std::map<std::string, IReqHandlerPtr>>
+      IReqHandler_M;
 
     /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
