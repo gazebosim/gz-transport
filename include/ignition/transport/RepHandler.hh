@@ -49,9 +49,11 @@ namespace ignition
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msg Protobuf message received.
       /// \return 0 when success.
-     /* public: virtual int RunLocalCallback(const std::string &_topic,
-                                           const transport::ProtoMsg &_msg) = 0;
-      */
+      public: virtual int RunLocalCallback(const std::string &_topic,
+                                           const transport::ProtoMsg &_msgReq,
+                                           transport::ProtoMsg &_msgRep,
+                                           bool &_result) = 0;
+
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _req Serialized data received. The data will be used
@@ -109,14 +111,17 @@ namespace ignition
       }
 
       // Documentation inherited.
-      /*public: int RunLocalCallback(const std::string &_topic,
-                                   const transport::ProtoMsg &_msg)
+      public: int RunLocalCallback(const std::string &_topic,
+                                   const transport::ProtoMsg &_msgReq,
+                                   transport::ProtoMsg &_msgRep,
+                                   bool &_result)
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
-          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-          this->cb(_topic, *msgPtr);
+          auto msgReq = google::protobuf::down_cast<const T1*>(&_msgReq);
+          auto msgRep = google::protobuf::down_cast<T2*>(&_msgRep);
+          _result = this->cb(_topic, *msgReq, *msgRep);
           return 0;
         }
         else
@@ -125,7 +130,7 @@ namespace ignition
                     << "Callback is NULL" << std::endl;
           return -1;
         }
-      }*/
+      }
 
       // Documentation inherited.
       public: int RunCallback(const std::string &_topic,

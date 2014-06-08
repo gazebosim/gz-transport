@@ -29,6 +29,7 @@ bool responseExecuted;
 
 std::string topic = "foo";
 std::string data = "bar";
+int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -46,11 +47,15 @@ bool srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &/*_topic*/,
-  const robot_msgs::StringMsg &/*_rep*/,
-  bool /*_result*/)
+void response(const std::string &_topic, const robot_msgs::StringMsg &_rep,
+  bool _result)
 {
+  EXPECT_EQ(_topic, topic);
+  EXPECT_EQ(_rep.data(), data);
+  EXPECT_TRUE(_result);
+
   responseExecuted = true;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -85,6 +90,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   else
   {
     responseExecuted = false;
+    counter = 0;
     robot_msgs::StringMsg req;
     req.set_data(data);
 
@@ -100,9 +106,11 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 
     // Check that the service call response was executed.
     EXPECT_TRUE(responseExecuted);
+    EXPECT_EQ(counter, 1);
 
     // Make another request.
     responseExecuted = false;
+    counter = 0;
     node1.Request(topic, req, response);
 
     i = 0;
@@ -114,7 +122,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 
     // Check that the service call response was executed.
     EXPECT_TRUE(responseExecuted);
-
+    EXPECT_EQ(counter, 1);
 
     // Wait for the child process to return.
     int status;

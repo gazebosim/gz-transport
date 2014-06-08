@@ -40,9 +40,27 @@ void ReqStorage::GetReqHandlers(
     _handlers = this->requests[_topic];
 }
 
+bool ReqStorage::GetHandler(const std::string &_topic,
+  const std::string &_nUuid, const std::string &_reqUuid,
+  IReqHandlerPtr &_handler)
+{
+  if (this->requests.find(_topic) == this->requests.end())
+    return false;
+
+  auto &m = this->requests[_topic];
+  if (m.find(_nUuid) == m.end())
+    return false;
+
+  if (m[_nUuid].find(_reqUuid) == m[_nUuid].end())
+    return false;
+
+  _handler = m[_nUuid][_reqUuid];
+  return true;
+}
+
 //////////////////////////////////////////////////
 void ReqStorage::AddReqHandler(const std::string &_topic,
-  const std::string &_nodeUuid,
+  const std::string &_nUuid,
   const std::shared_ptr<IReqHandler> &_handler)
 {
   // Create the topic entry.
@@ -51,10 +69,10 @@ void ReqStorage::AddReqHandler(const std::string &_topic,
 
   // Create the Node UUID entry.
   if (this->requests[_topic].find(_nUuid) == this->requests[_topic].end())
-    this->requests[_topic].insert(std::make_pair(_nodeUuid, nullptr));
+    this->requests[_topic][_nUuid] = {};
 
   // Add/Replace the Req handler.
-  this->requests[_topic][_nodeUuid].insert(
+  this->requests[_topic][_nUuid].insert(
     std::make_pair(_handler->GetReqUuid(), _handler));
 }
 
@@ -69,7 +87,7 @@ bool ReqStorage::Requested(const std::string &_topic)
 
 //////////////////////////////////////////////////
 void ReqStorage::RemoveReqHandler(const std::string &_topic,
-  const std::string &_nUuid, const std::string, &_reqUuid)
+  const std::string &_nUuid, const std::string &_reqUuid)
 {
   if (this->requests.find(_topic) != this->requests.end())
   {

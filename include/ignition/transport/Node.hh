@@ -195,6 +195,20 @@ namespace ignition
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
+        // If the responser is within my process.
+        IRepHandler_M repHandlers;
+        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
+        if (!repHandlers.empty())
+        {
+          // There is a responser in my process, let's use it.
+          IRepHandlerPtr repHandler = repHandlers.begin()->second;
+          T2 rep;
+          bool result;
+          repHandler->RunLocalCallback(_topic, _req, rep, result);
+          _cb(_topic, rep, result);
+          return;
+        }
+
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
           new ReqHandler<T1, T2>(this->nUuidStr));

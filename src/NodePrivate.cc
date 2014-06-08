@@ -320,6 +320,7 @@ void NodePrivate::RecvSrvRequest()
   std::string topic;
   std::string sender;
   std::string nodeUuid;
+  std::string reqUuid;
   std::string req;
   std::string rep;
   std::string resultStr;
@@ -338,6 +339,10 @@ void NodePrivate::RecvSrvRequest()
     if (!this->replier->recv(&message, 0))
       return;
     nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    reqUuid = std::string(reinterpret_cast<char *>(message.data()));
 
     if (!this->replier->recv(&message, 0))
       return;
@@ -387,6 +392,10 @@ void NodePrivate::RecvSrvRequest()
     memcpy(response.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
     socket.send(response, ZMQ_SNDMORE);
 
+    response.rebuild(reqUuid.size() + 1);
+    memcpy(response.data(), reqUuid.c_str(), reqUuid.size() + 1);
+    socket.send(response, ZMQ_SNDMORE);
+
     response.rebuild(rep.size() + 1);
     memcpy(response.data(), rep.c_str(), rep.size() + 1);
     socket.send(response, ZMQ_SNDMORE);
@@ -410,7 +419,8 @@ void NodePrivate::RecvSrvResponse()
 
   zmq::message_t message(0);
   std::string topic;
-  // std::string nodeUuid;
+  std::string nodeUuid;
+  std::string reqUuid;
   std::string rep;
   std::string resultStr;
   bool result;
@@ -423,7 +433,11 @@ void NodePrivate::RecvSrvResponse()
 
     if (!this->requester->recv(&message, 0))
       return;
-    // nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->requester->recv(&message, 0))
+      return;
+    reqUuid = std::string(reinterpret_cast<char *>(message.data()));
 
     if (!this->requester->recv(&message, 0))
       return;
@@ -445,14 +459,19 @@ void NodePrivate::RecvSrvResponse()
   if (this->requests.Requested(topic))
   {
     IReqHandlerPtr reqHandlerPtr;
-    IReqHandler_M handlers;
-    this->requests.GetReqHandlers(topic, handlers);
+    if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
+    {
+      // Notify the result.
+      reqHandlerPtr->NotifyResult(topic, rep, result);
 
-    // Get the first requester.
-    reqHandlerPtr = handlers.begin()->second;
-
-    // Notify the result.
-    reqHandlerPtr->NotifyResult(topic, rep, result);
+      // Remove the handler.
+      this->requests.RemoveReqHandler(topic, nodeUuid, reqUuid);
+    }
+    else
+    {
+      std::cerr << "Received a service call response but I don't have a handler"
+                << " for it" << std::endl;
+    }
   }
 }
 
@@ -595,16 +614,12 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
   std::string responserAddr;
   Addresses_M addresses;
   this->discovery->GetTopicAddresses(_topic, addresses);
+  if (addresses.empty())
+    return;
 
-  // Check if there is a responser in my own process.
-  if (addresses.find(this->pUuidStr) != addresses.end())
-    responserAddr = addresses[this->pUuidStr].at(0).addr;
-  else
-  {
-    // Get the first responder.
-    auto &v = addresses.begin()->second;
-    responserAddr = v.at(0).addr;
-  }
+  // Get the first responder.
+  auto &v = addresses.begin()->second;
+  responserAddr = v.at(0).addr;
 
   if (verbose)
   {
@@ -621,6 +636,7 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
     {
       auto data = req.second->Unserialize();
       auto nodeUuid = req.second->GetNodeUuid();
+      auto reqUuid = req.second->GetReqUuid();
 
       zmq::message_t message;
       message.rebuild(_topic.size() + 1);
@@ -634,6 +650,10 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
 
       message.rebuild(nodeUuid.size() + 1);
       memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
+
+      message.rebuild(reqUuid.size() + 1);
+      memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
       requester->send(message, ZMQ_SNDMORE);
 
       message.rebuild(data.size() + 1);

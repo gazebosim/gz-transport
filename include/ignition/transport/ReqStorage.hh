@@ -45,6 +45,11 @@ namespace ignition
       public: void GetReqHandlers(const std::string &_topic,
                                   IReqHandler_M &_handlers);
 
+      public: bool GetHandler(const std::string &_topic,
+                              const std::string &_nUuid,
+                              const std::string &_reqUuid,
+                              IReqHandlerPtr &_handler);
+
       /// \brief Add a request handler to a topic. A request handler stores
       /// the callback and types associated to a service call request.
       /// \param[in] _topic Topic name.
@@ -67,7 +72,7 @@ namespace ignition
       /// \param[in] _reqUuid Request's UUID to remove.
       public: void RemoveReqHandler(const std::string &_topic,
                                     const std::string &_nUuid,
-                                    const std::string, &_reqUuid);
+                                    const std::string &_reqUuid);
 
       /// \brief Stores all the service call requests for each topic.
       private: std::map<std::string, IReqHandler_M> requests;

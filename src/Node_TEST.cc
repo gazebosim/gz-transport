@@ -28,6 +28,7 @@ using namespace ignition;
 bool cbExecuted;
 bool cb2Executed;
 bool srvExecuted;
+bool responseExecuted;
 std::string topic = "foo";
 std::string data = "bar";
 int counter = 0;
@@ -55,20 +56,29 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srv(const std::string &_topic, const robot_msgs::StringMsg &/*_req*/,
-  robot_msgs::StringMsg &/*_rep*/)
+bool srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
+  robot_msgs::StringMsg &_rep)
 {
   assert(_topic != "");
+  srvExecuted = true;
+
+  EXPECT_EQ(_req.data(), data);
+  _rep.set_data(_req.data());
 
   return true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &/*_topic*/,
-  const robot_msgs::StringMsg &/*_rep*/,
-  bool /*_result*/)
+void response(const std::string &_topic, const robot_msgs::StringMsg &_rep,
+  bool _result)
 {
+  EXPECT_EQ(_topic, topic);
+  EXPECT_EQ(_rep.data(), data);
+  EXPECT_TRUE(_result);
+
+  responseExecuted = true;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -355,16 +365,48 @@ void createInfinitePublisher()
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-/*TEST(NodeTest, BasicServiceCall)
+TEST(NodeTest, BasicServiceCall)
 {
   srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
   robot_msgs::StringMsg req;
   req.set_data(data);
 
   transport::Node node(true);
-  node.Advertise(topic, srv);
+  node.Advertise(topic, srvEcho);
   node.Request(topic, req, response);
-}*/
+
+  int i = 0;
+  while (i < 100 && !srvExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Make another request.
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+  node.Request(topic, req, response);
+
+  i = 0;
+  while (i < 100 && !responseExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+}
 
 //////////////////////////////////////////////////
 /// \brief Create a transport client in a loop (and in a separate thread) and
