@@ -56,16 +56,15 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
-  robot_msgs::StringMsg &_rep)
+void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
+  robot_msgs::StringMsg &_rep, bool &_result)
 {
   assert(_topic != "");
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
-
-  return true;
+  _result = true;
 }
 
 //////////////////////////////////////////////////

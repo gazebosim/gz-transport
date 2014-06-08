@@ -105,7 +105,8 @@ namespace ignition
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       public: void SetCallback(
-        const std::function<bool(const std::string &, const T1 &, T2 &)> &_cb)
+        const std::function
+          <void(const std::string &, const T1 &, T2 &, bool &)> &_cb)
       {
         this->cb = _cb;
       }
@@ -121,7 +122,7 @@ namespace ignition
         {
           auto msgReq = google::protobuf::down_cast<const T1*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<T2*>(&_msgRep);
-          _result = this->cb(_topic, *msgReq, *msgRep);
+          this->cb(_topic, *msgReq, *msgRep, _result);
           return 0;
         }
         else
@@ -145,7 +146,7 @@ namespace ignition
           T2 msgRep;
 
           auto msgReq = this->CreateMsg(_req.c_str());
-          _result = this->cb(_topic, *msgReq, msgRep);
+          this->cb(_topic, *msgReq, msgRep, _result);
           msgRep.SerializeToString(&_rep);
 
           return 0;
@@ -160,7 +161,8 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function<bool(const std::string &, const T1 &, T2 &)> cb;
+      private: std::function
+        <void(const std::string &, const T1 &, T2 &, bool &)> cb;
     };
   }
 }

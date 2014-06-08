@@ -151,7 +151,7 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       public: template<typename T1, typename T2> void Advertise(
         const std::string &_topic,
-        bool(*_cb)(const std::string &, const T1 &, T2 &),
+        void(*_cb)(const std::string &, const T1 &, T2 &, bool &),
         const Scope &_scope = Scope::All)
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
