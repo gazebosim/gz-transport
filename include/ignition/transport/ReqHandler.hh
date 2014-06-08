@@ -38,7 +38,8 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
-        : nUuidStr(_nUuid)
+        : nUuidStr(_nUuid),
+          requested(false)
       {
         uuid_t uuid;
         uuid_generate(uuid);
@@ -74,6 +75,16 @@ namespace ignition
         return this->nUuidStr;
       }
 
+      public: bool Requested() const
+      {
+        return this->requested;
+      }
+
+      public: void SetRequested(bool _value)
+      {
+        this->requested = _value;
+      }
+
       public: virtual std::string Unserialize() = 0;
 
       public: std::string GetReqUuid() const
@@ -86,6 +97,10 @@ namespace ignition
 
       /// \brief Node UUID (string).
       private: std::string nUuidStr;
+
+      /// \brief When true, the REQ was already sent and the REP should be on
+      /// its way. Used to not resend the same REQ more than one time.
+      private: bool requested;
     };
 
     /// \class ReqHandler ReqHandler.hh

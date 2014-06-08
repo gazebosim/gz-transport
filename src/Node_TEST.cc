@@ -364,7 +364,7 @@ void createInfinitePublisher()
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-TEST(NodeTest, BasicServiceCall)
+TEST(NodeTest, ServiceCallAsync)
 {
   srvExecuted = false;
   responseExecuted = false;
@@ -405,6 +405,27 @@ TEST(NodeTest, BasicServiceCall)
   EXPECT_TRUE(responseExecuted);
   EXPECT_TRUE(srvExecuted);
   EXPECT_EQ(counter, 1);
+}
+
+//////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
+TEST(NodeTest, ServiceCallsync)
+{
+  robot_msgs::StringMsg req;
+  robot_msgs::StringMsg rep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
+  transport::Node node(true);
+  node.Advertise(topic, srvEcho);
+  bool executed = node.Request(topic, req, timeout, rep, result);
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(executed);
+  EXPECT_EQ(rep.data(), req.data());
+  EXPECT_TRUE(result);
 }
 
 //////////////////////////////////////////////////

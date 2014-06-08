@@ -634,6 +634,13 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
   {
     for (auto &req : node.second)
     {
+      // Check if this service call has been already requested.
+      if (req.second->Requested())
+        continue;
+
+      // Mark the handler as requested.
+      req.second->SetRequested(true);
+
       auto data = req.second->Unserialize();
       auto nodeUuid = req.second->GetNodeUuid();
       auto reqUuid = req.second->GetReqUuid();

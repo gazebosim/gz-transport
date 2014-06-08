@@ -201,9 +201,9 @@ namespace ignition
         if (!repHandlers.empty())
         {
           // There is a responser in my process, let's use it.
-          IRepHandlerPtr repHandler = repHandlers.begin()->second;
           T2 rep;
           bool result;
+          IRepHandlerPtr repHandler = repHandlers.begin()->second;
           repHandler->RunLocalCallback(_topic, _req, rep, result);
           _cb(_topic, rep, result);
           return;
@@ -232,6 +232,35 @@ namespace ignition
           // Discover the service call responser.
           this->dataPtr->discovery->Discover(true, _topic);
         }
+      }
+
+      /// \brief Request a new service call using a blocking call.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _timeout The request will timeout after '_timeout' ms.
+      /// \param[out] _res Protobuf message containing the response.
+      /// \param[out] _result Result of the service call.
+      /// \return true when the request did not timeout.
+      public: template<typename T1, typename T2> bool Request(
+        const std::string &_topic,
+        const T1 &_req,
+        const unsigned int &/*_timeout*/,
+        T2 &_rep,
+        bool &_result)
+      {
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+        // If the responser is within my process.
+        IRepHandler_M repHandlers;
+        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
+        if (!repHandlers.empty())
+        {
+          // There is a responser in my process, let's use it.
+          IRepHandlerPtr repHandler = repHandlers.begin()->second;
+          repHandler->RunLocalCallback(_topic, _req, _rep, _result);
+          return true;
+        }
+        return false;
       }
 
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
