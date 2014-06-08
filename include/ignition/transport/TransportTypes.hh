@@ -30,8 +30,9 @@ namespace ignition
 {
   namespace transport
   {
-    /// \brief Forward declarations for transport
+    /// \brief Forward declarations.
     class IRepHandler;
+    class IReqHandler;
     class ISubscriptionHandler;
     class NodePrivate;
     class TopicInfo;
@@ -113,6 +114,16 @@ namespace ignition
     /// Each node can have its own response handler. The node id
     /// is used as key.
     typedef std::map<std::string, IRepHandlerPtr> IRepHandler_M;
+
+    /// \def IReqHandlerPtr
+    /// \brief Shared pointer to IReqHandler.
+    typedef std::shared_ptr<IReqHandler> IReqHandlerPtr;
+
+    /// \def IReqHandler_M
+    /// \brief Map to store the different service call request handlers for a
+    /// topic. Each node can have its own request handler. The node id
+    /// is used as key.
+    typedef std::map<std::string, IReqHandlerPtr> IReqHandler_M;
 
     /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections

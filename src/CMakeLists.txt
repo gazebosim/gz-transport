@@ -7,6 +7,7 @@ set (sources
   Node.cc
   NodePrivate.cc
   RepStorage.cc
+  ReqStorage.cc
   SubscriptionStorage.cc
   Packet.cc
 )

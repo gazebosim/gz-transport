@@ -26,6 +26,8 @@
 #include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodePrivate.hh"
+#include "ignition/transport/RepHandler.hh"
+#include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -46,6 +48,8 @@ NodePrivate::NodePrivate(bool _verbose)
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
+    requester(new zmq::socket_t(*context, ZMQ_DEALER)),
+    replier(new zmq::socket_t(*context, ZMQ_DEALER)),
     timeout(Timeout)
 {
   char bindEndPoint[1024];
@@ -77,6 +81,16 @@ NodePrivate::NodePrivate(bool _verbose)
     this->control->bind(anyTcpEp.c_str());
     this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myControlAddress = bindEndPoint;
+
+    // Requester socket listening in a random port.
+    this->requester->bind(anyTcpEp.c_str());
+    this->requester->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myRequesterAddress = bindEndPoint;
+
+    // Replier socket listening in a random port.
+    this->replier->bind(anyTcpEp.c_str());
+    this->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myReplierAddress = bindEndPoint;
   }
   catch(const zmq::error_t& ze)
   {
@@ -89,6 +103,7 @@ NodePrivate::NodePrivate(bool _verbose)
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
+    std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
     std::cout << "Process UUID: " << this->pUuidStr << std::endl;
   }
 
@@ -107,10 +122,10 @@ NodePrivate::NodePrivate(bool _verbose)
   discovery->SetDisconnectionsCb(&NodePrivate::OnNewDisconnection, this);
 
   // Set the callback to notify svc calls discovery updates (new connections).
-  discovery->SetConnectionsCb(&NodePrivate::OnNewSrvConnection, this);
+  discovery->SetConnectionsSrvCb(&NodePrivate::OnNewSrvConnection, this);
 
   // Set the callback to notify svc calls discovery updates (new disconnections)
-  discovery->SetDisconnectionsCb(&NodePrivate::OnNewSrvDisconnection, this);
+  discovery->SetDisconnectionsSrvCb(&NodePrivate::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -134,15 +149,21 @@ void NodePrivate::RunReceptionTask()
     zmq::pollitem_t items[] =
     {
       {*this->subscriber, 0, ZMQ_POLLIN, 0},
-      {*this->control, 0, ZMQ_POLLIN, 0}
+      {*this->control, 0, ZMQ_POLLIN, 0},
+      {*this->replier, 0, ZMQ_POLLIN, 0},
+      {*this->requester, 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 
-    //  If we got a reply, process it
+    //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
       this->RecvMsgUpdate();
     if (items[1].revents & ZMQ_POLLIN)
       this->RecvControlUpdate();
+    if (items[2].revents & ZMQ_POLLIN)
+      this->RecvSrvRequest();
+    if (items[3].revents & ZMQ_POLLIN)
+      this->RecvSrvResponse();
 
     // Is it time to exit?
     {
@@ -288,6 +309,154 @@ void NodePrivate::RecvControlUpdate()
 }
 
 //////////////////////////////////////////////////
+void NodePrivate::RecvSrvRequest()
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  if (verbose)
+    std::cout << "Message received requesting a service call" << std::endl;
+
+  zmq::message_t message(0);
+  std::string topic;
+  std::string sender;
+  std::string nodeUuid;
+  std::string req;
+  std::string rep;
+  std::string resultStr;
+  bool result;
+
+  try
+  {
+    if (!this->replier->recv(&message, 0))
+      return;
+    topic = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    sender = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    req = std::string(reinterpret_cast<char *>(message.data()));
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "NodePrivate::RecvSrvRequest() error: "
+              << _error.what() << std::endl;
+    return;
+  }
+
+  // Get the REP handler.
+  if (this->repliers.Advertised(topic))
+  {
+    IRepHandlerPtr repHandlerPtr;
+    IRepHandler_M handlers;
+    this->repliers.GetRepHandlers(topic, handlers);
+
+    // Get the first responder.
+    repHandlerPtr = handlers.begin()->second;
+
+    // Run the service call and get the results.
+    repHandlerPtr->RunCallback(topic, req, rep, result);
+
+    if (result)
+      resultStr = "1";
+    else
+      resultStr = "0";
+
+    // Send the reply.
+    zmq::socket_t socket(*this->context, ZMQ_DEALER);
+    socket.connect(sender.c_str());
+
+    // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
+    // be discarded immediately when the socket is closed. That avoids
+    // infinite waits if the publisher is disconnected.
+    int lingerVal = 200;
+    socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+
+    zmq::message_t response;
+    response.rebuild(topic.size() + 1);
+    memcpy(response.data(), topic.c_str(), topic.size() + 1);
+    socket.send(response, ZMQ_SNDMORE);
+
+    response.rebuild(nodeUuid.size() + 1);
+    memcpy(response.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+    socket.send(response, ZMQ_SNDMORE);
+
+    response.rebuild(rep.size() + 1);
+    memcpy(response.data(), rep.c_str(), rep.size() + 1);
+    socket.send(response, ZMQ_SNDMORE);
+
+    response.rebuild(resultStr.size() + 1);
+    memcpy(response.data(), resultStr.c_str(), resultStr.size() + 1);
+    socket.send(response, 0);
+  }
+  else
+    std::cerr << "I do not have a service call registered for topic ["
+              << topic << "]\n";
+}
+
+//////////////////////////////////////////////////
+void NodePrivate::RecvSrvResponse()
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  if (verbose)
+    std::cout << "Message received containing a service call REP" << std::endl;
+
+  zmq::message_t message(0);
+  std::string topic;
+  // std::string nodeUuid;
+  std::string rep;
+  std::string resultStr;
+  bool result;
+
+  try
+  {
+    if (!this->requester->recv(&message, 0))
+      return;
+    topic = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->requester->recv(&message, 0))
+      return;
+    // nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->requester->recv(&message, 0))
+      return;
+    rep = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->requester->recv(&message, 0))
+      return;
+    resultStr = std::string(reinterpret_cast<char *>(message.data()));
+    result = resultStr == "1";
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "NodePrivate::RecvSrvResponse() error: "
+              << _error.what() << std::endl;
+    return;
+  }
+
+  // Get the REQ handler.
+  if (this->requests.Requested(topic))
+  {
+    IReqHandlerPtr reqHandlerPtr;
+    IReqHandler_M handlers;
+    this->requests.GetReqHandlers(topic, handlers);
+
+    // Get the first requester.
+    reqHandlerPtr = handlers.begin()->second;
+
+    // Notify the result.
+    reqHandlerPtr->NotifyResult(topic, rep, result);
+  }
+}
+
+//////////////////////////////////////////////////
 void NodePrivate::OnNewConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
@@ -305,16 +474,10 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
-  // ToDo(caguero): Connected before and now want to connect for a different
-  // topic. I shouldn't reconnect but I should apply the filter.
-
   // Check if we are interested in this topic.
   if (this->localSubscriptions.Subscribed(_topic) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
-    if (this->verbose)
-      std::cout << "Connecting to a remote publisher" << std::endl;
-
     try
     {
       // I am not connected to the process.
@@ -427,6 +590,57 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
+void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
+{
+  std::string responserAddr;
+  Addresses_M addresses;
+  this->discovery->GetTopicAddresses(_topic, addresses);
+
+  // Check if there is a responser in my own process.
+  if (addresses.find(this->pUuidStr) != addresses.end())
+    responserAddr = addresses[this->pUuidStr].at(0).addr;
+  else
+  {
+    // Get the first responder.
+    auto &v = addresses.begin()->second;
+    responserAddr = v.at(0).addr;
+  }
+
+  if (verbose)
+  {
+    std::cout << "Found a service call responser at ["
+              << responserAddr << "]" << std::endl;
+  }
+
+  // Send all the pending REQs.
+  IReqHandler_M reqs;
+  this->requests.GetReqHandlers(_topic, reqs);
+  for (auto &req : reqs)
+  {
+    auto data = req.second->Unserialize();
+    auto nodeUuid = req.second->GetNodeUuid();
+
+    zmq::message_t message;
+    message.rebuild(_topic.size() + 1);
+    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+    requester->send(message, ZMQ_SNDMORE);
+
+    message.rebuild(this->myRequesterAddress.size() + 1);
+    memcpy(message.data(), this->myRequesterAddress.c_str(),
+      this->myRequesterAddress.size() + 1);
+    requester->send(message, ZMQ_SNDMORE);
+
+    message.rebuild(nodeUuid.size() + 1);
+    memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+    requester->send(message, ZMQ_SNDMORE);
+
+    message.rebuild(data.size() + 1);
+    memcpy(message.data(), data.c_str(), data.size() + 1);
+    requester->send(message, 0);
+  }
+}
+
+//////////////////////////////////////////////////
 void NodePrivate::OnNewSrvConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
@@ -443,12 +657,44 @@ void NodePrivate::OnNewSrvConnection(const std::string &_topic,
     std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
+
+  // Check if we are interested in this service call.
+  if (this->requests.Requested(_topic) &&
+      this->pUuidStr.compare(_pUuid) != 0)
+  {
+    try
+    {
+      // I am not connected to the process.
+      if (!this->srvConnections.HasAddress(_addr))
+      {
+        if (this->verbose)
+        {
+          std::cout << "\t* Connected to [" << _addr << "] for requesting "
+                    << "service calls" << std::endl;
+        }
+        this->requester->connect(_addr.c_str());
+      }
+
+      // Register the new connection with the publisher.
+      this->srvConnections.AddAddress(
+        _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
+
+
+
+      // Request all pending service calls for this topic.
+      this->SendPendingRemoteReqs(_topic);
+    }
+    catch(const zmq::error_t& ze)
+    {
+      // std::cerr << "Error connecting [" << ze.what() << "]\n";
+    }
+  }
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::OnNewSrvDisconnection(const std::string &_topic,
+void NodePrivate::OnNewSrvDisconnection(const std::string &/*_topic*/,
   const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
-  const std::string &_pUuid, const std::string &_nUuid,
+  const std::string &_pUuid, const std::string &/*_nUuid*/,
   const Scope &/*_scope*/)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);

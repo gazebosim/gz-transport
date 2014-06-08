@@ -29,6 +29,9 @@
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
+#include "ignition/transport/RepStorage.hh"
+#include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/ReqStorage.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -98,7 +101,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->Discover(_topic);
+        this->dataPtr->discovery->Discover(false, _topic);
       }
 
       /// \brief Subscribe to a topic registering a callback. In this version
@@ -135,7 +138,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->Discover(_topic);
+        this->dataPtr->discovery->Discover(false, _topic);
       }
 
       /// \brief Unsubscribe to a topic.
@@ -176,8 +179,45 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->discovery->Advertise(AdvertiseType::Srv, _topic,
-          this->dataPtr->myAddress, this->dataPtr->myControlAddress,
-          this->nUuidStr, _scope);
+          this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
+      }
+
+      /// \brief Request a new service call using a non-blocking call.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _cb Pointer to the callback function executed when the
+      /// response arrives.
+      /// \return 0 when success.
+      public: template<typename T1, typename T2> void Request(
+        const std::string &_topic,
+        const T1 &_req,
+        void(*_cb)(const std::string &_topic, const T2 &, bool))
+      {
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+        // Create a new request handler.
+        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
+          new ReqHandler<T1, T2>(this->nUuidStr));
+
+        // Insert the request's parameters.
+        reqHandlerPtr->SetMessage(_req);
+
+        // Insert the callback into the handler.
+        reqHandlerPtr->SetCallback(_cb);
+
+        // Store the request handler.
+        this->dataPtr->requests.AddReqHandler(
+          _topic, this->nUuidStr, reqHandlerPtr);
+
+        // If the responser's address is known, make the request.
+        Addresses_M addresses;
+        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
+          this->dataPtr->SendPendingRemoteReqs(_topic);
+        else
+        {
+          // Discover the service call responser.
+          this->dataPtr->discovery->Discover(true, _topic);
+        }
       }
 
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and

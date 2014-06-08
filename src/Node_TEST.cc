@@ -64,6 +64,14 @@ bool srv(const std::string &_topic, const robot_msgs::StringMsg &/*_req*/,
 }
 
 //////////////////////////////////////////////////
+/// \brief Service call response callback.
+void response(const std::string &/*_topic*/,
+  const robot_msgs::StringMsg &/*_rep*/,
+  bool /*_result*/)
+{
+}
+
+//////////////////////////////////////////////////
 /// \brief A class for testing subscription passing a member function
 /// as a callback.
 class MyTestClass
@@ -347,16 +355,16 @@ void createInfinitePublisher()
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-TEST(NodeTest, BasicServiceCall)
+/*TEST(NodeTest, BasicServiceCall)
 {
   srvExecuted = false;
   robot_msgs::StringMsg req;
-  robot_msgs::StringMsg rep;
   req.set_data(data);
 
-  transport::Node node;
+  transport::Node node(true);
   node.Advertise(topic, srv);
-}
+  node.Request(topic, req, response);
+}*/
 
 //////////////////////////////////////////////////
 /// \brief Create a transport client in a loop (and in a separate thread) and

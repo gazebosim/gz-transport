@@ -29,6 +29,7 @@
 #include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/RepStorage.hh"
+#include "ignition/transport/ReqStorage.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 
 namespace ignition
@@ -71,6 +72,12 @@ namespace ignition
       /// \brief Method in charge of receiving the control updates (new remote
       /// subscriber for example).
       public: void RecvControlUpdate();
+
+      /// \brief Method in charge of receiving the service call requests.
+      public: void RecvSrvRequest();
+
+      /// \brief Method in charge of receiving the service call responses.
+      public: void RecvSrvResponse();
 
       /// \brief Callback executed when the discovery detects new connections.
       /// \param[in] _topic Topic name.
@@ -130,6 +137,9 @@ namespace ignition
                                          const std::string &_nUuid,
                                          const Scope &_scope);
 
+      public: void SendPendingRemoteReqs(const std::string &_topic);
+
+
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
@@ -141,6 +151,12 @@ namespace ignition
 
       /// \brief My pub/sub control address.
       public: std::string myControlAddress;
+
+      /// \brief My requester service call address.
+      public: std::string myRequesterAddress;
+
+      /// \brief My replier service call address.
+      public: std::string myReplierAddress;
 
       /// \brief IP address of this host.
       public: std::string hostAddr;
@@ -159,6 +175,12 @@ namespace ignition
 
       /// \brief ZMQ socket to receive control updates (new connections, ...).
       public: std::unique_ptr<zmq::socket_t> control;
+
+      /// \brief ZMQ socket for sending service call requests.
+      public: std::unique_ptr<zmq::socket_t> requester;
+
+      /// \brief ZMQ socket to receive service call requests.
+      public: std::unique_ptr<zmq::socket_t> replier;
 
       /// \brief Process UUID.
       public: uuid_t pUuid;
@@ -182,8 +204,11 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access to exit variable.
       private: std::mutex exitMutex;
 
-      /// \brief Remote connections.
+      /// \brief Remote connections for pub/sub messages.
       private: AddressInfo connections;
+
+      /// \brief Remote connections for service calls.
+      private: AddressInfo srvConnections;
 
       /// \brief Remote subscribers.
       public: AddressInfo remoteSubscribers;
@@ -193,6 +218,9 @@ namespace ignition
 
       /// \brief Local service call repliers.
       public: RepStorage repliers;
+
+      /// \brief Pending service call requests.
+      public: ReqStorage requests;
     };
   }
 }

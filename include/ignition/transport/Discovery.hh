@@ -58,7 +58,7 @@ namespace ignition
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic requested.
-      public: void Discover(const std::string &_topic);
+      public: void Discover(bool _isSrvCall, const std::string &_topic);
 
       /// \brief Get all the addresses for a given topic.
       /// \param[in] _topic Topic name.
@@ -169,6 +169,21 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
 
+      /// \brief Register a callback to receive discovery connection events.
+      /// Each time a new node is connected, the callback will be executed. This
+      /// version uses a member functions as callback.
+      /// \param[in] _cb Function callback.
+      public: template<typename C> void SetConnectionsSrvCb(
+        void(C::*_cb)(const std::string &, const std::string &,
+          const std::string &, const std::string &, const std::string &,
+          const Scope &), C* _obj)
+      {
+        this->SetConnectionsSrvCb(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
+            std::placeholders::_6));
+      }
+
       /// \brief Register a callback to receive discovery disconnection events
       /// for service calls.
       /// Each time a new node is disconnected, the callback will be executed.
@@ -176,6 +191,21 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: void SetDisconnectionsSrvCb(
         const transport::DiscoveryCallback &_cb);
+
+      /// \brief Register a callback to receive discovery disconnection events.
+      /// Each time a new node is disconnected, the callback will be executed.
+      /// This version uses a member function as callback.
+      /// \param[in] _cb Function callback.
+      public: template<typename C> void SetDisconnectionsSrvCb(
+        void(C::*_cb)(const std::string &, const std::string &,
+          const std::string &, const std::string &, const std::string &,
+          const Scope &), C* _obj)
+      {
+        this->SetDisconnectionsSrvCb(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
+            std::placeholders::_6));
+      }
 
       /// \brief The discovery captures SIGINT and SIGTERM (czmq does) and
       /// the function will return true in that case. All the task threads

@@ -62,28 +62,25 @@ void Discovery::Advertise(const AdvertiseType &_advType,
 }
 
 //////////////////////////////////////////////////
-void Discovery::Discover(const std::string &_topic)
+void Discovery::Discover(bool _isSrvCall, const std::string &_topic)
 {
   assert(_topic != "");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  // Broadcast a discovery request for this topic.
-  this->dataPtr->SendMsg(SubType, _topic, "", "", "", Scope::All);
-
-  // I do not have information about this topic.
-  if (!this->dataPtr->info.HasTopic(_topic))
+  if (_isSrvCall)
   {
-    // Add the topic to the unknown topic list if it was not before.
-    /*if (std::find(this->dataPtr->unknownTopics.begin(),
-        this->dataPtr->unknownTopics.end(), _topic) ==
-          this->dataPtr->unknownTopics.end())
-    {
-      this->dataPtr->unknownTopics.push_back(_topic);
-    }*/
+    // Broadcast a discovery request for this service call.
+    this->dataPtr->SendMsg(SubSrvType, _topic, "", "", "", Scope::All);
   }
-  // I have information stored for this topic.
-  else if (this->dataPtr->connectionCb)
+  else
+  {
+    // Broadcast a discovery request for this topic.
+    this->dataPtr->SendMsg(SubType, _topic, "", "", "", Scope::All);
+  }
+
+  // I already have information about this topic.
+  if (this->dataPtr->info.HasTopic(_topic))
   {
     Addresses_M addresses;
     if (this->dataPtr->info.GetAddresses(_topic, addresses))
@@ -92,9 +89,21 @@ void Discovery::Discover(const std::string &_topic)
       {
         for (auto node : proc.second)
         {
-          // Execute the user's callback.
-          this->dataPtr->connectionCb(_topic, node.addr, node.ctrl, proc.first,
-            node.nUuid, node.scope);
+          if (_isSrvCall && this->dataPtr->connectionSrvCb)
+          {
+            // Execute the user's callback for a service call request. Notice
+            // that we only execute one callback for preventing receive multiple
+            // service responses for a single request.
+            this->dataPtr->connectionSrvCb(_topic, node.addr, node.ctrl,
+              proc.first, node.nUuid, node.scope);
+            return;
+          }
+          else if (!_isSrvCall && this->dataPtr->connectionCb)
+          {
+            // Execute the user's callback.
+            this->dataPtr->connectionCb(_topic, node.addr, node.ctrl,
+              proc.first, node.nUuid, node.scope);
+          }
         }
       }
     }

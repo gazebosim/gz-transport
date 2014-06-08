@@ -348,7 +348,7 @@ TEST(DiscoveryTest, TestDiscover)
   EXPECT_FALSE(disconnectionExecuted);
 
   // Request the discovery of a topic.
-  discovery2.Discover(topic);
+  discovery2.Discover(false, topic);
 
   int i = 0;
   while (i < 100 && !connectionExecuted)
@@ -366,7 +366,7 @@ TEST(DiscoveryTest, TestDiscover)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.Discover(topic);
+  discovery2.Discover(false, topic);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -546,7 +546,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   transport::Discovery discovery1(uuid1);
   discovery1.Advertise(transport::AdvertiseType::Msg, topic, localAddr1,
     controlAddr1, uuidNode1Str, scope);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery2(uuid2, true);
   discovery2.Advertise(transport::AdvertiseType::Msg, topic, localAddr2,
     controlAddr2, uuidNode2Str, scope);
 
@@ -562,10 +562,10 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   EXPECT_FALSE(disconnectionExecuted);
 
   // Request the discovery of a topic.
-  discovery2.Discover(topic);
+  discovery2.Discover(false, topic);
 
   int i = 0;
-  while (i < 100 && counter < 2)
+  while (i < 500 && counter < 2)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -582,7 +582,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.Discover(topic);
+  discovery2.Discover(false, topic);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
