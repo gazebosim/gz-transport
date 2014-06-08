@@ -42,12 +42,8 @@ namespace ignition
     static const int ByeType        = 4;
     static const int AdvSrvType     = 5;
     static const int SubSrvType     = 6;
-    static const int PubType        = 7;
-    static const int ReqType        = 8;
-    static const int RepType        = 9;
-    static const int RepErrorType   = 10;
-    static const int NewConnection  = 11;
-    static const int EndConnection  = 12;
+    static const int NewConnection  = 7;
+    static const int EndConnection  = 8;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
