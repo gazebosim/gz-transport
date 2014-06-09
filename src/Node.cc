@@ -47,6 +47,10 @@ Node::~Node()
   // Unadvertise all my topics.
   for (auto topic : this->topicsAdvertised)
     this->Unadvertise(topic);
+
+  // Unadvertise all my service calls.
+  for (auto topic : this->srvsAdvertised)
+    this->UnadvertiseSrv(topic);
 }
 
 //////////////////////////////////////////////////

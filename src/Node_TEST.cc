@@ -405,7 +405,7 @@ void createInfinitePublisher()
   EXPECT_TRUE(responseExecuted);
   EXPECT_TRUE(srvExecuted);
   EXPECT_EQ(counter, 1);
-}
+}*/
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
@@ -426,7 +426,7 @@ TEST(NodeTest, ServiceCallSync)
   EXPECT_TRUE(executed);
   EXPECT_EQ(rep.data(), req.data());
   EXPECT_TRUE(result);
-}*/
+}
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
