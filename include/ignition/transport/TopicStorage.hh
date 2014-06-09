@@ -32,10 +32,10 @@ namespace ignition
     class TopicStorage
     {
       /// \brief Constructor.
-      public: TopicStorage();
+      public: TopicStorage() = default;
 
       /// \brief Destructor.
-      public: virtual ~TopicStorage();
+      public: virtual ~TopicStorage() = default;
 
       /// \brief Add a new address associated to a given topic and node UUID.
       /// \param[in] _topic Topic name.

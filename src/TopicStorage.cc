@@ -27,16 +27,6 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-TopicStorage::TopicStorage()
-{
-}
-
-//////////////////////////////////////////////////
-TopicStorage::~TopicStorage()
-{
-}
-
-//////////////////////////////////////////////////
 bool TopicStorage::AddAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope &_scope)
