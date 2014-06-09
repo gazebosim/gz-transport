@@ -18,8 +18,6 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <utility>
-#include <vector>
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
