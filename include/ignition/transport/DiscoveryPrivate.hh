@@ -27,8 +27,8 @@
 #include <thread>
 #include <string>
 #include <vector>
-#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -192,7 +192,7 @@ namespace ignition
       /// \brief Addressing information. For each topic we store a map that
       /// contains the process UUID as key and the 0MQ address and 0MQ control
       //  address of the publisher as value.
-      public: AddressInfo info;
+      public: TopicStorage info;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

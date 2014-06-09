@@ -26,11 +26,11 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/RepStorage.hh"
 #include "ignition/transport/ReqStorage.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
+#include "ignition/transport/TopicStorage.hh"
 
 namespace ignition
 {
@@ -205,13 +205,13 @@ namespace ignition
       private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
-      private: AddressInfo connections;
+      private: TopicStorage connections;
 
       /// \brief Remote connections for service calls.
-      private: AddressInfo srvConnections;
+      private: TopicStorage srvConnections;
 
       /// \brief Remote subscribers.
-      public: AddressInfo remoteSubscribers;
+      public: TopicStorage remoteSubscribers;
 
       /// \brief Local subscriptions.
       public: SubscriptionStorage localSubscriptions;

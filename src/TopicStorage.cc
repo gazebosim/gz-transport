@@ -20,24 +20,24 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "ignition/transport/AddressInfo.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-AddressInfo::AddressInfo()
+TopicStorage::TopicStorage()
 {
 }
 
 //////////////////////////////////////////////////
-AddressInfo::~AddressInfo()
+TopicStorage::~TopicStorage()
 {
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::AddAddress(const std::string &_topic,
+bool TopicStorage::AddAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope &_scope)
 {
@@ -68,13 +68,13 @@ bool AddressInfo::AddAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasTopic(const std::string &_topic)
+bool TopicStorage::HasTopic(const std::string &_topic)
 {
   return this->data.find(_topic) != this->data.end();
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasAnyAddresses(const std::string &_topic,
+bool TopicStorage::HasAnyAddresses(const std::string &_topic,
   const std::string &_pUuid)
 {
   if (!this->HasTopic(_topic))
@@ -84,13 +84,13 @@ bool AddressInfo::HasAnyAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasAddress(const std::string &_addr)
+bool TopicStorage::HasAddress(const std::string &_addr)
 {
-  for (auto &topic : this->data)
+  for (const auto &topic : this->data)
   {
-    for (auto &proc : topic.second)
+    for (const auto &proc : topic.second)
     {
-      for (auto &info : proc.second)
+      for (const auto &info : proc.second)
       {
         if (info.addr == _addr)
           return true;
@@ -102,7 +102,7 @@ bool AddressInfo::HasAddress(const std::string &_addr)
 
 
 //////////////////////////////////////////////////
-bool AddressInfo::GetAddress(const std::string &_topic,
+bool TopicStorage::GetAddress(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
 {
   // Topic not found.
@@ -134,7 +134,7 @@ bool AddressInfo::GetAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::GetAddresses(const std::string &_topic, Addresses_M &_info)
+bool TopicStorage::GetAddresses(const std::string &_topic, Addresses_M &_info)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -144,7 +144,7 @@ bool AddressInfo::GetAddresses(const std::string &_topic, Addresses_M &_info)
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::DelAddressByNode(const std::string &_topic,
+void TopicStorage::DelAddressByNode(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid)
 {
   // Iterate over all the topics.
@@ -175,7 +175,7 @@ void AddressInfo::DelAddressByNode(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::DelAddressesByProc(const std::string &_pUuid)
+void TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 {
   // Iterate over all the topics.
   for (auto it = this->data.begin(); it != this->data.end();)
@@ -191,22 +191,37 @@ void AddressInfo::DelAddressesByProc(const std::string &_pUuid)
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::Print()
+void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;
-  for (auto &topic : this->data)
+  for (const auto &topic : this->data)
   {
     std::cout << "[" << topic.first << "]" << std::endl;
     auto &m = topic.second;
-    for (auto &proc : m)
+    for (const auto &proc : m)
     {
       std::cout << "\tProc. UUID: " << proc.first << std::endl;
       auto &v = proc.second;
-      for (auto &info : v)
+      for (const auto &info : v)
       {
-        std::cout << "\t\tAddr:" << info.addr << std::endl;
-        std::cout << "\t\tCtrl:" << info.ctrl << std::endl;
-        std::cout << "\t\tNUUID:" << info.nUuid << std::endl;
+        std::cout << "\t\t* Addr:" << info.addr << std::endl;
+        std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
+        std::cout << "\t\t  Node UUID:" << info.nUuid << std::endl;
+        switch (info.scope)
+        {
+          case Scope::Process:
+            std::cout << "\t\t  Scope: Process" << std::endl;
+            break;
+          case Scope::Host:
+            std::cout << "\t\t  Scope: Host" << std::endl;
+            break;
+          case Scope::All:
+            std::cout << "\t\t  Scope: All" << std::endl;
+            break;
+          default:
+            std::cout << "\t\t  Scope: <Unknown>" << std::endl;
+            break;
+        }
       }
     }
   }

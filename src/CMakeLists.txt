@@ -1,7 +1,6 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-  AddressInfo.cc
   Discovery.cc
   DiscoveryPrivate.cc
   Node.cc
@@ -9,14 +8,15 @@ set (sources
   RepStorage.cc
   ReqStorage.cc
   SubscriptionStorage.cc
+  TopicStorage.cc
   Packet.cc
 )
 
 set (gtest_sources
-  AddressInfo_TEST.cc
   Discovery_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
+  TopicStorage_TEST.cc
 )
 
 ign_build_tests(${gtest_sources})

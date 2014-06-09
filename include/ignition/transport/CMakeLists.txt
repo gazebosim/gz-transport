@@ -1,7 +1,6 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  AddressInfo.hh
   Discovery.hh
   DiscoveryPrivate.hh
   Node.hh
@@ -13,6 +12,7 @@ set (headers
   ReqStorage.hh
   SubscriptionHandler.hh
   SubscriptionStorage.hh
+  TopicStorage.hh
   TransportTypes.hh
 )
 

@@ -23,12 +23,12 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "ignition/transport/AddressInfo.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
