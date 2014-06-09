@@ -15,7 +15,6 @@
  *
 */
 
-#include <iostream>
 #include <string>
 #include "ignition/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
