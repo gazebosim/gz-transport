@@ -78,18 +78,22 @@ namespace ignition
         return this->nUuidStr;
       }
 
+      /// \brief
       public: bool Requested() const
       {
         return this->requested;
       }
 
+      /// \brief
       public: void SetRequested(bool _value)
       {
         this->requested = _value;
       }
 
+      /// \brief
       public: virtual std::string Serialize() = 0;
 
+      /// \brief
       public: std::string GetReqUuid() const
       {
         return this->nUuidStr;
@@ -105,12 +109,16 @@ namespace ignition
       /// its way. Used to not resend the same REQ more than one time.
       private: bool requested;
 
+      /// \brief
       public: bool repAvailable;
 
+      /// \brief
       public: std::condition_variable_any condition;
 
+      /// \brief
       public: std::string rep;
 
+      /// \brief
       public: bool result;
     };
 
