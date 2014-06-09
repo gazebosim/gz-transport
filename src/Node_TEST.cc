@@ -405,11 +405,11 @@ void createInfinitePublisher()
   EXPECT_TRUE(responseExecuted);
   EXPECT_TRUE(srvExecuted);
   EXPECT_EQ(counter, 1);
-}*/
+}
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-/*TEST(NodeTest, ServiceCallSync)
+TEST(NodeTest, ServiceCallSync)
 {
   robot_msgs::StringMsg req;
   robot_msgs::StringMsg rep;

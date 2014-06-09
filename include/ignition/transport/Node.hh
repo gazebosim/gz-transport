@@ -306,6 +306,10 @@ namespace ignition
         return executed;
       }
 
+      /// \brief Unadvertise a service call.
+      /// \param[in] _topic Topic name to be unadvertised.
+      public: void UnadvertiseSrv(const std::string &_topic);
+
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
       /// the function will return true in that case. All the task threads
       /// will terminate.

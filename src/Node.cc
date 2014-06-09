@@ -194,6 +194,25 @@ void Node::Unsubscribe(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+void Node::UnadvertiseSrv(const std::string &_topic)
+{
+  assert(_topic != "");
+
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  // Remove the topic from the list of advertised topics in this node.
+  this->srvsAdvertised.resize(
+    std::remove(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
+      _topic) - this->srvsAdvertised.begin());
+
+  // Remove all the REP handlers for this node.
+  this->dataPtr->repliers.RemoveRepHandler(_topic, this->nUuidStr);
+
+  // Notify the discovery service to unregister and unadvertise my service call.
+  this->dataPtr->discovery->Unadvertise(_topic, this->nUuidStr);
+}
+
+//////////////////////////////////////////////////
 bool Node::Interrupted()
 {
   return this->dataPtr->exit;
