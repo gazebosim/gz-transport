@@ -641,7 +641,7 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
       // Mark the handler as requested.
       req.second->SetRequested(true);
 
-      auto data = req.second->Unserialize();
+      auto data = req.second->Serialize();
       auto nodeUuid = req.second->GetNodeUuid();
       auto reqUuid = req.second->GetReqUuid();
 

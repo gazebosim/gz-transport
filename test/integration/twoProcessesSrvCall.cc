@@ -41,6 +41,8 @@ void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;
+
+  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -64,7 +66,7 @@ void runReplier()
   node.Advertise(topic, srvEcho);
 
   int i = 0;
-  while (i < 100 && !responseExecuted)
+  while (i < 100 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;

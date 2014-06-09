@@ -21,6 +21,7 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <algorithm>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -244,11 +245,11 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        const unsigned int &/*_timeout*/,
+        const unsigned int &_timeout,
         T2 &_rep,
         bool &_result)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
@@ -260,7 +261,49 @@ namespace ignition
           repHandler->RunLocalCallback(_topic, _req, _rep, _result);
           return true;
         }
-        return false;
+
+        // Create a new request handler.
+        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
+          new ReqHandler<T1, T2>(this->nUuidStr));
+
+        // Insert the request's parameters.
+        reqHandlerPtr->SetMessage(_req);
+
+        // Store the request handler.
+        this->dataPtr->requests.AddReqHandler(
+          _topic, this->nUuidStr, reqHandlerPtr);
+
+        // If the responser's address is known, make the request.
+        Addresses_M addresses;
+        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
+          this->dataPtr->SendPendingRemoteReqs(_topic);
+        else
+        {
+          // Discover the service call responser.
+          this->dataPtr->discovery->Discover(true, _topic);
+        }
+
+        auto now = std::chrono::system_clock::now();
+
+        // Wait until the REP is available.
+        bool executed = reqHandlerPtr->condition.wait_until
+          (lk, now + std::chrono::milliseconds(_timeout),
+           [&reqHandlerPtr]
+           {
+             return reqHandlerPtr->repAvailable;
+           });
+
+        if (executed)
+        {
+          if (reqHandlerPtr->result)
+            _rep.ParseFromString(reqHandlerPtr->rep);
+
+          _result = reqHandlerPtr->result;
+        }
+
+        lk.unlock();
+
+        return executed;
       }
 
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and

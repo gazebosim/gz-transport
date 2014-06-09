@@ -20,6 +20,7 @@
 
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
+#include <condition_variable>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -39,7 +40,9 @@ namespace ignition
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
         : nUuidStr(_nUuid),
-          requested(false)
+          requested(false),
+          repAvailable(false),
+          result(false)
       {
         uuid_t uuid;
         uuid_generate(uuid);
@@ -85,7 +88,7 @@ namespace ignition
         this->requested = _value;
       }
 
-      public: virtual std::string Unserialize() = 0;
+      public: virtual std::string Serialize() = 0;
 
       public: std::string GetReqUuid() const
       {
@@ -101,6 +104,14 @@ namespace ignition
       /// \brief When true, the REQ was already sent and the REP should be on
       /// its way. Used to not resend the same REQ more than one time.
       private: bool requested;
+
+      public: bool repAvailable;
+
+      public: std::condition_variable_any condition;
+
+      public: std::string rep;
+
+      public: bool result;
     };
 
     /// \class ReqHandler ReqHandler.hh
@@ -142,7 +153,7 @@ namespace ignition
         this->reqMsg = _reqMsg;
       }
 
-      public: std::string Unserialize()
+      public: std::string Serialize()
       {
         std::string buffer;
         this->reqMsg.SerializeToString(&buffer);
@@ -173,17 +184,21 @@ namespace ignition
                                 const std::string &_rep,
                                 const bool _result)
       {
-        // Instantiate the specific protobuf message associated to this topic.
-        auto msg = this->CreateMsg(_rep.c_str());
-
         // Execute the callback (if existing).
         if (this->cb)
+        {
+          // Instantiate the specific protobuf message associated to this topic.
+          auto msg = this->CreateMsg(_rep.c_str());
           this->cb(_topic, *msg, _result);
+        }
         else
         {
-          std::cerr << "ReqHandler::NotifyResult() error: "
-                    << "NULL callback" << std::endl;
+          this->rep = _rep;
+          this->result = _result;
         }
+
+        this->repAvailable = true;
+        this->condition.notify_one();
       }
 
       // Protobuf message containing the request's parameters.
