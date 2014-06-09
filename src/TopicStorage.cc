@@ -86,11 +86,11 @@ bool TopicStorage::HasAnyAddresses(const std::string &_topic,
 //////////////////////////////////////////////////
 bool TopicStorage::HasAddress(const std::string &_addr)
 {
-  for (const auto &topic : this->data)
+  for (auto &topic : this->data)
   {
-    for (const auto &proc : topic.second)
+    for (auto &proc : topic.second)
     {
-      for (const auto &info : proc.second)
+      for (auto &info : proc.second)
       {
         if (info.addr == _addr)
           return true;
@@ -194,15 +194,15 @@ void TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;
-  for (const auto &topic : this->data)
+  for (auto &topic : this->data)
   {
     std::cout << "[" << topic.first << "]" << std::endl;
     auto &m = topic.second;
-    for (const auto &proc : m)
+    for (auto &proc : m)
     {
       std::cout << "\tProc. UUID: " << proc.first << std::endl;
       auto &v = proc.second;
-      for (const auto &info : v)
+      for (auto &info : v)
       {
         std::cout << "\t\t* Addr:" << info.addr << std::endl;
         std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
