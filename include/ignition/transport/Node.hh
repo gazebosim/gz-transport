@@ -183,6 +183,45 @@ namespace ignition
           this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
       }
 
+      /// \brief Advertise a new service call.
+      /// \param[in] _topic Topic name associated to the service call.
+      /// \param[in] _cb Callback to handle the service request.
+      /// \param[in] _scope Topic scope.
+      public: template<typename C, typename T1, typename T2> void Advertise(
+        const std::string &_topic,
+        void(C::*_cb)(const std::string &, const T1 &, T2 &, bool &),
+        C* _obj, const Scope &_scope = Scope::All)
+      {
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+        // Add the topic to the list of advertised service calls
+        if (std::find(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
+              _topic) == this->srvsAdvertised.end())
+        {
+          this->srvsAdvertised.push_back(_topic);
+        }
+
+        // Create a new service reply handler.
+        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
+          new RepHandler<T1, T2>(this->nUuidStr));
+
+        // Insert the callback into the handler.
+        repHandlerPtr->SetCallback(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4));
+
+        // Store the replier handler. Each replier handler is
+        // associated with a topic. When the receiving thread gets new requests,
+        // it will recover the replier handler associated to the topic and
+        // will invoke the service call.
+        this->dataPtr->repliers.AddRepHandler(
+          _topic, this->nUuidStr, repHandlerPtr);
+
+        // Notify the discovery service to register and advertise my responser.
+        this->dataPtr->discovery->Advertise(AdvertiseType::Srv, _topic,
+          this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
+      }
+
       /// \brief Request a new service call using a non-blocking call.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
@@ -219,6 +258,61 @@ namespace ignition
 
         // Insert the callback into the handler.
         reqHandlerPtr->SetCallback(_cb);
+
+        // Store the request handler.
+        this->dataPtr->requests.AddReqHandler(
+          _topic, this->nUuidStr, reqHandlerPtr);
+
+        // If the responser's address is known, make the request.
+        Addresses_M addresses;
+        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
+          this->dataPtr->SendPendingRemoteReqs(_topic);
+        else
+        {
+          // Discover the service call responser.
+          this->dataPtr->discovery->Discover(true, _topic);
+        }
+      }
+
+      /// \brief Request a new service call using a non-blocking call. In this
+      /// version the callback is a member function.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _cb Pointer to the callback function executed when the
+      /// response arrives.
+      /// \return 0 when success.
+      public: template<typename C, typename T1, typename T2> void Request(
+        const std::string &_topic,
+        const T1 &_req,
+        void(C::*_cb)(const std::string &_topic, const T2 &, bool), C* _obj)
+      {
+        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+        // If the responser is within my process.
+        IRepHandler_M repHandlers;
+        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
+        if (!repHandlers.empty())
+        {
+          // There is a responser in my process, let's use it.
+          T2 rep;
+          bool result;
+          IRepHandlerPtr repHandler = repHandlers.begin()->second;
+          repHandler->RunLocalCallback(_topic, _req, rep, result);
+          _cb(_topic, rep, result);
+          return;
+        }
+
+        // Create a new request handler.
+        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
+          new ReqHandler<T1, T2>(this->nUuidStr));
+
+        // Insert the request's parameters.
+        reqHandlerPtr->SetMessage(_req);
+
+        // Insert the callback into the handler.
+        reqHandlerPtr->SetCallback(
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3));
 
         // Store the request handler.
         this->dataPtr->requests.AddReqHandler(
