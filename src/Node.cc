@@ -48,8 +48,11 @@ Node::~Node()
     this->Unsubscribe(topic);
 
   // Unadvertise all my topics.
-  for (auto topic : this->dataPtr->topicsAdvertised)
+  while (!this->dataPtr->topicsAdvertised.empty())
+  {
+    auto topic = *this->dataPtr->topicsAdvertised.begin();
     this->Unadvertise(topic);
+  }
 
   // Unadvertise all my service calls.
   for (auto topic : this->dataPtr->srvsAdvertised)
@@ -64,12 +67,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before)
-  if (std::find(this->dataPtr->topicsAdvertised.begin(),
-    this->dataPtr->topicsAdvertised.end(), _topic) ==
-    this->dataPtr->topicsAdvertised.end())
-  {
-    this->dataPtr->topicsAdvertised.push_back(_topic);
-  }
+  this->dataPtr->topicsAdvertised.insert(_topic);
 
   // Notify the discovery service to register and advertise my topic.
   this->dataPtr->shared->discovery->AdvertiseMsg(_topic,
@@ -82,13 +80,12 @@ void Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
+  std::cout << "Unadvertise " << _topic << std::endl;
+
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->topicsAdvertised.resize(
-    std::remove(this->dataPtr->topicsAdvertised.begin(),
-      this->dataPtr->topicsAdvertised.end(), _topic) -
-        this->dataPtr->topicsAdvertised.begin());
+  this->dataPtr->topicsAdvertised.erase(_topic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
   this->dataPtr->shared->discovery->Unadvertise(
@@ -103,9 +100,8 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Topic not advertised before.
-  if (std::find(this->dataPtr->topicsAdvertised.begin(),
-    this->dataPtr->topicsAdvertised.end(), _topic) ==
-    this->dataPtr->topicsAdvertised.end())
+  if (this->dataPtr->topicsAdvertised.find(_topic) ==
+      this->dataPtr->topicsAdvertised.end())
   {
     return -1;
   }

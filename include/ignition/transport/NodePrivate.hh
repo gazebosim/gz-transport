@@ -20,6 +20,7 @@
 
 #include <uuid/uuid.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include "ignition/transport/NodeShared.hh"
 
@@ -44,7 +45,7 @@ namespace ignition
       public: std::vector<std::string> topicsSubscribed;
 
       /// \brief The list of topics advertised by this node.
-      public: std::vector<std::string> topicsAdvertised;
+      public: std::unordered_set<std::string> topicsAdvertised;
 
       /// \brief The list of service calls advertised by this node.
       public: std::vector<std::string> srvsAdvertised;
