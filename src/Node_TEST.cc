@@ -491,7 +491,7 @@ void createInfinitePublisher()
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  EXPECT_TRUE(i < 200);
+  EXPECT_LT(i, 200);
 }
 
 //////////////////////////////////////////////////

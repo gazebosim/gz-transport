@@ -119,7 +119,7 @@ void DiscoveryPrivate::Advertise(const AdvertiseType &_advType,
   std::lock_guard<std::mutex> lock(this->mutex);
 
   // Add the addressing information (local node).
-  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuidStr,_nUuid, _scope);
+  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuidStr, _nUuid, _scope);
 
   // If the scope is 'Process', do not advertise a message outside this process.
   if (_scope == Scope::Process)
