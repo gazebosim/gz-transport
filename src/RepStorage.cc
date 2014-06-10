@@ -71,7 +71,7 @@ bool RepStorage::HasHandlerForNode(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void RepStorage::RemoveHandler(const std::string &_topic,
+void RepStorage::RemoveHandlersForNode(const std::string &_topic,
   const std::string &_nUuid)
 {
   if (this->responsers.find(_topic) != this->responsers.end())

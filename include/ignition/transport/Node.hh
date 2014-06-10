@@ -266,7 +266,7 @@ namespace ignition
         reqHandlerPtr->SetCallback(_cb);
 
         // Store the request handler.
-        this->dataPtr->requests.AddReqHandler(
+        this->dataPtr->requests.AddHandler(
           _topic, this->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
@@ -322,7 +322,7 @@ namespace ignition
             std::placeholders::_3));
 
         // Store the request handler.
-        this->dataPtr->requests.AddReqHandler(
+        this->dataPtr->requests.AddHandler(
           _topic, this->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
@@ -371,7 +371,7 @@ namespace ignition
         reqHandlerPtr->SetMessage(_req);
 
         // Store the request handler.
-        this->dataPtr->requests.AddReqHandler(
+        this->dataPtr->requests.AddHandler(
           _topic, this->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.

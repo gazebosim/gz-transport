@@ -18,16 +18,20 @@
 #include <string>
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/ReqStorage.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-void ReqStorage::GetReqHandlers(
-  const std::string &_topic, IReqHandler_M &_handlers)
+bool ReqStorage::GetHandlers( const std::string &_topic,
+  IReqHandler_M &_handlers)
 {
-  if (this->requests.find(_topic) != this->requests.end())
-    _handlers = this->requests[_topic];
+  if (this->requests.find(_topic) == this->requests.end())
+    return false;
+
+  _handlers = this->requests[_topic];
+  return true;
 }
 
 bool ReqStorage::GetHandler(const std::string &_topic,
@@ -49,9 +53,8 @@ bool ReqStorage::GetHandler(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void ReqStorage::AddReqHandler(const std::string &_topic,
-  const std::string &_nUuid,
-  const std::shared_ptr<IReqHandler> &_handler)
+void ReqStorage::AddHandler(const std::string &_topic,
+  const std::string &_nUuid, const std::shared_ptr<IReqHandler> &_handler)
 {
   // Create the topic entry.
   if (this->requests.find(_topic) == this->requests.end())
@@ -63,11 +66,11 @@ void ReqStorage::AddReqHandler(const std::string &_topic,
 
   // Add/Replace the Req handler.
   this->requests[_topic][_nUuid].insert(
-    std::make_pair(_handler->GetReqUuid(), _handler));
+    std::make_pair(_handler->GetHandlerUuid(), _handler));
 }
 
 //////////////////////////////////////////////////
-bool ReqStorage::Requested(const std::string &_topic)
+bool ReqStorage::HasHandlerForTopic(const std::string &_topic)
 {
   if (this->requests.find(_topic) == this->requests.end())
     return false;
@@ -76,7 +79,7 @@ bool ReqStorage::Requested(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void ReqStorage::RemoveReqHandler(const std::string &_topic,
+void ReqStorage::RemoveHandler(const std::string &_topic,
   const std::string &_nUuid, const std::string &_reqUuid)
 {
   if (this->requests.find(_topic) != this->requests.end())
@@ -89,5 +92,17 @@ void ReqStorage::RemoveReqHandler(const std::string &_topic,
       if (this->requests[_topic].empty())
         this->requests.erase(_topic);
     }
+  }
+}
+
+//////////////////////////////////////////////////
+void ReqStorage::RemoveHandlersForNode(const std::string &_topic,
+  const std::string &_nUuid)
+{
+  if (this->requests.find(_topic) != this->requests.end())
+  {
+    this->requests[_topic].erase(_nUuid);
+    if (this->requests[_topic].empty())
+      this->requests.erase(_topic);
   }
 }

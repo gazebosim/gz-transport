@@ -19,10 +19,12 @@
 #define __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <uuid/uuid.h>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -34,7 +36,12 @@ namespace ignition
     class IRepHandler
     {
       /// \brief Constructor.
-      public: IRepHandler() = default;
+      public: IRepHandler()
+      {
+        uuid_t uuid;
+        uuid_generate(uuid);
+        this->hUuid = GetGuidStr(uuid);
+      }
 
       /// \brief Destructor.
       public: virtual ~IRepHandler() = default;
@@ -60,6 +67,16 @@ namespace ignition
                                        const std::string &_req,
                                        std::string &_rep,
                                        bool &_result) = 0;
+
+      /// \brief Get the unique UUID of this handler.
+      /// \return a string representation of the handler UUID.
+      public: std::string GetHandlerUuid() const
+      {
+        return this->hUuid;
+      }
+
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
     };
 
     /// \class RepHandler RepHandler.hh

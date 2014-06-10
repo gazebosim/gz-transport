@@ -14,9 +14,9 @@ set (sources
 
 set (gtest_sources
   Discovery_TEST.cc
+  HandlerStorage_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
-  RepStorage_TEST.cc
   TopicStorage_TEST.cc
 )
 

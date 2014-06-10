@@ -451,7 +451,7 @@ void NodePrivate::RecvSrvResponse()
   }
 
   // Get the REQ handler.
-  if (this->requests.Requested(topic))
+  if (this->requests.HasHandlerForTopic(topic))
   {
     IReqHandlerPtr reqHandlerPtr;
     if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
@@ -460,7 +460,7 @@ void NodePrivate::RecvSrvResponse()
       reqHandlerPtr->NotifyResult(topic, rep, result);
 
       // Remove the handler.
-      this->requests.RemoveReqHandler(topic, nodeUuid, reqUuid);
+      this->requests.RemoveHandler(topic, nodeUuid, reqUuid);
     }
     else
     {
@@ -491,7 +491,7 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
 
   // Send all the pending REQs.
   IReqHandler_M reqs;
-  this->requests.GetReqHandlers(_topic, reqs);
+  this->requests.GetHandlers(_topic, reqs);
   for (auto &node : reqs)
   {
     for (auto &req : node.second)
@@ -505,7 +505,7 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
 
       auto data = req.second->Serialize();
       auto nodeUuid = req.second->GetNodeUuid();
-      auto reqUuid = req.second->GetReqUuid();
+      auto reqUuid = req.second->GetHandlerUuid();
 
       zmq::message_t message;
       message.rebuild(_topic.size() + 1);
@@ -684,7 +684,7 @@ void NodePrivate::OnNewSrvConnection(const std::string &_topic,
   }
 
   // Check if we are interested in this service call.
-  if (this->requests.Requested(_topic) &&
+  if (this->requests.HasHandlerForTopic(_topic) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
     try

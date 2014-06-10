@@ -71,8 +71,8 @@ namespace ignition
       /// is used as a key to remove the appropriate response handler.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
-      public: void RemoveHandler(const std::string &_topic,
-                                 const std::string &_nUuid);
+      public: void RemoveHandlersForNode(const std::string &_topic,
+                                         const std::string &_nUuid);
 
       /// \brief Stores all the responsers' information for each topic.
       private: std::map<std::string, IRepHandler_M> responsers;

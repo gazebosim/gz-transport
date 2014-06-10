@@ -46,7 +46,7 @@ namespace ignition
       {
         uuid_t uuid;
         uuid_generate(uuid);
-        this->reqUuid = GetGuidStr(uuid);
+        this->hUuid = GetGuidStr(uuid);
       }
 
       /// \brief Destructor.
@@ -94,13 +94,13 @@ namespace ignition
       public: virtual std::string Serialize() = 0;
 
       /// \brief
-      public: std::string GetReqUuid() const
+      public: std::string GetHandlerUuid() const
       {
-        return this->nUuidStr;
+        return this->hUuid;
       }
 
-      /// \brief Request's UUID.
-      protected: std::string reqUuid;
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
 
       /// \brief Node UUID (string).
       private: std::string nUuidStr;

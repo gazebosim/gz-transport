@@ -208,7 +208,7 @@ void Node::UnadvertiseSrv(const std::string &_topic)
       _topic) - this->srvsAdvertised.begin());
 
   // Remove all the REP handlers for this node.
-  this->dataPtr->repliers.RemoveHandler(_topic, this->nUuidStr);
+  this->dataPtr->repliers.RemoveHandlersForNode(_topic, this->nUuidStr);
 
   // Notify the discovery service to unregister and unadvertise my service call.
   this->dataPtr->discovery->Unadvertise(_topic, this->nUuidStr);
