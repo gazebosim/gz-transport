@@ -89,6 +89,7 @@ namespace ignition
       public: virtual std::string Serialize() = 0;
 
       /// \brief Returns the unique handler UUID.
+      /// \returns The handler's UUID.
       public: std::string GetHandlerUuid() const
       {
         return this->hUuid;
