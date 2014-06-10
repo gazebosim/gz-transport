@@ -36,15 +36,15 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-NodeSharedPtr NodeShared::GetInstance(bool _verbose)
+NodeSharedPtr NodeShared::GetInstance()
 {
-  static NodeSharedPtr instance(new NodeShared(_verbose));
+  static NodeSharedPtr instance(new NodeShared());
   return instance;
 }
 
 //////////////////////////////////////////////////
-NodeShared::NodeShared(bool _verbose)
-  : verbose(_verbose),
+NodeShared::NodeShared()
+  : verbose(false),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -54,6 +54,12 @@ NodeShared::NodeShared(bool _verbose)
     timeout(Timeout),
     exit(false)
 {
+  // If IGN_VERBOSE=1 enable the verbose mode.
+  this->verbose = false;
+  char const *tmp = std::getenv("IGN_VERBOSE");
+  if (tmp)
+    this->verbose = std::string(tmp) == "1";
+
   char bindEndPoint[1024];
 
   // My process UUID.

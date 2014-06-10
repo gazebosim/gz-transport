@@ -41,13 +41,11 @@ namespace ignition
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
-      /// \param[in] _verbose True if you want to see debug messages.
       /// \return NodeSharedPtr Pointer to the current NodeShared instance.
-      public: static NodeSharedPtr GetInstance(bool _verbose);
+      public: static NodeSharedPtr GetInstance();
 
       /// \brief Constructor.
-      /// \param[in] _verbose true for enabling verbose mode.
-      public: NodeShared(bool _verbose = false);
+      public: NodeShared();
 
       /// \brief Destructor.
       public: virtual ~NodeShared();

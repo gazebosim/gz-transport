@@ -387,7 +387,7 @@ TEST(NodeTest, ServiceCallAsync)
   robot_msgs::StringMsg req;
   req.set_data(data);
 
-  transport::Node node(true);
+  transport::Node node;
   node.Advertise(topic, srvEcho);
   node.Request(topic, req, response);
 
@@ -433,7 +433,7 @@ TEST(NodeTest, ServiceCallSync)
 
   req.set_data(data);
 
-  transport::Node node(true);
+  transport::Node node;
   node.Advertise(topic, srvEcho);
   bool executed = node.Request(topic, req, timeout, rep, result);
 
@@ -454,7 +454,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   req.set_data(data);
 
-  transport::Node node(true);
+  transport::Node node;
 
   auto t1 = std::chrono::system_clock::now();
   bool executed = node.Request(topic, req, timeout, rep, result);

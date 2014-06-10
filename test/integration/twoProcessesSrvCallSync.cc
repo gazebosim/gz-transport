@@ -79,7 +79,7 @@ TEST(twoProcSrvCallSync, SrvTwoProcs)
 
     req.set_data(data);
 
-    transport::Node node1(true);
+    transport::Node node1;
     bool executed = node1.Request(topic, req, 5000, rep, result);
 
     EXPECT_TRUE(executed);

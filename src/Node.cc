@@ -17,6 +17,7 @@
 
 #include <czmq.h>
 #include <google/protobuf/message.h>
+#include <cstdlib>
 #include <algorithm>
 #include <iostream>
 #include <mutex>
@@ -31,13 +32,18 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node(bool _verbose)
+Node::Node(const std::string &/*_namespace*/)
   : dataPtr(new NodePrivate())
 {
   uuid_generate(this->dataPtr->nUuid);
   this->dataPtr->nUuidStr = GetGuidStr(this->dataPtr->nUuid);
-  this->dataPtr->shared = NodeShared::GetInstance(_verbose);
-  this->dataPtr->verbose = _verbose;
+  this->dataPtr->shared = NodeShared::GetInstance();
+
+  // If IGN_VERBOSE=1 enable the verbose mode.
+  this->dataPtr->verbose = false;
+  char const *tmp = std::getenv("IGN_VERBOSE");
+  if (tmp)
+    this->dataPtr->verbose = std::string(tmp) == "1";
 }
 
 //////////////////////////////////////////////////
@@ -85,8 +91,6 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 void Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
-
-  std::cout << "Unadvertise " << _topic << std::endl;
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
