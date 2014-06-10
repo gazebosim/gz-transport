@@ -71,20 +71,6 @@ namespace ignition
       // Documentation inherited.
       public: RepHandler() = default;
 
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T1> CreateMsg(const char *_data)
-      {
-        // Instantiate a specific protobuf message
-        std::shared_ptr<T1> msgPtr(new T1());
-
-        // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
-
-        return msgPtr;
-      }
-
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       public: void SetCallback(
@@ -111,6 +97,7 @@ namespace ignition
         {
           std::cerr << "RepHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
+          _result = false;
         }
       }
 
@@ -136,6 +123,20 @@ namespace ignition
                     << "Callback is NULL" << std::endl;
           _result = false;
         }
+      }
+
+      /// \brief Create a specific protobuf message given its serialized data.
+      /// \param[in] _data The serialized data.
+      /// \return Pointer to the specific protobuf message.
+      private: std::shared_ptr<T1> CreateMsg(const char *_data)
+      {
+        // Instantiate a specific protobuf message
+        std::shared_ptr<T1> msgPtr(new T1());
+
+        // Create the message using some serialized data
+        msgPtr->ParseFromString(_data);
+
+        return msgPtr;
       }
 
       /// \brief Callback to the function registered for this handler.
