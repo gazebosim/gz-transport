@@ -53,6 +53,20 @@ namespace ignition
         return true;
       }
 
+      /// \brief Get a handler for a topic.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _handler handler.
+      /// \return true if a handler was found.
+      public: bool GetHandler(const std::string &_topic,
+        std::shared_ptr<T> &_handler)
+      {
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        _handler = this->data[_topic].begin()->second.begin()->second;
+        return true;
+      }
+
       /// \brief Get a specific handler.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the handler.
@@ -163,7 +177,7 @@ namespace ignition
 
       /// \brief Stores all the service call data for each topic.
       private: std::map<std::string,
-        std::map<std::string, std::map<std::string, std::shared_ptr<T>>>> data;
+        std::map<std::string, std::map<std::string, std::shared_ptr<T>> >> data;
     };
   }
 }

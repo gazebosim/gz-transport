@@ -27,12 +27,11 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/RepStorage.hh"
 #include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/ReqStorage.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -92,7 +91,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->localSubscriptions.AddSubscriptionHandler(
+        this->dataPtr->localSubscriptions.AddHandler(
           _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
@@ -130,7 +129,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->localSubscriptions.AddSubscriptionHandler(
+        this->dataPtr->localSubscriptions.AddHandler(
           _topic, this->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
@@ -243,13 +242,12 @@ namespace ignition
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
         // If the responser is within my process.
-        IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
+        IRepHandlerPtr repHandler;
+        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          IRepHandlerPtr repHandler = repHandlers.begin()->second;
           repHandler->RunLocalCallback(_topic, _req, rep, result);
           _cb(_topic, rep, result);
           return;
@@ -297,13 +295,12 @@ namespace ignition
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
         // If the responser is within my process.
-        IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
+        IRepHandlerPtr repHandler;
+        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          IRepHandlerPtr repHandler = repHandlers.begin()->second;
           repHandler->RunLocalCallback(_topic, _req, rep, result);
           _cb(_topic, rep, result);
           return;
@@ -354,11 +351,10 @@ namespace ignition
         std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
 
         // If the responser is within my process.
-        IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
+        IRepHandlerPtr repHandler;
+        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
-          IRepHandlerPtr repHandler = repHandlers.begin()->second;
           repHandler->RunLocalCallback(_topic, _req, _rep, _result);
           return true;
         }

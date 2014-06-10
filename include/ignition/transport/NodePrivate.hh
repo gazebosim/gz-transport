@@ -26,8 +26,9 @@
 #include <string>
 #include <thread>
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/RepStorage.hh"
-#include "ignition/transport/ReqStorage.hh"
+#include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/RepHandler.hh"
+#include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TopicStorage.hh"
 
@@ -208,13 +209,13 @@ namespace ignition
       public: TopicStorage remoteSubscribers;
 
       /// \brief Subscriptions.
-      public: SubscriptionStorage localSubscriptions;
+      public: HandlerStorage<ISubscriptionHandler> localSubscriptions;
 
       /// \brief Service call repliers.
-      public: RepStorage repliers;
+      public: HandlerStorage<IRepHandler> repliers;
 
       /// \brief Pending service call requests.
-      public: ReqStorage requests;
+      public: HandlerStorage<IReqHandler> requests;
     };
   }
 }

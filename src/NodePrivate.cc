@@ -19,6 +19,7 @@
 #include <zmq.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -221,21 +222,24 @@ void NodePrivate::RecvMsgUpdate()
     return;
   }
 
-  if (this->localSubscriptions.Subscribed(topic))
+
+  // Execute the callbacks registered.
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  if (this->localSubscriptions.GetHandlers(topic, handlers))
   {
-    // Execute the callbacks registered.
-    ISubscriptionHandler_M handlers;
-    this->localSubscriptions.GetSubscriptionHandlers(topic, handlers);
-    for (auto &handler : handlers)
+    for (auto &node : handlers)
     {
-      ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-      if (subscriptionHandlerPtr)
+      for (auto &handler : node.second)
       {
-        // ToDo(caguero): Unserialize only once.
-        subscriptionHandlerPtr->RunCallback(topic, data);
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+        if (subscriptionHandlerPtr)
+        {
+          // ToDo(caguero): Unserialize only once.
+          subscriptionHandlerPtr->RunCallback(topic, data);
+        }
+        else
+          std::cerr << "Subscription handler is NULL" << std::endl;
       }
-      else
-        std::cerr << "Subscription handler is NULL" << std::endl;
     }
   }
   else
@@ -320,7 +324,6 @@ void NodePrivate::RecvSrvRequest()
   std::string req;
   std::string rep;
   std::string resultStr;
-  bool result;
 
   try
   {
@@ -352,16 +355,12 @@ void NodePrivate::RecvSrvRequest()
   }
 
   // Get the REP handler.
-  if (this->repliers.HasHandlerForTopic(topic))
+  IRepHandlerPtr repHandler;
+  if (this->repliers.GetHandler(topic, repHandler))
   {
-    IRepHandler_M handlers;
-    this->repliers.GetHandlers(topic, handlers);
-
-    // Get the first responder.
-    IRepHandlerPtr repHandlerPtr = handlers.begin()->second;
-
+    bool result;
     // Run the service call and get the results.
-    repHandlerPtr->RunCallback(topic, req, rep, result);
+    repHandler->RunCallback(topic, req, rep, result);
 
     if (result)
       resultStr = "1";
@@ -450,23 +449,19 @@ void NodePrivate::RecvSrvResponse()
     return;
   }
 
-  // Get the REQ handler.
-  if (this->requests.HasHandlerForTopic(topic))
+  IReqHandlerPtr reqHandlerPtr;
+  if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
   {
-    IReqHandlerPtr reqHandlerPtr;
-    if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
-    {
-      // Notify the result.
-      reqHandlerPtr->NotifyResult(topic, rep, result);
+    // Notify the result.
+    reqHandlerPtr->NotifyResult(topic, rep, result);
 
-      // Remove the handler.
-      this->requests.RemoveHandler(topic, nodeUuid, reqUuid);
-    }
-    else
-    {
-      std::cerr << "Received a service call response but I don't have a handler"
-                << " for it" << std::endl;
-    }
+    // Remove the handler.
+    this->requests.RemoveHandler(topic, nodeUuid, reqUuid);
+  }
+  else
+  {
+    std::cerr << "Received a service call response but I don't have a handler"
+              << " for it" << std::endl;
   }
 }
 
@@ -551,7 +546,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
   }
 
   // Check if we are interested in this topic.
-  if (this->localSubscriptions.Subscribed(_topic) &&
+  if (this->localSubscriptions.HasHandlersForTopic(_topic) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
     try
@@ -584,30 +579,35 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
       int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-      ISubscriptionHandler_M handlers;
-      this->localSubscriptions.GetSubscriptionHandlers(_topic, handlers);
-      for (auto handler : handlers)
+      std::map<std::string, ISubscriptionHandler_M> handlers;
+      if (this->localSubscriptions.GetHandlers(_topic, handlers))
       {
-        std::string nodeUuid = handler.second->GetNodeUuid();
+        for (auto &node : handlers)
+        {
+          for (auto &handler : node.second)
+          {
+            std::string nodeUuid = handler.second->GetNodeUuid();
 
-        zmq::message_t message;
-        message.rebuild(_topic.size() + 1);
-        memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+            zmq::message_t message;
+            message.rebuild(_topic.size() + 1);
+            memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
 
-        message.rebuild(this->pUuidStr.size() + 1);
-        memcpy(message.data(), this->pUuidStr.c_str(),
-          this->pUuidStr.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+            message.rebuild(this->pUuidStr.size() + 1);
+            memcpy(message.data(), this->pUuidStr.c_str(),
+              this->pUuidStr.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
 
-        message.rebuild(nodeUuid.size() + 1);
-        memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+            message.rebuild(nodeUuid.size() + 1);
+            memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+            socket.send(message, ZMQ_SNDMORE);
 
-        std::string data = std::to_string(NewConnection);
-        message.rebuild(data.size() + 1);
-        memcpy(message.data(), data.c_str(), data.size() + 1);
-        socket.send(message, 0);
+            std::string data = std::to_string(NewConnection);
+            message.rebuild(data.size() + 1);
+            memcpy(message.data(), data.c_str(), data.size() + 1);
+            socket.send(message, 0);
+          }
+        }
       }
     }
     catch(const zmq::error_t& ze)
@@ -684,7 +684,7 @@ void NodePrivate::OnNewSrvConnection(const std::string &_topic,
   }
 
   // Check if we are interested in this service call.
-  if (this->requests.HasHandlerForTopic(_topic) &&
+  if (this->requests.HasHandlersForTopic(_topic) &&
       this->pUuidStr.compare(_pUuid) != 0)
   {
     try

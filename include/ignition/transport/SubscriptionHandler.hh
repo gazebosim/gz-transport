@@ -19,10 +19,12 @@
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
+#include <uuid/uuid.h>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -38,6 +40,9 @@ namespace ignition
       public: ISubscriptionHandler(const std::string &_uuid)
         : nodeUuidStr(_uuid)
       {
+        uuid_t uuid;
+        uuid_generate(uuid);
+        this->hUuid = GetGuidStr(uuid);
       }
 
       /// \brief Destructor.
@@ -67,6 +72,16 @@ namespace ignition
       {
         return this->nodeUuidStr;
       }
+
+      /// \brief Get the unique UUID of this handler.
+      /// \return a string representation of the handler UUID.
+      public: std::string GetHandlerUuid() const
+      {
+        return this->hUuid;
+      }
+
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
 
       /// \brief Node UUID (string).
       private: std::string nodeUuidStr;
