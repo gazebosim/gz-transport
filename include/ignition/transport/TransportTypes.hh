@@ -50,7 +50,7 @@ namespace ignition
     /// \def The discovery layer can advertise two different types:
     /// * Msg: Regular pub/sub message.
     /// * Srv: Service call.
-    enum class AdvertiseType {Msg, Srv};
+    enum class MsgType {Msg, Srv};
 
     /// \def Address_t All the data associated to a topic's publisher.
     struct Address_t

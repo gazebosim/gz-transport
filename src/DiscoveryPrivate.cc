@@ -108,7 +108,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::Advertise(const AdvertiseType &_advType,
+void DiscoveryPrivate::Advertise(const MsgType &_advType,
   const std::string &_topic, const std::string &_addr, const std::string &_ctrl,
   const std::string &_nUuid, const Scope &_scope)
 {
@@ -560,7 +560,7 @@ void DiscoveryPrivate::PrintCurrentState()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::NewBeacon(const AdvertiseType &_advType,
+void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
   const std::string &_topic, const std::string &_nUuid)
 {
   assert(_topic != "");
@@ -581,7 +581,7 @@ void DiscoveryPrivate::NewBeacon(const AdvertiseType &_advType,
       return;
 
     // Create the header.
-    if (_advType == AdvertiseType::Msg)
+    if (_advType == MsgType::Msg)
       header.reset(new Header(Version, this->pUuid, _topic, AdvType));
     else
       header.reset(new Header(Version, this->pUuid, _topic, AdvSrvType));

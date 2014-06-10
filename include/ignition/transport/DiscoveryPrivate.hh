@@ -60,7 +60,7 @@ namespace ignition
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void Advertise(const AdvertiseType &_advType,
+      public: void Advertise(const MsgType &_advType,
                              const std::string &_topic,
                              const std::string &_addr,
                              const std::string &_ctrl,
@@ -121,7 +121,7 @@ namespace ignition
       /// messages or service calls.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void NewBeacon(const AdvertiseType &_advType,
+      public: void NewBeacon(const MsgType &_advType,
                              const std::string &_topic,
                              const std::string &_nUuid);
 
