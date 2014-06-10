@@ -21,7 +21,6 @@
 #include <google/protobuf/message.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -63,14 +62,11 @@ namespace ignition
       public: int Publish(const std::string &_topic,
                           const std::string &_data);
 
-      /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdate();
-
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
 
-      /// \brief Method in charge of receiving the control updates (new remote
-      /// subscriber for example).
+      /// \brief Method in charge of receiving the control updates (when a new
+      /// remote subscriber notifies its presence for example).
       public: void RecvControlUpdate();
 
       /// \brief Method in charge of receiving the service call requests.
@@ -79,7 +75,11 @@ namespace ignition
       /// \brief Method in charge of receiving the service call responses.
       public: void RecvSrvResponse();
 
-      /// \brief Callback executed when the discovery detects new connections.
+      /// \brief Try to send all the requests for a given service call.
+      /// \param[in] _topic Topic name.
+      public: void SendPendingRemoteReqs(const std::string &_topic);
+
+      /// \brief Callback executed when the discovery detects new topics.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
@@ -107,8 +107,7 @@ namespace ignition
                                       const std::string &_nUuid,
                                       const Scope &_scope);
 
-      /// \brief Callback executed when the discovery detects a new service
-      /// call connection.
+      /// \brief Callback executed when the discovery detects a new service call
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
@@ -122,8 +121,7 @@ namespace ignition
                                       const std::string &_nUuid,
                                       const Scope &_scope);
 
-      /// \brief Callback executed when the discovery detects a service call
-      /// disconnection.
+      /// \brief Callback executed when a service call is no longer available.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
       /// \param[in] _ctrl 0MQ control address of the publisher.
@@ -136,9 +134,6 @@ namespace ignition
                                          const std::string &_pUuid,
                                          const std::string &_nUuid,
                                          const Scope &_scope);
-
-      public: void SendPendingRemoteReqs(const std::string &_topic);
-
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
@@ -185,7 +180,7 @@ namespace ignition
       /// \brief Process UUID.
       public: uuid_t pUuid;
 
-      /// \brief String conversion of the GUID.
+      /// \brief String conversion of the process UUID.
       public: std::string pUuidStr;
 
       /// \brief Timeout used for receiving requests.
@@ -194,14 +189,13 @@ namespace ignition
       /// \brief thread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
 
-      /// \brief Mutex to guarantee exclusive access between the inbound and
-      /// outbound thread.
+      /// \brief Mutex to guarantee exclusive access between all threads.
       public: std::recursive_mutex mutex;
 
-      /// \brief When true, the service thread will finish.
+      /// \brief When true, the reception thread will finish.
       public: bool exit;
 
-      /// \brief Mutex to guarantee exclusive access to exit variable.
+      /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
@@ -213,10 +207,10 @@ namespace ignition
       /// \brief Remote subscribers.
       public: TopicStorage remoteSubscribers;
 
-      /// \brief Local subscriptions.
+      /// \brief Subscriptions.
       public: SubscriptionStorage localSubscriptions;
 
-      /// \brief Local service call repliers.
+      /// \brief Service call repliers.
       public: RepStorage repliers;
 
       /// \brief Pending service call requests.

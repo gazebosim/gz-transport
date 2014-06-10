@@ -169,7 +169,7 @@ namespace ignition
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>(this->nUuidStr));
+          new RepHandler<T1, T2>());
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(_cb);

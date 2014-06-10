@@ -30,50 +30,36 @@ namespace ignition
   namespace transport
   {
     /// \class IRepHandler RepHandler.hh
-    /// \brief Interface class used to manage generic protobub messages.
+    /// \brief Interface class used to manage the replier handler.
     class IRepHandler
     {
       /// \brief Constructor.
-      /// \param[in] _uuid UUID of the node registering the response handler.
-      public: IRepHandler(const std::string &_nUuid)
-        : nUuidStr(_nUuid)
-      {
-      }
+      public: IRepHandler() = default;
 
       /// \brief Destructor.
-      public: virtual ~IRepHandler()
-      {
-      }
+      public: virtual ~IRepHandler() = default;
 
       /// \brief Executes the local callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
-      /// \param[in] _msg Protobuf message received.
-      /// \return 0 when success.
-      public: virtual int RunLocalCallback(const std::string &_topic,
-                                           const transport::ProtoMsg &_msgReq,
-                                           transport::ProtoMsg &_msgRep,
-                                           bool &_result) = 0;
+      /// \param[in] _msgReq Input parameter (Protobuf message).
+      /// \param[out] _msgRep Output parameter (Protobuf message).
+      /// \param[out] _result Service call result.
+      public: virtual void RunLocalCallback(const std::string &_topic,
+                                            const transport::ProtoMsg &_msgReq,
+                                            transport::ProtoMsg &_msgRep,
+                                            bool &_result) = 0;
 
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _req Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
-      /// \return 0 when success.
-      public: virtual int RunCallback(const std::string &_topic,
-                                      const std::string &_req,
-                                      std::string &_rep,
-                                      bool &_result) = 0;
-
-      /// \brief Get the node UUID.
-      /// \return The string representation of the node UUID.
-      /*public: std::string GetNodeUuid()
-      {
-        return this->nUuidStr;
-      }*/
-
-      /// \brief Node UUID (string).
-      private: std::string nUuidStr;
+      /// \param[out] _rep Out parameter with the data serialized.
+      /// \param[out] _result Service call result.
+      public: virtual void RunCallback(const std::string &_topic,
+                                       const std::string &_req,
+                                       std::string &_rep,
+                                       bool &_result) = 0;
     };
 
     /// \class RepHandler RepHandler.hh
@@ -83,10 +69,7 @@ namespace ignition
       : public IRepHandler
     {
       // Documentation inherited.
-      public: RepHandler(const std::string &_nUuid)
-        : IRepHandler(_nUuid)
-      {
-      }
+      public: RepHandler() = default;
 
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
@@ -112,10 +95,10 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: int RunLocalCallback(const std::string &_topic,
-                                   const transport::ProtoMsg &_msgReq,
-                                   transport::ProtoMsg &_msgRep,
-                                   bool &_result)
+      public: void RunLocalCallback(const std::string &_topic,
+                                    const transport::ProtoMsg &_msgReq,
+                                    transport::ProtoMsg &_msgRep,
+                                    bool &_result)
       {
         // Execute the callback (if existing)
         if (this->cb)
@@ -123,21 +106,19 @@ namespace ignition
           auto msgReq = google::protobuf::down_cast<const T1*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<T2*>(&_msgRep);
           this->cb(_topic, *msgReq, *msgRep, _result);
-          return 0;
         }
         else
         {
           std::cerr << "RepHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
-          return -1;
         }
       }
 
       // Documentation inherited.
-      public: int RunCallback(const std::string &_topic,
-                              const std::string &_req,
-                              std::string &_rep,
-                              bool &_result)
+      public: void RunCallback(const std::string &_topic,
+                               const std::string &_req,
+                               std::string &_rep,
+                               bool &_result)
       {
         // Execute the callback (if existing).
         if (this->cb)
@@ -148,15 +129,12 @@ namespace ignition
           auto msgReq = this->CreateMsg(_req.c_str());
           this->cb(_topic, *msgReq, msgRep, _result);
           msgRep.SerializeToString(&_rep);
-
-          return 0;
         }
         else
         {
           std::cerr << "RepHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
           _result = false;
-          return -1;
         }
       }
 

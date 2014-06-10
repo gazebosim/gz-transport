@@ -50,12 +50,10 @@ NodePrivate::NodePrivate(bool _verbose)
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
     requester(new zmq::socket_t(*context, ZMQ_DEALER)),
     replier(new zmq::socket_t(*context, ZMQ_DEALER)),
-    timeout(Timeout)
+    timeout(Timeout),
+    exit(false)
 {
   char bindEndPoint[1024];
-
-  // Initialize random seed.
-  srand(time(nullptr));
 
   // My process UUID.
   uuid_generate(this->pUuid);
@@ -94,37 +92,32 @@ NodePrivate::NodePrivate(bool _verbose)
   }
   catch(const zmq::error_t& ze)
   {
-     std::cerr << "Error: " << ze.what() << std::endl;
+     std::cerr << "NodePrivate() Error: " << ze.what() << std::endl;
      std::exit(EXIT_FAILURE);
   }
 
   if (this->verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
+    std::cout << "Process UUID: " << this->pUuidStr << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
-    std::cout << "Process UUID: " << this->pUuidStr << std::endl;
   }
-
-  // We don't want to exit yet.
-  this->exitMutex.lock();
-  this->exit = false;
-  this->exitMutex.unlock();
 
   // Start the service thread.
   this->threadReception = new std::thread(&NodePrivate::RunReceptionTask, this);
 
-  // Set the callback to notify discovery updates (new connections).
+  // Set the callback to notify discovery updates (new topics).
   discovery->SetConnectionsCb(&NodePrivate::OnNewConnection, this);
 
-  // Set the callback to notify discovery updates (new disconnections).
+  // Set the callback to notify discovery updates (invalid topics).
   discovery->SetDisconnectionsCb(&NodePrivate::OnNewDisconnection, this);
 
-  // Set the callback to notify svc calls discovery updates (new connections).
+  // Set the callback to notify svc discovery updates (new service calls).
   discovery->SetConnectionsSrvCb(&NodePrivate::OnNewSrvConnection, this);
 
-  // Set the callback to notify svc calls discovery updates (new disconnections)
+  // Set the callback to notify svc discovery updates (invalid service calls).
   discovery->SetDisconnectionsSrvCb(&NodePrivate::OnNewSrvDisconnection, this);
 }
 
@@ -213,6 +206,7 @@ void NodePrivate::RecvMsgUpdate()
       return;
     topic = std::string(reinterpret_cast<char *>(message.data()));
 
+    // ToDo(caguero): Use this as extra metadata for the subscriber.
     if (!this->subscriber->recv(&message, 0))
       return;
     // sender = std::string(reinterpret_cast<char *>(message.data()));
@@ -293,6 +287,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
+    // Register that we have another remote subscriber.
     this->remoteSubscribers.AddAddress(topic, "", "", procUuid, nodeUuid);
   }
   else if (std::stoi(data) == EndConnection)
@@ -304,6 +299,7 @@ void NodePrivate::RecvControlUpdate()
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
     }
 
+    // Delete a remote subscriber.
     this->remoteSubscribers.DelAddressByNode(topic, procUuid, nodeUuid);
   }
 }
@@ -358,12 +354,11 @@ void NodePrivate::RecvSrvRequest()
   // Get the REP handler.
   if (this->repliers.Advertised(topic))
   {
-    IRepHandlerPtr repHandlerPtr;
     IRepHandler_M handlers;
     this->repliers.GetRepHandlers(topic, handlers);
 
     // Get the first responder.
-    repHandlerPtr = handlers.begin()->second;
+    IRepHandlerPtr repHandlerPtr = handlers.begin()->second;
 
     // Run the service call and get the results.
     repHandlerPtr->RunCallback(topic, req, rep, result);
@@ -471,6 +466,68 @@ void NodePrivate::RecvSrvResponse()
     {
       std::cerr << "Received a service call response but I don't have a handler"
                 << " for it" << std::endl;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
+{
+  std::string responserAddr;
+  Addresses_M addresses;
+  this->discovery->GetTopicAddresses(_topic, addresses);
+  if (addresses.empty())
+    return;
+
+  // Get the first responder.
+  auto &v = addresses.begin()->second;
+  responserAddr = v.at(0).addr;
+
+  if (verbose)
+  {
+    std::cout << "Found a service call responser at ["
+              << responserAddr << "]" << std::endl;
+  }
+
+  // Send all the pending REQs.
+  IReqHandler_M reqs;
+  this->requests.GetReqHandlers(_topic, reqs);
+  for (auto &node : reqs)
+  {
+    for (auto &req : node.second)
+    {
+      // Check if this service call has been already requested.
+      if (req.second->Requested())
+        continue;
+
+      // Mark the handler as requested.
+      req.second->SetRequested(true);
+
+      auto data = req.second->Serialize();
+      auto nodeUuid = req.second->GetNodeUuid();
+      auto reqUuid = req.second->GetReqUuid();
+
+      zmq::message_t message;
+      message.rebuild(_topic.size() + 1);
+      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
+
+      message.rebuild(this->myRequesterAddress.size() + 1);
+      memcpy(message.data(), this->myRequesterAddress.c_str(),
+        this->myRequesterAddress.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
+
+      message.rebuild(nodeUuid.size() + 1);
+      memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
+
+      message.rebuild(reqUuid.size() + 1);
+      memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
+      requester->send(message, ZMQ_SNDMORE);
+
+      message.rebuild(data.size() + 1);
+      memcpy(message.data(), data.c_str(), data.size() + 1);
+      requester->send(message, 0);
     }
   }
 }
@@ -609,68 +666,6 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
-{
-  std::string responserAddr;
-  Addresses_M addresses;
-  this->discovery->GetTopicAddresses(_topic, addresses);
-  if (addresses.empty())
-    return;
-
-  // Get the first responder.
-  auto &v = addresses.begin()->second;
-  responserAddr = v.at(0).addr;
-
-  if (verbose)
-  {
-    std::cout << "Found a service call responser at ["
-              << responserAddr << "]" << std::endl;
-  }
-
-  // Send all the pending REQs.
-  IReqHandler_M reqs;
-  this->requests.GetReqHandlers(_topic, reqs);
-  for (auto &node : reqs)
-  {
-    for (auto &req : node.second)
-    {
-      // Check if this service call has been already requested.
-      if (req.second->Requested())
-        continue;
-
-      // Mark the handler as requested.
-      req.second->SetRequested(true);
-
-      auto data = req.second->Serialize();
-      auto nodeUuid = req.second->GetNodeUuid();
-      auto reqUuid = req.second->GetReqUuid();
-
-      zmq::message_t message;
-      message.rebuild(_topic.size() + 1);
-      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
-
-      message.rebuild(this->myRequesterAddress.size() + 1);
-      memcpy(message.data(), this->myRequesterAddress.c_str(),
-        this->myRequesterAddress.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
-
-      message.rebuild(nodeUuid.size() + 1);
-      memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
-
-      message.rebuild(reqUuid.size() + 1);
-      memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
-
-      message.rebuild(data.size() + 1);
-      memcpy(message.data(), data.c_str(), data.size() + 1);
-      requester->send(message, 0);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
 void NodePrivate::OnNewSrvConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
@@ -708,8 +703,6 @@ void NodePrivate::OnNewSrvConnection(const std::string &_topic,
       // Register the new connection with the publisher.
       this->srvConnections.AddAddress(
         _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
-
-
 
       // Request all pending service calls for this topic.
       this->SendPendingRemoteReqs(_topic);
