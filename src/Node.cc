@@ -61,7 +61,7 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before)
   if (std::find(this->dataPtr->topicsAdvertised.begin(),
@@ -82,7 +82,7 @@ void Node::Unadvertise(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.resize(
@@ -100,7 +100,7 @@ int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Topic not advertised before.
   if (std::find(this->dataPtr->topicsAdvertised.begin(),
@@ -150,7 +150,7 @@ void Node::Unsubscribe(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   if (this->dataPtr->verbose)
     std::cout << "\nNode::Unsubscribe from [" << _topic << "]\n";
@@ -218,7 +218,7 @@ void Node::UnadvertiseSrv(const std::string &_topic)
 {
   assert(_topic != "");
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->srvsAdvertised.resize(

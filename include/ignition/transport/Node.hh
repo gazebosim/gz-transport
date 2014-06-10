@@ -78,8 +78,7 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -117,8 +116,7 @@ namespace ignition
           void(C::*_cb)(const std::string &, const T &),
           C* _obj)
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -161,8 +159,7 @@ namespace ignition
         void(*_cb)(const std::string &, const T1 &, T2 &, bool &),
         const Scope &_scope = Scope::All)
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised service calls
         if (std::find(this->dataPtr->srvsAdvertised.begin(),
@@ -204,8 +201,7 @@ namespace ignition
         C* _obj,
         const Scope &_scope = Scope::All)
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised service calls
         if (std::find(this->dataPtr->srvsAdvertised.begin(),
@@ -249,8 +245,7 @@ namespace ignition
         const T1 &_req,
         void(*_cb)(const std::string &_topic, const T2 &, bool))
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -306,8 +301,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const T2 &, bool),
         C* _obj)
       {
-        std::lock_guard<std::recursive_mutex> lock(
-          this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
