@@ -95,12 +95,13 @@ namespace ignition
           _topic, this->dataPtr->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        if (std::find(this->dataPtr->topicsSubscribed.begin(),
+        /*if (std::find(this->dataPtr->topicsSubscribed.begin(),
           this->dataPtr->topicsSubscribed.end(), _topic) ==
           this->dataPtr->topicsSubscribed.end())
         {
           this->dataPtr->topicsSubscribed.push_back(_topic);
-        }
+        }*/
+          this->dataPtr->topicsSubscribed.insert(_topic);
 
         // Discover the list of nodes that publish on the topic.
         this->dataPtr->shared->discovery->DiscoverMsg(_topic);
@@ -134,12 +135,13 @@ namespace ignition
           _topic, this->dataPtr->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        if (std::find(this->dataPtr->topicsSubscribed.begin(),
+        /*if (std::find(this->dataPtr->topicsSubscribed.begin(),
           this->dataPtr->topicsSubscribed.end(), _topic) ==
           this->dataPtr->topicsSubscribed.end())
         {
           this->dataPtr->topicsSubscribed.push_back(_topic);
-        }
+        }*/
+        this->dataPtr->topicsSubscribed.insert(_topic);
 
         // Discover the list of nodes that publish on the topic.
         this->dataPtr->shared->discovery->DiscoverMsg(_topic);

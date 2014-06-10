@@ -42,7 +42,7 @@ namespace ignition
       public: ~NodePrivate() = default;
 
       /// \brief The list of topics subscribed by this node.
-      public: std::vector<std::string> topicsSubscribed;
+      public: std::unordered_set<std::string> topicsSubscribed;
 
       /// \brief The list of topics advertised by this node.
       public: std::unordered_set<std::string> topicsAdvertised;

@@ -44,8 +44,11 @@ Node::Node(bool _verbose)
 Node::~Node()
 {
   // Unsubscribe from all the topics.
-  for (auto topic : this->dataPtr->topicsSubscribed)
+  while (!this->dataPtr->topicsSubscribed.empty())
+  {
+    auto topic = *this->dataPtr->topicsSubscribed.begin();
     this->Unsubscribe(topic);
+  }
 
   // Unadvertise all my topics.
   while (!this->dataPtr->topicsAdvertised.empty())
@@ -155,10 +158,7 @@ void Node::Unsubscribe(const std::string &_topic)
     _topic, this->dataPtr->nUuidStr);
 
   // Remove the topic from the list of subscribed topics in this node.
-  this->dataPtr->topicsSubscribed.resize(
-    std::remove(this->dataPtr->topicsSubscribed.begin(),
-      this->dataPtr->topicsSubscribed.end(), _topic) -
-        this->dataPtr->topicsSubscribed.begin());
+  this->dataPtr->topicsSubscribed.erase(_topic);
 
   // Remove the filter for this topic if I am the last subscriber.
   if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(_topic))
