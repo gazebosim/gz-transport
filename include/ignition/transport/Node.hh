@@ -42,8 +42,9 @@ namespace ignition
   namespace transport
   {
     /// \class Node Node.hh
-    /// \brief A transport node to send and receive data using a
-    /// publication/subscription paradigm.
+    /// \brief A class that allows a client to communicate with other peers.
+    /// There are two main communication modes: pub/sub messages and service
+    /// calls.
     class Node
     {
       /// \brief Constructor.
@@ -54,13 +55,13 @@ namespace ignition
       public: virtual ~Node();
 
       /// \brief Advertise a new topic.
-      /// \param[in] _topic Topic to be advertised.
+      /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
       public: void Advertise(const std::string &_topic,
                              const Scope &_scope = Scope::All);
 
       /// \brief Unadvertise a topic.
-      /// \param[in] _topic Topic to be unadvertised.
+      /// \param[in] _topic Topic name to be unadvertised.
       public: void Unadvertise(const std::string &_topic);
 
       /// \brief Publish a message.
@@ -70,8 +71,8 @@ namespace ignition
       public: int Publish(const std::string &_topic,
                           const ProtoMsg &_msg);
 
-      /// \brief Subscribe to a topic registering a callback. In this version
-      /// the callback is a free function.
+      /// \brief Subscribe to a topic registering a callback.
+      /// In this version the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function.
       public: template<typename T> void Subscribe(
@@ -105,14 +106,15 @@ namespace ignition
         this->dataPtr->discovery->DiscoverMsg(_topic);
       }
 
-      /// \brief Subscribe to a topic registering a callback. In this version
-      /// the callback is a member function.
+      /// \brief Subscribe to a topic registering a callback.
+      /// In this version the callback is a member function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback member function.
-      /// \param[in] _obj Instance.
+      /// \param[in] _obj Instance containing the member function.
       public: template<typename C, typename T> void Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const std::string &, const T &), C* _obj)
+          void(C::*_cb)(const std::string &, const T &),
+          C* _obj)
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
@@ -143,10 +145,11 @@ namespace ignition
       }
 
       /// \brief Unsubscribe to a topic.
-      /// \param[in] _topic Topic to be unsubscribed.
+      /// \param[in] _topic Topic name to be unsubscribed.
       public: void Unsubscribe(const std::string &_topic);
 
       /// \brief Advertise a new service call.
+      /// In this version the callback is a free function.
       /// \param[in] _topic Topic name associated to the service call.
       /// \param[in] _cb Callback to handle the service request.
       /// \param[in] _scope Topic scope.
@@ -184,13 +187,16 @@ namespace ignition
       }
 
       /// \brief Advertise a new service call.
+      /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service call.
       /// \param[in] _cb Callback to handle the service request.
+      /// \param[in] _obj Instance containing the member function.
       /// \param[in] _scope Topic scope.
       public: template<typename C, typename T1, typename T2> void Advertise(
         const std::string &_topic,
         void(C::*_cb)(const std::string &, const T1 &, T2 &, bool &),
-        C* _obj, const Scope &_scope = Scope::All)
+        C* _obj,
+        const Scope &_scope = Scope::All)
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
@@ -223,6 +229,7 @@ namespace ignition
       }
 
       /// \brief Request a new service call using a non-blocking call.
+      /// In this version the callback is a free function.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
@@ -274,17 +281,19 @@ namespace ignition
         }
       }
 
-      /// \brief Request a new service call using a non-blocking call. In this
-      /// version the callback is a member function.
+      /// \brief Request a new service call using a non-blocking call.
+      /// In this version the callback is a member function.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _obj Instance containing the member function.
       /// \param[in] _cb Pointer to the callback function executed when the
       /// response arrives.
       /// \return 0 when success.
       public: template<typename C, typename T1, typename T2> void Request(
         const std::string &_topic,
         const T1 &_req,
-        void(C::*_cb)(const std::string &_topic, const T2 &, bool), C* _obj)
+        void(C::*_cb)(const std::string &_topic, const T2 &, bool),
+        C* _obj)
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
@@ -335,7 +344,8 @@ namespace ignition
       /// \param[in] _timeout The request will timeout after '_timeout' ms.
       /// \param[out] _res Protobuf message containing the response.
       /// \param[out] _result Result of the service call.
-      /// \return true when the request did not timeout.
+      /// \return true when the request was executed or false if the timeout
+      /// expired.
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,

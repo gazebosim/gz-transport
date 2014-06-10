@@ -25,13 +25,24 @@
 
 using namespace ignition;
 
+std::string topic = "foo";
+std::string data = "bar";
 bool cbExecuted;
 bool cb2Executed;
 bool srvExecuted;
 bool responseExecuted;
-std::string topic = "foo";
-std::string data = "bar";
 int counter = 0;
+
+//////////////////////////////////////////////////
+/// \brief Initialize some global variables.
+void reset()
+{
+  cbExecuted = false;
+  cb2Executed = false;
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+}
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
@@ -55,7 +66,7 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-/// \brief Provide a service.
+/// \brief Provide a service call.
 void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
   robot_msgs::StringMsg &_rep, bool &_result)
 {
@@ -139,35 +150,37 @@ void CreateSubscriber()
 /// \param[in] _scope Scope used to advertise the topic.
 void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
 {
-  cbExecuted = false;
+  reset();
+
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
   transport::Node node;
   node.Advertise(topic, _sc);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Subscribe to topic in a different thread and wait until the callback is
+  // Subscribe to a topic in a different thread and wait until the callback is
   // received.
   std::thread subscribeThread(CreateSubscriber);
+
+  // Wait some time until the subscriber is alive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a msg on topic.
   EXPECT_EQ(node.Publish(topic, msg), 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Wait until the subscribe thread finishes.
   subscribeThread.join();
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
-  cbExecuted = false;
 }
 
 //////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
 TEST(NodeTest, PubWithoutAdvertise)
 {
+  reset();
+
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
@@ -177,31 +190,32 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Publish some data on topic without advertising it first.
   EXPECT_NE(node1.Publish(topic, msg), 0);
 
-  // Two publishers
   node1.Advertise(topic);
   node2.Advertise(topic);
-  cbExecuted = false;
-  counter = 0;
+
   node2.Subscribe(topic, cb);
+
+  // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a message by each node.
   EXPECT_EQ(node1.Publish(topic, msg), 0);
   EXPECT_EQ(node2.Publish(topic, msg), 0);
+
+  // Wait some time for the messages to arrive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was received twice.
   EXPECT_TRUE(cbExecuted);
   EXPECT_EQ(counter, 2);
-  cbExecuted = false;
-  counter = 0;
 }
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, PubSubSameThread)
 {
-  cbExecuted = false;
+  reset();
+
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
@@ -209,18 +223,25 @@ TEST(NodeTest, PubSubSameThread)
   node.Advertise(topic);
 
   node.Subscribe(topic, cb);
+
+  // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
   EXPECT_EQ(node.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Check that the msg was received.
+  // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
-  cbExecuted = false;
+
+  reset();
 
   // Publish a second message on topic.
   EXPECT_EQ(node.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the data was received.
@@ -231,9 +252,11 @@ TEST(NodeTest, PubSubSameThread)
 
   // Publish a third message.
   EXPECT_NE(node.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   EXPECT_FALSE(cbExecuted);
-  cbExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -250,8 +273,8 @@ TEST(NodeTest, PubSubTwoThreadsSameTopic)
 /// also that when one of the nodes unsubscribes, no longer receives updates.
 TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
-  cbExecuted = false;
-  cb2Executed = false;
+  reset();
+
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
@@ -259,54 +282,58 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node2;
 
   node1.Advertise(topic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Subscribe to topic in node1.
   node1.Subscribe(topic, cb);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Subscribe to topic in node2.
   node2.Subscribe(topic, cb2);
+
+  // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   EXPECT_EQ(node1.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was received by node1.
   EXPECT_TRUE(cbExecuted);
-  cbExecuted = false;
-
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
-  cb2Executed = false;
+
+  reset();
 
   // Node1 is not interested in the topic anymore.
   node1.Unsubscribe(topic);
+
+  // Give some time to receive the unsubscription.
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a second message.
   EXPECT_EQ(node1.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Check that the msg was no received by node1.
   EXPECT_FALSE(cbExecuted);
-  cbExecuted = false;
-
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
-  cb2Executed = false;
+
+  reset();
 
   node1.Unadvertise(topic);
 
   // Publish a third message
   EXPECT_NE(node1.Publish(topic, msg), 0);
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Anybody should have received the message.
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
-  cbExecuted = false;
-  cb2Executed = false;
 }
 
 //////////////////////////////////////////////////
@@ -314,16 +341,20 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 /// publish.
 TEST(NodeTest, ClassMemberCallback)
 {
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   MyTestClass client;
+
+  // Wait for the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   client.SendSomeData();
+
+  // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that two nodes in diffetent threads are able to communicate
+/// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
@@ -347,24 +378,8 @@ TEST(NodeTest, ScopeAll)
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a publisher that sends messages forever. This function will
-/// be used emiting a SIGINT or SIGTERM signal, to make sure that the transport
-/// library captures the signals, stop all the tasks and signal the event with
-/// the method Interrupted().
-void createInfinitePublisher()
-{
-  robot_msgs::StringMsg msg;
-  msg.set_data(data);
-  transport::Node node;
-
-  node.Advertise(topic);
-  while (!node.Interrupted())
-    node.Publish(topic, msg);
-}
-
-//////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-/*TEST(NodeTest, ServiceCallAsync)
+TEST(NodeTest, ServiceCallAsync)
 {
   srvExecuted = false;
   responseExecuted = false;
@@ -405,7 +420,7 @@ void createInfinitePublisher()
   EXPECT_TRUE(responseExecuted);
   EXPECT_TRUE(srvExecuted);
   EXPECT_EQ(counter, 1);
-}*/
+}
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
@@ -456,12 +471,37 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 }
 
 //////////////////////////////////////////////////
+/// \brief Create a publisher that sends messages "forever". This function will
+/// be used emiting a SIGINT or SIGTERM signal, to make sure that the transport
+/// library captures the signals, stop all the tasks and signal the event with
+/// the method Interrupted().
+void createInfinitePublisher()
+{
+  robot_msgs::StringMsg msg;
+  msg.set_data(data);
+  transport::Node node;
+
+  node.Advertise(topic);
+
+  auto i = 0;
+  while (i < 200 && !node.Interrupted())
+  {
+    node.Publish(topic, msg);
+    ++i;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  EXPECT_TRUE(i < 200);
+}
+
+//////////////////////////////////////////////////
 /// \brief Create a transport client in a loop (and in a separate thread) and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
 TEST(NodeTest, TerminateSIGINT)
 {
   std::thread publisherThread(createInfinitePublisher);
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGINT);
   publisherThread.join();
 }
@@ -473,6 +513,7 @@ TEST(NodeTest, TerminateSIGINT)
 TEST(NodeTest, TerminateSIGTERM)
 {
   std::thread publisherThread(createInfinitePublisher);
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
   raise(SIGTERM);
   publisherThread.join();
 }

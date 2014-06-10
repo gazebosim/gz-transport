@@ -137,7 +137,7 @@ void Node::Unsubscribe(const std::string &_topic)
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->verbose)
-    std::cout << "\nUnsubscribe (" << _topic << ")\n";
+    std::cout << "\nNode::Unsubscribe from [" << _topic << "]\n";
 
   this->dataPtr->localSubscriptions.RemoveSubscriptionHandler(
     _topic, this->nUuidStr);
@@ -178,7 +178,6 @@ void Node::Unsubscribe(const std::string &_topic)
       memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
-      // Not needed.
       message.rebuild(this->dataPtr->myAddress.size() + 1);
       memcpy(message.data(), this->dataPtr->myAddress.c_str(),
              this->dataPtr->myAddress.size() + 1);
