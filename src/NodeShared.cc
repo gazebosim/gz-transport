@@ -25,7 +25,7 @@
 #include <thread>
 #include <vector>
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/NodePrivate.hh"
+#include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -36,14 +36,14 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-NodePrivatePtr NodePrivate::GetInstance(bool _verbose)
+NodeSharedPtr NodeShared::GetInstance(bool _verbose)
 {
-  static NodePrivatePtr instance(new NodePrivate(_verbose));
+  static NodeSharedPtr instance(new NodeShared(_verbose));
   return instance;
 }
 
 //////////////////////////////////////////////////
-NodePrivate::NodePrivate(bool _verbose)
+NodeShared::NodeShared(bool _verbose)
   : verbose(_verbose),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
@@ -93,7 +93,7 @@ NodePrivate::NodePrivate(bool _verbose)
   }
   catch(const zmq::error_t& ze)
   {
-     std::cerr << "NodePrivate() Error: " << ze.what() << std::endl;
+     std::cerr << "NodeShared() Error: " << ze.what() << std::endl;
      std::exit(EXIT_FAILURE);
   }
 
@@ -107,23 +107,23 @@ NodePrivate::NodePrivate(bool _verbose)
   }
 
   // Start the service thread.
-  this->threadReception = new std::thread(&NodePrivate::RunReceptionTask, this);
+  this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new topics).
-  discovery->SetConnectionsCb(&NodePrivate::OnNewConnection, this);
+  discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
 
   // Set the callback to notify discovery updates (invalid topics).
-  discovery->SetDisconnectionsCb(&NodePrivate::OnNewDisconnection, this);
+  discovery->SetDisconnectionsCb(&NodeShared::OnNewDisconnection, this);
 
   // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetConnectionsSrvCb(&NodePrivate::OnNewSrvConnection, this);
+  discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
   // Set the callback to notify svc discovery updates (invalid service calls).
-  discovery->SetDisconnectionsSrvCb(&NodePrivate::OnNewSrvDisconnection, this);
+  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
-NodePrivate::~NodePrivate()
+NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
   this->exitMutex.lock();
@@ -135,7 +135,7 @@ NodePrivate::~NodePrivate()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RunReceptionTask()
+void NodeShared::RunReceptionTask()
 {
   while (!this->discovery->Interrupted())
   {
@@ -171,7 +171,7 @@ void NodePrivate::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
+int NodeShared::Publish(const std::string &_topic, const std::string &_data)
 {
   assert(_topic != "");
 
@@ -192,7 +192,7 @@ int NodePrivate::Publish(const std::string &_topic, const std::string &_data)
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RecvMsgUpdate()
+void NodeShared::RecvMsgUpdate()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -247,7 +247,7 @@ void NodePrivate::RecvMsgUpdate()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RecvControlUpdate()
+void NodeShared::RecvControlUpdate()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -277,7 +277,7 @@ void NodePrivate::RecvControlUpdate()
   }
   catch(const zmq::error_t &_error)
   {
-    std::cerr << "NodePrivate::RecvControlUpdate() error: "
+    std::cerr << "NodeShared::RecvControlUpdate() error: "
               << _error.what() << std::endl;
     return;
   }
@@ -309,7 +309,7 @@ void NodePrivate::RecvControlUpdate()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RecvSrvRequest()
+void NodeShared::RecvSrvRequest()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -349,7 +349,7 @@ void NodePrivate::RecvSrvRequest()
   }
   catch(const zmq::error_t &_error)
   {
-    std::cerr << "NodePrivate::RecvSrvRequest() error: "
+    std::cerr << "NodeShared::RecvSrvRequest() error: "
               << _error.what() << std::endl;
     return;
   }
@@ -404,7 +404,7 @@ void NodePrivate::RecvSrvRequest()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::RecvSrvResponse()
+void NodeShared::RecvSrvResponse()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -444,7 +444,7 @@ void NodePrivate::RecvSrvResponse()
   }
   catch(const zmq::error_t &_error)
   {
-    std::cerr << "NodePrivate::RecvSrvResponse() error: "
+    std::cerr << "NodeShared::RecvSrvResponse() error: "
               << _error.what() << std::endl;
     return;
   }
@@ -466,7 +466,7 @@ void NodePrivate::RecvSrvResponse()
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
+void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 {
   std::string responserAddr;
   Addresses_M addresses;
@@ -528,7 +528,7 @@ void NodePrivate::SendPendingRemoteReqs(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::OnNewConnection(const std::string &_topic,
+void NodeShared::OnNewConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &_scope)
@@ -618,7 +618,7 @@ void NodePrivate::OnNewConnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::OnNewDisconnection(const std::string &_topic,
+void NodeShared::OnNewDisconnection(const std::string &_topic,
   const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
@@ -666,7 +666,7 @@ void NodePrivate::OnNewDisconnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::OnNewSrvConnection(const std::string &_topic,
+void NodeShared::OnNewSrvConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &_scope)
@@ -715,7 +715,7 @@ void NodePrivate::OnNewSrvConnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodePrivate::OnNewSrvDisconnection(const std::string &/*_topic*/,
+void NodeShared::OnNewSrvDisconnection(const std::string &/*_topic*/,
   const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
   const std::string &_pUuid, const std::string &/*_nUuid*/,
   const Scope &/*_scope*/)

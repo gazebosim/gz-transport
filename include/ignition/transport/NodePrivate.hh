@@ -15,206 +15,52 @@
  *
 */
 
-#ifndef _IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
-#define _IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
+#define __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 
-#include <google/protobuf/message.h>
 #include <uuid/uuid.h>
-#include <zmq.hpp>
-#include <memory>
-#include <mutex>
 #include <string>
-#include <thread>
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/TopicStorage.hh"
+#include <vector>
+#include "ignition/transport/NodeShared.hh"
+
+using namespace ignition;
+using namespace transport;
 
 namespace ignition
 {
   namespace transport
   {
     /// \class NodePrivate NodePrivate.hh
-    /// \brief Private data for the Node class.
+    /// \brief Private data fPrivate Node class.
     class NodePrivate
     {
-      /// \brief NodePrivate is a singleton. This method gets the
-      /// NodePrivate instance shared between all the nodes.
-      /// \param[in] _verbose True if you want to see debug messages.
-      /// \return NodePrivatePtr Pointer to the current NodePrivate instance.
-      public: static NodePrivatePtr GetInstance(bool _verbose);
-
       /// \brief Constructor.
-      /// \param[in] _verbose true for enabling verbose mode.
-      public: NodePrivate(bool _verbose = false);
+      public: NodePrivate() = default;
 
       /// \brief Destructor.
-      public: virtual ~NodePrivate();
+      public: ~NodePrivate() = default;
 
-      /// \brief Receive data and control messages.
-      public: void RunReceptionTask();
+      /// \brief The list of topics subscribed by this node.
+      public: std::vector<std::string> topicsSubscribed;
 
-      /// \brief Publish data.
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _data Data to publish.
-      /// \return 0 when success.
-      public: int Publish(const std::string &_topic,
-                          const std::string &_data);
+      /// \brief The list of topics advertised by this node.
+      public: std::vector<std::string> topicsAdvertised;
 
-      /// \brief Method in charge of receiving the topic updates.
-      public: void RecvMsgUpdate();
+      /// \brief The list of service calls advertised by this node.
+      public: std::vector<std::string> srvsAdvertised;
 
-      /// \brief Method in charge of receiving the control updates (when a new
-      /// remote subscriber notifies its presence for example).
-      public: void RecvControlUpdate();
+      /// \brief Node UUID. This ID is unique for each node.
+      public: uuid_t nUuid;
 
-      /// \brief Method in charge of receiving the service call requests.
-      public: void RecvSrvRequest();
+      /// \brief Node UUID in string format.
+      public: std::string nUuidStr;
 
-      /// \brief Method in charge of receiving the service call responses.
-      public: void RecvSrvResponse();
-
-      /// \brief Try to send all the requests for a given service call.
-      /// \param[in] _topic Topic name.
-      public: void SendPendingRemoteReqs(const std::string &_topic);
-
-      /// \brief Callback executed when the discovery detects new topics.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewConnection(const std::string &_topic,
-                                   const std::string &_addr,
-                                   const std::string &_ctrl,
-                                   const std::string &_pUuid,
-                                   const std::string &_nUuid,
-                                   const Scope &_scope);
-
-      /// \brief Callback executed when the discovery detects disconnections.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewDisconnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_ctrl,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
-
-      /// \brief Callback executed when the discovery detects a new service call
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewSrvConnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_ctrl,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
-
-      /// \brief Callback executed when a service call is no longer available.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewSrvDisconnection(const std::string &_topic,
-                                         const std::string &_addr,
-                                         const std::string &_ctrl,
-                                         const std::string &_pUuid,
-                                         const std::string &_nUuid,
-                                         const Scope &_scope);
-
-      /// \brief Timeout used for receiving messages (ms.).
-      public: static const int Timeout = 250;
+      /// \brief Pointer to the object shared between all the nodes within the
+      /// same process.
+      public: NodeSharedPtr shared;
 
       /// \brief Print activity to stdout.
-      public: int verbose;
-
-      /// \brief My pub/sub address.
-      public: std::string myAddress;
-
-      /// \brief My pub/sub control address.
-      public: std::string myControlAddress;
-
-      /// \brief My requester service call address.
-      public: std::string myRequesterAddress;
-
-      /// \brief My replier service call address.
-      public: std::string myReplierAddress;
-
-      /// \brief IP address of this host.
-      public: std::string hostAddr;
-
-      /// \brief Discovery service.
-      public: std::unique_ptr<Discovery> discovery;
-
-      /// \brief 0MQ context.
-      public: std::unique_ptr<zmq::context_t> context;
-
-      /// \brief ZMQ socket to send topic updates.
-      public: std::unique_ptr<zmq::socket_t> publisher;
-
-      /// \brief ZMQ socket to receive topic updates.
-      public: std::unique_ptr<zmq::socket_t> subscriber;
-
-      /// \brief ZMQ socket to receive control updates (new connections, ...).
-      public: std::unique_ptr<zmq::socket_t> control;
-
-      /// \brief ZMQ socket for sending service call requests.
-      public: std::unique_ptr<zmq::socket_t> requester;
-
-      /// \brief ZMQ socket to receive service call requests.
-      public: std::unique_ptr<zmq::socket_t> replier;
-
-      /// \brief Process UUID.
-      public: uuid_t pUuid;
-
-      /// \brief String conversion of the process UUID.
-      public: std::string pUuidStr;
-
-      /// \brief Timeout used for receiving requests.
-      public: int timeout;
-
-      /// \brief thread in charge of receiving and handling incoming messages.
-      public: std::thread *threadReception;
-
-      /// \brief Mutex to guarantee exclusive access between all threads.
-      public: std::recursive_mutex mutex;
-
-      /// \brief When true, the reception thread will finish.
-      public: bool exit;
-
-      /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
-      private: std::mutex exitMutex;
-
-      /// \brief Remote connections for pub/sub messages.
-      private: TopicStorage connections;
-
-      /// \brief Remote connections for service calls.
-      private: TopicStorage srvConnections;
-
-      /// \brief Remote subscribers.
-      public: TopicStorage remoteSubscribers;
-
-      /// \brief Subscriptions.
-      public: HandlerStorage<ISubscriptionHandler> localSubscriptions;
-
-      /// \brief Service call repliers.
-      public: HandlerStorage<IRepHandler> repliers;
-
-      /// \brief Pending service call requests.
-      public: HandlerStorage<IReqHandler> requests;
+      public: bool verbose;
     };
   }
 }

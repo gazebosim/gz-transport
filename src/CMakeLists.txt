@@ -4,7 +4,7 @@ set (sources
   Discovery.cc
   DiscoveryPrivate.cc
   Node.cc
-  NodePrivate.cc
+  NodeShared.cc
   TopicStorage.cc
   Packet.cc
 )

@@ -35,6 +35,7 @@ namespace ignition
     class IReqHandler;
     class ISubscriptionHandler;
     class NodePrivate;
+    class NodeShared;
     class TopicInfo;
 
     /// \def Scope This strongly typed enum defines the different options for
@@ -91,8 +92,12 @@ namespace ignition
     typedef std::map<std::string, std::shared_ptr<TopicInfo>> Topics_M;
 
     /// \def NodePrivatePtr
-    /// \brief Shared pointer to NodePrivate.
-    typedef std::shared_ptr<transport::NodePrivate> NodePrivatePtr;
+    /// \brief Pointer to internal class NodePrivate.
+    typedef std::unique_ptr<transport::NodePrivate> NodePrivatePtr;
+
+    /// \def NodeSharedPtr
+    /// \brief Shared pointer to NodeShared.
+    typedef std::shared_ptr<transport::NodeShared> NodeSharedPtr;
 
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.

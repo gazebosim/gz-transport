@@ -29,6 +29,7 @@
 #include <vector>
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/NodePrivate.hh"
+#include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
@@ -77,11 +78,12 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const std::string &, const T &))
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->nUuidStr));
+            new SubscriptionHandler<T>(this->dataPtr->nUuidStr));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -90,18 +92,19 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->localSubscriptions.AddHandler(
-          _topic, this->nUuidStr, subscrHandlerPtr);
+        this->dataPtr->shared->localSubscriptions.AddHandler(
+          _topic, this->dataPtr->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        if (std::find(this->topicsSubscribed.begin(),
-          this->topicsSubscribed.end(), _topic) == this->topicsSubscribed.end())
+        if (std::find(this->dataPtr->topicsSubscribed.begin(),
+          this->dataPtr->topicsSubscribed.end(), _topic) ==
+          this->dataPtr->topicsSubscribed.end())
         {
-          this->topicsSubscribed.push_back(_topic);
+          this->dataPtr->topicsSubscribed.push_back(_topic);
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->DiscoverMsg(_topic);
+        this->dataPtr->shared->discovery->DiscoverMsg(_topic);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -114,11 +117,12 @@ namespace ignition
           void(C::*_cb)(const std::string &, const T &),
           C* _obj)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-          new SubscriptionHandler<T>(this->nUuidStr));
+          new SubscriptionHandler<T>(this->dataPtr->nUuidStr));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(
@@ -128,18 +132,19 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->localSubscriptions.AddHandler(
-          _topic, this->nUuidStr, subscrHandlerPtr);
+        this->dataPtr->shared->localSubscriptions.AddHandler(
+          _topic, this->dataPtr->nUuidStr, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        if (std::find(this->topicsSubscribed.begin(),
-          this->topicsSubscribed.end(), _topic) == this->topicsSubscribed.end())
+        if (std::find(this->dataPtr->topicsSubscribed.begin(),
+          this->dataPtr->topicsSubscribed.end(), _topic) ==
+          this->dataPtr->topicsSubscribed.end())
         {
-          this->topicsSubscribed.push_back(_topic);
+          this->dataPtr->topicsSubscribed.push_back(_topic);
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->DiscoverMsg(_topic);
+        this->dataPtr->shared->discovery->DiscoverMsg(_topic);
       }
 
       /// \brief Unsubscribe to a topic.
@@ -156,13 +161,15 @@ namespace ignition
         void(*_cb)(const std::string &, const T1 &, T2 &, bool &),
         const Scope &_scope = Scope::All)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised service calls
-        if (std::find(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
-              _topic) == this->srvsAdvertised.end())
+        if (std::find(this->dataPtr->srvsAdvertised.begin(),
+              this->dataPtr->srvsAdvertised.end(), _topic) ==
+              this->dataPtr->srvsAdvertised.end())
         {
-          this->srvsAdvertised.push_back(_topic);
+          this->dataPtr->srvsAdvertised.push_back(_topic);
         }
 
         // Create a new service reply handler.
@@ -176,12 +183,13 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new requests,
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
-        this->dataPtr->repliers.AddHandler(
-          _topic, this->nUuidStr, repHandlerPtr);
+        this->dataPtr->shared->repliers.AddHandler(
+          _topic, this->dataPtr->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->discovery->AdvertiseSrvCall(_topic,
-          this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
+        this->dataPtr->shared->discovery->AdvertiseSrvCall(_topic,
+          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuidStr,
+          _scope);
       }
 
       /// \brief Advertise a new service call.
@@ -196,18 +204,20 @@ namespace ignition
         C* _obj,
         const Scope &_scope = Scope::All)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised service calls
-        if (std::find(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
-              _topic) == this->srvsAdvertised.end())
+        if (std::find(this->dataPtr->srvsAdvertised.begin(),
+              this->dataPtr->srvsAdvertised.end(), _topic) ==
+              this->dataPtr->srvsAdvertised.end())
         {
-          this->srvsAdvertised.push_back(_topic);
+          this->dataPtr->srvsAdvertised.push_back(_topic);
         }
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>(this->nUuidStr));
+          new RepHandler<T1, T2>(this->dataPtr->nUuidStr));
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(
@@ -218,12 +228,13 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new requests,
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
-        this->dataPtr->repliers.AddHandler(
-          _topic, this->nUuidStr, repHandlerPtr);
+        this->dataPtr->shared->repliers.AddHandler(
+          _topic, this->dataPtr->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->discovery->AdvertiseSrvCall(_topic,
-          this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
+        this->dataPtr->shared->discovery->AdvertiseSrvCall(_topic,
+          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuidStr,
+          _scope);
       }
 
       /// \brief Request a new service call using a non-blocking call.
@@ -238,11 +249,12 @@ namespace ignition
         const T1 &_req,
         void(*_cb)(const std::string &_topic, const T2 &, bool))
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -254,7 +266,7 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
@@ -263,17 +275,20 @@ namespace ignition
         reqHandlerPtr->SetCallback(_cb);
 
         // Store the request handler.
-        this->dataPtr->requests.AddHandler(
-          _topic, this->nUuidStr, reqHandlerPtr);
+        this->dataPtr->shared->requests.AddHandler(
+          _topic, this->dataPtr->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
-          this->dataPtr->SendPendingRemoteReqs(_topic);
+        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+          _topic, addresses))
+        {
+          this->dataPtr->shared->SendPendingRemoteReqs(_topic);
+        }
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->DiscoverSrvCall(_topic);
+          this->dataPtr->shared->discovery->DiscoverSrvCall(_topic);
         }
       }
 
@@ -291,11 +306,12 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const T2 &, bool),
         C* _obj)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+        std::lock_guard<std::recursive_mutex> lock(
+          this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -307,7 +323,7 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
@@ -318,17 +334,20 @@ namespace ignition
             std::placeholders::_3));
 
         // Store the request handler.
-        this->dataPtr->requests.AddHandler(
-          _topic, this->nUuidStr, reqHandlerPtr);
+        this->dataPtr->shared->requests.AddHandler(
+          _topic, this->dataPtr->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
-          this->dataPtr->SendPendingRemoteReqs(_topic);
+        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+          _topic, addresses))
+        {
+          this->dataPtr->shared->SendPendingRemoteReqs(_topic);
+        }
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->DiscoverSrvCall(_topic);
+          this->dataPtr->shared->discovery->DiscoverSrvCall(_topic);
         }
       }
 
@@ -347,11 +366,11 @@ namespace ignition
         T2 &_rep,
         bool &_result)
       {
-        std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
+        std::unique_lock<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->repliers.GetHandler(_topic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(_topic, repHandler))
         {
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(_topic, _req, _rep, _result);
@@ -360,23 +379,26 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
 
         // Store the request handler.
-        this->dataPtr->requests.AddHandler(
-          _topic, this->nUuidStr, reqHandlerPtr);
+        this->dataPtr->shared->requests.AddHandler(
+          _topic, this->dataPtr->nUuidStr, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
-          this->dataPtr->SendPendingRemoteReqs(_topic);
+        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+          _topic, addresses))
+        {
+          this->dataPtr->shared->SendPendingRemoteReqs(_topic);
+        }
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->DiscoverSrvCall(_topic);
+          this->dataPtr->shared->discovery->DiscoverSrvCall(_topic);
         }
 
         auto now = std::chrono::system_clock::now();
@@ -413,23 +435,8 @@ namespace ignition
       public: bool Interrupted();
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Pointer to private data.
       protected: NodePrivatePtr dataPtr;
-
-      /// \brief The list of topics subscribed by this node.
-      private: std::vector<std::string> topicsSubscribed;
-
-      /// \brief The list of topics advertised by this node.
-      private: std::vector<std::string> topicsAdvertised;
-
-      /// \brief The list of service calls advertised by this node.
-      private: std::vector<std::string> srvsAdvertised;
-
-      /// \brief Node UUID. This ID is unique for each node.
-      private: uuid_t nUuid;
-
-      /// \brief Node UUID in string format.
-      private: std::string nUuidStr;
     };
   }
 }
