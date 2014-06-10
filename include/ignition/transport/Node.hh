@@ -244,8 +244,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
-        if (!repHandlers.empty())
+        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -299,8 +298,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
-        if (!repHandlers.empty())
+        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -357,8 +355,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers);
-        if (!repHandlers.empty())
+        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           IRepHandlerPtr repHandler = repHandlers.begin()->second;

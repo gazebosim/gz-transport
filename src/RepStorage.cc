@@ -18,26 +18,20 @@
 #include <string>
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/RepStorage.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-RepStorage::RepStorage()
+bool RepStorage::GetRepHandlers(const std::string &_topic,
+  IRepHandler_M &_handlers)
 {
-}
+  if (this->responsers.find(_topic) == this->responsers.end())
+    return false;
 
-//////////////////////////////////////////////////
-RepStorage::~RepStorage()
-{
-}
-
-//////////////////////////////////////////////////
-void RepStorage::GetRepHandlers(
-  const std::string &_topic, IRepHandler_M &_handlers)
-{
-  if (this->responsers.find(_topic) != this->responsers.end())
-    _handlers = this->responsers[_topic];
+  _handlers = this->responsers[_topic];
+  return true;
 }
 
 //////////////////////////////////////////////////

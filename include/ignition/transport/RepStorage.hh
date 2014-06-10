@@ -27,14 +27,14 @@ namespace ignition
   namespace transport
   {
     /// \class RepStorage RepStorage.hh
-    /// \brief Class to store the list of topic service call repliers.
+    /// \brief Class to store and manage the service call response handlers.
     class RepStorage
     {
       /// \brief Constructor.
-      public: RepStorage();
+      public: RepStorage() = default;
 
       /// \brief Destructor.
-      public: virtual ~RepStorage();
+      public: virtual ~RepStorage() = default;
 
       /// \brief Get the service response handlers for a topic. A response
       /// handler stores the callback and types associated to a responser
@@ -42,7 +42,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _handlers Response handlers.
       /// \return true if the topic contains at least one responser.
-      public: void GetRepHandlers(const std::string &_topic,
+      public: bool GetRepHandlers(const std::string &_topic,
                                   IRepHandler_M &_handlers);
 
       /// \brief Add a response handler to a topic. A response handler
