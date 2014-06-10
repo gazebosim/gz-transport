@@ -58,8 +58,11 @@ Node::~Node()
   }
 
   // Unadvertise all my service calls.
-  for (auto topic : this->dataPtr->srvsAdvertised)
+  while (!this->dataPtr->srvsAdvertised.empty())
+  {
+    auto topic = *this->dataPtr->srvsAdvertised.begin();
     this->UnadvertiseSrv(topic);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -217,10 +220,7 @@ void Node::UnadvertiseSrv(const std::string &_topic)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->srvsAdvertised.resize(
-    std::remove(this->dataPtr->srvsAdvertised.begin(),
-      this->dataPtr->srvsAdvertised.end(), _topic) -
-        this->dataPtr->srvsAdvertised.begin());
+  this->dataPtr->srvsAdvertised.erase(_topic);
 
   // Remove all the REP handlers for this node.
   this->dataPtr->shared->repliers.RemoveHandlersForNode(

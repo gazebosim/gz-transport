@@ -48,7 +48,7 @@ namespace ignition
       public: std::unordered_set<std::string> topicsAdvertised;
 
       /// \brief The list of service calls advertised by this node.
-      public: std::vector<std::string> srvsAdvertised;
+      public: std::unordered_set<std::string> srvsAdvertised;
 
       /// \brief Node UUID. This ID is unique for each node.
       public: uuid_t nUuid;
