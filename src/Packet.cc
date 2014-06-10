@@ -344,8 +344,22 @@ void AdvMsg::PrintBody()
             << this->GetControlAddress() << std::endl;
   std::cout << "\t\tNode UUID: "
             << this->GetNodeUuid() << std::endl;
-  // std::cout << "\t\tTopic Scope: "
-  //          << this->GetScope() << std::endl;
+  std::cout << "\t\tTopic Scope: ";
+  switch (this->GetScope())
+  {
+    case Scope::Process:
+      std::cout << "Process" << std::endl;
+      break;
+    case Scope::Host:
+      std::cout << "Host" << std::endl;
+      break;
+    case Scope::All:
+      std::cout << "All" << std::endl;
+      break;
+    default:
+      std::cout << "<Unknown>" << std::endl;
+      break;
+  }
 }
 
 //////////////////////////////////////////////////
