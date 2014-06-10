@@ -352,10 +352,10 @@ void NodePrivate::RecvSrvRequest()
   }
 
   // Get the REP handler.
-  if (this->repliers.Advertised(topic))
+  if (this->repliers.HasHandlerForTopic(topic))
   {
     IRepHandler_M handlers;
-    this->repliers.GetRepHandlers(topic, handlers);
+    this->repliers.GetHandlers(topic, handlers);
 
     // Get the first responder.
     IRepHandlerPtr repHandlerPtr = handlers.begin()->second;

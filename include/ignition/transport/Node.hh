@@ -178,7 +178,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new requests,
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
-        this->dataPtr->repliers.AddRepHandler(
+        this->dataPtr->repliers.AddHandler(
           _topic, this->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
@@ -220,7 +220,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new requests,
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
-        this->dataPtr->repliers.AddRepHandler(
+        this->dataPtr->repliers.AddHandler(
           _topic, this->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
@@ -244,7 +244,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
+        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -298,7 +298,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
+        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -355,7 +355,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandler_M repHandlers;
-        if (this->dataPtr->repliers.GetRepHandlers(_topic, repHandlers))
+        if (this->dataPtr->repliers.GetHandlers(_topic, repHandlers))
         {
           // There is a responser in my process, let's use it.
           IRepHandlerPtr repHandler = repHandlers.begin()->second;

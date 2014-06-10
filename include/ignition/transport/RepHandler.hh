@@ -30,7 +30,7 @@ namespace ignition
   namespace transport
   {
     /// \class IRepHandler RepHandler.hh
-    /// \brief Interface class used to manage the replier handler.
+    /// \brief Interface class used to manage a replier handler.
     class IRepHandler
     {
       /// \brief Constructor.

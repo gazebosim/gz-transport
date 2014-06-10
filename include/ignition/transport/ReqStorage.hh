@@ -31,10 +31,10 @@ namespace ignition
     class ReqStorage
     {
       /// \brief Constructor.
-      public: ReqStorage();
+      public: ReqStorage() = default;
 
       /// \brief Destructor.
-      public: virtual ~ReqStorage();
+      public: virtual ~ReqStorage() = default;
 
       /// \brief Get the requests handlers for a topic. A request
       /// handler stores the callback and types associated to a service call

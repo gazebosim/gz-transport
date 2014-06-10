@@ -23,16 +23,6 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-ReqStorage::ReqStorage()
-{
-}
-
-//////////////////////////////////////////////////
-ReqStorage::~ReqStorage()
-{
-}
-
-//////////////////////////////////////////////////
 void ReqStorage::GetReqHandlers(
   const std::string &_topic, IReqHandler_M &_handlers)
 {

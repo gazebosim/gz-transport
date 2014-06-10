@@ -33,7 +33,7 @@ namespace ignition
   namespace transport
   {
     /// \class IReqHandler ReqHandler.hh
-    /// \brief Interface class used to manage generic protobub messages.
+    /// \brief Interface class used to manage a request handler.
     class IReqHandler
     {
       /// \brief Constructor.

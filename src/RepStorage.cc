@@ -24,7 +24,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-bool RepStorage::GetRepHandlers(const std::string &_topic,
+bool RepStorage::GetHandlers(const std::string &_topic,
   IRepHandler_M &_handlers)
 {
   if (this->responsers.find(_topic) == this->responsers.end())
@@ -35,24 +35,23 @@ bool RepStorage::GetRepHandlers(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void RepStorage::AddRepHandler(const std::string &_topic,
-  const std::string &_nodeUuid,
-  const std::shared_ptr<IRepHandler> &_handler)
+void RepStorage::AddHandler(const std::string &_topic,
+  const std::string &_nUuid, const std::shared_ptr<IRepHandler> &_handler)
 {
   // Create the topic entry.
   if (this->responsers.find(_topic) == this->responsers.end())
     this->responsers[_topic] = {};
 
   // Create the Node UUID entry.
-  if (!this->HasRepHandler(_topic, _nodeUuid))
-    this->responsers[_topic].insert(std::make_pair(_nodeUuid, nullptr));
+  if (this->responsers[_topic].find(_nUuid) == this->responsers[_topic].end())
+    this->responsers[_topic].insert(std::make_pair(_nUuid, nullptr));
 
   // Add/Replace the Rep handler.
-  this->responsers[_topic][_nodeUuid] = _handler;
+  this->responsers[_topic][_nUuid] = _handler;
 }
 
 //////////////////////////////////////////////////
-bool RepStorage::Advertised(const std::string &_topic)
+bool RepStorage::HasHandlerForTopic(const std::string &_topic)
 {
   if (this->responsers.find(_topic) == this->responsers.end())
     return false;
@@ -61,7 +60,18 @@ bool RepStorage::Advertised(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void RepStorage::RemoveRepHandler(const std::string &_topic,
+bool RepStorage::HasHandlerForNode(const std::string &_topic,
+  const std::string &_nUuid)
+{
+  if (this->responsers.find(_topic) == this->responsers.end())
+    return false;
+
+  return this->responsers[_topic].find(_nUuid) !=
+    this->responsers[_topic].end();
+}
+
+//////////////////////////////////////////////////
+void RepStorage::RemoveHandler(const std::string &_topic,
   const std::string &_nUuid)
 {
   if (this->responsers.find(_topic) != this->responsers.end())
@@ -70,15 +80,4 @@ void RepStorage::RemoveRepHandler(const std::string &_topic,
     if (this->responsers[_topic].empty())
       this->responsers.erase(_topic);
   }
-}
-
-//////////////////////////////////////////////////
-bool RepStorage::HasRepHandler(const std::string &_topic,
-  const std::string &_nUuid)
-{
-  if (this->responsers.find(_topic) == this->responsers.end())
-    return false;
-
-  return this->responsers[_topic].find(_nUuid) !=
-    this->responsers[_topic].end();
 }
