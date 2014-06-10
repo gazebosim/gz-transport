@@ -18,7 +18,6 @@
 #include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
-#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <mutex>
@@ -52,7 +51,7 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
   zbeacon_subscribe(this->beacon, NULL, 0);
 
-  // Get the host IP address.
+  // Get this host IP address.
   this->hostAddr = this->GetHostAddr();
 
   // Start the thread that receives discovery information.
@@ -153,9 +152,9 @@ void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
     Addresses_M addresses;
     if (this->info.GetAddresses(_topic, addresses))
     {
-      for (auto proc : addresses)
+      for (auto &proc : addresses)
       {
-        for (auto node : proc.second)
+        for (auto &node : proc.second)
         {
           if (_isSrvCall && this->connectionSrvCb)
           {
@@ -546,7 +545,7 @@ void DiscoveryPrivate::PrintCurrentState()
     std::cout << "\t<empty>" << std::endl;
   else
   {
-    for (auto proc : this->activity)
+    for (auto &proc : this->activity)
     {
       // Elapsed time since the last update from this publisher.
       std::chrono::duration<double> elapsed = now - proc.second;
@@ -569,7 +568,7 @@ void DiscoveryPrivate::NewBeacon(const AdvertiseType &_advType,
   std::unique_ptr<Header> header;
 
   if (this->beacons.find(_topic) == this->beacons.end() ||
-      (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end()))
+      this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
   {
     // Create a new beacon and set the advertise interval.
     zbeacon_t *b = zbeacon_new(this->ctx, this->DiscoveryPort);

@@ -44,10 +44,10 @@ namespace ignition
       typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
 
       /// \brief Constructor.
-      /// \param[in] _procUuid This discovery instance will run inside a
+      /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: DiscoveryPrivate(const uuid_t &_procUuid,
+      public: DiscoveryPrivate(const uuid_t &_pUuid,
                                bool _verbose);
 
       /// \brief Destructor.
@@ -74,7 +74,7 @@ namespace ignition
 
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
-      /// and invalid the old topics.
+      /// and invalids the old topics.
       public: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
@@ -82,12 +82,6 @@ namespace ignition
 
       /// \brief Receive discovery messages.
       public: void RunReceptionTask();
-
-      /// \brief Each time the client calls Discover(), the discovery will try
-      /// to discover the addressing information for the requested topic. This
-      /// method will periodically retransmit the request to discover until
-      /// the advertiser answers.
-      public: void RunRetransmissionTask();
 
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdate();
@@ -115,8 +109,8 @@ namespace ignition
                           const Scope &_scope,
                           int _flags = 0);
 
-      /// \brief Get the IP address of the host.
-      /// \return A string with the host's IP address.
+      /// \brief Get the IP address of this host.
+      /// \return A string with this host's IP address.
       public: std::string GetHostAddr();
 
       /// \brief Print the current discovery state (info, activity, unknown).
@@ -208,9 +202,7 @@ namespace ignition
       /// name. The value is another map, where the key is the node UUID.
       public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
 
-      /// \brief Addressing information. For each topic we store a map that
-      /// contains the process UUID as key and the 0MQ address and 0MQ control
-      //  address of the publisher as value.
+      /// \brief Topic addressing information.
       public: TopicStorage info;
 
       /// \brief Activity information. Every time there is a message from a
