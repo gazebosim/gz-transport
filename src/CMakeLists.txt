@@ -5,7 +5,6 @@ set (sources
   DiscoveryPrivate.cc
   Node.cc
   NodePrivate.cc
-  SubscriptionStorage.cc
   TopicStorage.cc
   Packet.cc
 )

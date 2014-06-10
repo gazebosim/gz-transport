@@ -29,7 +29,6 @@
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TopicStorage.hh"
 
 namespace ignition

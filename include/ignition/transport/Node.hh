@@ -33,7 +33,6 @@
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/SubscriptionStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition

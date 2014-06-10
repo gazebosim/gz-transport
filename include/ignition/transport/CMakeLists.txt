@@ -9,7 +9,6 @@ set (headers
   Packet.hh
   ReqHandler.hh
   SubscriptionHandler.hh
-  SubscriptionStorage.hh
   TopicStorage.hh
   TransportTypes.hh
 )
