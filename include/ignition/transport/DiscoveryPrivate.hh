@@ -53,6 +53,25 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
 
+      /// \brief Advertise a new message or service call.
+      /// \param[in] _advType Message (Msg) or service call (Srv).
+      /// \param[in] _topic Topic name to be advertised.
+      /// \param[in] _addr ZeroMQ address of the topic's publisher.
+      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _scope Topic scope.
+      public: void Advertise(const AdvertiseType &_advType,
+                             const std::string &_topic,
+                             const std::string &_addr,
+                             const std::string &_ctrl,
+                             const std::string &_nUuid,
+                             const Scope &_scope);
+
+      /// \brief Request discovery information about a topic.
+      /// \param[in] _topic Topic name requested.
+      /// \param[in] _isSrvCall true if the topic corresponds to a service call.
+      public: void Discover(const std::string &_topic, bool _isSrvCall);
+
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalid the old topics.

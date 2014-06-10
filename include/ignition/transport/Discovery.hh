@@ -30,7 +30,13 @@ namespace ignition
   namespace transport
   {
     /// \class Discovery Discovery.hh
-    /// \brief A discovery class.
+    /// \brief A discovery class that implements a distributed topic discovery
+    /// protocol. It uses UDP broadcast for sending/receiving messages and
+    /// keep updated the topic information. The discovery clients can request
+    /// the discovery of a topic or the advertise of a local topic. The
+    /// discovery uses heartbits to track the state of other peers in the
+    /// betwork. The discovery clients can register callbacks to detect when
+    /// new topics are discovered or topics are no longer available.
     class Discovery
     {
       /// \brief Constructor.
@@ -40,30 +46,44 @@ namespace ignition
       public: Discovery(const uuid_t &_pUuid, bool _verbose = false);
 
       /// \brief Destructor.
-      public: virtual ~Discovery();
+      public: virtual ~Discovery() = default;
 
-      /// \brief Advertise a new topic.
-      /// \param[in] _advType Type of advertise requested.
+      /// \brief Advertise a new message.
+      /// \param[in] _topic Topic name to be advertised.
+      /// \param[in] _addr ZeroMQ address of the topic's publisher.
+      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _scope Topic scope.
+      public: void AdvertiseMsg(const std::string &_topic,
+                                const std::string &_addr,
+                                const std::string &_ctrl,
+                                const std::string &_nUuid,
+                                const Scope &_scope = Scope::All);
+
+      /// \brief Advertise a new service call.
       /// \param[in] _topic Topic to be advertised.
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void Advertise(const AdvertiseType &_advType,
-                             const std::string &_topic,
-                             const std::string &_addr,
-                             const std::string &_ctrl,
-                             const std::string &_nUuid,
-                             const Scope &_scope = Scope::All);
+      public: void AdvertiseSrvCall(const std::string &_topic,
+                                    const std::string &_addr,
+                                    const std::string &_ctrl,
+                                    const std::string &_nUuid,
+                                    const Scope &_scope = Scope::All);
 
-      /// \brief Request discovery information about a topic.
+      /// \brief Request discovery information about a message.
+      /// \param[in] _topic Topic name requested.
+      public: void DiscoverMsg(const std::string &_topic);
+
+      /// \brief Request discovery information about a service call.
       /// \param[in] _topic Topic requested.
-      public: void Discover(bool _isSrvCall, const std::string &_topic);
+      public: void DiscoverSrvCall(const std::string &_topic);
 
-      /// \brief Get all the addresses for a given topic.
+      /// \brief Get all the addresses known for a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[out] _addresses Map of addresses requested.
-      /// \return true if the topic is found.
+      /// \param[out] _addresses Addresses requested.
+      /// \return True if the topic is found and there is at least one address.
       public: bool GetTopicAddresses(const std::string &_topic,
                                      Addresses_M &_addresses);
 
@@ -75,28 +95,28 @@ namespace ignition
       public: void Unadvertise(const std::string &_topic,
                                const std::string &_nUuid);
 
-      /// \brief Get the IP address of the host.
-      /// \return A string with the host's IP address.
+      /// \brief Get the IP address of this host.
+      /// \return A string with this host's IP address.
       public: std::string GetHostAddr() const;
 
       /// \brief The discovery checks the validity of the topic information
-      /// every 'activity interval' time.
+      /// every 'activity interval' milliseconds.
       /// \return The value in milliseconds.
       public: unsigned int GetActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
-      /// information alive in the remote nodes. A HELLO message is sent after
-      /// 'heartbit interval' time.
+      /// information alive in other nodes. A HELLO message is sent after
+      /// 'heartbit interval' milliseconds.
       /// \return The value in milliseconds.
       public: unsigned int GetHeartbitInterval() const;
 
-      /// \brief While a topic is advertised by a node, a new beacon is sent
-      /// periodically every 'advertise interval'.
+      /// \brief While a topic is being advertised by a node, a beacon is sent
+      /// periodically every 'advertise interval' milliseconds.
       /// \return The value in milliseconds.
       public: unsigned int GetAdvertiseInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
-      /// information from a node before canceling its entry.
+      /// information from a node before canceling its entries.
       /// \return The value in milliseconds.
       public: unsigned int GetSilenceInterval() const;
 
@@ -121,14 +141,14 @@ namespace ignition
       public: void SetSilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
-      /// Each time a new node is connected, the callback will be executed. This
-      /// version uses a free function as callback.
+      /// Each time a new topic is connected, the callback will be executed.
+      /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetConnectionsCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
-      /// Each time a new node is connected, the callback will be executed. This
-      /// version uses a member functions as callback.
+      /// Each time a new topic is discovered, the callback will be executed.
+      /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetConnectionsCb(
         void(C::*_cb)(const std::string &, const std::string &,
@@ -142,13 +162,13 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a new node is disconnected, the callback will be executed.
+      /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetDisconnectionsCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a new node is disconnected, the callback will be executed.
+      /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetDisconnectionsCb(
@@ -164,14 +184,17 @@ namespace ignition
 
       /// \brief Register a callback to receive discovery connection events for
       /// service calls.
-      /// Each time a new node is connected, the callback will be executed. This
-      /// version uses a free function as callback.
+      /// Each time a new service call is available, the callback will be
+      /// executed.
+      /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
 
-      /// \brief Register a callback to receive discovery connection events.
-      /// Each time a new node is connected, the callback will be executed. This
-      /// version uses a member functions as callback.
+      /// \brief Register a callback to receive discovery connection events for
+      /// service calls.
+      /// Each time a new service call is available, the callback will be
+      /// executed.
+      /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetConnectionsSrvCb(
         void(C::*_cb)(const std::string &, const std::string &,
@@ -186,14 +209,16 @@ namespace ignition
 
       /// \brief Register a callback to receive discovery disconnection events
       /// for service calls.
-      /// Each time a new node is disconnected, the callback will be executed.
+      /// Each time a service call is no longer available, the callback will be
+      /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetDisconnectionsSrvCb(
         const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a new node is disconnected, the callback will be executed.
+      /// Each time a service call is no longer available, the callback will be
+      /// executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback.
       public: template<typename C> void SetDisconnectionsSrvCb(

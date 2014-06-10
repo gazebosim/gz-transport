@@ -102,7 +102,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->Discover(false, _topic);
+        this->dataPtr->discovery->DiscoverMsg(_topic);
       }
 
       /// \brief Subscribe to a topic registering a callback. In this version
@@ -139,7 +139,7 @@ namespace ignition
         }
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->discovery->Discover(false, _topic);
+        this->dataPtr->discovery->DiscoverMsg(_topic);
       }
 
       /// \brief Unsubscribe to a topic.
@@ -179,7 +179,7 @@ namespace ignition
           _topic, this->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->discovery->Advertise(AdvertiseType::Srv, _topic,
+        this->dataPtr->discovery->AdvertiseSrvCall(_topic,
           this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
       }
 
@@ -218,7 +218,7 @@ namespace ignition
           _topic, this->nUuidStr, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->discovery->Advertise(AdvertiseType::Srv, _topic,
+        this->dataPtr->discovery->AdvertiseSrvCall(_topic,
           this->dataPtr->myReplierAddress, "", this->nUuidStr, _scope);
       }
 
@@ -270,7 +270,7 @@ namespace ignition
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->Discover(true, _topic);
+          this->dataPtr->discovery->DiscoverSrvCall(_topic);
         }
       }
 
@@ -325,7 +325,7 @@ namespace ignition
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->Discover(true, _topic);
+          this->dataPtr->discovery->DiscoverSrvCall(_topic);
         }
       }
 
@@ -374,7 +374,7 @@ namespace ignition
         else
         {
           // Discover the service call responser.
-          this->dataPtr->discovery->Discover(true, _topic);
+          this->dataPtr->discovery->DiscoverSrvCall(_topic);
         }
 
         auto now = std::chrono::system_clock::now();

@@ -109,6 +109,76 @@ DiscoveryPrivate::~DiscoveryPrivate()
 }
 
 //////////////////////////////////////////////////
+void DiscoveryPrivate::Advertise(const AdvertiseType &_advType,
+  const std::string &_topic, const std::string &_addr, const std::string &_ctrl,
+  const std::string &_nUuid, const Scope &_scope)
+{
+  // ToDo(caguero): Validate a topic (no whitespaces, not empty string, ...)
+  assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  // Add the addressing information (local node).
+  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuidStr,_nUuid, _scope);
+
+  // If the scope is 'Process', do not advertise a message outside this process.
+  if (_scope == Scope::Process)
+    return;
+
+  // Broadcast periodically my topic information.
+  this->NewBeacon(_advType, _topic, _nUuid);
+}
+
+//////////////////////////////////////////////////
+void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
+{
+  assert(_topic != "");
+
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  if (_isSrvCall)
+  {
+    // Broadcast a discovery request for this service call.
+    this->SendMsg(SubSrvType, _topic, "", "", "", Scope::All);
+  }
+  else
+  {
+    // Broadcast a discovery request for this topic.
+    this->SendMsg(SubType, _topic, "", "", "", Scope::All);
+  }
+
+  // I already have information about this topic.
+  if (this->info.HasTopic(_topic))
+  {
+    Addresses_M addresses;
+    if (this->info.GetAddresses(_topic, addresses))
+    {
+      for (auto proc : addresses)
+      {
+        for (auto node : proc.second)
+        {
+          if (_isSrvCall && this->connectionSrvCb)
+          {
+            // Execute the user's callback for a service call request. Notice
+            // that we only execute one callback for preventing receive multiple
+            // service responses for a single request.
+            this->connectionSrvCb(_topic, node.addr, node.ctrl, proc.first,
+              node.nUuid, node.scope);
+            return;
+          }
+          else if (!_isSrvCall && this->connectionCb)
+          {
+            // Execute the user's callback.
+            this->connectionCb(_topic, node.addr, node.ctrl, proc.first,
+              node.nUuid, node.scope);
+          }
+        }
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void DiscoveryPrivate::RunActivityTask()
 {
   while (!zctx_interrupted)

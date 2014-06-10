@@ -68,9 +68,8 @@ void Node::Advertise(const std::string &_topic, const Scope &_scope)
   }
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->discovery->Advertise(AdvertiseType::Msg, _topic,
-    this->dataPtr->myAddress, this->dataPtr->myControlAddress, this->nUuidStr,
-    _scope);
+  this->dataPtr->discovery->AdvertiseMsg(_topic, this->dataPtr->myAddress,
+    this->dataPtr->myControlAddress, this->nUuidStr, _scope);
 }
 
 //////////////////////////////////////////////////
