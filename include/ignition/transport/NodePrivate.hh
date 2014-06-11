@@ -62,6 +62,9 @@ namespace ignition
 
       /// \brief Print activity to stdout.
       public: bool verbose;
+
+      /// \brief Default namespace for this node.
+      public: std::string nameSpace;
     };
   }
 }

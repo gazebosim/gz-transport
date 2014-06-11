@@ -32,11 +32,12 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node(const std::string &/*_namespace*/)
+Node::Node(const std::string &_nameSpace)
   : dataPtr(new NodePrivate())
 {
   uuid_generate(this->dataPtr->nUuid);
   this->dataPtr->nUuidStr = GetGuidStr(this->dataPtr->nUuid);
+  this->dataPtr->nameSpace = _nameSpace;
   this->dataPtr->shared = NodeShared::GetInstance();
 
   // If IGN_VERBOSE=1 enable the verbose mode.

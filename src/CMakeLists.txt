@@ -6,6 +6,7 @@ set (sources
   Node.cc
   NodeShared.cc
   TopicStorage.cc
+  TopicUtils.cc
   Packet.cc
 )
 
@@ -15,6 +16,7 @@ set (gtest_sources
   Node_TEST.cc
   Packet_TEST.cc
   TopicStorage_TEST.cc
+  TopicUtils_TEST.cc
 )
 
 ign_build_tests(${gtest_sources})

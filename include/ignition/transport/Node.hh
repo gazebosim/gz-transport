@@ -47,8 +47,9 @@ namespace ignition
     class Node
     {
       /// \brief Constructor.
-      /// \param[in] _verbose true for enabling verbose mode.
-      public: Node(const std::string &_namespace = "");
+      /// \param[in] _nameSpace Default namespace used by this topic. This might
+      /// be a prefix that can be added to each advertise message if required.
+      public: Node(const std::string &_nameSpace = "");
 
       /// \brief Destructor.
       public: virtual ~Node();

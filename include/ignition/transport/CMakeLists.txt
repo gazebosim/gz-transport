@@ -10,6 +10,7 @@ set (headers
   ReqHandler.hh
   SubscriptionHandler.hh
   TopicStorage.hh
+  TopicUtils.hh
   TransportTypes.hh
 )
 
