@@ -29,15 +29,21 @@ namespace ignition
       /// \brief Determines if a topic name is valid.
       /// \param[in] _topic Topic name to be checked.
       /// \return true if the topic name is valid.
-      public: static bool IsValidTopic(const std::string &_topic,
-                                       const std::string &_ns = "");
+      public: static bool IsValidTopic(const std::string &_topic);
+
+      /// \brief Determines if a topic name is valid.
+      /// \param[in] _topic Topic name to be checked.
+      /// \return true if the topic name is valid.
+      public: static bool IsValidNamespace(const std::string &_ns);
 
       /// \brief Get the full topic path given a namespace and a topic name.
-      /// \param[in] _nameSpace Namespace.
+      /// \param[in] _ns Namespace.
       /// \param[in] _topic Topic name.
-      /// \return The full path applying the topic name to the namespace.
-      public: static std::string GetScopedName(const std::string &_nameSpace,
-                                               const std::string &_topic);
+      /// \param[out] _scoped Scoped topic name.
+      /// \return True if the scoped name is valid (if namespace and topic are).
+      public: static bool GetScopedName(const std::string &_ns,
+                                        const std::string &_topic,
+                                        std::string &_scoped);
     };
   }
 }
