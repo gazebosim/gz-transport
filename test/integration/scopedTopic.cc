@@ -26,7 +26,7 @@ using namespace ignition;
 
 bool cbExecuted;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
 
 //////////////////////////////////////////////////
@@ -45,7 +45,7 @@ void runSubscriber()
   cbExecuted = false;
   transport::Node node;
 
-  node.Subscribe(topic, cb);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
@@ -76,11 +76,11 @@ TEST(ScopedTopicTest, ProcessTest)
 
     transport::Node node1;
 
-    node1.Advertise(topic, transport::Scope::Process);
+    EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
 
     // Wait for the child process to return.
     int status;

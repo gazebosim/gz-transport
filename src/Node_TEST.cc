@@ -25,7 +25,7 @@
 
 using namespace ignition;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
 bool cbExecuted;
 bool cb2Executed;
@@ -48,8 +48,7 @@ void reset()
 /// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -59,8 +58,7 @@ void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 /// \brief Function called each time a topic update is received.
 void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
@@ -100,7 +98,7 @@ class MyTestClass
   public: MyTestClass()
     : callbackExecuted(false)
   {
-    this->node.Subscribe(topic, &MyTestClass::Cb, this);
+    EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
   }
 
   /// \brief Member function called each time a topic update is received.
@@ -118,8 +116,8 @@ class MyTestClass
     robot_msgs::StringMsg msg;
     msg.set_data(data);
 
-    this->node.Advertise(topic);
-    this->node.Publish(topic, msg);
+    EXPECT_TRUE(this->node.Advertise(topic));
+    EXPECT_TRUE(this->node.Publish(topic, msg));
   }
 
   /// \brief Member variable that flags when the callback is executed.
@@ -134,7 +132,7 @@ class MyTestClass
 void CreateSubscriber()
 {
   transport::Node node;
-  node.Subscribe(topic, cb);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
@@ -156,7 +154,7 @@ void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
   msg.set_data(data);
 
   transport::Node node;
-  node.Advertise(topic, _sc);
+  EXPECT_TRUE(node.Advertise(topic, _sc));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -166,7 +164,7 @@ void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a msg on topic.
-  EXPECT_EQ(node.Publish(topic, msg), 0);
+  EXPECT_TRUE(node.Publish(topic, msg));
 
   // Wait until the subscribe thread finishes.
   subscribeThread.join();
@@ -188,19 +186,19 @@ TEST(NodeTest, PubWithoutAdvertise)
   transport::Node node2;
 
   // Publish some data on topic without advertising it first.
-  EXPECT_NE(node1.Publish(topic, msg), 0);
+  EXPECT_FALSE(node1.Publish(topic, msg));
 
-  node1.Advertise(topic);
-  node2.Advertise(topic);
+  EXPECT_TRUE(node1.Advertise(topic));
+  EXPECT_TRUE(node2.Advertise(topic));
 
-  node2.Subscribe(topic, cb);
+  EXPECT_TRUE(node2.Subscribe(topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a message by each node.
-  EXPECT_EQ(node1.Publish(topic, msg), 0);
-  EXPECT_EQ(node2.Publish(topic, msg), 0);
+  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node2.Publish(topic, msg));
 
   // Wait some time for the messages to arrive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -220,15 +218,15 @@ TEST(NodeTest, PubSubSameThread)
   msg.set_data(data);
 
   transport::Node node;
-  node.Advertise(topic);
+  EXPECT_TRUE(node.Advertise(topic));
 
-  node.Subscribe(topic, cb);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_EQ(node.Publish(topic, msg), 0);
+  EXPECT_TRUE(node.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -239,7 +237,7 @@ TEST(NodeTest, PubSubSameThread)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_EQ(node.Publish(topic, msg), 0);
+  EXPECT_TRUE(node.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -248,10 +246,10 @@ TEST(NodeTest, PubSubSameThread)
   EXPECT_TRUE(cbExecuted);
   cbExecuted = false;
 
-  node.Unadvertise(topic);
+  EXPECT_TRUE(node.Unadvertise(topic));
 
   // Publish a third message.
-  EXPECT_NE(node.Publish(topic, msg), 0);
+  EXPECT_FALSE(node.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -281,18 +279,18 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node1;
   transport::Node node2;
 
-  node1.Advertise(topic);
+  EXPECT_TRUE(node1.Advertise(topic));
 
   // Subscribe to topic in node1.
-  node1.Subscribe(topic, cb);
+  EXPECT_TRUE(node1.Subscribe(topic, cb));
 
   // Subscribe to topic in node2.
-  node2.Subscribe(topic, cb2);
+  EXPECT_TRUE(node2.Subscribe(topic, cb2));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_EQ(node1.Publish(topic, msg), 0);
+  EXPECT_TRUE(node1.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -305,13 +303,13 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   reset();
 
   // Node1 is not interested in the topic anymore.
-  node1.Unsubscribe(topic);
+  EXPECT_TRUE(node1.Unsubscribe(topic));
 
   // Give some time to receive the unsubscription.
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a second message.
-  EXPECT_EQ(node1.Publish(topic, msg), 0);
+  EXPECT_TRUE(node1.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -323,10 +321,10 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   reset();
 
-  node1.Unadvertise(topic);
+  EXPECT_TRUE(node1.Unadvertise(topic));
 
   // Publish a third message
-  EXPECT_NE(node1.Publish(topic, msg), 0);
+  EXPECT_FALSE(node1.Publish(topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -388,8 +386,8 @@ TEST(NodeTest, ServiceCallAsync)
   req.set_data(data);
 
   transport::Node node;
-  node.Advertise(topic, srvEcho);
-  node.Request(topic, req, response);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Request(topic, req, response));
 
   int i = 0;
   while (i < 100 && !srvExecuted)
@@ -407,7 +405,7 @@ TEST(NodeTest, ServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  node.Request(topic, req, response);
+  EXPECT_TRUE(node.Request(topic, req, response));
 
   i = 0;
   while (i < 100 && !responseExecuted)
@@ -434,7 +432,7 @@ TEST(NodeTest, ServiceCallSync)
   req.set_data(data);
 
   transport::Node node;
-  node.Advertise(topic, srvEcho);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
   bool executed = node.Request(topic, req, timeout, rep, result);
 
   // Check that the service call response was executed.
@@ -481,12 +479,12 @@ void createInfinitePublisher()
   msg.set_data(data);
   transport::Node node;
 
-  node.Advertise(topic);
+  EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
   while (i < 200 && !node.Interrupted())
   {
-    node.Publish(topic, msg);
+    EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

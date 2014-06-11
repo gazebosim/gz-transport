@@ -58,13 +58,13 @@ namespace ignition
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeSharedPtr shared;
+      public: NodeSharedPtr shared = NodeShared::GetInstance();
 
       /// \brief Print activity to stdout.
-      public: bool verbose;
+      public: bool verbose = false;
 
       /// \brief Default namespace for this node.
-      public: std::string nameSpace;
+      public: std::string ns = "";
     };
   }
 }

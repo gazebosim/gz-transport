@@ -50,8 +50,8 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/fg"));
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/fg/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidNamespace(""));
 
-  EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(""));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(" "));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("ns "));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("abc//def"));
@@ -64,6 +64,7 @@ TEST(TopicUtilsTest, testNamespaces)
 /// \brief Check GetScopeName.
 TEST(TopicUtilsTest, testGetScopeName)
 {
+  std::string ns0 = "~ns";
   std::string ns1 = "";
   std::string ns2 = "abc";
   std::string t1 = "~/def";
@@ -76,14 +77,22 @@ TEST(TopicUtilsTest, testGetScopeName)
   std::string t8 = "~def/";
   std::string scoped;
 
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t1, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t2, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t3, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t4, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t5, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t6, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t7, scoped));
-  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t8, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t1, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t2, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t3, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t4, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t5, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t6, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t7, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t8, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t1, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t2, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t3, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t4, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t5, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t6, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t7, scoped));
+  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t8, scoped));
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t1, scoped));
   EXPECT_EQ(scoped, "/abc/def");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t2, scoped));

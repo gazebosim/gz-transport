@@ -54,10 +54,6 @@ bool TopicUtils::IsValidTopic(const std::string &_topic)
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
-  // The empty string is not valid.
-  if (_ns == "")
-    return false;
-
   // The character '~' is not valid.
   if (_ns.find("~") != std::string::npos)
     return false;

@@ -24,7 +24,7 @@
 
 using namespace ignition;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
 bool srvExecuted = false;
 
@@ -47,7 +47,7 @@ void runReplier()
 {
   srvExecuted = false;
   transport::Node node;
-  node.Advertise(topic, srvEcho);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   int i = 0;
   while (i < 2000 && !srvExecuted)
@@ -80,9 +80,7 @@ TEST(twoProcSrvCallSync, SrvTwoProcs)
     req.set_data(data);
 
     transport::Node node1;
-    bool executed = node1.Request(topic, req, 5000, rep, result);
-
-    EXPECT_TRUE(executed);
+    EXPECT_TRUE(node1.Request(topic, req, 5000, rep, result));
     EXPECT_EQ(req.data(), rep.data());
     EXPECT_TRUE(result);
 
