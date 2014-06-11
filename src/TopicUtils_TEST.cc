@@ -15,8 +15,6 @@
  *
 */
 
-#include <limits.h>
-#include <uuid/uuid.h>
 #include <string>
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
