@@ -77,6 +77,7 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 bool TopicUtils::GetScopedName(const std::string &_ns,
   const std::string &_topic, std::string &_scoped)
 {
+  // Sanity check, first things first.
   if (!IsValidNamespace(_ns) || !IsValidTopic(_topic))
     return false;
 
