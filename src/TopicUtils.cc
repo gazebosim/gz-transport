@@ -34,7 +34,7 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
   if (_ns == "/")
     return false;
 
- if (_ns.find("~") != std::string::npos)
+  if (_ns.find("~") != std::string::npos)
     return false;
 
   // If the topic name has a white space is not valid.
