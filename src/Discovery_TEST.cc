@@ -21,6 +21,7 @@
 #include <string>
 #include "gtest/gtest.h"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 

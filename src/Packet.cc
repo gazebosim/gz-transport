@@ -20,27 +20,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;
 using namespace transport;
-
-//////////////////////////////////////////////////
-std::string transport::GetGuidStr(const uuid_t &_uuid)
-{
-  std::vector<char> guid_str(GUID_STR_LEN);
-
-  for (size_t i = 0; i < sizeof(uuid_t) && i != GUID_STR_LEN; ++i)
-  {
-    snprintf(&guid_str[0], GUID_STR_LEN,
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      _uuid[0], _uuid[1], _uuid[2], _uuid[3],
-      _uuid[4], _uuid[5], _uuid[6], _uuid[7],
-      _uuid[8], _uuid[9], _uuid[10], _uuid[11],
-      _uuid[12], _uuid[13], _uuid[14], _uuid[15]);
-  }
-  return std::string(guid_str.begin(), guid_str.end() - 1);
-}
 
 //////////////////////////////////////////////////
 Header::Header()

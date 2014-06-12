@@ -4,6 +4,7 @@ set (headers
   Discovery.hh
   DiscoveryPrivate.hh
   HandlerStorage.hh
+  Helpers.hh
   Node.hh
   NodePrivate.hh
   NodeShared.hh
