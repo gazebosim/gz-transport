@@ -89,6 +89,8 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
     return false;
   }
 
+  std::cout << "Advertise [" << scTopic << "]" <<  std::endl;
+
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before)

@@ -25,13 +25,18 @@ using namespace ignition;
 /// \brief Check the topic names.
 TEST(TopicUtilsTest, testTopics)
 {
-  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("~/abcde"));
-  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("~abcde"));
-  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("abcde"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("abc"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("abc/de"));
   EXPECT_TRUE(transport::TopicUtils::IsValidTopic("a"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("abc/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/d"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/d/e"));
 
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic(""));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic(" "));
+  EXPECT_FALSE(transport::TopicUtils::IsValidTopic("~a"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("topic1 "));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("abc//def"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("ab~cd"));
@@ -85,31 +90,31 @@ TEST(TopicUtilsTest, testGetScopeName)
   EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t6, scoped));
   EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t7, scoped));
   EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns0, t8, scoped));
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t1, scoped));
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t2, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t1, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t2, scoped));
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t3, scoped));
+  EXPECT_EQ(scoped, "/def");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t4, scoped));
+  EXPECT_EQ(scoped, "/def");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t5, scoped));
+  EXPECT_EQ(scoped, "/def/ghi");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t6, scoped));
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t7, scoped));
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns1, t8, scoped));
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t1, scoped));
-  EXPECT_EQ(scoped, "/abc/def");
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t2, scoped));
-  EXPECT_EQ(scoped, "/abc/def");
+  EXPECT_EQ(scoped, "/def/ghi");
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t7, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns1, t8, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns2, t1, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns2, t2, scoped));
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t3, scoped));
   EXPECT_EQ(scoped, "/def");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t4, scoped));
-  EXPECT_EQ(scoped, "/def");
+  EXPECT_EQ(scoped, "/abc/def");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t5, scoped));
-  EXPECT_EQ(scoped, "/def/ghi");
+  EXPECT_EQ(scoped, "/abc/def/ghi");
   EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t6, scoped));
-  EXPECT_EQ(scoped, "/def/ghi");
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t7, scoped));
-  EXPECT_EQ(scoped, "/abc/def");
-  EXPECT_TRUE(transport::TopicUtils::GetScopedName(ns2, t8, scoped));
-  EXPECT_EQ(scoped, "/abc/def");
-}
+  EXPECT_EQ(scoped, "/abc/def/ghi");
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns2, t7, scoped));
+  EXPECT_FALSE(transport::TopicUtils::GetScopedName(ns2, t8, scoped));
+  }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

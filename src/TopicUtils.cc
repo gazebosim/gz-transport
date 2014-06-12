@@ -24,38 +24,17 @@ using namespace transport;
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidTopic(const std::string &_topic)
 {
-  // The empty string is not valid.
-  if (_topic == "")
-    return false;
-
-  // The topics '~', '/', '~/' are not valid.
-  if (_topic == "~" || _topic == "/" || _topic == "~/")
-    return false;
-
-  // If the topic name has a white space is not valid.
-  if (_topic.find(" ") != std::string::npos)
-    return false;
-
-  // It is not allowed to have two consecutive slashes.
-  if (_topic.find("//") != std::string::npos)
-    return false;
-
-  // The symbol '~' is allowed to represent a 'relative' path but is only
-  // allowed at the start of the topic name.
-  auto pos = _topic.find("~");
-  if (pos != std::string::npos && pos != 0)
-  {
-    return false;
-  }
-
-  return true;
+  return IsValidNamespace(_topic) && (_topic != "");
 }
 
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
-  // The character '~' is not valid.
-  if (_ns.find("~") != std::string::npos)
+  // The empty string or "/" are not valid.
+  if (_ns == "/")
+    return false;
+
+ if (_ns.find("~") != std::string::npos)
     return false;
 
   // If the topic name has a white space is not valid.
@@ -89,19 +68,15 @@ bool TopicUtils::GetScopedName(const std::string &_ns,
     ns.insert(0, 1, '/');
 
   // If the topic ends in "/", remove it.
-  if (_topic.back() == '/')
+  if (topic.back() == '/')
     topic.pop_back();
 
-  // If the topic starts with '~' is considered a relative path and the
-  // namespace will be prefixed.
-  if (topic.find("~/") == 0)
-    _scoped = ns + topic.substr(2);
-  else if (topic.find("~") == 0)
-    _scoped = ns + topic.substr(1);
-  else if (topic.front() != '/')
-    _scoped = "/" + topic;
-  else
+  // If the topic does starts with '/' is considered an absolute topic and the
+  // namespace will not be prefixed.
+  if (topic.front() == '/')
     _scoped = topic;
+  else
+    _scoped = ns + topic;
 
   return true;
 }
