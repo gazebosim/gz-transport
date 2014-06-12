@@ -5,8 +5,10 @@ set (headers
   DiscoveryPrivate.hh
   HandlerStorage.hh
   Node.hh
+  NodePrivate.hh
   NodeShared.hh
   Packet.hh
+  RepHandler.hh
   ReqHandler.hh
   SubscriptionHandler.hh
   TopicStorage.hh
