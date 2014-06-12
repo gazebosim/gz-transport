@@ -28,6 +28,9 @@ namespace ignition
 {
   namespace transport
   {
+    /// \brief Length of a GUID.
+    #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
+
     //  This is the version of Gazebo transport we implement.
     static const int Version        = 1;
 
@@ -53,7 +56,7 @@ namespace ignition
     /// \brief Get the string representation of the GUID.
     /// \param[in] _uuid UUID to be converted to string.
     /// \return A string representation of the GUID.
-    //std::string GetGuidStr(const uuid_t &_uuid);
+    std::string GetGuidStr(const uuid_t &_uuid);
 
     /// \class Header Packet.hh
     /// \brief Header included in each discovery message containing the version
