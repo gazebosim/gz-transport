@@ -36,7 +36,7 @@ namespace ignition
     /// keep updated the topic information. The discovery clients can request
     /// the discovery of a topic or the advertise of a local topic. The
     /// discovery uses heartbits to track the state of other peers in the
-    /// betwork. The discovery clients can register callbacks to detect when
+    /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
     class IGNITION_VISIBLE Discovery
     {
