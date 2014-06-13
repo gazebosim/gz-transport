@@ -57,7 +57,7 @@ namespace ignition
     /// \brief Get the string representation of the GUID.
     /// \param[in] _uuid UUID to be converted to string.
     /// \return A string representation of the GUID.
-    std::string GetGuidStr(const uuid_t &_uuid);
+    IGNITION_VISIBLE std::string GetGuidStr(const uuid_t &_uuid);
 
     /// \class Header Packet.hh
     /// \brief Header included in each discovery message containing the version
