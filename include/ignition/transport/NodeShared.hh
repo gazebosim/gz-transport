@@ -37,7 +37,7 @@ namespace ignition
   {
     /// \class NodeShared NodeShared.hh
     /// \brief Private data for the Node class.
-    class NodeShared
+    class IGNITION_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.

@@ -33,7 +33,7 @@ namespace ignition
   {
     /// \class IRepHandler RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
-    class IRepHandler
+    class IGNITION_VISIBLE IRepHandler
     {
       /// \brief Constructor.
       public: IRepHandler()

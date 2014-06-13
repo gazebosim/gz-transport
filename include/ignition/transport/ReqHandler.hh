@@ -34,7 +34,7 @@ namespace ignition
   {
     /// \class IReqHandler ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
-    class IReqHandler
+    class IGNITION_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.

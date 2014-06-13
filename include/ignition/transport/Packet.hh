@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
@@ -56,14 +57,14 @@ namespace ignition
     /// \brief Get the string representation of the GUID.
     /// \param[in] _uuid UUID to be converted to string.
     /// \return A string representation of the GUID.
-    std::string GetGuidStr(const uuid_t &_uuid);
+    IGNITION_VISIBLE std::string GetGuidStr(const uuid_t &_uuid);
 
     /// \class Header Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the UUID of the sender node, the topic
     /// contained in the message, the type of message (ADV, SUB, ... ) and
     /// optional flags.
-    class Header
+    class IGNITION_VISIBLE Header
     {
       /// \brief Constructor.
       public: Header();
@@ -173,7 +174,7 @@ namespace ignition
     /// information about the node advertising a topic. The information sent
     /// is the ZeroMQ end point addressy where the node will be receiving
     /// subscription requests.
-    class AdvMsg
+    class IGNITION_VISIBLE AdvMsg
     {
       /// \brief Constructor.
       public: AdvMsg();
