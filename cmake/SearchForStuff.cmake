@@ -4,6 +4,17 @@ include (CheckCXXSourceCompiles)
 include (${project_cmake_dir}/FindOS.cmake)
 include (FindPkgConfig)
 
+# It is know that raring compiler 4.7.3 is not able to compile the software
+# Check for a fully valid c++11 compiler
+if (CMAKE_COMPILER_IS_GNUCC)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+                OUTPUT_VARIABLE GCC_VERSION)
+    if (GCC_VERSION LESS 4.8)
+      message(STATUS "Not found a compatible c++11 gcc compiler")
+      BUILD_ERROR("GCC version is lower than 4.8. Need a compatible c++11 compiler")
+  endif()
+endif()
+
 ########################################
 if (PROTOBUF_VERSION LESS 2.3.0)
   BUILD_ERROR("Incorrect version: Gazebo requires protobuf version 2.3.0 or greater")
