@@ -27,6 +27,7 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"

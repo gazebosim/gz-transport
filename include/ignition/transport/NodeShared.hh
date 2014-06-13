@@ -27,6 +27,7 @@
 #include <thread>
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"

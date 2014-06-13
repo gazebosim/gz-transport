@@ -22,6 +22,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 
 using namespace ignition;

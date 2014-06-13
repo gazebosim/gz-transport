@@ -24,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 

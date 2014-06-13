@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/DiscoveryPrivate.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
