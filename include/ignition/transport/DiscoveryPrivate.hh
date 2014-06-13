@@ -37,7 +37,7 @@ namespace ignition
   {
     /// \class DiscoveryPrivate DiscoveryPrivate.hh
     /// \brief Private data for the Discovery class.
-    class DiscoveryPrivate
+    class IGNITION_VISIBLE DiscoveryPrivate
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.

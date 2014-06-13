@@ -43,6 +43,7 @@ if (NOT zmq_FOUND)
 else ()
   message (STATUS "Looking for zmq pkgconfig file - found")
   include_directories(${zmq_INCLUDE_DIRS})
+  link_directories(${zmq_LIBRARY_DIRS})
 endif ()
 
 #################################################
@@ -56,6 +57,7 @@ if (NOT czmq_FOUND)
 else ()
   message (STATUS "Looking for czmq pkgconfig file - found")
   include_directories(${czmq_INCLUDE_DIRS})
+  link_directories(${czmq_LIBRARY_DIRS})
 endif ()
 
 ########################################

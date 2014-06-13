@@ -33,7 +33,7 @@ namespace ignition
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobub messages.
-    class ISubscriptionHandler
+    class IGNITION_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the subscription handler

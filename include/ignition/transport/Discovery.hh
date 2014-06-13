@@ -38,7 +38,7 @@ namespace ignition
     /// discovery uses heartbits to track the state of other peers in the
     /// betwork. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
-    class Discovery
+    class IGNITION_VISIBLE Discovery
     {
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a

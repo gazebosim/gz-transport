@@ -19,12 +19,13 @@
 #define __IGN_TRANSPORT_TOPICUTILS_HH_INCLUDED__
 
 #include <string>
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    class TopicUtils
+    class IGNITION_VISIBLE TopicUtils
     {
       /// \brief Determines if a topic name is valid.
       /// \param[in] _topic Topic name to be checked.
