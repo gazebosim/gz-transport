@@ -34,37 +34,27 @@ endif ()
 
 #################################################
 # Find ZeroMQ.
-find_path (zmq_INCLUDE_DIRS zmq.hpp)
-set (ZMQ_FOUND True)
+pkg_check_modules(zmq libzmq>=3.2.0)
 
-if (NOT zmq_INCLUDE_DIRS)
-  message (STATUS "Looking for zmq.hpp - not found")
-  set (ZMQ_FOUND False)
+if (NOT zmq_FOUND)
+  message (STATUS "Looking for zmq pkgconfig file - not found")
+  BUILD_ERROR ("zmq not found, Please install zmq")
 else ()
-  message (STATUS "Looking for zmq.hpp - found")
+  message (STATUS "Looking for zmq pkgconfig file - found")
   include_directories(${zmq_INCLUDE_DIRS})
 endif ()
 
-if (NOT ZMQ_FOUND)
-	BUILD_ERROR ("zmq not found, Please install ...")
-endif()
-
 #################################################
-# Find czmq.
-find_path (czmq_INCLUDE_DIRS czmq.h)
-set (CZMQ_FOUND True)
+# Find czmq.:
+pkg_check_modules(czmq libczmq>=1.4.0)
 
-if (NOT czmq_INCLUDE_DIRS)
-  message (STATUS "Looking for czmq.h - not found")
-  set (CZMQ_FOUND False)
+if (NOT czmq_FOUND)
+  message (STATUS "Looking for czmq pkgconfig file - not found")
+  BUILD_ERROR ("czmq not found, Please install czmq")
 else ()
-  message (STATUS "Looking for czmq.h - found")
+  message (STATUS "Looking for czmq pkgconfig file - found")
   include_directories(${czmq_INCLUDE_DIRS})
 endif ()
-
-if (NOT CZMQ_FOUND)
-  BUILD_ERROR ("czmq not found, Please install ...")
-endif()
 
 ########################################
 # Include man pages stuff
