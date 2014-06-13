@@ -34,8 +34,7 @@ endif ()
 
 #################################################
 # Find ZeroMQ.
-# TODO, which version is the minimun to work with this software
-pkg_check_modules(zmq libzmq)
+pkg_check_modules(zmq libzmq>=3.2.0)
 
 if (NOT zmq_FOUND)
   message (STATUS "Looking for zmq pkgconfig file - not found")
@@ -47,8 +46,7 @@ endif ()
 
 #################################################
 # Find czmq.:
-# TODO, which version is the minimun to work with this software
-pkg_check_modules(czmq libczmq)
+pkg_check_modules(czmq libczmq>=1.4.0)
 
 if (NOT czmq_FOUND)
   message (STATUS "Looking for czmq pkgconfig file - not found")
