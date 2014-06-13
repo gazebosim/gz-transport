@@ -24,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -33,7 +34,7 @@ namespace ignition
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobub messages.
-    class ISubscriptionHandler
+    class IGNITION_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the subscription handler

@@ -20,6 +20,7 @@
 
 #include <map>
 #include <string>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -29,7 +30,7 @@ namespace ignition
     /// \class TopicStorage TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, remove it, etc.
-    class TopicStorage
+    class IGNITION_VISIBLE TopicStorage
     {
       /// \brief Constructor.
       public: TopicStorage() = default;

@@ -27,6 +27,7 @@
 #include <thread>
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -37,7 +38,7 @@ namespace ignition
   {
     /// \class NodeShared NodeShared.hh
     /// \brief Private data for the Node class.
-    class NodeShared
+    class IGNITION_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.

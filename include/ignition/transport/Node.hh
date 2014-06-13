@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
@@ -45,7 +46,7 @@ namespace ignition
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
-    class Node
+    class IGNITION_VISIBLE IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
       /// \param[in] _ns Default namespace used by this topic. This might

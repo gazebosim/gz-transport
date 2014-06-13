@@ -27,6 +27,7 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -37,7 +38,7 @@ namespace ignition
   {
     /// \class DiscoveryPrivate DiscoveryPrivate.hh
     /// \brief Private data for the Discovery class.
-    class DiscoveryPrivate
+    class IGNITION_VISIBLE DiscoveryPrivate
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.

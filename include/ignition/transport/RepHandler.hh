@@ -24,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -33,7 +34,7 @@ namespace ignition
   {
     /// \class IRepHandler RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
-    class IRepHandler
+    class IGNITION_VISIBLE IRepHandler
     {
       /// \brief Constructor.
       public: IRepHandler()
