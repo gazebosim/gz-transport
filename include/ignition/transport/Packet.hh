@@ -50,8 +50,7 @@ namespace ignition
     static const std::vector<std::string> MsgTypesStr =
     {
       "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HELLO", "BYE", "ADV_SVC",
-      "SUB_SVC", "PUB", "REQ", "REP", "SRV_REP_ERROR", "NEW_CONNECTION",
-      "END_CONNECTION"
+      "SUB_SVC", "NEW_CONNECTION", "END_CONNECTION"
     };
 
     /// \brief Get the string representation of the GUID.
