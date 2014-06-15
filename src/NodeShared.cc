@@ -143,7 +143,7 @@ NodeShared::~NodeShared()
 //////////////////////////////////////////////////
 void NodeShared::RunReceptionTask()
 {
-  while (!this->discovery->Interrupted())
+  while (!this->discovery->WasInterrupted())
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =

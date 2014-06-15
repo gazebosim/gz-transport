@@ -237,7 +237,7 @@ namespace ignition
       /// the function will return true in that case. All the task threads
       /// will terminate.
       /// \return true if SIGINT or SIGTERM has been captured.
-      public: bool Interrupted();
+      public: bool WasInterrupted();
 
       /// \internal
       /// \brief Shared pointer to private data.
