@@ -18,7 +18,6 @@
 #ifndef __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -52,10 +51,7 @@ namespace ignition
       public: std::unordered_set<std::string> srvsAdvertised;
 
       /// \brief Node UUID. This ID is unique for each node.
-      public: uuid_t nUuid;
-
-      /// \brief Node UUID in string format.
-      public: std::string nUuidStr;
+      public: std::string nUuid;
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.

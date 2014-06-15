@@ -48,7 +48,7 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: DiscoveryPrivate(const uuid_t &_pUuid,
+      public: DiscoveryPrivate(const std::string &_pUuid,
                                bool _verbose);
 
       /// \brief Destructor.
@@ -163,10 +163,7 @@ namespace ignition
       public: std::string hostAddr;
 
       /// \brief Process UUID.
-      public: uuid_t pUuid;
-
-      /// \brief UUID in string format.
-      public: std::string pUuidStr;
+      public: std::string pUuid;
 
       /// \brief Silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.

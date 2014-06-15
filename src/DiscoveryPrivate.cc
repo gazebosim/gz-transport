@@ -31,8 +31,9 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
-  : silenceInterval(DefSilenceInterval),
+DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
+  : pUuid(_pUuid),
+    silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     advertiseInterval(DefAdvertiseInterval),
     heartbitInterval(DefHeartbitInterval),
@@ -42,10 +43,6 @@ DiscoveryPrivate::DiscoveryPrivate(const uuid_t &_pUuid, bool _verbose)
     exit(false)
 {
   this->ctx = zctx_new();
-
-  // Store the UUID and its string version.
-  uuid_copy(this->pUuid, _pUuid);
-  this->pUuidStr = GetGuidStr(this->pUuid);
 
   // Discovery beacon.
   this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
@@ -118,7 +115,7 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
   std::lock_guard<std::mutex> lock(this->mutex);
 
   // Add the addressing information (local node).
-  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuidStr, _nUuid, _scope);
+  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuid, _nUuid, _scope);
 
   // If the scope is 'Process', do not advertise a message outside this process.
   if (_scope == Scope::Process)
@@ -188,7 +185,7 @@ void DiscoveryPrivate::RunActivityTask()
     for (auto it = this->activity.cbegin(); it != this->activity.cend();)
     {
       // Skip my own entry.
-      if (it->first == this->pUuidStr)
+      if (it->first == this->pUuid)
         continue;
 
       // Elapsed time since the last update from this publisher.
@@ -315,10 +312,10 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
   pBody += header.GetHeaderLength();
 
   std::string topic = header.GetTopic();
-  std::string recvPUuid = GetGuidStr(header.GetGuid());
+  std::string recvPUuid = header.GetPUuid();
 
   // Discard our own discovery messages.
-  if (recvPUuid == this->pUuidStr)
+  if (recvPUuid == this->pUuid)
     return;
 
   // Update timestamp.
@@ -374,12 +371,12 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubType:
     {
       // Check if at least one of my nodes advertises the topic requested.
-      if (this->info.HasAnyAddresses(topic, this->pUuidStr))
+      if (this->info.HasAnyAddresses(topic, this->pUuid))
       {
         Addresses_M addresses;
         if (this->info.GetAddresses(topic, addresses))
         {
-          for (auto nodeInfo : addresses[this->pUuidStr])
+          for (auto nodeInfo : addresses[this->pUuid])
           {
             // Check scope of the topic.
             if ((nodeInfo.scope == Scope::Process) ||
@@ -522,7 +519,7 @@ void DiscoveryPrivate::PrintCurrentState()
 {
   std::cout << "---------------" << std::endl;
   std::cout << "Discovery state" << std::endl;
-  std::cout << "\tUUID: " << this->pUuidStr << std::endl;
+  std::cout << "\tUUID: " << this->pUuid << std::endl;
   std::cout << "Settings" << std::endl;
   std::cout << "\tActivity: " << this->activityInterval << " ms." << std::endl;
   std::cout << "\tHeartbit: " << this->heartbitInterval << " ms." << std::endl;
@@ -572,7 +569,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
 
     // Prepare the content for the beacon.
     Address_t node;
-    if (!this->info.GetAddress(_topic, this->pUuidStr, _nUuid, node))
+    if (!this->info.GetAddress(_topic, this->pUuid, _nUuid, node))
       return;
 
     // Create the header.

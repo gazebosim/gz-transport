@@ -31,6 +31,7 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -55,7 +56,6 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  this->verbose = false;
   char const *tmp = std::getenv("IGN_VERBOSE");
   if (tmp)
     this->verbose = std::string(tmp) == "1";
@@ -63,8 +63,8 @@ NodeShared::NodeShared()
   char bindEndPoint[1024];
 
   // My process UUID.
-  uuid_generate(this->pUuid);
-  this->pUuidStr = GetGuidStr(this->pUuid);
+  Uuid uuid;
+  this->pUuid = uuid.ToString();
 
   // Initialize my discovery service.
   this->discovery.reset(new Discovery(this->pUuid, false));
@@ -106,7 +106,7 @@ NodeShared::NodeShared()
   if (this->verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
-    std::cout << "Process UUID: " << this->pUuidStr << std::endl;
+    std::cout << "Process UUID: " << this->pUuid << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
@@ -569,7 +569,7 @@ void NodeShared::OnNewConnection(const std::string &_topic,
 
   // Check if we are interested in this topic.
   if (this->localSubscriptions.HasHandlersForTopic(_topic) &&
-      this->pUuidStr.compare(_pUuid) != 0)
+      this->pUuid.compare(_pUuid) != 0)
   {
     try
     {
@@ -615,9 +615,9 @@ void NodeShared::OnNewConnection(const std::string &_topic,
             memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
             socket.send(message, ZMQ_SNDMORE);
 
-            message.rebuild(this->pUuidStr.size() + 1);
-            memcpy(message.data(), this->pUuidStr.c_str(),
-              this->pUuidStr.size() + 1);
+            message.rebuild(this->pUuid.size() + 1);
+            memcpy(message.data(), this->pUuid.c_str(),
+              this->pUuid.size() + 1);
             socket.send(message, ZMQ_SNDMORE);
 
             message.rebuild(nodeUuid.size() + 1);

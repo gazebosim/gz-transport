@@ -15,6 +15,7 @@ set (headers
   TopicStorage.hh
   TopicUtils.hh
   TransportTypes.hh
+  Uuid.hh
 )
 
 #################################################

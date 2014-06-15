@@ -8,6 +8,7 @@ set (sources
   TopicStorage.cc
   TopicUtils.cc
   Packet.cc
+  Uuid.cc
 )
 
 set (gtest_sources
@@ -17,6 +18,7 @@ set (gtest_sources
   Packet_TEST.cc
   TopicStorage_TEST.cc
   TopicUtils_TEST.cc
+  Uuid_TEST.cc
 )
 
 ign_build_tests(${gtest_sources})

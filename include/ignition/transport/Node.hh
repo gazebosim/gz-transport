@@ -19,7 +19,6 @@
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <algorithm>
 #include <condition_variable>
 #include <functional>
@@ -94,7 +93,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->dataPtr->nUuidStr));
+            new SubscriptionHandler<T>(this->dataPtr->nUuid));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -104,7 +103,7 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->shared->localSubscriptions.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, subscrHandlerPtr);
+          scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
         this->dataPtr->topicsSubscribed.insert(scTopic);
@@ -136,7 +135,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-          new SubscriptionHandler<T>(this->dataPtr->nUuidStr));
+          new SubscriptionHandler<T>(this->dataPtr->nUuid));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(
@@ -147,7 +146,7 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->shared->localSubscriptions.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, subscrHandlerPtr);
+          scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
         this->dataPtr->topicsSubscribed.insert(scTopic);
@@ -197,11 +196,11 @@ namespace ignition
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
         this->dataPtr->shared->repliers.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, repHandlerPtr);
+          scTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrvCall(scTopic,
-          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuidStr,
+          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
           _scope);
 
         return true;
@@ -233,7 +232,7 @@ namespace ignition
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>(this->dataPtr->nUuidStr));
+          new RepHandler<T1, T2>(this->dataPtr->nUuid));
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(
@@ -245,11 +244,11 @@ namespace ignition
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
         this->dataPtr->shared->repliers.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, repHandlerPtr);
+          scTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrvCall(scTopic,
-          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuidStr,
+          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
           _scope);
 
         return true;
@@ -290,7 +289,7 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuid));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
@@ -300,7 +299,7 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, reqHandlerPtr);
+          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
@@ -355,7 +354,7 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuid));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
@@ -367,7 +366,7 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          scTopic, this->dataPtr->nUuidStr, reqHandlerPtr);
+          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
@@ -420,14 +419,14 @@ namespace ignition
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->dataPtr->nUuidStr));
+          new ReqHandler<T1, T2>(this->dataPtr->nUuid));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          _topic, this->dataPtr->nUuidStr, reqHandlerPtr);
+          _topic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;

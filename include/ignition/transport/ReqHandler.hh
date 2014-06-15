@@ -26,8 +26,8 @@
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -41,13 +41,13 @@ namespace ignition
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
         : result(false),
-          nUuidStr(_nUuid),
+          nUuid(_nUuid),
           requested(false),
           repAvailable(false)
       {
-        uuid_t uuid;
-        uuid_generate(uuid);
-        this->hUuid = GetGuidStr(uuid);
+        // Generate the handler UUID.
+        Uuid uuid;
+        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.
@@ -68,7 +68,7 @@ namespace ignition
       /// \return The string representation of the node UUID.
       public: std::string GetNodeUuid()
       {
-        return this->nUuidStr;
+        return this->nUuid;
       }
 
       /// \brief Returns if this service call request has already been requested
@@ -109,8 +109,8 @@ namespace ignition
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
-      /// \brief Node UUID (string).
-      private: std::string nUuidStr;
+      /// \brief Node UUID.
+      private: std::string nUuid;
 
       /// \brief When true, the REQ was already sent and the REP should be on
       /// its way. Used to not resend the same REQ more than one time.

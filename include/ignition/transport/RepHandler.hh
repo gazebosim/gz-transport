@@ -25,8 +25,8 @@
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -39,9 +39,8 @@ namespace ignition
       /// \brief Constructor.
       public: IRepHandler()
       {
-        uuid_t uuid;
-        uuid_generate(uuid);
-        this->hUuid = GetGuidStr(uuid);
+        Uuid uuid;
+        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.

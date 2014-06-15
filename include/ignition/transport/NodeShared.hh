@@ -19,7 +19,6 @@
 #define _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <memory>
 #include <mutex>
@@ -177,10 +176,7 @@ namespace ignition
       public: std::unique_ptr<zmq::socket_t> replier;
 
       /// \brief Process UUID.
-      public: uuid_t pUuid;
-
-      /// \brief String conversion of the process UUID.
-      public: std::string pUuidStr;
+      public: std::string pUuid;
 
       /// \brief Timeout used for receiving requests.
       public: int timeout;

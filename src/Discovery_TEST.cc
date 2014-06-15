@@ -15,7 +15,6 @@
  *
 */
 
-#include <uuid/uuid.h>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -34,11 +33,11 @@ static const int Nap = 10;
 std::string topic  = "foo";
 std::string addr1  = "tcp://127.0.0.1:12345";
 std::string ctrl1  = "tcp://127.0.0.1:12346";
-std::string pUuid1 = "";
+std::string pUuid1 = "UUID-Proc-1";
 std::string nUuid1 = "UUID-Node-1";
 std::string addr2  = "tcp://127.0.0.1:12347";
 std::string ctrl2  = "tcp://127.0.0.1:12348";
-std::string pUuid2 = "";
+std::string pUuid2 = "UUID-Proc-2";
 std::string nUuid2 = "UUID-Node-2";
 transport::Scope scope = transport::Scope::All;
 bool connectionExecuted = false;
@@ -68,17 +67,6 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
     std::this_thread::sleep_for(std::chrono::milliseconds(_sleepTimeIter));
     ++i;
   }
-}
-
-//////////////////////////////////////////////////
-/// \brief Helper function to generate two UUIDs and its strings representation.
-void setupUUIDs(uuid_t & _uuid1, uuid_t & _uuid2)
-{
-  uuid_generate(_uuid1);
-  pUuid1 = ignition::transport::GetGuidStr(_uuid1);
-
-  uuid_generate(_uuid2);
-  pUuid2 = transport::GetGuidStr(_uuid2);
 }
 
 //////////////////////////////////////////////////
@@ -130,7 +118,7 @@ void ondisconnection(const std::string &/*_topic*/,
 class MyClass
 {
   /// \brief Class constructor.
-  public: MyClass(const uuid_t &_pUuid)
+  public: MyClass(const std::string &_pUuid)
   {
     this->discov.reset(new transport::Discovery(_pUuid));
   }
@@ -190,12 +178,8 @@ TEST(DiscoveryTest, TestBasicAPI)
   unsigned int newAdvertiseInterval = 300;
   unsigned int newHeartbitInterval  = 400;
 
-  uuid_t uuid1;
-  uuid_generate(uuid1);
-  pUuid1 = transport::GetGuidStr(uuid1);
-
   // Create two discovery nodes.
-  transport::Discovery discovery1(uuid1);
+  transport::Discovery discovery1(pUuid1);
 
   discovery1.SetSilenceInterval(newSilenceInterval);
   discovery1.SetActivityInterval(newActivityInterval);
@@ -213,14 +197,11 @@ TEST(DiscoveryTest, TestBasicAPI)
 /// \brief Advertise a topic without registering callbacks.
 TEST(DiscoveryTest, TestAdvertiseNoResponse)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(uuid1);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
@@ -238,15 +219,12 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 /// This test uses a discovery object within a class.
 TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // This should generate discovery traffic but no response on object because
   // there is no callback registered.
-  transport::Discovery discovery1(uuid1);
-  MyClass object(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  MyClass object(pUuid2);
 
   // This should trigger a discovery response on discovery2.
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
@@ -261,14 +239,11 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
 /// \brief Check that the discovery triggers the callbacks after an advertise.
 TEST(DiscoveryTest, TestAdvertise)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(uuid1);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);
@@ -287,14 +262,11 @@ TEST(DiscoveryTest, TestAdvertise)
 /// This test uses a discovery object within a class.
 TEST(DiscoveryTest, TestAdvertiseMF)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes (one is embedded in an object).
-  transport::Discovery discovery1(uuid1);
-  MyClass object(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  MyClass object(pUuid2);
   object.RegisterConnections();
 
   // This should trigger a discovery response on object.
@@ -311,17 +283,14 @@ TEST(DiscoveryTest, TestAdvertiseMF)
 /// and after register the discovery callback.
 TEST(DiscoveryTest, TestDiscover)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create one discovery node and advertise a topic.
-  transport::Discovery discovery1(uuid1);
+  transport::Discovery discovery1(pUuid1);
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADV message.
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);
@@ -357,14 +326,11 @@ TEST(DiscoveryTest, TestDiscover)
 /// an unadvertise.
 TEST(DiscoveryTest, TestUnadvertise)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(uuid1);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.SetDisconnectionsCb(ondisconnection);
@@ -395,14 +361,11 @@ TEST(DiscoveryTest, TestUnadvertise)
 /// an unadvertise. This test uses a discovery object within a class.
 TEST(DiscoveryTest, TestUnadvertiseMF)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(uuid1);
-  MyClass object(uuid2);
+  transport::Discovery discovery1(pUuid1);
+  MyClass object(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
   object.RegisterDisconnections();
@@ -433,15 +396,12 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
 /// sending a BYE message (discovery object out of scope).
 TEST(DiscoveryTest, TestNodeBye)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes.
   std::unique_ptr<transport::Discovery> discovery1(
-    new transport::Discovery(uuid1));
-  transport::Discovery discovery2(uuid2);
+    new transport::Discovery(pUuid1));
+  transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.SetDisconnectionsCb(ondisconnection);
@@ -472,15 +432,12 @@ TEST(DiscoveryTest, TestNodeBye)
 /// topic name.
 TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 {
-  uuid_t uuid1, uuid2;
-  setupUUIDs(uuid1, uuid2);
-
   reset();
 
   // Create two discovery nodes and advertise the same topic.
-  transport::Discovery discovery1(uuid1);
+  transport::Discovery discovery1(pUuid1);
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
-  transport::Discovery discovery2(uuid2);
+  transport::Discovery discovery2(pUuid2);
   discovery2.AdvertiseMsg(topic, addr2, ctrl2, nUuid2, scope);
 
   // Register one callback for receiving notifications.

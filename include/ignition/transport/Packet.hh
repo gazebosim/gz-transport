@@ -18,7 +18,6 @@
 #ifndef __IGN_TRANSPORT_PACKET_HH_INCLUDED__
 #define __IGN_TRANSPORT_PACKET_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -29,9 +28,6 @@ namespace ignition
 {
   namespace transport
   {
-    /// \brief Length of a GUID.
-    #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
-
     //  This is the version of Gazebo transport we implement.
     static const int Version        = 1;
 
@@ -53,11 +49,6 @@ namespace ignition
       "SUB_SVC", "NEW_CONNECTION", "END_CONNECTION"
     };
 
-    /// \brief Get the string representation of the GUID.
-    /// \param[in] _uuid UUID to be converted to string.
-    /// \return A string representation of the GUID.
-    IGNITION_VISIBLE std::string GetGuidStr(const uuid_t &_uuid);
-
     /// \class Header Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the UUID of the sender node, the topic
@@ -70,12 +61,12 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _version Version of the transport library.
-      /// \param[in] _guid Global identifier. Every process has a unique guid.
+      /// \param[in] _pUuid Every process has a unique UUID.
       /// \param[in] _topic Topic.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
       /// \param[in] _flags Optional flags included in the header.
       public: Header(const uint16_t _version,
-                     const uuid_t &_guid,
+                     const std::string &_pUuid,
                      const std::string &_topic,
                      const uint8_t _type,
                      const uint16_t _flags = 0);
@@ -84,9 +75,9 @@ namespace ignition
       /// \return Transport library version.
       public: uint16_t GetVersion() const;
 
-      /// \brief Get the guid.
+      /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
-      public: uuid_t& GetGuid();
+      public: std::string& GetPUuid();
 
       /// \brief Get the topic length.
       /// \return Topic length in bytes.
@@ -108,9 +99,9 @@ namespace ignition
       /// \param[in] Transport library version.
       public: void SetVersion(const uint16_t _version);
 
-      /// \brief Set the guid.
-      /// \param[in] _guid A unique global identifier for every process.
-      public: void SetGuid(const uuid_t &_guid);
+      /// \brief Set the process uuid.
+      /// \param[in] _pUuid A unique global identifier for every process.
+      public: void SetPUuid(const std::string &_pUuid);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
@@ -149,8 +140,11 @@ namespace ignition
       /// \brief Version of the transport library.
       private: uint16_t version;
 
+      /// \brief Length of the process UUID (bytes).
+      private: uint16_t pUuidLength;
+
       /// \brief Global identifier. Every process has a unique guid.
-      private: uuid_t guid;
+      private: std::string pUuid;
 
       /// \brief Topic length in bytes.
       private: uint16_t topicLength;

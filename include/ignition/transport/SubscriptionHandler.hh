@@ -19,14 +19,13 @@
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -37,13 +36,13 @@ namespace ignition
     class IGNITION_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.
-      /// \param[in] _uuid UUID of the node registering the subscription handler
-      public: ISubscriptionHandler(const std::string &_uuid)
-        : nodeUuidStr(_uuid)
+      /// \param[in] _nUuid UUID of the node registering the handler.
+      public: ISubscriptionHandler(const std::string &_nUuid)
+        : nUuid(_nUuid)
       {
-        uuid_t uuid;
-        uuid_generate(uuid);
-        this->hUuid = GetGuidStr(uuid);
+        // Generate the UUID for this handler.
+        Uuid uuid;
+        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.
@@ -71,7 +70,7 @@ namespace ignition
       /// \return The string representation of the node UUID.
       public: std::string GetNodeUuid()
       {
-        return this->nodeUuidStr;
+        return this->nUuid;
       }
 
       /// \brief Get the unique UUID of this handler.
@@ -84,8 +83,8 @@ namespace ignition
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
-      /// \brief Node UUID (string).
-      private: std::string nodeUuidStr;
+      /// \brief Node UUID.
+      private: std::string nUuid;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
