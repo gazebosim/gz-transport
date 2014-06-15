@@ -99,7 +99,9 @@ namespace ignition
       /// \param[in] _addr 0MQ Address.
       /// \param[in] _ctrl 0MQ control address.
       /// \param[in] _nUuid Node's UUID.
-      /// \param[in] _flags Optional flags.
+      /// \param[in] _flags Optional flags. Currently, the flags are not used
+      /// but they will in the future for specifying things like compression,
+      /// or encryption.
       /// \return 0 when success.
       public: int SendMsg(uint8_t _type,
                           const std::string &_topic,
