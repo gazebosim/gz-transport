@@ -50,7 +50,7 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   int i = 0;
-  while (i < 2000 && !srvExecuted)
+  while (i < 500 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -67,6 +67,7 @@ void runReplier()
 /// node receives the message.
 TEST(twoProcSrvCallSync, SrvTwoProcs)
 {
+  unsigned int timeout = 1000;
   pid_t pid = fork();
 
   if (pid == 0)
@@ -80,9 +81,19 @@ TEST(twoProcSrvCallSync, SrvTwoProcs)
     req.set_data(data);
 
     transport::Node node1;
-    EXPECT_TRUE(node1.Request(topic, req, 5000, rep, result));
+    EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
     EXPECT_EQ(req.data(), rep.data());
     EXPECT_TRUE(result);
+
+    auto t1 = std::chrono::system_clock::now();
+    EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
+    auto t2 = std::chrono::system_clock::now();
+
+    double elapsed =
+      std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+
+    // Check if the elapsed time was close to the timeout.
+    EXPECT_NEAR(elapsed, timeout, 1.0);
 
     // Wait for the child process to return.
     int status;

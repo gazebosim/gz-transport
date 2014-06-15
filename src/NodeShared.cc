@@ -689,34 +689,30 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
-  // Check if we are interested in this service call.
-  if (this->requests.HasHandlersForTopic(_topic) &&
-      this->pUuidStr.compare(_pUuid) != 0)
+  // We always connect as soon as possible to the responder.
+  try
   {
-    try
+    // I am not connected to the process.
+    if (!this->srvConnections.HasAddress(_addr))
     {
-      // I am not connected to the process.
-      if (!this->srvConnections.HasAddress(_addr))
+      if (this->verbose)
       {
-        if (this->verbose)
-        {
-          std::cout << "\t* Connected to [" << _addr << "] for requesting "
-                    << "service calls" << std::endl;
-        }
-        this->requester->connect(_addr.c_str());
+        std::cout << "\t* Connected to [" << _addr << "] for requesting "
+                  << "service calls" << std::endl;
       }
-
-      // Register the new connection with the publisher.
-      this->srvConnections.AddAddress(
-        _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
-
-      // Request all pending service calls for this topic.
-      this->SendPendingRemoteReqs(_topic);
+      this->requester->connect(_addr.c_str());
     }
-    catch(const zmq::error_t& ze)
-    {
-      // std::cerr << "Error connecting [" << ze.what() << "]\n";
-    }
+
+    // Register the new connection with the publisher.
+    this->srvConnections.AddAddress(
+      _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
+
+    // Request all pending service calls for this topic.
+    this->SendPendingRemoteReqs(_topic);
+  }
+  catch(const zmq::error_t& ze)
+  {
+    // std::cerr << "Error connecting [" << ze.what() << "]\n";
   }
 }
 
