@@ -61,19 +61,10 @@ void response(const std::string &_topic, const robot_msgs::StringMsg &_rep,
 //////////////////////////////////////////////////
 void runReplier()
 {
-  srvExecuted = false;
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  int i = 0;
-  while (i < 100 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
-
-  // Check that the service call request was received.
-  EXPECT_TRUE(srvExecuted);
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
 
 //////////////////////////////////////////////////

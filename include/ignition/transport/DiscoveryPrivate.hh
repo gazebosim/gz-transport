@@ -90,9 +90,8 @@ namespace ignition
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
-      /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(const std::string &_fromIp,
-                                       char *_msg);
+      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
+                                        char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.

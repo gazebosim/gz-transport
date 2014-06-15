@@ -296,19 +296,16 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   if (this->verbose)
     std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
 
-  if (this->DispatchDiscoveryMsg(std::string(srcAddr),
-        reinterpret_cast<char*>(&data[0])) != 0)
-  {
-    std::cerr << "Something went wrong parsing a discovery message\n";
-  }
+  this->DispatchDiscoveryMsg(std::string(srcAddr),
+    reinterpret_cast<char*>(&data[0]));
 
   zstr_free(&srcAddr);
   zframe_destroy(&frame);
 }
 
 //////////////////////////////////////////////////
-int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
-                                           char *_msg)
+void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
+                                            char *_msg)
 {
   Header header;
   char *pBody = _msg;
@@ -322,7 +319,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
 
   // Discard our own discovery messages.
   if (recvPUuid == this->pUuidStr)
-    return 0;
+    return;
 
   // Update timestamp.
   this->activity[recvPUuid] = std::chrono::steady_clock::now();
@@ -347,7 +344,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       if ((recvScope == Scope::Process) ||
           (recvScope == Scope::Host && _fromIp != this->hostAddr))
       {
-        return 0;
+        return;
       }
 
       if (this->verbose)
@@ -435,7 +432,7 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       if ((recvScope == Scope::Process) ||
           (recvScope == Scope::Host && _fromIp != this->hostAddr))
       {
-        return 0;
+        return;
       }
 
       if (this->disconnectionCb)
@@ -456,8 +453,6 @@ int DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       break;
     }
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////
