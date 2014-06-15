@@ -26,7 +26,6 @@ using namespace ignition;
 
 std::string topic = "/foo";
 std::string data = "bar";
-bool srvExecuted = false;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -38,26 +37,22 @@ void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;
-
-  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void runReplier()
 {
-  srvExecuted = false;
+  // srvExecuted = false;
   transport::Node node;
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   int i = 0;
-  while (i < 500 && !srvExecuted)
+  while (i < 100)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
-
-  // Check that the service call request was received.
-  EXPECT_TRUE(srvExecuted);
 }
 
 //////////////////////////////////////////////////
@@ -67,7 +62,7 @@ void runReplier()
 /// node receives the message.
 TEST(twoProcSrvCallSync, SrvTwoProcs)
 {
-  unsigned int timeout = 1000;
+  unsigned int timeout = 500;
   pid_t pid = fork();
 
   if (pid == 0)
