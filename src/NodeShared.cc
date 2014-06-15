@@ -508,27 +508,43 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
       auto nodeUuid = req.second->GetNodeUuid();
       auto reqUuid = req.second->GetHandlerUuid();
 
-      zmq::message_t message;
-      message.rebuild(_topic.size() + 1);
-      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
+      try
+      {
+        zmq::socket_t socket(*this->context, ZMQ_DEALER);
+        socket.connect(responserAddr.c_str());
 
-      message.rebuild(this->myRequesterAddress.size() + 1);
-      memcpy(message.data(), this->myRequesterAddress.c_str(),
-        this->myRequesterAddress.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
+        // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
+        // be discarded immediately when the socket is closed. That avoids
+        // infinite waits if the publisher is disconnected.
+        int lingerVal = 200;
+        socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-      message.rebuild(nodeUuid.size() + 1);
-      memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
+        zmq::message_t message;
+        message.rebuild(_topic.size() + 1);
+        memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
 
-      message.rebuild(reqUuid.size() + 1);
-      memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
-      requester->send(message, ZMQ_SNDMORE);
+        message.rebuild(this->myRequesterAddress.size() + 1);
+        memcpy(message.data(), this->myRequesterAddress.c_str(),
+          this->myRequesterAddress.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
 
-      message.rebuild(data.size() + 1);
-      memcpy(message.data(), data.c_str(), data.size() + 1);
-      requester->send(message, 0);
+        message.rebuild(nodeUuid.size() + 1);
+        memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(reqUuid.size() + 1);
+        memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(data.size() + 1);
+        memcpy(message.data(), data.c_str(), data.size() + 1);
+        socket.send(message, 0);
+      }
+      catch(const zmq::error_t& ze)
+      {
+        // std::cerr << "Error connecting [" << ze.what() << "]\n";
+      }
     }
   }
 }
@@ -675,7 +691,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
 void NodeShared::OnNewSrvConnection(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl,
   const std::string &_pUuid, const std::string &_nUuid,
-  const Scope &_scope)
+  const Scope &/*_scope*/)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -689,31 +705,8 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
-  // We always connect as soon as possible to the responder.
-  try
-  {
-    // I am not connected to the process.
-    if (!this->srvConnections.HasAddress(_addr))
-    {
-      if (this->verbose)
-      {
-        std::cout << "\t* Connected to [" << _addr << "] for requesting "
-                  << "service calls" << std::endl;
-      }
-      this->requester->connect(_addr.c_str());
-    }
-
-    // Register the new connection with the publisher.
-    this->srvConnections.AddAddress(
-      _topic, _addr, _ctrl, _pUuid, _nUuid, _scope);
-
-    // Request all pending service calls for this topic.
-    this->SendPendingRemoteReqs(_topic);
-  }
-  catch(const zmq::error_t& ze)
-  {
-    // std::cerr << "Error connecting [" << ze.what() << "]\n";
-  }
+  // Request all pending service calls for this topic.
+  this->SendPendingRemoteReqs(_topic);
 }
 
 //////////////////////////////////////////////////

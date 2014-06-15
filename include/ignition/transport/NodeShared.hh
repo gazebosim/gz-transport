@@ -200,9 +200,6 @@ namespace ignition
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage connections;
 
-      /// \brief Remote connections for service calls.
-      private: TopicStorage srvConnections;
-
       /// \brief Remote subscribers.
       public: TopicStorage remoteSubscribers;
 
