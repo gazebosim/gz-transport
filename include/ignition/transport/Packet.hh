@@ -36,15 +36,15 @@ namespace ignition
     static const int Version        = 1;
 
     // Message types.
-    static const int AdvType        = 0;
-    static const int SubType        = 1;
-    static const int UnadvType      = 2;
-    static const int HelloType      = 3;
-    static const int ByeType        = 4;
-    static const int AdvSrvType     = 5;
-    static const int SubSrvType     = 6;
-    static const int NewConnection  = 7;
-    static const int EndConnection  = 8;
+    static const uint8_t AdvType        = 0;
+    static const uint8_t SubType        = 1;
+    static const uint8_t UnadvType      = 2;
+    static const uint8_t HelloType      = 3;
+    static const uint8_t ByeType        = 4;
+    static const uint8_t AdvSrvType     = 5;
+    static const uint8_t SubSrvType     = 6;
+    static const uint8_t NewConnection  = 7;
+    static const uint8_t EndConnection  = 8;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
