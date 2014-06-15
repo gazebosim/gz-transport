@@ -138,9 +138,9 @@ namespace ignition
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
-      /// \brief Default hello interval value (ms.).
-      /// \sa GetHelloInterval.
-      /// \sa SetHelloInterval.
+      /// \brief Default heartbit interval value (ms.).
+      /// \sa GetHeartbitInterval.
+      /// \sa SetHeartbitInterval.
       public: static const unsigned int DefHeartbitInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
@@ -228,7 +228,7 @@ namespace ignition
       /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
 
-      /// \brief Thread in charge of sending HELLOs.
+      /// \brief Thread in charge of sending heartbits.
       public: std::thread *threadHeartbit;
 
       /// \brief Thread in charge of update the activity.
