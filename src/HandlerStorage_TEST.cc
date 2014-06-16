@@ -70,7 +70,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Check some operations when there is no data stored.
   EXPECT_FALSE(reps.GetHandlers(topic, m));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
-  reps.RemoveHandlersForNode(topic, nUuid1);
+  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 0);
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
@@ -137,7 +137,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(result);
 
   // Remove the last REP handler.
-  reps.RemoveHandlersForNode(topic, nUuid2);
+  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid2), 1);
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
@@ -163,10 +163,10 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_EQ(rep1Msg.data(), reqData.size());
 
   // Remove the first REP handler.
-  reps.RemoveHandlersForNode(topic, nUuid1);
+  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 1);
   EXPECT_FALSE(reps.GetHandlers(topic, m));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
-  reps.RemoveHandlersForNode(topic, nUuid1);
+  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 0);
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 }
 

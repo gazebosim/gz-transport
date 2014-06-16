@@ -144,35 +144,41 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
       /// \param[in] _reqUuid Request's UUID to remove.
-      public: void RemoveHandler(const std::string &_topic,
-                                 const std::string &_nUuid,
-                                 const std::string &_reqUuid)
+      public: unsigned int RemoveHandler(const std::string &_topic,
+                                         const std::string &_nUuid,
+                                         const std::string &_reqUuid)
       {
+        unsigned int counter = 0;
         if (this->data.find(_topic) != this->data.end())
         {
           if (this->data[_topic].find(_nUuid) != this->data[_topic].end())
           {
             this->data[_topic][_nUuid].erase(_reqUuid);
             if (this->data[_topic][_nUuid].empty())
-              this->data[_topic].erase(_nUuid);
+              counter = this->data[_topic].erase(_nUuid);
             if (this->data[_topic].empty())
               this->data.erase(_topic);
           }
         }
+
+        return counter;
       }
 
       /// \brief Remove all the handlers from a given node.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
-      public: void RemoveHandlersForNode(const std::string &_topic,
+      public: unsigned int RemoveHandlersForNode(const std::string &_topic,
                                          const std::string &_nUuid)
       {
+        unsigned int counter = 0;
         if (this->data.find(_topic) != this->data.end())
         {
-          this->data[_topic].erase(_nUuid);
+          counter = this->data[_topic].erase(_nUuid);
           if (this->data[_topic].empty())
             this->data.erase(_topic);
         }
+
+        return counter;
       }
 
       /// \brief Stores all the service call data for each topic.
