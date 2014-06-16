@@ -132,9 +132,11 @@ bool TopicStorage::GetAddresses(const std::string &_topic, Addresses_M &_info)
 }
 
 //////////////////////////////////////////////////
-void TopicStorage::DelAddressByNode(const std::string &_topic,
+bool TopicStorage::DelAddressByNode(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid)
 {
+  unsigned int counter = 0;
+
   // Iterate over all the topics.
   if (this->data.find(_topic) != this->data.end())
   {
@@ -146,12 +148,14 @@ void TopicStorage::DelAddressByNode(const std::string &_topic,
     {
       // Vector of 0MQ known addresses for a given topic and pUuid.
       auto &v = m[_pUuid];
+      auto priorSize = v.size();
       v.erase(std::remove_if(v.begin(), v.end(),
         [&](const Address_t &_addrInfo)
         {
           return _addrInfo.nUuid == _nUuid;
         }),
         v.end());
+      counter = priorSize - v.size();
 
       if (v.empty())
         m.erase(_pUuid);
@@ -160,22 +164,28 @@ void TopicStorage::DelAddressByNode(const std::string &_topic,
         this->data.erase(_topic);
     }
   }
+
+  return counter > 0;
 }
 
 //////////////////////////////////////////////////
-void TopicStorage::DelAddressesByProc(const std::string &_pUuid)
+bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 {
+  unsigned int counter = 0;
+
   // Iterate over all the topics.
   for (auto it = this->data.begin(); it != this->data.end();)
   {
     // m is pUUID->{addr, ctrl, nUuid, scope}.
     auto &m = it->second;
-    m.erase(_pUuid);
+    counter = m.erase(_pUuid);
     if (m.empty())
       this->data.erase(it++);
     else
       ++it;
   }
+
+  return counter > 0;
 }
 
 //////////////////////////////////////////////////

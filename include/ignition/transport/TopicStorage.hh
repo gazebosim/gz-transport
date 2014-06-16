@@ -96,12 +96,15 @@ namespace ignition
       /// \param[in] _topic Topic name
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
-      public: void DelAddressByNode(const std::string &_topic,
+      /// \return True when the address was removed or false otherwise.
+      public: bool DelAddressByNode(const std::string &_topic,
                                     const std::string &_pUuid,
                                     const std::string &_nUuid);
 
       /// \brief Remove all the addresses associated to a given process.
-      public: void DelAddressesByProc(const std::string &_pUuid);
+      /// \param[in] _pUuid Process' UUID of the publisher.
+      /// \return True when at least one address was removed or false otherwise.
+      public: bool DelAddressesByProc(const std::string &_pUuid);
 
       /// \brief Print all the information for debugging purposes.
       public: void Print();

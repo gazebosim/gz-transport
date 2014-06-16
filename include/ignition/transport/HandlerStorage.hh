@@ -144,9 +144,10 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
       /// \param[in] _reqUuid Request's UUID to remove.
-      public: unsigned int RemoveHandler(const std::string &_topic,
-                                         const std::string &_nUuid,
-                                         const std::string &_reqUuid)
+      /// \return True when the handler is removed or false otherwise.
+      public: bool RemoveHandler(const std::string &_topic,
+                                 const std::string &_nUuid,
+                                 const std::string &_reqUuid)
       {
         unsigned int counter = 0;
         if (this->data.find(_topic) != this->data.end())
@@ -161,13 +162,14 @@ namespace ignition
           }
         }
 
-        return counter;
+        return counter > 0;
       }
 
       /// \brief Remove all the handlers from a given node.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
-      public: unsigned int RemoveHandlersForNode(const std::string &_topic,
+      /// \return True when at least one handler was removed or false otherwise.
+      public: bool RemoveHandlersForNode(const std::string &_topic,
                                          const std::string &_nUuid)
       {
         unsigned int counter = 0;
@@ -178,7 +180,7 @@ namespace ignition
             this->data.erase(_topic);
         }
 
-        return counter;
+        return counter > 0;
       }
 
       /// \brief Stores all the service call data for each topic.

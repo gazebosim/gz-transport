@@ -58,9 +58,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check GetAddresses.
   EXPECT_FALSE(test.GetAddresses(topic, m));
   // Try to remove a entry not stored yet.
-  test.DelAddressByNode(topic, pUuid2, nUuid4);
+  EXPECT_EQ(test.DelAddressByNode(topic, pUuid2, nUuid4), 0);
   // Try to remove a set of entries within a process not stored.
-  test.DelAddressesByProc(pUuid1);
+  EXPECT_EQ(test.DelAddressesByProc(pUuid1), 0);
 
   // Insert one node address.
   EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
@@ -228,7 +228,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   test.Print();
 
   // Remove the node4's address advertised for topic.
-  test.DelAddressByNode(topic, pUuid2, nUuid4);
+  EXPECT_TRUE(test.DelAddressByNode(topic, pUuid2, nUuid4));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -272,7 +272,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid2].at(0).scope, scope3);
 
   // Remove the node3's address advertised for topic.
-  test.DelAddressByNode(topic, pUuid2, nUuid3);
+  EXPECT_TRUE(test.DelAddressByNode(topic, pUuid2, nUuid3));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -307,7 +307,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
 
   // Remove all the addresses of process1.
-  test.DelAddressesByProc(pUuid1);
+  EXPECT_TRUE(test.DelAddressesByProc(pUuid1));
   // Check HasTopic.
   EXPECT_FALSE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
