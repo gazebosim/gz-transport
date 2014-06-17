@@ -349,7 +349,7 @@ namespace ignition
           bool result;
           repHandler->RunLocalCallback(scTopic, _req, rep, result);
           _cb(scTopic, rep, result);
-          return;
+          return true;
         }
 
         // Create a new request handler.
