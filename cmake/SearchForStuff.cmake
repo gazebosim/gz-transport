@@ -57,6 +57,18 @@ else ()
 endif ()
 
 #################################################
+# Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
+# different upstream projects and tarballs)
+find_path(cppzmq_INCLUDE_DIRS zmq.hpp PATHS ${zmq_INCLUDE_DIRS})
+if (NOT cppzmq_INCLUDE_DIRS)
+  message(STATUS "cppzmq header file was not found")
+  BUILD_ERROR("cppzmq header file was not found")
+else()
+  message(STATUS "cppzmq file - found")
+  include_directories(${cppzmq_INCLUDE_DIRS})
+endif()
+
+#################################################
 # Find czmq.:
 pkg_check_modules(czmq libczmq>=1.4.0)
 
