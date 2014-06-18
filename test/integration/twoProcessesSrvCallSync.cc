@@ -32,8 +32,7 @@ std::string data = "bar";
 void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
   robot_msgs::StringMsg &_rep, bool &_result)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;

@@ -109,9 +109,6 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
   const std::string &_topic, const std::string &_addr, const std::string &_ctrl,
   const std::string &_nUuid, const Scope &_scope)
 {
-  // ToDo(caguero): Validate a topic (no whitespaces, not empty string, ...)
-  assert(_topic != "");
-
   std::lock_guard<std::mutex> lock(this->mutex);
 
   // Add the addressing information (local node).
@@ -128,8 +125,6 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
 //////////////////////////////////////////////////
 void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
 {
-  assert(_topic != "");
-
   std::lock_guard<std::mutex> lock(this->mutex);
 
   if (_isSrvCall)
@@ -555,8 +550,6 @@ void DiscoveryPrivate::PrintCurrentState()
 void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
   const std::string &_topic, const std::string &_nUuid)
 {
-  assert(_topic != "");
-
   std::unique_ptr<Header> header;
 
   if (this->beacons.find(_topic) == this->beacons.end() ||
@@ -593,8 +586,6 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
 void DiscoveryPrivate::DelBeacon(const std::string &_topic,
                                  const std::string &_nUuid)
 {
-  assert(_topic != "");
-
   if (this->beacons.find(_topic) == this->beacons.end())
     return;
 

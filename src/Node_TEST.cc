@@ -68,7 +68,7 @@ void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
   robot_msgs::StringMsg &_rep, bool &_result)
 {
-  assert(_topic != "");
+  EXPECT_EQ(_topic, topic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -104,8 +104,7 @@ class MyTestClass
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
   {
-    assert(_topic != "");
-
+    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };

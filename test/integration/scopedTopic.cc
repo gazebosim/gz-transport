@@ -33,8 +33,7 @@ std::string data = "bar";
 /// \brief Function is called everytime a topic update is received.
 void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }

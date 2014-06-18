@@ -179,8 +179,6 @@ void NodeShared::RunReceptionTask()
 //////////////////////////////////////////////////
 int NodeShared::Publish(const std::string &_topic, const std::string &_data)
 {
-  assert(_topic != "");
-
   zmq::message_t message;
   message.rebuild(_topic.size() + 1);
   memcpy(message.data(), _topic.c_str(), _topic.size() + 1);

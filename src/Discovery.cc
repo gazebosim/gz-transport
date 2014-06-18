@@ -70,8 +70,6 @@ bool Discovery::GetTopicAddresses(const std::string &_topic,
 void Discovery::Unadvertise(const std::string &_topic,
                             const std::string &_nUuid)
 {
-  assert(_topic != "");
-
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Don't do anything if the topic is not advertised by any of my nodes.
