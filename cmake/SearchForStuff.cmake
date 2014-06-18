@@ -81,6 +81,19 @@ else ()
   link_directories(${czmq_LIBRARY_DIRS})
 endif ()
 
+#################################################
+# Find uuid:
+pkg_check_modules(uuid uuid)
+
+if (NOT uuid_FOUND)
+  message (STATUS "Looking for uuid pkgconfig file - not found")
+  BUILD_ERROR ("uuid not found, Please install uuid")
+else ()
+  message (STATUS "Looking for uuid pkgconfig file - found")
+  include_directories(${uuid_INCLUDE_DIRS})
+  link_directories(${uuid_LIBRARY_DIRS})
+endif ()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)
