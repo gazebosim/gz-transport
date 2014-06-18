@@ -410,10 +410,10 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(_topic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(scTopic, repHandler))
         {
           // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(_topic, _req, _rep, _result);
+          repHandler->RunLocalCallback(scTopic, _req, _rep, _result);
           return true;
         }
 
@@ -426,19 +426,19 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          _topic, this->dataPtr->nUuid, reqHandlerPtr);
+          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
         if (this->dataPtr->shared->discovery->GetTopicAddresses(
-          _topic, addresses))
+          scTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(_topic);
+          this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
         }
         else
         {
           // Discover the service call responser.
-          this->dataPtr->shared->discovery->DiscoverSrvCall(_topic);
+          this->dataPtr->shared->discovery->DiscoverSrvCall(scTopic);
         }
 
         auto now = std::chrono::system_clock::now();

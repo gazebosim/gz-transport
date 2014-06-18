@@ -584,8 +584,8 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
     advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
     // Setup the beacon.
-    zbeacon_publish(this->beacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
+    zbeacon_publish(
+      b, reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
   }
 }
 

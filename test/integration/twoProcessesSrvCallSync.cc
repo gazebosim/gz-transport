@@ -61,13 +61,13 @@ void runReplier()
 /// node receives the message.
 TEST(twoProcSrvCallSync, SrvTwoProcs)
 {
-  unsigned int timeout = 500;
   pid_t pid = fork();
 
   if (pid == 0)
     runReplier();
   else
   {
+    unsigned int timeout = 500;
     robot_msgs::StringMsg req;
     robot_msgs::StringMsg rep;
     bool result;
