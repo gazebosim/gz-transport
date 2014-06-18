@@ -452,6 +452,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope, int _flags)
 {
+  zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
+
   // Create the header.
   Header header(Version, this->pUuid, _topic, _type, _flags);
 
@@ -468,7 +470,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
       // Broadcast the message.
-      zbeacon_publish(this->beacon,
+      zbeacon_publish(aBeacon,
         reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
 
       break;
@@ -482,7 +484,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       header.Pack(reinterpret_cast<char*>(&buffer[0]));
 
       // Broadcast the message.
-      zbeacon_publish(this->beacon,
+      zbeacon_publish(aBeacon,
         reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
 
       break;
@@ -491,7 +493,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       break;
   }
 
-  zbeacon_silence(this->beacon);
+  zbeacon_silence(aBeacon);
+  zbeacon_destroy(&aBeacon);
 
   if (this->verbose)
   {
