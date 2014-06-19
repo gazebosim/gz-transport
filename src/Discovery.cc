@@ -67,30 +67,17 @@ bool Discovery::GetTopicAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void Discovery::Unadvertise(const std::string &_topic,
-                            const std::string &_nUuid)
+void Discovery::UnadvertiseMsg(const std::string &_topic,
+                               const std::string &_nUuid)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->Unadvertise(MsgType::Msg, _topic, _nUuid);
+}
 
-  // Don't do anything if the topic is not advertised by any of my nodes.
-  Address_t info;
-  if (!this->dataPtr->info.GetAddress(_topic, this->dataPtr->pUuid,
-    _nUuid, info))
-    return;
-
-  // Remove the topic information.
-  this->dataPtr->info.DelAddressByNode(_topic, this->dataPtr->pUuid, _nUuid);
-
-  // Do not advertise a message outside the process if the scope is 'Process'.
-  if (info.scope == Scope::Process)
-    return;
-
-  // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic, info.addr, info.ctrl, _nUuid,
-    info.scope);
-
-  // Remove the beacon for this topic in this node.
-  this->dataPtr->DelBeacon(_topic, _nUuid);
+//////////////////////////////////////////////////
+void Discovery::UnadvertiseSrvCall(const std::string &_topic,
+                                   const std::string &_nUuid)
+{
+  this->dataPtr->Unadvertise(MsgType::Srv, _topic, _nUuid);
 }
 
 //////////////////////////////////////////////////

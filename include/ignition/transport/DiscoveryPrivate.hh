@@ -68,6 +68,14 @@ namespace ignition
                              const std::string &_nUuid,
                              const Scope &_scope);
 
+      /// \brief Unadvertise a new message or service call.
+      /// \param[in] _unadvType Message (Msg) or service call (Srv).
+      /// \param[in] _topic Topic name to be unadvertised.
+      /// \param[in] _nUuid Node UUID.
+      public: void Unadvertise(const MsgType &_unadvType,
+                               const std::string &_topic,
+                               const std::string &_nUuid);
+
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic name requested.
       /// \param[in] _isSrvCall true if the topic corresponds to a service call.

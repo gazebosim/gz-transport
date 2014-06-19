@@ -30,20 +30,23 @@ static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-std::string topic  = "foo";
-std::string addr1  = "tcp://127.0.0.1:12345";
-std::string ctrl1  = "tcp://127.0.0.1:12346";
-std::string pUuid1 = "UUID-Proc-1";
-std::string nUuid1 = "UUID-Node-1";
-std::string addr2  = "tcp://127.0.0.1:12347";
-std::string ctrl2  = "tcp://127.0.0.1:12348";
-std::string pUuid2 = "UUID-Proc-2";
-std::string nUuid2 = "UUID-Node-2";
+std::string topic   = "/foo";
+std::string service = "/service";
+std::string addr1   = "tcp://127.0.0.1:12345";
+std::string ctrl1   = "tcp://127.0.0.1:12346";
+std::string pUuid1  = "UUID-Proc-1";
+std::string nUuid1  = "UUID-Node-1";
+std::string addr2   = "tcp://127.0.0.1:12347";
+std::string ctrl2   = "tcp://127.0.0.1:12348";
+std::string pUuid2  = "UUID-Proc-2";
+std::string nUuid2  = "UUID-Node-2";
 transport::Scope scope = transport::Scope::All;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
 bool disconnectionExecuted = false;
 bool disconnectionExecutedMF = false;
+bool connectionSrvExecuted = false;
+bool disconnectionSrvExecuted = false;
 int counter = 0;
 
 //////////////////////////////////////////////////
@@ -54,6 +57,8 @@ void reset()
   connectionExecutedMF = false;
   disconnectionExecuted = false;
   disconnectionExecutedMF = false;
+  connectionSrvExecuted = false;
+  disconnectionSrvExecuted = false;
   counter = 0;
 }
 
@@ -85,6 +90,21 @@ void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
 }
 
 //////////////////////////////////////////////////
+/// \brief Function called each time a discovery srv call update is received.
+void onDiscoverySrvResponse(const std::string &_topic, const std::string &_addr,
+  const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const transport::Scope &_scope)
+{
+  EXPECT_EQ(_topic, service);
+  EXPECT_EQ(_addr, addr1);
+  EXPECT_EQ(_ctrl, ctrl1);
+  EXPECT_EQ(_pUuid, pUuid1);
+  EXPECT_EQ(_nUuid, nUuid1);
+  EXPECT_EQ(_scope, scope);
+  connectionSrvExecuted = true;
+}
+
+//////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received. This is
 /// used in the case of multiple publishers.
 void onDiscoveryResponseMultiple(const std::string &_topic,
@@ -110,6 +130,18 @@ void ondisconnection(const std::string &/*_topic*/,
 {
   EXPECT_EQ(_pUuid, pUuid1);
   disconnectionExecuted = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a discovery update is received.
+void ondisconnectionSrv(const std::string &_topic,
+  const std::string &/*_addr*/, const std::string &/*_ctrl*/,
+  const std::string &_pUuid, const std::string &/*_nUuid*/,
+  const transport::Scope &/*_scope*/)
+{
+  EXPECT_EQ(_topic, service);
+  EXPECT_EQ(_pUuid, pUuid1);
+  disconnectionSrvExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -347,13 +379,18 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic, nUuid1);
+  discovery1.UnadvertiseMsg(topic, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
   // Check that the discovery response was received.
   EXPECT_FALSE(connectionExecuted);
   EXPECT_TRUE(disconnectionExecuted);
+
+  // Unadvertise a topic not advertised.
+  discovery1.UnadvertiseMsg(topic, nUuid1);
+  transport::Addresses_M addresses;
+  EXPECT_FALSE(discovery2.GetTopicAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -382,7 +419,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.Unadvertise(topic, nUuid1);
+  discovery1.UnadvertiseMsg(topic, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
 
@@ -477,6 +514,71 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   EXPECT_TRUE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
   EXPECT_EQ(counter, 2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the discovery triggers the srv call callbacks after
+/// an advertise.
+TEST(DiscoveryTest, TestAdvertiseSrvCall)
+{
+  reset();
+
+  // Create two discovery nodes.
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
+
+  // Register one callback for receiving notifications.
+  discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
+
+  // This should trigger a discovery srv call response on discovery2.
+  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+
+  waitForCallback(MaxIters, Nap, connectionSrvExecuted);
+
+  EXPECT_TRUE(connectionSrvExecuted);
+  EXPECT_FALSE(disconnectionSrvExecuted);
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the discovery triggers the disconnection callback after
+/// an unadvertise.
+TEST(DiscoveryTest, TestUnadvertiseSrvCall)
+{
+  reset();
+
+  // Create two discovery nodes.
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
+
+  // Register one callback for receiving disconnect  notifications (srv calls).
+  discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
+
+  // This should not trigger a disconnect response on discovery2.
+  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+
+  waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
+
+  // Check that no discovery response was received.
+  EXPECT_FALSE(connectionSrvExecuted);
+  EXPECT_FALSE(disconnectionSrvExecuted);
+
+  reset();
+
+  // This should trigger a disconnect response on discovery2.
+  discovery1.UnadvertiseSrvCall(service, nUuid1);
+
+  waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
+
+  // Check that the discovery response was received.
+  EXPECT_FALSE(connectionSrvExecuted);
+  EXPECT_TRUE(disconnectionSrvExecuted);
+
+  // Unadvertise a topic not advertised.
+  discovery1.UnadvertiseSrvCall(service, nUuid1);
+  transport::Addresses_M addresses;
+  EXPECT_FALSE(discovery2.GetTopicAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////

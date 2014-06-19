@@ -120,7 +120,7 @@ bool Node::Unadvertise(const std::string &_topic)
   this->dataPtr->topicsAdvertised.erase(scTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->shared->discovery->Unadvertise(
+  this->dataPtr->shared->discovery->UnadvertiseMsg(
     scTopic, this->dataPtr->nUuid);
 
   return true;
@@ -272,7 +272,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     scTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my service call.
-  this->dataPtr->shared->discovery->Unadvertise(
+  this->dataPtr->shared->discovery->UnadvertiseMsg(
     scTopic, this->dataPtr->nUuid);
 
   return true;

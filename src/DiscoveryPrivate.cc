@@ -123,6 +123,34 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
 }
 
 //////////////////////////////////////////////////
+void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
+  const std::string &_topic, const std::string &_nUuid)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  // Don't do anything if the topic is not advertised by any of my nodes.
+  Address_t inf;
+  if (!this->info.GetAddress(_topic, this->pUuid, _nUuid, inf))
+    return;
+
+  // Remove the topic information.
+  this->info.DelAddressByNode(_topic, this->pUuid, _nUuid);
+
+  // Do not advertise a message outside the process if the scope is 'Process'.
+  if (inf.scope == Scope::Process)
+    return;
+
+  // Send the UNADVERTISE message.
+  if (_unadvType == MsgType::Msg)
+    this->SendMsg(UnadvType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
+  else
+    this->SendMsg(UnadvSrvType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
+
+  // Remove the beacon for this topic in this node.
+  this->DelBeacon(_topic, _nUuid);
+}
+
+//////////////////////////////////////////////////
 void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
@@ -364,6 +392,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       break;
     }
     case SubType:
+    case SubSrvType:
     {
       // Check if at least one of my nodes advertises the topic requested.
       if (this->info.HasAnyAddresses(topic, this->pUuid))
@@ -411,6 +440,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       break;
     }
     case UnadvType:
+    case UnadvSrvType:
     {
       // Read the address.
       AdvMsg advMsg;
@@ -427,10 +457,16 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         return;
       }
 
-      if (this->disconnectionCb)
+      if (header.GetType() == UnadvType && this->disconnectionCb)
       {
         // Notify the new disconnection.
         this->disconnectionCb(topic, recvAddr, recvCtrl, recvPUuid,
+          recvNUuid, recvScope);
+      }
+      else if (header.GetType() == UnadvSrvType && this->disconnectionSrvCb)
+      {
+        // Notify the new disconnection.
+        this->disconnectionSrvCb(topic, recvAddr, recvCtrl, recvPUuid,
           recvNUuid, recvScope);
       }
 
@@ -461,6 +497,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   {
     case AdvType:
     case UnadvType:
+    case AdvSrvType:
+    case UnadvSrvType:
     {
       // Create the [UN]ADVERTISE message.
       AdvMsg advMsg(header, _addr, _ctrl, _nUuid, _scope);

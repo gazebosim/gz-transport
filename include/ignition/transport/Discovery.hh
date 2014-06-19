@@ -93,8 +93,16 @@ namespace ignition
       /// specific node.
       /// \param[in] _topic Topic to be unadvertised.
       /// \param[in] _nUuid Node UUID of the publisher.
-      public: void Unadvertise(const std::string &_topic,
-                               const std::string &_nUuid);
+      public: void UnadvertiseMsg(const std::string &_topic,
+                                  const std::string &_nUuid);
+
+      /// \brief Unadvertise a service call. Broadcast a discovery message that
+      /// will cancel all the discovery information for the service advertised
+      /// by a specific node.
+      /// \param[in] _topic Topic to be unadvertised.
+      /// \param[in] _nUuid Node UUID of the publisher.
+      public: void UnadvertiseSrvCall(const std::string &_topic,
+                                      const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.

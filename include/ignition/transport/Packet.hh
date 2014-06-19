@@ -39,14 +39,15 @@ namespace ignition
     static const uint8_t ByeType        = 4;
     static const uint8_t AdvSrvType     = 5;
     static const uint8_t SubSrvType     = 6;
-    static const uint8_t NewConnection  = 7;
-    static const uint8_t EndConnection  = 8;
+    static const uint8_t UnadvSrvType   = 7;
+    static const uint8_t NewConnection  = 8;
+    static const uint8_t EndConnection  = 9;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
       "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HELLO", "BYE", "ADV_SVC",
-      "SUB_SVC", "NEW_CONNECTION", "END_CONNECTION"
+      "SUB_SVC", "UNADVERTISE_SVC", "NEW_CONNECTION", "END_CONNECTION"
     };
 
     /// \class Header Packet.hh
