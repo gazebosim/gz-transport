@@ -32,6 +32,7 @@ std::string topic   = "foo";
 std::string reqData = "Walter White";
 std::string nUuid1  = "node-UUID-1";
 std::string nUuid2  = "node-UUID-2";
+std::string hUuid   = "handler-UUID";
 bool cbExecuted = false;
 
 //////////////////////////////////////////////////
@@ -69,8 +70,10 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Check some operations when there is no data stored.
   EXPECT_FALSE(reps.GetHandlers(topic, m));
+  EXPECT_FALSE(reps.GetHandler(topic, handler));
+  EXPECT_FALSE(reps.GetHandler(topic, nUuid1, hUuid, handler));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
-  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 0);
+  EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
@@ -85,6 +88,12 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
+  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  std::string handlerUuid = handler->GetHandlerUuid();
+  EXPECT_EQ(handlerUuid, rep1HandlerPtr->GetHandlerUuid());
+  EXPECT_TRUE(reps.GetHandler(topic, nUuid1, handlerUuid, handler));
+  EXPECT_FALSE(reps.GetHandler(topic, "wrongNodeUuid", handlerUuid, handler));
+  EXPECT_FALSE(reps.GetHandler(topic, nUuid1, "wrongHandlerUuid", handler));
   EXPECT_TRUE(reps.GetHandlers(topic, m));
   EXPECT_EQ(m.size(), 1);
   EXPECT_EQ(m.begin()->first, nUuid1);
@@ -109,16 +118,28 @@ TEST(RepStorageTest, RepStorageAPI)
   rep1Msg.ParseFromString(repSerialized);
   EXPECT_EQ(rep1Msg.data(), reqData.size());
 
-  // Create a second REP handler without a callback.
+  // Create another REP handler without a callback for node1.
   std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
     rep2HandlerPtr(new transport::RepHandler
       <robot_msgs::Vector2d, robot_msgs::Int>());
 
+  // Insert the handler.
+  reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
+
+  // Create a REP handler without a callback for node2.
+  std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
+    rep3HandlerPtr(new transport::RepHandler
+      <robot_msgs::Vector2d, robot_msgs::Int>());
+
   // Insert the handler and check operations.
-  reps.AddHandler(topic, nUuid2, rep2HandlerPtr);
+  reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid2));
+  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  handlerUuid = rep3HandlerPtr->GetHandlerUuid();
+  EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
+  EXPECT_EQ(handler->GetHandlerUuid(), handlerUuid);
   EXPECT_TRUE(reps.GetHandlers(topic, m));
   EXPECT_EQ(m.size(), 2);
 
@@ -137,7 +158,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(result);
 
   // Remove the last REP handler.
-  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid2), 1);
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid2, handler->GetHandlerUuid()));
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
@@ -147,27 +168,25 @@ TEST(RepStorageTest, RepStorageAPI)
 
   reset();
 
-  // Check the handler operations.
-  handler = m[nUuid1].begin()->second;
-  handler->RunLocalCallback(topic, reqMsg, rep1Msg, result);
-  EXPECT_TRUE(cbExecuted);
-  EXPECT_EQ(rep1Msg.data(), reqData.size());
-  EXPECT_TRUE(result);
-
-  reset();
-
-  handler->RunCallback(topic, reqSerialized, repSerialized, result);
-  EXPECT_TRUE(cbExecuted);
-  EXPECT_TRUE(result);
-  rep1Msg.ParseFromString(repSerialized);
-  EXPECT_EQ(rep1Msg.data(), reqData.size());
-
-  // Remove the first REP handler.
-  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 1);
+  // Remove all REP handlers for node1.
+  EXPECT_TRUE(reps.RemoveHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.GetHandlers(topic, m));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
-  EXPECT_EQ(reps.RemoveHandlersForNode(topic, nUuid1), 0);
+  EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
+
+  // Insert another handler, remove it, and check that the map is empty.
+  std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
+    rep4HandlerPtr(new transport::RepHandler
+      <robot_msgs::Vector2d, robot_msgs::Int>());
+
+  // Insert the handler.
+  reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
+  handlerUuid = rep3HandlerPtr->GetHandlerUuid();
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, handlerUuid));
+  EXPECT_FALSE(reps.HasHandlersForTopic(topic));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
 }
 
 //////////////////////////////////////////////////

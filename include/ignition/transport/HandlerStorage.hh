@@ -53,7 +53,7 @@ namespace ignition
         return true;
       }
 
-      /// \brief Get a handler for a topic.
+      /// \brief Get the first handler for a topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
