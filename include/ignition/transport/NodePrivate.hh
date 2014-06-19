@@ -39,7 +39,7 @@ namespace ignition
       public: NodePrivate() = default;
 
       /// \brief Destructor.
-      public: ~NodePrivate() = default;
+      public: virtual ~NodePrivate() = default;
 
       /// \brief The list of topics subscribed by this node.
       public: std::unordered_set<std::string> topicsSubscribed;

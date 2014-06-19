@@ -59,6 +59,9 @@ namespace ignition
       /// \brief Constructor.
       public: Header();
 
+      /// \brief Destructor.
+      public: virtual ~Header() = default;
+
       /// \brief Constructor.
       /// \param[in] _version Version of the transport library.
       /// \param[in] _pUuid Every process has a unique UUID.
