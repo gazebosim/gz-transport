@@ -41,7 +41,6 @@ void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
 //////////////////////////////////////////////////
 void runReplier()
 {
-  // srvExecuted = false;
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
@@ -58,15 +57,20 @@ void runReplier()
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcSrvCallSync, SrvTwoProcs)
+TEST(twoProcSrvCallSync2, SrvTwoProcs)
 {
   pid_t pid = fork();
 
   if (pid == 0)
+  {
+    // Make sure that the address of the service call provider is unknown
+    // before the request.
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     runReplier();
+  }
   else
   {
-    unsigned int timeout = 500;
+    unsigned int timeout = 1000;
     robot_msgs::StringMsg req;
     robot_msgs::StringMsg rep;
     bool result;
