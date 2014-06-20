@@ -80,6 +80,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.ctrl, ctrl1);
   EXPECT_EQ(info.nUuid, nUuid1);
   EXPECT_EQ(info.scope, scope1);
+  EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid1, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid1, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 1);
@@ -101,6 +103,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAddresses.
   EXPECT_TRUE(test.HasAddress(addr1));
   EXPECT_FALSE(test.HasAddress(addr2));
+  EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid2, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid1, "wrong nUuid", info));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
   EXPECT_EQ(info.addr, addr1);
@@ -153,6 +157,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.ctrl, ctrl2);
   EXPECT_EQ(info.nUuid, nUuid3);
   EXPECT_EQ(info.scope, scope3);
+  EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid3, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, "wrong nUuid", info));
+
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 2);
@@ -203,6 +210,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.ctrl, ctrl2);
   EXPECT_EQ(info.nUuid, nUuid4);
   EXPECT_EQ(info.scope, scope4);
+  EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid4, info));
+  EXPECT_FALSE(test.GetAddress(topic, pUuid2, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 2);
@@ -324,6 +333,18 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, nUuid4, info));
   // Check GetAddresses.
   EXPECT_FALSE(test.GetAddresses(topic, m));
+
+  // Insert a topic, remove it, and check that the map is empty.
+  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  EXPECT_TRUE(test.DelAddressByNode(topic, pUuid1, nUuid1));
+  EXPECT_FALSE(test.HasTopic(topic));
+
+  // Insert some topics, and remove all the topics from a process but keeping
+  // the same topics from other proccesses.
+  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
+  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
+  EXPECT_TRUE(test.DelAddressesByProc(pUuid1));
 }
 
 //////////////////////////////////////////////////

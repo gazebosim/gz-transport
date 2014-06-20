@@ -22,6 +22,7 @@
 #include <string>
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/RepHandler.hh"
+#include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
@@ -187,6 +188,33 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that nothing breaks if we add subscription handlers without
+/// registering a callback, and then, we try to execute the callback.
+TEST(RepStorageTest, SubStorageNoCallbacks)
+{
+  transport::ISubscriptionHandlerPtr handler;
+  std::map<std::string, std::map<std::string,
+    transport::ISubscriptionHandlerPtr>> m;
+  transport::HandlerStorage<transport::ISubscriptionHandler> subs;
+  robot_msgs::StringMsg msg;
+  msg.set_data("some data");
+
+  // Create a Subscription handler.
+  std::shared_ptr<transport::SubscriptionHandler<robot_msgs::StringMsg>>
+    sub1HandlerPtr(new transport::SubscriptionHandler
+      <robot_msgs::StringMsg>(nUuid1));
+
+  // Insert the handler and check operations.
+  subs.AddHandler(topic, nUuid1, sub1HandlerPtr);
+
+  transport::ISubscriptionHandlerPtr h;
+  std::string handlerUuid = sub1HandlerPtr->GetHandlerUuid();
+  EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
+  EXPECT_FALSE(h->RunLocalCallback(topic, msg));
+  EXPECT_FALSE(h->RunCallback(topic, "some data"));
 }
 
 //////////////////////////////////////////////////

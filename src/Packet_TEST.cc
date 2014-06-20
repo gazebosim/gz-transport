@@ -16,6 +16,7 @@
 */
 
 #include <limits.h>
+#include <iostream>
 #include <string>
 #include "ignition/transport/Packet.hh"
 #include "gtest/gtest.h"
@@ -63,6 +64,21 @@ TEST(PacketTest, BasicHeaderAPI)
     sizeof(header.GetTopicLength()) + topic.size() +
     sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
+
+  // Check << operator
+  std::ostringstream output;
+  output << header;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tTopic length: 16\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tType: SUBSCRIBE\n"
+    "\tFlags: 1\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
 }
 
 //////////////////////////////////////////////////
@@ -71,11 +87,16 @@ TEST(PacketTest, HeaderIO)
 {
   std::string topic = "topic_test";
   std::string pUuid = "Process-UUID-1";
+  char *buffer = nullptr;
+
+  // Try to pack an empty header.
+  transport::Header emptyHeader;
+  EXPECT_EQ(emptyHeader.Pack(buffer), 0);
 
   // Pack a Header
   transport::Header header(transport::Version, pUuid, topic,
     transport::AdvSrvType, 2);
-  char *buffer = new char[header.GetHeaderLength()];
+  buffer = new char[header.GetHeaderLength()];
   size_t bytes = header.Pack(buffer);
   EXPECT_EQ(bytes, header.GetHeaderLength());
 
@@ -167,6 +188,29 @@ TEST(PacketTest, BasicAdvMsgAPI)
   EXPECT_EQ(advMsg.GetNodeUuid(), nodeUuid);
   advMsg.SetScope(scope);
   EXPECT_EQ(advMsg.GetScope(), scope);
+
+  // Check << operator
+  std::ostringstream output;
+  output << advMsg;
+  std::cout << advMsg;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tTopic length: 16\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tType: ADV_SVC\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tAddr size: 14\n"
+    "\tAddress: inproc://local\n"
+    "\tControl addr size: 16\n"
+    "\tControl address: inproc://control\n"
+    "\tNode UUID: nodeUUID2\n"
+    "\tTopic Scope: Host\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
 }
 
 //////////////////////////////////////////////////
@@ -175,6 +219,11 @@ TEST(PacketTest, AdvMsgIO)
 {
   std::string pUuid = "Process-UUID-1";
   std::string topic = "topic_test";
+  char *buffer = nullptr;
+
+  // Try to pack an empty AdvMsg.
+  transport::AdvMsg emptyMsg;
+  EXPECT_EQ(emptyMsg.Pack(buffer), 0);
 
   // Pack an AdvMsg.
   transport::Header otherHeader(transport::Version, pUuid, topic,
@@ -185,7 +234,7 @@ TEST(PacketTest, AdvMsgIO)
   transport::Scope scope = transport::Scope::Host;
 
   transport::AdvMsg advMsg(otherHeader, addr, ctrl, nodeUuid, scope);
-  char *buffer = new char[advMsg.GetMsgLength()];
+  buffer = new char[advMsg.GetMsgLength()];
   size_t bytes = advMsg.Pack(buffer);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());
 

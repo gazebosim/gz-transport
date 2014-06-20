@@ -38,11 +38,6 @@ using namespace transport;
 Node::Node(const std::string &_ns)
   : dataPtr(new NodePrivate())
 {
-  // If IGN_VERBOSE=1 enable the verbose mode.
-  char const *tmp = std::getenv("IGN_VERBOSE");
-  if (tmp)
-    this->dataPtr->verbose = std::string(tmp) == "1";
-
   if (TopicUtils::IsValidNamespace(_ns))
     this->dataPtr->ns = _ns;
   else
@@ -192,9 +187,6 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  if (this->dataPtr->verbose)
-    std::cout << "\nNode::Unsubscribe from [" << scTopic << "]\n";
-
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
     scTopic, this->dataPtr->nUuid);
 
@@ -258,7 +250,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   std::string scTopic;
   if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
   {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
     return false;
   }
 

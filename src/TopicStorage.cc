@@ -118,6 +118,7 @@ bool TopicStorage::GetAddress(const std::string &_topic,
     return true;
   }
 
+  // nUuid not found.
   return false;
 }
 
@@ -205,21 +206,12 @@ void TopicStorage::Print()
         std::cout << "\t\t* Addr:" << info.addr << std::endl;
         std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
         std::cout << "\t\t  Node UUID:" << info.nUuid << std::endl;
-        switch (info.scope)
-        {
-          case Scope::Process:
-            std::cout << "\t\t  Scope: Process" << std::endl;
-            break;
-          case Scope::Host:
-            std::cout << "\t\t  Scope: Host" << std::endl;
-            break;
-          case Scope::All:
-            std::cout << "\t\t  Scope: All" << std::endl;
-            break;
-          default:
-            std::cout << "\t\t  Scope: <Unknown>" << std::endl;
-            break;
-        }
+        if (info.scope == Scope::Process)
+          std::cout << "\t\t  Scope: Process" << std::endl;
+        else if (info.scope == Scope::Host)
+          std::cout << "\t\t  Scope: Host" << std::endl;
+        else
+          std::cout << "\t\t  Scope: All" << std::endl;
       }
     }
   }

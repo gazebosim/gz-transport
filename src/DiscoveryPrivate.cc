@@ -344,9 +344,6 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
   // Update timestamp.
   this->activity[recvPUuid] = std::chrono::steady_clock::now();
 
-  if (this->verbose)
-    header.Print();
-
   switch (header.GetType())
   {
     case AdvType:
@@ -366,9 +363,6 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       {
         return;
       }
-
-      if (this->verbose)
-        advMsg.PrintBody();
 
       // Register an advertised address for the topic.
       bool added = this->info.AddAddress(topic, recvAddr, recvCtrl,

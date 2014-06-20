@@ -4,7 +4,8 @@ set(tests
   scopedTopic.cc
 	twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
-  twoProcessesSrvCallSync.cc
+  twoProcessesSrvCallSync1.cc
+  twoProcessesSrvCallSync2.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)

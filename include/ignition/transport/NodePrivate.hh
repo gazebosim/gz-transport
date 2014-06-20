@@ -57,9 +57,6 @@ namespace ignition
       /// same process.
       public: NodeSharedPtr shared = NodeShared::GetInstance();
 
-      /// \brief Print activity to stdout.
-      public: bool verbose = false;
-
       /// \brief Default namespace for this node.
       public: std::string ns = "";
     };

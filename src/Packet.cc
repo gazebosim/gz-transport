@@ -52,7 +52,7 @@ uint16_t Header::GetVersion() const
 }
 
 //////////////////////////////////////////////////
-std::string& Header::GetPUuid()
+std::string Header::GetPUuid() const
 {
   return this->pUuid;
 }
@@ -119,19 +119,6 @@ void Header::SetFlags(const uint16_t _flags)
 int Header::GetHeaderLength()
 {
   return this->headerLength;
-}
-
-//////////////////////////////////////////////////
-void Header::Print()
-{
-  std::cout << "\t--------------------------------------\n";
-  std::cout << "\tHeader:" << std::endl;
-  std::cout << "\t\tVersion: " << this->GetVersion() << "\n";
-  std::cout << "\t\tProcess UUID: " << this->GetPUuid() << "\n";
-  std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
-  std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
-  std::cout << "\t\tType: " << MsgTypesStr.at(this->GetType()) << "\n";
-  std::cout << "\t\tFlags: " << this->GetFlags() << "\n";
 }
 
 //////////////////////////////////////////////////
@@ -223,7 +210,7 @@ AdvMsg::AdvMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header& AdvMsg::GetHeader()
+Header AdvMsg::GetHeader() const
 {
   return this->header;
 }
@@ -321,36 +308,6 @@ size_t AdvMsg::GetMsgLength()
          sizeof(this->controlAddressLength) + this->controlAddressLength +
          sizeof(this->nodeUuidLength) + this->nodeUuidLength +
          sizeof(this->scope);
-}
-
-//////////////////////////////////////////////////
-void AdvMsg::PrintBody()
-{
-  std::cout << "\tBody:" << std::endl;
-  std::cout << "\t\tAddr size: " << this->GetAddressLength() << std::endl;
-  std::cout << "\t\tAddress: " << this->GetAddress() << std::endl;
-  std::cout << "\t\tControl addr size: "
-            << this->GetControlAddressLength() << std::endl;
-  std::cout << "\t\tControl address: "
-            << this->GetControlAddress() << std::endl;
-  std::cout << "\t\tNode UUID: "
-            << this->GetNodeUuid() << std::endl;
-  std::cout << "\t\tTopic Scope: ";
-  switch (this->GetScope())
-  {
-    case Scope::Process:
-      std::cout << "Process" << std::endl;
-      break;
-    case Scope::Host:
-      std::cout << "Host" << std::endl;
-      break;
-    case Scope::All:
-      std::cout << "All" << std::endl;
-      break;
-    default:
-      std::cout << "<Unknown>" << std::endl;
-      break;
-  }
 }
 
 //////////////////////////////////////////////////

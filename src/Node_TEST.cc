@@ -98,6 +98,9 @@ class MyTestClass
   public: MyTestClass()
     : callbackExecuted(false)
   {
+    // Subscribe to an illegal topic.
+    EXPECT_FALSE(node.Subscribe("invalid topic", &MyTestClass::Cb, this));
+
     EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
   }
 
@@ -114,6 +117,9 @@ class MyTestClass
   {
     robot_msgs::StringMsg msg;
     msg.set_data(data);
+
+    // Advertise an illegal topic.
+    EXPECT_FALSE(node.Advertise("invalid topic"));
 
     EXPECT_TRUE(this->node.Advertise(topic));
     EXPECT_TRUE(this->node.Publish(topic, msg));
@@ -181,7 +187,9 @@ TEST(NodeTest, PubWithoutAdvertise)
   robot_msgs::StringMsg msg;
   msg.set_data(data);
 
-  transport::Node node1;
+  // Check that an invalid namespace is ignored. The callbacks are expecting an
+  // empty namespace.
+  transport::Node node1("invalid namespace");
   transport::Node node2;
 
   // Publish some data on topic without advertising it first.
@@ -217,12 +225,22 @@ TEST(NodeTest, PubSubSameThread)
   msg.set_data(data);
 
   transport::Node node;
+
+  // Advertise an illegal topic.
+  EXPECT_FALSE(node.Advertise("invalid topic"));
+
   EXPECT_TRUE(node.Advertise(topic));
+
+  // Subscribe to an illegal topic.
+  EXPECT_FALSE(node.Subscribe("invalid topic", cb));
 
   EXPECT_TRUE(node.Subscribe(topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Try to publish a message using an invalid topic.
+  EXPECT_FALSE(node.Publish("invalid topic", msg));
 
   // Publish a first message.
   EXPECT_TRUE(node.Publish(topic, msg));
@@ -243,7 +261,11 @@ TEST(NodeTest, PubSubSameThread)
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
-  cbExecuted = false;
+
+  reset();
+
+  // Unadvertise an illegal topic.
+  EXPECT_FALSE(node.Unadvertise("invalid topic"));
 
   EXPECT_TRUE(node.Unadvertise(topic));
 
@@ -300,6 +322,9 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_TRUE(cb2Executed);
 
   reset();
+
+  // Try to unsubscribe from an invalid topic.
+  EXPECT_FALSE(node1.Unsubscribe("invalid topic"));
 
   // Node1 is not interested in the topic anymore.
   EXPECT_TRUE(node1.Unsubscribe(topic));
@@ -385,7 +410,15 @@ TEST(NodeTest, ServiceCallAsync)
   req.set_data(data);
 
   transport::Node node;
+
+  // Advertise an invalid service name.
+  EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
+
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", req, response));
+
   EXPECT_TRUE(node.Request(topic, req, response));
 
   int i = 0;
@@ -417,6 +450,11 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(responseExecuted);
   EXPECT_TRUE(srvExecuted);
   EXPECT_EQ(counter, 1);
+
+  // Try to unadvertise an invalid service.
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
+
+  EXPECT_TRUE(node.UnadvertiseSrv(topic));
 }
 
 //////////////////////////////////////////////////
@@ -432,12 +470,15 @@ TEST(NodeTest, ServiceCallSync)
 
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
-  bool executed = node.Request(topic, req, timeout, rep, result);
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", req, timeout, rep, result));
+
+  EXPECT_TRUE(node.Request(topic, req, timeout, rep, result));
 
   // Check that the service call response was executed.
-  EXPECT_TRUE(executed);
-  EXPECT_EQ(rep.data(), req.data());
   EXPECT_TRUE(result);
+  EXPECT_EQ(rep.data(), req.data());
 }
 
 //////////////////////////////////////////////////

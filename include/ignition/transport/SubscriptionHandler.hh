@@ -53,8 +53,8 @@ namespace ignition
       /// \brief Executes the local callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msg Protobuf message received.
-      /// \return 0 when success.
-      public: virtual int RunLocalCallback(const std::string &_topic,
+      /// \return True when success, false otherwise.
+      public: virtual bool RunLocalCallback(const std::string &_topic,
                                            const transport::ProtoMsg &_msg) = 0;
 
       /// \brief Executes the callback registered for this handler.
@@ -62,8 +62,8 @@ namespace ignition
       /// \param[in] _data Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
-      /// \return 0 when success.
-      public: virtual int RunCallback(const std::string &_topic,
+      /// \return True when success, false otherwise.
+      public: virtual bool RunCallback(const std::string &_topic,
                                       const std::string &_data) = 0;
 
       /// \brief Get the node UUID.
@@ -94,8 +94,8 @@ namespace ignition
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: SubscriptionHandler(const std::string &_uuid)
-        : ISubscriptionHandler(_uuid)
+      public: SubscriptionHandler(const std::string &_nUuid)
+        : ISubscriptionHandler(_nUuid)
       {
       }
 
@@ -122,27 +122,27 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: int RunLocalCallback(const std::string &_topic,
-                                   const transport::ProtoMsg &_msg)
+      public: bool RunLocalCallback(const std::string &_topic,
+                                    const transport::ProtoMsg &_msg)
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
           this->cb(_topic, *msgPtr);
-          return 0;
+          return true;
         }
         else
         {
           std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
-          return -1;
+          return false;
         }
       }
 
       // Documentation inherited.
-      public: int RunCallback(const std::string &_topic,
-                              const std::string &_data)
+      public: bool RunCallback(const std::string &_topic,
+                               const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data.c_str());
@@ -151,13 +151,13 @@ namespace ignition
         if (this->cb)
         {
           this->cb(_topic, *msg);
-          return 0;
+          return true;
         }
         else
         {
           std::cerr << "SubscriptionHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
-          return -1;
+          return false;
         }
       }
 

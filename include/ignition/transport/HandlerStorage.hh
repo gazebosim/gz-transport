@@ -70,12 +70,12 @@ namespace ignition
       /// \brief Get a specific handler.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the handler.
-      /// \param[in] _reqUuid Request UUID.
+      /// \param[in] _hUuid Handler UUID.
       /// \param[out] _handlers Handler requested.
       /// \return true if the handler was found.
       public: bool GetHandler(const std::string &_topic,
                               const std::string &_nUuid,
-                              const std::string &_reqUuid,
+                              const std::string &_hUuid,
                               std::shared_ptr<T> &_handler)
       {
         if (this->data.find(_topic) == this->data.end())
@@ -85,10 +85,10 @@ namespace ignition
         if (m.find(_nUuid) == m.end())
           return false;
 
-        if (m[_nUuid].find(_reqUuid) == m[_nUuid].end())
+        if (m[_nUuid].find(_hUuid) == m[_nUuid].end())
           return false;
 
-        _handler = m[_nUuid][_reqUuid];
+        _handler = m[_nUuid][_hUuid];
         return true;
       }
 
