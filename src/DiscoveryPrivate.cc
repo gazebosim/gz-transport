@@ -99,9 +99,6 @@ DiscoveryPrivate::~DiscoveryPrivate()
 
   zbeacon_destroy(&this->beacon);
   zctx_destroy(&this->ctx);
-
-  // Debug
-  // std::cout << "~DiscoveryPrivate()" << std::endl;
 }
 
 //////////////////////////////////////////////////
