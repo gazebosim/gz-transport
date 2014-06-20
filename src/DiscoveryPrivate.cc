@@ -524,6 +524,8 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       break;
     }
     default:
+      std::cerr << "DiscoveryPrivate::SendMsg() error: Unrecognized message"
+                << " type [" << _type << "]" << std::endl;
       break;
   }
 
