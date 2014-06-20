@@ -123,9 +123,6 @@ NodeShared::NodeShared()
 
   // Set the callback to notify svc discovery updates (new service calls).
   discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
-
-  // Set the callback to notify svc discovery updates (invalid service calls).
-  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -708,19 +705,3 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
   // Request all pending service calls for this topic.
   this->SendPendingRemoteReqs(_topic);
 }
-
-//////////////////////////////////////////////////
-void NodeShared::OnNewSrvDisconnection(const std::string &/*_topic*/,
-  const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
-  const std::string &_pUuid, const std::string &/*_nUuid*/,
-  const Scope &/*_scope*/)
-{
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-  if (this->verbose)
-  {
-    std::cout << "New service call disconnection detected " << std::endl;
-    std::cout << "\tProcess UUID: " << _pUuid << std::endl;
-  }
-}
-

@@ -424,6 +424,12 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         this->disconnectionCb("", "", "", recvPUuid, "", Scope::All);
       }
 
+      if (this->disconnectionSrvCb)
+      {
+        // Notify the new disconnection.
+        this->disconnectionSrvCb("", "", "", recvPUuid, "", Scope::All);
+      }
+
       // Remove the address entry for this topic.
       this->info.DelAddressesByProc(recvPUuid);
 

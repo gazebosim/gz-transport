@@ -18,6 +18,7 @@
 #include <robot_msgs/stringmsg.pb.h>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
@@ -559,6 +560,9 @@ TEST(NodeTest, TerminateSIGTERM)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Enable verbose mode.
+  setenv("IGN_VERBOSE", "1", 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

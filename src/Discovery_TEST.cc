@@ -16,7 +16,6 @@
 */
 
 #include <chrono>
-#include <cstdlib>
 #include <memory>
 #include <string>
 #include "gtest/gtest.h"
@@ -81,16 +80,14 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDiscoveryResponse(const std::string &_topic, const std::string &_addr,
-  const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const transport::Scope &_scope)
+void onDiscoveryResponse(const std::string &/*_topic*/,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const transport::Scope &/*_scope*/)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_addr, addr1);
   EXPECT_EQ(_ctrl, ctrl1);
   EXPECT_EQ(_pUuid, pUuid1);
   EXPECT_EQ(_nUuid, nUuid1);
-  EXPECT_EQ(_scope, scope);
   connectionExecuted = true;
 }
 
@@ -318,9 +315,9 @@ TEST(DiscoveryTest, TestAdvertise)
 {
   reset();
 
-  // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1, true);
-  transport::Discovery discovery2(pUuid2);
+  // Create two discovery nodes simulating they are in different processes.
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2, true);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);
@@ -331,6 +328,52 @@ TEST(DiscoveryTest, TestAdvertise)
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
   EXPECT_TRUE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+
+  reset();
+
+  // This should not trigger a discovery response on discovery2. They are in
+  // different proccesses.
+  discovery1.AdvertiseMsg("/topic2", addr1, ctrl1, nUuid1,
+    transport::Scope::Process);
+
+  waitForCallback(MaxIters, Nap, connectionExecuted);
+
+  EXPECT_FALSE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+
+  reset();
+
+  // This should trigger a discovery response on discovery2.
+  discovery1.AdvertiseMsg("/topic3", addr1, ctrl1, nUuid1,
+    transport::Scope::Host);
+
+  waitForCallback(MaxIters, Nap, connectionExecuted);
+
+  EXPECT_TRUE(connectionExecuted);
+  EXPECT_FALSE(disconnectionExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the discovery triggers the callbacks after an advertise.
+TEST(DiscoveryTest, TestAdvertiseSameProc)
+{
+  reset();
+
+  // Create two discovery nodes simulating they are in different processes.
+  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid1);
+
+  // Register one callback for receiving notifications.
+  discovery2.SetConnectionsCb(onDiscoveryResponse);
+
+  // This should not trigger a discovery response on discovery2. If the nodes
+  // are on the same process, they will not communicate using zeromq.
+  discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
+
+  waitForCallback(MaxIters, Nap, connectionExecuted);
+
+  EXPECT_FALSE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
 }
 

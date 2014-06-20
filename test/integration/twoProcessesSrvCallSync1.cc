@@ -18,6 +18,7 @@
 #include <robot_msgs/stringmsg.pb.h>
 #include <sys/types.h>
 #include <chrono>
+#include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -100,6 +101,9 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Enable verbose mode.
+  setenv("IGN_VERBOSE", "1", 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
