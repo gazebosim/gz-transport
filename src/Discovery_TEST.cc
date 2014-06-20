@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include "gtest/gtest.h"
@@ -318,7 +319,7 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, true);
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving notifications.

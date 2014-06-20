@@ -207,10 +207,6 @@ void DiscoveryPrivate::RunActivityTask()
     Timestamp now = std::chrono::steady_clock::now();
     for (auto it = this->activity.cbegin(); it != this->activity.cend();)
     {
-      // Skip my own entry.
-      if (it->first == this->pUuid)
-        continue;
-
       // Elapsed time since the last update from this publisher.
       std::chrono::duration<double> elapsed = now - it->second;
 
