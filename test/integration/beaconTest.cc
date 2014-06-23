@@ -27,7 +27,8 @@ TEST(beaconTest, pubRecv)
   zctx_t *ctx = zctx_new();
   zbeacon_t *beacon = zbeacon_new(ctx, 11312);
   zbeacon_subscribe(beacon, NULL, 0);
-  zbeacon_publish (beacon, (byte *) "A message", 9);
+
+  zbeacon_publish(beacon, reinterpret_cast<byte*>(strdup("A message")), 9);
 
   char *srcAddr = zstr_recv(zbeacon_socket(beacon));
   zframe_t *frame = zframe_recv(zbeacon_socket(beacon));
