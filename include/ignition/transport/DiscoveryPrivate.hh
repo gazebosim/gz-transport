@@ -87,7 +87,7 @@ namespace ignition
       public: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbitTask();
+      public: void RunHeartbeatTask();
 
       /// \brief Receive discovery messages.
       public: void RunReceptionTask();
@@ -146,10 +146,10 @@ namespace ignition
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
-      /// \brief Default heartbit interval value (ms.).
-      /// \sa GetHeartbitInterval.
-      /// \sa SetHeartbitInterval.
-      public: static const unsigned int DefHeartbitInterval = 1000;
+      /// \brief Default heartbeat interval value (ms.).
+      /// \sa GetHeartbeatInterval.
+      /// \sa SetHeartbeatInterval.
+      public: static const unsigned int DefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
@@ -188,10 +188,10 @@ namespace ignition
       /// \sa SetAdvertiseInterval.
       public: unsigned int advertiseInterval;
 
-      /// \brief Heartbit interval value (ms.).
-      /// \sa GetHeartbitInterval.
-      /// \sa SetHeartbitInterval.
-      public: unsigned int heartbitInterval;
+      /// \brief Heartbeat interval value (ms.).
+      /// \sa GetHeartbeatInterval.
+      /// \sa SetHeartbeatInterval.
+      public: unsigned int heartbeatInterval;
 
       /// \brief Callback executed when new topics are discovered.
       public: DiscoveryCallback connectionCb;
@@ -236,8 +236,8 @@ namespace ignition
       /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
 
-      /// \brief Thread in charge of sending heartbits.
-      public: std::thread *threadHeartbit;
+      /// \brief Thread in charge of sending heartbeats.
+      public: std::thread *threadHeartbeat;
 
       /// \brief Thread in charge of update the activity.
       public: std::thread *threadActivity;

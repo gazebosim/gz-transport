@@ -250,7 +250,7 @@ TEST(DiscoveryTest, TestBasicAPI)
   unsigned int newSilenceInterval   = 100;
   unsigned int newActivityInterval  = 200;
   unsigned int newAdvertiseInterval = 300;
-  unsigned int newHeartbitInterval  = 400;
+  unsigned int newHeartbeatInterval  = 400;
 
   // Create two discovery nodes.
   transport::Discovery discovery1(pUuid1);
@@ -258,11 +258,11 @@ TEST(DiscoveryTest, TestBasicAPI)
   discovery1.SetSilenceInterval(newSilenceInterval);
   discovery1.SetActivityInterval(newActivityInterval);
   discovery1.SetAdvertiseInterval(newAdvertiseInterval);
-  discovery1.SetHeartbitInterval(newHeartbitInterval);
+  discovery1.SetHeartbeatInterval(newHeartbeatInterval);
   EXPECT_EQ(discovery1.GetSilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
   EXPECT_EQ(discovery1.GetAdvertiseInterval(), newAdvertiseInterval);
-  EXPECT_EQ(discovery1.GetHeartbitInterval(), newHeartbitInterval);
+  EXPECT_EQ(discovery1.GetHeartbeatInterval(), newHeartbeatInterval);
 
   EXPECT_NE(discovery1.GetHostAddr(), "");
 }

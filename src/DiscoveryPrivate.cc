@@ -36,7 +36,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     advertiseInterval(DefAdvertiseInterval),
-    heartbitInterval(DefHeartbitInterval),
+    heartbeatInterval(DefHeartbeatInterval),
     connectionCb(nullptr),
     disconnectionCb(nullptr),
     verbose(_verbose),
@@ -56,8 +56,8 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     new std::thread(&DiscoveryPrivate::RunReceptionTask, this);
 
   // Start the thread that sends heartbeats.
-  this->threadHeartbit =
-    new std::thread(&DiscoveryPrivate::RunHeartbitTask, this);
+  this->threadHeartbeat =
+    new std::thread(&DiscoveryPrivate::RunHeartbeatTask, this);
 
   // Start the thread that checks the topic information validity.
   this->threadActivity =
@@ -77,7 +77,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
 
   // Wait for the service threads to finish before exit.
   this->threadReception->join();
-  this->threadHeartbit->join();
+  this->threadHeartbeat->join();
   this->threadActivity->join();
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -256,7 +256,7 @@ void DiscoveryPrivate::RunActivityTask()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::RunHeartbitTask()
+void DiscoveryPrivate::RunHeartbeatTask()
 {
   while (!zctx_interrupted)
   {
@@ -265,7 +265,7 @@ void DiscoveryPrivate::RunHeartbitTask()
     this->mutex.unlock();
 
     std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->heartbitInterval));
+      std::chrono::milliseconds(this->heartbeatInterval));
 
     // Is it time to exit?
     {
@@ -596,7 +596,7 @@ void DiscoveryPrivate::PrintCurrentState()
   std::cout << "\tUUID: " << this->pUuid << std::endl;
   std::cout << "Settings" << std::endl;
   std::cout << "\tActivity: " << this->activityInterval << " ms." << std::endl;
-  std::cout << "\tHeartbit: " << this->heartbitInterval << " ms." << std::endl;
+  std::cout << "\tHeartbeat: " << this->heartbeatInterval << "ms." << std::endl;
   std::cout << "\tRetrans.: " << this->advertiseInterval << " ms."
     << std::endl;
   std::cout << "\tSilence: " << this->silenceInterval << " ms." << std::endl;

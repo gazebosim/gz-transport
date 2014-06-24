@@ -35,7 +35,7 @@ namespace ignition
     /// protocol. It uses UDP broadcast for sending/receiving messages and
     /// keep updated the topic information. The discovery clients can request
     /// the discovery of a topic or the advertise of a local topic. The
-    /// discovery uses heartbits to track the state of other peers in the
+    /// discovery uses heartbeats to track the state of other peers in the
     /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
     class IGNITION_VISIBLE Discovery
@@ -122,9 +122,9 @@ namespace ignition
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in other nodes. A HELLO message is sent after
-      /// 'heartbit interval' milliseconds.
+      /// 'heartbeat interval' milliseconds.
       /// \return The value in milliseconds.
-      public: unsigned int GetHeartbitInterval() const;
+      public: unsigned int GetHeartbeatInterval() const;
 
       /// \brief While a topic is being advertised by a node, a beacon is sent
       /// periodically every 'advertise interval' milliseconds.
@@ -142,9 +142,9 @@ namespace ignition
       public: void SetActivityInterval(const unsigned int _ms);
 
       /// \brief Set the hello interval.
-      /// \sa GetHeartbitInterval.
+      /// \sa GetHeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetHeartbitInterval(const unsigned int _ms);
+      public: void SetHeartbeatInterval(const unsigned int _ms);
 
       /// \brief Set the advertise interval.
       /// \sa GetAdvertiseInterval.

@@ -101,10 +101,10 @@ unsigned int Discovery::GetActivityInterval() const
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbitInterval() const
+unsigned int Discovery::GetHeartbeatInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  return this->dataPtr->heartbitInterval;
+  return this->dataPtr->heartbeatInterval;
 }
 
 //////////////////////////////////////////////////
@@ -129,10 +129,10 @@ void Discovery::SetActivityInterval(const unsigned int _ms)
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbitInterval(const unsigned int _ms)
+void Discovery::SetHeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->heartbitInterval = _ms;
+  this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
