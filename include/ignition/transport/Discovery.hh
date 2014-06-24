@@ -165,11 +165,19 @@ namespace ignition
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is discovered, the callback will be executed.
       /// This version uses a member functions as callback.
-      /// \param[in] _cb Function callback.
+      /// \param[in] _cb Function callback with the following parameters.
+      ///                _topic Topic name
+      ///                _addr ZeroMQ address of the publisher.
+      ///                _ctrl ZeroMQ control address of the publisher
+      ///                _pUuid UUID of the process publishing the topic.
+      ///                _nUuid UUID of the node publishing the topic.
+      ///                _scope Topic scope.
+      /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetConnectionsCb(
-        void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &, const std::string &,
-          const Scope &), C* _obj)
+        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
+          const std::string &_ctrl, const std::string &_pUuid,
+          const std::string &_nUuid, const Scope &_scope),
+        C* _obj)
       {
         this->SetConnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -186,11 +194,19 @@ namespace ignition
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a member function as callback.
-      /// \param[in] _cb Function callback.
+      /// \param[in] _cb Function callback with the following parameters.
+      ///                _topic Topic name
+      ///                _addr ZeroMQ address of the publisher.
+      ///                _ctrl ZeroMQ control address of the publisher
+      ///                _pUuid UUID of the process publishing the topic.
+      ///                _nUuid UUID of the node publishing the topic.
+      ///                _scope Topic scope.
+      /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetDisconnectionsCb(
-        void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &, const std::string &,
-          const Scope &), C* _obj)
+        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
+          const std::string &_ctrl, const std::string &_pUuid,
+          const std::string &_nUuid, const Scope &_scope),
+        C* _obj)
       {
         this->SetDisconnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -211,11 +227,19 @@ namespace ignition
       /// Each time a new service call is available, the callback will be
       /// executed.
       /// This version uses a member functions as callback.
-      /// \param[in] _cb Function callback.
+      /// \param[in] _cb Function callback with the following parameters.
+      ///                _topic Topic name
+      ///                _addr ZeroMQ address of the publisher.
+      ///                _ctrl ZeroMQ control address of the publisher
+      ///                _pUuid UUID of the process publishing the topic.
+      ///                _nUuid UUID of the node publishing the topic.
+      ///                _scope Topic scope.
+      /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetConnectionsSrvCb(
-        void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &, const std::string &,
-          const Scope &), C* _obj)
+        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
+          const std::string &_ctrl, const std::string &_pUuid,
+          const std::string &_nUuid, const Scope &_scope),
+        C* _obj)
       {
         this->SetConnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -236,11 +260,19 @@ namespace ignition
       /// Each time a service call is no longer available, the callback will be
       /// executed.
       /// This version uses a member function as callback.
-      /// \param[in] _cb Function callback.
+      /// \param[in] _cb Function callback with the following parameters.
+      ///                _topic Topic name
+      ///                _addr ZeroMQ address of the publisher.
+      ///                _ctrl ZeroMQ control address of the publisher
+      ///                _pUuid UUID of the process publishing the topic.
+      ///                _nUuid UUID of the node publishing the topic.
+      ///                _scope Topic scope.
+      /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetDisconnectionsSrvCb(
-        void(C::*_cb)(const std::string &, const std::string &,
-          const std::string &, const std::string &, const std::string &,
-          const Scope &), C* _obj)
+        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
+          const std::string &_ctrl, const std::string &_pUuid,
+          const std::string &_nUuid, const Scope &_scope),
+        C* _obj)
       {
         this->SetDisconnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,

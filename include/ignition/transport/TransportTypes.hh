@@ -83,9 +83,8 @@ namespace ignition
 
     /// \def RepCallback
     /// \brief Callback used for receving a service call response.
-    typedef std::function<void (const std::string &,
-                                const ProtoMsgPtr,
-                                bool)> RepCallback;
+    typedef std::function<void (const std::string &, const ProtoMsgPtr, bool)>
+      RepCallback;
 
     /// \def Topics_M
     /// \brief Map used for store all the knowledge about a given topic.
@@ -108,7 +107,7 @@ namespace ignition
     /// Each node can have its own subscription handler. The node id
     /// is used as key.
     typedef std::map<std::string, ISubscriptionHandlerPtr>
-        ISubscriptionHandler_M;
+      ISubscriptionHandler_M;
 
     /// \def IRepHandlerPtr
     /// \brief Shared pointer to IRepHandler.
