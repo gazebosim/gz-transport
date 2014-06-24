@@ -77,10 +77,14 @@ namespace ignition
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _cb Pointer to the callback function.
+      /// \param[in] _cb Pointer to the callback function with the following
+      /// parameters:
+      ///   \param[in] _topic Topic name.
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &, const T &))
+          void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string scTopic;
         if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
@@ -117,11 +121,15 @@ namespace ignition
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _cb Pointer to the callback member function.
+      /// \param[in] _cb Pointer to the callback function with the following
+      /// parameters:
+      ///   \param[in] _topic Topic name.
+      ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
+      /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const std::string &, const T &),
+          void(C::*_cb)(const std::string &_topic, const T &_msg),
           C *_obj)
       {
         std::string scTopic;
@@ -159,17 +167,25 @@ namespace ignition
 
       /// \brief Unsubscribe to a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
-      /// \return true when success.
+      /// \return true when successfully unsubscribed or false otherwise.
       public: bool Unsubscribe(const std::string &_topic);
 
       /// \brief Advertise a new service.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _cb Callback to handle the service request.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _topic Service name to be advertised.
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
       /// \param[in] _scope Topic scope.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const std::string &, const T1 &, T2 &, bool &),
+        void(*_cb)(const std::string &_topic, const T1 &_req,
+                   T2 &_rep, bool &_result),
         const Scope &_scope = Scope::All)
       {
         std::string scTopic;
@@ -209,12 +225,20 @@ namespace ignition
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _cb Callback to handle the service request.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _topic Service name to be advertised.
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _scope Topic scope.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const std::string &, const T1 &, T2 &, bool &),
+        void(C::*_cb)(const std::string &_topic, const T1 &_req,
+                      T2 &_rep, bool &_result),
         C *_obj,
         const Scope &_scope = Scope::All)
       {
@@ -259,12 +283,16 @@ namespace ignition
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
-      /// response arrives.
-      /// \return 0 when success.
+      /// response arrives. The callback has the following parameters:
+      ///   \param[in] _topic Service name to be requested.
+      ///   \param[in] _rep Protobuf message containing the response.
+      ///   \param[in] _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \return true when the service call was succesfully requested.
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(*_cb)(const std::string &_topic, const T2 &, bool))
+        void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
         std::string scTopic;
         if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
@@ -319,16 +347,20 @@ namespace ignition
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a member function.
-      /// \param[in] _topic Topic requested.
+      /// \param[in] _topic Service name requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
-      /// \param[in] _obj Instance containing the member function.
       /// \param[in] _cb Pointer to the callback function executed when the
-      /// response arrives.
-      /// \return 0 when success.
+      /// response arrives. The callback has the following parameters:
+      ///   \param[in] _topic Service name to be requested.
+      ///   \param[in] _rep Protobuf message containing the response.
+      ///   \param[in] _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \param[in] _obj Instance containing the member function.
+      /// \return true when the service call was succesfully requested.
       public: template<typename C, typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(C::*_cb)(const std::string &_topic, const T2 &, bool),
+        void(C::*_cb)(const std::string &_topic, const T2 &_rep, bool _result),
         C *_obj)
       {
         std::string scTopic;
@@ -466,7 +498,7 @@ namespace ignition
 
       /// \brief Unadvertise a service.
       /// \param[in] _topic Topic name to be unadvertised.
-      /// \return true if the topic was advertised.
+      /// \return true if the service was successfully unadvertised.
       public: bool UnadvertiseSrv(const std::string &_topic);
 
       /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
