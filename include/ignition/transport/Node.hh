@@ -122,7 +122,7 @@ namespace ignition
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &, const T &),
-          C* _obj)
+          C *_obj)
       {
         std::string scTopic;
         if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
@@ -215,7 +215,7 @@ namespace ignition
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(C::*_cb)(const std::string &, const T1 &, T2 &, bool &),
-        C* _obj,
+        C *_obj,
         const Scope &_scope = Scope::All)
       {
         std::string scTopic;
@@ -329,7 +329,7 @@ namespace ignition
         const std::string &_topic,
         const T1 &_req,
         void(C::*_cb)(const std::string &_topic, const T2 &, bool),
-        C* _obj)
+        C *_obj)
       {
         std::string scTopic;
         if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))

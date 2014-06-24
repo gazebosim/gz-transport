@@ -193,7 +193,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
-        C* _obj)
+        C *_obj)
       {
         this->SetConnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -222,7 +222,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
-        C* _obj)
+        C *_obj)
       {
         this->SetDisconnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -254,7 +254,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
-        C* _obj)
+        C *_obj)
       {
         this->SetConnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
@@ -287,7 +287,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
-        C* _obj)
+        C *_obj)
       {
         this->SetDisconnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
