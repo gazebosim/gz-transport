@@ -433,12 +433,10 @@ namespace ignition
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
           scTopic, addresses))
         {
-          std::cout << "I know the address" << std::endl;
           this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
         }
         else
         {
-          std::cout << "Address not known" << std::endl;
           // Discover the service call responser.
           this->dataPtr->shared->discovery->DiscoverSrvCall(scTopic);
         }
