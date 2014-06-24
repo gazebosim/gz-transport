@@ -73,11 +73,23 @@ namespace ignition
                                     const std::string &_nUuid,
                                     const Scope &_scope = Scope::All);
 
-      /// \brief Request discovery information about a message.
-      /// \param[in] _topic Topic name requested.
+      /// \brief Request discovery information about a topic. The user
+      /// might want to use this function with SetConnectionsCb() and
+      /// SetDisconnectionCb(), that register callbacks that will be executed
+      /// when the topic address is discovered or when the node providing the
+      /// topic is disconnected.
+      /// \sa SetConnectionsCb.
+      /// \sa SetDisconnectionsCb.
+      /// \param[in] _topic Topic requested.
       public: void DiscoverMsg(const std::string &_topic);
 
-      /// \brief Request discovery information about a service call.
+      /// \brief Request discovery information about a service call. The user
+      /// might want to use this function with SetConnectionsSrvCb() and
+      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
+      /// when the service address is discovered or when the node providing the
+      /// service is disconnected.
+      /// \sa SetConnectionsSrvCb.
+      /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic requested.
       public: void DiscoverSrvCall(const std::string &_topic);
 
