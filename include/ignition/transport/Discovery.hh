@@ -33,8 +33,8 @@ namespace ignition
     /// \class Discovery Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
     /// protocol. It uses UDP broadcast for sending/receiving messages and
-    /// keep updated the topic information. The discovery clients can request
-    /// the discovery of a topic or the advertise of a local topic. The
+    /// stores updated topic information. The discovery clients can request
+    /// the discovery of a topic or the advertisement of a local topic. The
     /// discovery uses heartbeats to track the state of other peers in the
     /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
