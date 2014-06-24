@@ -129,22 +129,26 @@ namespace ignition
 
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' milliseconds.
+      /// \sa SetActivityInterval.
       /// \return The value in milliseconds.
       public: unsigned int GetActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in other nodes. A HELLO message is sent after
       /// 'heartbeat interval' milliseconds.
+      /// \sa SetHeartbeatInterval.
       /// \return The value in milliseconds.
       public: unsigned int GetHeartbeatInterval() const;
 
       /// \brief While a topic is being advertised by a node, a beacon is sent
       /// periodically every 'advertise interval' milliseconds.
+      /// \sa SetAdvertiseInterval.
       /// \return The value in milliseconds.
       public: unsigned int GetAdvertiseInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entries.
+      /// \sa SetSilenceInterval.
       /// \return The value in milliseconds.
       public: unsigned int GetSilenceInterval() const;
 
