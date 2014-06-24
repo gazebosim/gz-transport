@@ -60,10 +60,17 @@ void Discovery::DiscoverSrvCall(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetTopicAddresses(const std::string &_topic,
-                                  Addresses_M &_addresses)
+bool Discovery::GetMsgAddresses(const std::string &_topic,
+                                Addresses_M &_addresses)
 {
-  return this->dataPtr->info.GetAddresses(_topic, _addresses);
+  return this->dataPtr->infoMsg.GetAddresses(_topic, _addresses);
+}
+
+//////////////////////////////////////////////////
+bool Discovery::GetSrvAddresses(const std::string &_topic,
+                                Addresses_M &_addresses)
+{
+  return this->dataPtr->infoSrv.GetAddresses(_topic, _addresses);
 }
 
 //////////////////////////////////////////////////

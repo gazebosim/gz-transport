@@ -471,7 +471,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 {
   std::string responserAddr;
   Addresses_M addresses;
-  this->discovery->GetTopicAddresses(_topic, addresses);
+  this->discovery->GetSrvAddresses(_topic, addresses);
   if (addresses.empty())
     return;
 

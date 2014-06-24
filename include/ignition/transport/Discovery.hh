@@ -85,8 +85,15 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _addresses Addresses requested.
       /// \return True if the topic is found and there is at least one address.
-      public: bool GetTopicAddresses(const std::string &_topic,
-                                     Addresses_M &_addresses);
+      public: bool GetMsgAddresses(const std::string &_topic,
+                                   Addresses_M &_addresses);
+
+      /// \brief Get all the addresses known for a given service.
+      /// \param[in] _topic Service name.
+      /// \param[out] _addresses Addresses requested.
+      /// \return True if the topic is found and there is at least one address.
+      public: bool GetSrvAddresses(const std::string &_topic,
+                                   Addresses_M &_addresses);
 
       /// \brief Unadvertise a topic. Broadcast a discovery message that will
       /// cancel all the discovery information for the topic advertised by a
