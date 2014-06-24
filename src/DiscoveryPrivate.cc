@@ -161,7 +161,7 @@ void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
+void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrv)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -169,7 +169,7 @@ void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
   TopicStorage *storage;
   DiscoveryCallback cb;
 
-  if (_isSrvCall)
+  if (_isSrv)
   {
     msgType = SubSrvType;
     storage = &this->infoSrv;

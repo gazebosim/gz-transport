@@ -78,8 +78,8 @@ namespace ignition
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic name requested.
-      /// \param[in] _isSrvCall true if the topic corresponds to a service call.
-      public: void Discover(const std::string &_topic, bool _isSrvCall);
+      /// \param[in] _isSrv True if the topic corresponds to a service call.
+      public: void Discover(const std::string &_topic, bool _isSrv);
 
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
