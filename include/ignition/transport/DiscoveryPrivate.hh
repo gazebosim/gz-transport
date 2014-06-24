@@ -209,8 +209,11 @@ namespace ignition
       /// name. The value is another map, where the key is the node UUID.
       public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
 
-      /// \brief Topic addressing information.
-      public: TopicStorage info;
+      /// \brief Message addressing information.
+      public: TopicStorage infoMsg;
+
+      /// \brief Service call addressing information.
+      public: TopicStorage infoSrv;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

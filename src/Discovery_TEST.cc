@@ -93,11 +93,11 @@ void onDiscoveryResponse(const std::string &/*_topic*/,
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery srv call update is received.
-void onDiscoverySrvResponse(const std::string &_topic, const std::string &_addr,
-  const std::string &_ctrl, const std::string &_pUuid,
+void onDiscoverySrvResponse(const std::string &_service,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const transport::Scope &_scope)
 {
-  EXPECT_EQ(_topic, service);
+  EXPECT_EQ(_service, service);
   EXPECT_EQ(_addr, addr1);
   EXPECT_EQ(_ctrl, ctrl1);
   EXPECT_EQ(_pUuid, pUuid1);

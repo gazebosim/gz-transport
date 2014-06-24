@@ -109,7 +109,10 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
   std::lock_guard<std::mutex> lock(this->mutex);
 
   // Add the addressing information (local node).
-  this->info.AddAddress(_topic, _addr, _ctrl, this->pUuid, _nUuid, _scope);
+  if (_advType == MsgType::Msg)
+    this->infoMsg.AddAddress(_topic, _addr, _ctrl, this->pUuid, _nUuid, _scope);
+  else
+    this->infoSrv.AddAddress(_topic, _addr, _ctrl, this->pUuid, _nUuid, _scope);
 
   // If the scope is 'Process', do not advertise a message outside this process.
   if (_scope == Scope::Process)
@@ -125,23 +128,33 @@ void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
-  // Don't do anything if the topic is not advertised by any of my nodes.
+  uint8_t msgType;
+  TopicStorage *storage;
+
+  if (_unadvType == MsgType::Msg)
+  {
+    msgType = UnadvType;
+    storage = &this->infoMsg;
+  }
+  else
+  {
+    msgType = UnadvSrvType;
+    storage = &this->infoSrv;
+  }
+
   Address_t inf;
-  if (!this->info.GetAddress(_topic, this->pUuid, _nUuid, inf))
+  // Don't do anything if the topic is not advertised by any of my nodes.
+  if (!storage->GetAddress(_topic, this->pUuid, _nUuid, inf))
     return;
 
   // Remove the topic information.
-  this->info.DelAddressByNode(_topic, this->pUuid, _nUuid);
+  storage->DelAddressByNode(_topic, this->pUuid, _nUuid);
 
   // Do not advertise a message outside the process if the scope is 'Process'.
   if (inf.scope == Scope::Process)
     return;
 
-  // Send the UNADVERTISE message.
-  if (_unadvType == MsgType::Msg)
-    this->SendMsg(UnadvType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
-  else
-    this->SendMsg(UnadvSrvType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
+  this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
 
   // Remove the beacon for this topic in this node.
   this->DelBeacon(_topic, _nUuid);
@@ -152,41 +165,43 @@ void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrvCall)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
+  uint8_t msgType;
+  TopicStorage *storage;
+  DiscoveryCallback cb;
+
   if (_isSrvCall)
   {
-    // Broadcast a discovery request for this service call.
-    this->SendMsg(SubSrvType, _topic, "", "", "", Scope::All);
+    msgType = SubSrvType;
+    storage = &this->infoSrv;
+    cb = this->connectionSrvCb;
   }
   else
   {
-    // Broadcast a discovery request for this topic.
-    this->SendMsg(SubType, _topic, "", "", "", Scope::All);
+    msgType = SubType;
+    storage = &this->infoMsg;
+    cb = this->connectionCb;
   }
 
+  // Broadcast a discovery request for this service call.
+  this->SendMsg(msgType, _topic, "", "", "", Scope::All);
+
   // I already have information about this topic.
-  if (this->info.HasTopic(_topic))
+  if (storage->HasTopic(_topic))
   {
     Addresses_M addresses;
-    if (this->info.GetAddresses(_topic, addresses))
+    if (storage->GetAddresses(_topic, addresses))
     {
       for (auto &proc : addresses)
       {
         for (auto &node : proc.second)
         {
-          if (_isSrvCall && this->connectionSrvCb)
+          if (cb)
           {
             // Execute the user's callback for a service call request. Notice
             // that we only execute one callback for preventing receive multiple
             // service responses for a single request.
-            this->connectionSrvCb(_topic, node.addr, node.ctrl, proc.first,
-              node.nUuid, node.scope);
+            cb(_topic, node.addr, node.ctrl, proc.first,node.nUuid, node.scope);
             return;
-          }
-          else if (!_isSrvCall && this->connectionCb)
-          {
-            // Execute the user's callback.
-            this->connectionCb(_topic, node.addr, node.ctrl, proc.first,
-              node.nUuid, node.scope);
           }
         }
       }
@@ -212,7 +227,8 @@ void DiscoveryPrivate::RunActivityTask()
            (elapsed).count() > this->silenceInterval)
       {
         // Remove all the info entries for this process UUID.
-        this->info.DelAddressesByProc(it->first);
+        this->infoMsg.DelAddressesByProc(it->first);
+        this->infoSrv.DelAddressesByProc(it->first);
 
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
@@ -357,35 +373,54 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         return;
       }
 
-      // Register an advertised address for the topic.
-      bool added = this->info.AddAddress(topic, recvAddr, recvCtrl,
-        recvPUuid, recvNUuid, recvScope);
+      DiscoveryCallback cb;
+      TopicStorage *storage;
 
-      if (added)
+      if (header.GetType() == AdvType)
       {
-        if (header.GetType() == AdvType && this->connectionCb)
-        {
-          // Execute the client's callback.
-          this->connectionCb(topic, recvAddr, recvCtrl, recvPUuid,
-            recvNUuid, recvScope);
-        }
-        else if (header.GetType() == AdvSrvType && this->connectionSrvCb)
-        {
-          // Execute the client's callback for service calls.
-          this->connectionSrvCb(topic, recvAddr, recvCtrl, recvPUuid,
-            recvNUuid, recvScope);
-        }
+        storage = &this->infoMsg;
+        cb = this->connectionCb;
       }
+      else
+      {
+        storage = &this->infoSrv;
+        cb = this->connectionSrvCb;
+      }
+
+      // Register an advertised address for the topic.
+      bool added = storage->AddAddress(topic, recvAddr, recvCtrl, recvPUuid,
+        recvNUuid, recvScope);
+
+      if (added && cb)
+      {
+        // Execute the client's callback.
+        cb(topic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
+      }
+
       break;
     }
     case SubType:
     case SubSrvType:
     {
+      uint8_t msgType;
+      TopicStorage *storage;
+
+      if (header.GetType() == SubType)
+      {
+        msgType = AdvType;
+        storage = &this->infoMsg;
+      }
+      else
+      {
+        msgType = AdvSrvType;
+        storage = &this->infoSrv;
+      }
+
       // Check if at least one of my nodes advertises the topic requested.
-      if (this->info.HasAnyAddresses(topic, this->pUuid))
+      if (storage->HasAnyAddresses(topic, this->pUuid))
       {
         Addresses_M addresses;
-        if (this->info.GetAddresses(topic, addresses))
+        if (storage->GetAddresses(topic, addresses))
         {
           for (auto nodeInfo : addresses[this->pUuid])
           {
@@ -397,7 +432,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
             }
 
             // Answer an ADVERTISE message.
-            this->SendMsg(AdvType, topic, nodeInfo.addr, nodeInfo.ctrl,
+            this->SendMsg(msgType, topic, nodeInfo.addr, nodeInfo.ctrl,
               nodeInfo.nUuid, nodeInfo.scope);
           }
         }
@@ -428,7 +463,8 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Remove the address entry for this topic.
-      this->info.DelAddressesByProc(recvPUuid);
+      this->infoMsg.DelAddressesByProc(recvPUuid);
+      this->infoSrv.DelAddressesByProc(recvPUuid);
 
       break;
     }
@@ -450,21 +486,28 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
         return;
       }
 
-      if (header.GetType() == UnadvType && this->disconnectionCb)
+      DiscoveryCallback cb;
+      TopicStorage *storage;
+
+      if (header.GetType() == UnadvType)
       {
-        // Notify the new disconnection.
-        this->disconnectionCb(topic, recvAddr, recvCtrl, recvPUuid,
-          recvNUuid, recvScope);
+        storage = &this->infoMsg;
+        cb = this->disconnectionCb;
       }
-      else if (header.GetType() == UnadvSrvType && this->disconnectionSrvCb)
+      else
+      {
+        storage = &this->infoSrv;
+        cb = this->disconnectionSrvCb;
+      }
+
+      if (cb)
       {
         // Notify the new disconnection.
-        this->disconnectionSrvCb(topic, recvAddr, recvCtrl, recvPUuid,
-          recvNUuid, recvScope);
+        cb(topic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
       }
 
       // Remove the address entry for this topic.
-      this->info.DelAddressByNode(topic, recvPUuid, recvNUuid);
+      storage->DelAddressByNode(topic, recvPUuid, recvNUuid);
 
       break;
     }
@@ -507,6 +550,7 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       break;
     }
     case SubType:
+    case SubSrvType:
     case HelloType:
     case ByeType:
     {
@@ -557,8 +601,10 @@ void DiscoveryPrivate::PrintCurrentState()
   std::cout << "\tRetrans.: " << this->advertiseInterval << " ms."
     << std::endl;
   std::cout << "\tSilence: " << this->silenceInterval << " ms." << std::endl;
-  std::cout << "Known topics" << std::endl;
-  this->info.Print();
+  std::cout << "Known msgs" << std::endl;
+  this->infoMsg.Print();
+  std::cout << "Known services" << std::endl;
+  this->infoSrv.Print();
 
   // Used to calculate the elapsed time.
   Timestamp now = std::chrono::steady_clock::now();
@@ -596,16 +642,23 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
     zbeacon_set_interval(b, this->advertiseInterval);
     this->beacons[_topic][_nUuid] = b;
 
-    // Prepare the content for the beacon.
     Address_t node;
-    if (!this->info.GetAddress(_topic, this->pUuid, _nUuid, node))
-      return;
 
     // Create the header.
     if (_advType == MsgType::Msg)
+    {
+      // Prepare the content for the beacon.
+      if (!this->infoMsg.GetAddress(_topic, this->pUuid, _nUuid, node))
+        return;
       header.reset(new Header(Version, this->pUuid, _topic, AdvType));
+    }
     else
+    {
+      // Prepare the content for the beacon.
+      if (!this->infoSrv.GetAddress(_topic, this->pUuid, _nUuid, node))
+        return;
       header.reset(new Header(Version, this->pUuid, _topic, AdvSrvType));
+    }
 
     // Create the ADVERTISE message.
     AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope);
