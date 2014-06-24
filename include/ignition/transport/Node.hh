@@ -165,7 +165,7 @@ namespace ignition
         return true;
       }
 
-      /// \brief Unsubscribe to a topic.
+      /// \brief Unsubscribe from a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
       /// \return true when successfully unsubscribed or false otherwise.
       public: bool Unsubscribe(const std::string &_topic);
