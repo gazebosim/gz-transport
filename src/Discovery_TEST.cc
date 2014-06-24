@@ -607,7 +607,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 //////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the srv call callbacks after
 /// an advertise.
-TEST(DiscoveryTest, TestAdvertiseSrvCall)
+TEST(DiscoveryTest, TestAdvertiseSrv)
 {
   reset();
 
@@ -619,7 +619,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvCall)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
-  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -633,7 +633,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvCall)
 /// \brief Check that the discovery triggers the callbacks after a service
 /// call advertise.
 /// This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestAdvertiseSrvCallMF)
+TEST(DiscoveryTest, TestAdvertiseSrvMF)
 {
   reset();
 
@@ -643,7 +643,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvCallMF)
   object.RegisterSrvConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -654,7 +654,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvCallMF)
 //////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the disconnection callback after
 /// an unadvertise.
-TEST(DiscoveryTest, TestUnadvertiseSrvCall)
+TEST(DiscoveryTest, TestUnadvertiseSrv)
 {
   reset();
 
@@ -666,7 +666,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvCall)
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -677,7 +677,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvCall)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseSrvCall(service, nUuid1);
+  discovery1.UnadvertiseSrv(service, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -686,15 +686,14 @@ TEST(DiscoveryTest, TestUnadvertiseSrvCall)
   EXPECT_TRUE(disconnectionSrvExecuted);
 
   // Unadvertise a topic not advertised.
-  discovery1.UnadvertiseSrvCall(service, nUuid1);
+  discovery1.UnadvertiseSrv(service, nUuid1);
   transport::Addresses_M addresses;
   EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the disconnection callback after
-/// an unadvertise service call. This test uses a discovery object within a
-/// class.
+/// an unadvertise service. This test uses a discovery object within a class.
 TEST(DiscoveryTest, TestUnadvertiseSrvMF)
 {
   reset();
@@ -707,7 +706,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.RegisterSrvDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -718,7 +717,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseSrvCall(service, nUuid1);
+  discovery1.UnadvertiseSrv(service, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -728,7 +727,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that the discovery service call triggers the callbacks after
+/// \brief Check that the discovery service triggers the callbacks after
 /// a discovery and after register the discovery callback.
 TEST(DiscoveryTest, TestDiscoverSrv)
 {
@@ -736,7 +735,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseSrvCall(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);
@@ -750,7 +749,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   EXPECT_FALSE(disconnectionSrvExecuted);
 
   // Request the discovery of a topic.
-  discovery2.DiscoverSrvCall(topic);
+  discovery2.DiscoverSrv(topic);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -763,7 +762,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Request again the discovery of a service. The callback should be executed
   // from the Discover method this time because the service information should
   // be known.
-  discovery2.DiscoverSrvCall(service);
+  discovery2.DiscoverSrv(service);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);

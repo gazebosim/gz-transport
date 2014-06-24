@@ -61,17 +61,17 @@ namespace ignition
                                 const std::string &_nUuid,
                                 const Scope &_scope = Scope::All);
 
-      /// \brief Advertise a new service call.
+      /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void AdvertiseSrvCall(const std::string &_topic,
-                                    const std::string &_addr,
-                                    const std::string &_ctrl,
-                                    const std::string &_nUuid,
-                                    const Scope &_scope = Scope::All);
+      public: void AdvertiseSrv(const std::string &_topic,
+                                const std::string &_addr,
+                                const std::string &_ctrl,
+                                const std::string &_nUuid,
+                                const Scope &_scope = Scope::All);
 
       /// \brief Request discovery information about a topic. The user
       /// might want to use this function with SetConnectionsCb() and
@@ -83,7 +83,7 @@ namespace ignition
       /// \param[in] _topic Topic requested.
       public: void DiscoverMsg(const std::string &_topic);
 
-      /// \brief Request discovery information about a service call. The user
+      /// \brief Request discovery information about a service. The user
       /// might want to use this function with SetConnectionsSrvCb() and
       /// SetDisconnectionSrvCb(), that register callbacks that will be executed
       /// when the service address is discovered or when the node providing the
@@ -91,7 +91,7 @@ namespace ignition
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic requested.
-      public: void DiscoverSrvCall(const std::string &_topic);
+      public: void DiscoverSrv(const std::string &_topic);
 
       /// \brief Get all the addresses known for a given topic.
       /// \param[in] _topic Topic name.
@@ -115,13 +115,13 @@ namespace ignition
       public: void UnadvertiseMsg(const std::string &_topic,
                                   const std::string &_nUuid);
 
-      /// \brief Unadvertise a service call. Broadcast a discovery message that
+      /// \brief Unadvertise a service. Broadcast a discovery message that
       /// will cancel all the discovery information for the service advertised
       /// by a specific node.
       /// \param[in] _topic Topic to be unadvertised.
       /// \param[in] _nUuid Node UUID of the publisher.
-      public: void UnadvertiseSrvCall(const std::string &_topic,
-                                      const std::string &_nUuid);
+      public: void UnadvertiseSrv(const std::string &_topic,
+                                  const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
@@ -231,17 +231,16 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive discovery connection events for
-      /// service calls.
-      /// Each time a new service call is available, the callback will be
+      /// services.
+      /// Each time a new service is available, the callback will be
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events for
-      /// service calls.
-      /// Each time a new service call is available, the callback will be
-      /// executed.
+      /// services.
+      /// Each time a new service is available, the callback will be executed.
       /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback with the following parameters.
       ///                _topic Topic name
@@ -264,8 +263,8 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive discovery disconnection events
-      /// for service calls.
-      /// Each time a service call is no longer available, the callback will be
+      /// for services.
+      /// Each time a service is no longer available, the callback will be
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
@@ -273,7 +272,7 @@ namespace ignition
         const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
-      /// Each time a service call is no longer available, the callback will be
+      /// Each time a service is no longer available, the callback will be
       /// executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback with the following parameters.

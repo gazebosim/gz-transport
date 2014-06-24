@@ -40,7 +40,7 @@ void Discovery::AdvertiseMsg(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseSrvCall(const std::string &_topic,
+void Discovery::AdvertiseSrv(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope)
 {
@@ -54,7 +54,7 @@ void Discovery::DiscoverMsg(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void Discovery::DiscoverSrvCall(const std::string &_topic)
+void Discovery::DiscoverSrv(const std::string &_topic)
 {
   this->dataPtr->Discover(_topic, true);
 }
@@ -81,8 +81,8 @@ void Discovery::UnadvertiseMsg(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseSrvCall(const std::string &_topic,
-                                   const std::string &_nUuid)
+void Discovery::UnadvertiseSrv(const std::string &_topic,
+                               const std::string &_nUuid)
 {
   this->dataPtr->Unadvertise(MsgType::Srv, _topic, _nUuid);
 }

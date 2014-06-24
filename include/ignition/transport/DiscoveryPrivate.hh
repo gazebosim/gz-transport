@@ -54,8 +54,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
 
-      /// \brief Advertise a new message or service call.
-      /// \param[in] _advType Message (Msg) or service call (Srv).
+      /// \brief Advertise a new message or service.
+      /// \param[in] _advType Message (Msg) or service (Srv).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
@@ -68,8 +68,8 @@ namespace ignition
                              const std::string &_nUuid,
                              const Scope &_scope);
 
-      /// \brief Unadvertise a new message or service call.
-      /// \param[in] _unadvType Message (Msg) or service call (Srv).
+      /// \brief Unadvertise a new message or service.
+      /// \param[in] _unadvType Message (Msg) or service (Srv).
       /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
       public: void Unadvertise(const MsgType &_unadvType,
@@ -78,7 +78,7 @@ namespace ignition
 
       /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic name requested.
-      /// \param[in] _isSrv True if the topic corresponds to a service call.
+      /// \param[in] _isSrv True if the topic corresponds to a service.
       public: void Discover(const std::string &_topic, bool _isSrv);
 
       /// \brief Check the validity of the topic information. Each topic update
@@ -127,7 +127,7 @@ namespace ignition
 
       /// \brief Create a new beacon for a given topic advertised by a node.
       /// \param[in] _advType Used to distinguish between regular pub/sub
-      /// messages or service calls.
+      /// messages or services.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the advertiser.
       public: void NewBeacon(const MsgType &_advType,
@@ -198,10 +198,10 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       public: DiscoveryCallback disconnectionCb;
 
-      /// \brief Callback executed when new service call topics are discovered.
+      /// \brief Callback executed when new services are discovered.
       public: DiscoveryCallback connectionSrvCb;
 
-      /// \brief Callback executed when new service call topics are invalid.
+      /// \brief Callback executed when a service is no longer available.
       public: DiscoveryCallback disconnectionSrvCb;
 
       /// \brief Beacons to advertise topics periodically. The key is the topic
@@ -211,7 +211,7 @@ namespace ignition
       /// \brief Message addressing information.
       public: TopicStorage infoMsg;
 
-      /// \brief Service call addressing information.
+      /// \brief Service addressing information.
       public: TopicStorage infoSrv;
 
       /// \brief Activity information. Every time there is a message from a

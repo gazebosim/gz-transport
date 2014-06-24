@@ -197,7 +197,7 @@ void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrv)
         {
           if (cb)
           {
-            // Execute the user's callback for a service call request. Notice
+            // Execute the user's callback for a service request. Notice
             // that we only execute one callback for preventing receive multiple
             // service responses for a single request.
             cb(_topic, node.addr, node.ctrl, proc.first, node.nUuid,

@@ -68,7 +68,7 @@ Node::~Node()
     this->Unadvertise(topic);
   }
 
-  // Unadvertise all my service calls.
+  // Unadvertise all my services.
   while (!this->dataPtr->srvsAdvertised.empty())
   {
     auto topic = *this->dataPtr->srvsAdvertised.begin();
@@ -263,7 +263,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   this->dataPtr->shared->repliers.RemoveHandlersForNode(
     scTopic, this->dataPtr->nUuid);
 
-  // Notify the discovery service to unregister and unadvertise my service call.
+  // Notify the discovery service to unregister and unadvertise my services.
   this->dataPtr->shared->discovery->UnadvertiseMsg(
     scTopic, this->dataPtr->nUuid);
 

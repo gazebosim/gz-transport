@@ -162,9 +162,9 @@ namespace ignition
       /// \return true when success.
       public: bool Unsubscribe(const std::string &_topic);
 
-      /// \brief Advertise a new service call.
+      /// \brief Advertise a new service.
       /// In this version the callback is a free function.
-      /// \param[in] _topic Topic name associated to the service call.
+      /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request.
       /// \param[in] _scope Topic scope.
       public: template<typename T1, typename T2> bool Advertise(
@@ -181,7 +181,7 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Add the topic to the list of advertised service calls
+        // Add the topic to the list of advertised services.
         this->dataPtr->srvsAdvertised.insert(scTopic);
 
         // Create a new service reply handler.
@@ -199,16 +199,16 @@ namespace ignition
           scTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrvCall(scTopic,
+        this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
           this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
           _scope);
 
         return true;
       }
 
-      /// \brief Advertise a new service call.
+      /// \brief Advertise a new service.
       /// In this version the callback is a member function.
-      /// \param[in] _topic Topic name associated to the service call.
+      /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _scope Topic scope.
@@ -227,7 +227,7 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Add the topic to the list of advertised service calls
+        // Add the topic to the list of advertised services.
         this->dataPtr->srvsAdvertised.insert(scTopic);
 
         // Create a new service reply handler.
@@ -247,14 +247,14 @@ namespace ignition
           scTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrvCall(scTopic,
+        this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
           this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
           _scope);
 
         return true;
       }
 
-      /// \brief Request a new service call using a non-blocking call.
+      /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
@@ -310,14 +310,14 @@ namespace ignition
         }
         else
         {
-          // Discover the service call responser.
-          this->dataPtr->shared->discovery->DiscoverSrvCall(scTopic);
+          // Discover the service responser.
+          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
         }
 
         return true;
       }
 
-      /// \brief Request a new service call using a non-blocking call.
+      /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
@@ -377,14 +377,14 @@ namespace ignition
         }
         else
         {
-          // Discover the service call responser.
-          this->dataPtr->shared->discovery->DiscoverSrvCall(scTopic);
+          // Discover the service responser.
+          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
         }
 
         return true;
       }
 
-      /// \brief Request a new service call using a blocking call.
+      /// \brief Request a new service using a blocking call.
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _timeout The request will timeout after '_timeout' ms.
@@ -437,8 +437,8 @@ namespace ignition
         }
         else
         {
-          // Discover the service call responser.
-          this->dataPtr->shared->discovery->DiscoverSrvCall(scTopic);
+          // Discover the service responser.
+          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
         }
 
         auto now = std::chrono::system_clock::now();
@@ -464,7 +464,7 @@ namespace ignition
         return executed;
       }
 
-      /// \brief Unadvertise a service call.
+      /// \brief Unadvertise a service.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \return true if the topic was advertised.
       public: bool UnadvertiseSrv(const std::string &_topic);
