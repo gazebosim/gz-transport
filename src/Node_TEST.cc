@@ -460,6 +460,66 @@ TEST(NodeTest, ServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
+/// \brief Request multiple service calls at the same time.
+TEST(NodeTest, MultipleServiceCallAsync)
+{
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+  ignition::msgs::StringMsg req;
+  req.set_data(data);
+
+  transport::Node node;
+
+  // Advertise an invalid service name.
+  EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
+
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", req, response));
+
+  EXPECT_TRUE(node.Request(topic, req, response));
+
+  int i = 0;
+  while (i < 100 && !srvExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Make another request.
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(topic, req, response));
+
+  i = 0;
+  while (i < 100 && counter < 3)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 3);
+
+  // Try to unadvertise an invalid service.
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
+
+  EXPECT_TRUE(node.UnadvertiseSrv(topic));
+}
+
+//////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSync)
 {
