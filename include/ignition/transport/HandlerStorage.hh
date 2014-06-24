@@ -40,7 +40,9 @@ namespace ignition
       /// handler stores the callback and types associated to a service call
       /// request.
       /// \param[in] _topic Topic name.
-      /// \param[out] _handlers Request handlers.
+      /// \param[out] _handlers Request handlers. The key of _handlers is the
+      /// topic name. The value is another map, where the key is the node
+      /// UUID and the value is a smart pointer to the handler.
       /// \return true if the topic contains at least one request.
       public: bool GetHandlers(const std::string &_topic,
         std::map<std::string,
@@ -183,7 +185,9 @@ namespace ignition
         return counter > 0;
       }
 
-      /// \brief Stores all the service call data for each topic.
+      /// \brief Stores all the service call data for each topic. The key of
+      /// _data is the topic name. The value is another map, where the key is
+      /// the node UUID and the value is a smart pointer to the handler.
       private: std::map<std::string,
         std::map<std::string, std::map<std::string, std::shared_ptr<T>> >> data;
     };
