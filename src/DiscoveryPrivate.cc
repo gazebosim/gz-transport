@@ -519,7 +519,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
 }
 
 //////////////////////////////////////////////////
-int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
+void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope, int _flags)
 {
@@ -577,8 +577,6 @@ int DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     std::cout << "\t* Sending " << MsgTypesStr[_type]
               << " msg [" << _topic << "]" << std::endl;
   }
-
-  return 0;
 }
 
 //////////////////////////////////////////////////

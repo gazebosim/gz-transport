@@ -110,14 +110,13 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      /// \return 0 when success.
-      public: int SendMsg(uint8_t _type,
-                          const std::string &_topic,
-                          const std::string &_addr,
-                          const std::string &_ctrl,
-                          const std::string &_nUuid,
-                          const Scope &_scope,
-                          int _flags = 0);
+      public: void SendMsg(uint8_t _type,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           int _flags = 0);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
