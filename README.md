@@ -23,11 +23,10 @@ source:
  - uuid-dev
  - libzmq3-dev
  - czmq
- - robot_msgs
+ - ignition_msgs
  - cmake
  - ruby-ronn
  - mercurial
- - robot_msgs
  - C++ compiler with c++11 support (eg. GCC>=4.8).
 
 **Note:** *if you are using an Ubuntu platform previous to Saucy, you will need to install zeromq from source, since there is no libzmq3-dev*
@@ -43,8 +42,8 @@ source:
     sudo ldconfig
     cd ..
 
-    hg clone https://bitbucket.org/osrf/robot_msgs
-    cd robot_msgs
+    hg clone https://bitbucket.org/ignitionrobotics/ign_msgs
+    cd ign_msgs
     mkdir build
     cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=/usr
