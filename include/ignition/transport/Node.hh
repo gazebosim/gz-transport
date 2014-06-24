@@ -303,7 +303,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvAddresses(
           scTopic, addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
@@ -370,7 +370,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvAddresses(
           scTopic, addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
@@ -430,7 +430,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetTopicAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvAddresses(
           scTopic, addresses))
         {
           std::cout << "I know the address" << std::endl;

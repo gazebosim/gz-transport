@@ -478,7 +478,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   // Unadvertise a topic not advertised.
   discovery1.UnadvertiseMsg(topic, nUuid1);
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.GetTopicAddresses(topic, addresses));
+  EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -688,7 +688,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvCall)
   // Unadvertise a topic not advertised.
   discovery1.UnadvertiseSrvCall(service, nUuid1);
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.GetTopicAddresses(topic, addresses));
+  EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
