@@ -15,7 +15,7 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <string>
@@ -31,7 +31,7 @@ std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -70,7 +70,7 @@ TEST(ScopedTopicTest, ProcessTest)
     runSubscriber();
   else
   {
-    robot_msgs::StringMsg msg;
+    ignition::msgs::StringMsg msg;
     msg.set_data(data);
 
     transport::Node node1;

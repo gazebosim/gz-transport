@@ -15,9 +15,7 @@
  *
 */
 
-#include <robot_msgs/int.pb.h>
-#include <robot_msgs/stringmsg.pb.h>
-#include <robot_msgs/vector2d.pb.h>
+#include <ignition/msgs.hh>
 #include <map>
 #include <string>
 #include "ignition/transport/HandlerStorage.hh"
@@ -45,8 +43,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Callback providing a service call.
-void cb1(const std::string &_topic, const robot_msgs::StringMsg &_req,
-  robot_msgs::Int &_rep, bool &_result)
+void cb1(const std::string &_topic, const ignition::msgs::StringMsg &_req,
+  ignition::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), reqData);
@@ -63,10 +61,10 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::IRepHandlerPtr handler;
   std::map<std::string, std::map<std::string, transport::IRepHandlerPtr>> m;
   transport::HandlerStorage<transport::IRepHandler> reps;
-  robot_msgs::Int rep1Msg;
+  ignition::msgs::Int rep1Msg;
   bool result;
 
-  robot_msgs::StringMsg reqMsg;
+  ignition::msgs::StringMsg reqMsg;
   reqMsg.set_data(reqData);
 
   // Check some operations when there is no data stored.
@@ -78,9 +76,9 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
-  std::shared_ptr<transport::RepHandler<robot_msgs::StringMsg, robot_msgs::Int>>
-    rep1HandlerPtr(new transport::RepHandler
-      <robot_msgs::StringMsg, robot_msgs::Int>());
+  std::shared_ptr<transport::RepHandler<ignition::msgs::StringMsg,
+    ignition::msgs::Int>> rep1HandlerPtr(new transport::RepHandler
+      <ignition::msgs::StringMsg, ignition::msgs::Int>());
 
   rep1HandlerPtr->SetCallback(cb1);
 
@@ -120,17 +118,17 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_EQ(rep1Msg.data(), reqData.size());
 
   // Create another REP handler without a callback for node1.
-  std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
-    rep2HandlerPtr(new transport::RepHandler
-      <robot_msgs::Vector2d, robot_msgs::Int>());
+  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
+    ignition::msgs::Int>> rep2HandlerPtr(new transport::RepHandler
+      <ignition::msgs::Vector2d, ignition::msgs::Int>());
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
 
   // Create a REP handler without a callback for node2.
-  std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
-    rep3HandlerPtr(new transport::RepHandler
-      <robot_msgs::Vector2d, robot_msgs::Int>());
+  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
+    ignition::msgs::Int>> rep3HandlerPtr(new transport::RepHandler
+      <ignition::msgs::Vector2d, ignition::msgs::Int>());
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
@@ -177,9 +175,9 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Insert another handler, remove it, and check that the map is empty.
-  std::shared_ptr<transport::RepHandler<robot_msgs::Vector2d, robot_msgs::Int>>
-    rep4HandlerPtr(new transport::RepHandler
-      <robot_msgs::Vector2d, robot_msgs::Int>());
+  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
+    ignition::msgs::Int>> rep4HandlerPtr(new transport::RepHandler
+      <ignition::msgs::Vector2d, ignition::msgs::Int>());
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
@@ -199,13 +197,13 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   std::map<std::string, std::map<std::string,
     transport::ISubscriptionHandlerPtr>> m;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
-  robot_msgs::StringMsg msg;
+  ignition::msgs::StringMsg msg;
   msg.set_data("some data");
 
   // Create a Subscription handler.
-  std::shared_ptr<transport::SubscriptionHandler<robot_msgs::StringMsg>>
+  std::shared_ptr<transport::SubscriptionHandler<ignition::msgs::StringMsg>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <robot_msgs::StringMsg>(nUuid1));
+      <ignition::msgs::StringMsg>(nUuid1));
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);

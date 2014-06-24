@@ -15,7 +15,7 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <cstdlib>
@@ -34,8 +34,8 @@ int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
-  robot_msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
@@ -47,7 +47,7 @@ void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const robot_msgs::StringMsg &_rep,
+void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
   bool _result)
 {
   EXPECT_EQ(_topic, topic);
@@ -82,7 +82,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   {
     responseExecuted = false;
     counter = 0;
-    robot_msgs::StringMsg req;
+    ignition::msgs::StringMsg req;
     req.set_data(data);
 
     transport::Node node1;

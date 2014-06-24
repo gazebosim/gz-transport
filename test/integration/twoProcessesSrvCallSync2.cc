@@ -15,7 +15,7 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <cstdlib>
@@ -30,8 +30,8 @@ std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
-  robot_msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
@@ -72,8 +72,8 @@ TEST(twoProcSrvCallSync2, SrvTwoProcs)
   else
   {
     unsigned int timeout = 1000;
-    robot_msgs::StringMsg req;
-    robot_msgs::StringMsg rep;
+    ignition::msgs::StringMsg req;
+    ignition::msgs::StringMsg rep;
     bool result;
 
     req.set_data(data);

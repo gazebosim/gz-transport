@@ -34,13 +34,13 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
 endif()
 
 ########################################
-# robot_msgs used for testing
-pkg_check_modules(robot_msgs robot_msgs)
-if (NOT robot_msgs_FOUND)
-  BUILD_ERROR ("robot_msgs not found.")
+# ignition_msgs used for testing
+pkg_check_modules(ignition_msgs ignition_msgs)
+if (NOT ignition_msgs_FOUND)
+  BUILD_ERROR ("ignition_msgs not found.")
 else()
-  include_directories(${robot_msgs_INCLUDE_DIRS})
-  link_directories(${robot_msgs_LIBRARY_DIRS})
+  include_directories(${ignition_msgs_INCLUDE_DIRS})
+  link_directories(${ignition_msgs_LIBRARY_DIRS})
 endif ()
 
 #################################################
