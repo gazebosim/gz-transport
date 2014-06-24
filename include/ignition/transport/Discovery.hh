@@ -134,7 +134,7 @@ namespace ignition
       public: unsigned int GetActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
-      /// information alive in other nodes. A HELLO message is sent after
+      /// information alive in other nodes. A heartbeat message is sent after
       /// 'heartbeat interval' milliseconds.
       /// \sa SetHeartbeatInterval.
       /// \return The value in milliseconds.
@@ -157,7 +157,7 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetActivityInterval(const unsigned int _ms);
 
-      /// \brief Set the hello interval.
+      /// \brief Set the heartbeat interval.
       /// \sa GetHeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
       public: void SetHeartbeatInterval(const unsigned int _ms);

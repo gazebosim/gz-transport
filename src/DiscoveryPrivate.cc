@@ -261,7 +261,7 @@ void DiscoveryPrivate::RunHeartbeatTask()
   while (!zctx_interrupted)
   {
     this->mutex.lock();
-    this->SendMsg(HelloType, "", "", "", "", Scope::All);
+    this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
     this->mutex.unlock();
 
     std::this_thread::sleep_for(
@@ -439,7 +439,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
 
       break;
     }
-    case HelloType:
+    case HeartbeatType:
     {
       // The timestamp has already been updated.
       break;
@@ -550,7 +550,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     }
     case SubType:
     case SubSrvType:
-    case HelloType:
+    case HeartbeatType:
     case ByeType:
     {
       // Create a buffer and serialize the message.
