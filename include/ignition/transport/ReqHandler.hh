@@ -40,7 +40,8 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
-        : result(false),
+        : rep(""),
+          result(false),
           hUuid(Uuid().ToString()),
           nUuid(_nUuid),
           requested(false),
@@ -67,6 +68,20 @@ namespace ignition
       public: std::string GetNodeUuid()
       {
         return this->nUuid;
+      }
+
+      /// \brief Get the service response as raw bytes.
+      /// \return The string containing the service response.
+      public: std::string & GetRep()
+      {
+        return this->rep;
+      }
+
+      /// \brief Get the result of the service response.
+      /// \return The boolean result.
+      public: bool GetResult()
+      {
+        return this->result;
       }
 
       /// \brief Returns if this service call request has already been requested
@@ -98,11 +113,11 @@ namespace ignition
       /// available.
       public: std::condition_variable_any condition;
 
-      /// \brief Stores the service call response as raw bytes.
-      public: std::string rep;
+      /// \brief Stores the service response as raw bytes.
+      protected: std::string rep;
 
       /// \brief Stores the result of the service call.
-      public: bool result;
+      protected: bool result;
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;

@@ -485,10 +485,10 @@ namespace ignition
 
         if (executed)
         {
-          if (reqHandlerPtr->result)
-            _rep.ParseFromString(reqHandlerPtr->rep);
+          if (reqHandlerPtr->GetResult())
+            _rep.ParseFromString(reqHandlerPtr->GetRep());
 
-          _result = reqHandlerPtr->result;
+          _result = reqHandlerPtr->GetResult();
         }
 
         lk.unlock();
