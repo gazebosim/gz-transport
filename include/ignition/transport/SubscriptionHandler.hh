@@ -38,10 +38,9 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
       public: ISubscriptionHandler(const std::string &_nUuid)
-        : nUuid(_nUuid)
+        : hUuid(Uuid().ToString()),
+          nUuid(_nUuid)
       {
-        // Generate the UUID for this handler.
-        this->hUuid = Uuid().ToString();
       }
 
       /// \brief Destructor.

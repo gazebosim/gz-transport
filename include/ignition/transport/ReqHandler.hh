@@ -41,13 +41,11 @@ namespace ignition
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
         : result(false),
+          hUuid(Uuid().ToString()),
           nUuid(_nUuid),
           requested(false),
           repAvailable(false)
       {
-        // Generate the handler UUID.
-        Uuid uuid;
-        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.

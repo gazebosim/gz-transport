@@ -38,9 +38,8 @@ namespace ignition
     {
       /// \brief Constructor.
       public: IRepHandler()
+        : hUuid(Uuid().ToString())
       {
-        Uuid uuid;
-        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.
