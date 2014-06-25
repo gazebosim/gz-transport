@@ -32,7 +32,7 @@ namespace ignition
   namespace transport
   {
     /// \class NodePrivate NodePrivate.hh
-    /// \brief Private data fPrivate Node class.
+    /// \brief Private data for Private Node class.
     class IGNITION_VISIBLE NodePrivate
     {
       /// \brief Constructor.
