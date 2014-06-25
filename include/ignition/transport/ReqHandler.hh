@@ -125,7 +125,7 @@ namespace ignition
     /// \class ReqHandler ReqHandler.hh
     /// \brief It creates a reply handler for the specific protobuf
     /// messages used.
-    template <typename T1, typename T2> class ReqHandler
+    template <typename Req, typename Rep> class ReqHandler
       : public IReqHandler
     {
       // Documentation inherited.
@@ -137,10 +137,10 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T2> CreateMsg(const char *_data)
+      public: std::shared_ptr<Rep> CreateMsg(const char *_data)
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T2> msgPtr(new T2());
+        std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
@@ -151,14 +151,14 @@ namespace ignition
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       public: void SetCallback(
-        const std::function<void(const std::string &, const T2 &, bool)> &_cb)
+        const std::function<void(const std::string &, const Rep &, bool)> &_cb)
       {
         this->cb = _cb;
       }
 
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Input parameter of the service call (protobuf).
-      public: void SetMessage(const T1 &_reqMsg)
+      public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }
@@ -194,10 +194,10 @@ namespace ignition
       }
 
       // Protobuf message containing the request's parameters.
-      private: T1 reqMsg;
+      private: Req reqMsg;
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T2 &, bool)> cb;
+      private: std::function<void(const std::string &, const Rep &, bool)> cb;
     };
   }
 }

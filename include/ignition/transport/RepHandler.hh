@@ -80,19 +80,25 @@ namespace ignition
     };
 
     /// \class RepHandler RepHandler.hh
-    /// \brief It creates service reply handlers for each specific protobuf
-    /// message used.
-    template <typename T1, typename T2> class RepHandler
+    /// \brief It creates a service reply handler for a pair of protobuf
+    /// messages containing the request parameters and the response.
+    /// 'Req' is the protobuf message containing the input parameters of the
+    /// service call. 'Rep' is the protobuf message containing the response.
+    template <typename Req, typename Rep> class RepHandler
       : public IRepHandler
     {
       // Documentation inherited.
       public: RepHandler() = default;
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function
-          <void(const std::string &, const T1 &, T2 &, bool &)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _req Protobuf message containing the service request params
+      /// \param[out] _rep Protobuf message containing the service response.
+      /// \param[out] _result True when the service response is considered
+      /// successful or false otherwise.
+      public: void SetCallback(const std::function
+        <void(const std::string &_topic, const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;
       }
@@ -106,8 +112,8 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
-          auto msgReq = google::protobuf::down_cast<const T1*>(&_msgReq);
-          auto msgRep = google::protobuf::down_cast<T2*>(&_msgRep);
+          auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
+          auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
           this->cb(_topic, *msgReq, *msgRep, _result);
         }
         else
@@ -128,7 +134,7 @@ namespace ignition
         if (this->cb)
         {
           // Instantiate the specific protobuf message associated to this topic.
-          T2 msgRep;
+          Rep msgRep;
 
           auto msgReq = this->CreateMsg(_req.c_str());
           this->cb(_topic, *msgReq, msgRep, _result);
@@ -145,10 +151,10 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<T1> CreateMsg(const char *_data)
+      private: std::shared_ptr<Req> CreateMsg(const char *_data)
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T1> msgPtr(new T1());
+        std::shared_ptr<Req> msgPtr(new Req());
 
         // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
@@ -158,7 +164,7 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler.
       private: std::function
-        <void(const std::string &, const T1 &, T2 &, bool &)> cb;
+        <void(const std::string &, const Req &, Rep &, bool &)> cb;
     };
   }
 }

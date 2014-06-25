@@ -79,7 +79,7 @@ namespace ignition
     /// \param[in] _topic Service name.
     /// \param[in] _req Protobuf message containing the service request.
     /// \param[out] _rep Protobuf message containing the service response.
-    /// \return True when the service response is considered successfully or
+    /// \return True when the service response is considered successful or
     /// false otherwise.
     typedef std::function<bool (const std::string &_topic,
         const ProtoMsgPtr _req, ProtoMsgPtr _rep)> ReqCallback;
