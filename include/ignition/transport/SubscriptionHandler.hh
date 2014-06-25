@@ -41,8 +41,7 @@ namespace ignition
         : nUuid(_nUuid)
       {
         // Generate the UUID for this handler.
-        Uuid uuid;
-        this->hUuid = uuid.ToString();
+        this->hUuid = Uuid().ToString();
       }
 
       /// \brief Destructor.
@@ -88,8 +87,9 @@ namespace ignition
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
-    /// \brief It creates subscription handlers for each specific protobuf
-    /// message used.
+    /// \brief It creates a subscription handler for a specific protobuf
+    /// message. 'T' is the Protobuf message type that will be used for this
+    /// particular handler.
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
