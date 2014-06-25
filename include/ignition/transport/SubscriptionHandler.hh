@@ -64,7 +64,7 @@ namespace ignition
       /// callback function.
       /// \return True when success, false otherwise.
       public: virtual bool RunCallback(const std::string &_topic,
-                                      const std::string &_data) = 0;
+                                       const std::string &_data) = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -114,9 +114,11 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const T &)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      public: void SetCallback(const std::function<void(
+        const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }
@@ -161,8 +163,11 @@ namespace ignition
         }
       }
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T &)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      private: std::function<void(const std::string &_topic, const T &_msg)> cb;
     };
   }
 }
