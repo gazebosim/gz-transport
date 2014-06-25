@@ -174,22 +174,31 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-int NodeShared::Publish(const std::string &_topic, const std::string &_data)
+bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
 {
-  zmq::message_t message;
-  message.rebuild(_topic.size() + 1);
-  memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-  this->publisher->send(message, ZMQ_SNDMORE);
+  try
+  {
+    zmq::message_t message;
+    message.rebuild(_topic.size() + 1);
+    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+    this->publisher->send(message, ZMQ_SNDMORE);
 
-  message.rebuild(this->myAddress.size() + 1);
-  memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
-  this->publisher->send(message, ZMQ_SNDMORE);
+    message.rebuild(this->myAddress.size() + 1);
+    memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
+    this->publisher->send(message, ZMQ_SNDMORE);
 
-  message.rebuild(_data.size() + 1);
-  memcpy(message.data(), _data.c_str(), _data.size() + 1);
-  this->publisher->send(message, 0);
+    message.rebuild(_data.size() + 1);
+    memcpy(message.data(), _data.c_str(), _data.size() + 1);
+    this->publisher->send(message, 0);
+  }
+  catch(const zmq::error_t& ze)
+  {
+     std::cerr << "NodeShared::Publish() Error: " << ze.what() << std::endl;
+     return false;
+  }
 
-  return 0;
+
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -629,9 +638,9 @@ void NodeShared::OnNewConnection(const std::string &_topic,
         }
       }
     }
+    // The remote node might not be available when we are connecting.
     catch(const zmq::error_t& ze)
     {
-      // std::cerr << "Error connecting [" << ze.what() << "]\n";
     }
   }
 }

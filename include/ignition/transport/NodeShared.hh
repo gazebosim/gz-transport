@@ -57,9 +57,9 @@ namespace ignition
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _data Data to publish.
-      /// \return 0 when success.
-      public: int Publish(const std::string &_topic,
-                          const std::string &_data);
+      /// \return true when success or false otherwise.
+      public: bool Publish(const std::string &_topic,
+                           const std::string &_data);
 
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
