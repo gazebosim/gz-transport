@@ -49,7 +49,12 @@ namespace ignition
       }
 
       /// \brief Length of a UUID in string format.
-      private: static const int UuidStrLen = (sizeof(uuid_t) * 2) + 4 + 1;
+      /// A UUID is a 16-octet number. In its string representation, every octet
+      /// is divided in two parts, and each part (4 bits) is represented as an
+      /// hexadecimal value. A UUID is also displayed in five groups separated
+      /// by hyphens, in the form 8-4-4-4-12 for a total of 36 characters.
+      /// To summarize: 36 octets + \0 = 37 octets.
+      private: static const int UuidStrLen = 37;
 
       /// \brief Internal representation.
       private: uuid_t data;
