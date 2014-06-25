@@ -124,7 +124,9 @@ namespace ignition
 
     /// \class ReqHandler ReqHandler.hh
     /// \brief It creates a reply handler for the specific protobuf
-    /// messages used.
+    /// messages used. 'Req' is a protobuf message type containing the input
+    /// parameters of the service request. 'Rep' is a protobuf message type
+    /// that will be filled with the service response.
     template <typename Req, typename Rep> class ReqHandler
       : public IReqHandler
     {
@@ -149,15 +151,20 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const Rep &, bool)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function<void(
+        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
       }
 
       /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Input parameter of the service call (protobuf).
+      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// of the service request.
       public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
@@ -196,8 +203,14 @@ namespace ignition
       // Protobuf message containing the request's parameters.
       private: Req reqMsg;
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const Rep &, bool)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      private: std::function<void(const std::string &_topic, const Rep &_rep,
+        bool _result)> cb;
     };
   }
 }

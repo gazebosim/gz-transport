@@ -82,8 +82,9 @@ namespace ignition
     /// \class RepHandler RepHandler.hh
     /// \brief It creates a service reply handler for a pair of protobuf
     /// messages containing the request parameters and the response.
-    /// 'Req' is the protobuf message containing the input parameters of the
-    /// service call. 'Rep' is the protobuf message containing the response.
+    /// 'Req' is the protobuf message type containing the input parameters of
+    // the service call. 'Rep' is the protobuf message type that will be filled
+    /// with the service response.
     template <typename Req, typename Rep> class RepHandler
       : public IRepHandler
     {
