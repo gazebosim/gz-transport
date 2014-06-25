@@ -135,7 +135,9 @@ namespace ignition
       /// \param[in] _buffer Input buffer with the data to be unserialized.
       public: size_t Unpack(const char *_buffer);
 
-      /// \brief Print a header.
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg Header to wrote to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const Header &_header)
       {
@@ -181,7 +183,7 @@ namespace ignition
     /// \class AdvMsg Packet.hh
     /// \brief Advertise message used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
-    /// is the ZeroMQ end point addressy where the node will be receiving
+    /// is the ZeroMQ end point address where the node will be receiving
     /// subscription requests.
     class IGNITION_VISIBLE AdvMsg
     {
