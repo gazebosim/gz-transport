@@ -256,7 +256,9 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t GetMsgLength();
 
-      /// \brief Print an AdvMsg.
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg AdvMsg to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const AdvMsg &_msg)
       {

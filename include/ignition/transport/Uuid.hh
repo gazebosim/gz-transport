@@ -41,8 +41,11 @@ namespace ignition
       /// \return the UUID in string format.
       public: std::string ToString() const;
 
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg AdvMsg to wrote to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                        const ignition::transport::Uuid &_uuid)
+                                         const ignition::transport::Uuid &_uuid)
       {
         _out << _uuid.ToString();
         return _out;
