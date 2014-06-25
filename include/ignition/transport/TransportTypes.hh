@@ -18,12 +18,10 @@
 #define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace ignition
@@ -36,7 +34,6 @@ namespace ignition
     class ISubscriptionHandler;
     class NodePrivate;
     class NodeShared;
-    class TopicInfo;
 
     /// \def Scope This strongly typed enum defines the different options for
     /// the scope of a topic:
@@ -77,18 +74,25 @@ namespace ignition
     typedef std::shared_ptr<ProtoMsg> ProtoMsgPtr;
 
     /// \def ReqCallback
-    /// \brief Callback used for receiving a service call request.
-    typedef std::function<bool (const std::string &, const ProtoMsgPtr,
-                                ProtoMsgPtr)> ReqCallback;
+    /// \brief Callback used for receiving a service call request with the
+    /// following parameters:
+    /// \param[in] _topic Service name.
+    /// \param[in] _req Protobuf message containing the service request.
+    /// \param[out] _rep Protobuf message containing the service response.
+    /// \return True when the service response is considered successfully or
+    /// false otherwise.
+    typedef std::function<bool (const std::string &_topic,
+        const ProtoMsgPtr _req, ProtoMsgPtr _rep)> ReqCallback;
 
     /// \def RepCallback
-    /// \brief Callback used for receving a service call response.
-    typedef std::function<void (const std::string &, const ProtoMsgPtr, bool)>
-      RepCallback;
-
-    /// \def Topics_M
-    /// \brief Map used for store all the knowledge about a given topic.
-    typedef std::map<std::string, std::shared_ptr<TopicInfo>> Topics_M;
+    /// \brief Callback used for receiving a service call response with the
+    /// following parameters:
+    /// \param[in] _topic Service name.
+    /// \param[in] _rep Protobuf message containing the service response.
+    /// \param[in] _result True when the service call was successful or false
+    /// otherwise.
+    typedef std::function<void (const std::string &_topic,
+      const ProtoMsgPtr _rep, bool _result)> RepCallback;
 
     /// \def NodePrivatePtr
     /// \brief Pointer to internal class NodePrivate.
@@ -105,7 +109,8 @@ namespace ignition
     /// \def ISubscriptionHandler_M
     /// \brief Map to store the different subscription handlers for a topic.
     /// Each node can have its own subscription handler. The node id
-    /// is used as key.
+    /// is used as key and a pointer to a generic subscription handler is the
+    /// value.
     typedef std::map<std::string, ISubscriptionHandlerPtr>
       ISubscriptionHandler_M;
 
@@ -113,35 +118,31 @@ namespace ignition
     /// \brief Shared pointer to IRepHandler.
     typedef std::shared_ptr<IRepHandler> IRepHandlerPtr;
 
-    /// \def IRepHandler_M
-    /// \brief Map to store the different response handlers for a topic.
-    /// Each node can have its own response handler. The node id
-    /// is used as key.
-    typedef std::map<std::string, IRepHandlerPtr> IRepHandler_M;
-
     /// \def IReqHandlerPtr
     /// \brief Shared pointer to IReqHandler.
     typedef std::shared_ptr<IReqHandler> IReqHandlerPtr;
 
     /// \def IReqHandler_M
-    /// \brief Map to store the different service call request handlers for a
+    /// \brief Map to store the different service request handlers for a
     /// topic. Each node can have its own request handler. The node id
-    /// is used as key.
+    /// is used as key. The value is another map, where the key is the request
+    /// UUID and the value is pointer to a generic request handler.
     typedef std::map<std::string, std::map<std::string, IReqHandlerPtr>>
       IReqHandler_M;
 
     /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
-    /// callback is: topic name, 0MQ address, 0MQ control address, UUDI of the
-    /// node advertising the topic.
+    /// callback is: topic name, 0MQ address, 0MQ control address, UUID of the
+    /// process advertising the topic, UUID of the node advertising the topic.
     /// E.g.: void onDiscoveryResponse(const std::string &_topic,
     /// const std::string &_addr, const std::string &_ctrl,
-    /// const std::string &_procUuid, const std::string &_nodeUuid,
+    /// const std::string &_pUuid, const std::string &_nUuid,
     /// const Scope &_scope).
-    typedef std::function<void(const std::string &, const std::string &,
-      const std::string &, const std::string &, const std::string &,
-      const Scope &)> DiscoveryCallback;
+    typedef std::function<void(const std::string &_topic,
+      const std::string &_addr, const std::string &_ctrl,
+      const std::string &_pUuid, const std::string &_nUuid,
+      const Scope &_scope)> DiscoveryCallback;
   }
 }
 #endif
