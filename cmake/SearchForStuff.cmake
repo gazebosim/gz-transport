@@ -35,12 +35,12 @@ endif()
 
 ########################################
 # ignition_msgs used for testing
-pkg_check_modules(ignition_msgs ignition_msgs)
+find_package(ignition_msgs QUIET REQUIRED)
 if (NOT ignition_msgs_FOUND)
   BUILD_ERROR ("ignition_msgs not found.")
 else()
-  include_directories(${ignition_msgs_INCLUDE_DIRS})
-  link_directories(${ignition_msgs_LIBRARY_DIRS})
+  include_directories(${IGNITION_MSGS_INCLUDE_DIRS})
+  link_directories(${IGNITION_MSGS_LIBRARY_DIRS})
 endif ()
 
 #################################################
