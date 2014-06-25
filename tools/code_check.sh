@@ -69,11 +69,11 @@ if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
-CPPCHECK_INCLUDES="-I . -I $builddir -I test"
+CPPCHECK_INCLUDES="-I . -I $builddir -I test -I include"
 CPPCHECK_RULES="-DIGNITION_VISIBLE"
 CPPCHECK_CMD1A="-j 4 --enable=style,performance,portability,information"
 CPPCHECK_CMD1B="$CPPCHECK_RULES $CPPCHECK_FILES"
-CPPCHECK_CMD1="$CPPCHECK_CMD1A $CPPCHECK_CMD1B"
+CPPCHECK_CMD1="$CPPCHECK_CMD1A $CPPCHECK_CMD1B -I include"
 CPPCHECK_CMD2="--enable=unusedFunction $CPPCHECK_FILES"
 
 # Checking for missing includes is very time consuming. This is disabled
