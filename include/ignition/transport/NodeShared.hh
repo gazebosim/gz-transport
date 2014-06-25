@@ -45,9 +45,6 @@ namespace ignition
       /// \return NodeSharedPtr Pointer to the current NodeShared instance.
       public: static NodeSharedPtr GetInstance();
 
-      /// \brief Constructor.
-      public: NodeShared();
-
       /// \brief Destructor.
       public: virtual ~NodeShared();
 
@@ -133,6 +130,9 @@ namespace ignition
                                          const std::string &_pUuid,
                                          const std::string &_nUuid,
                                          const Scope &_scope);
+
+      /// \brief Constructor.
+      protected: NodeShared();
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
