@@ -31,7 +31,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class NodePrivate NodePrivate.hh
+    /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
     /// \brief Private data for Private Node class.
     class IGNITION_VISIBLE NodePrivate
     {

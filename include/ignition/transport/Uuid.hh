@@ -27,7 +27,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class Uuid Uuid.hh
+    /// \class Uuid Uuid.hh ignition/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
     class IGNITION_VISIBLE Uuid
     {

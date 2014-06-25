@@ -35,7 +35,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class NodeShared NodeShared.hh
+    /// \class NodeShared NodeShared.hh ignition/transport/NodeShared.hh
     /// \brief Private data for the Node class. This class should not be
     /// directly used. You should use the Node class.
     class IGNITION_VISIBLE NodeShared

@@ -41,7 +41,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class Node Node.hh
+    /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.

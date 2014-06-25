@@ -37,6 +37,7 @@ namespace ignition
   namespace transport
   {
     /// \class DiscoveryPrivate DiscoveryPrivate.hh
+    /// ignition/transport/DiscoveryPrivate.hh
     /// \brief Private data for the Discovery class.
     class IGNITION_VISIBLE DiscoveryPrivate
     {

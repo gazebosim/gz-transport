@@ -32,6 +32,7 @@ namespace ignition
   namespace transport
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
+    /// ignition/transport/SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobub messages.
     class IGNITION_VISIBLE ISubscriptionHandler
     {
@@ -116,7 +117,7 @@ namespace ignition
       /// \param[in] _cb The callback with the following parameters:
       /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void SetCallback(const std::function<void(
+      public: void SetCallback(const std::function <void(
         const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;

@@ -32,7 +32,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class IRepHandler RepHandler.hh
+    /// \class IRepHandler RepHandler.hh ignition/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
     class IGNITION_VISIBLE IRepHandler
     {

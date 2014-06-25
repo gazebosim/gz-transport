@@ -30,7 +30,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class Discovery Discovery.hh
+    /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
     /// protocol. It uses UDP broadcast for sending/receiving messages and
     /// stores updated topic information. The discovery clients can request

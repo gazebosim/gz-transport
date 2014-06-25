@@ -33,7 +33,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class IReqHandler ReqHandler.hh
+    /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class IGNITION_VISIBLE IReqHandler
     {
@@ -154,7 +154,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      public: void SetCallback(const std::function<void(
+      public: void SetCallback(const std::function <void(
         const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
