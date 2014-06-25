@@ -36,7 +36,8 @@ namespace ignition
   namespace transport
   {
     /// \class NodeShared NodeShared.hh
-    /// \brief Private data for the Node class.
+    /// \brief Private data for the Node class. This class should not be
+    /// directly used. You should use the Node class.
     class IGNITION_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the

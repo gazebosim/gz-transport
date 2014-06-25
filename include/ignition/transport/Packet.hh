@@ -30,7 +30,7 @@ namespace ignition
   namespace transport
   {
     //  This is the version of Gazebo transport we implement.
-    static const int Version        = 1;
+    static const int Version            = 1;
 
     // Message types.
     static const uint8_t AdvType        = 0;
@@ -101,7 +101,7 @@ namespace ignition
       public: uint16_t GetFlags() const;
 
       /// \brief Set the transport library version.
-      /// \param[in] Transport library version.
+      /// \param[in] _version Transport library version.
       public: void SetVersion(const uint16_t _version);
 
       /// \brief Set the process uuid.
@@ -137,7 +137,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg Header to wrote to the stream.
+      /// \param[in] _msg Header to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const Header &_header)
       {
