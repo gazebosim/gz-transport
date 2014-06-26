@@ -18,43 +18,43 @@ the following code inside it:
 
 ::
 
-	  #include "../build/src/hello.pb.h"
-		#include <ignition/transport/Node.hh>
-		#include <string>
+    #include "../build/src/hello.pb.h"
+    #include <ignition/transport/Node.hh>
+    #include <string>
 
-		using namespace ignition;
+    using namespace ignition;
 
-		//////////////////////////////////////////////////
-		int main(int argc, char **argv)
-		{
-		  std::string topic = "topicA";
-		  std::string data = "helloWorld";
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      std::string topic = "topicA";
+      std::string data = "helloWorld";
 
-		  // Create a transport node.
-		  transport::Node publisher;
+      // Create a transport node.
+      transport::Node publisher;
 
-		  // Advertise a topic.
-		  publisher.Advertise(topic);
+      // Advertise a topic.
+      publisher.Advertise(topic);
 
-		  // Prepare the message.
-		  tutorial::Hello msg;
-		  msg.set_content(data);
+      // Prepare the message.
+      tutorial::Hello msg;
+      msg.set_content(data);
 
-		  // Publish messages at 1Hz.
-		  while (!publisher.Interrupted())
-		  {
-		    publisher.Publish(topic, msg);
-		    sleep(1);
-		  }
-		}
+      // Publish messages at 1Hz.
+      while (!publisher.Interrupted())
+      {
+        publisher.Publish(topic, msg);
+        sleep(1);
+      }
+    }
 
 Walkthrough
 ===========
 
 ::
 
-		#include "../build/src/hello.pb.h"
-		#include <ignition/transport/Node.hh>
+    #include "../build/src/hello.pb.h"
+    #include <ignition/transport/Node.hh>
 
 The first line includes the generated protobuf code that we are going to use
 for the publisher. We are going to publish *Hello* type protobuf messages
