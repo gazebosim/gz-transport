@@ -25,48 +25,40 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "ignition/transport/Packet.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \class IReqHandler ReqHandler.hh
-    /// \brief Interface class used to manage generic protobub messages.
-    class IReqHandler
+    /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
+    /// \brief Interface class used to manage a request handler.
+    class IGNITION_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
-        : nUuidStr(_nUuid),
+        : rep(""),
+          result(false),
+          hUuid(Uuid().ToString()),
+          nUuid(_nUuid),
           requested(false),
-          repAvailable(false),
-          result(false)
+          repAvailable(false)
       {
-        uuid_t uuid;
-        uuid_generate(uuid);
-        this->reqUuid = GetGuidStr(uuid);
       }
 
       /// \brief Destructor.
-      public: virtual ~IReqHandler()
-      {
-      }
+      public: virtual ~IReqHandler() = default;
 
-      /// \brief Executes the local callback registered for this handler.
+      /// \brief Executes the callback registered for this handler and notify
+      /// a potential requester waiting on a blocking call.
       /// \param[in] _topic Topic to be passed to the callback.
-      /// \param[in] _msg Protobuf message received.
-      /// \return 0 when success.
-     /* public: virtual int RunLocalCallback(const std::string &_topic,
-                                           const transport::ProtoMsg &_msg) = 0;
-      */
-      /// \brief Executes the callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
-      /// \param[in] _data Serialized data received. The data will be used
-      /// to compose a specific protobuf message and will be passed to the
-      /// callback function.
-      /// \return 0 when success.
+      /// \param[in] _rep Serialized data containing the response coming from
+      /// the service call responser.
+      /// \param[in] _result Contains the result of the service call coming from
+      /// the service call responser.
       public: virtual void NotifyResult(const std::string &_topic,
                                         const std::string &_rep,
                                         const bool _result) = 0;
@@ -75,57 +67,80 @@ namespace ignition
       /// \return The string representation of the node UUID.
       public: std::string GetNodeUuid()
       {
-        return this->nUuidStr;
+        return this->nUuid;
       }
 
-      /// \brief
+      /// \brief Get the service response as raw bytes.
+      /// \return The string containing the service response.
+      public: std::string & GetRep()
+      {
+        return this->rep;
+      }
+
+      /// \brief Get the result of the service response.
+      /// \return The boolean result.
+      public: bool GetResult()
+      {
+        return this->result;
+      }
+
+      /// \brief Returns if this service call request has already been requested
+      /// \return True when the service call has been requested.
       public: bool Requested() const
       {
         return this->requested;
       }
 
-      /// \brief
+      /// \brief Mark the service call as requested (or not).
+      /// \param[in] _value true when you want to flag this REQ as requested.
       public: void SetRequested(bool _value)
       {
         this->requested = _value;
       }
 
-      /// \brief
+      /// \brief Serialize the Req protobuf message stored.
+      /// \return The serialized data.
       public: virtual std::string Serialize() = 0;
 
-      /// \brief
-      public: std::string GetReqUuid() const
+      /// \brief Returns the unique handler UUID.
+      /// \returns The handler's UUID.
+      public: std::string GetHandlerUuid() const
       {
-        return this->nUuidStr;
+        return this->hUuid;
       }
 
-      /// \brief Request's UUID.
-      protected: std::string reqUuid;
+      /// \brief Condition variable used to wait until a service call REP is
+      /// available.
+      public: std::condition_variable_any condition;
 
-      /// \brief Node UUID (string).
-      private: std::string nUuidStr;
+      /// \brief Stores the service response as raw bytes.
+      protected: std::string rep;
+
+      /// \brief Stores the result of the service call.
+      protected: bool result;
+
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
+
+      /// \brief Node UUID.
+      private: std::string nUuid;
 
       /// \brief When true, the REQ was already sent and the REP should be on
       /// its way. Used to not resend the same REQ more than one time.
       private: bool requested;
 
-      /// \brief
+      /// \brief When there is a blocking service call request, the call can
+      /// be unlocked when a service call REP is available. This variable
+      /// captures if we have found a node that can satisty our request.
       public: bool repAvailable;
-
-      /// \brief
-      public: std::condition_variable_any condition;
-
-      /// \brief
-      public: std::string rep;
-
-      /// \brief
-      public: bool result;
     };
 
     /// \class ReqHandler ReqHandler.hh
-    /// \brief It creates service reply handlers for each specific protobuf
-    /// message used.
-    template <typename T1, typename T2> class ReqHandler
+    /// \brief It creates a reply handler for the specific protobuf
+    /// messages used. 'Req' is a protobuf message type containing the input
+    /// parameters of the service request. 'Rep' is a protobuf message type
+    /// that will be filled with the service response.
+    template <typename Req, typename Rep> class ReqHandler
       : public IReqHandler
     {
       // Documentation inherited.
@@ -137,10 +152,10 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T2> CreateMsg(const char *_data)
+      public: std::shared_ptr<Rep> CreateMsg(const char *_data)
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T2> msgPtr(new T2());
+        std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
@@ -149,43 +164,32 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const T2 &, bool)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function <void(
+        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
       }
 
-      public: void SetMessage(const T1 &_reqMsg)
+      /// \brief Set the REQ protobuf message for this handler.
+      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// of the service request.
+      public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }
 
+      // Documentation inherited
       public: std::string Serialize()
       {
         std::string buffer;
         this->reqMsg.SerializeToString(&buffer);
         return buffer;
       }
-
-      // Documentation inherited.
-      /*public: int RunLocalCallback(const std::string &_topic,
-                                   const transport::ProtoMsg &_msg)
-      {
-        // Execute the callback (if existing)
-        if (this->cb)
-        {
-          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-          this->cb(_topic, *msgPtr);
-          return 0;
-        }
-        else
-        {
-          std::cerr << "ReqHandler::RunLocalCallback() error: "
-                    << "Callback is NULL" << std::endl;
-          return -1;
-        }
-      }*/
 
       // Documentation inherited.
       public: void NotifyResult(const std::string &_topic,
@@ -210,10 +214,16 @@ namespace ignition
       }
 
       // Protobuf message containing the request's parameters.
-      private: T1 reqMsg;
+      private: Req reqMsg;
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T2 &, bool)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      private: std::function<void(const std::string &_topic, const Rep &_rep,
+        bool _result)> cb;
     };
   }
 }

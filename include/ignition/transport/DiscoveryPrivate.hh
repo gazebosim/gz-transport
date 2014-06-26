@@ -27,8 +27,9 @@
 #include <thread>
 #include <string>
 #include <vector>
-#include "ignition/transport/AddressInfo.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -36,39 +37,61 @@ namespace ignition
   namespace transport
   {
     /// \class DiscoveryPrivate DiscoveryPrivate.hh
+    /// ignition/transport/DiscoveryPrivate.hh
     /// \brief Private data for the Discovery class.
-    class DiscoveryPrivate
+    class IGNITION_VISIBLE DiscoveryPrivate
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.
       typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
 
       /// \brief Constructor.
-      /// \param[in] _procUuid This discovery instance will run inside a
+      /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: DiscoveryPrivate(const uuid_t &_procUuid,
+      public: DiscoveryPrivate(const std::string &_pUuid,
                                bool _verbose);
 
       /// \brief Destructor.
       public: virtual ~DiscoveryPrivate();
 
+      /// \brief Advertise a new message or service.
+      /// \param[in] _advType Message (Msg) or service (Srv).
+      /// \param[in] _topic Topic name to be advertised.
+      /// \param[in] _addr ZeroMQ address of the topic's publisher.
+      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _scope Topic scope.
+      public: void Advertise(const MsgType &_advType,
+                             const std::string &_topic,
+                             const std::string &_addr,
+                             const std::string &_ctrl,
+                             const std::string &_nUuid,
+                             const Scope &_scope);
+
+      /// \brief Unadvertise a new message or service.
+      /// \param[in] _unadvType Message (Msg) or service (Srv).
+      /// \param[in] _topic Topic name to be unadvertised.
+      /// \param[in] _nUuid Node UUID.
+      public: void Unadvertise(const MsgType &_unadvType,
+                               const std::string &_topic,
+                               const std::string &_nUuid);
+
+      /// \brief Request discovery information about a topic.
+      /// \param[in] _topic Topic name requested.
+      /// \param[in] _isSrv True if the topic corresponds to a service.
+      public: void Discover(const std::string &_topic, bool _isSrv);
+
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
-      /// and invalid the old topics.
+      /// and invalids the old topics.
       public: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbitTask();
+      public: void RunHeartbeatTask();
 
       /// \brief Receive discovery messages.
       public: void RunReceptionTask();
-
-      /// \brief Each time the client calls Discover(), the discovery will try
-      /// to discover the addressing information for the requested topic. This
-      /// method will periodically retransmit the request to discover until
-      /// the advertiser answers.
-      public: void RunRetransmissionTask();
 
       /// \brief Method in charge of receiving the discovery updates.
       public: void RecvDiscoveryUpdate();
@@ -76,9 +99,8 @@ namespace ignition
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
-      /// \return 0 when success.
-      public: int DispatchDiscoveryMsg(const std::string &_fromIp,
-                                       char *_msg);
+      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
+                                        char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -86,18 +108,19 @@ namespace ignition
       /// \param[in] _addr 0MQ Address.
       /// \param[in] _ctrl 0MQ control address.
       /// \param[in] _nUuid Node's UUID.
-      /// \param[in] _flags Optional flags.
-      /// \return 0 when success.
-      public: int SendMsg(uint8_t _type,
-                          const std::string &_topic,
-                          const std::string &_addr,
-                          const std::string &_ctrl,
-                          const std::string &_nUuid,
-                          const Scope &_scope,
-                          int _flags = 0);
+      /// \param[in] _flags Optional flags. Currently, the flags are not used
+      /// but they will in the future for specifying things like compression,
+      /// or encryption.
+      public: void SendMsg(uint8_t _type,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           int _flags = 0);
 
-      /// \brief Get the IP address of the host.
-      /// \return A string with the host's IP address.
+      /// \brief Get the IP address of this host.
+      /// \return A string with this host's IP address.
       public: std::string GetHostAddr();
 
       /// \brief Print the current discovery state (info, activity, unknown).
@@ -105,10 +128,10 @@ namespace ignition
 
       /// \brief Create a new beacon for a given topic advertised by a node.
       /// \param[in] _advType Used to distinguish between regular pub/sub
-      /// messages or service calls.
+      /// messages or services.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void NewBeacon(const AdvertiseType &_advType,
+      public: void NewBeacon(const MsgType &_advType,
                              const std::string &_topic,
                              const std::string &_nUuid);
 
@@ -123,10 +146,10 @@ namespace ignition
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
-      /// \brief Default hello interval value (ms.).
-      /// \sa GetHelloInterval.
-      /// \sa SetHelloInterval.
-      public: static const unsigned int DefHeartbitInterval = 1000;
+      /// \brief Default heartbeat interval value (ms.).
+      /// \sa GetHeartbeatInterval.
+      /// \sa SetHeartbeatInterval.
+      public: static const unsigned int DefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
@@ -148,10 +171,7 @@ namespace ignition
       public: std::string hostAddr;
 
       /// \brief Process UUID.
-      public: uuid_t pUuid;
-
-      /// \brief UUID in string format.
-      public: std::string pUuidStr;
+      public: std::string pUuid;
 
       /// \brief Silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
@@ -168,10 +188,10 @@ namespace ignition
       /// \sa SetAdvertiseInterval.
       public: unsigned int advertiseInterval;
 
-      /// \brief Heartbit interval value (ms.).
-      /// \sa GetHeartbitInterval.
-      /// \sa SetHeartbitInterval.
-      public: unsigned int heartbitInterval;
+      /// \brief Heartbeat interval value (ms.).
+      /// \sa GetHeartbeatInterval.
+      /// \sa SetHeartbeatInterval.
+      public: unsigned int heartbeatInterval;
 
       /// \brief Callback executed when new topics are discovered.
       public: DiscoveryCallback connectionCb;
@@ -179,20 +199,21 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       public: DiscoveryCallback disconnectionCb;
 
-      /// \brief Callback executed when new service call topics are discovered.
+      /// \brief Callback executed when new services are discovered.
       public: DiscoveryCallback connectionSrvCb;
 
-      /// \brief Callback executed when new service call topics are invalid.
+      /// \brief Callback executed when a service is no longer available.
       public: DiscoveryCallback disconnectionSrvCb;
 
       /// \brief Beacons to advertise topics periodically. The key is the topic
       /// name. The value is another map, where the key is the node UUID.
       public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
 
-      /// \brief Addressing information. For each topic we store a map that
-      /// contains the process UUID as key and the 0MQ address and 0MQ control
-      //  address of the publisher as value.
-      public: AddressInfo info;
+      /// \brief Message addressing information.
+      public: TopicStorage infoMsg;
+
+      /// \brief Service addressing information.
+      public: TopicStorage infoSrv;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear
@@ -215,8 +236,8 @@ namespace ignition
       /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
 
-      /// \brief Thread in charge of sending HELLOs.
-      public: std::thread *threadHeartbit;
+      /// \brief Thread in charge of sending heartbeats.
+      public: std::thread *threadHeartbeat;
 
       /// \brief Thread in charge of update the activity.
       public: std::thread *threadActivity;

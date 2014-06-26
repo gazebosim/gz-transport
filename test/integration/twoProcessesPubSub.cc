@@ -15,7 +15,7 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <string>
@@ -27,25 +27,23 @@ using namespace ignition;
 bool cbExecuted;
 bool cb2Executed;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+void cb2(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
@@ -60,8 +58,8 @@ void runSubscriber()
   transport::Node node2;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  node.Subscribe(topic, cb);
-  node2.Subscribe(topic, cb2);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node2.Subscribe(topic, cb2));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Check that the message was received.
@@ -70,7 +68,7 @@ void runSubscriber()
   cbExecuted = false;
   cb2Executed = false;
 
-  node.Unsubscribe(topic);
+  EXPECT_TRUE(node.Unsubscribe(topic));
   std::this_thread::sleep_for(std::chrono::milliseconds(600));
 
   // Check that the message was only received in node3.
@@ -93,16 +91,16 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
     runSubscriber();
   else
   {
-    robot_msgs::StringMsg msg;
+    ignition::msgs::StringMsg msg;
     msg.set_data(data);
 
     transport::Node node1;
 
-    node1.Advertise(topic);
+    EXPECT_TRUE(node1.Advertise(topic));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
 
     // Wait for the child process to return.
     int status;

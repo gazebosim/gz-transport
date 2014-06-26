@@ -18,26 +18,14 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <utility>
-#include <vector>
-#include "ignition/transport/AddressInfo.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-AddressInfo::AddressInfo()
-{
-}
-
-//////////////////////////////////////////////////
-AddressInfo::~AddressInfo()
-{
-}
-
-//////////////////////////////////////////////////
-bool AddressInfo::AddAddress(const std::string &_topic,
+bool TopicStorage::AddAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope &_scope)
 {
@@ -68,13 +56,13 @@ bool AddressInfo::AddAddress(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasTopic(const std::string &_topic)
+bool TopicStorage::HasTopic(const std::string &_topic)
 {
   return this->data.find(_topic) != this->data.end();
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasAnyAddresses(const std::string &_topic,
+bool TopicStorage::HasAnyAddresses(const std::string &_topic,
   const std::string &_pUuid)
 {
   if (!this->HasTopic(_topic))
@@ -84,7 +72,7 @@ bool AddressInfo::HasAnyAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::HasAddress(const std::string &_addr)
+bool TopicStorage::HasAddress(const std::string &_addr)
 {
   for (auto &topic : this->data)
   {
@@ -102,7 +90,7 @@ bool AddressInfo::HasAddress(const std::string &_addr)
 
 
 //////////////////////////////////////////////////
-bool AddressInfo::GetAddress(const std::string &_topic,
+bool TopicStorage::GetAddress(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
 {
   // Topic not found.
@@ -130,11 +118,12 @@ bool AddressInfo::GetAddress(const std::string &_topic,
     return true;
   }
 
+  // nUuid not found.
   return false;
 }
 
 //////////////////////////////////////////////////
-bool AddressInfo::GetAddresses(const std::string &_topic, Addresses_M &_info)
+bool TopicStorage::GetAddresses(const std::string &_topic, Addresses_M &_info)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -144,9 +133,11 @@ bool AddressInfo::GetAddresses(const std::string &_topic, Addresses_M &_info)
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::DelAddressByNode(const std::string &_topic,
+bool TopicStorage::DelAddressByNode(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid)
 {
+  unsigned int counter = 0;
+
   // Iterate over all the topics.
   if (this->data.find(_topic) != this->data.end())
   {
@@ -158,12 +149,14 @@ void AddressInfo::DelAddressByNode(const std::string &_topic,
     {
       // Vector of 0MQ known addresses for a given topic and pUuid.
       auto &v = m[_pUuid];
+      auto priorSize = v.size();
       v.erase(std::remove_if(v.begin(), v.end(),
         [&](const Address_t &_addrInfo)
         {
           return _addrInfo.nUuid == _nUuid;
         }),
         v.end());
+      counter = priorSize - v.size();
 
       if (v.empty())
         m.erase(_pUuid);
@@ -172,26 +165,32 @@ void AddressInfo::DelAddressByNode(const std::string &_topic,
         this->data.erase(_topic);
     }
   }
+
+  return counter > 0;
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::DelAddressesByProc(const std::string &_pUuid)
+bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 {
+  unsigned int counter = 0;
+
   // Iterate over all the topics.
   for (auto it = this->data.begin(); it != this->data.end();)
   {
     // m is pUUID->{addr, ctrl, nUuid, scope}.
     auto &m = it->second;
-    m.erase(_pUuid);
+    counter = m.erase(_pUuid);
     if (m.empty())
       this->data.erase(it++);
     else
       ++it;
   }
+
+  return counter > 0;
 }
 
 //////////////////////////////////////////////////
-void AddressInfo::Print()
+void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;
   for (auto &topic : this->data)
@@ -204,9 +203,15 @@ void AddressInfo::Print()
       auto &v = proc.second;
       for (auto &info : v)
       {
-        std::cout << "\t\tAddr:" << info.addr << std::endl;
-        std::cout << "\t\tCtrl:" << info.ctrl << std::endl;
-        std::cout << "\t\tNUUID:" << info.nUuid << std::endl;
+        std::cout << "\t\t* Addr:" << info.addr << std::endl;
+        std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
+        std::cout << "\t\t  Node UUID:" << info.nUuid << std::endl;
+        if (info.scope == Scope::Process)
+          std::cout << "\t\t  Scope: Process" << std::endl;
+        else if (info.scope == Scope::Host)
+          std::cout << "\t\t  Scope: Host" << std::endl;
+        else
+          std::cout << "\t\t  Scope: All" << std::endl;
       }
     }
   }

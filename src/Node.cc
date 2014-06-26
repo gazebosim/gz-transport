@@ -17,154 +17,199 @@
 
 #include <czmq.h>
 #include <google/protobuf/message.h>
+#include <uuid/uuid.h>
+#include <cstdlib>
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/Packet.hh"
+#include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node(bool _verbose)
-  : dataPtr(NodePrivate::GetInstance(_verbose))
+Node::Node(const std::string &_ns)
+  : dataPtr(new NodePrivate())
 {
-  uuid_generate(this->nUuid);
-  this->nUuidStr = GetGuidStr(this->nUuid);
+  if (TopicUtils::IsValidNamespace(_ns))
+    this->dataPtr->ns = _ns;
+  else
+  {
+    std::cerr << "Namespace [" << _ns << "] is not valid." << std::endl;
+    std::cerr << "Using default namespace." << std::endl;
+  }
+
+  // Generate the node UUID.
+  Uuid uuid;
+  this->dataPtr->nUuid = uuid.ToString();
 }
 
 //////////////////////////////////////////////////
 Node::~Node()
 {
   // Unsubscribe from all the topics.
-  for (auto topic : this->topicsSubscribed)
-    this->Unsubscribe(topic);
-
-  // Unadvertise all my topics.
-  for (auto topic : this->topicsAdvertised)
-    this->Unadvertise(topic);
-
-  // Unadvertise all my service calls.
-  for (auto topic : this->srvsAdvertised)
-    this->UnadvertiseSrv(topic);
-}
-
-//////////////////////////////////////////////////
-void Node::Advertise(const std::string &_topic, const Scope &_scope)
-{
-  assert(_topic != "");
-
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
-  // Add the topic to the list of advertised topics (if it was not before)
-  if (std::find(this->topicsAdvertised.begin(),
-    this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
+  while (!this->dataPtr->topicsSubscribed.empty())
   {
-    this->topicsAdvertised.push_back(_topic);
+    auto topic = *this->dataPtr->topicsSubscribed.begin();
+    this->Unsubscribe(topic);
   }
 
-  // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->discovery->Advertise(AdvertiseType::Msg, _topic,
-    this->dataPtr->myAddress, this->dataPtr->myControlAddress, this->nUuidStr,
-    _scope);
+  // Unadvertise all my topics.
+  while (!this->dataPtr->topicsAdvertised.empty())
+  {
+    auto topic = *this->dataPtr->topicsAdvertised.begin();
+    this->Unadvertise(topic);
+  }
+
+  // Unadvertise all my services.
+  while (!this->dataPtr->srvsAdvertised.empty())
+  {
+    auto topic = *this->dataPtr->srvsAdvertised.begin();
+    this->UnadvertiseSrv(topic);
+  }
 }
 
 //////////////////////////////////////////////////
-void Node::Unadvertise(const std::string &_topic)
+bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
-  assert(_topic != "");
+  std::string scTopic;
+  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Add the topic to the list of advertised topics (if it was not before)
+  this->dataPtr->topicsAdvertised.insert(scTopic);
+
+  // Notify the discovery service to register and advertise my topic.
+  this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
+    this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
+    this->dataPtr->nUuid, _scope);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Unadvertise(const std::string &_topic)
+{
+  std::string scTopic;
+  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->topicsAdvertised.resize(
-    std::remove(this->topicsAdvertised.begin(), this->topicsAdvertised.end(),
-      _topic) - this->topicsAdvertised.begin());
+  this->dataPtr->topicsAdvertised.erase(scTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->discovery->Unadvertise(_topic, this->nUuidStr);
+  this->dataPtr->shared->discovery->UnadvertiseMsg(
+    scTopic, this->dataPtr->nUuid);
+
+  return true;
 }
 
 //////////////////////////////////////////////////
-int Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
+bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
-  assert(_topic != "");
+  std::string scTopic;
+  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Topic not advertised before.
-  if (std::find(this->topicsAdvertised.begin(),
-    this->topicsAdvertised.end(), _topic) == this->topicsAdvertised.end())
+  if (this->dataPtr->topicsAdvertised.find(scTopic) ==
+      this->dataPtr->topicsAdvertised.end())
   {
-    return -1;
+    return false;
   }
 
   // Local subscribers.
-  ISubscriptionHandler_M handlers;
-  this->dataPtr->localSubscriptions.GetSubscriptionHandlers(_topic, handlers);
-  for (auto handler : handlers)
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  if (this->dataPtr->shared->localSubscriptions.GetHandlers(scTopic, handlers))
   {
-    ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+    for (auto &node : handlers)
+    {
+      for (auto &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
-    if (subscriptionHandlerPtr)
-      subscriptionHandlerPtr->RunLocalCallback(_topic, _msg);
-    else
-      std::cerr << "Node::Publish(): Subscription handler is NULL" << std::endl;
+        if (subscriptionHandlerPtr)
+          subscriptionHandlerPtr->RunLocalCallback(scTopic, _msg);
+        else
+        {
+          std::cerr << "Node::Publish(): Subscription handler is NULL"
+                    << std::endl;
+        }
+      }
+    }
   }
 
   // Remote subscribers.
-  if (this->dataPtr->remoteSubscribers.HasTopic(_topic))
+  if (this->dataPtr->shared->remoteSubscribers.HasTopic(scTopic))
   {
     std::string data;
     _msg.SerializeToString(&data);
-    this->dataPtr->Publish(_topic, data);
+    this->dataPtr->shared->Publish(scTopic, data);
   }
   // Debug output.
   // else
   //  std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
-  return 0;
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Node::Unsubscribe(const std::string &_topic)
+bool Node::Unsubscribe(const std::string &_topic)
 {
-  assert(_topic != "");
+  std::string scTopic;
+  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  if (this->dataPtr->verbose)
-    std::cout << "\nUnsubscribe (" << _topic << ")\n";
-
-  this->dataPtr->localSubscriptions.RemoveSubscriptionHandler(
-    _topic, this->nUuidStr);
+  this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
+    scTopic, this->dataPtr->nUuid);
 
   // Remove the topic from the list of subscribed topics in this node.
-  this->topicsSubscribed.resize(
-    std::remove(this->topicsSubscribed.begin(), this->topicsSubscribed.end(),
-      _topic) - this->topicsSubscribed.begin());
+  this->dataPtr->topicsSubscribed.erase(scTopic);
 
   // Remove the filter for this topic if I am the last subscriber.
-  if (!this->dataPtr->localSubscriptions.Subscribed(_topic))
+  if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(scTopic))
   {
-    this->dataPtr->subscriber->setsockopt(
-      ZMQ_UNSUBSCRIBE, _topic.data(), _topic.size());
+    this->dataPtr->shared->subscriber->setsockopt(
+      ZMQ_UNSUBSCRIBE, scTopic.data(), scTopic.size());
   }
 
   // Notify the publishers that I am no longer insterested in the topic.
   Addresses_M addresses;
-  if (!this->dataPtr->discovery->GetTopicAddresses(_topic, addresses))
-    return;
+  if (!this->dataPtr->shared->discovery->GetMsgAddresses(scTopic, addresses))
+    return false;
 
   for (auto &proc : addresses)
   {
     for (auto &node : proc.second)
     {
-      zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
+      zmq::socket_t socket(*this->dataPtr->shared->context, ZMQ_DEALER);
 
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
       // discarded immediately when the socket is closed. That avoids infinite
@@ -175,18 +220,18 @@ void Node::Unsubscribe(const std::string &_topic)
       socket.connect(node.ctrl.c_str());
 
       zmq::message_t message;
-      message.rebuild(_topic.size() + 1);
-      memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
+      message.rebuild(scTopic.size() + 1);
+      memcpy(message.data(), scTopic.c_str(), scTopic.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
-      // Not needed.
-      message.rebuild(this->dataPtr->myAddress.size() + 1);
-      memcpy(message.data(), this->dataPtr->myAddress.c_str(),
-             this->dataPtr->myAddress.size() + 1);
+      message.rebuild(this->dataPtr->shared->myAddress.size() + 1);
+      memcpy(message.data(), this->dataPtr->shared->myAddress.c_str(),
+             this->dataPtr->shared->myAddress.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
-      message.rebuild(this->nUuidStr.size() + 1);
-      memcpy(message.data(), this->nUuidStr.c_str(), this->nUuidStr.size() + 1);
+      message.rebuild(this->dataPtr->nUuid.size() + 1);
+      memcpy(message.data(), this->dataPtr->nUuid.c_str(),
+        this->dataPtr->nUuid.size() + 1);
       socket.send(message, ZMQ_SNDMORE);
 
       std::string data = std::to_string(EndConnection);
@@ -195,29 +240,38 @@ void Node::Unsubscribe(const std::string &_topic)
       socket.send(message, 0);
     }
   }
+
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Node::UnadvertiseSrv(const std::string &_topic)
+bool Node::UnadvertiseSrv(const std::string &_topic)
 {
-  assert(_topic != "");
+  std::string scTopic;
+  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  {
+    std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->srvsAdvertised.resize(
-    std::remove(this->srvsAdvertised.begin(), this->srvsAdvertised.end(),
-      _topic) - this->srvsAdvertised.begin());
+  this->dataPtr->srvsAdvertised.erase(scTopic);
 
   // Remove all the REP handlers for this node.
-  this->dataPtr->repliers.RemoveRepHandler(_topic, this->nUuidStr);
+  this->dataPtr->shared->repliers.RemoveHandlersForNode(
+    scTopic, this->dataPtr->nUuid);
 
-  // Notify the discovery service to unregister and unadvertise my service call.
-  this->dataPtr->discovery->Unadvertise(_topic, this->nUuidStr);
+  // Notify the discovery service to unregister and unadvertise my services.
+  this->dataPtr->shared->discovery->UnadvertiseMsg(
+    scTopic, this->dataPtr->nUuid);
+
+  return true;
 }
 
 //////////////////////////////////////////////////
 bool Node::Interrupted()
 {
-  return this->dataPtr->exit;
+  return this->dataPtr->shared->exit;
 }

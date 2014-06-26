@@ -23,20 +23,24 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
   namespace transport
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
+    /// ignition/transport/SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobub messages.
-    class ISubscriptionHandler
+    class IGNITION_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.
-      /// \param[in] _uuid UUID of the node registering the subscription handler
-      public: ISubscriptionHandler(const std::string &_uuid)
-        : nodeUuidStr(_uuid)
+      /// \param[in] _nUuid UUID of the node registering the handler.
+      public: ISubscriptionHandler(const std::string &_nUuid)
+        : hUuid(Uuid().ToString()),
+          nUuid(_nUuid)
       {
       }
 
@@ -48,8 +52,8 @@ namespace ignition
       /// \brief Executes the local callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msg Protobuf message received.
-      /// \return 0 when success.
-      public: virtual int RunLocalCallback(const std::string &_topic,
+      /// \return True when success, false otherwise.
+      public: virtual bool RunLocalCallback(const std::string &_topic,
                                            const transport::ProtoMsg &_msg) = 0;
 
       /// \brief Executes the callback registered for this handler.
@@ -57,30 +61,41 @@ namespace ignition
       /// \param[in] _data Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
-      /// \return 0 when success.
-      public: virtual int RunCallback(const std::string &_topic,
-                                      const std::string &_data) = 0;
+      /// \return True when success, false otherwise.
+      public: virtual bool RunCallback(const std::string &_topic,
+                                       const std::string &_data) = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
       public: std::string GetNodeUuid()
       {
-        return this->nodeUuidStr;
+        return this->nUuid;
       }
 
-      /// \brief Node UUID (string).
-      private: std::string nodeUuidStr;
+      /// \brief Get the unique UUID of this handler.
+      /// \return a string representation of the handler UUID.
+      public: std::string GetHandlerUuid() const
+      {
+        return this->hUuid;
+      }
+
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
+
+      /// \brief Node UUID.
+      private: std::string nUuid;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
-    /// \brief It creates subscription handlers for each specific protobuf
-    /// message used.
+    /// \brief It creates a subscription handler for a specific protobuf
+    /// message. 'T' is the Protobuf message type that will be used for this
+    /// particular handler.
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: SubscriptionHandler(const std::string &_uuid)
-        : ISubscriptionHandler(_uuid)
+      public: SubscriptionHandler(const std::string &_nUuid)
+        : ISubscriptionHandler(_nUuid)
       {
       }
 
@@ -99,35 +114,37 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const T &)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      public: void SetCallback(const std::function <void(
+        const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: int RunLocalCallback(const std::string &_topic,
-                                   const transport::ProtoMsg &_msg)
+      public: bool RunLocalCallback(const std::string &_topic,
+                                    const transport::ProtoMsg &_msg)
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
           this->cb(_topic, *msgPtr);
-          return 0;
+          return true;
         }
         else
         {
           std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
-          return -1;
+          return false;
         }
       }
 
       // Documentation inherited.
-      public: int RunCallback(const std::string &_topic,
-                              const std::string &_data)
+      public: bool RunCallback(const std::string &_topic,
+                               const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data.c_str());
@@ -136,18 +153,21 @@ namespace ignition
         if (this->cb)
         {
           this->cb(_topic, *msg);
-          return 0;
+          return true;
         }
         else
         {
           std::cerr << "SubscriptionHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
-          return -1;
+          return false;
         }
       }
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T &)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      private: std::function<void(const std::string &_topic, const T &_msg)> cb;
     };
   }
 }

@@ -16,8 +16,6 @@
 */
 
 #include <uuid/uuid.h>
-#include <algorithm>
-#include <iostream>
 #include <mutex>
 #include <string>
 #include "ignition/transport/Discovery.hh"
@@ -28,122 +26,65 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Discovery::Discovery(const uuid_t &_pUuid, bool _verbose)
+Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 : dataPtr(new DiscoveryPrivate(_pUuid, _verbose))
 {
 }
 
 //////////////////////////////////////////////////
-Discovery::~Discovery()
+void Discovery::AdvertiseMsg(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
+  const Scope &_scope)
 {
+  this->dataPtr->Advertise(MsgType::Msg, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
-void Discovery::Advertise(const AdvertiseType &_advType,
-  const std::string &_topic, const std::string &_addr, const std::string &_ctrl,
-  const std::string &_nUuid, const Scope &_scope)
+void Discovery::AdvertiseSrv(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
+  const Scope &_scope)
 {
-  assert(_topic != "");
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  // Add the addressing information (local node).
-  this->dataPtr->info.AddAddress(_topic, _addr, _ctrl, this->dataPtr->pUuidStr,
-    _nUuid, _scope);
-
-  // Do not advertise a message outside the process.
-  if (_scope == Scope::Process)
-    return;
-
-  this->dataPtr->NewBeacon(_advType, _topic, _nUuid);
-
-  // Broadcast my topic information.
-  // this->dataPtr->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  this->dataPtr->Advertise(MsgType::Srv, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
-void Discovery::Discover(bool _isSrvCall, const std::string &_topic)
+void Discovery::DiscoverMsg(const std::string &_topic)
 {
-  assert(_topic != "");
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  if (_isSrvCall)
-  {
-    // Broadcast a discovery request for this service call.
-    this->dataPtr->SendMsg(SubSrvType, _topic, "", "", "", Scope::All);
-  }
-  else
-  {
-    // Broadcast a discovery request for this topic.
-    this->dataPtr->SendMsg(SubType, _topic, "", "", "", Scope::All);
-  }
-
-  // I already have information about this topic.
-  if (this->dataPtr->info.HasTopic(_topic))
-  {
-    Addresses_M addresses;
-    if (this->dataPtr->info.GetAddresses(_topic, addresses))
-    {
-      for (auto proc : addresses)
-      {
-        for (auto node : proc.second)
-        {
-          if (_isSrvCall && this->dataPtr->connectionSrvCb)
-          {
-            // Execute the user's callback for a service call request. Notice
-            // that we only execute one callback for preventing receive multiple
-            // service responses for a single request.
-            this->dataPtr->connectionSrvCb(_topic, node.addr, node.ctrl,
-              proc.first, node.nUuid, node.scope);
-            return;
-          }
-          else if (!_isSrvCall && this->dataPtr->connectionCb)
-          {
-            // Execute the user's callback.
-            this->dataPtr->connectionCb(_topic, node.addr, node.ctrl,
-              proc.first, node.nUuid, node.scope);
-          }
-        }
-      }
-    }
-  }
+  this->dataPtr->Discover(_topic, false);
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetTopicAddresses(const std::string &_topic,
-                                  Addresses_M &_addresses)
+void Discovery::DiscoverSrv(const std::string &_topic)
 {
-  return this->dataPtr->info.GetAddresses(_topic, _addresses);
+  this->dataPtr->Discover(_topic, true);
 }
 
 //////////////////////////////////////////////////
-void Discovery::Unadvertise(const std::string &_topic,
-                            const std::string &_nUuid)
+bool Discovery::GetMsgAddresses(const std::string &_topic,
+                                Addresses_M &_addresses)
 {
-  assert(_topic != "");
+  return this->dataPtr->infoMsg.GetAddresses(_topic, _addresses);
+}
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+//////////////////////////////////////////////////
+bool Discovery::GetSrvAddresses(const std::string &_topic,
+                                Addresses_M &_addresses)
+{
+  return this->dataPtr->infoSrv.GetAddresses(_topic, _addresses);
+}
 
-  // Don't do anything if the topic is not advertised by any of my nodes.
-  Address_t info;
-  if (!this->dataPtr->info.GetAddress(_topic, this->dataPtr->pUuidStr,
-        _nUuid, info))
-    return;
+//////////////////////////////////////////////////
+void Discovery::UnadvertiseMsg(const std::string &_topic,
+                               const std::string &_nUuid)
+{
+  this->dataPtr->Unadvertise(MsgType::Msg, _topic, _nUuid);
+}
 
-  // Remove the topic information.
-  this->dataPtr->info.DelAddressByNode(_topic, this->dataPtr->pUuidStr, _nUuid);
-
-  // Do not advertise a message outside the process.
-  if (info.scope == Scope::Process)
-    return;
-
-  // Send the UNADVERTISE message.
-  this->dataPtr->SendMsg(UnadvType, _topic, info.addr, info.ctrl,
-    _nUuid, info.scope);
-
-  // Remove the beacon for this topic in this node.
-  this->dataPtr->DelBeacon(_topic, _nUuid);
+//////////////////////////////////////////////////
+void Discovery::UnadvertiseSrv(const std::string &_topic,
+                               const std::string &_nUuid)
+{
+  this->dataPtr->Unadvertise(MsgType::Srv, _topic, _nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -160,10 +101,10 @@ unsigned int Discovery::GetActivityInterval() const
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbitInterval() const
+unsigned int Discovery::GetHeartbeatInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  return this->dataPtr->heartbitInterval;
+  return this->dataPtr->heartbeatInterval;
 }
 
 //////////////////////////////////////////////////
@@ -188,10 +129,10 @@ void Discovery::SetActivityInterval(const unsigned int _ms)
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbitInterval(const unsigned int _ms)
+void Discovery::SetHeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->heartbitInterval = _ms;
+  this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
@@ -237,7 +178,7 @@ void Discovery::SetDisconnectionsSrvCb(const DiscoveryCallback &_cb)
 }
 
 //////////////////////////////////////////////////
-bool Discovery::Interrupted()
+bool Discovery::WasInterrupted()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->exit;

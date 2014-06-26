@@ -15,49 +15,43 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
+#include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
-bool srvExecuted = false;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const robot_msgs::StringMsg &_req,
-  robot_msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep, bool &_result)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;
-
-  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void runReplier()
 {
-  srvExecuted = false;
+  // srvExecuted = false;
   transport::Node node;
-  node.Advertise(topic, srvEcho);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   int i = 0;
-  while (i < 2000 && !srvExecuted)
+  while (i < 100)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
-
-  // Check that the service call request was received.
-  EXPECT_TRUE(srvExecuted);
 }
 
 //////////////////////////////////////////////////
@@ -65,7 +59,7 @@ void runReplier()
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcSrvCallSync, SrvTwoProcs)
+TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
   pid_t pid = fork();
 
@@ -73,18 +67,30 @@ TEST(twoProcSrvCallSync, SrvTwoProcs)
     runReplier();
   else
   {
-    robot_msgs::StringMsg req;
-    robot_msgs::StringMsg rep;
+    unsigned int timeout = 500;
+    ignition::msgs::StringMsg req;
+    ignition::msgs::StringMsg rep;
     bool result;
 
     req.set_data(data);
 
-    transport::Node node1(true);
-    bool executed = node1.Request(topic, req, 5000, rep, result);
+    transport::Node node1;
 
-    EXPECT_TRUE(executed);
+    // Make sure that the address of the service call provider is known.
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
     EXPECT_EQ(req.data(), rep.data());
     EXPECT_TRUE(result);
+
+    auto t1 = std::chrono::system_clock::now();
+    EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
+    auto t2 = std::chrono::system_clock::now();
+
+    double elapsed =
+      std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+
+    // Check if the elapsed time was close to the timeout.
+    EXPECT_NEAR(elapsed, timeout, 1.0);
 
     // Wait for the child process to return.
     int status;
@@ -95,6 +101,9 @@ TEST(twoProcSrvCallSync, SrvTwoProcs)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Enable verbose mode.
+  setenv("IGN_VERBOSE", "1", 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

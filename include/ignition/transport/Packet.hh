@@ -18,64 +18,60 @@
 #ifndef __IGN_TRANSPORT_PACKET_HH_INCLUDED__
 #define __IGN_TRANSPORT_PACKET_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <cstdint>
+#include <iostream>
 #include <string>
 #include <vector>
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \brief Length of a GUID.
-    #define GUID_STR_LEN (sizeof(uuid_t) * 2) + 4 + 1
-
     //  This is the version of Gazebo transport we implement.
-    static const int Version        = 1;
+    static const int Version            = 1;
 
     // Message types.
-    static const int AdvType        = 0;
-    static const int SubType        = 1;
-    static const int UnadvType      = 2;
-    static const int HelloType      = 3;
-    static const int ByeType        = 4;
-    static const int AdvSrvType     = 5;
-    static const int SubSrvType     = 6;
-    static const int NewConnection  = 7;
-    static const int EndConnection  = 8;
+    static const uint8_t AdvType        = 0;
+    static const uint8_t SubType        = 1;
+    static const uint8_t UnadvType      = 2;
+    static const uint8_t HeartbeatType  = 3;
+    static const uint8_t ByeType        = 4;
+    static const uint8_t AdvSrvType     = 5;
+    static const uint8_t SubSrvType     = 6;
+    static const uint8_t UnadvSrvType   = 7;
+    static const uint8_t NewConnection  = 8;
+    static const uint8_t EndConnection  = 9;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
-      "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HELLO", "BYE", "ADV_SVC",
-      "SUB_SVC", "PUB", "REQ", "REP", "SRV_REP_ERROR", "NEW_CONNECTION",
-      "END_CONNECTION"
+      "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HEARTBEAT", "BYE", "ADV_SVC",
+      "SUB_SVC", "UNADVERTISE_SVC", "NEW_CONNECTION", "END_CONNECTION"
     };
 
-    /// \brief Get the string representation of the GUID.
-    /// \param[in] _uuid UUID to be converted to string.
-    /// \return A string representation of the GUID.
-    std::string GetGuidStr(const uuid_t &_uuid);
-
-    /// \class Header Packet.hh
+    /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the UUID of the sender node, the topic
     /// contained in the message, the type of message (ADV, SUB, ... ) and
     /// optional flags.
-    class Header
+    class IGNITION_VISIBLE Header
     {
       /// \brief Constructor.
       public: Header();
 
+      /// \brief Destructor.
+      public: virtual ~Header() = default;
+
       /// \brief Constructor.
       /// \param[in] _version Version of the transport library.
-      /// \param[in] _guid Global identifier. Every process has a unique guid.
+      /// \param[in] _pUuid Every process has a unique UUID.
       /// \param[in] _topic Topic.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
       /// \param[in] _flags Optional flags included in the header.
       public: Header(const uint16_t _version,
-                     const uuid_t &_guid,
+                     const std::string &_pUuid,
                      const std::string &_topic,
                      const uint8_t _type,
                      const uint16_t _flags = 0);
@@ -84,9 +80,9 @@ namespace ignition
       /// \return Transport library version.
       public: uint16_t GetVersion() const;
 
-      /// \brief Get the guid.
+      /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
-      public: uuid_t& GetGuid();
+      public: std::string GetPUuid() const;
 
       /// \brief Get the topic length.
       /// \return Topic length in bytes.
@@ -105,12 +101,12 @@ namespace ignition
       public: uint16_t GetFlags() const;
 
       /// \brief Set the transport library version.
-      /// \param[in] Transport library version.
+      /// \param[in] _version Transport library version.
       public: void SetVersion(const uint16_t _version);
 
-      /// \brief Set the guid.
-      /// \param[in] _guid A unique global identifier for every process.
-      public: void SetGuid(const uuid_t &_guid);
+      /// \brief Set the process uuid.
+      /// \param[in] _pUuid A unique global identifier for every process.
+      public: void SetPUuid(const std::string &_pUuid);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
@@ -128,9 +124,6 @@ namespace ignition
       /// \return The header length in bytes.
       public: int GetHeaderLength();
 
-      /// \brief Print the header.
-      public: void Print();
-
       /// \brief Serialize the header. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
       /// \param[out] _buffer Destination buffer in which the header
@@ -142,6 +135,22 @@ namespace ignition
       /// \param[in] _buffer Input buffer with the data to be unserialized.
       public: size_t Unpack(const char *_buffer);
 
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg Header to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const Header &_header)
+      {
+        _out << "--------------------------------------\n"
+             << "Header:" << std::endl
+             << "\tVersion: " << _header.GetVersion() << "\n"
+             << "\tProcess UUID: " << _header.GetPUuid() << "\n"
+             << "\tTopic length: " << _header.GetTopicLength() << "\n"
+             << "\tTopic: [" << _header.GetTopic() << "]\n"
+             << "\tType: " << MsgTypesStr.at(_header.GetType()) << "\n"
+             << "\tFlags: " << _header.GetFlags() << "\n";
+        return _out;
+      }
 
       /// \brief Calculate the header length.
       private: void UpdateHeaderLength();
@@ -149,14 +158,17 @@ namespace ignition
       /// \brief Version of the transport library.
       private: uint16_t version;
 
+      /// \brief Length of the process UUID (bytes).
+      private: uint16_t pUuidLength;
+
       /// \brief Global identifier. Every process has a unique guid.
-      private: uuid_t guid;
+      private: std::string pUuid = "";
 
       /// \brief Topic length in bytes.
       private: uint16_t topicLength;
 
       /// \brief Topic.
-      private:std::string topic;
+      private: std::string topic;
 
       /// \brief Message type (ADVERTISE, SUBSCRIPTION, ...).
       private: uint8_t type;
@@ -168,12 +180,12 @@ namespace ignition
       private: int headerLength;
     };
 
-    /// \class AdvMsg Packet.hh
+    /// \class AdvMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise message used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
-    /// is the ZeroMQ end point addressy where the node will be receiving
+    /// is the ZeroMQ end point address where the node will be receiving
     /// subscription requests.
-    class AdvMsg
+    class IGNITION_VISIBLE AdvMsg
     {
       /// \brief Constructor.
       public: AdvMsg();
@@ -192,7 +204,7 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header& GetHeader();
+      public: Header GetHeader() const;
 
       /// \brief Get the address length.
       /// \brief Return the ZMQ address length (num of bytes).
@@ -246,8 +258,32 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t GetMsgLength();
 
-      /// \brief Print the message.
-      public: void PrintBody();
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg AdvMsg to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const AdvMsg &_msg)
+      {
+        _out << _msg.GetHeader()
+             << "Body:" << std::endl
+             << "\tAddr size: " << _msg.GetAddressLength() << std::endl
+             << "\tAddress: " << _msg.GetAddress() << std::endl
+             << "\tControl addr size: "
+             << _msg.GetControlAddressLength() << std::endl
+             << "\tControl address: "
+             << _msg.GetControlAddress() << std::endl
+             << "\tNode UUID: "
+             << _msg.GetNodeUuid() << std::endl
+             << "\tTopic Scope: ";
+        if (_msg.GetScope() == Scope::Process)
+          _out << "Process" << std::endl;
+        else if (_msg.GetScope() == Scope::Host)
+          _out << "Host" << std::endl;
+        else
+          _out << "All" << std::endl;
+
+        return _out;
+      }
 
       /// \brief Serialize the AdvMsg.
       /// \param[out] _buffer Buffer where the message will be serialized.

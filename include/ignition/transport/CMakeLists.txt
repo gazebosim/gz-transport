@@ -1,19 +1,21 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  AddressInfo.hh
   Discovery.hh
   DiscoveryPrivate.hh
+  HandlerStorage.hh
+  Helpers.hh
   Node.hh
   NodePrivate.hh
+  NodeShared.hh
   Packet.hh
   RepHandler.hh
-  RepStorage.hh
   ReqHandler.hh
-  ReqStorage.hh
   SubscriptionHandler.hh
-  SubscriptionStorage.hh
+  TopicStorage.hh
+  TopicUtils.hh
   TransportTypes.hh
+  Uuid.hh
 )
 
 #################################################

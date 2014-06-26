@@ -16,7 +16,6 @@
 */
 
 #include <string.h>
-#include <uuid/uuid.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -26,23 +25,6 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-std::string transport::GetGuidStr(const uuid_t &_uuid)
-{
-  std::vector<char> guid_str(GUID_STR_LEN);
-
-  for (size_t i = 0; i < sizeof(uuid_t) && i != GUID_STR_LEN; ++i)
-  {
-    snprintf(&guid_str[0], GUID_STR_LEN,
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      _uuid[0], _uuid[1], _uuid[2], _uuid[3],
-      _uuid[4], _uuid[5], _uuid[6], _uuid[7],
-      _uuid[8], _uuid[9], _uuid[10], _uuid[11],
-      _uuid[12], _uuid[13], _uuid[14], _uuid[15]);
-  }
-  return std::string(guid_str.begin(), guid_str.end() - 1);
-}
-
-//////////////////////////////////////////////////
 Header::Header()
   : headerLength(0)
 {
@@ -50,13 +32,13 @@ Header::Header()
 
 //////////////////////////////////////////////////
 Header::Header(const uint16_t _version,
-               const uuid_t &_guid,
+               const std::string &_pUuid,
                const std::string &_topic,
                const uint8_t _type,
                const uint16_t _flags)
 {
   this->SetVersion(_version);
-  this->SetGuid(_guid);
+  this->SetPUuid(_pUuid);
   this->SetTopic(_topic);
   this->SetType(_type);
   this->SetFlags(_flags);
@@ -70,9 +52,9 @@ uint16_t Header::GetVersion() const
 }
 
 //////////////////////////////////////////////////
-uuid_t& Header::GetGuid()
+std::string Header::GetPUuid() const
 {
-  return this->guid;
+  return this->pUuid;
 }
 
 //////////////////////////////////////////////////
@@ -106,9 +88,11 @@ void Header::SetVersion(const uint16_t _version)
 }
 
 //////////////////////////////////////////////////
-void Header::SetGuid(const uuid_t &_guid)
+void Header::SetPUuid(const std::string &_pUuid)
 {
-  uuid_copy(this->guid, _guid);
+  this->pUuid = _pUuid;
+  this->pUuidLength = this->pUuid.size();
+  this->UpdateHeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -138,19 +122,6 @@ int Header::GetHeaderLength()
 }
 
 //////////////////////////////////////////////////
-void Header::Print()
-{
-  std::cout << "\t--------------------------------------\n";
-  std::cout << "\tHeader:" << std::endl;
-  std::cout << "\t\tVersion: " << this->GetVersion() << "\n";
-  std::cout << "\t\tGUID: " << GetGuidStr(this->GetGuid()) << "\n";
-  std::cout << "\t\tTopic length: " << this->GetTopicLength() << "\n";
-  std::cout << "\t\tTopic: [" << this->GetTopic() << "]\n";
-  std::cout << "\t\tType: " << MsgTypesStr.at(this->GetType()) << "\n";
-  std::cout << "\t\tFlags: " << this->GetFlags() << "\n";
-}
-
-//////////////////////////////////////////////////
 size_t Header::Pack(char *_buffer)
 {
   if (this->headerLength == 0)
@@ -158,8 +129,10 @@ size_t Header::Pack(char *_buffer)
 
   memcpy(_buffer, &this->version, sizeof(this->version));
   _buffer += sizeof(this->version);
-  memcpy(_buffer, &this->guid, sizeof(this->guid));
-  _buffer += sizeof(this->guid);
+  memcpy(_buffer, &this->pUuidLength, sizeof(this->pUuidLength));
+  _buffer += sizeof(this->pUuidLength);
+  memcpy(_buffer, this->pUuid.data(), this->pUuidLength);
+  _buffer += this->pUuidLength;
   memcpy(_buffer, &this->topicLength, sizeof(this->topicLength));
   _buffer += sizeof(this->topicLength);
   memcpy(_buffer, this->topic.data(), this->topicLength);
@@ -178,9 +151,13 @@ size_t Header::Unpack(const char *_buffer)
   memcpy(&this->version, _buffer, sizeof(this->version));
   _buffer += sizeof(this->version);
 
-  // Read the GUID.
-  memcpy(&this->guid, _buffer, sizeof(this->guid));
-  _buffer += sizeof(this->guid);
+  // Read the process UUID length.
+  memcpy(&this->pUuidLength, _buffer, sizeof(this->pUuidLength));
+  _buffer += sizeof(this->pUuidLength);
+
+  // Read the process UUID.
+  this->pUuid = std::string(_buffer, _buffer + this->pUuidLength);
+  _buffer += this->pUuidLength;
 
   // Read the topic length.
   memcpy(&this->topicLength, _buffer, sizeof(this->topicLength));
@@ -205,8 +182,9 @@ size_t Header::Unpack(const char *_buffer)
 //////////////////////////////////////////////////
 void Header::UpdateHeaderLength()
 {
-  this->headerLength = sizeof(this->version) + sizeof(this->guid) +
-                       sizeof(this->topicLength) + this->topic.size() +
+  this->headerLength = sizeof(this->version) +
+                       sizeof(this->pUuidLength) + this->pUuidLength +
+                       sizeof(this->topicLength) + this->topicLength +
                        sizeof(this->type) + sizeof(this->flags);
 }
 
@@ -232,7 +210,7 @@ AdvMsg::AdvMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header& AdvMsg::GetHeader()
+Header AdvMsg::GetHeader() const
 {
   return this->header;
 }
@@ -330,22 +308,6 @@ size_t AdvMsg::GetMsgLength()
          sizeof(this->controlAddressLength) + this->controlAddressLength +
          sizeof(this->nodeUuidLength) + this->nodeUuidLength +
          sizeof(this->scope);
-}
-
-//////////////////////////////////////////////////
-void AdvMsg::PrintBody()
-{
-  std::cout << "\tBody:" << std::endl;
-  std::cout << "\t\tAddr size: " << this->GetAddressLength() << std::endl;
-  std::cout << "\t\tAddress: " << this->GetAddress() << std::endl;
-  std::cout << "\t\tControl addr size: "
-            << this->GetControlAddressLength() << std::endl;
-  std::cout << "\t\tControl address: "
-            << this->GetControlAddress() << std::endl;
-  std::cout << "\t\tNode UUID: "
-            << this->GetNodeUuid() << std::endl;
-  // std::cout << "\t\tTopic Scope: "
-  //          << this->GetScope() << std::endl;
 }
 
 //////////////////////////////////////////////////

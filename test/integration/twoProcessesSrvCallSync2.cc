@@ -25,12 +25,8 @@
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-
 std::string topic = "/foo";
 std::string data = "bar";
-int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -41,21 +37,6 @@ void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;
-
-  srvExecuted = true;
-}
-
-//////////////////////////////////////////////////
-/// \brief Service call response callback.
-void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
-  bool _result)
-{
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_rep.data(), data);
-  EXPECT_TRUE(_result);
-
-  responseExecuted = true;
-  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -64,7 +45,12 @@ void runReplier()
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  int i = 0;
+  while (i < 100)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -72,48 +58,40 @@ void runReplier()
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcSrvCall, SrvTwoProcs)
+TEST(twoProcSrvCallSync2, SrvTwoProcs)
 {
   pid_t pid = fork();
 
   if (pid == 0)
+  {
+    // Make sure that the address of the service call provider is unknown
+    // before the request.
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     runReplier();
+  }
   else
   {
-    responseExecuted = false;
-    counter = 0;
+    unsigned int timeout = 1000;
     ignition::msgs::StringMsg req;
+    ignition::msgs::StringMsg rep;
+    bool result;
+
     req.set_data(data);
 
     transport::Node node1;
-    EXPECT_TRUE(node1.Request(topic, req, response));
+    EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
+    EXPECT_EQ(req.data(), rep.data());
+    EXPECT_TRUE(result);
 
-    int i = 0;
-    while (i < 100 && !responseExecuted)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      ++i;
-    }
+    auto t1 = std::chrono::system_clock::now();
+    EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
+    auto t2 = std::chrono::system_clock::now();
 
-    // Check that the service call response was executed.
-    EXPECT_TRUE(responseExecuted);
-    EXPECT_EQ(counter, 1);
+    double elapsed =
+      std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
-    // Make another request.
-    responseExecuted = false;
-    counter = 0;
-    EXPECT_TRUE(node1.Request(topic, req, response));
-
-    i = 0;
-    while (i < 100 && !responseExecuted)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      ++i;
-    }
-
-    // Check that the service call response was executed.
-    EXPECT_TRUE(responseExecuted);
-    EXPECT_EQ(counter, 1);
+    // Check if the elapsed time was close to the timeout.
+    EXPECT_NEAR(elapsed, timeout, 1.0);
 
     // Wait for the child process to return.
     int status;

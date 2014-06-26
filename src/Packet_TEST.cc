@@ -16,7 +16,7 @@
 */
 
 #include <limits.h>
-#include <uuid/uuid.h>
+#include <iostream>
 #include <string>
 #include "ignition/transport/Packet.hh"
 #include "gtest/gtest.h"
@@ -28,32 +28,29 @@ using namespace ignition;
 TEST(PacketTest, BasicHeaderAPI)
 {
   std::string topic = "topic_test";
-  uuid_t guid;
-  uuid_generate(guid);
-  transport::Header header(transport::Version, guid, topic, transport::AdvType);
-
-  std::string guidStr = transport::GetGuidStr(guid);
+  std::string pUuid = "Process-UUID-1";
+  transport::Header header(transport::Version, pUuid,
+    topic, transport::AdvType);
 
   // Check Header getters.
   EXPECT_EQ(header.GetVersion(), transport::Version);
-  std::string otherGuidStr = transport::GetGuidStr(header.GetGuid());
-  EXPECT_EQ(guidStr, otherGuidStr);
+  EXPECT_EQ(pUuid, header.GetPUuid());
   EXPECT_EQ(header.GetTopicLength(), topic.size());
   EXPECT_EQ(header.GetTopic(), topic);
   EXPECT_EQ(header.GetType(), transport::AdvType);
   EXPECT_EQ(header.GetFlags(), 0);
-  int headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
-    sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +
-    sizeof(header.GetFlags());
+  int headerLength = sizeof(header.GetVersion()) +
+    sizeof(uint16_t) + header.GetPUuid().size() +
+    sizeof(header.GetTopicLength()) + topic.size() +
+    sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
   // Check Header setters.
   header.SetVersion(transport::Version + 1);
   EXPECT_EQ(header.GetVersion(), transport::Version + 1);
-  uuid_generate(guid);
-  header.SetGuid(guid);
-  otherGuidStr = transport::GetGuidStr(header.GetGuid());
-  EXPECT_NE(guidStr, otherGuidStr);
+  pUuid = "Different-process-UUID-1";
+  header.SetPUuid(pUuid);
+  EXPECT_EQ(header.GetPUuid(), pUuid);
   topic = "a_new_topic_test";
   header.SetTopic(topic);
   EXPECT_EQ(header.GetTopic(), topic);
@@ -62,27 +59,44 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.GetType(), transport::SubType);
   header.SetFlags(1);
   EXPECT_EQ(header.GetFlags(), 1);
-  headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
-    sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +
-    sizeof(header.GetFlags());
+  headerLength = sizeof(header.GetVersion()) +
+    sizeof(uint16_t) + header.GetPUuid().size() +
+    sizeof(header.GetTopicLength()) + topic.size() +
+    sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
+
+  // Check << operator
+  std::ostringstream output;
+  output << header;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tTopic length: 16\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tType: SUBSCRIBE\n"
+    "\tFlags: 1\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the serialization and unserialization of a header.
 TEST(PacketTest, HeaderIO)
 {
-  std::string guidStr;
-  std::string otherGuidStr;
   std::string topic = "topic_test";
+  std::string pUuid = "Process-UUID-1";
+  char *buffer = nullptr;
 
-  uuid_t guid;
-  uuid_generate(guid);
+  // Try to pack an empty header.
+  transport::Header emptyHeader;
+  EXPECT_EQ(emptyHeader.Pack(buffer), 0);
 
   // Pack a Header
-  transport::Header header(transport::Version, guid, topic,
+  transport::Header header(transport::Version, pUuid, topic,
     transport::AdvSrvType, 2);
-  char *buffer = new char[header.GetHeaderLength()];
+  buffer = new char[header.GetHeaderLength()];
   size_t bytes = header.Pack(buffer);
   EXPECT_EQ(bytes, header.GetHeaderLength());
 
@@ -93,9 +107,7 @@ TEST(PacketTest, HeaderIO)
 
   // Check that after Pack() and Unpack() the Header remains the same
   EXPECT_EQ(header.GetVersion(), otherHeader.GetVersion());
-  guidStr = transport::GetGuidStr(guid);
-  otherGuidStr = transport::GetGuidStr(otherHeader.GetGuid());
-  EXPECT_EQ(guidStr, otherGuidStr);
+  EXPECT_EQ(header.GetPUuid(), otherHeader.GetPUuid());
   EXPECT_EQ(header.GetTopicLength(), otherHeader.GetTopicLength());
   EXPECT_EQ(header.GetTopic(), otherHeader.GetTopic());
   EXPECT_EQ(header.GetType(), otherHeader.GetType());
@@ -108,12 +120,10 @@ TEST(PacketTest, HeaderIO)
 TEST(PacketTest, BasicAdvMsgAPI)
 {
   std::string topic = "topic_test";
-  uuid_t guid;
-  uuid_generate(guid);
-  transport::Header otherHeader(transport::Version, guid, topic,
-    transport::AdvType, 3);
+  std::string pUuid = "Process-UUID-1";
 
-  std::string otherGuidStr = transport::GetGuidStr(guid);
+  transport::Header otherHeader(transport::Version, pUuid, topic,
+    transport::AdvType, 3);
 
   std::string addr = "tcp://10.0.0.1:6000";
   std::string ctrl = "tcp://10.0.0.1:60011";
@@ -124,8 +134,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   // Check AdvMsg getters.
   transport::Header header = advMsg.GetHeader();
   EXPECT_EQ(header.GetVersion(), otherHeader.GetVersion());
-  std::string guidStr = transport::GetGuidStr(header.GetGuid());
-  EXPECT_EQ(guidStr, otherGuidStr);
+  EXPECT_EQ(header.GetPUuid(), otherHeader.GetPUuid());
   EXPECT_EQ(header.GetTopicLength(), otherHeader.GetTopicLength());
   EXPECT_EQ(header.GetTopic(), otherHeader.GetTopic());
   EXPECT_EQ(header.GetType(), otherHeader.GetType());
@@ -147,23 +156,22 @@ TEST(PacketTest, BasicAdvMsgAPI)
     sizeof(advMsg.GetScope());
   EXPECT_EQ(advMsg.GetMsgLength(), msgLength);
 
-  uuid_generate(guid);
+  pUuid = "Different-process-UUID-1";
   topic = "a_new_topic_test";
 
   // Check AdvMsg setters.
-  transport::Header anotherHeader(transport::Version + 1, guid, topic,
-    transport::AdvSrvType, 3);
-  guidStr = transport::GetGuidStr(guid);
+  transport::Header anotherHeader(transport::Version + 1, pUuid,
+    topic, transport::AdvSrvType, 3);
   advMsg.SetHeader(anotherHeader);
   header = advMsg.GetHeader();
   EXPECT_EQ(header.GetVersion(), transport::Version+ 1);
-  otherGuidStr = transport::GetGuidStr(anotherHeader.GetGuid());
-  EXPECT_EQ(guidStr, otherGuidStr);
+  EXPECT_EQ(header.GetPUuid(), anotherHeader.GetPUuid());
   EXPECT_EQ(header.GetTopicLength(), topic.size());
   EXPECT_EQ(header.GetTopic(), topic);
   EXPECT_EQ(header.GetType(), transport::AdvSrvType);
   EXPECT_EQ(header.GetFlags(), 3);
-  int headerLength = sizeof(header.GetVersion()) + sizeof(header.GetGuid()) +
+  int headerLength = sizeof(header.GetVersion()) +
+    sizeof(uint16_t) + header.GetPUuid().size() +
     sizeof(header.GetTopicLength()) + topic.size() + sizeof(header.GetType()) +
     sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
@@ -180,18 +188,45 @@ TEST(PacketTest, BasicAdvMsgAPI)
   EXPECT_EQ(advMsg.GetNodeUuid(), nodeUuid);
   advMsg.SetScope(scope);
   EXPECT_EQ(advMsg.GetScope(), scope);
+
+  // Check << operator
+  std::ostringstream output;
+  output << advMsg;
+  std::cout << advMsg;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tTopic length: 16\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tType: ADV_SVC\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tAddr size: 14\n"
+    "\tAddress: inproc://local\n"
+    "\tControl addr size: 16\n"
+    "\tControl address: inproc://control\n"
+    "\tNode UUID: nodeUUID2\n"
+    "\tTopic Scope: Host\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the serialization and unserialization of an ADV message.
 TEST(PacketTest, AdvMsgIO)
 {
-  uuid_t guid;
-  uuid_generate(guid);
+  std::string pUuid = "Process-UUID-1";
   std::string topic = "topic_test";
+  char *buffer = nullptr;
+
+  // Try to pack an empty AdvMsg.
+  transport::AdvMsg emptyMsg;
+  EXPECT_EQ(emptyMsg.Pack(buffer), 0);
 
   // Pack an AdvMsg.
-  transport::Header otherHeader(transport::Version, guid, topic,
+  transport::Header otherHeader(transport::Version, pUuid, topic,
     transport::AdvType, 3);
   std::string addr = "tcp://10.0.0.1:6000";
   std::string ctrl = "tcp://10.0.0.1:60011";
@@ -199,7 +234,7 @@ TEST(PacketTest, AdvMsgIO)
   transport::Scope scope = transport::Scope::Host;
 
   transport::AdvMsg advMsg(otherHeader, addr, ctrl, nodeUuid, scope);
-  char *buffer = new char[advMsg.GetMsgLength()];
+  buffer = new char[advMsg.GetMsgLength()];
   size_t bytes = advMsg.Pack(buffer);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());
 

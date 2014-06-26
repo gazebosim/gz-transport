@@ -15,41 +15,39 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_ADDRESSINFO_HH_INCLUDED__
-#define __IGN_TRANSPORT_ADDRESSINFO_HH_INCLUDED__
+#ifndef __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
+#define __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
 
-#include <czmq.h>
-#include <google/protobuf/message.h>
-#include <list>
 #include <map>
 #include <string>
-#include <vector>
-#include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \class AddressInfo AdressInfo.hh
-    /// \brief Store addressing information for topics.
-    class AddressInfo
+    /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
+    /// \brief Store address information about topics and provide convenient
+    /// methods for adding new topics, remove it, etc.
+    class IGNITION_VISIBLE TopicStorage
     {
       /// \brief Constructor.
-      public: AddressInfo();
+      public: TopicStorage() = default;
 
       /// \brief Destructor.
-      public: virtual ~AddressInfo();
+      public: virtual ~TopicStorage() = default;
 
       /// \brief Add a new address associated to a given topic and node UUID.
       /// \param[in] _topic Topic name.
-      /// \param[in] _addr New address.
-      /// \param[in] _ctrl New control address.
+      /// \param[in] _addr 0MQ address of the publisher advertising the topic.
+      /// \param[in] _ctrl 0MQ control address of the publisher advertising the
+      ///  topic.
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic Scope.
-      /// \return true if the new address is added or false if the address
-      /// was already stored.
+      /// \return true if the new entry is added or false if not (because it
+      /// was already stored).
       public: bool AddAddress(const std::string &_topic,
                               const std::string &_addr,
                               const std::string &_ctrl,
@@ -59,7 +57,7 @@ namespace ignition
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
-      /// \return True if there is at least one address stored for the topic.
+      /// \return True if there is at least one entry stored for the topic.
       public: bool HasTopic(const std::string &_topic);
 
       /// \brief Return if there is any address stored for the given topic and
@@ -98,12 +96,15 @@ namespace ignition
       /// \param[in] _topic Topic name
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
-      public: void DelAddressByNode(const std::string &_topic,
+      /// \return True when the address was removed or false otherwise.
+      public: bool DelAddressByNode(const std::string &_topic,
                                     const std::string &_pUuid,
                                     const std::string &_nUuid);
 
       /// \brief Remove all the addresses associated to a given process.
-      public: void DelAddressesByProc(const std::string &_pUuid);
+      /// \param[in] _pUuid Process' UUID of the publisher.
+      /// \return True when at least one address was removed or false otherwise.
+      public: bool DelAddressesByProc(const std::string &_pUuid);
 
       /// \brief Print all the information for debugging purposes.
       public: void Print();

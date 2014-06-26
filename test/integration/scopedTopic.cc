@@ -15,7 +15,7 @@
  *
 */
 
-#include <robot_msgs/stringmsg.pb.h>
+#include <ignition/msgs/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <string>
@@ -26,15 +26,14 @@ using namespace ignition;
 
 bool cbExecuted;
 
-std::string topic = "foo";
+std::string topic = "/foo";
 std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const robot_msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 {
-  assert(_topic != "");
-
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }
@@ -45,7 +44,7 @@ void runSubscriber()
   cbExecuted = false;
   transport::Node node;
 
-  node.Subscribe(topic, cb);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
@@ -71,16 +70,16 @@ TEST(ScopedTopicTest, ProcessTest)
     runSubscriber();
   else
   {
-    robot_msgs::StringMsg msg;
+    ignition::msgs::StringMsg msg;
     msg.set_data(data);
 
     transport::Node node1;
 
-    node1.Advertise(topic, transport::Scope::Process);
+    EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(node1.Publish(topic, msg), 0);
+    EXPECT_TRUE(node1.Publish(topic, msg));
 
     // Wait for the child process to return.
     int status;
