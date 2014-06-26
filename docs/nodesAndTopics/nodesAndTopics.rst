@@ -35,12 +35,12 @@ Table x.x summarizes the allowed and not allowed topic rules.
 ============  ========  =======
 Topic name    Validity  Comment
 ============  ========  =======
-"/topicA"     Valid
-"/topicA/"    Valid     Equivalent to */topicA*
-"/a/b"        Valid
-""            Invalid   Empty string is invalid.
-"my topic"    Invalid   Contains white space.
-"//image"     Invalid   Contains two consecutive *//*
-"/"           Invalid   */* topic is not allowed.
-"~myTopic"    Invalid   "Symbol *~* not allowed.
+*/topicA*     Valid
+*/topicA/*    Valid     Equivalent to */topicA*
+*/a/b*        Valid
+              Invalid   Empty string is invalid.
+*my topic*    Invalid   Contains white space.
+*//image*     Invalid   Contains two consecutive *//*
+*/*           Invalid   */* topic is not allowed.
+*~myTopic*    Invalid   Symbol *~* not allowed.
 ============  ========  =======
