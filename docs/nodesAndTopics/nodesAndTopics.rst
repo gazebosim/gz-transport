@@ -2,6 +2,9 @@
 Understanding nodes and topics
 ==============================
 
+Nodes
+=====
+
 The communication in Ignition Transport follows a pure distributed architecture,
 where there is no central process, broker or similar. All the nodes in the
 network can act as publishers, subscribers, provide services and request
@@ -16,6 +19,9 @@ will be executed each time a new message was received. The other way of
 communication allowed is by using service calls. A service call is a remote
 service that a node offers to the rest of the nodes. A node can request a
 service in a similar way a local function is executed.
+
+Topics
+======
 
 A topic is just a name for grouping a specific set of messages or a particular
 service. Imagine that you have a camera and want to publish periodically its
@@ -44,3 +50,13 @@ Topic name    Validity  Comment
 */*           Invalid   */* topic is not allowed.
 *~myTopic*    Invalid   Symbol *~* not allowed.
 ============  ========  =======
+
+Topic scope
+===========
+
+A topic can be optionally advertised with a scope. A scope allows you to set the visibility of this topic. The available scopes are *Process*, *Host*, and *All*.
+A *Process* scope means that the advertised topic will only be visible in the
+nodes within the same process as the advertiser. A topic with a *Host* scope
+restricts the visibility of a topic to nodes located in the same machine as the
+advertiser. Finally, by specifying a scope with an *All* value, you're allowing
+your topic to be visible by any node.
