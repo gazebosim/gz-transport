@@ -11,8 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-Introduction <introduction/intro>
-Nodes and topis <nodesAndTopics/nodesAndTopics>
+	 Introduction <introduction/intro>
+	 Nodes and topics <nodesAndTopics/nodesAndTopics>
 
 Indices and tables
 ==================
