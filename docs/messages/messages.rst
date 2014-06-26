@@ -9,5 +9,5 @@ nodes will be running on different processes within the same machine.
 
 ::
 
-mkdir ~/ign_transport_tutorial
-cd ~/ign_transport_tutorial
+    mkdir ~/ign_transport_tutorial
+    cd ~/ign_transport_tutorial
