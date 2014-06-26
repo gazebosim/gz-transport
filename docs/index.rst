@@ -20,3 +20,19 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+What is ignition transport?
+--------
+
+Ignition transport is an open source communication library that allows sharing
+data between its clients. In our context, a client is called a node. Nodes might
+be running within the same process in the same machine or in machines located in different continents. Ignition transport is multi-platform (Linux, Mac OS X, and Windows), so all the low level details, such as data alignment or endianness are hidden by ignition transport.
+
+Ignition transport uses google protobufs as the data type for communicating
+between nodes. Users can define its own messages using the probobuf utils, and
+then, communicate them between the nodes. Ignition transport discover,
+serializes and deliver messages to the destinations.
+
+- What programming language can I use to interface ignition transport?
+C++ is our native implementation and so far the only way to use the library.
+We are planning to offer different wrappers for the most popular languages in
+the future.
