@@ -29,10 +29,9 @@ be running within the same process in the same machine or in machines located in
 
 Ignition transport uses google protobufs as the data type for communicating
 between nodes. Users can define its own messages using the probobuf utils, and
-then, communicate them between the nodes. Ignition transport discover,
-serializes and deliver messages to the destinations.
+then, communicate them between the nodes. Ignition transport discovers,
+serializes and delivers messages to the destinations.
 
 - What programming language can I use to interface ignition transport?
 C++ is our native implementation and so far the only way to use the library.
-We are planning to offer different wrappers for the most popular languages in
-the future.
+In the futureWe are planning to offer different wrappers for the most popular languages.
