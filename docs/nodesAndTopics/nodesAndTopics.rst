@@ -30,7 +30,7 @@ service.
 There are some rules to follow when selecting a topic name. It should be any
 alphanumeric name followed by zero or more slashes. For example: */image*,
 *head_position*, */robot1/joints/HeadPitch* are examples of valid topic names.
-Table x.x summarizes the allowed and not allowed topic rules.
+The next table summarizes the allowed and not allowed topic rules.
 
 ============  ========  =======
 Topic name    Validity  Comment
