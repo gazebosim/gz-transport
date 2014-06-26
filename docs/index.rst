@@ -13,6 +13,8 @@ Contents:
 
 	 Introduction <introduction/intro>
 	 Nodes and topics <nodesAndTopics/nodesAndTopics>
+	 Messages <messages/messages>
+	 Services <services/services>
 
 Indices and tables
 ==================
