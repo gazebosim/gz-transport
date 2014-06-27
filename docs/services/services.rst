@@ -20,39 +20,39 @@ the following code inside it:
 
 ::
 
-		#include "../build/src/hello.pb.h"
-		#include <ignition/transport/Node.hh>
-		#include <cstdio>
-		#include <string>
+    #include "../build/src/hello.pb.h"
+    #include <ignition/transport/Node.hh>
+    #include <cstdio>
+    #include <string>
 
-		using namespace ignition;
+    using namespace ignition;
 
-		//////////////////////////////////////////////////
-		/// \brief Provide an "echo" service.
-		void srvEcho(const std::string &_topic, const tutorial::Hello &_req,
-		  tutorial::Hello &_rep, bool &_result)
-		{
-		  // Set the response's content.
-		  _rep.set_content(_req.content());
+    //////////////////////////////////////////////////
+    /// \brief Provide an "echo" service.
+    void srvEcho(const std::string &_topic, const tutorial::Hello &_req,
+      tutorial::Hello &_rep, bool &_result)
+    {
+      // Set the response's content.
+      _rep.set_content(_req.content());
 
-		  // The response succeed.
-		  _result = true;
-		}
+      // The response succeed.
+      _result = true;
+    }
 
-		//////////////////////////////////////////////////
-		int main(int argc, char **argv)
-		{
-		  std::string topic = "echo";
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      std::string topic = "echo";
 
-		  // Create a transport node.
-		  transport::Node publisher;
+      // Create a transport node.
+      transport::Node publisher;
 
-		  // Advertise a service call.
-		  publisher.Advertise(topic, srvEcho);
+      // Advertise a service call.
+      publisher.Advertise(topic, srvEcho);
 
-		  // Wait for requests.
-		  getchar();
-		}
+      // Wait for requests.
+      getchar();
+    }
 
 Walkthrough
 ===========
@@ -71,15 +71,15 @@ headers for using the transport library.
 
 ::
 
-		void srvEcho(const std::string &_topic, const tutorial::Hello &_req,
-		  tutorial::Hello &_rep, bool &_result)
-		{
-		  // Set the response's content.
-		  _rep.set_content(_req.content());
+    void srvEcho(const std::string &_topic, const tutorial::Hello &_req,
+      tutorial::Hello &_rep, bool &_result)
+    {
+      // Set the response's content.
+      _rep.set_content(_req.content());
 
-		  // The response succeed.
-		  _result = true;
-		}
+      // The response succeed.
+      _result = true;
+    }
 
 As a service provider, our node needs to register a function callback that will
 execute every time a new service request is received. The signature of the
@@ -91,11 +91,11 @@ data contained in the request.
 
 ::
 
-	  // Create a transport node.
-		transport::Node publisher;
+    // Create a transport node.
+    transport::Node publisher;
 
-		// Advertise a service call.
-		publisher.Advertise(topic, srvEcho);
+    // Advertise a service call.
+    publisher.Advertise(topic, srvEcho);
 
 We declare a *Node* that will offer all the transport functionality. In our
 case, we are interested on offering a service, so the first step is to announce
@@ -112,39 +112,39 @@ paste the following code inside it:
 ::
 
     #include "../build/src/hello.pb.h"
-		#include <ignition/transport/Node.hh>
-		#include <string>
+    #include <ignition/transport/Node.hh>
+    #include <string>
 
-		using namespace ignition;
+    using namespace ignition;
 
-		//////////////////////////////////////////////////
-		/// \brief Service call response callback.
-		void responseCb(const std::string &_topic, const tutorial::Hello &_rep,
-		  bool _result)
-		{
-		  if (_result)
-		    std::cout << "Response: [" << _rep.content() << "]" << std::endl;
-		  else
-		    std::cerr << "Service call failed" << std::endl;
-		}
+    //////////////////////////////////////////////////
+    /// \brief Service call response callback.
+    void responseCb(const std::string &_topic, const tutorial::Hello &_rep,
+      bool _result)
+    {
+      if (_result)
+        std::cout << "Response: [" << _rep.content() << "]" << std::endl;
+      else
+        std::cerr << "Service call failed" << std::endl;
+    }
 
-		//////////////////////////////////////////////////
-		int main(int argc, char **argv)
-		{
-		  std::string topic = "echo";
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      std::string topic = "echo";
 
-		  // Create a transport node.
-		  transport::Node requester;
+      // Create a transport node.
+      transport::Node requester;
 
-		  // Prepare the service call input parameter.
-		  tutorial::Hello req;
-		  req.set_content("Hello World!");
+      // Prepare the service call input parameter.
+      tutorial::Hello req;
+      req.set_content("Hello World!");
 
-			// Request an asynchronous service call.
-		  requester.Request(topic, req, responseCb);
+      // Request an asynchronous service call.
+      requester.Request(topic, req, responseCb);
 
-		  getchar();
-		}
+      getchar();
+    }
 
 
 Walkthrough
@@ -153,15 +153,15 @@ Walkthrough
 ::
 
     //////////////////////////////////////////////////
-		/// \brief Service call response callback.
-		void responseCb(const std::string &_topic, const tutorial::Hello &_rep,
-		  bool _result)
-		{
-		  if (_result)
-		    std::cout << "Response: [" << _rep.content() << "]" << std::endl;
-		  else
-		    std::cerr << "Service call failed" << std::endl;
-		}
+    /// \brief Service call response callback.
+    void responseCb(const std::string &_topic, const tutorial::Hello &_rep,
+      bool _result)
+    {
+      if (_result)
+        std::cout << "Response: [" << _rep.content() << "]" << std::endl;
+      else
+        std::cerr << "Service call failed" << std::endl;
+    }
 
 We are going to need to register a function callback that will execute every
 time we receive a new topic update. The signature of the callback is always
@@ -173,11 +173,11 @@ case, we know that topic */topicA* will contain a protobuf *Hello* type.
 ::
 
     // Prepare the service call input parameter.
-		tutorial::Hello req;
-		req.set_content("Hello World!");
+    tutorial::Hello req;
+    req.set_content("Hello World!");
 
-		// Request an asynchronous service call.
-		requester.Request(topic, req, responseCb);
+    // Request an asynchronous service call.
+    requester.Request(topic, req, responseCb);
 
 
 In this section of the code we create a protobuf message and fill it with the
