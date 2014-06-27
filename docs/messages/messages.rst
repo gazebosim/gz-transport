@@ -198,15 +198,11 @@ Running the examples
 
 Open two new terminals and from your *build/* directory run the executables:
 
-From terminal 1,
-
-::
+From terminal 1::
 
     ./publisher
 
-From terminal 2,
-
-::
+From terminal 2::
 
     ./subscriber
 
