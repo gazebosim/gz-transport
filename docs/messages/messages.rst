@@ -13,6 +13,9 @@ nodes will be running on different processes within the same machine.
     cd ~/ign_transport_tutorial
     mkdir src
 
+Creating the publisher
+======================
+
 Create the *src/publisher.cc* file within the *ign_transport_tutorial* and paste
 the following code inside it:
 
@@ -91,3 +94,72 @@ we can start publishing periodic messages.
 In this section of the code we create a protobuf message and fill it with
 content. Next, we create an infinite loop for publishing messages every second.
 The method *Publish()* sends a message to all the subscribers.
+
+Creating the subscriber
+=======================
+
+Create the *src/subscriber.cc* file within the *ign_transport_tutorial* and
+paste the following code inside it:
+
+::
+
+    #include "../build/src/hello.pb.h"
+    #include <ignition/transport/Node.hh>
+    #include <cstdio>
+    #include <string>
+
+    using namespace ignition;
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    void cb(const std::string &_topic, const tutorial::Hello &_msg)
+    {
+      std::cout << "Data: [" << _msg.content() << "]" << std::endl;
+    }
+
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      std::string topic = "topicA";
+
+      // Create a transport node.
+      transport::Node publisher;
+
+      // Subscribe to a topic by registering a callback.
+      publisher.Subscribe(topic, cb);
+
+      // Wait until the user press <ENTER>.
+      getchar();
+    }
+
+
+Walkthrough
+===========
+
+::
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    void cb(const std::string &_topic, const tutorial::Hello &_msg)
+    {
+      std::cout << "Data: [" << _msg.content() << "]" << std::endl;
+    }
+
+We are going to need to register a function callback that will executed every
+time we receive a new topic update. The signature of the callback is always
+similar to the one shown in this example with the only exception of the protobuf
+message type. You should create a function callback with the appropriate
+protobuf type depending on the type advertised in your topic of interest. In our
+case, we know that topic *topicA* will contain a protobuf *Hello* type.
+
+::
+
+    // Create a transport node.
+    transport::Node publisher;
+
+    // Subscribe to a topic by registering a callback.
+    publisher.Subscribe(topic, cb);
+
+After the node creation, the method *Subscribe()* allows you to subscribe to a
+given topic name by specifying your subscription callback function.
+
