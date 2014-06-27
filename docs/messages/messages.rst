@@ -41,7 +41,7 @@ the following code inside it:
       msg.set_content(data);
 
       // Publish messages at 1Hz.
-      while (!publisher.Interrupted())
+      while (true)
       {
         publisher.Publish(topic, msg);
         sleep(1);
@@ -58,8 +58,36 @@ Walkthrough
 
 The first line includes the generated protobuf code that we are going to use
 for the publisher. We are going to publish *Hello* type protobuf messages
-defined in *hello.pb.h".
+defined in *hello.pb.h*.
 
 The line *#include <ignition/transport/Node.hh>* contains the ignition transport
 headers for using the transport library.
 
+::
+
+    // Create a transport node.
+    transport::Node publisher;
+    // Advertise a topic.
+    publisher.Advertise(topic);
+
+First of all we declare a *Node* that will offer all the transport
+functionality. In our case, we are interested on publishing topic updates, so
+the first step is to announce our topic name. Once a topic name is advertised,
+we can start publishing periodic messages.
+
+::
+
+    // Prepare the message.
+    tutorial::Hello msg;
+    msg.set_content(data);
+
+    // Publish messages at 1Hz.
+    while (true)
+    {
+      publisher.Publish(topic, msg);
+      sleep(1);
+    }
+
+In this section of the code we create a protobuf message and fill it with
+content. Next, we create an infinite loop for publishing messages every second.
+The method *Publish()* sends a message to all the subscribers.
