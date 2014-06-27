@@ -145,12 +145,12 @@ Walkthrough
       std::cout << "Data: [" << _msg.content() << "]" << std::endl;
     }
 
-We are going to need to register a function callback that will executed every
+We are going to need to register a function callback that will execute every
 time we receive a new topic update. The signature of the callback is always
 similar to the one shown in this example with the only exception of the protobuf
 message type. You should create a function callback with the appropriate
 protobuf type depending on the type advertised in your topic of interest. In our
-case, we know that topic *topicA* will contain a protobuf *Hello* type.
+case, we know that topic */topicA* will contain a protobuf *Hello* type.
 
 ::
 
@@ -163,3 +163,61 @@ case, we know that topic *topicA* will contain a protobuf *Hello* type.
 After the node creation, the method *Subscribe()* allows you to subscribe to a
 given topic name by specifying your subscription callback function.
 
+
+Building the code
+=================
+
+Copy this *CMakeLists.txt* file within the *ign_transport_tutorial*. This is the
+top level cmake file that will check for dependencies.
+
+Copy this *hello.proto* file within the *ign_transport_tutorial/src*. This is
+the protobuf message definition that we use in this example.
+
+Copy this *CMakeLists.txt* file within the *ign_transport_tutorial/src*. This is
+the cmake file that will generate the c++ code from the protobuf file and will
+create the *publisher* and *subscriber* executables.
+
+Once you have all your files, go ahead and create a *build/* directory within
+the *ign_transport_tutorial* directory.
+
+::
+
+    mkdir build
+    cd build
+
+Run *cmake* and build the code.
+
+::
+
+    cmake ..
+    make
+
+
+Running the examples
+====================
+
+Open two new terminals and from your *build/* directory run the executables:
+
+From terminal 1:
+
+::
+    ./publisher
+
+from terminal 2:
+
+::
+    ./subscriber
+
+
+In your subscriber terminal, you should expect an output similar to this one,
+showing that your subscribing is receiving the topic updates:
+
+::
+
+    caguero@turtlebot:~/ign_transport_tutorial/build$ ./subscriber
+    Data: [helloWorld]
+    Data: [helloWorld]
+    Data: [helloWorld]
+    Data: [helloWorld]
+    Data: [helloWorld]
+    Data: [helloWorld]
