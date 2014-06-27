@@ -2,7 +2,7 @@
 How to contribute
 =================
 
-Inginiton transport is an open source project based on the Apache License
+Ignition transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
 If you would like to contribute software patches, please join the ignition
 transport project on Bitbucket.org.
