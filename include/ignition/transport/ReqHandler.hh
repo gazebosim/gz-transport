@@ -103,15 +103,34 @@ namespace ignition
       public: virtual std::string Serialize() = 0;
 
       /// \brief Returns the unique handler UUID.
-      /// \returns The handler's UUID.
+      /// \return The handler's UUID.
       public: std::string GetHandlerUuid() const
       {
         return this->hUuid;
       }
 
+      /// \brief Block the current thread until the response to the
+      /// service request is available or until the timeout expires.
+      /// This method uses a condition variable to notify when the response is
+      /// available.
+      /// \param[in] _lock Lock used to protect the condition variable.
+      /// \param[in] _timeout Maximum waiting time in milliseconds.
+      /// \return True if the service call was executed or false otherwise.
+      public: template<typename Lock> bool WaitUntil(Lock &_lock,
+                                                     unsigned int _timeout)
+      {
+        auto now = std::chrono::system_clock::now();
+        return this->condition.wait_until(_lock,
+          now + std::chrono::milliseconds(_timeout),
+          [this]
+          {
+            return this->repAvailable;
+          });
+      }
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
-      public: std::condition_variable_any condition;
+      protected: std::condition_variable_any condition;
 
       /// \brief Stores the service response as raw bytes.
       protected: std::string rep;

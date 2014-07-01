@@ -473,15 +473,8 @@ namespace ignition
           this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
         }
 
-        auto now = std::chrono::system_clock::now();
-
         // Wait until the REP is available.
-        bool executed = reqHandlerPtr->condition.wait_until
-          (lk, now + std::chrono::milliseconds(_timeout),
-           [&reqHandlerPtr]
-           {
-             return reqHandlerPtr->repAvailable;
-           });
+        bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
         if (executed)
         {
