@@ -15,45 +15,33 @@
  *
 */
 
-#include <csignal>
+#include <cstdio>
+#include <string>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
-bool terminate = false;
-
 //////////////////////////////////////////////////
-/// \brief Function callback executed when a SIGINT or SIGTERM signals are
-/// captured. This is used to break the infinite loop that publishes messages
-/// and exit the program smoothly.
-void signal_handler(int _signal)
+/// \brief Provide an "echo" service.
+void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep, bool &_result)
 {
-  if (_signal == SIGINT || _signal == SIGTERM)
-    terminate = true;
+  // Set the response's content.
+  _rep.set_data(_req.data());
+
+  // The response succeed.
+  _result = true;
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Install a signal handler for SIGINT.
-  std::signal(SIGINT, signal_handler);
-
-  // Create a transport node and advertise a topic.
+  // Create a transport node.
   ignition::transport::Node node;
-  node.Advertise("/foo");
 
-  // Prepare the message.
-  ignition::msgs::StringMsg msg;
-  msg.set_data("HELLO");
+  // Advertise a service call.
+  node.Advertise("/echo", srvEcho);
 
-  // Publish messages at 1Hz.
-  while(!terminate)
-  {
-    node.Publish("/foo", msg);
-
-    std::cout << "Publishing hello\n";
-    usleep(1000000);
-  }
-
-  return 0;
+  // Wait for requests.
+  getchar();
 }

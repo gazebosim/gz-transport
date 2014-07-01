@@ -15,45 +15,35 @@
  *
 */
 
-#include <csignal>
+#include <iostream>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
-bool terminate = false;
-
-//////////////////////////////////////////////////
-/// \brief Function callback executed when a SIGINT or SIGTERM signals are
-/// captured. This is used to break the infinite loop that publishes messages
-/// and exit the program smoothly.
-void signal_handler(int _signal)
-{
-  if (_signal == SIGINT || _signal == SIGTERM)
-    terminate = true;
-}
-
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Install a signal handler for SIGINT.
-  std::signal(SIGINT, signal_handler);
-
-  // Create a transport node and advertise a topic.
+  // Create a transport node.
   ignition::transport::Node node;
-  node.Advertise("/foo");
 
-  // Prepare the message.
-  ignition::msgs::StringMsg msg;
-  msg.set_data("HELLO");
+  // Prepare the input parameters.
+  ignition::msgs::StringMsg req;
+  req.set_data("HELLO");
 
-  // Publish messages at 1Hz.
-  while(!terminate)
+  ignition::msgs::StringMsg rep;
+  bool result;
+  unsigned int timeout = 5000;
+
+  // Request the "/echo" service.
+  bool executed = node.Request("/echo", req, timeout, rep, result);
+
+  if (executed)
   {
-    node.Publish("/foo", msg);
-
-    std::cout << "Publishing hello\n";
-    usleep(1000000);
+    if (result)
+      std::cout << "Response: [" << rep.data() << "]" << std::endl;
+    else
+      std::cout << "Service call failed" << std::endl;
   }
-
-  return 0;
+  else
+    std::cerr << "Service call timed out" << std::endl;
 }

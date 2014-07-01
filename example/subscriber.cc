@@ -15,27 +15,32 @@
  *
 */
 
-#include <unistd.h>
+#include <cstdio>
 #include <iostream>
+#include <string>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 {
   std::cout << "Topic:" << _topic << "\n"
             << "Msg:  " << _msg.data() << "\n\n";
 }
 
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ignition::transport::Node node;
+
+  // Subscribe to a topic by registering a callback.
   node.Subscribe("/foo", cb);
 
-  while(true)
-  {
-    usleep(1000);
-  }
+  // Zzzzzz.
+  std::cout << "Press <ENTER> to exit" << std::endl;
+  getchar();
 
   return 0;
 }

@@ -20,3 +20,15 @@ target_link_libraries(publisher ${IGNITION_TRANSPORT_LIBRARIES}
 add_executable(subscriber subscriber.cc)
 target_link_libraries(subscriber ${IGNITION_TRANSPORT_LIBRARIES}
   ${IGNITION_MSGS_LIBRARIES})
+
+add_executable(responser responser.cc)
+target_link_libraries(responser ${IGNITION_TRANSPORT_LIBRARIES}
+  ${IGNITION_MSGS_LIBRARIES})
+
+add_executable(requester requester.cc)
+target_link_libraries(requester ${IGNITION_TRANSPORT_LIBRARIES}
+  ${IGNITION_MSGS_LIBRARIES})
+
+add_executable(requester_async requester_async.cc)
+target_link_libraries(requester_async ${IGNITION_TRANSPORT_LIBRARIES}
+  ${IGNITION_MSGS_LIBRARIES})
