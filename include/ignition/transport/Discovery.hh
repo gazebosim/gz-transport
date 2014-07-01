@@ -295,12 +295,6 @@ namespace ignition
             std::placeholders::_6));
       }
 
-      /// \brief The discovery captures SIGINT and SIGTERM (czmq does) and
-      /// the function will return true in that case. All the task threads
-      /// will terminate.
-      /// \return true if SIGINT or SIGTERM has been captured.
-      public: bool WasInterrupted();
-
       /// \internal
       /// \brief Shared pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;

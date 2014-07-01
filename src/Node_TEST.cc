@@ -33,6 +33,7 @@ bool cb2Executed;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
+bool terminate = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -43,6 +44,7 @@ void reset()
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
+  terminate = false;
 }
 
 //////////////////////////////////////////////////
@@ -615,7 +617,7 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
-  while (i < 200 && !node.Interrupted())
+  while (!terminate)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
@@ -625,29 +627,44 @@ void createInfinitePublisher()
   EXPECT_LT(i, 200);
 }
 
-//////////////////////////////////////////////////
-/// \brief Create a transport client in a loop (and in a separate thread) and
-/// emit a SIGINT signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, TerminateSIGINT)
+void signal_handler(int _signal)
 {
-  std::thread publisherThread(createInfinitePublisher);
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  raise(SIGINT);
-  publisherThread.join();
+  if (_signal == SIGINT || _signal == SIGTERM)
+    terminate = true;
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a transport client in a loop (and in a separate thread) and
-/// emit a SIGTERM signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, TerminateSIGTERM)
+/// \brief Check that an external program can capture a SIGINT and terminate
+/// the program without problems.
+TEST(NodeTest, SigIntTermination)
 {
-  std::thread publisherThread(createInfinitePublisher);
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  raise(SIGTERM);
-  publisherThread.join();
+  reset();
+
+  // Install a signal handler for SIGINT.
+  std::signal(SIGINT, signal_handler);
+
+  auto thread = std::thread(createInfinitePublisher);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::raise(SIGINT);
+  thread.join();
 }
+
+//////////////////////////////////////////////////
+/// \brief Check that an external program can capture a SIGTERM and terminate
+/// the program without problems.
+TEST(NodeTest, SigTermTermination)
+{
+  reset();
+
+  // Install a signal handler for SIGINT.
+  std::signal(SIGTERM, signal_handler);
+
+  auto thread = std::thread(createInfinitePublisher);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::raise(SIGINT);
+  thread.join();
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

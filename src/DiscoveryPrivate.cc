@@ -213,7 +213,7 @@ void DiscoveryPrivate::Discover(const std::string &_topic, bool _isSrv)
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunActivityTask()
 {
-  while (!zctx_interrupted)
+  while (true)
   {
     this->mutex.lock();
 
@@ -259,7 +259,7 @@ void DiscoveryPrivate::RunActivityTask()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunHeartbeatTask()
 {
-  while (!zctx_interrupted)
+  while (true)
   {
     this->mutex.lock();
     this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
@@ -280,7 +280,7 @@ void DiscoveryPrivate::RunHeartbeatTask()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RunReceptionTask()
 {
-  while (!zctx_interrupted)
+  while (true)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -305,8 +305,6 @@ void DiscoveryPrivate::RunReceptionTask()
         break;
     }
   }
-
-  this->exit = true;
 }
 
 //////////////////////////////////////////////////

@@ -313,9 +313,3 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 
   return true;
 }
-
-//////////////////////////////////////////////////
-bool Node::Interrupted()
-{
-  return this->dataPtr->shared->exit;
-}

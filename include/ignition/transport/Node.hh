@@ -512,12 +512,6 @@ namespace ignition
       /// \return true if the service was successfully unadvertised.
       public: bool UnadvertiseSrv(const std::string &_topic);
 
-      /// \brief The transport captures SIGINT and SIGTERM (czmq does) and
-      /// the function will return true in that case. All the task threads
-      /// will terminate.
-      /// \return true if SIGINT or SIGTERM has been captured.
-      public: bool Interrupted();
-
       /// \internal
       /// \brief Pointer to private data.
       protected: NodePrivatePtr dataPtr;
