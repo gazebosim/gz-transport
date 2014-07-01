@@ -35,7 +35,6 @@ source:
 
     git clone git://github.com/zeromq/czmq.git
     cd czmq
-    git checkout v2.2.0 (or latest stable version)
     ./autogen.sh
     ./configure && make check
     sudo make install

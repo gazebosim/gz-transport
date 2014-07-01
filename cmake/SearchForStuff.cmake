@@ -70,7 +70,7 @@ endif()
 
 #################################################
 # Find czmq.:
-pkg_check_modules(czmq libczmq>=2.1.0)
+pkg_check_modules(czmq libczmq>=3.0.0)
 
 if (NOT czmq_FOUND)
   message (STATUS "Looking for czmq pkgconfig file - not found")
