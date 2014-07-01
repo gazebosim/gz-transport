@@ -42,7 +42,10 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     verbose(_verbose),
     exit(false)
 {
-  zsys_handler_set(NULL);
+  // We need this environment variable in order to disable the signal capture
+  // in czmq.
+  putenv(const_cast<char*>("ZSYS_SIGHANDLER=true"));
+
   this->ctx = zctx_new();
 
   // Discovery beacon.
