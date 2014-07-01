@@ -42,11 +42,8 @@ namespace ignition
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
-      /// \return NodeSharedPtr Pointer to the current NodeShared instance.
-      public: static NodeSharedPtr GetInstance();
-
-      /// \brief Destructor.
-      public: virtual ~NodeShared();
+      /// \return Pointer to the current NodeShared instance.
+      public: static NodeShared *GetInstance();
 
       /// \brief Receive data and control messages.
       public: void RunReceptionTask();
@@ -133,6 +130,9 @@ namespace ignition
 
       /// \brief Constructor.
       protected: NodeShared();
+
+      /// \brief Destructor.
+      protected: virtual ~NodeShared();
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;

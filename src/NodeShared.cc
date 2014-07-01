@@ -37,10 +37,10 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-NodeSharedPtr NodeShared::GetInstance()
+NodeShared *NodeShared::GetInstance()
 {
-  static NodeSharedPtr instance(new NodeShared());
-  return instance;
+  static NodeShared instance;
+  return &instance;
 }
 
 //////////////////////////////////////////////////

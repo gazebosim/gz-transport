@@ -33,7 +33,6 @@ namespace ignition
     class IReqHandler;
     class ISubscriptionHandler;
     class NodePrivate;
-    class NodeShared;
 
     /// \def Scope This strongly typed enum defines the different options for
     /// the scope of a topic:
@@ -97,10 +96,6 @@ namespace ignition
     /// \def NodePrivatePtr
     /// \brief Pointer to internal class NodePrivate.
     typedef std::unique_ptr<transport::NodePrivate> NodePrivatePtr;
-
-    /// \def NodeSharedPtr
-    /// \brief Shared pointer to NodeShared.
-    typedef std::shared_ptr<transport::NodeShared> NodeSharedPtr;
 
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
