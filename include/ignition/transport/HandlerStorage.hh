@@ -27,6 +27,7 @@ namespace ignition
   namespace transport
   {
     /// \class HandlerStorage HandlerStorage.hh
+    /// ignition/transport/HandlerStorage.hh
     /// \brief Class to store and manage service call handlers.
     template<typename T> class HandlerStorage
     {

@@ -194,13 +194,29 @@ TEST(NodeTest, PubWithoutAdvertise)
   transport::Node node1("invalid namespace");
   transport::Node node2;
 
+  // Check the advertised/subscribed topics and advertised services.
+  EXPECT_EQ(node1.GetAdvertisedTopics().size(), 0);
+  EXPECT_EQ(node1.GetSubscribedTopics().size(), 0);
+  EXPECT_EQ(node1.GetAdvertisedServices().size(), 0);
+
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
   EXPECT_TRUE(node1.Advertise(topic));
+
+  auto v = node1.GetAdvertisedTopics();
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), topic);
+
   EXPECT_TRUE(node2.Advertise(topic));
+  v = node2.GetAdvertisedTopics();
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
+  auto m = node2.GetSubscribedTopics();
+  ASSERT_EQ(m.size(), 1);
+  EXPECT_EQ(m.begin()->first, topic);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -323,6 +339,10 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
+  auto m = node1.GetSubscribedTopics();
+  ASSERT_EQ(m.size(), 1);
+  EXPECT_EQ(m.begin()->first, topic);
+
   reset();
 
   // Try to unsubscribe from an invalid topic.
@@ -345,6 +365,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
+  ASSERT_EQ(node1.GetSubscribedTopics().size(), 0);
+
   reset();
 
   EXPECT_TRUE(node1.Unadvertise(topic));
@@ -358,6 +380,9 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Anybody should have received the message.
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
+
+  auto v = node1.GetAdvertisedServices();
+  ASSERT_EQ(v.size(), 0);
 }
 
 //////////////////////////////////////////////////
@@ -418,6 +443,10 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
+  auto v = node.GetAdvertisedServices();
+  ASSERT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), topic);
+
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
 
@@ -457,6 +486,8 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
+
+  ASSERT_EQ(node.GetAdvertisedServices().size(), 0);
 }
 
 //////////////////////////////////////////////////

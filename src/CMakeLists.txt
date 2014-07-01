@@ -5,9 +5,9 @@ set (sources
   DiscoveryPrivate.cc
   Node.cc
   NodeShared.cc
+  Packet.cc
   TopicStorage.cc
   TopicUtils.cc
-  Packet.cc
   Uuid.cc
 )
 

@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <condition_variable>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -41,11 +42,11 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class Node Node.hh
+    /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
-    class IGNITION_VISIBLE IGNITION_VISIBLE Node
+    class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
       /// \param[in] _ns Default namespace used by this topic. This might
@@ -61,6 +62,10 @@ namespace ignition
       /// \return true if the topic was advertised.
       public: bool Advertise(const std::string &_topic,
                              const Scope &_scope = Scope::All);
+
+      /// \brief Get the list of topics advertised by this node.
+      /// \return A vector containing all the topics advertised by this node.
+      public: std::vector<std::string> GetAdvertisedTopics();
 
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic name to be unadvertised.
@@ -164,6 +169,15 @@ namespace ignition
 
         return true;
       }
+
+      /// \brief Get the list of topics subscribed by this node and its
+      /// publisher's information.
+      /// \return A map where the keys are the topic names subscribed. For each
+      /// key, the value is an 'Addresses_M' map. In an 'Addresses_M', the keys
+      /// are the process uuid of the publisher. For each uuid key, the
+      /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
+      /// advertising the topic.
+      public: std::map<std::string, Addresses_M> GetSubscribedTopics();
 
       /// \brief Unsubscribe from a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
@@ -277,6 +291,10 @@ namespace ignition
 
         return true;
       }
+
+      /// \brief Get the list of services advertised by this node.
+      /// \return A vector containing all services advertised by this node.
+      public: std::vector<std::string> GetAdvertisedServices();
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a free function.
@@ -473,22 +491,15 @@ namespace ignition
           this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
         }
 
-        auto now = std::chrono::system_clock::now();
-
         // Wait until the REP is available.
-        bool executed = reqHandlerPtr->condition.wait_until
-          (lk, now + std::chrono::milliseconds(_timeout),
-           [&reqHandlerPtr]
-           {
-             return reqHandlerPtr->repAvailable;
-           });
+        bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
         if (executed)
         {
-          if (reqHandlerPtr->result)
-            _rep.ParseFromString(reqHandlerPtr->rep);
+          if (reqHandlerPtr->GetResult())
+            _rep.ParseFromString(reqHandlerPtr->GetRep());
 
-          _result = reqHandlerPtr->result;
+          _result = reqHandlerPtr->GetResult();
         }
 
         lk.unlock();

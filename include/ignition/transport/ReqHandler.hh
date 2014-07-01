@@ -33,21 +33,20 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class IReqHandler ReqHandler.hh
+    /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class IGNITION_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
-        : result(false),
+        : rep(""),
+          result(false),
+          hUuid(Uuid().ToString()),
           nUuid(_nUuid),
           requested(false),
           repAvailable(false)
       {
-        // Generate the handler UUID.
-        Uuid uuid;
-        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.
@@ -71,6 +70,20 @@ namespace ignition
         return this->nUuid;
       }
 
+      /// \brief Get the service response as raw bytes.
+      /// \return The string containing the service response.
+      public: std::string & GetRep()
+      {
+        return this->rep;
+      }
+
+      /// \brief Get the result of the service response.
+      /// \return The boolean result.
+      public: bool GetResult()
+      {
+        return this->result;
+      }
+
       /// \brief Returns if this service call request has already been requested
       /// \return True when the service call has been requested.
       public: bool Requested() const
@@ -90,21 +103,40 @@ namespace ignition
       public: virtual std::string Serialize() = 0;
 
       /// \brief Returns the unique handler UUID.
-      /// \returns The handler's UUID.
+      /// \return The handler's UUID.
       public: std::string GetHandlerUuid() const
       {
         return this->hUuid;
       }
 
+      /// \brief Block the current thread until the response to the
+      /// service request is available or until the timeout expires.
+      /// This method uses a condition variable to notify when the response is
+      /// available.
+      /// \param[in] _lock Lock used to protect the condition variable.
+      /// \param[in] _timeout Maximum waiting time in milliseconds.
+      /// \return True if the service call was executed or false otherwise.
+      public: template<typename Lock> bool WaitUntil(Lock &_lock,
+                                                     unsigned int _timeout)
+      {
+        auto now = std::chrono::system_clock::now();
+        return this->condition.wait_until(_lock,
+          now + std::chrono::milliseconds(_timeout),
+          [this]
+          {
+            return this->repAvailable;
+          });
+      }
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
-      public: std::condition_variable_any condition;
+      protected: std::condition_variable_any condition;
 
-      /// \brief Stores the service call response as raw bytes.
-      public: std::string rep;
+      /// \brief Stores the service response as raw bytes.
+      protected: std::string rep;
 
       /// \brief Stores the result of the service call.
-      public: bool result;
+      protected: bool result;
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
@@ -124,8 +156,10 @@ namespace ignition
 
     /// \class ReqHandler ReqHandler.hh
     /// \brief It creates a reply handler for the specific protobuf
-    /// messages used.
-    template <typename T1, typename T2> class ReqHandler
+    /// messages used. 'Req' is a protobuf message type containing the input
+    /// parameters of the service request. 'Rep' is a protobuf message type
+    /// that will be filled with the service response.
+    template <typename Req, typename Rep> class ReqHandler
       : public IReqHandler
     {
       // Documentation inherited.
@@ -137,10 +171,10 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T2> CreateMsg(const char *_data)
+      public: std::shared_ptr<Rep> CreateMsg(const char *_data)
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T2> msgPtr(new T2());
+        std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
@@ -149,16 +183,21 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const T2 &, bool)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function <void(
+        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
       }
 
       /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Input parameter of the service call (protobuf).
-      public: void SetMessage(const T1 &_reqMsg)
+      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// of the service request.
+      public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }
@@ -194,10 +233,16 @@ namespace ignition
       }
 
       // Protobuf message containing the request's parameters.
-      private: T1 reqMsg;
+      private: Req reqMsg;
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T2 &, bool)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Service name.
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      private: std::function<void(const std::string &_topic, const Rep &_rep,
+        bool _result)> cb;
     };
   }
 }

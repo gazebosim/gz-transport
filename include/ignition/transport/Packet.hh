@@ -30,7 +30,7 @@ namespace ignition
   namespace transport
   {
     //  This is the version of Gazebo transport we implement.
-    static const int Version        = 1;
+    static const int Version            = 1;
 
     // Message types.
     static const uint8_t AdvType        = 0;
@@ -51,7 +51,7 @@ namespace ignition
       "SUB_SVC", "UNADVERTISE_SVC", "NEW_CONNECTION", "END_CONNECTION"
     };
 
-    /// \class Header Packet.hh
+    /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the UUID of the sender node, the topic
     /// contained in the message, the type of message (ADV, SUB, ... ) and
@@ -101,7 +101,7 @@ namespace ignition
       public: uint16_t GetFlags() const;
 
       /// \brief Set the transport library version.
-      /// \param[in] Transport library version.
+      /// \param[in] _version Transport library version.
       public: void SetVersion(const uint16_t _version);
 
       /// \brief Set the process uuid.
@@ -135,7 +135,9 @@ namespace ignition
       /// \param[in] _buffer Input buffer with the data to be unserialized.
       public: size_t Unpack(const char *_buffer);
 
-      /// \brief Print a header.
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg Header to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const Header &_header)
       {
@@ -178,10 +180,10 @@ namespace ignition
       private: int headerLength;
     };
 
-    /// \class AdvMsg Packet.hh
+    /// \class AdvMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise message used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
-    /// is the ZeroMQ end point addressy where the node will be receiving
+    /// is the ZeroMQ end point address where the node will be receiving
     /// subscription requests.
     class IGNITION_VISIBLE AdvMsg
     {
@@ -256,7 +258,9 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t GetMsgLength();
 
-      /// \brief Print an AdvMsg.
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg AdvMsg to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const AdvMsg &_msg)
       {

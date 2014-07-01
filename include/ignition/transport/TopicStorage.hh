@@ -27,7 +27,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class TopicStorage TopicStorage.hh
+    /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, remove it, etc.
     class IGNITION_VISIBLE TopicStorage

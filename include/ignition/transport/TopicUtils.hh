@@ -25,16 +25,25 @@ namespace ignition
 {
   namespace transport
   {
+    /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
+    /// \brief This class provides different utilities related with topics.
     class IGNITION_VISIBLE TopicUtils
     {
-      /// \brief Determines if a topic name is valid.
+      /// \brief Determines if a topic name is valid. A topic name is any
+      /// non-empty alphanumeric string. The symbol '/' is also allowed as part
+      /// of a topic name. Examples of valid topics: abc, /abc, /abc/de,
+      /// /abc/de/
       /// \param[in] _topic Topic name to be checked.
       /// \return true if the topic name is valid.
       public: static bool IsValidTopic(const std::string &_topic);
 
-      /// \brief Determines if a topic name is valid.
-      /// \param[in] _topic Topic name to be checked.
-      /// \return true if the topic name is valid.
+      /// \brief Determines if a namespace is valid. A namespace is considered a
+      /// prefix that will be potentially applied to other topic names.
+      /// The same rules to validate a topic name applies to a namespace with
+      /// the addition of the empty string, which is a valid namespace (meaning
+      /// no namespace is used).
+      /// \param[in] _topic Namespace to be checked.
+      /// \return true if the namespace is valid.
       public: static bool IsValidNamespace(const std::string &_ns);
 
       /// \brief Get the full topic path given a namespace and a topic name.

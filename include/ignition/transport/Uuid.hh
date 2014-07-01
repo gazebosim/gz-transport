@@ -27,7 +27,7 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class Uuid Uuid.hh
+    /// \class Uuid Uuid.hh ignition/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
     class IGNITION_VISIBLE Uuid
     {
@@ -41,15 +41,23 @@ namespace ignition
       /// \return the UUID in string format.
       public: std::string ToString() const;
 
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg AdvMsg to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                        const ignition::transport::Uuid &_uuid)
+                                         const ignition::transport::Uuid &_uuid)
       {
         _out << _uuid.ToString();
         return _out;
       }
 
       /// \brief Length of a UUID in string format.
-      private: static const int UuidStrLen = (sizeof(uuid_t) * 2) + 4 + 1;
+      /// A UUID is a 16-octet number. In its string representation, every octet
+      /// is divided in two parts, and each part (4 bits) is represented as an
+      /// hexadecimal value. A UUID is also displayed in five groups separated
+      /// by hyphens, in the form 8-4-4-4-12 for a total of 36 characters.
+      /// To summarize: 36 octets + \0 = 37 octets.
+      private: static const int UuidStrLen = 37;
 
       /// \brief Internal representation.
       private: uuid_t data;

@@ -31,8 +31,8 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class NodePrivate NodePrivate.hh
-    /// \brief Private data fPrivate Node class.
+    /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
+    /// \brief Private data for Private Node class.
     class IGNITION_VISIBLE NodePrivate
     {
       /// \brief Constructor.
@@ -55,7 +55,7 @@ namespace ignition
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeSharedPtr shared = NodeShared::GetInstance();
+      public: NodeShared *shared = NodeShared::GetInstance();
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";

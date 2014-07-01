@@ -32,17 +32,16 @@ namespace ignition
   namespace transport
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
+    /// ignition/transport/SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobub messages.
     class IGNITION_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
       public: ISubscriptionHandler(const std::string &_nUuid)
-        : nUuid(_nUuid)
+        : hUuid(Uuid().ToString()),
+          nUuid(_nUuid)
       {
-        // Generate the UUID for this handler.
-        Uuid uuid;
-        this->hUuid = uuid.ToString();
       }
 
       /// \brief Destructor.
@@ -64,7 +63,7 @@ namespace ignition
       /// callback function.
       /// \return True when success, false otherwise.
       public: virtual bool RunCallback(const std::string &_topic,
-                                      const std::string &_data) = 0;
+                                       const std::string &_data) = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -88,8 +87,9 @@ namespace ignition
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
-    /// \brief It creates subscription handlers for each specific protobuf
-    /// message used.
+    /// \brief It creates a subscription handler for a specific protobuf
+    /// message. 'T' is the Protobuf message type that will be used for this
+    /// particular handler.
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
@@ -114,9 +114,11 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback.
-      public: void SetCallback(
-        const std::function<void(const std::string &, const T &)> &_cb)
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      public: void SetCallback(const std::function <void(
+        const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }
@@ -161,8 +163,11 @@ namespace ignition
         }
       }
 
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const std::string &, const T &)> cb;
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msg Protobuf message containing the topic update.
+      private: std::function<void(const std::string &_topic, const T &_msg)> cb;
     };
   }
 }

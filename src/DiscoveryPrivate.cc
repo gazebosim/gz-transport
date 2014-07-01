@@ -42,6 +42,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     verbose(_verbose),
     exit(false)
 {
+  zsys_handler_set(NULL);
   this->ctx = zctx_new();
 
   // Discovery beacon.

@@ -15,6 +15,8 @@
  *
 */
 
+#include <uuid/uuid.h>
+#include <cctype>
 #include <iostream>
 #include <string>
 #include "ignition/transport/Uuid.hh"
@@ -32,7 +34,22 @@ TEST(UuidTest, testToString)
   // Two UUIDs should always be different.
   EXPECT_NE(uuid1.ToString(), uuid2.ToString());
 
-  std::cout << "UUID1: " << uuid1 << std::endl;
+  std::ostringstream output;
+  output  << uuid1;
+  for (auto i = 0; i < 8; ++i)
+    EXPECT_TRUE(isxdigit(output.str()[i]));
+  EXPECT_EQ(output.str()[8], '-');
+  for (auto i = 9; i < 13; ++i)
+    EXPECT_TRUE(isxdigit(output.str()[i]));
+  EXPECT_EQ(output.str()[13], '-');
+  for (auto i = 14; i < 18; ++i)
+    EXPECT_TRUE(isxdigit(output.str()[i]));
+  EXPECT_EQ(output.str()[18], '-');
+  for (auto i = 19; i < 23; ++i)
+    EXPECT_TRUE(isxdigit(output.str()[i]));
+  EXPECT_EQ(output.str()[23], '-');
+  for (auto i = 24; i < 36; ++i)
+    EXPECT_TRUE(isxdigit(output.str()[i]));
 }
 
 //////////////////////////////////////////////////

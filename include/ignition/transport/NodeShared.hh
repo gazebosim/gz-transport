@@ -35,20 +35,15 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class NodeShared NodeShared.hh
-    /// \brief Private data for the Node class.
+    /// \class NodeShared NodeShared.hh ignition/transport/NodeShared.hh
+    /// \brief Private data for the Node class. This class should not be
+    /// directly used. You should use the Node class.
     class IGNITION_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
-      /// \return NodeSharedPtr Pointer to the current NodeShared instance.
-      public: static NodeSharedPtr GetInstance();
-
-      /// \brief Constructor.
-      public: NodeShared();
-
-      /// \brief Destructor.
-      public: virtual ~NodeShared();
+      /// \return Pointer to the current NodeShared instance.
+      public: static NodeShared *GetInstance();
 
       /// \brief Receive data and control messages.
       public: void RunReceptionTask();
@@ -56,9 +51,9 @@ namespace ignition
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _data Data to publish.
-      /// \return 0 when success.
-      public: int Publish(const std::string &_topic,
-                          const std::string &_data);
+      /// \return true when success or false otherwise.
+      public: bool Publish(const std::string &_topic,
+                           const std::string &_data);
 
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
@@ -132,6 +127,12 @@ namespace ignition
                                          const std::string &_pUuid,
                                          const std::string &_nUuid,
                                          const Scope &_scope);
+
+      /// \brief Constructor.
+      protected: NodeShared();
+
+      /// \brief Destructor.
+      protected: virtual ~NodeShared();
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
