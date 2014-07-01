@@ -100,6 +100,19 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 }
 
 //////////////////////////////////////////////////
+std::vector<std::string> Node::GetAdvertisedTopics()
+{
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  std::vector<std::string> v;
+
+  for (auto i : this->dataPtr->topicsAdvertised)
+    v.push_back(i);
+
+  return v;
+}
+
+//////////////////////////////////////////////////
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string scTopic;
@@ -176,6 +189,24 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
+{
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  std::map<std::string, Addresses_M> m;
+
+  // I'm a real subscriber if I have interest in a topic and I know a publisher.
+  for (auto topic : this->dataPtr->topicsSubscribed)
+  {
+    Addresses_M addresses;
+    if (this->dataPtr->shared->discovery->GetMsgAddresses(topic, addresses))
+      m[topic] = addresses;
+  }
+
+  return m;
+}
+
+//////////////////////////////////////////////////
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string scTopic;
@@ -242,6 +273,19 @@ bool Node::Unsubscribe(const std::string &_topic)
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> Node::GetAdvertisedServices()
+{
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  std::vector<std::string> v;
+
+  for (auto i : this->dataPtr->srvsAdvertised)
+    v.push_back(i);
+
+  return v;
 }
 
 //////////////////////////////////////////////////

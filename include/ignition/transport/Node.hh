@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <condition_variable>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -61,6 +62,10 @@ namespace ignition
       /// \return true if the topic was advertised.
       public: bool Advertise(const std::string &_topic,
                              const Scope &_scope = Scope::All);
+
+      /// \brief Get the list of topics advertised by this node.
+      /// \return A vector containing all the topics advertised by this node.
+      public: std::vector<std::string> GetAdvertisedTopics();
 
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic name to be unadvertised.
@@ -164,6 +169,15 @@ namespace ignition
 
         return true;
       }
+
+      /// \brief Get the list of topics subscribed by this node and its
+      /// publisher's information.
+      /// \return A map where the keys are the topic names subscribed. For each
+      /// key, the value is an 'Addresses_M' map. In an 'Addresses_M', the keys
+      /// are the process uuid of the publisher. For each uuid key, the
+      /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
+      /// advertising the topic.
+      public: std::map<std::string, Addresses_M> GetSubscribedTopics();
 
       /// \brief Unsubscribe from a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
@@ -277,6 +291,10 @@ namespace ignition
 
         return true;
       }
+
+      /// \brief Get the list of services advertised by this node.
+      /// \return A vector containing all services advertised by this node.
+      public: std::vector<std::string> GetAdvertisedServices();
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a free function.

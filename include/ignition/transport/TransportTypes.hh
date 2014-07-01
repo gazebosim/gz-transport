@@ -60,8 +60,8 @@ namespace ignition
     /// \def Addresses_M
     /// \brief The map stores all the publishers advertising this topic.
     /// The keys are the process uuid of the nodes. For each uuid key, the
-    /// value contains the list of {0MQ and 0MQ control addresses} advertising
-    /// the topic within the same process uuid.
+    /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
+    /// advertising the topic within the same process uuid.
     typedef std::map<std::string, std::vector<Address_t>> Addresses_M;
 
     /// \def ProtoMsg
