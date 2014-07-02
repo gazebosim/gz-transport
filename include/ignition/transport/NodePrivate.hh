@@ -22,7 +22,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "ignition/transport/AdvertiseHandler.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
