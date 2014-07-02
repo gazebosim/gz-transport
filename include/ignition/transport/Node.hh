@@ -73,17 +73,17 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Notify the discovery service to register and advertise my topic.
-        this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
-          this->dataPtr->shared->myAddress,
-          this->dataPtr->shared->myControlAddress,
-          this->dataPtr->nUuid, _scope);
-
         // Store the advertised type and its metadata.
         T msg;
         auto descriptor = msg.GetDescriptor();
         Advertise_t adv = {descriptor->name(), descriptor->DebugString()};
         this->dataPtr->topicsAdvertised[scTopic] = adv;
+
+        // Notify the discovery service to register and advertise my topic.
+        this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
+          this->dataPtr->shared->myAddress,
+          this->dataPtr->shared->myControlAddress,
+          this->dataPtr->nUuid, _scope);
 
         return true;
       }

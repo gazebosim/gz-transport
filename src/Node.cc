@@ -134,7 +134,9 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   auto descriptor = _msg.GetDescriptor();
   if (advertised.name != descriptor->name())
   {
-    std::cerr << "Incorrect message type" << std::endl;
+    std::cerr << "Publish error: You are trying to publish a message of type ["
+              << descriptor->name() << "] but you advertised the topic with "
+              << "type [" << advertised.name << "]" << std::endl;
     return false;
   }
 
