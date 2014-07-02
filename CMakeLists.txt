@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-set(IGN_PROJECT_NAME "Ignition project name, such as 'math', or 'transport'. The name should be one word and lower case.")
-
+set(IGN_PROJECT_NAME "transport")
 
 project (ignition_${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 set (PROJECT_MAJOR_VERSION 0)
-set (PROJECT_MINOR_VERSION 1)
+set (PROJECT_MINOR_VERSION 3)
 set (PROJECT_PATCH_VERSION 0)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
@@ -20,31 +19,6 @@ set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
   CACHE PATH "Location of CMake scripts")
 
 include (${project_cmake_dir}/Utils.cmake)
-
-########################################
-# Package Creation:
-include (${project_cmake_dir}/cpack.cmake)
-set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
-set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_MINOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_PATCH_VERSION}")
-
-if (CPACK_GENERATOR)
-  message(STATUS "Found CPack generators: ${CPACK_GENERATOR}")
-
-  configure_file("${project_cmake_dir}/cpack_options.cmake.in"
-    ${PROJECT_CPACK_CFG_FILE} @ONLY)
-
-  set(CPACK_PROJECT_CONFIG_FILE ${PROJECT_CPACK_CFG_FILE})
-  include (CPack)
-endif()
-
-# If we're configuring only to package source, stop here
-if (PACKAGE_SOURCE_ONLY)
-  message(WARNING "Configuration was done in PACKAGE_SOURCE_ONLY mode."
-  "You can build a tarball (make package_source), but nothing else.")
-  return()
-endif()
 
 #################################################
 # Documentation:
@@ -247,7 +221,6 @@ else (build_errors)
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
-
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
@@ -268,14 +241,13 @@ else (build_errors)
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
-
-  set(PKG_DEPENDS)
+  set(PKG_DEPENDS Protobuf)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
     COMPONENT cmake)
 
   ########################################
