@@ -1,6 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
+  AdvertiseHandler
   Discovery.hh
   DiscoveryPrivate.hh
   HandlerStorage.hh

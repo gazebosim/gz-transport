@@ -96,7 +96,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 
     transport::Node node1;
 
-    EXPECT_TRUE(node1.Advertise(topic));
+    EXPECT_TRUE(node1.Advertise<ignition::msgs::StringMsg>(topic));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_TRUE(node1.Publish(topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

@@ -77,7 +77,7 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope &_scope)
+/*bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
   std::string scTopic;
   if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
@@ -97,7 +97,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
     this->dataPtr->nUuid, _scope);
 
   return true;
-}
+}*/
 
 //////////////////////////////////////////////////
 std::vector<std::string> Node::GetAdvertisedTopics()
@@ -152,6 +152,14 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   {
     return false;
   }
+
+  // Check types.
+  std::shared_ptr<IAdvertiseHandler> advHandlerPtr;
+  if (!this->dataPtr->advertisedHandlers.GetHandler(scTopic, advHandlerPtr))
+    return false;
+
+  if (!advHandlerPtr->CheckMsg(_msg))
+    return false;
 
   // Local subscribers.
   std::map<std::string, ISubscriptionHandler_M> handlers;

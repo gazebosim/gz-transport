@@ -75,7 +75,8 @@ TEST(ScopedTopicTest, ProcessTest)
 
     transport::Node node1;
 
-    EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
+    EXPECT_TRUE(node1.Advertise<msgs::StringMsg>(topic,
+      transport::Scope::Process));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_TRUE(node1.Publish(topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

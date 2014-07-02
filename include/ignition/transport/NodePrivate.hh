@@ -21,6 +21,8 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include "ignition/transport/AdvertiseHandler.hh"
+#include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 
@@ -59,6 +61,9 @@ namespace ignition
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";
+
+      /// \brief Advertised handlers.
+      public: HandlerStorage<IAdvertiseHandler> advertisedHandlers;
     };
   }
 }

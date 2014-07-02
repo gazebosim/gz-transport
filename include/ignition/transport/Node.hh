@@ -27,6 +27,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include "ignition/transport/AdvertiseHandler.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodePrivate.hh"
@@ -60,8 +61,35 @@ namespace ignition
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
       /// \return true if the topic was advertised.
-      public: bool Advertise(const std::string &_topic,
-                             const Scope &_scope = Scope::All);
+      public: template<typename T> bool Advertise(const std::string &_topic,
+                                               const Scope &_scope = Scope::All)
+      {
+        std::string scTopic;
+        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        {
+          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          return false;
+        }
+
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+        // Add the topic to the list of advertised topics (if it was not before)
+        this->dataPtr->topicsAdvertised.insert(scTopic);
+
+        // Notify the discovery service to register and advertise my topic.
+        this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
+          this->dataPtr->shared->myAddress,
+          this->dataPtr->shared->myControlAddress,
+          this->dataPtr->nUuid, _scope);
+
+        std::shared_ptr<AdvertiseHandler<T>> advHandlerPtr(
+            new AdvertiseHandler<T>(this->dataPtr->nUuid));
+
+        this->dataPtr->advertisedHandlers.AddHandler(
+          scTopic, this->dataPtr->nUuid, advHandlerPtr);
+
+        return true;
+      }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.

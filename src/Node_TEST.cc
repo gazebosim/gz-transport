@@ -123,9 +123,9 @@ class MyTestClass
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    EXPECT_FALSE(node.Advertise("invalid topic"));
+    EXPECT_FALSE(node.Advertise<ignition::msgs::StringMsg>("invalid topic"));
 
-    EXPECT_TRUE(this->node.Advertise(topic));
+    EXPECT_TRUE(this->node.Advertise<ignition::msgs::StringMsg>(topic));
     EXPECT_TRUE(this->node.Publish(topic, msg));
   }
 
@@ -163,7 +163,7 @@ void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, _sc));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::StringMsg>(topic, _sc));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -204,13 +204,13 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
-  EXPECT_TRUE(node1.Advertise(topic));
+  EXPECT_TRUE(node1.Advertise<ignition::msgs::StringMsg>(topic));
 
   auto v = node1.GetAdvertisedTopics();
   ASSERT_EQ(v.size(), 1);
   EXPECT_EQ(v.at(0), topic);
 
-  EXPECT_TRUE(node2.Advertise(topic));
+  EXPECT_TRUE(node2.Advertise<ignition::msgs::StringMsg>(topic));
   v = node2.GetAdvertisedTopics();
   ASSERT_EQ(v.size(), 1);
   EXPECT_EQ(v.at(0), topic);
@@ -247,9 +247,9 @@ TEST(NodeTest, PubSubSameThread)
   transport::Node node;
 
   // Advertise an illegal topic.
-  EXPECT_FALSE(node.Advertise("invalid topic"));
+  EXPECT_FALSE(node.Advertise<ignition::msgs::StringMsg>("invalid topic"));
 
-  EXPECT_TRUE(node.Advertise(topic));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::StringMsg>(topic));
 
   // Subscribe to an illegal topic.
   EXPECT_FALSE(node.Subscribe("invalid topic", cb));
@@ -320,7 +320,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise(topic));
+  EXPECT_TRUE(node1.Advertise<ignition::msgs::StringMsg>(topic));
 
   // Subscribe to topic in node1.
   EXPECT_TRUE(node1.Subscribe(topic, cb));
@@ -614,7 +614,7 @@ void createInfinitePublisher()
   msg.set_data(data);
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise(topic));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::StringMsg>(topic));
 
   auto i = 0;
   while (!terminate)
@@ -663,6 +663,25 @@ TEST(NodeTest, SigTermTermination)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
   thread.join();
+}
+
+TEST(NodeTest, TypeChecking)
+{
+  reset();
+
+  ignition::msgs::StringMsg msg;
+  msg.set_data(data);
+
+  ignition::msgs::Int wrongMsg;
+  wrongMsg.set_data(1);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise<ignition::msgs::StringMsg>(topic));
+
+  // Try to publish a message using an invalid topic.
+  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_FALSE(node.Publish(topic, wrongMsg));
 }
 
 
