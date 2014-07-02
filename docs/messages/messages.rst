@@ -13,6 +13,12 @@ nodes will be running on different processes within the same machine.
     cd ~/ign_transport_tutorial
     mkdir src
 
+Snippets
+========
+
+.. literalinclude:: ../src/Discovery.cc
+   :lines: 1,3,5-10,20-
+
 Creating the publisher
 ======================
 
