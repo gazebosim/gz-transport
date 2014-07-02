@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_NODE_HH_INCLUDED__
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <algorithm>
 #include <condition_variable>
@@ -73,20 +74,17 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Add the topic to the list of advertised topics (if it was not before)
-        this->dataPtr->topicsAdvertised.insert(scTopic);
-
         // Notify the discovery service to register and advertise my topic.
         this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
           this->dataPtr->shared->myAddress,
           this->dataPtr->shared->myControlAddress,
           this->dataPtr->nUuid, _scope);
 
-        std::shared_ptr<AdvertiseHandler<T>> advHandlerPtr(
-            new AdvertiseHandler<T>(this->dataPtr->nUuid));
-
-        this->dataPtr->advertisedHandlers.AddHandler(
-          scTopic, this->dataPtr->nUuid, advHandlerPtr);
+        // Store the advertised type and its metadata.
+        T msg;
+        auto descriptor = msg.GetDescriptor();
+        Advertise_t adv = {descriptor->name(), descriptor->DebugString()};
+        this->dataPtr->topicsAdvertised[scTopic] = adv;
 
         return true;
       }

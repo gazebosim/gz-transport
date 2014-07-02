@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  node.Advertise("/foo");
+  node.Advertise<ignition::msgs::StringMsg>("/foo");
 
   // Prepare the message.
   ignition::msgs::StringMsg msg;

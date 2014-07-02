@@ -57,6 +57,14 @@ namespace ignition
       Scope scope;
     };
 
+    /// \def Advertise_t Name and content's hash associated to an
+    /// advertised message.
+    struct Advertise_t
+    {
+      std::string name;
+      std::string hash;
+    };
+
     /// \def Addresses_M
     /// \brief The map stores all the publishers advertising this topic.
     /// The keys are the process uuid of the nodes. For each uuid key, the

@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
 
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include "ignition/transport/AdvertiseHandler.hh"
@@ -47,7 +48,7 @@ namespace ignition
       public: std::unordered_set<std::string> topicsSubscribed;
 
       /// \brief The list of topics advertised by this node.
-      public: std::unordered_set<std::string> topicsAdvertised;
+      public: std::unordered_map<std::string, Advertise_t> topicsAdvertised;
 
       /// \brief The list of service calls advertised by this node.
       public: std::unordered_set<std::string> srvsAdvertised;
@@ -61,9 +62,6 @@ namespace ignition
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";
-
-      /// \brief Advertised handlers.
-      public: HandlerStorage<IAdvertiseHandler> advertisedHandlers;
     };
   }
 }

@@ -64,7 +64,7 @@ Node::~Node()
   // Unadvertise all my topics.
   while (!this->dataPtr->topicsAdvertised.empty())
   {
-    auto topic = *this->dataPtr->topicsAdvertised.begin();
+    auto topic = this->dataPtr->topicsAdvertised.begin()->first;
     this->Unadvertise(topic);
   }
 
@@ -77,29 +77,6 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-/*bool Node::Advertise(const std::string &_topic, const Scope &_scope)
-{
-  std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Add the topic to the list of advertised topics (if it was not before)
-  this->dataPtr->topicsAdvertised.insert(scTopic);
-
-  // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
-    this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->nUuid, _scope);
-
-  return true;
-}*/
-
-//////////////////////////////////////////////////
 std::vector<std::string> Node::GetAdvertisedTopics()
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
@@ -107,7 +84,7 @@ std::vector<std::string> Node::GetAdvertisedTopics()
   std::vector<std::string> v;
 
   for (auto i : this->dataPtr->topicsAdvertised)
-    v.push_back(i);
+    v.push_back(i.first);
 
   return v;
 }
@@ -153,13 +130,13 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  // Check types.
-  std::shared_ptr<IAdvertiseHandler> advHandlerPtr;
-  if (!this->dataPtr->advertisedHandlers.GetHandler(scTopic, advHandlerPtr))
+  Advertise_t advertised = this->dataPtr->topicsAdvertised[scTopic];
+  auto descriptor = _msg.GetDescriptor();
+  if (advertised.name != descriptor->name())
+  {
+    std::cerr << "Incorrect message type" << std::endl;
     return false;
-
-  if (!advHandlerPtr->CheckMsg(_msg))
-    return false;
+  }
 
   // Local subscribers.
   std::map<std::string, ISubscriptionHandler_M> handlers;
