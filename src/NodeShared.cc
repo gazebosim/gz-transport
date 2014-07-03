@@ -172,7 +172,9 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
+bool NodeShared::Publish(const std::string &_topic,
+  const std::string &_msgTypeName, const size_t _msgHash,
+  const std::string &_data)
 {
   try
   {
@@ -184,6 +186,14 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
     message.rebuild(this->myAddress.size() + 1);
     memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
     this->publisher->send(message, ZMQ_SNDMORE);
+
+    message.rebuild(_msgTypeName.size() + 1);
+    memcpy(message.data(), _msgTypeName.c_str(), _msgTypeName.size() + 1);
+    this->publisher->send(message, 0);
+
+    message.rebuild(sizeof(_msgHash));
+    memcpy(message.data(), &_msgHash, sizeof(_msgHash));
+    this->publisher->send(message, 0);
 
     message.rebuild(_data.size() + 1);
     memcpy(message.data(), _data.c_str(), _data.size() + 1);
@@ -207,6 +217,8 @@ void NodeShared::RecvMsgUpdate()
   zmq::message_t message(0);
   std::string topic;
   // std::string sender;
+  std::string msgTypeName;
+  size_t msgHash;
   std::string data;
 
   try
@@ -219,6 +231,16 @@ void NodeShared::RecvMsgUpdate()
     if (!this->subscriber->recv(&message, 0))
       return;
     // sender = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->subscriber->recv(&message, 0))
+      return;
+    msgTypeName = std::string(reinterpret_cast<char *>(message.data()));
+    std::cout << "Type recv: " << msgTypeName << std::endl;
+
+    if (!this->subscriber->recv(&message, 0))
+      return;
+    msgHash = reinterpret_cast<size_t>(message.data());
+    std::cout << "Hash recv: " << msgHash << std::endl;
 
     if (!this->subscriber->recv(&message, 0))
       return;

@@ -53,6 +53,8 @@ namespace ignition
       /// \param[in] _data Data to publish.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
+                           const std::string &_msgTypeName,
+                           const size_t _msgHash,
                            const std::string &_data);
 
       /// \brief Method in charge of receiving the topic updates.

@@ -75,8 +75,12 @@ namespace ignition
 
         // Store the advertised type and its metadata.
         T msg;
+        std::hash<std::string> hashFn;
         auto descriptor = msg.GetDescriptor();
-        Advertise_t adv = {descriptor->name(), descriptor->DebugString()};
+
+        // Store the message type name and a hash of the message definition.
+        Advertise_t adv =
+          {descriptor->name(), hashFn(descriptor->DebugString())};
         this->dataPtr->topicsAdvertised[scTopic] = adv;
 
         // Notify the discovery service to register and advertise my topic.

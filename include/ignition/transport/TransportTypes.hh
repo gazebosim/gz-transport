@@ -62,7 +62,7 @@ namespace ignition
     struct Advertise_t
     {
       std::string name;
-      std::string hash;
+      std::size_t hash;
     };
 
     /// \def Addresses_M

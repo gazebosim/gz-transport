@@ -166,7 +166,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   {
     std::string data;
     _msg.SerializeToString(&data);
-    this->dataPtr->shared->Publish(scTopic, data);
+    this->dataPtr->shared->Publish(
+      scTopic, advertised.name, advertised.hash, data);
   }
   // Debug output.
   // else
