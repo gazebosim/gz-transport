@@ -18,7 +18,7 @@ Snippets
 
 .. literalinclude:: ../../src/Discovery.cc
    :lines: 1,3,5-10,20-
-   :emphasize-lines: 20-25
+   :emphasize-lines: 20-27
 
 Creating the publisher
 ======================
