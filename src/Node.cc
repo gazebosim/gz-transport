@@ -71,7 +71,7 @@ Node::~Node()
   // Unadvertise all my services.
   while (!this->dataPtr->srvsAdvertised.empty())
   {
-    auto topic = *this->dataPtr->srvsAdvertised.begin();
+    auto topic = this->dataPtr->srvsAdvertised.begin()->first;
     this->UnadvertiseSrv(topic);
   }
 }
@@ -271,7 +271,7 @@ std::vector<std::string> Node::GetAdvertisedServices()
   std::vector<std::string> v;
 
   for (auto i : this->dataPtr->srvsAdvertised)
-    v.push_back(i);
+    v.push_back(i.first);
 
   return v;
 }

@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <functional>
 #include <iostream>
@@ -58,11 +59,17 @@ namespace ignition
 
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
+      /// \param[in] _msgTypeName The name of the protobuf message type
+      /// received.
+      /// \param[in] _msgHash The hash of the protobuf message definition
+      /// received.
       /// \param[in] _data Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
       /// \return True when success, false otherwise.
       public: virtual bool RunCallback(const std::string &_topic,
+                                       const std::string &_msgTypeName,
+                                       const size_t _msgHash,
                                        const std::string &_data) = 0;
 
       /// \brief Get the node UUID.
@@ -97,6 +104,13 @@ namespace ignition
       public: SubscriptionHandler(const std::string &_nUuid)
         : ISubscriptionHandler(_nUuid)
       {
+        T msg;
+        std::hash<std::string> hashFn;
+        auto descriptor = msg.GetDescriptor();
+
+        // Store the message type name and a hash for this message definition.
+        this->msgTypeName = descriptor->name();
+        this->msgHash = hashFn(descriptor->DebugString());
       }
 
       /// \brief Create a specific protobuf message given its serialized data.
@@ -144,8 +158,30 @@ namespace ignition
 
       // Documentation inherited.
       public: bool RunCallback(const std::string &_topic,
+                               const std::string &_msgTypeName,
+                               const size_t _msgHash,
                                const std::string &_data)
       {
+        // The protobuf names between publisher and subscriber does not match.
+        if (_msgTypeName != this->msgTypeName)
+        {
+          std::cerr << "Reception error: Received a protobuf message ["
+                    << _msgTypeName << "] but the expected type was ["
+                    << this->msgTypeName << "]" << std::endl;
+          return false;
+        }
+
+        // The protobuf message definition between publisher and subscriber does
+        // not match.
+        if (_msgHash != this->msgHash)
+        {
+          std::cerr << "Reception error: The local protobuf message definition "
+                    << "does not match with the publisher's definition. This "
+                    << "might be caused by using different versions of the "
+                    << "same message." << std::endl;
+          return false;
+        }
+
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data.c_str());
 
@@ -168,6 +204,17 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
       private: std::function<void(const std::string &_topic, const T &_msg)> cb;
+
+      /// \brief Name of the protobuf message used in this handler. This name
+      /// will be checked when new data is received to make sure that the type
+      /// names match.
+      private: std::string msgTypeName;
+
+      /// \brief Hash based on the protobuf message definition. This hash will
+      /// be compared with the hash received in each message to guarantee that
+      /// the protobuf message definition is the same between publisher and
+      /// subscriber.
+      private: size_t msgHash;
     };
   }
 }

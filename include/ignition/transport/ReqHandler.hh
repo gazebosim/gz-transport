@@ -43,6 +43,8 @@ namespace ignition
         : rep(""),
           result(false),
           hUuid(Uuid().ToString()),
+          reqHash(0),
+          repHash(0),
           nUuid(_nUuid),
           requested(false),
           repAvailable(false)
@@ -109,6 +111,26 @@ namespace ignition
         return this->hUuid;
       }
 
+      public: std::string GetReqTypeName()
+      {
+        return this->reqTypeName;
+      }
+
+      public: size_t GetReqHash()
+      {
+        return this->reqHash;
+      }
+
+      public: std::string GetRepTypeName()
+      {
+        return this->repTypeName;
+      }
+
+      public: size_t GetRepHash()
+      {
+        return this->repHash;
+      }
+
       /// \brief Block the current thread until the response to the
       /// service request is available or until the timeout expires.
       /// This method uses a condition variable to notify when the response is
@@ -141,6 +163,28 @@ namespace ignition
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
+      /// \brief Name of the protobuf message used for the request. This name
+      /// will be checked with the request type contained in every service
+      /// call received to make sure that the type names match.
+      protected: std::string reqTypeName;
+
+      /// \brief Hash based on the protobuf message definition for the request.
+      /// This hash will be compared with the hash received in the request
+      /// parameter of every service call to guarantee that the protobuf message
+      /// definition is the same between responser and requester.
+      protected: size_t reqHash;
+
+      /// \brief Name of the protobuf message used for the response. This name
+      /// will be checked with the response type contained in every service
+      /// call received to make sure that the type names match.
+      protected: std::string repTypeName;
+
+      /// \brief Hash based on the protobuf message definition for the response.
+      /// This hash will be compared with the hash received in the response
+      /// parameter of every service call to guarantee that the protobuf message
+      /// definition is the same between responser and requester.
+      protected: size_t repHash;
+
       /// \brief Node UUID.
       private: std::string nUuid;
 
@@ -166,6 +210,15 @@ namespace ignition
       public: ReqHandler(const std::string &_nUuid)
         : IReqHandler(_nUuid)
       {
+        Req reqMessage;
+        Rep repMessage;
+        std::hash<std::string> hashFn;
+        auto reqDescriptor = reqMessage.GetDescriptor();
+        auto repDescriptor = repMessage.GetDescriptor();
+        this->reqTypeName = reqDescriptor->name();
+        this->reqHash = hashFn(reqDescriptor->DebugString());
+        this->repTypeName = repDescriptor->name();
+        this->repHash = hashFn(repDescriptor->DebugString());
       }
 
       /// \brief Create a specific protobuf message given its serialized data.
@@ -219,7 +272,9 @@ namespace ignition
         if (this->cb)
         {
           // Instantiate the specific protobuf message associated to this topic.
-          auto msg = this->CreateMsg(_rep.c_str());
+          std::shared_ptr<Rep> msg;
+          if (_result)
+            msg = this->CreateMsg(_rep.c_str());
           this->cb(_topic, *msg, _result);
         }
         else

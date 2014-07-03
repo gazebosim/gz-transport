@@ -50,7 +50,7 @@ namespace ignition
       public: std::unordered_map<std::string, Advertise_t> topicsAdvertised;
 
       /// \brief The list of service calls advertised by this node.
-      public: std::unordered_set<std::string> srvsAdvertised;
+      public: std::unordered_map<std::string, AdvertiseSrv_t> srvsAdvertised;
 
       /// \brief Node UUID. This ID is unique for each node.
       public: std::string nUuid;

@@ -38,7 +38,9 @@ namespace ignition
     {
       /// \brief Constructor.
       public: IRepHandler()
-        : hUuid(Uuid().ToString())
+        : hUuid(Uuid().ToString()),
+          reqHash(0),
+          repHash(0)
       {
       }
 
@@ -63,7 +65,11 @@ namespace ignition
       /// \param[out] _rep Out parameter with the data serialized.
       /// \param[out] _result Service call result.
       public: virtual void RunCallback(const std::string &_topic,
+                                       const std::string &_reqTypeName,
+                                       const size_t _reqHash,
                                        const std::string &_req,
+                                       const std::string &_repTypeName,
+                                       const size_t _repHash,
                                        std::string &_rep,
                                        bool &_result) = 0;
 
@@ -76,6 +82,28 @@ namespace ignition
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
+
+      /// \brief Name of the protobuf message used for the request. This name
+      /// will be checked with the request type contained in every service
+      /// call received to make sure that the type names match.
+      protected: std::string reqTypeName;
+
+      /// \brief Hash based on the protobuf message definition for the request.
+      /// This hash will be compared with the hash received in the request
+      /// parameter of every service call to guarantee that the protobuf message
+      /// definition is the same between responser and requester.
+      protected: size_t reqHash;
+
+      /// \brief Name of the protobuf message used for the response. This name
+      /// will be checked with the response type contained in every service
+      /// call received to make sure that the type names match.
+      protected: std::string repTypeName;
+
+      /// \brief Hash based on the protobuf message definition for the response.
+      /// This hash will be compared with the hash received in the response
+      /// parameter of every service call to guarantee that the protobuf message
+      /// definition is the same between responser and requester.
+      protected: size_t repHash;
     };
 
     /// \class RepHandler RepHandler.hh
@@ -88,7 +116,18 @@ namespace ignition
       : public IRepHandler
     {
       // Documentation inherited.
-      public: RepHandler() = default;
+      public: RepHandler()
+      {
+        Req req;
+        Rep rep;
+        std::hash<std::string> hashFn;
+        auto reqDescriptor = req.GetDescriptor();
+        auto repDescriptor = rep.GetDescriptor();
+        this->reqTypeName = reqDescriptor->name();
+        this->reqHash = hashFn(reqDescriptor->DebugString());
+        this->repTypeName = repDescriptor->name();
+        this->repHash = hashFn(repDescriptor->DebugString());
+      }
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
@@ -126,10 +165,60 @@ namespace ignition
 
       // Documentation inherited.
       public: void RunCallback(const std::string &_topic,
+                               const std::string &_reqTypeName,
+                               const size_t _reqHash,
                                const std::string &_req,
+                               const std::string &_repTypeName,
+                               const size_t _repHash,
                                std::string &_rep,
                                bool &_result)
       {
+        // The protobuf request names between responser and requester does not
+        // match.
+        if (_reqTypeName != this->reqTypeName)
+        {
+          std::cerr << "Reception error: Received a protobuf request ["
+                    << _reqTypeName << "] but the expected type was ["
+                    << this->reqTypeName << "]" << std::endl;
+          _result = false;
+          return;
+        }
+
+        // The protobuf response names between responser and requester does not
+        // match.
+        if (_repTypeName != this->repTypeName)
+        {
+          std::cerr << "Reception error: Received a protobuf response ["
+                    << _repTypeName << "] but the expected type was ["
+                    << this->repTypeName << "]" << std::endl;
+          _result = false;
+          return;
+        }
+
+        // The protobuf request definition between responser and requester does
+        // not match.
+        if (_reqHash != this->reqHash)
+        {
+          std::cerr << "Reception error: The local protobuf request definition "
+                    << "does not match with the requester's definition. This "
+                    << "might be caused by using different versions of the "
+                    << "same message." << std::endl;
+          _result = false;
+          return;
+        }
+
+        // The protobuf response definition between responser and requester does
+        // not match.
+        if (_repHash != this->repHash)
+        {
+          std::cerr << "Reception error: The local protobuf response definition"
+                    << " does not match with the requester's definition. This "
+                    << "might be caused by using different versions of the "
+                    << "same message." << std::endl;
+          _result = false;
+          return;
+        }
+
         // Execute the callback (if existing).
         if (this->cb)
         {

@@ -111,7 +111,16 @@ TEST(RepStorageTest, RepStorageAPI)
   std::string reqSerialized;
   std::string repSerialized;
   reqMsg.SerializeToString(&reqSerialized);
-  handler->RunCallback(topic, reqSerialized, repSerialized, result);
+
+  std::hash<std::string> hashFn;
+  auto reqDescriptor = reqMsg.GetDescriptor();
+  auto repDescriptor = rep1Msg.GetDescriptor();
+  auto reqTypeName = reqDescriptor->name();
+  auto reqHash = hashFn(reqDescriptor->DebugString());
+  auto repTypeName = repDescriptor->name();
+  auto repHash = hashFn(repDescriptor->DebugString());
+  handler->RunCallback(topic, reqTypeName, reqHash, reqSerialized,
+    repTypeName, repHash, repSerialized, result);
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
   rep1Msg.ParseFromString(repSerialized);
@@ -152,7 +161,8 @@ TEST(RepStorageTest, RepStorageAPI)
 
   reset();
 
-  handler->RunCallback(topic, reqSerialized, repSerialized, result);
+  handler->RunCallback(topic, reqTypeName, reqHash, reqSerialized,
+    repTypeName, repHash, repSerialized, result);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
@@ -212,7 +222,14 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   std::string handlerUuid = sub1HandlerPtr->GetHandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
   EXPECT_FALSE(h->RunLocalCallback(topic, msg));
-  EXPECT_FALSE(h->RunCallback(topic, "some data"));
+
+  std::hash<std::string> hashFn;
+  auto descriptor = msg.GetDescriptor();
+
+  // Store the message type name and a hash for this message definition.
+  auto msgTypeName = descriptor->name();
+  auto msgHash = hashFn(descriptor->DebugString());
+  EXPECT_FALSE(h->RunCallback(topic, msgTypeName, msgHash, "some data"));
 }
 
 //////////////////////////////////////////////////

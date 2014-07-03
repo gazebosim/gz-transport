@@ -189,11 +189,11 @@ bool NodeShared::Publish(const std::string &_topic,
 
     message.rebuild(_msgTypeName.size() + 1);
     memcpy(message.data(), _msgTypeName.c_str(), _msgTypeName.size() + 1);
-    this->publisher->send(message, 0);
+    this->publisher->send(message, ZMQ_SNDMORE);
 
     message.rebuild(sizeof(_msgHash));
     memcpy(message.data(), &_msgHash, sizeof(_msgHash));
-    this->publisher->send(message, 0);
+    this->publisher->send(message, ZMQ_SNDMORE);
 
     message.rebuild(_data.size() + 1);
     memcpy(message.data(), _data.c_str(), _data.size() + 1);
@@ -235,12 +235,10 @@ void NodeShared::RecvMsgUpdate()
     if (!this->subscriber->recv(&message, 0))
       return;
     msgTypeName = std::string(reinterpret_cast<char *>(message.data()));
-    std::cout << "Type recv: " << msgTypeName << std::endl;
 
     if (!this->subscriber->recv(&message, 0))
       return;
-    msgHash = reinterpret_cast<size_t>(message.data());
-    std::cout << "Hash recv: " << msgHash << std::endl;
+    memcpy(&msgHash, message.data(), sizeof(msgHash));
 
     if (!this->subscriber->recv(&message, 0))
       return;
@@ -265,7 +263,8 @@ void NodeShared::RecvMsgUpdate()
         if (subscriptionHandlerPtr)
         {
           // ToDo(caguero): Unserialize only once.
-          subscriptionHandlerPtr->RunCallback(topic, data);
+          subscriptionHandlerPtr->RunCallback(
+            topic, msgTypeName, msgHash, data);
         }
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
@@ -351,6 +350,10 @@ void NodeShared::RecvSrvRequest()
   std::string sender;
   std::string nodeUuid;
   std::string reqUuid;
+  std::string recvReqTypeName;
+  size_t      recvReqHash;
+  std::string recvRepTypeName;
+  size_t      recvRepHash;
   std::string req;
   std::string rep;
   std::string resultStr;
@@ -375,6 +378,22 @@ void NodeShared::RecvSrvRequest()
 
     if (!this->replier->recv(&message, 0))
       return;
+    recvReqTypeName = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    memcpy(&recvReqHash, message.data(), sizeof(recvReqHash));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    recvRepTypeName = std::string(reinterpret_cast<char *>(message.data()));
+
+    if (!this->replier->recv(&message, 0))
+      return;
+    memcpy(&recvRepHash, message.data(), sizeof(recvRepHash));
+
+    if (!this->replier->recv(&message, 0))
+      return;
     req = std::string(reinterpret_cast<char *>(message.data()));
   }
   catch(const zmq::error_t &_error)
@@ -390,7 +409,8 @@ void NodeShared::RecvSrvRequest()
   {
     bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(topic, req, rep, result);
+    repHandler->RunCallback(topic, recvReqTypeName, recvReqHash, req,
+      recvRepTypeName, recvRepHash, rep, result);
 
     if (result)
       resultStr = "1";
@@ -533,6 +553,10 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
       auto data = req.second->Serialize();
       auto nodeUuid = req.second->GetNodeUuid();
       auto reqUuid = req.second->GetHandlerUuid();
+      auto reqTypeName = req.second->GetReqTypeName();
+      auto reqHash = req.second->GetReqHash();
+      auto repTypeName = req.second->GetRepTypeName();
+      auto repHash = req.second->GetRepHash();
 
       try
       {
@@ -561,6 +585,22 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 
         message.rebuild(reqUuid.size() + 1);
         memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(reqTypeName.size() + 1);
+        memcpy(message.data(), reqTypeName.c_str(), reqTypeName.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(sizeof(reqHash));
+        memcpy(message.data(), &reqHash, sizeof(reqHash));
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(repTypeName.size() + 1);
+        memcpy(message.data(), repTypeName.c_str(), repTypeName.size() + 1);
+        socket.send(message, ZMQ_SNDMORE);
+
+        message.rebuild(sizeof(repHash));
+        memcpy(message.data(), &repHash, sizeof(repHash));
         socket.send(message, ZMQ_SNDMORE);
 
         message.rebuild(data.size() + 1);

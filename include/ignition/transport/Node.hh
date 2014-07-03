@@ -73,12 +73,10 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Store the advertised type and its metadata.
+        // Store the message type name and a hash of the message definition.
         T msg;
         std::hash<std::string> hashFn;
         auto descriptor = msg.GetDescriptor();
-
-        // Store the message type name and a hash of the message definition.
         Advertise_t adv =
           {descriptor->name(), hashFn(descriptor->DebugString())};
         this->dataPtr->topicsAdvertised[scTopic] = adv;
@@ -225,10 +223,10 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
-      public: template<typename T1, typename T2> bool Advertise(
+      public: template<typename Req, typename Rep> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const std::string &_topic, const T1 &_req,
-                   T2 &_rep, bool &_result),
+        void(*_cb)(const std::string &_topic, const Req &_req,
+                   Rep &_rep, bool &_result),
         const Scope &_scope = Scope::All)
       {
         std::string scTopic;
@@ -240,12 +238,20 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Add the topic to the list of advertised services.
-        this->dataPtr->srvsAdvertised.insert(scTopic);
+        // Add a new service to the list of advertised services in this node.
+        Req req;
+        Rep rep;
+        std::hash<std::string> hashFn;
+        auto reqDescriptor = req.GetDescriptor();
+        auto repDescriptor = rep.GetDescriptor();
+        AdvertiseSrv_t adv =
+          {reqDescriptor->name(), hashFn(reqDescriptor->DebugString()),
+           repDescriptor->name(), hashFn(repDescriptor->DebugString())};
+        this->dataPtr->srvsAdvertised[scTopic] = adv;
 
         // Create a new service reply handler.
-        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>());
+        std::shared_ptr<RepHandler<Req, Rep>> repHandlerPtr(
+          new RepHandler<Req, Rep>());
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(_cb);
@@ -278,10 +284,10 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
-      public: template<typename C, typename T1, typename T2> bool Advertise(
+      public: template<typename C, typename Req, typename Rep> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const std::string &_topic, const T1 &_req,
-                      T2 &_rep, bool &_result),
+        void(C::*_cb)(const std::string &_topic, const Req &_req,
+                      Rep &_rep, bool &_result),
         C *_obj,
         const Scope &_scope = Scope::All)
       {
@@ -294,12 +300,20 @@ namespace ignition
 
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-        // Add the topic to the list of advertised services.
-        this->dataPtr->srvsAdvertised.insert(scTopic);
+        // Add a new service to the list of advertised services in this node.
+        Req req;
+        Rep rep;
+        std::hash<std::string> hashFn;
+        auto reqDescriptor = req.GetDescriptor();
+        auto repDescriptor = rep.GetDescriptor();
+        AdvertiseSrv_t adv =
+          {reqDescriptor->name(), hashFn(reqDescriptor->DebugString()),
+           repDescriptor->name(), hashFn(repDescriptor->DebugString())};
+        this->dataPtr->srvsAdvertised[scTopic] = adv;
 
         // Create a new service reply handler.
-        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>(this->dataPtr->nUuid));
+        std::shared_ptr<RepHandler<Req, Rep>> repHandlerPtr(
+          new RepHandler<Req, Rep>(this->dataPtr->nUuid));
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(
