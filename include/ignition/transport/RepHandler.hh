@@ -59,9 +59,15 @@ namespace ignition
 
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _topic Topic to be passed to the callback.
+      /// \param[in] _reqTypeName Protobuf name of the message request.
+      /// \param[in] _reqHash Hash computed from the protobuf definition of the
+      /// message request.
       /// \param[in] _req Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
+      /// \param[in] _repTypeName Protobuf name of the message response.
+      /// \param[in] _repHash Hash computed from the protobuf definition of the
+      /// message response.
       /// \param[out] _rep Out parameter with the data serialized.
       /// \param[out] _result Service call result.
       public: virtual void RunCallback(const std::string &_topic,

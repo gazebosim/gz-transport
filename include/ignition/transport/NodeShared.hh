@@ -50,6 +50,12 @@ namespace ignition
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
+      /// \param[in] _msgTypeName Protobuf message type. This type is
+      /// checked with the type name advertised for this topic.
+      /// \param[in] _msgHash Hash computed from the protobuf message
+      /// definition. This hash will be included in the message and will be
+      /// checked at destination to make sure that the message versions are the
+      /// same.
       /// \param[in] _data Data to publish.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,

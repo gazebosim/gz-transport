@@ -111,21 +111,31 @@ namespace ignition
         return this->hUuid;
       }
 
+      /// \brief Get the protobuf type of the request.
+      /// \return The name of the protobuf request type.
       public: std::string GetReqTypeName()
       {
         return this->reqTypeName;
       }
 
+      /// \brief Get a hash computed from the protobuf message definition of
+      /// the request.
+      /// \return The hash associated to the request's message definition.
       public: size_t GetReqHash()
       {
         return this->reqHash;
       }
 
+      /// \brief Get the protobuf type of the response.
+      /// \return The name of the protobuf response type.
       public: std::string GetRepTypeName()
       {
         return this->repTypeName;
       }
 
+      /// \brief Get a hash computed from the protobuf message definition of
+      /// the response.
+      /// \return The hash associated to the response's message definition.
       public: size_t GetRepHash()
       {
         return this->repHash;
