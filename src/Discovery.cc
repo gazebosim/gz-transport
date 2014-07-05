@@ -34,17 +34,17 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 //////////////////////////////////////////////////
 void Discovery::AdvertiseMsg(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
-  const Scope &_scope)
+  const std::string &_msgType, const Scope &_scope)
 {
   this->dataPtr->Advertise(MsgType::Msg, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
 void Discovery::AdvertiseSrv(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
-  const Scope &_scope)
+  const std::string &_addr, const std::string &_nUuid,
+  const std::string &_reqType, const std::string &_repType, const Scope &_scope)
 {
-  this->dataPtr->Advertise(MsgType::Srv, _topic, _addr, _ctrl, _nUuid, _scope);
+  this->dataPtr->Advertise(MsgType::Srv, _topic, _addr, "", _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////

@@ -85,7 +85,7 @@ namespace ignition
         this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
           this->dataPtr->shared->myAddress,
           this->dataPtr->shared->myControlAddress,
-          this->dataPtr->nUuid, _scope);
+          this->dataPtr->nUuid, descriptor->name(), _scope);
 
         return true;
       }
@@ -265,8 +265,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
-          _scope);
+          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          reqDescriptor->name(), repDescriptor->name(), _scope);
 
         return true;
       }
@@ -329,8 +329,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, "", this->dataPtr->nUuid,
-          _scope);
+          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          reqDescriptor->name(), repDescriptor->name(), _scope);
 
         return true;
       }

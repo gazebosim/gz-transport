@@ -54,23 +54,27 @@ namespace ignition
       /// \param[in] _addr ZeroMQ address of the topic's publisher.
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
+      /// \param[in] _msgType Protobuf message type advertised.
       /// \param[in] _scope Topic scope.
       public: void AdvertiseMsg(const std::string &_topic,
                                 const std::string &_addr,
                                 const std::string &_ctrl,
                                 const std::string &_nUuid,
+                                const std::string &_msgType,
                                 const Scope &_scope = Scope::All);
 
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _addr ZeroMQ address of the service provider.
       /// \param[in] _nUuid Node UUID.
+      /// \param[in] _reqType Protobuf message type for the request.
+      /// \param[in] _repType Protobuf message type for the response.
       /// \param[in] _scope Topic scope.
       public: void AdvertiseSrv(const std::string &_topic,
                                 const std::string &_addr,
-                                const std::string &_ctrl,
                                 const std::string &_nUuid,
+                                const std::string &_reqType,
+                                const std::string &_repType,
                                 const Scope &_scope = Scope::All);
 
       /// \brief Request discovery information about a topic. The user

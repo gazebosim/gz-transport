@@ -57,23 +57,7 @@ namespace ignition
       Scope scope;
     };
 
-    /// \def Advertise_t Name and content's hash associated to an
-    /// advertised message.
-    struct Advertise_t
-    {
-      std::string name;
-      std::size_t hash;
-    };
 
-    /// \def AdvertiseSrv_t Name and content's hash associated to the request
-    /// and response of a service call.
-    struct AdvertiseSrv_t
-    {
-      std::string reqName;
-      std::size_t reqHash;
-      std::string repName;
-      std::size_t repHash;
-    };
 
     /// \def Addresses_M
     /// \brief The map stores all the publishers advertising this topic.
