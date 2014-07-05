@@ -167,6 +167,9 @@ namespace ignition
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
+      /// \brief Discovery protocol version.
+      static const uint8_t Version = 1;
+
       /// \brief Host IP address.
       public: std::string hostAddr;
 

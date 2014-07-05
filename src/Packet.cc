@@ -15,20 +15,12 @@
  *
 */
 
-#include <string.h>
-#include <iostream>
+#include <cstring>
 #include <string>
-#include <vector>
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;
 using namespace transport;
-
-//////////////////////////////////////////////////
-Header::Header()
-  : headerLength(0)
-{
-}
 
 //////////////////////////////////////////////////
 Header::Header(const uint16_t _version,
@@ -42,7 +34,6 @@ Header::Header(const uint16_t _version,
   this->SetTopic(_topic);
   this->SetType(_type);
   this->SetFlags(_flags);
-  this->UpdateHeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -55,12 +46,6 @@ uint16_t Header::GetVersion() const
 std::string Header::GetPUuid() const
 {
   return this->pUuid;
-}
-
-//////////////////////////////////////////////////
-uint16_t Header::GetTopicLength() const
-{
-  return this->topicLength;
 }
 
 //////////////////////////////////////////////////
@@ -91,16 +76,12 @@ void Header::SetVersion(const uint16_t _version)
 void Header::SetPUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
-  this->pUuidLength = this->pUuid.size();
-  this->UpdateHeaderLength();
 }
 
 //////////////////////////////////////////////////
 void Header::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
-  this->topicLength = this->topic.size();
-  this->UpdateHeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -118,30 +99,41 @@ void Header::SetFlags(const uint16_t _flags)
 //////////////////////////////////////////////////
 int Header::GetHeaderLength()
 {
-  return this->headerLength;
+  return sizeof(this->version) +
+         sizeof(this->pUuid.size()) + this->pUuid.size() +
+         sizeof(this->topic.size()) + this->topic.size() +
+         sizeof(this->type) + sizeof(this->flags);
 }
 
 //////////////////////////////////////////////////
 size_t Header::Pack(char *_buffer)
 {
-  if (this->headerLength == 0)
+  // Uninitialized.
+  if ((this->version == 0) || (this->pUuid == "") ||
+      (this->topic == "")  || (this->type  == Uninitialized))
+  {
+    std::cerr << "Header::Pack() error: You're trying to pack an incomplete "
+              << "header:" << std::endl << *this;
     return 0;
+  }
 
   memcpy(_buffer, &this->version, sizeof(this->version));
   _buffer += sizeof(this->version);
-  memcpy(_buffer, &this->pUuidLength, sizeof(this->pUuidLength));
-  _buffer += sizeof(this->pUuidLength);
-  memcpy(_buffer, this->pUuid.data(), this->pUuidLength);
-  _buffer += this->pUuidLength;
-  memcpy(_buffer, &this->topicLength, sizeof(this->topicLength));
-  _buffer += sizeof(this->topicLength);
-  memcpy(_buffer, this->topic.data(), this->topicLength);
-  _buffer += this->topicLength;
+  size_t pUuidLength = this->pUuid.size();
+  memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
+  _buffer += sizeof(pUuidLength);
+  memcpy(_buffer, this->pUuid.data(), pUuidLength);
+  _buffer += pUuidLength;
+  size_t topicLength = this->topic.size();
+  memcpy(_buffer, &topicLength, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+  memcpy(_buffer, this->topic.data(), topicLength);
+  _buffer += topicLength;
   memcpy(_buffer, &this->type, sizeof(this->type));
   _buffer += sizeof(this->type);
   memcpy(_buffer, &this->flags, sizeof(this->flags));
 
-  return this->headerLength;
+  return this->GetHeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -152,20 +144,22 @@ size_t Header::Unpack(const char *_buffer)
   _buffer += sizeof(this->version);
 
   // Read the process UUID length.
-  memcpy(&this->pUuidLength, _buffer, sizeof(this->pUuidLength));
-  _buffer += sizeof(this->pUuidLength);
+  size_t pUuidLength;
+  memcpy(&pUuidLength, _buffer, sizeof(pUuidLength));
+  _buffer += sizeof(pUuidLength);
 
   // Read the process UUID.
-  this->pUuid = std::string(_buffer, _buffer + this->pUuidLength);
-  _buffer += this->pUuidLength;
+  this->pUuid = std::string(_buffer, _buffer + pUuidLength);
+  _buffer += pUuidLength;
 
   // Read the topic length.
-  memcpy(&this->topicLength, _buffer, sizeof(this->topicLength));
-  _buffer += sizeof(this->topicLength);
+  size_t topicLength;
+  memcpy(&topicLength, _buffer, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
 
   // Read the topic.
-  this->topic = std::string(_buffer, _buffer + this->topicLength);
-  _buffer += this->topicLength;
+  this->topic = std::string(_buffer, _buffer + topicLength);
+  _buffer += topicLength;
 
   // Read the message type.
   memcpy(&this->type, _buffer, sizeof(this->type));
@@ -175,164 +169,219 @@ size_t Header::Unpack(const char *_buffer)
   memcpy(&this->flags, _buffer, sizeof(this->flags));
   _buffer += sizeof(this->flags);
 
-  this->UpdateHeaderLength();
   return this->GetHeaderLength();
 }
 
 //////////////////////////////////////////////////
-void Header::UpdateHeaderLength()
-{
-  this->headerLength = sizeof(this->version) +
-                       sizeof(this->pUuidLength) + this->pUuidLength +
-                       sizeof(this->topicLength) + this->topicLength +
-                       sizeof(this->type) + sizeof(this->flags);
-}
-
-//////////////////////////////////////////////////
-AdvMsg::AdvMsg()
-  :  msgLength(0)
-{
-}
-
-//////////////////////////////////////////////////
-AdvMsg::AdvMsg(const Header &_header,
-               const std::string &_address,
-               const std::string &_controlAddress,
-               const std::string &_nodeUuid,
-               const Scope &_scope)
+Adv::Adv(const Header &_header,
+         const std::string &_addr,
+         const std::string &_ctrl,
+         const std::string &_nUuid,
+         const Scope &_scope)
 {
   this->SetHeader(_header);
-  this->SetAddress(_address);
-  this->SetControlAddress(_controlAddress);
-  this->SetNodeUuid(_nodeUuid);
+  this->SetAddress(_addr);
+  this->SetControlAddress(_ctrl);
+  this->SetNodeUuid(_nUuid);
   this->SetScope(_scope);
-  this->UpdateMsgLength();
 }
 
 //////////////////////////////////////////////////
-Header AdvMsg::GetHeader() const
+Header Adv::GetHeader() const
 {
   return this->header;
 }
 
 //////////////////////////////////////////////////
-uint16_t AdvMsg::GetAddressLength() const
+std::string Adv::GetAddress() const
 {
-  return this->addressLength;
+  return this->addr;
 }
 
 //////////////////////////////////////////////////
-std::string AdvMsg::GetAddress() const
+std::string Adv::GetControlAddress() const
 {
-  return this->address;
+  return this->ctrl;
 }
 
 //////////////////////////////////////////////////
-uint16_t AdvMsg::GetControlAddressLength() const
+std::string Adv::GetNodeUuid() const
 {
-  return this->controlAddressLength;
+  return this->nUuid;
 }
 
 //////////////////////////////////////////////////
-std::string AdvMsg::GetControlAddress() const
-{
-  return this->controlAddress;
-}
-
-//////////////////////////////////////////////////
-uint16_t AdvMsg::GetNodeUuidLength() const
-{
-  return this->nodeUuidLength;
-}
-
-//////////////////////////////////////////////////
-std::string AdvMsg::GetNodeUuid() const
-{
-  return this->nodeUuid;
-}
-
-//////////////////////////////////////////////////
-transport::Scope AdvMsg::GetScope() const
+transport::Scope Adv::GetScope() const
 {
   return this->scope;
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::SetHeader(const Header &_header)
+void Adv::SetHeader(const Header &_header)
 {
   this->header = _header;
-  /*if (_header.GetType() != AdvType &&_header.GetType() != AdvSvcType)
-  {
-    std::cerr << "You're trying to use a "
-              << MsgTypesStr.at(_header.GetType()) << " header inside an AdvMsg"
-              << " or AdvSvcMsg. Are you sure you want to do this?\n";
-  }*/
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::SetAddress(const std::string &_address)
+void Adv::SetAddress(const std::string &_addr)
 {
-  this->address = _address;
-  this->addressLength = this->address.size();
-  this->UpdateMsgLength();
+  this->addr = _addr;
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::SetControlAddress(const std::string &_address)
+void Adv::SetControlAddress(const std::string &_ctrl)
 {
-  this->controlAddress = _address;
-  this->controlAddressLength = this->controlAddress.size();
-  this->UpdateMsgLength();
+  this->ctrl = _ctrl;
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::SetNodeUuid(const std::string &_nUuid)
+void Adv::SetNodeUuid(const std::string &_nUuid)
 {
-  this->nodeUuid = _nUuid;
-  this->nodeUuidLength = this->nodeUuid.size();
-  this->UpdateMsgLength();
+  this->nUuid = _nUuid;
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::SetScope(const Scope &_scope)
+void Adv::SetScope(const Scope &_scope)
 {
   this->scope = _scope;
-  this->UpdateMsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t Adv::GetMsgLength()
+{
+  return this->header.GetHeaderLength() +
+         sizeof(this->addr.size()) + this->addr.size() +
+         sizeof(this->ctrl.size()) + this->ctrl.size() +
+         sizeof(this->nUuid.size()) + this->nUuid.size() +
+         sizeof(this->scope);
+}
+
+//////////////////////////////////////////////////
+size_t Adv::Pack(char *_buffer)
+{
+  size_t headerLen = this->GetHeader().Pack(_buffer);
+  if (headerLen == 0)
+    return 0;
+
+  if ((this->addr == "") || (this->ctrl == "") || (this->nUuid == ""))
+  {
+    std::cerr << "Adv::Pack() error: You're trying to pack an incomplete "
+              << "msg body:" << std::endl << *this;
+    return 0;
+  }
+
+  _buffer += headerLen;
+
+  size_t addrLength = this->addr.size();
+  memcpy(_buffer, &addrLength, sizeof(addrLength));
+  _buffer += sizeof(addrLength);
+  memcpy(_buffer, this->addr.data(), addrLength);
+  _buffer += addrLength;
+  size_t ctrlLength = this->ctrl.size();
+  memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
+  _buffer += sizeof(ctrlLength);
+  memcpy(_buffer, this->ctrl.data(), ctrlLength);
+  _buffer += ctrlLength;
+  size_t nUuidLength = this->nUuid.size();
+  memcpy(_buffer, &nUuidLength, sizeof(nUuidLength));
+  _buffer += sizeof(nUuidLength);
+  memcpy(_buffer, this->nUuid.data(), nUuidLength);
+  _buffer += nUuidLength;
+  memcpy(_buffer, &this->scope, sizeof(this->scope));
+
+  return this->GetMsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t Adv::UnpackBody(char *_buffer)
+{
+  // Read the address length.
+  size_t addrLength;
+  memcpy(&addrLength, _buffer, sizeof(addrLength));
+  _buffer += sizeof(addrLength);
+
+  // Read the address.
+  this->addr = std::string(_buffer, _buffer + addrLength);
+  _buffer += addrLength;
+
+  // Read the control address length.
+  size_t ctrlLength;
+  memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
+  _buffer += sizeof(ctrlLength);
+
+  // Read the control address.
+  this->ctrl = std::string(_buffer, _buffer + ctrlLength);
+  _buffer += ctrlLength;
+
+  // Read the node UUID length.
+  size_t nUuidLength;
+  memcpy(&nUuidLength, _buffer, sizeof(nUuidLength));
+  _buffer += sizeof(nUuidLength);
+
+  // Read the node UUID.
+  this->nUuid = std::string(_buffer, _buffer + nUuidLength);
+  _buffer += nUuidLength;
+
+  // Read the topic scope.
+  memcpy(&this->scope, _buffer, sizeof(this->scope));
+
+  return sizeof(addrLength) + addrLength +
+         sizeof(ctrlLength) + ctrlLength +
+         sizeof(nUuidLength) + nUuidLength +
+         sizeof(this->scope);
+}
+
+//////////////////////////////////////////////////
+AdvMsg::AdvMsg(const Header &_header,
+               const std::string &_addr,
+               const std::string &_ctrl,
+               const std::string &_nUuid,
+               const Scope &_scope,
+               const std::string &_msgTypeName)
+  : Adv(_header, _addr, _ctrl, _nUuid, _scope)
+{
+  this->SetMsgTypeName(_msgTypeName);
+}
+
+//////////////////////////////////////////////////
+std::string AdvMsg::GetMsgTypeName() const
+{
+  return this->msgTypeName;
+}
+
+//////////////////////////////////////////////////
+void AdvMsg::SetMsgTypeName(const std::string &_msgTypeName)
+{
+  this->msgTypeName = _msgTypeName;
 }
 
 //////////////////////////////////////////////////
 size_t AdvMsg::GetMsgLength()
 {
-  return this->header.GetHeaderLength() +
-         sizeof(this->addressLength) + this->addressLength +
-         sizeof(this->controlAddressLength) + this->controlAddressLength +
-         sizeof(this->nodeUuidLength) + this->nodeUuidLength +
-         sizeof(this->scope);
+  return Adv::GetMsgLength() +
+         sizeof(this->msgTypeName.size()) + this->msgTypeName.size();
 }
 
 //////////////////////////////////////////////////
 size_t AdvMsg::Pack(char *_buffer)
 {
-  if (this->msgLength == 0)
-  return 0;
+  size_t len = Adv::Pack(_buffer);
+  if (len == 0)
+    return 0;
 
-  this->GetHeader().Pack(_buffer);
-  _buffer += this->GetHeader().GetHeaderLength();
+  if (this->msgTypeName == "")
+  {
+    std::cerr << "AdvMsg::Pack() error: You're trying to pack a message with "
+              << "an empty msgTypeName" << std::endl;
+    return 0;
+  }
 
-  memcpy(_buffer, &this->addressLength, sizeof(this->addressLength));
-  _buffer += sizeof(this->addressLength);
-  memcpy(_buffer, this->address.data(), this->addressLength);
-  _buffer += this->addressLength;
-  memcpy(_buffer, &this->controlAddressLength,
-         sizeof(this->controlAddressLength));
-  _buffer += sizeof(this->controlAddressLength);
-  memcpy(_buffer, this->controlAddress.data(), this->controlAddressLength);
-  _buffer += this->controlAddressLength;
-  memcpy(_buffer, &this->nodeUuidLength, sizeof(this->nodeUuidLength));
-  _buffer += sizeof(this->nodeUuidLength);
-  memcpy(_buffer, this->nodeUuid.data(), this->nodeUuidLength);
-  _buffer += this->nodeUuidLength;
-  memcpy(_buffer, &this->scope, sizeof(this->scope));
+  _buffer += len;
+
+  size_t msgTypeNameLength = this->msgTypeName.size();
+  memcpy(_buffer, &msgTypeNameLength, sizeof(msgTypeNameLength));
+  _buffer += sizeof(msgTypeNameLength);
+  memcpy(_buffer, this->msgTypeName.data(), msgTypeNameLength);
 
   return this->GetMsgLength();
 }
@@ -340,49 +389,115 @@ size_t AdvMsg::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t AdvMsg::UnpackBody(char *_buffer)
 {
-  // Read the address length.
-  memcpy(&this->addressLength, _buffer, sizeof(this->addressLength));
-  _buffer += sizeof(this->addressLength);
+  _buffer += Adv::UnpackBody(_buffer);
 
-  // Read the address.
-  this->address = std::string(_buffer, _buffer + this->addressLength);
-  _buffer += this->addressLength;
+  // Read the msgTypeName length.
+  size_t msgTypeNameLen;
+  memcpy(&msgTypeNameLen, _buffer, sizeof(msgTypeNameLen));
+  _buffer += sizeof(msgTypeNameLen);
 
-  // Read the control address length.
-  memcpy(&this->controlAddressLength, _buffer,
-    sizeof(this->controlAddressLength));
-  _buffer += sizeof(this->controlAddressLength);
+  // Read the msgTypeName.
+  this->msgTypeName = std::string(_buffer, _buffer + msgTypeNameLen);
 
-  // Read the control address.
-  this->controlAddress =
-    std::string(_buffer, _buffer + this->controlAddressLength);
-  _buffer += this->controlAddressLength;
-
-  // Read the node UUID length.
-  memcpy(&this->nodeUuidLength, _buffer, sizeof(this->nodeUuidLength));
-  _buffer += sizeof(this->nodeUuidLength);
-
-  // Read the node UUID.
-  this->nodeUuid = std::string(_buffer, _buffer + this->nodeUuidLength);
-  _buffer += this->nodeUuidLength;
-
-  // Read the topic scope.
-  memcpy(&this->scope, _buffer, sizeof(this->scope));
-
-  this->UpdateMsgLength();
-
-  return sizeof(this->addressLength) + this->addressLength +
-         sizeof(this->controlAddressLength) + this->controlAddressLength +
-         sizeof(this->nodeUuidLength) + this->nodeUuidLength +
-         sizeof(this->scope);
+  return this->GetMsgLength() - this->GetHeader().GetHeaderLength();
 }
 
 //////////////////////////////////////////////////
-void AdvMsg::UpdateMsgLength()
+AdvSrv::AdvSrv(const Header &_header,
+               const std::string &_addr,
+               const std::string &_ctrl,
+               const std::string &_nUuid,
+               const Scope &_scope,
+               const std::string &_reqTypeName,
+               const std::string &_repTypeName)
+  : Adv(_header, _addr, _ctrl, _nUuid, _scope)
 {
-  this->msgLength = this->GetHeader().GetHeaderLength() +
-    sizeof(this->addressLength) + this->addressLength +
-    sizeof(this->controlAddressLength) + this->controlAddressLength +
-    sizeof(this->nodeUuidLength) + this->nodeUuidLength +
-    sizeof(this->scope);
+  this->SetReqTypeName(_reqTypeName);
+  this->SetRepTypeName(_repTypeName);
+}
+
+//////////////////////////////////////////////////
+std::string AdvSrv::GetReqTypeName() const
+{
+  return this->reqTypeName;
+}
+
+//////////////////////////////////////////////////
+std::string AdvSrv::GetRepTypeName() const
+{
+  return this->repTypeName;
+}
+
+//////////////////////////////////////////////////
+void AdvSrv::SetReqTypeName(const std::string &_reqTypeName)
+{
+  this->reqTypeName = _reqTypeName;
+}
+
+//////////////////////////////////////////////////
+void AdvSrv::SetRepTypeName(const std::string &_repTypeName)
+{
+  this->repTypeName = _repTypeName;
+}
+
+//////////////////////////////////////////////////
+size_t AdvSrv::GetMsgLength()
+{
+  return Adv::GetMsgLength() +
+         sizeof(this->reqTypeName.size()) + this->reqTypeName.size() +
+         sizeof(this->repTypeName.size()) + this->repTypeName.size();
+}
+
+//////////////////////////////////////////////////
+size_t AdvSrv::Pack(char *_buffer)
+{
+  size_t len = Adv::Pack(_buffer);
+  if (len == 0)
+    return 0;
+
+  if ((this->reqTypeName == "") || (this->repTypeName == ""))
+  {
+    std::cerr << "AdvSrv::Pack() error: You're trying to pack an incomplete "
+              << "msg body:" << std::endl << *this << std::endl;
+    return 0;
+  }
+
+  _buffer += len;
+
+  size_t reqTypeNameLength = this->reqTypeName.size();
+  memcpy(_buffer, &reqTypeNameLength, sizeof(reqTypeNameLength));
+  _buffer += sizeof(reqTypeNameLength);
+  memcpy(_buffer, this->reqTypeName.data(), reqTypeNameLength);
+  _buffer += reqTypeNameLength;
+  size_t repTypeNameLength = this->repTypeName.size();
+  memcpy(_buffer, &repTypeNameLength, sizeof(repTypeNameLength));
+  _buffer += sizeof(repTypeNameLength);
+  memcpy(_buffer, this->repTypeName.data(), repTypeNameLength);
+
+  return this->GetMsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t AdvSrv::UnpackBody(char *_buffer)
+{
+  _buffer += Adv::UnpackBody(_buffer);
+
+  // Read the reqTypeName length.
+  size_t reqTypeNameLen;
+  memcpy(&reqTypeNameLen, _buffer, sizeof(reqTypeNameLen));
+  _buffer += sizeof(reqTypeNameLen);
+
+  // Read the reqTypeName.
+  this->reqTypeName = std::string(_buffer, _buffer + reqTypeNameLen);
+  _buffer += reqTypeNameLen;
+
+  // Read the repTypeName length.
+  size_t repTypeNameLen;
+  memcpy(&repTypeNameLen, _buffer, sizeof(repTypeNameLen));
+  _buffer += sizeof(repTypeNameLen);
+
+  // Read the repTypeName.
+  this->repTypeName = std::string(_buffer, _buffer + repTypeNameLen);
+
+  return this->GetMsgLength() - this->GetHeader().GetHeaderLength();
 }

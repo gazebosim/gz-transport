@@ -538,7 +538,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     case UnadvSrvType:
     {
       // Create the [UN]ADVERTISE message.
-      AdvMsg advMsg(header, _addr, _ctrl, _nUuid, _scope);
+      AdvMsg advMsg(header, _addr, _ctrl, _nUuid, _scope, "");
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(advMsg.GetMsgLength());
@@ -660,7 +660,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
     }
 
     // Create the ADVERTISE message.
-    AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope);
+    AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope, "");
     std::vector<char> buffer(advMsg.GetMsgLength());
     advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
 
