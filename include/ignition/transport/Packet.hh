@@ -151,15 +151,15 @@ namespace ignition
     /// \class Sub Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
-    class IGNITION_VISIBLE SubMsg
+    class IGNITION_VISIBLE Sub
     {
       /// \brief Constructor.
-      public: SubMsg() = default;
+      public: Sub() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _topic Topic name.
-      public: SubMsg(const Header &_header,
+      public: Sub(const Header &_header,
                   const std::string &_topic);
 
       /// \brief Get the message header.
@@ -186,7 +186,7 @@ namespace ignition
       /// \param[out] _out The output stream.
       /// \param[in] _msg SubMsg to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const SubMsg &_msg)
+                                              const Sub &_msg)
       {
         _out << _msg.GetHeader()
              << "Body:" << std::endl

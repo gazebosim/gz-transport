@@ -102,6 +102,89 @@ TEST(PacketTest, HeaderIO)
 
 //////////////////////////////////////////////////
 /// \brief Check the basic API for creating/reading an ADV message.
+TEST(PacketTest, BasicSubAPI)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  transport::Header otherHeader(version, pUuid, transport::SubType, 3);
+
+  std::string topic = "topic_test";
+  transport::Sub subMsg(otherHeader, topic);
+
+  // Check Sub getters.
+  EXPECT_EQ(subMsg.GetTopic(), topic);
+
+  size_t msgLength = subMsg.GetHeader().GetHeaderLength() +
+    sizeof(size_t) + topic.size();
+  EXPECT_EQ(subMsg.GetMsgLength(), msgLength);
+
+  // Check Sub setters.
+  topic = "a_new_topic_test";
+  subMsg.SetTopic(topic);
+  EXPECT_EQ(subMsg.GetTopic(), topic);
+
+  // Check << operator
+  std::ostringstream output;
+  output << subMsg;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 1\n"
+    "\tProcess UUID: Process-UUID-1\n"
+    "\tType: SUBSCRIBE\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tTopic: [a_new_topic_test]\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the serialization and unserialization of a SUB message.
+TEST(PacketTest, SubIO)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  // Try to pack an empty Sub.
+  transport::Sub emptyMsg;
+  std::vector<char> buffer(emptyMsg.GetMsgLength());
+  EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
+
+  // Pack a Sub with an empty topic.
+  transport::Header otherHeader(version, pUuid, transport::SubType, 3);
+  transport::Sub incompleteMsg(otherHeader, "");
+  buffer.resize(incompleteMsg.GetMsgLength());
+  EXPECT_EQ(0, incompleteMsg.Pack(&buffer[0]));
+
+  // Pack a Sub.
+  std::string topic = "topic_test";
+  transport::Sub subMsg(otherHeader, topic);
+  buffer.resize(subMsg.GetMsgLength());
+  size_t bytes = subMsg.Pack(&buffer[0]);
+  EXPECT_EQ(bytes, subMsg.GetMsgLength());
+
+  // Unpack a Sub.
+  transport::Header header;
+  transport::Sub otherSubMsg;
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, header.GetHeaderLength());
+  otherSubMsg.SetHeader(header);
+  char *pBody = &buffer[0] + header.GetHeaderLength();
+  size_t bodyBytes = otherSubMsg.UnpackBody(pBody);
+
+  // Check that after Pack() and Unpack() the data does not change.
+  EXPECT_EQ(otherSubMsg.GetTopic(), subMsg.GetTopic());
+  EXPECT_EQ(otherSubMsg.GetMsgLength() -
+            otherSubMsg.GetHeader().GetHeaderLength(), subMsg.GetMsgLength() -
+            subMsg.GetHeader().GetHeaderLength());
+  EXPECT_EQ(bodyBytes, otherSubMsg.GetMsgLength() -
+            otherSubMsg.GetHeader().GetHeaderLength());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the basic API for creating/reading an ADV message.
 TEST(PacketTest, BasicAdvMsgAPI)
 {
   std::string pUuid = "Process-UUID-1";
@@ -179,7 +262,6 @@ TEST(PacketTest, BasicAdvMsgAPI)
   // Check << operator
   std::ostringstream output;
   output << advMsg;
-  std::cout << advMsg;
   std::string expectedOutput =
     "--------------------------------------\n"
     "Header:\n"
@@ -196,6 +278,47 @@ TEST(PacketTest, BasicAdvMsgAPI)
     "\tMessage type: Int\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
+
+  advMsg.SetScope(transport::Scope::Process);
+  output.str("");
+  output << advMsg;
+  expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tType: ADV_SRV\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tAddress: inproc://local\n"
+    "\tControl address: inproc://control\n"
+    "\tNode UUID: nodeUUID2\n"
+    "\tTopic Scope: Process\n"
+    "\tMessage type: Int\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
+
+    // Check << operator
+  advMsg.SetScope(transport::Scope::All);
+  output.str("");
+  output << advMsg;
+  expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tType: ADV_SRV\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tAddress: inproc://local\n"
+    "\tControl address: inproc://control\n"
+    "\tNode UUID: nodeUUID2\n"
+    "\tTopic Scope: All\n"
+    "\tMessage type: Int\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
 }
 
 //////////////////////////////////////////////////
@@ -204,14 +327,6 @@ TEST(PacketTest, AdvMsgIO)
 {
   std::string pUuid = "Process-UUID-1";
   uint8_t version   = 1;
-
-  // Try to pack an empty AdvMsg.
-  transport::AdvMsg emptyMsg;
-  std::vector<char> buffer(emptyMsg.GetMsgLength());
-  EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
-
-  // Pack an AdvMsg.
-  transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
   std::string topic = "topic_test";
   std::string addr = "tcp://10.0.0.1:6000";
   std::string ctrl = "tcp://10.0.0.1:60011";
@@ -219,6 +334,37 @@ TEST(PacketTest, AdvMsgIO)
   transport::Scope scope = transport::Scope::Host;
   std::string typeName = "StringMsg";
 
+  // Try to pack an empty AdvMsg.
+  transport::AdvMsg emptyMsg;
+  std::vector<char> buffer(emptyMsg.GetMsgLength());
+  EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
+
+  // Try to pack an incomplete AdvMsg (empty topic).
+  transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
+  transport::AdvMsg noTopicMsg(otherHeader, "", addr, ctrl, nodeUuid,
+    scope, typeName);
+  buffer.resize(noTopicMsg.GetMsgLength());
+  EXPECT_EQ(0, noTopicMsg.Pack(&buffer[0]));
+
+  // Try to pack an incomplete AdvMsg (empty address).
+  transport::AdvMsg noAddrMsg(otherHeader, topic, "", ctrl, nodeUuid,
+    scope, typeName);
+  buffer.resize(noAddrMsg.GetMsgLength());
+  EXPECT_EQ(0, noAddrMsg.Pack(&buffer[0]));
+
+  // Try to pack an incomplete AdvMsg (empty node UUID).
+  transport::AdvMsg noNodeUuidMsg(otherHeader, topic, addr, ctrl, "",
+    scope, typeName);
+  buffer.resize(noNodeUuidMsg.GetMsgLength());
+  EXPECT_EQ(0, noNodeUuidMsg.Pack(&buffer[0]));
+
+  // Try to pack an incomplete AdvMsg (empty message type name).
+  transport::AdvMsg noTypeMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+    scope, "");
+  buffer.resize(noTypeMsg.GetMsgLength());
+  EXPECT_EQ(0, noTypeMsg.Pack(&buffer[0]));
+
+  // Pack an AdvMsg.
   transport::AdvMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, typeName);
   buffer.resize(advMsg.GetMsgLength());
@@ -247,6 +393,174 @@ TEST(PacketTest, AdvMsgIO)
             advMsg.GetHeader().GetHeaderLength());
   EXPECT_EQ(bodyBytes, otherAdvMsg.GetMsgLength() -
             otherAdvMsg.GetHeader().GetHeaderLength());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the basic API for creating/reading an ADV SRV message.
+TEST(PacketTest, BasicAdvSrvAPI)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
+
+  std::string topic = "topic_test";
+  std::string addr = "tcp://10.0.0.1:6000";
+  std::string ctrl = "tcp://10.0.0.1:60011";
+  std::string nodeUuid = "nodeUUID";
+  transport::Scope scope = transport::Scope::All;
+  std::string reqType = "StringMsg";
+  std::string repType = "Int";
+  transport::AdvSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
+    scope, reqType, repType);
+
+  // Check AdvSrv getters.
+  transport::Header header = advSrv.GetHeader();
+  EXPECT_EQ(header.GetVersion(), otherHeader.GetVersion());
+  EXPECT_EQ(header.GetPUuid(), otherHeader.GetPUuid());
+  EXPECT_EQ(header.GetType(), otherHeader.GetType());
+  EXPECT_EQ(header.GetFlags(), otherHeader.GetFlags());
+  EXPECT_EQ(header.GetHeaderLength(), otherHeader.GetHeaderLength());
+
+  EXPECT_EQ(advSrv.GetTopic(), topic);
+  EXPECT_EQ(advSrv.GetAddress(), addr);
+  EXPECT_EQ(advSrv.GetControlAddress(), ctrl);
+  EXPECT_EQ(advSrv.GetNodeUuid(), nodeUuid);
+  EXPECT_EQ(advSrv.GetScope(), scope);
+  EXPECT_EQ(advSrv.GetReqTypeName(), reqType);
+  EXPECT_EQ(advSrv.GetRepTypeName(), repType);
+
+  size_t msgLength = advSrv.GetHeader().GetHeaderLength() +
+    sizeof(size_t) + topic.size() +
+    sizeof(size_t) + addr.size() +
+    sizeof(size_t) + ctrl.size() +
+    sizeof(size_t) + nodeUuid.size() +
+    sizeof(advSrv.GetScope()) +
+    sizeof(size_t) + advSrv.GetReqTypeName().size() +
+    sizeof(size_t) + advSrv.GetRepTypeName().size();
+  EXPECT_EQ(advSrv.GetMsgLength(), msgLength);
+
+  pUuid = "Different-process-UUID-1";
+
+  // Check AdvSrv setters.
+  transport::Header anotherHeader(version + 1, pUuid, transport::AdvSrvType, 3);
+  advSrv.SetHeader(anotherHeader);
+  header = advSrv.GetHeader();
+  EXPECT_EQ(header.GetVersion(), version + 1);
+  EXPECT_EQ(header.GetPUuid(), anotherHeader.GetPUuid());
+  EXPECT_EQ(header.GetType(), transport::AdvSrvType);
+  EXPECT_EQ(header.GetFlags(), 3);
+  int headerLength = sizeof(header.GetVersion()) +
+    sizeof(size_t) + header.GetPUuid().size() +
+    sizeof(header.GetType()) + sizeof(header.GetFlags());
+  EXPECT_EQ(header.GetHeaderLength(), headerLength);
+
+  topic = "a_new_topic_test";
+  addr = "inproc://local";
+  ctrl = "inproc://control";
+  nodeUuid = "nodeUUID2";
+  scope = transport::Scope::Host;
+  reqType = "Type1";
+  repType = "Type2";
+  advSrv.SetTopic(topic);
+  EXPECT_EQ(advSrv.GetTopic(), topic);
+  advSrv.SetAddress(addr);
+  EXPECT_EQ(advSrv.GetAddress(), addr);
+  advSrv.SetControlAddress(ctrl);
+  EXPECT_EQ(advSrv.GetControlAddress(), ctrl);
+  advSrv.SetNodeUuid(nodeUuid);
+  EXPECT_EQ(advSrv.GetNodeUuid(), nodeUuid);
+  advSrv.SetScope(scope);
+  EXPECT_EQ(advSrv.GetScope(), scope);
+  advSrv.SetReqTypeName(reqType);
+  EXPECT_EQ(advSrv.GetReqTypeName(), reqType);
+  advSrv.SetRepTypeName(repType);
+  EXPECT_EQ(advSrv.GetRepTypeName(), repType);
+
+  // Check << operator
+  std::ostringstream output;
+  output << advSrv;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 2\n"
+    "\tProcess UUID: Different-process-UUID-1\n"
+    "\tType: ADV_SRV\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tAddress: inproc://local\n"
+    "\tControl address: inproc://control\n"
+    "\tNode UUID: nodeUUID2\n"
+    "\tTopic Scope: Host\n"
+    "\tRequest type: Type1\n"
+    "\tResponse type: Type2\n";
+
+  EXPECT_EQ(output.str(), expectedOutput);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the serialization and unserialization of an ADV SRV message.
+TEST(PacketTest, AdvSrvIO)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+  std::string topic = "topic_test";
+  std::string addr = "tcp://10.0.0.1:6000";
+  std::string ctrl = "tcp://10.0.0.1:60011";
+  std::string nodeUuid = "nodeUUID";
+  transport::Scope scope = transport::Scope::Host;
+  std::string reqType = "StringMsg";
+  std::string repType = "Int";
+
+  // Try to pack an empty AdvSrv.
+  transport::AdvSrv emptyMsg;
+  std::vector<char> buffer(emptyMsg.GetMsgLength());
+  EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
+
+  // Try to pack an incomplete AdvSrv (empty request type).
+  transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
+  transport::AdvSrv noReqMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+    scope, "", repType);
+  buffer.resize(noReqMsg.GetMsgLength());
+  EXPECT_EQ(0, noReqMsg.Pack(&buffer[0]));
+
+  // Try to pack an incomplete AdvSrv (empty response type).
+  transport::AdvSrv noRepMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+    scope, reqType, "");
+  buffer.resize(noRepMsg.GetMsgLength());
+  EXPECT_EQ(0, noRepMsg.Pack(&buffer[0]));
+
+  // Pack an AdvSrv.
+  transport::AdvSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
+    scope, reqType, repType);
+  buffer.resize(advSrv.GetMsgLength());
+  size_t bytes = advSrv.Pack(&buffer[0]);
+  EXPECT_EQ(bytes, advSrv.GetMsgLength());
+
+  // Unpack an AdvSrv.
+  transport::Header header;
+  transport::AdvSrv otherAdvSrv;
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, header.GetHeaderLength());
+  otherAdvSrv.SetHeader(header);
+  char *pBody = &buffer[0] + header.GetHeaderLength();
+  size_t bodyBytes = otherAdvSrv.UnpackBody(pBody);
+
+  // Check that after Pack() and Unpack() the data does not change.
+  EXPECT_EQ(otherAdvSrv.GetTopic(), advSrv.GetTopic());
+  EXPECT_EQ(otherAdvSrv.GetAddress(), advSrv.GetAddress());
+  EXPECT_EQ(otherAdvSrv.GetControlAddress(), advSrv.GetControlAddress());
+  EXPECT_EQ(otherAdvSrv.GetNodeUuid(), advSrv.GetNodeUuid());
+  EXPECT_EQ(otherAdvSrv.GetScope(), advSrv.GetScope());
+  EXPECT_EQ(otherAdvSrv.GetReqTypeName(), advSrv.GetReqTypeName());
+  EXPECT_EQ(otherAdvSrv.GetRepTypeName(), advSrv.GetRepTypeName());
+  EXPECT_EQ(otherAdvSrv.GetMsgLength(), advSrv.GetMsgLength());
+  EXPECT_EQ(otherAdvSrv.GetMsgLength() -
+            otherAdvSrv.GetHeader().GetHeaderLength(), advSrv.GetMsgLength() -
+            advSrv.GetHeader().GetHeaderLength());
+  EXPECT_EQ(bodyBytes, otherAdvSrv.GetMsgLength() -
+            otherAdvSrv.GetHeader().GetHeaderLength());
 }
 
 //////////////////////////////////////////////////

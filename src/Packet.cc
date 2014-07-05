@@ -144,7 +144,7 @@ size_t Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
-SubMsg::SubMsg(const Header &_header,
+Sub::Sub(const Header &_header,
          const std::string &_topic)
 {
   this->SetHeader(_header);
@@ -152,38 +152,38 @@ SubMsg::SubMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header SubMsg::GetHeader() const
+Header Sub::GetHeader() const
 {
   return this->header;
 }
 
 //////////////////////////////////////////////////
-std::string SubMsg::GetTopic() const
+std::string Sub::GetTopic() const
 {
   return this->topic;
 }
 
 //////////////////////////////////////////////////
-void SubMsg::SetHeader(const Header &_header)
+void Sub::SetHeader(const Header &_header)
 {
   this->header = _header;
 }
 
 //////////////////////////////////////////////////
-void SubMsg::SetTopic(const std::string &_topic)
+void Sub::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-size_t SubMsg::GetMsgLength()
+size_t Sub::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
          sizeof(this->topic.size()) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
-size_t SubMsg::Pack(char *_buffer)
+size_t Sub::Pack(char *_buffer)
 {
   size_t headerLen = this->GetHeader().Pack(_buffer);
   if (headerLen == 0)
@@ -207,7 +207,7 @@ size_t SubMsg::Pack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t SubMsg::UnpackBody(char *_buffer)
+size_t Sub::UnpackBody(char *_buffer)
 {
   // Read the topic length.
   size_t topicLength;
@@ -327,7 +327,7 @@ size_t Adv::Pack(char *_buffer)
   if (headerLen == 0)
     return 0;
 
-  if ((this->addr == "") || (this->nUuid == ""))
+  if ((this->topic == "") || (this->addr == "") || (this->nUuid == ""))
   {
     std::cerr << "Adv::Pack() error: You're trying to pack an incomplete "
               << "msg body:" << std::endl << *this;

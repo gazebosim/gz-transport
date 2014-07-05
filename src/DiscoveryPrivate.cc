@@ -404,7 +404,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubSrvType:
     {
       // Read the rest of the fields.
-      SubMsg subMsg;
+      Sub subMsg;
       subMsg.UnpackBody(pBody);
       auto recvTopic = subMsg.GetTopic();
 
@@ -560,7 +560,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     case SubSrvType:
     {
       // Create the [UN]SUBSCRIBE message.
-      SubMsg subMsg(header, _topic);
+      Sub subMsg(header, _topic);
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(subMsg.GetMsgLength());
