@@ -25,13 +25,11 @@ using namespace transport;
 //////////////////////////////////////////////////
 Header::Header(const uint16_t _version,
                const std::string &_pUuid,
-               const std::string &_topic,
                const uint8_t _type,
                const uint16_t _flags)
 {
   this->SetVersion(_version);
   this->SetPUuid(_pUuid);
-  this->SetTopic(_topic);
   this->SetType(_type);
   this->SetFlags(_flags);
 }
@@ -46,12 +44,6 @@ uint16_t Header::GetVersion() const
 std::string Header::GetPUuid() const
 {
   return this->pUuid;
-}
-
-//////////////////////////////////////////////////
-std::string Header::GetTopic() const
-{
-  return this->topic;
 }
 
 //////////////////////////////////////////////////
@@ -79,12 +71,6 @@ void Header::SetPUuid(const std::string &_pUuid)
 }
 
 //////////////////////////////////////////////////
-void Header::SetTopic(const std::string &_topic)
-{
-  this->topic = _topic;
-}
-
-//////////////////////////////////////////////////
 void Header::SetType(const uint8_t _type)
 {
   this->type = _type;
@@ -101,7 +87,6 @@ int Header::GetHeaderLength()
 {
   return sizeof(this->version) +
          sizeof(this->pUuid.size()) + this->pUuid.size() +
-         sizeof(this->topic.size()) + this->topic.size() +
          sizeof(this->type) + sizeof(this->flags);
 }
 
@@ -110,7 +95,7 @@ size_t Header::Pack(char *_buffer)
 {
   // Uninitialized.
   if ((this->version == 0) || (this->pUuid == "") ||
-      (this->topic == "")  || (this->type  == Uninitialized))
+      (this->type  == Uninitialized))
   {
     std::cerr << "Header::Pack() error: You're trying to pack an incomplete "
               << "header:" << std::endl << *this;
@@ -124,11 +109,6 @@ size_t Header::Pack(char *_buffer)
   _buffer += sizeof(pUuidLength);
   memcpy(_buffer, this->pUuid.data(), pUuidLength);
   _buffer += pUuidLength;
-  size_t topicLength = this->topic.size();
-  memcpy(_buffer, &topicLength, sizeof(topicLength));
-  _buffer += sizeof(topicLength);
-  memcpy(_buffer, this->topic.data(), topicLength);
-  _buffer += topicLength;
   memcpy(_buffer, &this->type, sizeof(this->type));
   _buffer += sizeof(this->type);
   memcpy(_buffer, &this->flags, sizeof(this->flags));
@@ -152,15 +132,6 @@ size_t Header::Unpack(const char *_buffer)
   this->pUuid = std::string(_buffer, _buffer + pUuidLength);
   _buffer += pUuidLength;
 
-  // Read the topic length.
-  size_t topicLength;
-  memcpy(&topicLength, _buffer, sizeof(topicLength));
-  _buffer += sizeof(topicLength);
-
-  // Read the topic.
-  this->topic = std::string(_buffer, _buffer + topicLength);
-  _buffer += topicLength;
-
   // Read the message type.
   memcpy(&this->type, _buffer, sizeof(this->type));
   _buffer += sizeof(this->type);
@@ -173,13 +144,93 @@ size_t Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
+SubMsg::SubMsg(const Header &_header,
+         const std::string &_topic)
+{
+  this->SetHeader(_header);
+  this->SetTopic(_topic);
+}
+
+//////////////////////////////////////////////////
+Header SubMsg::GetHeader() const
+{
+  return this->header;
+}
+
+//////////////////////////////////////////////////
+std::string SubMsg::GetTopic() const
+{
+  return this->topic;
+}
+
+//////////////////////////////////////////////////
+void SubMsg::SetHeader(const Header &_header)
+{
+  this->header = _header;
+}
+
+//////////////////////////////////////////////////
+void SubMsg::SetTopic(const std::string &_topic)
+{
+  this->topic = _topic;
+}
+
+//////////////////////////////////////////////////
+size_t SubMsg::GetMsgLength()
+{
+  return this->header.GetHeaderLength() +
+         sizeof(this->topic.size()) + this->topic.size();
+}
+
+//////////////////////////////////////////////////
+size_t SubMsg::Pack(char *_buffer)
+{
+  size_t headerLen = this->GetHeader().Pack(_buffer);
+  if (headerLen == 0)
+    return 0;
+
+  if (this->topic == "")
+  {
+    std::cerr << "SubMsg::Pack() error: You're trying to pack a message with "
+              << "an empty topic" << std::endl;
+    return 0;
+  }
+
+  _buffer += headerLen;
+
+  size_t topicLength = this->topic.size();
+  memcpy(_buffer, &topicLength, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+  memcpy(_buffer, this->topic.data(), topicLength);
+
+  return this->GetMsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t SubMsg::UnpackBody(char *_buffer)
+{
+  // Read the topic length.
+  size_t topicLength;
+  memcpy(&topicLength, _buffer, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+
+  // Read the topic.
+  this->topic = std::string(_buffer, _buffer + topicLength);
+  _buffer += topicLength;
+
+  return sizeof(topicLength) + topicLength;
+}
+
+//////////////////////////////////////////////////
 Adv::Adv(const Header &_header,
+         const std::string &_topic,
          const std::string &_addr,
          const std::string &_ctrl,
          const std::string &_nUuid,
          const Scope &_scope)
 {
   this->SetHeader(_header);
+  this->SetTopic(_topic);
   this->SetAddress(_addr);
   this->SetControlAddress(_ctrl);
   this->SetNodeUuid(_nUuid);
@@ -190,6 +241,12 @@ Adv::Adv(const Header &_header,
 Header Adv::GetHeader() const
 {
   return this->header;
+}
+
+//////////////////////////////////////////////////
+std::string Adv::GetTopic() const
+{
+  return this->topic;
 }
 
 //////////////////////////////////////////////////
@@ -223,6 +280,12 @@ void Adv::SetHeader(const Header &_header)
 }
 
 //////////////////////////////////////////////////
+void Adv::SetTopic(const std::string &_topic)
+{
+  this->topic = _topic;
+}
+
+//////////////////////////////////////////////////
 void Adv::SetAddress(const std::string &_addr)
 {
   this->addr = _addr;
@@ -250,6 +313,7 @@ void Adv::SetScope(const Scope &_scope)
 size_t Adv::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
+         sizeof(this->topic.size()) + this->topic.size() +
          sizeof(this->addr.size()) + this->addr.size() +
          sizeof(this->ctrl.size()) + this->ctrl.size() +
          sizeof(this->nUuid.size()) + this->nUuid.size() +
@@ -263,7 +327,7 @@ size_t Adv::Pack(char *_buffer)
   if (headerLen == 0)
     return 0;
 
-  if ((this->addr == "") || (this->ctrl == "") || (this->nUuid == ""))
+  if ((this->addr == "") || (this->nUuid == ""))
   {
     std::cerr << "Adv::Pack() error: You're trying to pack an incomplete "
               << "msg body:" << std::endl << *this;
@@ -272,6 +336,11 @@ size_t Adv::Pack(char *_buffer)
 
   _buffer += headerLen;
 
+  size_t topicLength = this->topic.size();
+  memcpy(_buffer, &topicLength, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+  memcpy(_buffer, this->topic.data(), topicLength);
+  _buffer += topicLength;
   size_t addrLength = this->addr.size();
   memcpy(_buffer, &addrLength, sizeof(addrLength));
   _buffer += sizeof(addrLength);
@@ -295,6 +364,15 @@ size_t Adv::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t Adv::UnpackBody(char *_buffer)
 {
+  // Read the topic length.
+  size_t topicLength;
+  memcpy(&topicLength, _buffer, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+
+  // Read the topic.
+  this->topic = std::string(_buffer, _buffer + topicLength);
+  _buffer += topicLength;
+
   // Read the address length.
   size_t addrLength;
   memcpy(&addrLength, _buffer, sizeof(addrLength));
@@ -325,7 +403,8 @@ size_t Adv::UnpackBody(char *_buffer)
   // Read the topic scope.
   memcpy(&this->scope, _buffer, sizeof(this->scope));
 
-  return sizeof(addrLength) + addrLength +
+  return sizeof(topicLength) + topicLength +
+         sizeof(addrLength) + addrLength +
          sizeof(ctrlLength) + ctrlLength +
          sizeof(nUuidLength) + nUuidLength +
          sizeof(this->scope);
@@ -333,12 +412,13 @@ size_t Adv::UnpackBody(char *_buffer)
 
 //////////////////////////////////////////////////
 AdvMsg::AdvMsg(const Header &_header,
+               const std::string &_topic,
                const std::string &_addr,
                const std::string &_ctrl,
                const std::string &_nUuid,
                const Scope &_scope,
                const std::string &_msgTypeName)
-  : Adv(_header, _addr, _ctrl, _nUuid, _scope)
+  : Adv(_header, _topic, _addr, _ctrl, _nUuid, _scope)
 {
   this->SetMsgTypeName(_msgTypeName);
 }
@@ -404,13 +484,14 @@ size_t AdvMsg::UnpackBody(char *_buffer)
 
 //////////////////////////////////////////////////
 AdvSrv::AdvSrv(const Header &_header,
+               const std::string &_topic,
                const std::string &_addr,
                const std::string &_ctrl,
                const std::string &_nUuid,
                const Scope &_scope,
                const std::string &_reqTypeName,
                const std::string &_repTypeName)
-  : Adv(_header, _addr, _ctrl, _nUuid, _scope)
+  : Adv(_header, _topic, _addr, _ctrl, _nUuid, _scope)
 {
   this->SetReqTypeName(_reqTypeName);
   this->SetRepTypeName(_repTypeName);
