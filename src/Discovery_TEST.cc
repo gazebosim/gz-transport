@@ -569,7 +569,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
-  //std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   // I should not see any discovery updates.
   EXPECT_FALSE(connectionExecuted);

@@ -669,7 +669,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
       // Prepare the content for the beacon.
       if (!this->infoMsg.GetAddress(_topic, this->pUuid, _nUuid, node))
         return;
-      header.reset(new Header(Version, this->pUuid, AdvType, 0));
+      header.reset(new Header(Version, this->pUuid, AdvType));
 
       // Create the ADV message.
       AdvMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
@@ -686,7 +686,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
       // Prepare the content for the beacon.
       if (!this->infoSrv.GetAddress(_topic, this->pUuid, _nUuid, node))
         return;
-      header.reset(new Header(Version, this->pUuid, AdvSrvType, 0));
+      header.reset(new Header(Version, this->pUuid, AdvSrvType));
 
       // Create the ADV SRV message.
       AdvSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,

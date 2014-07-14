@@ -184,7 +184,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg SubMsg to write to the stream.
+      /// \param[in] _msg Sub message to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const Sub &_msg)
       {
@@ -220,7 +220,7 @@ namespace ignition
     class IGNITION_VISIBLE Adv
     {
       /// \brief Constructor.
-      public: Adv() = default;
+      protected: Adv() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
@@ -229,7 +229,7 @@ namespace ignition
       /// \param[in] _ctrl ZeroMQ control address.
       /// \param[in] _nUuid Node's UUID.
       /// \param[in] _scope Topic scope.
-      public: Adv(const Header &_header,
+      protected: Adv(const Header &_header,
                   const std::string &_topic,
                   const std::string &_addr,
                   const std::string &_ctrl,
@@ -273,7 +273,7 @@ namespace ignition
       public: void SetAddress(const std::string &_addr);
 
       /// \brief Set the ZMQ control address.
-      /// \param[in] _ctrl ZMQ control address to be contained in the msg.
+      /// \param[in] _ctrl ZMQ control address to be contained in the message.
       public: void SetControlAddress(const std::string &_ctrl);
 
       /// \brief Set the node UUID.
@@ -311,7 +311,7 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the Advg.
+      /// \brief Serialize the Adv.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
       public: size_t Pack(char *_buffer);
