@@ -34,7 +34,7 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
 endif()
 
 ########################################
-# ignition_msgs used for testing
+# ignition-msgs used for testing
 find_package(ignition-msgs QUIET REQUIRED)
 if (NOT ignition-msgs_FOUND)
   BUILD_ERROR ("ignition-msgs not found.")

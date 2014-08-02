@@ -23,7 +23,7 @@ source:
  - uuid-dev
  - libzmq3-dev
  - czmq
- - ignition_msgs
+ - ignition-msgs
  - cmake
  - ruby-ronn
  - mercurial

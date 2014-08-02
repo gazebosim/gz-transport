@@ -5,7 +5,7 @@ find_package(ignition_transport QUIET REQUIRED)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION_TRANSPORT_CXX_FLAGS}")
 
 # Find the Ignition_Msgs library
-find_package(ignition_msgs QUIET REQUIRED)
+find_package(ignition-msgs QUIET REQUIRED)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-MSGS_CXX_FLAGS}")
 
 include_directories(${IGNITION_TRANSPORT_INCLUDE_DIRS}
