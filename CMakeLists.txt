@@ -89,7 +89,6 @@ endif()
 
 set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition")
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
 
 set (USE_FULL_RPATH OFF CACHE BOOL "Set to true to enable full rpath")
@@ -259,7 +258,7 @@ else (build_errors)
     ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
-    DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
+    DESTINATION ${LIB_INSTALL_DIR}/pkgconfig
     COMPONENT pkgconfig)
 
   ########################################
