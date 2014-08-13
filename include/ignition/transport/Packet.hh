@@ -73,8 +73,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Header() = default;
 
-      /// \brief Get the transport library version.
-      /// \return Transport library version.
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery protocol version.
       public: uint16_t GetVersion() const;
 
       /// \brief Get the process uuid.
@@ -135,7 +135,7 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Version of the transport library.
+      /// \brief Discovery protocol version.
       private: uint16_t version = 0;
 
       /// \brief Global identifier. Every process has a unique guid.
@@ -148,19 +148,19 @@ namespace ignition
       private: uint16_t flags = 0;
     };
 
-    /// \class Sub Packet.hh ignition/transport/Packet.hh
+    /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
-    class IGNITION_VISIBLE Sub
+    class IGNITION_VISIBLE SubscriptionMsg
     {
       /// \brief Constructor.
-      public: Sub() = default;
+      public: SubscriptionMsg() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _topic Topic name.
-      public: Sub(const Header &_header,
-                  const std::string &_topic);
+      public: SubscriptionMsg(const Header &_header,
+                              const std::string &_topic);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -186,7 +186,7 @@ namespace ignition
       /// \param[out] _out The output stream.
       /// \param[in] _msg Sub message to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const Sub &_msg)
+                                              const SubscriptionMsg &_msg)
       {
         _out << _msg.GetHeader()
              << "Body:" << std::endl
@@ -195,7 +195,7 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the Sub.
+      /// \brief Serialize the subscription message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
       public: size_t Pack(char *_buffer);
@@ -212,15 +212,15 @@ namespace ignition
       private: std::string topic = "";
     };
 
-    /// \class Adv Packet.hh ignition/transport/Packet.hh
+    /// \class AdvertiseBase Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise base message used as part of an advertise message or an
     /// advertise service. It stores information about the node's address
     /// advertising the message/service, its control address, node UUID and
     /// topic scope.
-    class IGNITION_VISIBLE Adv
+    class IGNITION_VISIBLE AdvertiseBase
     {
       /// \brief Constructor.
-      protected: Adv() = default;
+      protected: AdvertiseBase() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
@@ -229,12 +229,12 @@ namespace ignition
       /// \param[in] _ctrl ZeroMQ control address.
       /// \param[in] _nUuid Node's UUID.
       /// \param[in] _scope Topic scope.
-      protected: Adv(const Header &_header,
-                  const std::string &_topic,
-                  const std::string &_addr,
-                  const std::string &_ctrl,
-                  const std::string &_nUuid,
-                  const Scope &_scope);
+      protected: AdvertiseBase(const Header &_header,
+                               const std::string &_topic,
+                               const std::string &_addr,
+                               const std::string &_ctrl,
+                               const std::string &_nUuid,
+                               const Scope &_scope);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -292,7 +292,7 @@ namespace ignition
       /// \param[out] _out The output stream.
       /// \param[in] _msg Adv to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const Adv &_msg)
+                                              const AdvertiseBase &_msg)
       {
         _out << _msg.GetHeader()
              << "Body:" << std::endl
@@ -311,12 +311,12 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the Adv.
+      /// \brief Serialize the message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
       public: size_t Pack(char *_buffer);
 
-      /// \brief Unserialize a stream of bytes into a Adv.
+      /// \brief Unserialize a stream of bytes into an AdvertiseBase.
       /// \param[out] _buffer Unpack the body from the buffer.
       /// \return The number of bytes from the body.
       public: size_t UnpackBody(char *_buffer);
@@ -340,14 +340,14 @@ namespace ignition
       private: Scope scope = Scope::All;
     };
 
-    /// \class AdvMsg Packet.hh ignition/transport/Packet.hh
+    /// \class AdvertiseMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise packet used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
     /// contains the name of the protobuf message type advertised.
-    class IGNITION_VISIBLE AdvMsg : public Adv
+    class IGNITION_VISIBLE AdvertiseMsg : public AdvertiseBase
     {
       /// \brief Constructor.
-      public: AdvMsg() = default;
+      public: AdvertiseMsg() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
@@ -357,13 +357,13 @@ namespace ignition
       /// \param[in] _nUuid Node's UUID.
       /// \param[in] _scope Topic scope.
       /// \param[in] _msgTypeName Name of the protobuf message advertised.
-      public: AdvMsg(const Header &_header,
-                     const std::string &_topic,
-                     const std::string &_addr,
-                     const std::string &_ctrl,
-                     const std::string &_nUuid,
-                     const Scope &_scope,
-                     const std::string &_msgTypeName);
+      public: AdvertiseMsg(const Header &_header,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           const std::string &_msgTypeName);
 
       /// \brief Get the name of the protobuf message advertised.
       /// \return The protobuf message type.
@@ -378,9 +378,9 @@ namespace ignition
 
       // Documentation inherited.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const AdvMsg &_msg)
+                                              const AdvertiseMsg &_msg)
       {
-         _out << static_cast<const Adv&>(_msg)
+         _out << static_cast<const AdvertiseBase&>(_msg)
               << "\tMessage type: " << _msg.GetMsgTypeName() << std::endl;
 
         return _out;
@@ -396,15 +396,15 @@ namespace ignition
       private: std::string msgTypeName = "";
     };
 
-    /// \class AdvSrv Packet.hh ignition/transport/Packet.hh
+    /// \class AdvertiseSrv Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise packet used in the discovery protocol to broadcast
     /// information about the node advertising a service. The information sent
     /// contains the name of the protobuf messages advertised for the service
     /// request and service response.
-    class IGNITION_VISIBLE AdvSrv : public Adv
+    class IGNITION_VISIBLE AdvertiseSrv : public AdvertiseBase
     {
       /// \brief Constructor.
-      public: AdvSrv() = default;
+      public: AdvertiseSrv() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
@@ -415,14 +415,14 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       /// \param[in] _reqTypeName Name of the request's protobuf message.
       /// \param[in] _repTypeName Name of the response's protobuf message.
-      public: AdvSrv(const Header &_header,
-                     const std::string &_topic,
-                     const std::string &_addr,
-                     const std::string &_ctrl,
-                     const std::string &_nUuid,
-                     const Scope &_scope,
-                     const std::string &_reqTypeName,
-                     const std::string &_repTypeName);
+      public: AdvertiseSrv(const Header &_header,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           const std::string &_reqTypeName,
+                           const std::string &_repTypeName);
 
       /// \brief Get the name of the request's protobuf message advertised.
       /// \return The protobuf message type.
@@ -445,9 +445,9 @@ namespace ignition
 
       // Documentation inherited.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const AdvSrv &_msg)
+                                              const AdvertiseSrv &_msg)
       {
-         _out << static_cast<const Adv&>(_msg)
+         _out << static_cast<const AdvertiseBase&>(_msg)
               << "\tRequest type: " << _msg.GetReqTypeName() << std::endl
               << "\tResponse type: " << _msg.GetRepTypeName() << std::endl;
 

@@ -360,7 +360,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case AdvSrvType:
     {
       // Read the rest of the fields.
-      AdvMsg advMsg;
+      AdvertiseMsg advMsg;
       advMsg.UnpackBody(pBody);
       auto recvTopic = advMsg.GetTopic();
       auto recvAddr = advMsg.GetAddress();
@@ -404,7 +404,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubSrvType:
     {
       // Read the rest of the fields.
-      Sub subMsg;
+      SubscriptionMsg subMsg;
       subMsg.UnpackBody(pBody);
       auto recvTopic = subMsg.GetTopic();
 
@@ -478,7 +478,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case UnadvSrvType:
     {
       // Read the address.
-      AdvMsg advMsg;
+      AdvertiseMsg advMsg;
       advMsg.UnpackBody(pBody);
       auto recvTopic = advMsg.GetTopic();
       auto recvAddr = advMsg.GetAddress();
@@ -544,7 +544,8 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     case UnadvSrvType:
     {
       // Create the [UN]ADVERTISE message.
-      AdvMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope, "not used");
+      AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
+        "not used");
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(advMsg.GetMsgLength());
@@ -560,7 +561,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     case SubSrvType:
     {
       // Create the [UN]SUBSCRIBE message.
-      Sub subMsg(header, _topic);
+      SubscriptionMsg subMsg(header, _topic);
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(subMsg.GetMsgLength());
@@ -672,7 +673,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
       header.reset(new Header(Version, this->pUuid, AdvType));
 
       // Create the ADV message.
-      AdvMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
+      AdvertiseMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
         node.scope, "not Used");
       std::vector<char> buffer(advMsg.GetMsgLength());
       advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
@@ -689,7 +690,7 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
       header.reset(new Header(Version, this->pUuid, AdvSrvType));
 
       // Create the ADV SRV message.
-      AdvSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,
+      AdvertiseSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,
         node.scope, "req not used", "rep not used");
       std::vector<char> buffer(advSrv.GetMsgLength());
       advSrv.Pack(reinterpret_cast<char*>(&buffer[0]));

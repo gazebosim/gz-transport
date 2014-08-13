@@ -110,7 +110,7 @@ TEST(PacketTest, BasicSubAPI)
   transport::Header otherHeader(version, pUuid, transport::SubType, 3);
 
   std::string topic = "topic_test";
-  transport::Sub subMsg(otherHeader, topic);
+  transport::SubscriptionMsg subMsg(otherHeader, topic);
 
   // Check Sub getters.
   EXPECT_EQ(subMsg.GetTopic(), topic);
@@ -148,26 +148,26 @@ TEST(PacketTest, SubIO)
   uint8_t version   = 1;
 
   // Try to pack an empty Sub.
-  transport::Sub emptyMsg;
+  transport::SubscriptionMsg emptyMsg;
   std::vector<char> buffer(emptyMsg.GetMsgLength());
   EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
 
   // Pack a Sub with an empty topic.
   transport::Header otherHeader(version, pUuid, transport::SubType, 3);
-  transport::Sub incompleteMsg(otherHeader, "");
+  transport::SubscriptionMsg incompleteMsg(otherHeader, "");
   buffer.resize(incompleteMsg.GetMsgLength());
   EXPECT_EQ(0, incompleteMsg.Pack(&buffer[0]));
 
   // Pack a Sub.
   std::string topic = "topic_test";
-  transport::Sub subMsg(otherHeader, topic);
+  transport::SubscriptionMsg subMsg(otherHeader, topic);
   buffer.resize(subMsg.GetMsgLength());
   size_t bytes = subMsg.Pack(&buffer[0]);
   EXPECT_EQ(bytes, subMsg.GetMsgLength());
 
   // Unpack a Sub.
   transport::Header header;
-  transport::Sub otherSubMsg;
+  transport::SubscriptionMsg otherSubMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.GetHeaderLength());
   otherSubMsg.SetHeader(header);
@@ -198,7 +198,7 @@ TEST(PacketTest, BasicAdvMsgAPI)
   std::string nodeUuid = "nodeUUID";
   transport::Scope scope = transport::Scope::All;
   std::string typeName = "StringMsg";
-  transport::AdvMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+  transport::AdvertiseMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, typeName);
 
   // Check AdvMsg getters.
@@ -335,37 +335,37 @@ TEST(PacketTest, AdvMsgIO)
   std::string typeName = "StringMsg";
 
   // Try to pack an empty AdvMsg.
-  transport::AdvMsg emptyMsg;
+  transport::AdvertiseMsg emptyMsg;
   std::vector<char> buffer(emptyMsg.GetMsgLength());
   EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
 
   // Try to pack an incomplete AdvMsg (empty topic).
   transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
-  transport::AdvMsg noTopicMsg(otherHeader, "", addr, ctrl, nodeUuid,
+  transport::AdvertiseMsg noTopicMsg(otherHeader, "", addr, ctrl, nodeUuid,
     scope, typeName);
   buffer.resize(noTopicMsg.GetMsgLength());
   EXPECT_EQ(0, noTopicMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty address).
-  transport::AdvMsg noAddrMsg(otherHeader, topic, "", ctrl, nodeUuid,
+  transport::AdvertiseMsg noAddrMsg(otherHeader, topic, "", ctrl, nodeUuid,
     scope, typeName);
   buffer.resize(noAddrMsg.GetMsgLength());
   EXPECT_EQ(0, noAddrMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty node UUID).
-  transport::AdvMsg noNodeUuidMsg(otherHeader, topic, addr, ctrl, "",
+  transport::AdvertiseMsg noNodeUuidMsg(otherHeader, topic, addr, ctrl, "",
     scope, typeName);
   buffer.resize(noNodeUuidMsg.GetMsgLength());
   EXPECT_EQ(0, noNodeUuidMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty message type name).
-  transport::AdvMsg noTypeMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+  transport::AdvertiseMsg noTypeMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, "");
   buffer.resize(noTypeMsg.GetMsgLength());
   EXPECT_EQ(0, noTypeMsg.Pack(&buffer[0]));
 
   // Pack an AdvMsg.
-  transport::AdvMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+  transport::AdvertiseMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, typeName);
   buffer.resize(advMsg.GetMsgLength());
   size_t bytes = advMsg.Pack(&buffer[0]);
@@ -373,7 +373,7 @@ TEST(PacketTest, AdvMsgIO)
 
   // Unpack an AdvMsg.
   transport::Header header;
-  transport::AdvMsg otherAdvMsg;
+  transport::AdvertiseMsg otherAdvMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.GetHeaderLength());
   otherAdvMsg.SetHeader(header);
@@ -411,7 +411,7 @@ TEST(PacketTest, BasicAdvSrvAPI)
   transport::Scope scope = transport::Scope::All;
   std::string reqType = "StringMsg";
   std::string repType = "Int";
-  transport::AdvSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
+  transport::AdvertiseSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, reqType, repType);
 
   // Check AdvSrv getters.
@@ -513,34 +513,34 @@ TEST(PacketTest, AdvSrvIO)
   std::string reqType = "StringMsg";
   std::string repType = "Int";
 
-  // Try to pack an empty AdvSrv.
-  transport::AdvSrv emptyMsg;
+  // Try to pack an empty AdvertiseSrv.
+  transport::AdvertiseSrv emptyMsg;
   std::vector<char> buffer(emptyMsg.GetMsgLength());
   EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0);
 
-  // Try to pack an incomplete AdvSrv (empty request type).
+  // Try to pack an incomplete AdvertiseSrv (empty request type).
   transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
-  transport::AdvSrv noReqMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+  transport::AdvertiseSrv noReqMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, "", repType);
   buffer.resize(noReqMsg.GetMsgLength());
   EXPECT_EQ(0, noReqMsg.Pack(&buffer[0]));
 
-  // Try to pack an incomplete AdvSrv (empty response type).
-  transport::AdvSrv noRepMsg(otherHeader, topic, addr, ctrl, nodeUuid,
+  // Try to pack an incomplete AdvertiseSrv (empty response type).
+  transport::AdvertiseSrv noRepMsg(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, reqType, "");
   buffer.resize(noRepMsg.GetMsgLength());
   EXPECT_EQ(0, noRepMsg.Pack(&buffer[0]));
 
-  // Pack an AdvSrv.
-  transport::AdvSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
+  // Pack an AdvertiseSrv.
+  transport::AdvertiseSrv advSrv(otherHeader, topic, addr, ctrl, nodeUuid,
     scope, reqType, repType);
   buffer.resize(advSrv.GetMsgLength());
   size_t bytes = advSrv.Pack(&buffer[0]);
   EXPECT_EQ(bytes, advSrv.GetMsgLength());
 
-  // Unpack an AdvSrv.
+  // Unpack an AdvertiseSrv.
   transport::Header header;
-  transport::AdvSrv otherAdvSrv;
+  transport::AdvertiseSrv otherAdvSrv;
   size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.GetHeaderLength());
   otherAdvSrv.SetHeader(header);
