@@ -86,7 +86,7 @@ void Header::SetFlags(const uint16_t _flags)
 int Header::GetHeaderLength()
 {
   return sizeof(this->version) +
-         sizeof(this->pUuid.size()) + this->pUuid.size() +
+         sizeof(size_t) + this->pUuid.size() +
          sizeof(this->type) + sizeof(this->flags);
 }
 
@@ -188,7 +188,7 @@ void SubscriptionMsg::SetTopic(const std::string &_topic)
 size_t SubscriptionMsg::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
-         sizeof(this->topic.size()) + this->topic.size();
+         sizeof(size_t) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
@@ -322,10 +322,10 @@ void AdvertiseBase::SetScope(const Scope &_scope)
 size_t AdvertiseBase::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
-         sizeof(this->topic.size()) + this->topic.size() +
-         sizeof(this->addr.size()) + this->addr.size() +
-         sizeof(this->ctrl.size()) + this->ctrl.size() +
-         sizeof(this->nUuid.size()) + this->nUuid.size() +
+         sizeof(size_t) + this->topic.size() +
+         sizeof(size_t) + this->addr.size() +
+         sizeof(size_t) + this->ctrl.size() +
+         sizeof(size_t) + this->nUuid.size() +
          sizeof(this->scope);
 }
 
@@ -448,7 +448,7 @@ void AdvertiseMsg::SetMsgTypeName(const std::string &_msgTypeName)
 size_t AdvertiseMsg::GetMsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
-         sizeof(this->msgTypeName.size()) + this->msgTypeName.size();
+         sizeof(size_t) + this->msgTypeName.size();
 }
 
 //////////////////////////////////////////////////
@@ -534,8 +534,8 @@ void AdvertiseSrv::SetRepTypeName(const std::string &_repTypeName)
 size_t AdvertiseSrv::GetMsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
-         sizeof(this->reqTypeName.size()) + this->reqTypeName.size() +
-         sizeof(this->repTypeName.size()) + this->repTypeName.size();
+         sizeof(size_t) + this->reqTypeName.size() +
+         sizeof(size_t) + this->repTypeName.size();
 }
 
 //////////////////////////////////////////////////
