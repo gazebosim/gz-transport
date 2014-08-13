@@ -69,8 +69,14 @@ else()
 endif()
 
 #################################################
-# Find czmq.:
-pkg_check_modules(czmq libczmq>=3.0.0)
+# Find czmq
+# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0 
+# See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
+if(APPLE)
+  pkg_check_modules(czmq libczmq>=3.0.0)
+else()
+  pkg_check_modules(czmq libczmq>=2.0.0)
+endif()
 
 if (NOT czmq_FOUND)
   message (STATUS "Looking for czmq pkgconfig file - not found")
