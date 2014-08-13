@@ -34,13 +34,45 @@ void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide an "echo" service.
+void srvEcho2(const std::string &_topic, const ignition::msgs::CmdVel2D &_req,
+  ignition::msgs::CmdVel2D &_rep, bool &_result)
+{
+  std::cout << "Input parameters:" << std::endl;
+  std::cout << _req.DebugString() << std::endl;
+
+  // Set the response's content.
+  _rep.set_velocity(_req.velocity());
+  _rep.set_theta(_req.theta());
+
+  // The response succeed.
+  _result = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Provide an "echo" service.
+void srvEcho3(const std::string &_topic, const ignition::msgs::Int &_req,
+  ignition::msgs::Int &_rep, bool &_result)
+{
+  std::cout << "Input parameters:" << std::endl;
+  std::cout << _req.DebugString() << std::endl;
+
+  // Set the response's content.
+  _rep.set_data(_req.data());
+
+  // The response succeed.
+  _result = true;
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
   ignition::transport::Node node;
 
   // Advertise a service call.
-  node.Advertise("/echo", srvEcho);
+  // node.Advertise("/echo", srvEcho);
+  node.Advertise("/echo", srvEcho2);
 
   // Wait for requests.
   getchar();

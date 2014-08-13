@@ -27,10 +27,18 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
-  req.set_data("HELLO");
+  // ignition::msgs::StringMsg req;
+  ignition::msgs::CmdVel2D req;
+  // ignition::msgs::Int req;
 
-  ignition::msgs::StringMsg rep;
+  // req.set_data("HELLO");
+  req.set_velocity(1.0);
+  req.set_theta(2.0);
+  // req.set_data(5);
+
+  // ignition::msgs::StringMsg rep;
+  ignition::msgs::CmdVel2D rep;
+  // ignition::msgs::Int rep;
   bool result;
   unsigned int timeout = 5000;
 
@@ -40,7 +48,12 @@ int main(int argc, char **argv)
   if (executed)
   {
     if (result)
-      std::cout << "Response: [" << rep.data() << "]" << std::endl;
+    {
+      // std::cout << "Response: [" << rep.data() << "]" << std::endl;
+      std::cout << "Response: " << std::endl;
+      std::cout << rep.velocity() << std::endl;
+      std::cout << rep.theta() << std::endl;
+    }
     else
       std::cout << "Service call failed" << std::endl;
   }

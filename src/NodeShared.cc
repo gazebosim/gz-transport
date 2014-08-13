@@ -353,7 +353,10 @@ void NodeShared::RecvSrvRequest()
 
     if (!this->replier->recv(&message, 0))
       return;
-    req = std::string(reinterpret_cast<char *>(message.data()));
+
+    // req = std::string(reinterpret_cast<char *>(message.data()));
+    req = std::string(reinterpret_cast<char *>(message.data()),
+      reinterpret_cast<char *>(message.data()) + message.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -398,8 +401,8 @@ void NodeShared::RecvSrvRequest()
     memcpy(response.data(), reqUuid.c_str(), reqUuid.size() + 1);
     socket.send(response, ZMQ_SNDMORE);
 
-    response.rebuild(rep.size() + 1);
-    memcpy(response.data(), rep.c_str(), rep.size() + 1);
+    response.rebuild(rep.size());
+    memcpy(response.data(), rep.data(), rep.size());
     socket.send(response, ZMQ_SNDMORE);
 
     response.rebuild(resultStr.size() + 1);
@@ -443,7 +446,9 @@ void NodeShared::RecvSrvResponse()
 
     if (!this->requester->recv(&message, 0))
       return;
-    rep = std::string(reinterpret_cast<char *>(message.data()));
+    // rep = std::string(reinterpret_cast<char *>(message.data()));
+    rep = std::string(reinterpret_cast<char *>(message.data()),
+      reinterpret_cast<char *>(message.data()) + message.size());
 
     if (!this->requester->recv(&message, 0))
       return;
@@ -508,7 +513,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
       // Mark the handler as requested.
       req.second->SetRequested(true);
 
-      auto data = req.second->Serialize();
+      std::string data = req.second->Serialize();
       auto nodeUuid = req.second->GetNodeUuid();
       auto reqUuid = req.second->GetHandlerUuid();
 
@@ -541,8 +546,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
         memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
         socket.send(message, ZMQ_SNDMORE);
 
-        message.rebuild(data.size() + 1);
-        memcpy(message.data(), data.c_str(), data.size() + 1);
+        message.rebuild(data.size());
+        memcpy(message.data(), data.data(), data.size());
         socket.send(message, 0);
       }
       catch(const zmq::error_t& ze)

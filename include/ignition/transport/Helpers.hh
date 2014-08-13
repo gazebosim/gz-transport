@@ -18,14 +18,6 @@
 #ifndef __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #define __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 
-#include <cstdio>
-#include <string>
-#include <vector>
-
-namespace ignition
-{
-  namespace transport
-  {
 /** \def IGNITION_VISIBLE
  * Use to represent "symbol visible" if supported
  */
@@ -58,7 +50,5 @@ namespace ignition
     #define IGNITION_HIDDEN
   #endif
 #endif
-  }
-}
 
 #endif

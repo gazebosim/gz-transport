@@ -29,6 +29,8 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
+// #include <ignition/msgs.hh>
+
 namespace ignition
 {
   namespace transport
@@ -207,6 +209,7 @@ namespace ignition
       {
         std::string buffer;
         this->reqMsg.SerializeToString(&buffer);
+
         return buffer;
       }
 

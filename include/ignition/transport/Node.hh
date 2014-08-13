@@ -270,7 +270,8 @@ namespace ignition
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>(this->dataPtr->nUuid));
+          new RepHandler<T1, T2>());
+          // new RepHandler<T1, T2>(this->dataPtr->nUuid));
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(
@@ -438,7 +439,7 @@ namespace ignition
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _timeout The request will timeout after '_timeout' ms.
-      /// \param[out] _res Protobuf message containing the response.
+      /// \param[out] _rep Protobuf message containing the response.
       /// \param[out] _result Result of the service call.
       /// \return true when the request was executed or false if the timeout
       /// expired.
