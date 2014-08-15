@@ -102,6 +102,13 @@ size_t Header::Pack(char *_buffer)
     return 0;
   }
 
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "Header::Pack() error: NULL output buffer" << std::endl;
+    return 0;
+  }
+
   // Pack the discovery protocol version.
   memcpy(_buffer, &this->version, sizeof(this->version));
   _buffer += sizeof(this->version);
@@ -128,6 +135,13 @@ size_t Header::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t Header::Unpack(const char *_buffer)
 {
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "Header::Unpack() error: NULL input buffer" << std::endl;
+    return 0;
+  }
+
   // Unpack the version.
   memcpy(&this->version, _buffer, sizeof(this->version));
   _buffer += sizeof(this->version);
@@ -222,6 +236,14 @@ size_t SubscriptionMsg::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t SubscriptionMsg::UnpackBody(char *_buffer)
 {
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "SubscriptionMsg::UnpackBody() error: NULL input buffer"
+              << std::endl;
+    return 0;
+  }
+
   // Unpack the topic length.
   size_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
@@ -395,6 +417,14 @@ size_t AdvertiseBase::Pack(char *_buffer)
 //////////////////////////////////////////////////
 size_t AdvertiseBase::UnpackBody(char *_buffer)
 {
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "AdvertiseBase::UnpackBody() error: NULL input buffer"
+              << std::endl;
+    return 0;
+  }
+
   // Unpack the topic length.
   size_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
@@ -505,7 +535,11 @@ size_t AdvertiseMsg::Pack(char *_buffer)
 size_t AdvertiseMsg::UnpackBody(char *_buffer)
 {
   // Unpack the common part of any advertise message.
-  _buffer += AdvertiseBase::UnpackBody(_buffer);
+  size_t advCommonLen = AdvertiseBase::UnpackBody(_buffer);
+  if (advCommonLen == 0)
+    return 0;
+
+  _buffer += advCommonLen;
 
   // Unpack the msgTypeName length.
   size_t msgTypeNameLen;
@@ -606,7 +640,12 @@ size_t AdvertiseSrv::Pack(char *_buffer)
 size_t AdvertiseSrv::UnpackBody(char *_buffer)
 {
   // Unpack the common part of any advertise message.
-  _buffer += AdvertiseBase::UnpackBody(_buffer);
+  size_t advCommonLen = AdvertiseBase::UnpackBody(_buffer);
+
+  if (advCommonLen == 0)
+    return 0;
+
+  _buffer += advCommonLen;
 
   // Unpack the reqTypeName length.
   size_t reqTypeNameLen;

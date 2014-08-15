@@ -184,7 +184,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg Sub message to write to the stream.
+      /// \param[in] _msg SubscriptionMsg message to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const SubscriptionMsg &_msg)
       {
@@ -290,7 +290,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg Adv to write to the stream.
+      /// \param[in] _msg AdvertiseBase to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const AdvertiseBase &_msg)
       {
