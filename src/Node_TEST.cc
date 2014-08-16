@@ -53,7 +53,7 @@ void reset()
 void cb(const std::string &_topic, const StringMsg2 &_msg)
 {
   EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_msg.data(), data);
+  EXPECT_EQ(_msg.data2(), data);
   cbExecuted = true;
   counter++;
 }
