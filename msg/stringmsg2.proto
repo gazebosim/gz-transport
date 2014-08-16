@@ -1,0 +1,4 @@
+message StringMsg2
+{
+  required string data2 = 1;
+}

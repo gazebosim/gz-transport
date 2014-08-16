@@ -23,6 +23,7 @@
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "stringmsg2.pb.h"
 
 using namespace ignition;
 
@@ -49,7 +50,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const StringMsg2 &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
