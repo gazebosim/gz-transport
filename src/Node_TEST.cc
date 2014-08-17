@@ -142,7 +142,7 @@ class MyTestClass
     EXPECT_TRUE(this->node.Publish(topic, msg));
   }
 
-  public: void TestServiceCalls()
+  public: void TestServiceCall()
   {
     ignition::msgs::StringMsg req;
     ignition::msgs::StringMsg rep;
@@ -435,10 +435,8 @@ TEST(NodeTest, ClassMemberCallback)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
 
-  client.TestServiceCalls();
+  client.TestServiceCall();
 
-  // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackSrvExecuted);
 }
 
