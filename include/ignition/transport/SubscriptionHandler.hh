@@ -102,7 +102,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T> CreateMsg(const char *_data)
+      public: std::shared_ptr<T> CreateMsg(const std::string &_data)
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<T> msgPtr(new T());
@@ -147,7 +147,7 @@ namespace ignition
                                const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
-        auto msg = this->CreateMsg(_data.c_str());
+        auto msg = this->CreateMsg(_data);
 
         // Execute the callback (if existing).
         if (this->cb)
