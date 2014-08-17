@@ -99,12 +99,25 @@ class MyTestClass
 {
   /// \brief Class constructor.
   public: MyTestClass()
-    : callbackExecuted(false)
+    : callbackExecuted(false),
+      callbackSrvExecuted(false)
   {
     // Subscribe to an illegal topic.
     EXPECT_FALSE(node.Subscribe("invalid topic", &MyTestClass::Cb, this));
 
     EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
+  }
+
+  // Member function used as a callback for responding to a service call.
+  public: void Echo(const std::string &_topic,
+    const ignition::msgs::StringMsg &_req, ignition::msgs::StringMsg &_rep,
+    bool &_result)
+  {
+    EXPECT_EQ(_topic, topic);
+    EXPECT_EQ(_req.data(), data);
+    _rep.set_data(_req.data());
+    _result = true;
+    this->callbackSrvExecuted = true;
   }
 
   /// \brief Member function called each time a topic update is received.
@@ -129,8 +142,27 @@ class MyTestClass
     EXPECT_TRUE(this->node.Publish(topic, msg));
   }
 
+  public: void TestServiceCalls()
+  {
+    ignition::msgs::StringMsg req;
+    ignition::msgs::StringMsg rep;
+    int timeout = 500;
+    bool result;
+
+    req.set_data(data);
+
+    // Advertise an illegal service name.
+    EXPECT_FALSE(node.Advertise("invalid service", &MyTestClass::Echo, this));
+
+    EXPECT_TRUE(this->node.Advertise(topic, &MyTestClass::Echo, this));
+    EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(rep.data(), data);
+  }
+
   /// \brief Member variable that flags when the callback is executed.
   public: bool callbackExecuted;
+  public: bool callbackSrvExecuted;
 
   /// \brief Transport node;
   private: transport::Node node;
@@ -402,6 +434,12 @@ TEST(NodeTest, ClassMemberCallback)
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
+
+  client.TestServiceCalls();
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_TRUE(client.callbackSrvExecuted);
 }
 
 //////////////////////////////////////////////////
