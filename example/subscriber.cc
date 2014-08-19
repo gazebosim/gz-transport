@@ -18,13 +18,12 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
-
-#include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic,
+  const ignition::transport::msgs::StringMsg &_msg)
 {
   std::cout << "Topic:" << _topic << "\n"
             << "Msg:  " << _msg.data() << "\n\n";

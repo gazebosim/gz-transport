@@ -15,12 +15,12 @@
  *
 */
 
-#include <ignition/msgs/msgs.hh>
 #include <sys/types.h>
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "stringmsg.pb.h"
 
 using namespace ignition;
 
@@ -31,7 +31,7 @@ std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const transport::msgs::StringMsg &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -70,7 +70,7 @@ TEST(ScopedTopicTest, ProcessTest)
     runSubscriber();
   else
   {
-    ignition::msgs::StringMsg msg;
+    transport::msgs::StringMsg msg;
     msg.set_data(data);
 
     transport::Node node1;

@@ -17,14 +17,12 @@
 
 #include <iostream>
 #include <string>
-
-#include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.
 void responseCb(const std::string &_topic,
-                const ignition::msgs::StringMsg &_rep, bool _result)
+                const ignition::transport::msgs::StringMsg &_rep, bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -39,7 +37,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  ignition::transport::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/echo" service.

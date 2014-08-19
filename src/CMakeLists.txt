@@ -27,7 +27,7 @@ include_directories(${CMAKE_BINARY_DIR}/msg)
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})
-target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf ignition-msgs czmq)
+target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf czmq)
 link_directories(${ROBOT_MSGS_LIBRARY_DIRS})
 ign_install_library(${PROJECT_NAME_LOWER})
 

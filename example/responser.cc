@@ -17,14 +17,14 @@
 
 #include <cstdio>
 #include <string>
-
-#include <ignition/msgs.hh>
 #include <ignition/transport.hh>
+#include <ignition/transport/msgs/stringmsg.pb.h>
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic,
+  const ignition::transport::msgs::StringMsg &_req,
+  ignition::transport::msgs::StringMsg &_rep, bool &_result)
 {
   // Set the response's content.
   _rep.set_data(_req.data());

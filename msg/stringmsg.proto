@@ -1,0 +1,8 @@
+package ignition.transport.msgs;
+
+/// \brief String message
+
+message StringMsg
+{
+  required string data = 1;
+}
