@@ -7,17 +7,28 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-TRANSPORT_CXX_FLAGS}")
 include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
-add_executable(publisher publisher.cc)
+add_subdirectory(msg)
+
+set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
+                            GENERATED TRUE)
+include_directories(${CMAKE_BINARY_DIR})
+
+add_executable(publisher publisher.cc ${PROTO_SRC})
 target_link_libraries(publisher ${IGNITION-TRANSPORT_LIBRARIES})
+add_dependencies(publisher protobuf_compilation)
 
-add_executable(subscriber subscriber.cc)
+add_executable(subscriber subscriber.cc ${PROTO_SRC})
 target_link_libraries(subscriber ${IGNITION-TRANSPORT_LIBRARIES})
+add_dependencies(subscriber protobuf_compilation)
 
-add_executable(responser responser.cc)
+add_executable(responser responser.cc ${PROTO_SRC})
 target_link_libraries(responser ${IGNITION-TRANSPORT_LIBRARIES})
+add_dependencies(responser protobuf_compilation)
 
-add_executable(requester requester.cc)
-target_link_libraries(requester ${IGNITION-TRANSPORT_LIBRARIES}})
+add_executable(requester requester.cc ${PROTO_SRC})
+target_link_libraries(requester ${IGNITION-TRANSPORT_LIBRARIES})
+add_dependencies(requester protobuf_compilation)
 
-add_executable(requester_async requester_async.cc)
+add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
+add_dependencies(requester_async protobuf_compilation)
