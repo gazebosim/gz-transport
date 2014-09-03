@@ -12,7 +12,7 @@ of libraries designed to rapidly develop robot applications.
 Please refer to the [drone.io
 job](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport).
 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/latest)
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/latest)
 
 
 ## Dependencies
@@ -31,7 +31,7 @@ source:
 
 **Note:** *if you are using an Ubuntu platform previous to Saucy, you will need to install zeromq from source, since there is no libzmq3-dev*
 
-    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev cmake ruby-ronn git mercurial libboost-all-dev libtool automake
+    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev cmake ruby-ronn git mercurial libtool automake
 
     git clone git://github.com/zeromq/czmq.git
     cd czmq
