@@ -1,0 +1,10 @@
+package ignition.transport.msgs;
+
+/// \brief Vector3D message
+
+message Vector3D
+{
+  required float x = 1;
+  required float y = 2;
+  required float z = 3;
+}

@@ -332,7 +332,7 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should not trigger a discovery response on discovery2. They are in
-  // different proccesses.
+  // different proccesses and the scope is set to "Process".
   discovery1.AdvertiseMsg("/topic2", addr1, ctrl1, nUuid1,
     transport::Scope::Process);
 
