@@ -29,68 +29,57 @@ namespace ignition
 {
   namespace transport
   {
-    //  This is the version of Gazebo transport we implement.
-    static const int Version            = 1;
-
     // Message types.
-    static const uint8_t AdvType        = 0;
-    static const uint8_t SubType        = 1;
-    static const uint8_t UnadvType      = 2;
-    static const uint8_t HeartbeatType  = 3;
-    static const uint8_t ByeType        = 4;
-    static const uint8_t AdvSrvType     = 5;
-    static const uint8_t SubSrvType     = 6;
-    static const uint8_t UnadvSrvType   = 7;
-    static const uint8_t NewConnection  = 8;
-    static const uint8_t EndConnection  = 9;
+    static const uint8_t Uninitialized  = 0;
+    static const uint8_t AdvType        = 1;
+    static const uint8_t SubType        = 2;
+    static const uint8_t UnadvType      = 3;
+    static const uint8_t HeartbeatType  = 4;
+    static const uint8_t ByeType        = 5;
+    static const uint8_t AdvSrvType     = 6;
+    static const uint8_t SubSrvType     = 7;
+    static const uint8_t UnadvSrvType   = 8;
+    static const uint8_t NewConnection  = 9;
+    static const uint8_t EndConnection  = 10;
 
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
-      "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HEARTBEAT", "BYE", "ADV_SVC",
-      "SUB_SVC", "UNADVERTISE_SVC", "NEW_CONNECTION", "END_CONNECTION"
+      "UNINITIALIZED", "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HEARTBEAT",
+      "BYE", "ADV_SRV", "SUB_SRV", "UNADVERTISE_SRV", "NEW_CONNECTION",
+      "END_CONNECTION"
     };
 
     /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
-    /// of the discovery protocol, the UUID of the sender node, the topic
-    /// contained in the message, the type of message (ADV, SUB, ... ) and
+    /// of the discovery protocol, the process UUID of the sender node, the
+    /// topic contained in the message, the type of message (ADV, SUB, ... ) and
     /// optional flags.
     class IGNITION_VISIBLE Header
     {
       /// \brief Constructor.
-      public: Header();
-
-      /// \brief Destructor.
-      public: virtual ~Header() = default;
+      public: Header() = default;
 
       /// \brief Constructor.
-      /// \param[in] _version Version of the transport library.
+      /// \param[in] _version Version of the discovery protocol.
       /// \param[in] _pUuid Every process has a unique UUID.
-      /// \param[in] _topic Topic.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
       /// \param[in] _flags Optional flags included in the header.
       public: Header(const uint16_t _version,
                      const std::string &_pUuid,
-                     const std::string &_topic,
                      const uint8_t _type,
                      const uint16_t _flags = 0);
 
-      /// \brief Get the transport library version.
-      /// \return Transport library version.
+      /// \brief Destructor.
+      public: virtual ~Header() = default;
+
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery protocol version.
       public: uint16_t GetVersion() const;
 
       /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
       public: std::string GetPUuid() const;
-
-      /// \brief Get the topic length.
-      /// \return Topic length in bytes.
-      public: uint16_t GetTopicLength() const;
-
-      /// \brief Get the topic.
-      /// \return Topic name.
-      public: std::string GetTopic() const;
 
       /// \brief Get the message type.
       /// \return Message type (ADVERTISE, SUBSCRIPTION, ...)
@@ -100,17 +89,13 @@ namespace ignition
       /// \return Message flags used for compression or other optional features.
       public: uint16_t GetFlags() const;
 
-      /// \brief Set the transport library version.
-      /// \param[in] _version Transport library version.
+      /// \brief Set the discovery protocol version.
+      /// \param[in] _version Discovery protocol version.
       public: void SetVersion(const uint16_t _version);
 
       /// \brief Set the process uuid.
       /// \param[in] _pUuid A unique global identifier for every process.
       public: void SetPUuid(const std::string &_pUuid);
-
-      /// \brief Set the topic.
-      /// \param[in] _topic Topic name.
-      public: void SetTopic(const std::string &_topic);
 
       /// \brief Set the message type.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
@@ -145,86 +130,127 @@ namespace ignition
              << "Header:" << std::endl
              << "\tVersion: " << _header.GetVersion() << "\n"
              << "\tProcess UUID: " << _header.GetPUuid() << "\n"
-             << "\tTopic length: " << _header.GetTopicLength() << "\n"
-             << "\tTopic: [" << _header.GetTopic() << "]\n"
              << "\tType: " << MsgTypesStr.at(_header.GetType()) << "\n"
              << "\tFlags: " << _header.GetFlags() << "\n";
         return _out;
       }
 
-      /// \brief Calculate the header length.
-      private: void UpdateHeaderLength();
-
-      /// \brief Version of the transport library.
-      private: uint16_t version;
-
-      /// \brief Length of the process UUID (bytes).
-      private: uint16_t pUuidLength;
+      /// \brief Discovery protocol version.
+      private: uint16_t version = 0;
 
       /// \brief Global identifier. Every process has a unique guid.
       private: std::string pUuid = "";
 
-      /// \brief Topic length in bytes.
-      private: uint16_t topicLength;
-
-      /// \brief Topic.
-      private: std::string topic;
-
       /// \brief Message type (ADVERTISE, SUBSCRIPTION, ...).
-      private: uint8_t type;
+      private: uint8_t type = Uninitialized;
 
       /// \brief Optional flags that you want to include in the header.
-      private: uint16_t flags;
-
-      /// \brief Header length.
-      private: int headerLength;
+      private: uint16_t flags = 0;
     };
 
-    /// \class AdvMsg Packet.hh ignition/transport/Packet.hh
-    /// \brief Advertise message used in the discovery protocol to broadcast
-    /// information about the node advertising a topic. The information sent
-    /// is the ZeroMQ end point address where the node will be receiving
-    /// subscription requests.
-    class IGNITION_VISIBLE AdvMsg
+    /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
+    /// \brief Subscription packet used in the discovery protocol for requesting
+    /// information about a given topic.
+    class IGNITION_VISIBLE SubscriptionMsg
     {
       /// \brief Constructor.
-      public: AdvMsg();
+      public: SubscriptionMsg() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
-      /// \param[in] _address ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
-      /// \param[in] _controlAddress ZeroMQ control address.
-      /// \param[in] _nodeUuid Node's UUID.
-      /// \param[in] _scope Topic scope.
-      public: AdvMsg(const Header &_header,
-                     const std::string &_address,
-                     const std::string &_controlAddress,
-                     const std::string &_nodeUuid,
-                     const Scope &_scope);
+      /// \param[in] _topic Topic name.
+      public: SubscriptionMsg(const Header &_header,
+                              const std::string &_topic);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
       public: Header GetHeader() const;
 
-      /// \brief Get the address length.
-      /// \brief Return the ZMQ address length (num of bytes).
-      public: uint16_t GetAddressLength() const;
+      /// \brief Get the topic.
+      /// \return Topic name.
+      public: std::string GetTopic() const;
+
+      /// \brief Set the header of the message.
+      /// \param[in] _header Message header.
+      public: void SetHeader(const Header &_header);
+
+      /// \brief Set the topic.
+      /// \param[in] _topic Topic name.
+      public: void SetTopic(const std::string &_topic);
+
+      /// \brief Get the total length of the message.
+      /// \return Return the length of the message in bytes.
+      public: size_t GetMsgLength();
+
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg SubscriptionMsg message to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const SubscriptionMsg &_msg)
+      {
+        _out << _msg.GetHeader()
+             << "Body:" << std::endl
+             << "\tTopic: [" << _msg.GetTopic() << "]" << std::endl;
+
+        return _out;
+      }
+
+      /// \brief Serialize the subscription message.
+      /// \param[out] _buffer Buffer where the message will be serialized.
+      /// \return The length of the serialized message in bytes.
+      public: size_t Pack(char *_buffer);
+
+      /// \brief Unserialize a stream of bytes into a Sub.
+      /// \param[out] _buffer Unpack the body from the buffer.
+      /// \return The number of bytes from the body.
+      public: size_t UnpackBody(char *_buffer);
+
+      /// \brief Message header.
+      private: Header header;
+
+      /// \brief Topic.
+      private: std::string topic = "";
+    };
+
+    /// \class AdvertiseBase Packet.hh ignition/transport/Packet.hh
+    /// \brief Advertise base message used as part of an advertise message or an
+    /// advertise service. It stores information about the node's address
+    /// advertising the message/service, its control address, node UUID and
+    /// topic scope.
+    class IGNITION_VISIBLE AdvertiseBase
+    {
+      /// \brief Constructor.
+      protected: AdvertiseBase() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _header Message header.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
+      /// \param[in] _ctrl ZeroMQ control address.
+      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _scope Topic scope.
+      protected: AdvertiseBase(const Header &_header,
+                               const std::string &_topic,
+                               const std::string &_addr,
+                               const std::string &_ctrl,
+                               const std::string &_nUuid,
+                               const Scope &_scope);
+
+      /// \brief Get the message header.
+      /// \return Reference to the message header.
+      public: Header GetHeader() const;
+
+      /// \brief Get the topic.
+      /// \return Topic name.
+      public: std::string GetTopic() const;
 
       /// \brief Get the ZMQ address.
       /// \return Return the ZMQ address.
       public: std::string GetAddress() const;
 
-      /// \brief Get the control address length.
-      /// \brief Return the ZMQ control address length (num of bytes).
-      public: uint16_t GetControlAddressLength() const;
-
       /// \brief Get the ZMQ control address.
       /// \return Return the ZMQ control address.
       public: std::string GetControlAddress() const;
-
-      /// \brief Get the node UUID length.
-      /// \brief Return the node UUID length (num of bytes).
-      public: uint16_t GetNodeUuidLength() const;
 
       /// \brief Get the node UUID.
       /// \return Return the node UUID.
@@ -238,13 +264,17 @@ namespace ignition
       /// \param[in] _header Message header.
       public: void SetHeader(const Header &_header);
 
+      /// \brief Set the topic.
+      /// \param[in] _topic Topic name.
+      public: void SetTopic(const std::string &_topic);
+
       /// \brief Set the ZMQ address.
-      /// \param[in] _address ZMQ address to be contained in the message.
-      public: void SetAddress(const std::string &_address);
+      /// \param[in] _addr ZMQ address to be contained in the message.
+      public: void SetAddress(const std::string &_addr);
 
       /// \brief Set the ZMQ control address.
-      /// \param[in] _address ZMQ control address to be contained in the msg.
-      public: void SetControlAddress(const std::string &_address);
+      /// \param[in] _ctrl ZMQ control address to be contained in the message.
+      public: void SetControlAddress(const std::string &_ctrl);
 
       /// \brief Set the node UUID.
       /// \param[in] _nUuid Node UUID.
@@ -260,20 +290,16 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg AdvMsg to write to the stream.
+      /// \param[in] _msg AdvertiseBase to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const AdvMsg &_msg)
+                                              const AdvertiseBase &_msg)
       {
         _out << _msg.GetHeader()
              << "Body:" << std::endl
-             << "\tAddr size: " << _msg.GetAddressLength() << std::endl
+             << "\tTopic: [" << _msg.GetTopic() << "]\n"
              << "\tAddress: " << _msg.GetAddress() << std::endl
-             << "\tControl addr size: "
-             << _msg.GetControlAddressLength() << std::endl
-             << "\tControl address: "
-             << _msg.GetControlAddress() << std::endl
-             << "\tNode UUID: "
-             << _msg.GetNodeUuid() << std::endl
+             << "\tControl address: " << _msg.GetControlAddress() << std::endl
+             << "\tNode UUID: " << _msg.GetNodeUuid() << std::endl
              << "\tTopic Scope: ";
         if (_msg.GetScope() == Scope::Process)
           _out << "Process" << std::endl;
@@ -285,45 +311,160 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the AdvMsg.
+      /// \brief Serialize the message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
       public: size_t Pack(char *_buffer);
 
-      /// \brief Unserialize a stream of bytes into a AdvMsg.
+      /// \brief Unserialize a stream of bytes into an AdvertiseBase.
       /// \param[out] _buffer Unpack the body from the buffer.
       /// \return The number of bytes from the body.
       public: size_t UnpackBody(char *_buffer);
 
-      /// \brief Update the ADV message length.
-      private: void UpdateMsgLength();
-
       /// \brief Message header.
       private: Header header;
 
-      /// \brief Length of the address contained in this message (bytes).
-      private: uint16_t addressLength;
+      /// \brief Topic.
+      private: std::string topic = "";
 
       /// \brief ZMQ valid address (e.g., "tcp://10.0.0.1:6000").
-      private: std::string address;
-
-      /// \brief Length of the address contained in this message (bytes).
-      private: uint16_t controlAddressLength;
+      private: std::string addr = "";
 
       /// \brief ZMQ valid address (e.g., "tcp://10.0.0.1:6000").
-      private: std::string controlAddress;
-
-      /// \brief Length of the node UUID (bytes).
-      private: uint16_t nodeUuidLength;
+      private: std::string ctrl = "";
 
       /// \brief Node's UUID.
-      private: std::string nodeUuid;
+      private: std::string nUuid = "";
 
       // Topic scope;
-      private: Scope scope;
+      private: Scope scope = Scope::All;
+    };
 
-      /// \brief Length of the message in bytes.
-      private: int msgLength;
+    /// \class AdvertiseMsg Packet.hh ignition/transport/Packet.hh
+    /// \brief Advertise packet used in the discovery protocol to broadcast
+    /// information about the node advertising a topic. The information sent
+    /// contains the name of the protobuf message type advertised.
+    class IGNITION_VISIBLE AdvertiseMsg : public AdvertiseBase
+    {
+      /// \brief Constructor.
+      public: AdvertiseMsg() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _header Message header.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
+      /// \param[in] _ctrl ZeroMQ control address.
+      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _scope Topic scope.
+      /// \param[in] _msgTypeName Name of the protobuf message advertised.
+      public: AdvertiseMsg(const Header &_header,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           const std::string &_msgTypeName);
+
+      /// \brief Get the name of the protobuf message advertised.
+      /// \return The protobuf message type.
+      public: std::string GetMsgTypeName() const;
+
+      /// \brief Set the name of the protobuf message advertised.
+      /// \param[in] The protobuf message type.
+      public: void SetMsgTypeName(const std::string &_msgTypeName);
+
+      // Documentation inherited.
+      public: size_t GetMsgLength();
+
+      // Documentation inherited.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const AdvertiseMsg &_msg)
+      {
+         _out << static_cast<const AdvertiseBase&>(_msg)
+              << "\tMessage type: " << _msg.GetMsgTypeName() << std::endl;
+
+        return _out;
+      }
+
+      // Documentation inherited.
+      public: size_t Pack(char *_buffer);
+
+      // Documentation inherited.
+      public: size_t UnpackBody(char *_buffer);
+
+      /// \brief The name of the protobuf message advertised.
+      private: std::string msgTypeName = "";
+    };
+
+    /// \class AdvertiseSrv Packet.hh ignition/transport/Packet.hh
+    /// \brief Advertise packet used in the discovery protocol to broadcast
+    /// information about the node advertising a service. The information sent
+    /// contains the name of the protobuf messages advertised for the service
+    /// request and service response.
+    class IGNITION_VISIBLE AdvertiseSrv : public AdvertiseBase
+    {
+      /// \brief Constructor.
+      public: AdvertiseSrv() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _header Message header.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
+      /// \param[in] _ctrl ZeroMQ control address.
+      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _scope Topic scope.
+      /// \param[in] _reqTypeName Name of the request's protobuf message.
+      /// \param[in] _repTypeName Name of the response's protobuf message.
+      public: AdvertiseSrv(const Header &_header,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           const std::string &_reqTypeName,
+                           const std::string &_repTypeName);
+
+      /// \brief Get the name of the request's protobuf message advertised.
+      /// \return The protobuf message type.
+      public: std::string GetReqTypeName() const;
+
+      /// \brief Get the name of the response's protobuf message advertised.
+      /// \return The protobuf message type.
+      public: std::string GetRepTypeName() const;
+
+      /// \brief Set the name of the request's protobuf message advertised.
+      /// \param[in] The protobuf message type.
+      public: void SetReqTypeName(const std::string &_reqTypeName);
+
+      /// \brief Set the name of the response's protobuf message advertised.
+      /// \param[in] The protobuf message type.
+      public: void SetRepTypeName(const std::string &_repTypeName);
+
+      // Documentation inherited.
+      public: size_t GetMsgLength();
+
+      // Documentation inherited.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const AdvertiseSrv &_msg)
+      {
+         _out << static_cast<const AdvertiseBase&>(_msg)
+              << "\tRequest type: " << _msg.GetReqTypeName() << std::endl
+              << "\tResponse type: " << _msg.GetRepTypeName() << std::endl;
+
+        return _out;
+      }
+
+      // Documentation inherited.
+      public: size_t Pack(char *_buffer);
+
+      // Documentation inherited.
+      public: size_t UnpackBody(char *_buffer);
+
+      /// \brief The name of the request's protobuf message advertised.
+      private: std::string reqTypeName = "";
+
+      /// \brief The name of the response's protobuf message advertised.
+      private: std::string repTypeName = "";
     };
   }
 }

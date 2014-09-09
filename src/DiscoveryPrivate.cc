@@ -345,8 +345,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
   header.Unpack(_msg);
   pBody += header.GetHeaderLength();
 
-  std::string topic = header.GetTopic();
-  std::string recvPUuid = header.GetPUuid();
+  auto recvPUuid = header.GetPUuid();
 
   // Discard our own discovery messages.
   if (recvPUuid == this->pUuid)
@@ -360,9 +359,10 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case AdvType:
     case AdvSrvType:
     {
-      // Read the address.
-      AdvMsg advMsg;
+      // Read the rest of the fields.
+      AdvertiseMsg advMsg;
       advMsg.UnpackBody(pBody);
+      auto recvTopic = advMsg.GetTopic();
       auto recvAddr = advMsg.GetAddress();
       auto recvCtrl = advMsg.GetControlAddress();
       auto recvNUuid = advMsg.GetNodeUuid();
@@ -390,12 +390,12 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Register an advertised address for the topic.
-      bool added = storage->AddAddress(topic, recvAddr, recvCtrl, recvPUuid,
+      bool added = storage->AddAddress(recvTopic, recvAddr, recvCtrl, recvPUuid,
         recvNUuid, recvScope);
       if (added && cb)
       {
         // Execute the client's callback.
-        cb(topic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
+        cb(recvTopic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
       }
 
       break;
@@ -403,6 +403,11 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case SubType:
     case SubSrvType:
     {
+      // Read the rest of the fields.
+      SubscriptionMsg subMsg;
+      subMsg.UnpackBody(pBody);
+      auto recvTopic = subMsg.GetTopic();
+
       uint8_t msgType;
       TopicStorage *storage;
 
@@ -418,10 +423,10 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       }
 
       // Check if at least one of my nodes advertises the topic requested.
-      if (storage->HasAnyAddresses(topic, this->pUuid))
+      if (storage->HasAnyAddresses(recvTopic, this->pUuid))
       {
         Addresses_M addresses;
-        if (storage->GetAddresses(topic, addresses))
+        if (storage->GetAddresses(recvTopic, addresses))
         {
           for (auto nodeInfo : addresses[this->pUuid])
           {
@@ -433,7 +438,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
             }
 
             // Answer an ADVERTISE message.
-            this->SendMsg(msgType, topic, nodeInfo.addr, nodeInfo.ctrl,
+            this->SendMsg(msgType, recvTopic, nodeInfo.addr, nodeInfo.ctrl,
               nodeInfo.nUuid, nodeInfo.scope);
           }
         }
@@ -473,8 +478,9 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
     case UnadvSrvType:
     {
       // Read the address.
-      AdvMsg advMsg;
+      AdvertiseMsg advMsg;
       advMsg.UnpackBody(pBody);
+      auto recvTopic = advMsg.GetTopic();
       auto recvAddr = advMsg.GetAddress();
       auto recvCtrl = advMsg.GetControlAddress();
       auto recvNUuid = advMsg.GetNodeUuid();
@@ -504,11 +510,11 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       if (cb)
       {
         // Notify the new disconnection.
-        cb(topic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
+        cb(recvTopic, recvAddr, recvCtrl, recvPUuid, recvNUuid, recvScope);
       }
 
       // Remove the address entry for this topic.
-      storage->DelAddressByNode(topic, recvPUuid, recvNUuid);
+      storage->DelAddressByNode(recvTopic, recvPUuid, recvNUuid);
 
       break;
     }
@@ -528,7 +534,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
 
   // Create the header.
-  Header header(Version, this->pUuid, _topic, _type, _flags);
+  Header header(Version, this->pUuid, _type, _flags);
 
   switch (_type)
   {
@@ -538,7 +544,8 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     case UnadvSrvType:
     {
       // Create the [UN]ADVERTISE message.
-      AdvMsg advMsg(header, _addr, _ctrl, _nUuid, _scope);
+      AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
+        "not used");
 
       // Create a buffer and serialize the message.
       std::vector<char> buffer(advMsg.GetMsgLength());
@@ -552,6 +559,20 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     }
     case SubType:
     case SubSrvType:
+    {
+      // Create the [UN]SUBSCRIBE message.
+      SubscriptionMsg subMsg(header, _topic);
+
+      // Create a buffer and serialize the message.
+      std::vector<char> buffer(subMsg.GetMsgLength());
+      subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+      // Broadcast the message.
+      zbeacon_publish(aBeacon,
+        reinterpret_cast<unsigned char*>(&buffer[0]), subMsg.GetMsgLength());
+
+      break;
+    }
     case HeartbeatType:
     case ByeType:
     {
@@ -649,24 +670,35 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
       // Prepare the content for the beacon.
       if (!this->infoMsg.GetAddress(_topic, this->pUuid, _nUuid, node))
         return;
-      header.reset(new Header(Version, this->pUuid, _topic, AdvType));
+      header.reset(new Header(Version, this->pUuid, AdvType));
+
+      // Create the ADV message.
+      AdvertiseMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
+        node.scope, "not Used");
+      std::vector<char> buffer(advMsg.GetMsgLength());
+      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+      // Setup the beacon.
+      zbeacon_publish(
+        b, reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
     }
     else
     {
       // Prepare the content for the beacon.
       if (!this->infoSrv.GetAddress(_topic, this->pUuid, _nUuid, node))
         return;
-      header.reset(new Header(Version, this->pUuid, _topic, AdvSrvType));
+      header.reset(new Header(Version, this->pUuid, AdvSrvType));
+
+      // Create the ADV SRV message.
+      AdvertiseSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,
+        node.scope, "req not used", "rep not used");
+      std::vector<char> buffer(advSrv.GetMsgLength());
+      advSrv.Pack(reinterpret_cast<char*>(&buffer[0]));
+
+      // Setup the beacon.
+      zbeacon_publish(
+        b, reinterpret_cast<unsigned char*>(&buffer[0]), advSrv.GetMsgLength());
     }
-
-    // Create the ADVERTISE message.
-    AdvMsg advMsg(*header, node.addr, node.ctrl, node.nUuid, node.scope);
-    std::vector<char> buffer(advMsg.GetMsgLength());
-    advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-    // Setup the beacon.
-    zbeacon_publish(
-      b, reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
   }
 }
 
