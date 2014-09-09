@@ -176,18 +176,18 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
 {
   try
   {
-    zmq::message_t message;
-    message.rebuild(_topic.size() + 1);
-    memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-    this->publisher->send(message, ZMQ_SNDMORE);
+    zmq::message_t msg;
+    msg.rebuild(_topic.size());
+    memcpy(msg.data(), _topic.data(), _topic.size());
+    this->publisher->send(msg, ZMQ_SNDMORE);
 
-    message.rebuild(this->myAddress.size() + 1);
-    memcpy(message.data(), this->myAddress.c_str(), this->myAddress.size() + 1);
-    this->publisher->send(message, ZMQ_SNDMORE);
+    msg.rebuild(this->myAddress.size());
+    memcpy(msg.data(), this->myAddress.data(), this->myAddress.size());
+    this->publisher->send(msg, ZMQ_SNDMORE);
 
-    message.rebuild(_data.size() + 1);
-    memcpy(message.data(), _data.c_str(), _data.size() + 1);
-    this->publisher->send(message, 0);
+    msg.rebuild(_data.size());
+    memcpy(msg.data(), _data.data(), _data.size());
+    this->publisher->send(msg, 0);
   }
   catch(const zmq::error_t& ze)
   {
@@ -204,25 +204,25 @@ void NodeShared::RecvMsgUpdate()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  zmq::message_t message(0);
+  zmq::message_t msg(0);
   std::string topic;
   // std::string sender;
   std::string data;
 
   try
   {
-    if (!this->subscriber->recv(&message, 0))
+    if (!this->subscriber->recv(&msg, 0))
       return;
-    topic = std::string(reinterpret_cast<char *>(message.data()));
+    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
     // ToDo(caguero): Use this as extra metadata for the subscriber.
-    if (!this->subscriber->recv(&message, 0))
+    if (!this->subscriber->recv(&msg, 0))
       return;
-    // sender = std::string(reinterpret_cast<char *>(message.data()));
+    // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->subscriber->recv(&message, 0))
+    if (!this->subscriber->recv(&msg, 0))
       return;
-    data = std::string(reinterpret_cast<char *>(message.data()));
+    data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -259,7 +259,7 @@ void NodeShared::RecvControlUpdate()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  zmq::message_t message(0);
+  zmq::message_t msg(0);
   std::string topic;
   std::string procUuid;
   std::string nodeUuid;
@@ -267,21 +267,21 @@ void NodeShared::RecvControlUpdate()
 
   try
   {
-    if (!this->control->recv(&message, 0))
+    if (!this->control->recv(&msg, 0))
       return;
-    topic = std::string(reinterpret_cast<char *>(message.data()));
+    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&message, 0))
+    if (!this->control->recv(&msg, 0))
       return;
-    procUuid = std::string(reinterpret_cast<char *>(message.data()));
+    procUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&message, 0))
+    if (!this->control->recv(&msg, 0))
       return;
-    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+    nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&message, 0))
+    if (!this->control->recv(&msg, 0))
       return;
-    data = std::string(reinterpret_cast<char *>(message.data()));
+    data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -324,7 +324,7 @@ void NodeShared::RecvSrvRequest()
   if (verbose)
     std::cout << "Message received requesting a service call" << std::endl;
 
-  zmq::message_t message(0);
+  zmq::message_t msg(0);
   std::string topic;
   std::string sender;
   std::string nodeUuid;
@@ -335,25 +335,25 @@ void NodeShared::RecvSrvRequest()
 
   try
   {
-    if (!this->replier->recv(&message, 0))
+    if (!this->replier->recv(&msg, 0))
       return;
-    topic = std::string(reinterpret_cast<char *>(message.data()));
+    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->replier->recv(&message, 0))
+    if (!this->replier->recv(&msg, 0))
       return;
-    sender = std::string(reinterpret_cast<char *>(message.data()));
+    sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->replier->recv(&message, 0))
+    if (!this->replier->recv(&msg, 0))
       return;
-    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+    nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->replier->recv(&message, 0))
+    if (!this->replier->recv(&msg, 0))
       return;
-    reqUuid = std::string(reinterpret_cast<char *>(message.data()));
+    reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->replier->recv(&message, 0))
+    if (!this->replier->recv(&msg, 0))
       return;
-    req = std::string(reinterpret_cast<char *>(message.data()));
+    req = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -386,24 +386,24 @@ void NodeShared::RecvSrvRequest()
     socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
     zmq::message_t response;
-    response.rebuild(topic.size() + 1);
-    memcpy(response.data(), topic.c_str(), topic.size() + 1);
+    response.rebuild(topic.size());
+    memcpy(response.data(), topic.data(), topic.size());
     socket.send(response, ZMQ_SNDMORE);
 
-    response.rebuild(nodeUuid.size() + 1);
-    memcpy(response.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
+    response.rebuild(nodeUuid.size());
+    memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
     socket.send(response, ZMQ_SNDMORE);
 
-    response.rebuild(reqUuid.size() + 1);
-    memcpy(response.data(), reqUuid.c_str(), reqUuid.size() + 1);
+    response.rebuild(reqUuid.size());
+    memcpy(response.data(), reqUuid.data(), reqUuid.size());
     socket.send(response, ZMQ_SNDMORE);
 
-    response.rebuild(rep.size() + 1);
-    memcpy(response.data(), rep.c_str(), rep.size() + 1);
+    response.rebuild(rep.size());
+    memcpy(response.data(), rep.data(), rep.size());
     socket.send(response, ZMQ_SNDMORE);
 
-    response.rebuild(resultStr.size() + 1);
-    memcpy(response.data(), resultStr.c_str(), resultStr.size() + 1);
+    response.rebuild(resultStr.size());
+    memcpy(response.data(), resultStr.data(), resultStr.size());
     socket.send(response, 0);
   }
   else
@@ -419,7 +419,7 @@ void NodeShared::RecvSrvResponse()
   if (verbose)
     std::cout << "Message received containing a service call REP" << std::endl;
 
-  zmq::message_t message(0);
+  zmq::message_t msg(0);
   std::string topic;
   std::string nodeUuid;
   std::string reqUuid;
@@ -429,25 +429,25 @@ void NodeShared::RecvSrvResponse()
 
   try
   {
-    if (!this->requester->recv(&message, 0))
+    if (!this->requester->recv(&msg, 0))
       return;
-    topic = std::string(reinterpret_cast<char *>(message.data()));
+    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&message, 0))
+    if (!this->requester->recv(&msg, 0))
       return;
-    nodeUuid = std::string(reinterpret_cast<char *>(message.data()));
+    nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&message, 0))
+    if (!this->requester->recv(&msg, 0))
       return;
-    reqUuid = std::string(reinterpret_cast<char *>(message.data()));
+    reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&message, 0))
+    if (!this->requester->recv(&msg, 0))
       return;
-    rep = std::string(reinterpret_cast<char *>(message.data()));
+    rep = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&message, 0))
+    if (!this->requester->recv(&msg, 0))
       return;
-    resultStr = std::string(reinterpret_cast<char *>(message.data()));
+    resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     result = resultStr == "1";
   }
   catch(const zmq::error_t &_error)
@@ -523,27 +523,27 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
         int lingerVal = 200;
         socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-        zmq::message_t message;
-        message.rebuild(_topic.size() + 1);
-        memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+        zmq::message_t msg;
+        msg.rebuild(_topic.size());
+        memcpy(msg.data(), _topic.data(), _topic.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-        message.rebuild(this->myRequesterAddress.size() + 1);
-        memcpy(message.data(), this->myRequesterAddress.c_str(),
-          this->myRequesterAddress.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+        msg.rebuild(this->myRequesterAddress.size());
+        memcpy(msg.data(), this->myRequesterAddress.data(),
+          this->myRequesterAddress.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-        message.rebuild(nodeUuid.size() + 1);
-        memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+        msg.rebuild(nodeUuid.size());
+        memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-        message.rebuild(reqUuid.size() + 1);
-        memcpy(message.data(), reqUuid.c_str(), reqUuid.size() + 1);
-        socket.send(message, ZMQ_SNDMORE);
+        msg.rebuild(reqUuid.size());
+        memcpy(msg.data(), reqUuid.data(), reqUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-        message.rebuild(data.size() + 1);
-        memcpy(message.data(), data.c_str(), data.size() + 1);
-        socket.send(message, 0);
+        msg.rebuild(data.size());
+        memcpy(msg.data(), data.data(), data.size());
+        socket.send(msg, 0);
       }
       catch(const zmq::error_t& ze)
       {
@@ -614,24 +614,23 @@ void NodeShared::OnNewConnection(const std::string &_topic,
           {
             std::string nodeUuid = handler.second->GetNodeUuid();
 
-            zmq::message_t message;
-            message.rebuild(_topic.size() + 1);
-            memcpy(message.data(), _topic.c_str(), _topic.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
+            zmq::message_t msg;
+            msg.rebuild(_topic.size());
+            memcpy(msg.data(), _topic.data(), _topic.size());
+            socket.send(msg, ZMQ_SNDMORE);
 
-            message.rebuild(this->pUuid.size() + 1);
-            memcpy(message.data(), this->pUuid.c_str(),
-              this->pUuid.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
+            msg.rebuild(this->pUuid.size());
+            memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
+            socket.send(msg, ZMQ_SNDMORE);
 
-            message.rebuild(nodeUuid.size() + 1);
-            memcpy(message.data(), nodeUuid.c_str(), nodeUuid.size() + 1);
-            socket.send(message, ZMQ_SNDMORE);
+            msg.rebuild(nodeUuid.size());
+            memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+            socket.send(msg, ZMQ_SNDMORE);
 
             std::string data = std::to_string(NewConnection);
-            message.rebuild(data.size() + 1);
-            memcpy(message.data(), data.c_str(), data.size() + 1);
-            socket.send(message, 0);
+            msg.rebuild(data.size());
+            memcpy(msg.data(), data.data(), data.size());
+            socket.send(msg, 0);
           }
         }
       }
