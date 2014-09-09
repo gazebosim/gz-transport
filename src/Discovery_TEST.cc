@@ -94,12 +94,12 @@ void onDiscoveryResponse(const std::string &/*_topic*/,
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery srv call update is received.
 void onDiscoverySrvResponse(const std::string &_service,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const transport::Scope &_scope)
+  const std::string &_addr, const std::string &/*_ctrl*/,
+  const std::string &_pUuid, const std::string &_nUuid,
+  const transport::Scope &_scope)
 {
   EXPECT_EQ(_service, service);
   EXPECT_EQ(_addr, addr1);
-  EXPECT_EQ(_ctrl, ctrl1);
   EXPECT_EQ(_pUuid, pUuid1);
   EXPECT_EQ(_nUuid, nUuid1);
   EXPECT_EQ(_scope, scope);
@@ -215,13 +215,12 @@ class MyClass
   /// \brief Member function called each time a discovery update is received
   /// (services).
   public: void OnConnectSrvResponse(const std::string &_service,
-    const std::string &_addr, const std::string &_ctrl,
+    const std::string &_addr, const std::string &/*_ctrl*/,
     const std::string &_pUuid, const std::string &_nUuid,
     const transport::Scope &_scope)
   {
     EXPECT_EQ(_service, service);
     EXPECT_EQ(_addr, addr1);
-    EXPECT_EQ(_ctrl, ctrl1);
     EXPECT_EQ(_pUuid, pUuid1);
     EXPECT_EQ(_nUuid, nUuid1);
     EXPECT_EQ(_scope, scope);
@@ -570,7 +569,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   // I should not see any discovery updates.
   EXPECT_FALSE(connectionExecuted);
@@ -619,7 +618,7 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -643,7 +642,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   object.RegisterSrvConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -666,7 +665,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -706,7 +705,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.RegisterSrvDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -735,7 +734,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseSrv(service, addr1, ctrl1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);

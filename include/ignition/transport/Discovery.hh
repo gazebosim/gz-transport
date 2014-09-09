@@ -63,13 +63,11 @@ namespace ignition
 
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _addr ZeroMQ address of the service provider.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
       public: void AdvertiseSrv(const std::string &_topic,
                                 const std::string &_addr,
-                                const std::string &_ctrl,
                                 const std::string &_nUuid,
                                 const Scope &_scope = Scope::All);
 
