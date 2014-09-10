@@ -20,7 +20,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "stringmsg.pb.h"
+#include "vector3d.pb.h"
 
 using namespace ignition;
 
@@ -32,19 +32,23 @@ std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
   EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_msg.data(), data);
+  EXPECT_FLOAT_EQ(_msg.x(), 1.0);
+  EXPECT_FLOAT_EQ(_msg.y(), 2.0);
+  EXPECT_FLOAT_EQ(_msg.z(), 3.0);
   cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::StringMsg &_msg)
+void cb2(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
   EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_msg.data(), data);
+  EXPECT_FLOAT_EQ(_msg.x(), 1.0);
+  EXPECT_FLOAT_EQ(_msg.y(), 2.0);
+  EXPECT_FLOAT_EQ(_msg.z(), 3.0);
   cb2Executed = true;
 }
 
@@ -91,8 +95,10 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
     runSubscriber();
   else
   {
-    transport::msgs::StringMsg msg;
-    msg.set_data(data);
+    transport::msgs::Vector3d msg;
+    msg.set_x(1.0);
+    msg.set_y(2.0);
+    msg.set_z(3.0);
 
     transport::Node node1;
 

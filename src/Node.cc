@@ -183,7 +183,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
   // Debug output.
   // else
-  //  std::cout << "There are no remote subscribers...SKIP" << std::endl;
+  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return true;
 }
@@ -250,25 +250,25 @@ bool Node::Unsubscribe(const std::string &_topic)
 
       socket.connect(node.ctrl.c_str());
 
-      zmq::message_t message;
-      message.rebuild(scTopic.size() + 1);
-      memcpy(message.data(), scTopic.c_str(), scTopic.size() + 1);
-      socket.send(message, ZMQ_SNDMORE);
+      zmq::message_t msg;
+      msg.rebuild(scTopic.size());
+      memcpy(msg.data(), scTopic.data(), scTopic.size());
+      socket.send(msg, ZMQ_SNDMORE);
 
-      message.rebuild(this->dataPtr->shared->myAddress.size() + 1);
-      memcpy(message.data(), this->dataPtr->shared->myAddress.c_str(),
-             this->dataPtr->shared->myAddress.size() + 1);
-      socket.send(message, ZMQ_SNDMORE);
+      msg.rebuild(this->dataPtr->shared->myAddress.size());
+      memcpy(msg.data(), this->dataPtr->shared->myAddress.data(),
+             this->dataPtr->shared->myAddress.size());
+      socket.send(msg, ZMQ_SNDMORE);
 
-      message.rebuild(this->dataPtr->nUuid.size() + 1);
-      memcpy(message.data(), this->dataPtr->nUuid.c_str(),
-        this->dataPtr->nUuid.size() + 1);
-      socket.send(message, ZMQ_SNDMORE);
+      msg.rebuild(this->dataPtr->nUuid.size());
+      memcpy(msg.data(), this->dataPtr->nUuid.data(),
+             this->dataPtr->nUuid.size());
+      socket.send(msg, ZMQ_SNDMORE);
 
       std::string data = std::to_string(EndConnection);
-      message.rebuild(data.size() + 1);
-      memcpy(message.data(), data.c_str(), data.size() + 1);
-      socket.send(message, 0);
+      msg.rebuild(data.size());
+      memcpy(msg.data(), data.data(), data.size());
+      socket.send(msg, 0);
     }
   }
 

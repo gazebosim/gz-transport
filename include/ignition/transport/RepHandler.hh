@@ -136,7 +136,7 @@ namespace ignition
           // Instantiate the specific protobuf message associated to this topic.
           Rep msgRep;
 
-          auto msgReq = this->CreateMsg(_req.c_str());
+          auto msgReq = this->CreateMsg(_req);
           this->cb(_topic, *msgReq, msgRep, _result);
           msgRep.SerializeToString(&_rep);
         }
@@ -151,7 +151,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<Req> CreateMsg(const char *_data)
+      private: std::shared_ptr<Req> CreateMsg(const std::string &_data)
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Req> msgPtr(new Req());

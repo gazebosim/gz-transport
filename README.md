@@ -23,7 +23,6 @@ source:
  - uuid-dev
  - libzmq3-dev
  - czmq
- - ignition-msgs
  - cmake
  - ruby-ronn
  - mercurial
@@ -39,14 +38,6 @@ source:
     ./configure && make check
     sudo make install
     sudo ldconfig
-    cd ..
-
-    hg clone https://bitbucket.org/ignitionrobotics/ign_msgs
-    cd ign_msgs
-    mkdir build
-    cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-    sudo make install
     cd ..
 
 ## Installation

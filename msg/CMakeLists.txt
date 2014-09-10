@@ -1,6 +1,7 @@
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER
   int.proto
   stringmsg.proto
+  vector3d.proto
 )
 
 # Variables needed to propagate through modules

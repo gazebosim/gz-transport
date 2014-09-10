@@ -9,7 +9,7 @@ macro (ign_build_tests)
     endif(USE_LOW_MEMORY_TESTS)
 
     set_source_files_properties(${PROTO_SRC} PROPERTIES GENERATED TRUE)
-    
+
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file} ${PROTO_SRC})
 
     add_dependencies(${BINARY_NAME}
