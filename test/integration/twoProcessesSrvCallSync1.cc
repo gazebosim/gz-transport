@@ -16,7 +16,6 @@
 */
 
 #include <ignition/msgs.hh>
-#include <sys/types.h>
 #include <chrono>
 #include <cstdlib>
 #include <string>

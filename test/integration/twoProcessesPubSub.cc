@@ -14,11 +14,9 @@
  * limitations under the License.
  *
 */
-
-#include <ignition/msgs.hh>
-#include <sys/types.h>
-#include <chrono>
 #include <string>
+#include <chrono>
+#include <ignition/msgs.hh>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 
