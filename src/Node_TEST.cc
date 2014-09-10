@@ -110,7 +110,7 @@ class MyTestClass
 
   // Member function used as a callback for responding to a service call.
   public: void Echo(const std::string &_topic,
-    const ignition::msgs::StringMsg &_req, ignition::msgs::StringMsg &_rep,
+    const transport::msgs::StringMsg &_req, transport::msgs::StringMsg &_rep,
     bool &_result)
   {
     EXPECT_EQ(_topic, topic);
@@ -144,8 +144,8 @@ class MyTestClass
 
   public: void TestServiceCall()
   {
-    ignition::msgs::StringMsg req;
-    ignition::msgs::StringMsg rep;
+    transport::msgs::StringMsg req;
+    transport::msgs::StringMsg rep;
     int timeout = 500;
     bool result;
 
