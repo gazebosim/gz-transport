@@ -21,17 +21,17 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "stringmsg.pb.h"
+#include "int.pb.h"
 
 using namespace ignition;
 
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::StringMsg &_req,
-  transport::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
@@ -72,8 +72,8 @@ TEST(twoProcSrvCallSync2, SrvTwoProcs)
   else
   {
     unsigned int timeout = 1000;
-    transport::msgs::StringMsg req;
-    transport::msgs::StringMsg rep;
+    transport::msgs::Int req;
+    transport::msgs::Int rep;
     bool result;
 
     req.set_data(data);
