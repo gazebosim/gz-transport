@@ -106,6 +106,8 @@ namespace ignition
       /// \return True when at least one address was removed or false otherwise.
       public: bool DelAddressesByProc(const std::string &_pUuid);
 
+      public: void GetTopicList(std::vector<std::string> &_topics);
+
       /// \brief Print all the information for debugging purposes.
       public: void Print();
 

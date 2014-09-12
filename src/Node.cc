@@ -313,3 +313,10 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 
   return true;
 }
+
+//////////////////////////////////////////////////
+void Node::GetTopicList(std::vector<std::string> &_topics)
+{
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  this->dataPtr->shared->discovery->GetTopicList(_topics);
+}

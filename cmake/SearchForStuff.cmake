@@ -70,7 +70,7 @@ endif()
 
 #################################################
 # Find czmq
-# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0 
+# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0
 # See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
 if(APPLE)
   pkg_check_modules(czmq libczmq>=3.0.0)
@@ -98,6 +98,18 @@ else ()
   message (STATUS "Looking for uuid pkgconfig file - found")
   include_directories(${uuid_INCLUDE_DIRS})
   link_directories(${uuid_LIBRARY_DIRS})
+endif ()
+
+#################################################
+# Find tclap:
+pkg_check_modules(tclap tclap)
+
+if (NOT tclap_FOUND)
+  message (STATUS "Looking for tclap pkgconfig file - not found")
+  BUILD_ERROR ("tclap not found, Please install libtclap-dev")
+else ()
+  message (STATUS "Looking for tclap pkgconfig file - found")
+  include_directories(${tclap_INCLUDE_DIRS})
 endif ()
 
 ########################################

@@ -1,0 +1,6 @@
+--- # Subcommands available inside ignition-transport.
+
+library: libignition-transport.so
+commands:
+    - topic   : Print information about topics
+---

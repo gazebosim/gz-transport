@@ -175,3 +175,10 @@ void Discovery::SetDisconnectionsSrvCb(const DiscoveryCallback &_cb)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionSrvCb = _cb;
 }
+
+//////////////////////////////////////////////////
+void Discovery::GetTopicList(std::vector<std::string> &_topics)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->infoMsg.GetTopicList(_topics);
+}

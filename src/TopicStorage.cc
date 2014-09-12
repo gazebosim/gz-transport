@@ -190,6 +190,13 @@ bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 }
 
 //////////////////////////////////////////////////
+void TopicStorage::GetTopicList(std::vector<std::string> &_topics)
+{
+  for (auto &topic : this->data)
+    _topics.push_back(topic.first);
+}
+
+//////////////////////////////////////////////////
 void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;

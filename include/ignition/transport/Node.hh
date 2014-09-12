@@ -512,6 +512,8 @@ namespace ignition
       /// \return true if the service was successfully unadvertised.
       public: bool UnadvertiseSrv(const std::string &_topic);
 
+      public: void GetTopicList(std::vector<std::string> &_topics);
+
       /// \internal
       /// \brief Pointer to private data.
       protected: NodePrivatePtr dataPtr;

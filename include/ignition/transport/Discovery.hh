@@ -293,6 +293,8 @@ namespace ignition
             std::placeholders::_6));
       }
 
+      public: void GetTopicList(std::vector<std::string> &_topics);
+
       /// \internal
       /// \brief Shared pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;

@@ -249,6 +249,7 @@ else (build_errors)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
     add_subdirectory(include)
+    add_subdirectory(conf)
     add_subdirectory(test)
   endif (BUILD_IGNITION)
 
@@ -273,6 +274,9 @@ else (build_errors)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
     DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
     COMPONENT cmake)
+
+  # Also install the yaml configuration files in an unversioned location
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/conf/transport.yaml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ign-transport/)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
