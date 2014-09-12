@@ -15,7 +15,6 @@
  *
 */
 
-#include <sys/types.h>
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
