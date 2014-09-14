@@ -9,7 +9,6 @@ set(tests
   twoProcessesSrvCallSync2.cc
 )
 
-include_directories("${PROJECT_SOURCE_DIR}/test/gtest/include")
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)
 link_directories(${PROJECT_BINARY_DIR}/test)
 
