@@ -19,7 +19,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "int.pb.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 

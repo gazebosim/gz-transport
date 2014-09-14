@@ -22,7 +22,7 @@
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
-#include "int.pb.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 

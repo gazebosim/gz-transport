@@ -23,7 +23,7 @@ set (gtest_sources
 
 set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
                             GENERATED TRUE)
-include_directories(${CMAKE_BINARY_DIR}/test/msg)
+include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})

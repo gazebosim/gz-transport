@@ -22,8 +22,8 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
-#include "int.pb.h"
-#include "vector3d.pb.h"
+#include "msg/int.pb.h"
+#include "msg/vector3d.pb.h"
 
 using namespace ignition;
 
