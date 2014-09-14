@@ -14,4 +14,4 @@ set(PROTO_HEADER ${PROTO_HEADER} PARENT_SCOPE)
 add_custom_target(protobuf_compilation DEPENDS ${PROTO_SRC})
 
 # Used by the examples.
-ign_install_includes(${IGN_PROJECT_NAME}/msgs ${PROTO_HEADER})
+ign_install_includes(${IGN_PROJECT_NAME}/test/msgs ${PROTO_HEADER})

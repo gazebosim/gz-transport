@@ -247,7 +247,7 @@ else (build_errors)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
-    add_subdirectory(msg)
+    add_subdirectory(test/msg)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(test)
