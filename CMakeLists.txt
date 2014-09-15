@@ -276,7 +276,7 @@ else (build_errors)
     COMPONENT cmake)
 
   # Also install the yaml configuration files in an unversioned location
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/conf/transport.yaml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ign-transport/)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/conf/transport.yaml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
