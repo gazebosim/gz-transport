@@ -33,7 +33,7 @@ bool cb2Executed;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
-bool terminate = false;
+bool terminatePub = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -44,7 +44,7 @@ void reset()
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  terminate = false;
+  terminatePub = false;
 }
 
 //////////////////////////////////////////////////
@@ -653,7 +653,7 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
-  while (!terminate)
+  while (!terminatePub)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
@@ -666,7 +666,7 @@ void createInfinitePublisher()
 void signal_handler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
-    terminate = true;
+    terminatePub = true;
 }
 
 //////////////////////////////////////////////////

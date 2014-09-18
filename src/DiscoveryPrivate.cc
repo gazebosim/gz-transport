@@ -15,7 +15,7 @@
  *
 */
 
-#include <czmq.h>
+//#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <chrono>
@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/DiscoveryPrivate.hh"
+#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -32,7 +33,8 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
-  : pUuid(_pUuid),
+  : bcastAddr(BcastIP),
+    pUuid(_pUuid),
     silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     advertiseInterval(DefAdvertiseInterval),
@@ -40,20 +42,22 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     connectionCb(nullptr),
     disconnectionCb(nullptr),
     verbose(_verbose),
+    bcastSockIn(new UDPSocket(DiscoveryPort)),
     exit(false)
 {
   // We need this environment variable in order to disable the signal capture
   // in czmq.
   putenv(const_cast<char*>("ZSYS_SIGHANDLER=true"));
 
-  this->ctx = zctx_new();
+  //this->ctx = zctx_new();
 
   // Discovery beacon.
-  this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
-  zbeacon_subscribe(this->beacon, NULL, 0);
+  //this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
+  //zbeacon_subscribe(this->beacon, NULL, 0);
 
   // Get this host IP address.
-  this->hostAddr = this->GetHostAddr();
+  // this->hostAddr = this->GetHostAddr();
+  this->hostAddr = DetermineHost();
 
   // Start the thread that receives discovery information.
   this->threadReception =
@@ -90,7 +94,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Stop all the beacons.
-  for (auto &topic : this->beacons)
+  /*for (auto &topic : this->beacons)
   {
     for (auto &proc : topic.second)
     {
@@ -102,7 +106,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
   }
 
   zbeacon_destroy(&this->beacon);
-  zctx_destroy(&this->ctx);
+  zctx_destroy(&this->ctx);*/
 }
 
 //////////////////////////////////////////////////
@@ -123,7 +127,11 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
     return;
 
   // Broadcast periodically my topic information.
-  this->NewBeacon(_advType, _topic, _nUuid);
+  // this->NewBeacon(_advType, _topic, _nUuid);
+  if (_advType == MsgType::Msg)
+    this->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  else
+    this->SendMsg(AdvSrvType, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
@@ -161,7 +169,7 @@ void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
   this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
 
   // Remove the beacon for this topic in this node.
-  this->DelBeacon(_topic, _nUuid);
+  // this->DelBeacon(_topic, _nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -264,9 +272,34 @@ void DiscoveryPrivate::RunHeartbeatTask()
 {
   while (true)
   {
-    this->mutex.lock();
-    this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
-    this->mutex.unlock();
+    {
+      std::lock_guard<std::mutex> lock(this->mutex);
+
+      this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
+
+      // Re-advertise topics that are advertised inside this process.
+      std::map<std::string, std::vector<Address_t>> nodes;
+      this->infoMsg.GetAddressesByProc(this->pUuid, nodes);
+      for (auto &topic : nodes)
+      {
+        for (auto &node : topic.second)
+        {
+          this->SendMsg(AdvType, topic.first, node.addr, node.ctrl, node.nUuid,
+            node.scope);
+        }
+      }
+
+      // Re-advertise services that are advertised inside this process.
+      this->infoSrv.GetAddressesByProc(this->pUuid, nodes);
+      for (auto &topic : nodes)
+      {
+        for (auto &node : topic.second)
+        {
+          this->SendMsg(AdvSrvType, topic.first, node.addr, node.ctrl, node.nUuid,
+            node.scope);
+        }
+      }
+    }
 
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->heartbeatInterval));
@@ -288,7 +321,8 @@ void DiscoveryPrivate::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
+      {0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0},
+      //{zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -313,7 +347,32 @@ void DiscoveryPrivate::RunReceptionTask()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  char rcvStr[this->MaxRcvStr];
+  std::string srcAddr;
+  unsigned short srcPort;
+  int bytes;
+
+  try
+  {
+    bytes = this->bcastSockIn->recvFrom(rcvStr, this->MaxRcvStr, srcAddr,
+                                        srcPort);
+  }
+  catch(const SocketException &_e)
+  {
+    std::cerr << "Exception receiving from the UDP discovery socket: "
+              << _e.what() << std::endl;
+    return;
+  }
+
+  if (this->verbose)
+  {
+    std::cout << "\nReceived discovery update from " << srcAddr << ": "
+              << srcPort << "(" << bytes << " bytes)" << std::endl;
+  }
+
+  this->DispatchDiscoveryMsg(srcAddr, rcvStr);
+
+  /*std::lock_guard<std::mutex> lock(this->mutex);
 
   // Address of datagram source.
   char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
@@ -331,7 +390,7 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
     reinterpret_cast<char*>(&data[0]));
 
   zstr_free(&srcAddr);
-  zframe_destroy(&frame);
+  zframe_destroy(&frame);*/
 }
 
 //////////////////////////////////////////////////
@@ -340,6 +399,8 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
 {
   Header header;
   char *pBody = _msg;
+
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   // Create the header from the raw bytes.
   header.Unpack(_msg);
@@ -392,6 +453,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       // Register an advertised address for the topic.
       bool added = storage->AddAddress(recvTopic, recvAddr, recvCtrl, recvPUuid,
         recvNUuid, recvScope);
+
       if (added && cb)
       {
         // Execute the client's callback.
@@ -531,10 +593,12 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope, int _flags)
 {
-  zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
+  // zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
 
   // Create the header.
   Header header(Version, this->pUuid, _type, _flags);
+  size_t msgLength = 0;
+  std::vector<char> buffer;
 
   switch (_type)
   {
@@ -547,13 +611,13 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
         "not used");
 
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(advMsg.GetMsgLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(advMsg.GetMsgLength());
       advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
+      msgLength = advMsg.GetMsgLength();
       // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
+      //zbeacon_publish(aBeacon,
+      //  reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
 
       break;
     }
@@ -563,37 +627,48 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       // Create the [UN]SUBSCRIBE message.
       SubscriptionMsg subMsg(header, _topic);
 
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(subMsg.GetMsgLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(subMsg.GetMsgLength());
       subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
+      msgLength = subMsg.GetMsgLength();
       // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), subMsg.GetMsgLength());
+      // zbeacon_publish(aBeacon,
+      //   reinterpret_cast<unsigned char*>(&buffer[0]), subMsg.GetMsgLength());
 
       break;
     }
     case HeartbeatType:
     case ByeType:
     {
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(header.GetHeaderLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(header.GetHeaderLength());
       header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
+      msgLength = header.GetHeaderLength();
       // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
+      // zbeacon_publish(aBeacon,
+      //   reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
 
       break;
     }
     default:
       std::cerr << "DiscoveryPrivate::SendMsg() error: Unrecognized message"
                 << " type [" << _type << "]" << std::endl;
-      break;
+      return;
   }
 
-  zbeacon_silence(aBeacon);
-  zbeacon_destroy(&aBeacon);
+  // Broadcast the message.
+  try
+  {
+    this->bcastSockOut.sendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
+      msgLength, this->bcastAddr, this->DiscoveryPort);
+  }
+  catch(const SocketException &_e)
+  {
+    std::cerr << "Exception sending a message: " << _e.what() << std::endl;
+    return;
+  }
+  // zbeacon_silence(aBeacon);
+  // zbeacon_destroy(&aBeacon);
 
   if (this->verbose)
   {
@@ -605,8 +680,9 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 //////////////////////////////////////////////////
 std::string DiscoveryPrivate::GetHostAddr()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
-  return zbeacon_hostname(this->beacon);
+  //std::lock_guard<std::mutex> lock(this->mutex);
+  //return zbeacon_hostname(this->beacon);
+  return this->hostAddr;
 }
 
 //////////////////////////////////////////////////
@@ -649,7 +725,7 @@ void DiscoveryPrivate::PrintCurrentState()
 }
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
+/*void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
   const std::string &_topic, const std::string &_nUuid)
 {
   std::unique_ptr<Header> header;
@@ -700,10 +776,10 @@ void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
         b, reinterpret_cast<unsigned char*>(&buffer[0]), advSrv.GetMsgLength());
     }
   }
-}
+}*/
 
 //////////////////////////////////////////////////
-void DiscoveryPrivate::DelBeacon(const std::string &_topic,
+/*void DiscoveryPrivate::DelBeacon(const std::string &_topic,
                                  const std::string &_nUuid)
 {
   if (this->beacons.find(_topic) == this->beacons.end())
@@ -723,4 +799,4 @@ void DiscoveryPrivate::DelBeacon(const std::string &_topic,
   this->beacons[_topic].erase(_nUuid);
   if (this->beacons[_topic].empty())
     this->beacons.erase(_topic);
-}
+}*/
