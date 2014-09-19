@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#include <string>
 #include <chrono>
-#include <ignition/msgs.hh>
+#include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -28,10 +28,9 @@ bool cb2Executed;
 std::string topic = "/foo";
 std::string data = "bar";
 
-
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::Vector3d &_msg)
+void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
@@ -42,7 +41,7 @@ void cb(const std::string &_topic, const ignition::msgs::Vector3d &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic, const ignition::msgs::Vector3d &_msg)
+void cb2(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
@@ -94,7 +93,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
     runSubscriber();
   else
   {
-    ignition::msgs::Vector3d msg;
+    transport::msgs::Vector3d msg;
     msg.set_x(1.0);
     msg.set_y(2.0);
     msg.set_z(3.0);

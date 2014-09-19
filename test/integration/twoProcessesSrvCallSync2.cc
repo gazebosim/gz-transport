@@ -14,23 +14,22 @@
  * limitations under the License.
  *
 */
-
-#include <ignition/msgs.hh>
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
@@ -71,8 +70,8 @@ TEST(twoProcSrvCallSync2, SrvTwoProcs)
   else
   {
     unsigned int timeout = 1000;
-    ignition::msgs::StringMsg req;
-    ignition::msgs::StringMsg rep;
+    transport::msgs::Int req;
+    transport::msgs::Int rep;
     bool result;
 
     req.set_data(data);

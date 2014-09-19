@@ -15,22 +15,22 @@
  *
 */
 
-#include <ignition/msgs/msgs.hh>
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
 bool cbExecuted;
 
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -69,7 +69,7 @@ TEST(ScopedTopicTest, ProcessTest)
     runSubscriber();
   else
   {
-    ignition::msgs::StringMsg msg;
+    transport::msgs::Int msg;
     msg.set_data(data);
 
     transport::Node node1;

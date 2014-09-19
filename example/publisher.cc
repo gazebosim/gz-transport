@@ -16,9 +16,8 @@
 */
 
 #include <csignal>
-
-#include <ignition/msgs.hh>
 #include <ignition/transport.hh>
+#include "msg/stringmsg.pb.h"
 
 bool terminate = false;
 
@@ -43,7 +42,7 @@ int main(int argc, char **argv)
   node.Advertise("/foo");
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  example::mymsgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.

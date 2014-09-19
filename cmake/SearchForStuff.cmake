@@ -33,16 +33,6 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
   BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
 endif()
 
-########################################
-# ignition-msgs used for testing
-find_package(ignition-msgs QUIET REQUIRED)
-if (NOT ignition-msgs_FOUND)
-  BUILD_ERROR ("ignition-msgs not found.")
-else()
-  include_directories(${IGNITION-MSGS_INCLUDE_DIRS})
-  link_directories(${IGNITION-MSGS_LIBRARY_DIRS})
-endif ()
-
 #################################################
 # Find ZeroMQ.
 pkg_check_modules(zmq libzmq>=3.2.0)
