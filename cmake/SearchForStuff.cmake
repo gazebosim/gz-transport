@@ -2,7 +2,9 @@ include (${project_cmake_dir}/Utils.cmake)
 include (CheckCXXSourceCompiles)
 
 include (${project_cmake_dir}/FindOS.cmake)
-include (FindPkgConfig)
+if (UNIX)
+  include (FindPkgConfig REQUIRED)
+endif()
 
 # It is know that raring compiler 4.7.3 is not able to compile the software
 # Check for a fully valid c++11 compiler
