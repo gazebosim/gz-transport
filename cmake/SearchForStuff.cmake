@@ -16,21 +16,16 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 ########################################
-if (PROTOBUF_VERSION LESS 2.3.0)
-  BUILD_ERROR("Incorrect version: Gazebo requires protobuf version 2.3.0 or greater")
+# The Google Protobuf library for message generation + serialization
+if (UNIX)
+  # On UNIX, prefer to use system cmake module.
+  find_package(Protobuf REQUIRED)
+else()
+  include (${project_cmake_dir}/FindProtobuf.cmake)
 endif()
 
-########################################
-# The Google Protobuf library for message generation + serialization
-find_package(Protobuf REQUIRED)
-if (NOT PROTOBUF_FOUND)
-  BUILD_ERROR ("Missing: Google Protobuf (libprotobuf-dev)")
-endif()
 if (NOT PROTOBUF_PROTOC_EXECUTABLE)
   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
-endif()
-if (NOT PROTOBUF_PROTOC_LIBRARY)
-  BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
 endif()
 
 #################################################
