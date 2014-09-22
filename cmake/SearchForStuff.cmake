@@ -21,7 +21,7 @@ endif()
 # The Google Protobuf library for message generation + serialization
 if (UNIX)
   # On UNIX, prefer to use system cmake module.
-  find_package(Protobuf REQUIRED)
+  find_package(Protobuf)
 else()
   include (${project_cmake_dir}/FindProtobuf.cmake)
 endif()
@@ -59,7 +59,7 @@ endif()
 # See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
 if(APPLE)
   pkg_check_modules(czmq libczmq>=3.0.0)
-else()
+else(UNIX)
   pkg_check_modules(czmq libczmq>=2.0.0)
 endif()
 
@@ -74,7 +74,9 @@ endif ()
 
 #################################################
 # Find uuid:
-pkg_check_modules(uuid uuid)
+if (UNIX)
+  pkg_check_modules(uuid uuid)
+endif()
 
 if (NOT uuid_FOUND)
   message (STATUS "Looking for uuid pkgconfig file - not found")
