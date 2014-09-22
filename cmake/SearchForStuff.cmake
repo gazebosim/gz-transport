@@ -59,7 +59,7 @@ endif()
 # See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
 if(APPLE)
   pkg_check_modules(czmq libczmq>=3.0.0)
-else(UNIX)
+elseif(UNIX)
   pkg_check_modules(czmq libczmq>=2.0.0)
 endif()
 
