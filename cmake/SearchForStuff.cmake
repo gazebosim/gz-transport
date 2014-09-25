@@ -29,18 +29,19 @@ endif()
 if (NOT PROTOBUF_PROTOC_EXECUTABLE)
   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
 endif()
+if (NOT PROTOBUF_PROTOC_LIBRARY)
+  BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
+endif()
 
 #################################################
 # Find ZeroMQ.
-pkg_check_modules(zmq libzmq>=3.2.0)
+include (${project_cmake_dir}/FindZeroMQ.cmake)
 
-if (NOT zmq_FOUND)
-  message (STATUS "Looking for zmq pkgconfig file - not found")
+if (NOT ZeroMQ_FOUND)
   BUILD_ERROR ("zmq not found, Please install zmq")
 else ()
-  message (STATUS "Looking for zmq pkgconfig file - found")
-  include_directories(${zmq_INCLUDE_DIRS})
-  link_directories(${zmq_LIBRARY_DIRS})
+  include_directories(${ZeroMQ_INCLUDE_DIRS})
+  link_directories(${ZeroMQ_LIBRARY_DIRS})
 endif ()
 
 #################################################
