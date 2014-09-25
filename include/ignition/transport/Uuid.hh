@@ -22,10 +22,13 @@
 #include <string>
 #include "ignition/transport/Helpers.hh"
 
-#ifdef WIN32 
-#else
-#include <uuid/uuid.h>
-typedef uuid_t portable_uuid_t;
+#ifdef WIN32
+  #include <Rpc.h>
+  #pragma comment(lib, "Rpcrt4.lib")
+  typedef UUID portable_uuid_t;
+#else /* UNIX */
+  #include <uuid/uuid.h>
+  typedef uuid_t portable_uuid_t;
 #endif
 
 namespace ignition
