@@ -10,7 +10,7 @@ of libraries designed to rapidly develop robot applications.
 ## Continuous integration
 
 Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport).
+job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
 
 [![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/latest)
 
