@@ -43,7 +43,15 @@ endif ()
 #################################################
 # Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
 # different upstream projects and tarballs)
-find_path(cppzmq_INCLUDE_DIRS zmq.hpp PATHS ${zmq_INCLUDE_DIRS})
+# 
+# Provide the PATH using CPPZMQ_HEADER_PATH
+#
+find_path(cppzmq_INCLUDE_DIRS 
+          zmq.hpp 
+	  PATHS 
+	   ${zmq_INCLUDE_DIRS}
+	   ${CPPZMQ_HEADER_PATH})
+
 if (NOT cppzmq_INCLUDE_DIRS)
   message(STATUS "cppzmq header file was not found")
   BUILD_ERROR("cppzmq header file was not found")
