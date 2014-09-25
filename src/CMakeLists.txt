@@ -3,9 +3,11 @@ include (${project_cmake_dir}/Utils.cmake)
 set (sources
   Discovery.cc
   DiscoveryPrivate.cc
+  NetUtils.cc
   Node.cc
   NodeShared.cc
   Packet.cc
+  socket.cc
   TopicStorage.cc
   TopicUtils.cc
   Uuid.cc
@@ -27,7 +29,7 @@ include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})
-target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf czmq)
+target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf)
 link_directories(${ROBOT_MSGS_LIBRARY_DIRS})
 ign_install_library(${PROJECT_NAME_LOWER})
 
