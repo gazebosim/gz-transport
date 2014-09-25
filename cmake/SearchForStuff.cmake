@@ -2,7 +2,6 @@ include (${project_cmake_dir}/Utils.cmake)
 include (CheckCXXSourceCompiles)
 
 include (${project_cmake_dir}/FindOS.cmake)
-include (FindPkgConfig)
 
 # It is know that raring compiler 4.7.3 is not able to compile the software
 # Check for a fully valid c++11 compiler
@@ -54,17 +53,24 @@ else()
 endif()
 
 #################################################
-# Find uuid:
-pkg_check_modules(uuid uuid)
+# Find uuid
+#  - In UNIX we use uuid library
+#  - In Windows the native RPC call, no dependency needed
+if (UNIX)
+  include (FindPkgConfig REQUIRED)
+  pkg_check_modules(uuid uuid)
 
-if (NOT uuid_FOUND)
-  message (STATUS "Looking for uuid pkgconfig file - not found")
-  BUILD_ERROR ("uuid not found, Please install uuid")
-else ()
-  message (STATUS "Looking for uuid pkgconfig file - found")
-  include_directories(${uuid_INCLUDE_DIRS})
-  link_directories(${uuid_LIBRARY_DIRS})
-endif ()
+  if (NOT uuid_FOUND)
+    message (STATUS "Looking for uuid pkgconfig file - not found")
+    BUILD_ERROR ("uuid not found, Please install uuid")
+  else ()
+    message (STATUS "Looking for uuid pkgconfig file - found")
+    include_directories(${uuid_INCLUDE_DIRS})
+    link_directories(${uuid_LIBRARY_DIRS})
+  endif ()
+elseif (MSVC)
+  message (STATUS "Using Windows RPC UuidCreate function")
+endif()
 
 ########################################
 # Include man pages stuff
