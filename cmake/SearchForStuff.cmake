@@ -35,15 +35,13 @@ endif()
 
 #################################################
 # Find ZeroMQ.
-pkg_check_modules(zmq libzmq>=3.2.0)
+include (${project_cmake_dir}/FindZeroMQ.cmake)
 
-if (NOT zmq_FOUND)
-  message (STATUS "Looking for zmq pkgconfig file - not found")
+if (NOT ZeroMQ_FOUND)
   BUILD_ERROR ("zmq not found, Please install zmq")
 else ()
-  message (STATUS "Looking for zmq pkgconfig file - found")
-  include_directories(${zmq_INCLUDE_DIRS})
-  link_directories(${zmq_LIBRARY_DIRS})
+  include_directories(${ZeroMQ_INCLUDE_DIRS})
+  link_directories(${ZeroMQ_LIBRARY_DIRS})
 endif ()
 
 #################################################
@@ -60,7 +58,7 @@ endif()
 
 #################################################
 # Find czmq
-# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0 
+# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0
 # See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
 if(APPLE)
   pkg_check_modules(czmq libczmq>=3.0.0)
