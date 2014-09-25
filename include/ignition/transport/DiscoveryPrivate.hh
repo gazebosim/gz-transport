@@ -19,7 +19,6 @@
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
 #include <czmq.h>
-#include <uuid/uuid.h>
 #include <functional>
 #include <map>
 #include <memory>

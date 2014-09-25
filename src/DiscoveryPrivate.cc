@@ -16,7 +16,6 @@
 */
 
 #include <czmq.h>
-#include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <chrono>
 #include <iostream>

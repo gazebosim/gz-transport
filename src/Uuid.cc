@@ -15,13 +15,16 @@
  *
 */
 
-#include <uuid/uuid.h>
 #include <string>
 #include <vector>
 #include "ignition/transport/Uuid.hh"
 
 using namespace ignition;
 using namespace transport;
+
+#ifdef WIN32
+#else
+/* Unix implementation using libuuid library */
 
 //////////////////////////////////////////////////
 Uuid::Uuid()
@@ -50,3 +53,5 @@ std::string Uuid::ToString() const
   // Do not include the \0 in the string.
   return std::string(uuidStr.begin(), uuidStr.end() - 1);
 }
+
+#endif
