@@ -20,10 +20,10 @@
 #else
   #include <arpa/inet.h>
   #include <netdb.h>
+  #include <unistd.h>
 #endif
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
 #include <string>
