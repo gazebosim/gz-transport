@@ -22,7 +22,7 @@
 using namespace ignition;
 using namespace transport;
 
-#ifdef WIN32
+#ifdef _WIN32
 /* Windows implementation using libuuid library */
 //////////////////////////////////////////////////
 Uuid::Uuid()

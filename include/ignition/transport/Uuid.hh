@@ -22,7 +22,7 @@
 #include <string>
 #include "ignition/transport/Helpers.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
   #include <Rpc.h>
   #pragma comment(lib, "Rpcrt4.lib")
   typedef UUID portable_uuid_t;
