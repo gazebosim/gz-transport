@@ -29,7 +29,11 @@ include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
 ign_add_library(${PROJECT_NAME_LOWER} ${sources})
-target_link_libraries(${PROJECT_NAME_LOWER} zmq uuid protobuf)
+# Protobuf module does not have LIBRARIES but LIBRARY
+target_link_libraries(${PROJECT_NAME_LOWER} 
+                      ${ZeroMQ_LIBRARIES}
+                      ${uuid_LIBRARIES}
+                      ${PROTOBUF_LIBRARY})
 ign_install_library(${PROJECT_NAME_LOWER})
 
 add_dependencies(${PROJECT_NAME_LOWER} protobuf_compilation)
