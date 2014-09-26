@@ -28,7 +28,7 @@ using namespace transport;
 Uuid::Uuid()
 {
   RPC_STATUS Result = ::UuidCreate(&this->data);
-  if Result != RPC_S_OK:
+  if (Result != RPC_S_OK)
   {
     std::cerr << "Call to UuidCreate return a non success RPC call. " << 
                  "Return code: " << Result << std::endl;
