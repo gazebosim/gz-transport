@@ -19,9 +19,9 @@
   #include <Winsock2.h>
 #else
   #include <arpa/inet.h>
+  #include <netdb.h>
 #endif
 
-#include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <cstring>
