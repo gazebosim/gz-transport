@@ -32,7 +32,8 @@ if (NOT PROTOBUF_PROTOC_LIBRARY)
   BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
 endif()
 
-include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIR})
+
 
 #################################################
 # Find ZeroMQ.
