@@ -45,7 +45,12 @@ Uuid::~Uuid()
 std::string Uuid::ToString() const
 {
   std::string uuidStr;
-  UuidToString(this->data, &uuidStr);
+  RPC_CSTR* szUuid = NULL;
+  if (::UuidToStringA(&this->data, szUuid) == RPC_S_OK)
+  {
+        uuidStr = (char*) szUuid;
+        ::RpcStringFreeA(szUuid);
+  }
 
   return uuidStr;
 }
