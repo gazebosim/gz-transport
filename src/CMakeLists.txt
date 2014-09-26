@@ -28,12 +28,26 @@ set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
 include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
-ign_add_library(${PROJECT_NAME_LOWER} ${sources})
+
+if (UNIX)
+  ign_add_library(${PROJECT_NAME_LOWER} ${sources})
+elseif(WIN32)
+  # Probotuf compilation is recommended and configured for a STATIC .lib
+  # Not mixing static and shared and just build ignition transport as STATIC
+  # on Windows
+  add_library(${PROJECT_NAME_LOWER} STATIC ${sources})
+endif()
+
 # Protobuf module does not have LIBRARIES but LIBRARY
 target_link_libraries(${PROJECT_NAME_LOWER} 
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES}
                       ${PROTOBUF_LIBRARY})
+    
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME_LOWER} wsock32 ws2_32)
+endif()
+
 ign_install_library(${PROJECT_NAME_LOWER})
 
 add_dependencies(${PROJECT_NAME_LOWER} protobuf_compilation)
