@@ -21,6 +21,8 @@
 #include "gtest/gtest.h"
 #include "msg/int.pb.h"
 
+#include "test_config.h"
+
 using namespace ignition;
 
 bool srvExecuted;

@@ -24,6 +24,18 @@
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
 
+// Implement non POSIX setenv call in Visual Studio
+#if (_MSC_VER >= 1400) // Visual Studio 2005
+#include <sstream>
+
+int setenv(const char * name, const char * value, int /*rewrite*/)
+{
+  std::stringstream sstr;
+  sstr << *name << '=' << value;
+  return _putenv(sstr.str().c_str());
+}
+#endif
+
 using namespace ignition;
 
 std::string topic = "/foo";
