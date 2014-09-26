@@ -15,7 +15,12 @@
  *
 */
 
-#include <arpa/inet.h>
+#ifdef WIN32
+  #include <Winsock2.h>
+#else
+  #include <arpa/inet.h>
+#endif
+
 #include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>

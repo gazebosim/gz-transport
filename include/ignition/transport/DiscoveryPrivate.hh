@@ -42,7 +42,7 @@ namespace ignition
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.
-      typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
+      typedef std::chrono::steady_clock::time_point Timestamp;
 
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
