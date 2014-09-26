@@ -31,7 +31,8 @@ bool TopicStorage::AddAddress(const std::string &_topic,
 {
   // The topic does not exist.
   if (this->data.find(_topic) == this->data.end())
-    this->data[_topic] = {};
+    // VS2013 is buggy with initializer list here {}
+    this->data[_topic] = Addresses_M();
 
   // Check if the process uuid exists.
   auto &m = this->data[_topic];
