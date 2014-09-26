@@ -18,12 +18,20 @@ macro (ign_build_tests)
       protobuf_compilation
       )
 
-    target_link_libraries(${BINARY_NAME}
-      ${PROJECT_NAME_LOWER}
-      libgtest.a
-      libgtest_main.a
-      pthread
+    if (UNIX)
+      target_link_libraries(${BINARY_NAME}
+        ${PROJECT_NAME_LOWER}
+        libgtest.a
+        libgtest_main.a
+        pthread
       )
+    elseif(WIN32)
+      target_link_libraries(${BINARY_NAME}
+        ${PROJECT_NAME_LOWER}
+        gtest
+        gtest_main
+      )
+    endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
 	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
