@@ -18,6 +18,9 @@ execute_process(COMMAND cmake -E remove_directory ${CMAKE_BINARY_DIR}/test_resul
 execute_process(COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/test_results)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_subdirectory(integration)
-add_subdirectory(performance)
-add_subdirectory(regression)
+# Tests are broken on Windows since they use fork 
+if (NOT MSVC)
+  add_subdirectory(integration)
+  add_subdirectory(performance)
+  add_subdirectory(regression)
+endif()
