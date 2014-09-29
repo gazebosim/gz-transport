@@ -50,11 +50,16 @@ NodeShared::NodeShared()
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
-    requester(new zmq::socket_t(*context, ZMQ_DEALER)),
-    replier(new zmq::socket_t(*context, ZMQ_DEALER)),
+    requester(new zmq::socket_t(*context, ZMQ_XREQ)),
+    replier(new zmq::socket_t(*context, ZMQ_XREP)),
     timeout(Timeout),
     exit(false)
 {
+  //zmq_ctx_set(this->context.get(), ZMQ_MAX_SOCKETS, 1024);
+  //int max_sockets = zmq_ctx_get(this->context.get(), ZMQ_MAX_SOCKETS);
+  //std::cout << "Max sockets: " << max_sockets << std::endl;
+  //assert (max_sockets == 1024);
+
   // If IGN_VERBOSE=1 enable the verbose mode.
   char const *tmp = std::getenv("IGN_VERBOSE");
   if (tmp)
@@ -151,6 +156,8 @@ void NodeShared::RunReceptionTask()
       {*this->requester, 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+
+    std::cout << "Poll exits" << std::endl;
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
@@ -321,7 +328,7 @@ void NodeShared::RecvSrvRequest()
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  if (verbose)
+  //if (verbose)
     std::cout << "Message received requesting a service call" << std::endl;
 
   zmq::message_t msg(0);
@@ -362,6 +369,8 @@ void NodeShared::RecvSrvRequest()
     return;
   }
 
+  std::cout << "Req received: " << reqUuid << std::endl;
+
   // Get the REP handler.
   IRepHandlerPtr repHandler;
   if (this->repliers.GetHandler(topic, repHandler))
@@ -376,35 +385,36 @@ void NodeShared::RecvSrvRequest()
       resultStr = "0";
 
     // Send the reply.
-    zmq::socket_t socket(*this->context, ZMQ_DEALER);
-    socket.connect(sender.c_str());
+    //zmq::context_t ctx;
+    //zmq::socket_t socket(ctx, ZMQ_DEALER);
+    //socket.connect(sender.c_str());
 
     // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
     // be discarded immediately when the socket is closed. That avoids
     // infinite waits if the publisher is disconnected.
-    int lingerVal = 200;
-    socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    //int lingerVal = 200;
+    //socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
     zmq::message_t response;
     response.rebuild(topic.size());
     memcpy(response.data(), topic.data(), topic.size());
-    socket.send(response, ZMQ_SNDMORE);
+    this->replier->send(response, ZMQ_SNDMORE);
 
     response.rebuild(nodeUuid.size());
     memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
-    socket.send(response, ZMQ_SNDMORE);
+    this->replier->send(response, ZMQ_SNDMORE);
 
     response.rebuild(reqUuid.size());
     memcpy(response.data(), reqUuid.data(), reqUuid.size());
-    socket.send(response, ZMQ_SNDMORE);
+    this->replier->send(response, ZMQ_SNDMORE);
 
     response.rebuild(rep.size());
     memcpy(response.data(), rep.data(), rep.size());
-    socket.send(response, ZMQ_SNDMORE);
+    this->replier->send(response, ZMQ_SNDMORE);
 
     response.rebuild(resultStr.size());
     memcpy(response.data(), resultStr.data(), resultStr.size());
-    socket.send(response, 0);
+    this->replier->send(response, 0);
   }
   else
     std::cerr << "I do not have a service call registered for topic ["
@@ -514,40 +524,45 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 
       try
       {
-        zmq::socket_t socket(*this->context, ZMQ_DEALER);
-        socket.connect(responserAddr.c_str());
+        static int counter = 0;
+        //zmq::context_t ctx;
+        //zmq::socket_t socket(ctx, ZMQ_DEALER);
+        std::cout << "Num sockets: " << ++counter << std::endl;
+        this->requester->connect(responserAddr.c_str());
 
         // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
         // be discarded immediately when the socket is closed. That avoids
         // infinite waits if the publisher is disconnected.
-        int lingerVal = 200;
-        socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+        //int lingerVal = 200;
+        //socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
         zmq::message_t msg;
         msg.rebuild(_topic.size());
         memcpy(msg.data(), _topic.data(), _topic.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
 
         msg.rebuild(this->myRequesterAddress.size());
         memcpy(msg.data(), this->myRequesterAddress.data(),
           this->myRequesterAddress.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
 
         msg.rebuild(nodeUuid.size());
         memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
 
         msg.rebuild(reqUuid.size());
         memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
 
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
-        socket.send(msg, 0);
+        assert(this->requester->send(msg, 0) > 0);
+
+        std::cout << "Sending " << reqUuid << std::endl;
       }
       catch(const zmq::error_t& ze)
       {
-        // std::cerr << "Error connecting [" << ze.what() << "]\n";
+        std::cerr << "Error connecting [" << ze.what() << "]\n";
       }
     }
   }
@@ -590,7 +605,8 @@ void NodeShared::OnNewConnection(const std::string &_topic,
 
       // Send a message to the publisher's control socket to notify it
       // about all my remoteSubscribers.
-      zmq::socket_t socket(*this->context, ZMQ_DEALER);
+      zmq::context_t ctx;
+      zmq::socket_t socket(ctx, ZMQ_DEALER);
       socket.connect(_ctrl.c_str());
 
       if (this->verbose)
@@ -602,7 +618,7 @@ void NodeShared::OnNewConnection(const std::string &_topic,
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
       // be discarded immediately when the socket is closed. That avoids
       // infinite waits if the publisher is disconnected.
-      int lingerVal = 200;
+      int lingerVal = 0;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;

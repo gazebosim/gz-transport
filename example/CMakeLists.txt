@@ -32,3 +32,11 @@ add_dependencies(requester protobuf_compilation)
 add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
 add_dependencies(requester_async protobuf_compilation)
+
+add_executable(basic_requester basic_requester.cc ${PROTO_SRC})
+target_link_libraries(basic_requester ${IGNITION-TRANSPORT_LIBRARIES} zmq)
+add_dependencies(basic_requester protobuf_compilation)
+
+add_executable(basic_responser basic_responser.cc ${PROTO_SRC})
+target_link_libraries(basic_responser ${IGNITION-TRANSPORT_LIBRARIES} zmq)
+add_dependencies(basic_responser protobuf_compilation)
