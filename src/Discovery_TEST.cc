@@ -34,10 +34,12 @@ std::string topic   = "/foo";
 std::string service = "/service";
 std::string addr1   = "tcp://127.0.0.1:12345";
 std::string ctrl1   = "tcp://127.0.0.1:12346";
+std::string id1     = "identity1";
 std::string pUuid1  = "UUID-Proc-1";
 std::string nUuid1  = "UUID-Node-1";
 std::string addr2   = "tcp://127.0.0.1:12347";
 std::string ctrl2   = "tcp://127.0.0.1:12348";
+std::string id2     = "identity2";
 std::string pUuid2  = "UUID-Proc-2";
 std::string nUuid2  = "UUID-Node-2";
 transport::Scope scope = transport::Scope::All;
@@ -618,7 +620,7 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -642,7 +644,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   object.RegisterSrvConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -665,7 +667,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -705,7 +707,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.RegisterSrvDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -734,7 +736,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 
   // Create one discovery node and advertise a service.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);

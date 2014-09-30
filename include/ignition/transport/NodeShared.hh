@@ -175,10 +175,13 @@ namespace ignition
       public: std::unique_ptr<zmq::socket_t> requester;
 
       /// \brief ZMQ socket for receiving service call responses.
-      public: std::unique_ptr<zmq::socket_t> responseReveiver;
+      public: std::unique_ptr<zmq::socket_t> responseReceiver;
 
       /// \brief Response receiver socket identity.
       public: Uuid responseReceiverId;
+
+      /// \brief Replier socket identity.
+      public: Uuid replierId;
 
       /// \brief ZMQ socket to receive service call requests.
       public: std::unique_ptr<zmq::socket_t> replier;

@@ -230,7 +230,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
         return true;
@@ -286,7 +287,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
         return true;
