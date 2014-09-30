@@ -28,7 +28,11 @@ class BasicResponser
     this->context = new zmq::context_t(1);
     this->responser = new zmq::socket_t(*this->context, ZMQ_ROUTER);
     std::string ep = "tcp://127.0.0.1:5555";
-    this->responser->setsockopt(ZMQ_IDENTITY, ep.c_str(), ep.size());
+    std::string id = "ResponserID";
+    this->responser->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    int RouteOn = 1;
+    this->responser->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
+      sizeof(RouteOn));
     this->responser->bind(ep.c_str());
 
     //this->replier = new zmq::socket_t(*this->context, ZMQ_DEALER);
@@ -92,6 +96,8 @@ class BasicResponser
       std::cout << "Id:" << id << std::endl;
       std::cout << "From: " << sender << std::endl;
       std::cout << "Request received: " << request << std::endl;
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       zmq::message_t responseMsg;
 

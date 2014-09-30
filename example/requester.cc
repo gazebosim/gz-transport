@@ -60,9 +60,10 @@ int main(int argc, char **argv)
 
   example::mymsgs::StringMsg rep;
   bool result;
-  unsigned int timeout = 1000;
+  unsigned int timeout = 5000;
 
   while(true)
+  //for (int i = 0; i < 2; ++i)
   {
     // Request the "/echo" service.
     bool executed = node.Request("/echo", req, timeout, rep, result);

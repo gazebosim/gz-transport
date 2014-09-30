@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <condition_variable>
 #include <iostream>
 #include <memory>
@@ -35,6 +36,10 @@ class BasicRequester
     this->ep = "tcp://127.0.0.1:6666";
     this->requester->setsockopt(ZMQ_IDENTITY, "RequesterID", 11);
 
+    int RouteOn = 1;
+    this->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
+      sizeof(RouteOn));
+
     this->requester->bind(this->ep.c_str());
     char bindEndPoint[1024];
     size_t size = sizeof(bindEndPoint);
@@ -49,6 +54,8 @@ class BasicRequester
   //////////////////////////////////////////////////
   public: ~BasicRequester()
   {
+    this->running = false;
+    this->threadRcv->join();
     delete requester;
     delete context;
   }
@@ -56,7 +63,7 @@ class BasicRequester
   //////////////////////////////////////////////////
   public: void RunReceptionTask()
   {
-    while (true)
+    while (this->running)
     {
       // Poll socket for a reply, with timeout.
       zmq::pollitem_t items[] =
@@ -148,6 +155,8 @@ class BasicRequester
 
   /// \brief Timeout used to wait for a response (ms).
   private: int ReqTimeout = 1000;
+
+  private: bool running = true;
 };
 
 
@@ -162,12 +171,20 @@ int main(int argc, char **argv)
 
   // Create a socket and connect it to the service provider.
   zmq::socket_t socket(context, ZMQ_ROUTER);
+  std::string destinationID = "ResponserID";
   std::string destinationEP = "tcp://127.0.0.1:5555";
   socket.setsockopt(ZMQ_IDENTITY, "SocketID", 8);
+  int RouteOn = 1;
+  socket.setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn, sizeof(RouteOn));
+  int lingerVal = 0;
+  socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
   socket.connect(destinationEP.c_str());
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   // Send new requests after receiving a response.
-  while(true)
+  //while(true)
+  for (auto i = 0; i < 1; ++i)
   {
     try
     {
@@ -180,9 +197,9 @@ int main(int argc, char **argv)
       std::string request = "request";
 
        // Fill the message with the destination address.
-      msg.rebuild(destinationEP.size());
-      memcpy(msg.data(), destinationEP.data(),
-        destinationEP.size());
+      msg.rebuild(destinationID.size());
+      memcpy(msg.data(), destinationID.data(),
+        destinationID.size());
       assert(socket.send(msg, ZMQ_SNDMORE) > 0);
 
       // Fill the message with my response address.
