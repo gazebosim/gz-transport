@@ -693,7 +693,6 @@ void NodeShared::OnNewConnection(const std::string &_topic,
       // about all my remoteSubscribers.
       //zmq::context_t ctx;
       zmq::socket_t socket(*this->context, ZMQ_DEALER);
-      socket.connect(_ctrl.c_str());
 
       if (this->verbose)
       {
@@ -706,6 +705,9 @@ void NodeShared::OnNewConnection(const std::string &_topic,
       // infinite waits if the publisher is disconnected.
       int lingerVal = 0;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+      socket.connect(_ctrl.c_str());
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
       if (this->localSubscriptions.GetHandlers(_topic, handlers))
