@@ -16,7 +16,6 @@
 */
 
 #include <iostream>
-#include <memory>
 #include <string>
 #include <thread>
 #include <zmq.hpp>
@@ -25,21 +24,27 @@ class BasicResponser
 {
   //////////////////////////////////////////////////
   public: BasicResponser()
-    : context(new zmq::context_t(1)),
-      responser(new zmq::socket_t(*context, ZMQ_DEALER))
   {
-    int hwmVal = 0;
-    int backlog = 100000;
-    /*this->responser->setsockopt(ZMQ_SNDHWM, &hwmVal, sizeof(hwmVal));
-    this->responser->setsockopt(ZMQ_RCVHWM, &hwmVal, sizeof(hwmVal));
-    this->responser->setsockopt(ZMQ_BACKLOG, &backlog, sizeof(backlog));*/
-    this->responser->bind("tcp://127.0.0.1:5555");
+    this->context = new zmq::context_t(1);
+    this->responser = new zmq::socket_t(*this->context, ZMQ_ROUTER);
+    std::string ep = "tcp://127.0.0.1:5555";
+    this->responser->setsockopt(ZMQ_IDENTITY, ep.c_str(), ep.size());
+    this->responser->bind(ep.c_str());
 
-    std::cerr << "Bind" << std::endl;
+    //this->replier = new zmq::socket_t(*this->context, ZMQ_DEALER);
+    //this->replier->connect("tcp://127.0.0.1:6666");
+    this->responser->connect("tcp://127.0.0.1:6666");
 
-    // Start the service thread.
-    this->threadReception = new std::thread(&BasicResponser::RunReceptionTask,
-      this);
+    // Start the reception thread.
+    this->threadRcv = new std::thread(&BasicResponser::RunReceptionTask, this);
+  }
+
+  //////////////////////////////////////////////////
+  public: ~BasicResponser()
+  {
+    delete this->responser;
+    delete this->replier;
+    delete this->context;
   }
 
   //////////////////////////////////////////////////
@@ -52,7 +57,7 @@ class BasicResponser
       {
         {*this->responser, 0, ZMQ_POLLIN, 0}
       };
-      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), 250);
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
       //  If we got a reply, process it.
       if (items[0].revents & ZMQ_POLLIN)
@@ -66,48 +71,37 @@ class BasicResponser
     zmq::message_t msg(0);
     std::string request;
     std::string sender;
-    std::string data = "response";
+    std::string answer = "response";
     std::string id;
 
     try
     {
-      /*if (!this->responser->recv(&msg, 0))
+      if (!this->responser->recv(&msg, 0))
         return;
-      id = std::string(reinterpret_cast<char *>(msg.data()), msg.size());*/
+      id = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
       if (!this->responser->recv(&msg, 0))
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+
       if (!this->responser->recv(&msg, 0))
         return;
       request = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      std::cout << "Request received: " << request << std::endl;
+      std::cout << "Id:" << id << std::endl;
       std::cout << "From: " << sender << std::endl;
+      std::cout << "Request received: " << request << std::endl;
 
-      // zmq::context_t ctx(1);
-      zmq::socket_t socket(*this->context, ZMQ_DEALER);
-      int lingerVal = 200;
-      int hwmVal = 0;
-      int backlog = 100000;
-      int numSockets = 100000;
-      //socket.setsockopt(ZMQ_MAX_SOCKETS, &numSockets, sizeof(numSockets));
-      //socket.setsockopt(ZMQ_SNDHWM, &hwmVal, sizeof(hwmVal));
-      //socket.setsockopt(ZMQ_RCVHWM, &hwmVal, sizeof(hwmVal));
-      //socket.setsockopt(ZMQ_BACKLOG, &backlog, sizeof(backlog));
+      zmq::message_t responseMsg;
 
-      //static int counter = 0;
-      //if (counter == 0)
-        socket.connect(sender.c_str());
-        std::cout << "Connect" << std::endl;
-      //counter++;
-      //std::cout << "Request #" << counter << std::endl;
+      responseMsg.rebuild(sender.size());
+      memcpy(responseMsg.data(), sender.data(), sender.size());
+      assert(this->responser->send(responseMsg, ZMQ_SNDMORE) > 0);
 
-
-      zmq::message_t response;
-      response.rebuild(data.size());
-      memcpy(response.data(), data.data(), data.size());
-      assert(socket.send(response, 0) > 0);
+      responseMsg.rebuild(answer.size());
+      memcpy(responseMsg.data(), answer.data(), answer.size());
+      assert(this->responser->send(responseMsg, 0) > 0);
     }
     catch(const zmq::error_t &_error)
     {
@@ -117,20 +111,24 @@ class BasicResponser
   }
 
   /// \brief 0MQ context.
-  private: std::unique_ptr<zmq::context_t> context;
+  private: zmq::context_t *context;
 
-  /// \brief ZMQ socket for sending service call requests.
-  private: std::unique_ptr<zmq::socket_t> responser;
+  /// \brief ZMQ socket for receiving service call requests.
+  private: zmq::socket_t *responser;
 
-  private: std::thread *threadReception;
+  private: zmq::socket_t *replier;
+
+  /// \brief Thread for receiving requests in a different thread.
+  private: std::thread *threadRcv;
+
+  /// \brief Polling interval.
+  private: int Timeout = 250;
 };
 
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Will receive responses;
   BasicResponser responser;
-
   getchar();
 }

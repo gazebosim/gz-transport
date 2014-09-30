@@ -50,16 +50,12 @@ NodeShared::NodeShared()
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
-    requester(new zmq::socket_t(*context, ZMQ_XREQ)),
-    replier(new zmq::socket_t(*context, ZMQ_XREP)),
+    requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
+    responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
+    replier(new zmq::socket_t(*context, ZMQ_ROUTER)),
     timeout(Timeout),
     exit(false)
 {
-  //zmq_ctx_set(this->context.get(), ZMQ_MAX_SOCKETS, 1024);
-  //int max_sockets = zmq_ctx_get(this->context.get(), ZMQ_MAX_SOCKETS);
-  //std::cout << "Max sockets: " << max_sockets << std::endl;
-  //assert (max_sockets == 1024);
-
   // If IGN_VERBOSE=1 enable the verbose mode.
   char const *tmp = std::getenv("IGN_VERBOSE");
   if (tmp)
@@ -92,9 +88,11 @@ NodeShared::NodeShared()
     this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myControlAddress = bindEndPoint;
 
-    // Requester socket listening in a random port.
-    this->requester->bind(anyTcpEp.c_str());
-    this->requester->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    // ResponseReceiver socket listening in a random port.
+    std::string id = this->responseReceiverId.ToString();
+    this->responseReceiver->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    this->responseReceiver->bind(anyTcpEp.c_str());
+    this->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myRequesterAddress = bindEndPoint;
 
     // Replier socket listening in a random port.
@@ -128,6 +126,9 @@ NodeShared::NodeShared()
 
   // Set the callback to notify svc discovery updates (new service calls).
   discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
+
+  // Set the callback to notify svc discovery updates (new service calls).
+  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -153,7 +154,7 @@ void NodeShared::RunReceptionTask()
       {*this->subscriber, 0, ZMQ_POLLIN, 0},
       {*this->control, 0, ZMQ_POLLIN, 0},
       {*this->replier, 0, ZMQ_POLLIN, 0},
-      {*this->requester, 0, ZMQ_POLLIN, 0}
+      {*this->responseReceiver, 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 
@@ -527,8 +528,20 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
         static int counter = 0;
         //zmq::context_t ctx;
         //zmq::socket_t socket(ctx, ZMQ_DEALER);
-        std::cout << "Num sockets: " << ++counter << std::endl;
-        this->requester->connect(responserAddr.c_str());
+
+        // I am still not connected to this address.
+        if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+              responserAddr) == this->srvConnections.end())
+        {
+          this->requester->connect(responserAddr.c_str);
+          this->srvConnections.push_back(responserAddr);
+
+          if (this->verbose)
+          {
+            std::cout << "\t* Connected to [" << responserAddr
+                      << "] for service requests" << std::endl;
+          }
+        }
 
         // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
         // be discarded immediately when the socket is closed. That avoids
@@ -726,4 +739,23 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
 
   // Request all pending service calls for this topic.
   this->SendPendingRemoteReqs(_topic);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
+  const std::string &_addr, const std::string &_ctrl,
+  const std::string &_pUuid, const std::string &_nUuid,
+  const Scope &/*_scope*/)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  if (this->verbose)
+  {
+    std::cout << "Service call disconnection callback" << std::endl;
+    std::cout << "Topic: " << _topic << std::endl;
+    std::cout << "Addr: " << _addr << std::endl;
+    std::cout << "Ctrl Addr: " << _ctrl << std::endl;
+    std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
+    std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
+  }
 }
