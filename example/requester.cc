@@ -16,43 +16,14 @@
 */
 
 #include <iostream>
-#include <thread>
 #include <ignition/transport.hh>
 #include "msg/stringmsg.pb.h"
-
-//////////////////////////////////////////////////
-/// \brief Provide an "echo" service.
-void srvEcho(const std::string &_topic, const example::mymsgs::StringMsg &_req,
-  example::mymsgs::StringMsg &_rep, bool &_result)
-{
-  // Set the response's content.
-  _rep.set_data(_req.data());
-
-  // The response succeed.
-  _result = true;
-}
-
-//////////////////////////////////////////////////
-/// \brief Create a service responser.
-void CreateResponser()
-{
-  // Create a transport node.
-  ignition::transport::Node node;
-
-  // Advertise a service call.
-  node.Advertise("/echo", srvEcho);
-
-  // Wait for requests.
-  getchar();
-}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
   ignition::transport::Node node;
-
-  // std::thread subscribeThread(CreateResponser);
 
   // Prepare the input parameters.
   example::mymsgs::StringMsg req;
@@ -62,22 +33,16 @@ int main(int argc, char **argv)
   bool result;
   unsigned int timeout = 5000;
 
-  while(true)
-  //for (int i = 0; i < 2; ++i)
+  // Request the "/echo" service.
+  bool executed = node.Request("/echo", req, timeout, rep, result);
+
+  if (executed)
   {
-    // Request the "/echo" service.
-    bool executed = node.Request("/echo", req, timeout, rep, result);
-
-    if (executed)
-    {
-      if (result)
-        std::cout << "Response: [" << rep.data() << "]" << std::endl;
-      else
-        std::cout << "Service call failed" << std::endl;
-    }
+    if (result)
+      std::cout << "Response: [" << rep.data() << "]" << std::endl;
     else
-      std::cerr << "Service call timed out" << std::endl;
+      std::cout << "Service call failed" << std::endl;
   }
-
-  //subscribeThread.join();
+  else
+    std::cerr << "Service call timed out" << std::endl;
 }

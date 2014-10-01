@@ -549,10 +549,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
   // Send all the pending REQs.
   IReqHandler_M reqs;
   if (!this->requests.GetHandlers(_topic, reqs))
-  {
-    std::cout << "Nothing to send" << std::endl;
     return;
-  }
 
   for (auto &node : reqs)
   {
