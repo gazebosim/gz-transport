@@ -252,7 +252,6 @@ void NodeShared::RecvMsgUpdate()
     return;
   }
 
-
   // Execute the callbacks registered.
   std::map<std::string, ISubscriptionHandler_M> handlers;
   if (this->localSubscriptions.GetHandlers(topic, handlers))
@@ -576,33 +575,33 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 
         msg.rebuild(responserId.size());
         memcpy(msg.data(), responserId.data(), responserId.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(_topic.size());
         memcpy(msg.data(), _topic.data(), _topic.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(this->myRequesterAddress.size());
         memcpy(msg.data(), this->myRequesterAddress.data(),
           this->myRequesterAddress.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         std::string myId = this->responseReceiverId.ToString();
         msg.rebuild(myId.size());
         memcpy(msg.data(), myId.data(), myId.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(nodeUuid.size());
         memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(reqUuid.size());
         memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-        assert(this->requester->send(msg, ZMQ_SNDMORE) > 0);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
-        assert(this->requester->send(msg, 0) > 0);
+        this->requester->send(msg, 0);
       }
       catch(const zmq::error_t& ze)
       {
@@ -772,7 +771,7 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
   {
     this->requester->connect(_addr.c_str());
     this->srvConnections.push_back(_addr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
     if (this->verbose)
     {
       std::cout << "\t* Connected to [" << _addr
