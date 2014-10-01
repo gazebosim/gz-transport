@@ -84,21 +84,6 @@ DiscoveryPrivate::~DiscoveryPrivate()
   // all our advertised topics.
   this->SendMsg(ByeType, "", "", "", "", Scope::All);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // Stop all the beacons.
-  /*for (auto &topic : this->beacons)
-  {
-    for (auto &proc : topic.second)
-    {
-      zbeacon_t *b = proc.second;
-      // Destroy the beacon.
-      zbeacon_silence(b);
-      zbeacon_destroy(&b);
-    }
-  }
-
-  zbeacon_destroy(&this->beacon);
-  zctx_destroy(&this->ctx);*/
 }
 
 //////////////////////////////////////////////////
@@ -119,7 +104,6 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
     return;
 
   // Broadcast periodically my topic information.
-  // this->NewBeacon(_advType, _topic, _nUuid);
   if (_advType == MsgType::Msg)
     this->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
   else
@@ -159,9 +143,6 @@ void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
     return;
 
   this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
-
-  // Remove the beacon for this topic in this node.
-  // this->DelBeacon(_topic, _nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -345,7 +326,7 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
 
   try
   {
-    bytes = this->bcastSockIn->recvFrom(rcvStr, this->MaxRcvStr, srcAddr,
+    bytes = this->bcastSockIn->RecvFrom(rcvStr, this->MaxRcvStr, srcAddr,
                                         srcPort);
   }
   catch(const SocketException &_e)
@@ -362,26 +343,6 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   }
 
   this->DispatchDiscoveryMsg(srcAddr, rcvStr);
-
-  /*std::lock_guard<std::mutex> lock(this->mutex);
-
-  // Address of datagram source.
-  char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
-
-  // A zmq message.
-  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
-
-  // Pointer to the raw discovery data.
-  byte *data = zframe_data(frame);
-
-  if (this->verbose)
-    std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
-
-  this->DispatchDiscoveryMsg(std::string(srcAddr),
-    reinterpret_cast<char*>(&data[0]));
-
-  zstr_free(&srcAddr);
-  zframe_destroy(&frame);*/
 }
 
 //////////////////////////////////////////////////
@@ -636,7 +597,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   // Broadcast the message.
   try
   {
-    this->bcastSockOut.sendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
+    this->bcastSockOut.SendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
       msgLength, this->bcastAddr, this->DiscoveryPort);
   }
   catch(const SocketException &_e)
@@ -696,80 +657,3 @@ void DiscoveryPrivate::PrintCurrentState()
   }
   std::cout << "---------------" << std::endl;
 }
-
-//////////////////////////////////////////////////
-/*void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
-  const std::string &_topic, const std::string &_nUuid)
-{
-  std::unique_ptr<Header> header;
-
-  if (this->beacons.find(_topic) == this->beacons.end() ||
-      this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
-  {
-    // Create a new beacon and set the advertise interval.
-    zbeacon_t *b = zbeacon_new(this->ctx, this->DiscoveryPort);
-    zbeacon_set_interval(b, this->advertiseInterval);
-    this->beacons[_topic][_nUuid] = b;
-
-    Address_t node;
-
-    // Create the header.
-    if (_advType == MsgType::Msg)
-    {
-      // Prepare the content for the beacon.
-      if (!this->infoMsg.GetAddress(_topic, this->pUuid, _nUuid, node))
-        return;
-      header.reset(new Header(Version, this->pUuid, AdvType));
-
-      // Create the ADV message.
-      AdvertiseMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
-        node.scope, "not Used");
-      std::vector<char> buffer(advMsg.GetMsgLength());
-      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Setup the beacon.
-      zbeacon_publish(
-        b, reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
-    }
-    else
-    {
-      // Prepare the content for the beacon.
-      if (!this->infoSrv.GetAddress(_topic, this->pUuid, _nUuid, node))
-        return;
-      header.reset(new Header(Version, this->pUuid, AdvSrvType));
-
-      // Create the ADV SRV message.
-      AdvertiseSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,
-        node.scope, "req not used", "rep not used");
-      std::vector<char> buffer(advSrv.GetMsgLength());
-      advSrv.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Setup the beacon.
-      zbeacon_publish(
-        b, reinterpret_cast<unsigned char*>(&buffer[0]), advSrv.GetMsgLength());
-    }
-  }
-}*/
-
-//////////////////////////////////////////////////
-/*void DiscoveryPrivate::DelBeacon(const std::string &_topic,
-                                 const std::string &_nUuid)
-{
-  if (this->beacons.find(_topic) == this->beacons.end())
-    return;
-
-  if (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
-    return;
-
-  // Get the beacon.
-  zbeacon_t *b = this->beacons[_topic][_nUuid];
-
-  // Destroy the beacon.
-  zbeacon_silence(b);
-  zbeacon_destroy(&b);
-
-  // Remove the beacon from the map.
-  this->beacons[_topic].erase(_nUuid);
-  if (this->beacons[_topic].empty())
-    this->beacons.erase(_topic);
-}*/

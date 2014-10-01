@@ -18,17 +18,16 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <string>
+#include <thread>
 #include <vector>
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/socket.hh"
+#include "ignition/transport/Socket.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 

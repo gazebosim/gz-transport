@@ -4487,7 +4487,6 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
       # A catch all for tricky sizeof cases, including 'sizeof expression',
       # 'sizeof(*type)', 'sizeof(const type)', 'sizeof(struct StructName)'
       # requires skipping the next token because we split on ' ' and '*'.
-      print tok
       if tok.startswith('sizeof') or tok.startswith('this'):
         skip_next = True
         continue

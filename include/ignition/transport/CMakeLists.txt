@@ -12,7 +12,7 @@ set (headers
   Packet.hh
   RepHandler.hh
   ReqHandler.hh
-  socket.hh
+  Socket.hh
   SubscriptionHandler.hh
   TopicStorage.hh
   TopicUtils.hh
