@@ -340,7 +340,7 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
   char rcvStr[this->MaxRcvStr];
   std::string srcAddr;
-  unsigned short srcPort;
+  uint16_t srcPort;
   int bytes;
 
   try
