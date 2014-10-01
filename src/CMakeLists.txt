@@ -7,7 +7,7 @@ set (sources
   Node.cc
   NodeShared.cc
   Packet.cc
-  socket.cc
+  Socket.cc
   TopicStorage.cc
   TopicUtils.cc
   Uuid.cc

@@ -326,7 +326,7 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
 
   try
   {
-    bytes = this->bcastSockIn->recvFrom(rcvStr, this->MaxRcvStr, srcAddr,
+    bytes = this->bcastSockIn->RecvFrom(rcvStr, this->MaxRcvStr, srcAddr,
                                         srcPort);
   }
   catch(const SocketException &_e)
@@ -597,7 +597,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   // Broadcast the message.
   try
   {
-    this->bcastSockOut.sendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
+    this->bcastSockOut.SendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
       msgLength, this->bcastAddr, this->DiscoveryPort);
   }
   catch(const SocketException &_e)
