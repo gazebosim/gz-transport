@@ -25,7 +25,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/NetUtils.hh"
 
-#ifdef HAVE_IFADDRS_H
+#ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
 #endif
 
@@ -98,7 +98,7 @@ std::string transport::DetermineHost()
   }
 
   // Third, fall back on interface search, which will yield an IP address
-#ifdef HAVE_IFADDRS_H
+#ifdef HAVE_IFADDRS
   struct ifaddrs *ifa = nullptr, *ifp = NULL;
   int rc;
   if ((rc = getifaddrs(&ifp)) < 0)
