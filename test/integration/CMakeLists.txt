@@ -3,7 +3,8 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
 	#beaconTest.cc
   scopedTopic.cc
-	twoProcessesPubSub.cc
+  subscriber_app.cc
+  twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
   twoProcessesSrvCallSync1.cc
   twoProcessesSrvCallSync2.cc

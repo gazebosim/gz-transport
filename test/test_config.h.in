@@ -1,4 +1,5 @@
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
+#define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
 
 /* 
  * setenv/unstenv are not present in Windows. Define them to make the code
