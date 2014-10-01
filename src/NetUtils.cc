@@ -25,7 +25,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/NetUtils.hh"
 
-#ifdef HAVE_IFADDRS_H
+#ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
 #endif
 
