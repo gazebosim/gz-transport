@@ -1,9 +1,9 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-	#beaconTest.cc
+  #beaconTest.cc
   scopedTopic.cc
-  subscriber_app.cc
+  scopedTopicSubscriber_aux_.cc
   twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
   twoProcessesSrvCallSync1.cc
