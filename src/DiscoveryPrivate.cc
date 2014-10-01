@@ -15,7 +15,6 @@
  *
 */
 
-//#include <czmq.h>
 #include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <chrono>
@@ -49,14 +48,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // in czmq.
   putenv(const_cast<char*>("ZSYS_SIGHANDLER=true"));
 
-  //this->ctx = zctx_new();
-
-  // Discovery beacon.
-  //this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
-  //zbeacon_subscribe(this->beacon, NULL, 0);
-
   // Get this host IP address.
-  // this->hostAddr = this->GetHostAddr();
   this->hostAddr = DetermineHost();
 
   // Start the thread that receives discovery information.
@@ -295,8 +287,8 @@ void DiscoveryPrivate::RunHeartbeatTask()
       {
         for (auto &node : topic.second)
         {
-          this->SendMsg(AdvSrvType, topic.first, node.addr, node.ctrl, node.nUuid,
-            node.scope);
+          this->SendMsg(AdvSrvType, topic.first, node.addr, node.ctrl,
+            node.nUuid, node.scope);
         }
       }
     }
@@ -322,7 +314,6 @@ void DiscoveryPrivate::RunReceptionTask()
     zmq::pollitem_t items[] =
     {
       {0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0},
-      //{zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -593,8 +584,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope, int _flags)
 {
-  // zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
-
   // Create the header.
   Header header(Version, this->pUuid, _type, _flags);
   size_t msgLength = 0;
@@ -615,10 +604,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       buffer.resize(advMsg.GetMsgLength());
       advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
       msgLength = advMsg.GetMsgLength();
-      // Broadcast the message.
-      //zbeacon_publish(aBeacon,
-      //  reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
-
       break;
     }
     case SubType:
@@ -631,10 +616,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       buffer.resize(subMsg.GetMsgLength());
       subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
       msgLength = subMsg.GetMsgLength();
-      // Broadcast the message.
-      // zbeacon_publish(aBeacon,
-      //   reinterpret_cast<unsigned char*>(&buffer[0]), subMsg.GetMsgLength());
-
       break;
     }
     case HeartbeatType:
@@ -644,10 +625,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       buffer.resize(header.GetHeaderLength());
       header.Pack(reinterpret_cast<char*>(&buffer[0]));
       msgLength = header.GetHeaderLength();
-      // Broadcast the message.
-      // zbeacon_publish(aBeacon,
-      //   reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
-
       break;
     }
     default:
@@ -667,8 +644,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
     std::cerr << "Exception sending a message: " << _e.what() << std::endl;
     return;
   }
-  // zbeacon_silence(aBeacon);
-  // zbeacon_destroy(&aBeacon);
 
   if (this->verbose)
   {
@@ -680,8 +655,6 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 //////////////////////////////////////////////////
 std::string DiscoveryPrivate::GetHostAddr()
 {
-  //std::lock_guard<std::mutex> lock(this->mutex);
-  //return zbeacon_hostname(this->beacon);
   return this->hostAddr;
 }
 

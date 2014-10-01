@@ -126,21 +126,6 @@ namespace ignition
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
-      /// \brief Create a new beacon for a given topic advertised by a node.
-      /// \param[in] _advType Used to distinguish between regular pub/sub
-      /// messages or services.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      /*public: void NewBeacon(const MsgType &_advType,
-                             const std::string &_topic,
-                             const std::string &_nUuid);*/
-
-      /// \brief Delete a beacon.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      //public: void DelBeacon(const std::string &_topic,
-      //                       const std::string &_nUuid);
-
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
@@ -217,10 +202,6 @@ namespace ignition
       /// \brief Callback executed when a service is no longer available.
       public: DiscoveryCallback disconnectionSrvCb;
 
-      /// \brief Beacons to advertise topics periodically. The key is the topic
-      /// name. The value is another map, where the key is the node UUID.
-      //public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
-
       /// \brief Message addressing information.
       public: TopicStorage infoMsg;
 
@@ -241,12 +222,6 @@ namespace ignition
 
       /// \bried UDP socket used for sending discovery messages.
       public: UDPSocket bcastSockOut;
-
-      /// \brief ZMQ context for the discovery beacon.
-      //public: zctx_t *ctx;
-
-      /// \brief Discovery beacon.
-      //public: zbeacon_t *beacon;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
