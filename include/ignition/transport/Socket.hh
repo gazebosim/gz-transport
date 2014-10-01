@@ -15,6 +15,10 @@
  *
 */
 
+/* Reference:
+http://cs.ecs.baylor.edu/~donahoo/practical/CSockets/practical/PracticalSocket.h
+*/
+
 #ifndef __IGN_TRANSPORT_SOCKET_HH_INCLUDED__
 #define __IGN_TRANSPORT_SOCKET_HH_INCLUDED__
 
