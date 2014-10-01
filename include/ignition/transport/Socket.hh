@@ -39,7 +39,7 @@ namespace ignition
       /// \param _inclSysMsg True if system message (from strerror(errno))
       /// should be postfixed to the user provided message.
       public: SocketException(const std::string &_message,
-                               bool _inclSysMsg = false);
+                              bool _inclSysMsg = false);
 
       /// \brief Class destructor.
       public: ~SocketException() = default;
