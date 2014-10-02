@@ -75,7 +75,7 @@ void runSubscriber()
   
   int interval = 100;
   
-  while (not cbExecuted or not cb2Executed) {
+  while (!cbExecuted or !cb2Executed) {
     std::cout << "Waiting ... " << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     interval--;
