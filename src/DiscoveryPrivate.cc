@@ -195,6 +195,15 @@ DiscoveryPrivate::~DiscoveryPrivate()
   // all our advertised topics.
   this->SendMsg(ByeType, "", "", "", "", Scope::All);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Close sockets.
+#ifdef WIN32
+  closesocket(this->bcastSockIn);
+  closesocket(this->bcastSockOut);
+#else
+  close(this->bcastSockIn);
+  close(this->bcastSockOut);
+#endif
 }
 
 //////////////////////////////////////////////////
