@@ -18,7 +18,6 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <functional>
 #include <memory>
 #include <string>

@@ -27,7 +27,6 @@
 #include <vector>
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/Socket.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -217,10 +216,10 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for receiving discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockIn;
+      public: int bcastSockIn;
 
       /// \bried UDP socket used for sending discovery messages.
-      public: UDPSocket bcastSockOut;
+      public: int bcastSockOut;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;

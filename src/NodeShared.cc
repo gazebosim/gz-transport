@@ -15,7 +15,6 @@
  *
 */
 
-#include <uuid/uuid.h>
 #include <zmq.hpp>
 #include <cstdlib>
 #include <iostream>

@@ -15,7 +15,6 @@
  *
 */
 
-#include <uuid/uuid.h>
 #include <mutex>
 #include <string>
 #include "ignition/transport/Discovery.hh"
