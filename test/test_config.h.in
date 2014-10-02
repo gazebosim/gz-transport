@@ -1,6 +1,10 @@
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
 
+#ifdef _WIN32
+  #include <filesystem>
+#endif
+
 /* 
  * setenv/unstenv are not present in Windows. Define them to make the code
  * portable 
@@ -23,3 +27,68 @@ void unsetenv(const char * name)
   return;
 }
 #endif
+
+namespace testing
+{
+   std::string portable_path_union(const std::string str1, const std::string str2)
+   {
+#ifdef _WIN32
+        std::path base_path(str1);
+        return base_path /= str2;
+#else
+        // Ugly as hell but trying to avoid boost::filesystem
+        return str1 + "/" + str2;
+#endif
+   }
+
+#ifdef _WIN32
+   typedef PROCESS_INFORMATION fork_handler_t;
+#else
+   typedef pid_t fork_handler_t;
+#endif
+
+
+   fork_handler_t fork_and_run(const char * command)
+   {
+#ifdef _WIN32
+      STARTUPINFO info={sizeof(info)};
+      PROCESS_INFORMATION processInfo;
+
+      if (! CreateProcess(NULL, command, NULL, NULL, TRUE, 0, 
+                        NULL, NULL, &info, &processInfo))
+      {
+        std::cerr << "CreateProcess call failed" << std::endl;
+      }
+
+      return processInfo;
+#else
+      pid_t pid = fork();
+
+      if (pid == 0)
+      {
+        if (execl(command, command, (char *)0) == -1)
+          std::cerr << "Error running execl call: " << command << std::endl;
+      }
+
+      return pid;
+#endif
+   }
+
+   void wait_and_cleanup_fork(const fork_handler_t pi)
+   {
+#ifdef _WIN32
+     // Wait until child process exits.
+     WaitForSingleObject( pi.hProcess, INFINITE );
+
+     // Close process and thread handles. 
+     CloseHandle( pi.hProcess );
+     CloseHandle( pi.hThread );
+#else
+    // Wait for the child process to return.
+    int status;
+    waitpid(pi, &status, 0);
+    if (status == -1)
+      std::cerr << "Error while running waitpid" << std::endl;
+#endif
+   }
+}
