@@ -22,9 +22,6 @@
 #include "msg/int.pb.h"
 #include "test_config.h"
 
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 using namespace ignition;
 
@@ -39,16 +36,12 @@ int data = 5;
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
+   std::string subscriber_path = testing::portable_path_union(
+      PROJECT_BINARY_PATH,
+      "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
-#ifdef _WIN32
-  std::path subscriber_path = PROJECT_BINARY_PATH;
-  subscriber_path /= "test/integration/INTEGRATION_scopedTopicSubscriber_aux";
-#else
-  std::string subscriber_path = PROJECT_BINARY_PATH;
-  subscriber_path += "/test/integration/INTEGRATION_scopedTopicSubscriber_aux";
-#endif
+  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 
-  ASSERT_EQ(system(subscriber_path.c_str()),0) << "Failed to run system call";
   transport::msgs::Int msg;
   msg.set_data(data);
 
@@ -59,6 +52,8 @@ TEST(ScopedTopicTest, ProcessTest)
   EXPECT_TRUE(node1.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node1.Publish(topic, msg));
+  
+  testing::wait_and_cleanup_fork(pi);
 }
 
 //////////////////////////////////////////////////
