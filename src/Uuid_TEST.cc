@@ -15,7 +15,6 @@
  *
 */
 
-#include <uuid/uuid.h>
 #include <cctype>
 #include <iostream>
 #include <string>
