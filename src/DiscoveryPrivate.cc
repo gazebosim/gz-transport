@@ -15,7 +15,28 @@
  *
 */
 
-#include <uuid/uuid.h>
+#ifdef WIN32
+  // For socket(), connect(), send(), and recv().
+  #include <winsock.h>
+  // Type used for raw data on this platform.
+  typedef char raw_type;
+#else
+  // For data types
+  #include <sys/types.h>
+  // For socket(), connect(), send(), and recv()
+  #include <sys/socket.h>
+  // For gethostbyname()
+  #include <netdb.h>
+  // For inet_addr()
+  #include <arpa/inet.h>
+  // For close()
+  #include <unistd.h>
+  // For sockaddr_in
+  #include <netinet/in.h>
+  // Type used for raw data on this platform
+  typedef void raw_type;
+#endif
+
 #include <zmq.hpp>
 #include <chrono>
 #include <iostream>
@@ -30,6 +51,36 @@
 using namespace ignition;
 using namespace transport;
 
+#ifdef WIN32
+  static bool initialized = false;
+#endif
+
+//////////////////////////////////////////////////
+/// \brief Function to fill in address structure given an address and port.
+static bool fillAddr(const std::string &_address, uint16_t _port,
+                     sockaddr_in &_addr)
+{
+  // Zero out address structure.
+  memset(&_addr, 0, sizeof(_addr));
+  // Internet address.
+  _addr.sin_family = AF_INET;
+
+  // Resolve name.
+  hostent *host;
+  if ((host = gethostbyname(_address.c_str())) == NULL)
+  {
+    // strerror() will not work for gethostbyname() and hstrerror()
+    // is supposedly obsolete.
+    std::cerr << "Failed to resolve name (gethostbyname())" << std::endl;
+    return false;
+  }
+  _addr.sin_addr.s_addr = *(reinterpret_cast<uint64_t *>(host->h_addr_list[0]));
+
+  // Assign port in network byte order.
+  _addr.sin_port = htons(_port);
+  return true;
+}
+
 //////////////////////////////////////////////////
 DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   : bcastAddr(BcastIP),
@@ -41,12 +92,72 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     connectionCb(nullptr),
     disconnectionCb(nullptr),
     verbose(_verbose),
-    bcastSockIn(new UDPSocket(DiscoveryPort)),
     exit(false)
 {
-  // We need this environment variable in order to disable the signal capture
-  // in czmq.
-  putenv(const_cast<char*>("ZSYS_SIGHANDLER=true"));
+#ifdef WIN32
+  if (!initialized)
+  {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+
+    // Request WinSock v2.0.
+    wVersionRequested = MAKEWORD(2, 0);
+    // Load WinSock DLL.
+    if (WSAStartup(wVersionRequested, &wsaData) != 0)
+    {
+     std::cer << "Unable to load WinSock DLL" << std::endl;
+     return;
+    }
+
+    initialized = true;
+  }
+#endif
+
+  // Make a new socket for sending discovery information.
+  if ((this->bcastSockOut = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  {
+    std::cerr << "Socket creation failed." << std::endl;
+    return;
+  }
+
+  // Socket options.
+  int reuseAddr = 1;
+  int broadcastPermission = 1;
+
+  // Enable broadcast.
+  setsockopt(this->bcastSockOut, SOL_SOCKET, SO_BROADCAST,
+    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    sizeof(broadcastPermission));
+  setsockopt(this->bcastSockOut, SOL_SOCKET, SO_REUSEADDR,
+    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+
+  // Make a new socket for receiving discovery information.
+  if ((this->bcastSockIn = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  {
+    std::cerr << "Socket creation failed." << std::endl;
+    return;
+  }
+
+  // Enable broadcast for the socket.
+  setsockopt(this->bcastSockIn, SOL_SOCKET, SO_BROADCAST,
+    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    sizeof(broadcastPermission));
+  setsockopt(this->bcastSockIn, SOL_SOCKET, SO_REUSEADDR,
+    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+
+  // Bind the socket to the discovery port.
+  sockaddr_in localAddr;
+  memset(&localAddr, 0, sizeof(localAddr));
+  localAddr.sin_family = AF_INET;
+  localAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+  localAddr.sin_port = htons(this->DiscoveryPort);
+
+  if (bind(this->bcastSockIn, reinterpret_cast<sockaddr *>(&localAddr),
+        sizeof(sockaddr_in)) < 0)
+  {
+    std::cerr << "Binding to a local port failed." << std::endl;
+    return;
+  }
 
   // Get this host IP address.
   this->hostAddr = DetermineHost();
@@ -294,7 +405,7 @@ void DiscoveryPrivate::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {0, this->bcastSockIn->sockDesc, ZMQ_POLLIN, 0},
+      {0, this->bcastSockIn, ZMQ_POLLIN, 0},
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -322,24 +433,23 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   char rcvStr[this->MaxRcvStr];
   std::string srcAddr;
   uint16_t srcPort;
-  int bytes;
+  sockaddr_in clntAddr;
+  socklen_t addrLen = sizeof(clntAddr);
 
-  try
+  if ((recvfrom(this->bcastSockIn, reinterpret_cast<raw_type *>(rcvStr),
+    this->MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
+     reinterpret_cast<socklen_t *>(&addrLen))) < 0)
   {
-    bytes = this->bcastSockIn->RecvFrom(rcvStr, this->MaxRcvStr, srcAddr,
-                                        srcPort);
-  }
-  catch(const SocketException &_e)
-  {
-    std::cerr << "Exception receiving from the UDP discovery socket: "
-              << _e.what() << std::endl;
+    std:: cerr << "Receive failed" << std::endl;
     return;
   }
+  srcAddr = inet_ntoa(clntAddr.sin_addr);
+  srcPort = ntohs(clntAddr.sin_port);
 
   if (this->verbose)
   {
     std::cout << "\nReceived discovery update from " << srcAddr << ": "
-              << srcPort << "(" << bytes << " bytes)" << std::endl;
+              << srcPort << std::endl;
   }
 
   this->DispatchDiscoveryMsg(srcAddr, rcvStr);
@@ -547,7 +657,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 {
   // Create the header.
   Header header(Version, this->pUuid, _type, _flags);
-  size_t msgLength = 0;
+  auto msgLength = 0;
   std::vector<char> buffer;
 
   switch (_type)
@@ -595,14 +705,17 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   }
 
   // Broadcast the message.
-  try
+  sockaddr_in destAddr;
+  if (!fillAddr(this->bcastAddr, this->DiscoveryPort, destAddr))
+    return;
+
+  // Write out the whole buffer as a single message.
+  if (sendto(this->bcastSockOut, reinterpret_cast<const raw_type *>(
+    reinterpret_cast<unsigned char*>(&buffer[0])),
+    msgLength, 0, reinterpret_cast<sockaddr *>(&destAddr),
+    sizeof(destAddr)) != msgLength)
   {
-    this->bcastSockOut.SendTo(reinterpret_cast<unsigned char*>(&buffer[0]),
-      msgLength, this->bcastAddr, this->DiscoveryPort);
-  }
-  catch(const SocketException &_e)
-  {
-    std::cerr << "Exception sending a message: " << _e.what() << std::endl;
+    std::cerr << "Exception sending a message" << std::endl;
     return;
   }
 

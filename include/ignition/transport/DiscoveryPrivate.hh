@@ -217,10 +217,10 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for receiving discovery messages.
-      public: std::unique_ptr<UDPSocket> bcastSockIn;
+      public: int bcastSockIn;
 
       /// \bried UDP socket used for sending discovery messages.
-      public: UDPSocket bcastSockOut;
+      public: int bcastSockOut;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
