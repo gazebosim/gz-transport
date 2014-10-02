@@ -19,7 +19,6 @@
 #define __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <condition_variable>
 #include <functional>
 #include <iostream>
