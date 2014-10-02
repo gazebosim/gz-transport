@@ -69,8 +69,6 @@ static bool fillAddr(const std::string &_address, uint16_t _port,
   hostent *host;
   if ((host = gethostbyname(_address.c_str())) == NULL)
   {
-    // strerror() will not work for gethostbyname() and hstrerror()
-    // is supposedly obsolete.
     std::cerr << "Failed to resolve name (gethostbyname())" << std::endl;
     return false;
   }
