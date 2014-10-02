@@ -33,7 +33,7 @@ namespace testing
    std::string portable_path_union(const std::string str1, const std::string str2)
    {
 #ifdef _WIN32
-        std::path base_path(str1);
+        std::tr2::sys::path base_path(str1);
         return base_path /= str2;
 #else
         // Ugly as hell but trying to avoid boost::filesystem
@@ -54,8 +54,8 @@ namespace testing
       STARTUPINFO info={sizeof(info)};
       PROCESS_INFORMATION processInfo;
 
-      if (! CreateProcess(NULL, command, NULL, NULL, TRUE, 0, 
-                        NULL, NULL, &info, &processInfo))
+      if (! CreateProcess(NULL, const_cast<LPSTR>(command), NULL, NULL, TRUE, 
+		          0, NULL, NULL, &info, &processInfo))
       {
         std::cerr << "CreateProcess call failed" << std::endl;
       }
