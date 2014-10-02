@@ -29,73 +29,45 @@ std::string topic = "/foo";
 int data = 5;
 
 //////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_req.data(), data);
-  _rep.set_data(_req.data());
-  _result = true;
-}
-
-//////////////////////////////////////////////////
-void runReplier()
-{
-  // srvExecuted = false;
-  transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  int i = 0;
-  while (i < 100)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
-}
-
-//////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
-  pid_t pid = fork();
+   std::string subscriber_path = testing::portable_path_union(
+      PROJECT_BINARY_PATH, 
+      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  if (pid == 0)
-    runReplier();
-  else
-  {
-    unsigned int timeout = 500;
-    transport::msgs::Int req;
-    transport::msgs::Int rep;
-    bool result;
+   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 
-    req.set_data(data);
+   unsigned int timeout = 500;
+   transport::msgs::Int req;
+   transport::msgs::Int rep;
+   bool result;
 
-    transport::Node node1;
+   req.set_data(data);
 
-    // Make sure that the address of the service call provider is known.
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
-    EXPECT_EQ(req.data(), rep.data());
-    EXPECT_TRUE(result);
+   transport::Node node1;
 
-    auto t1 = std::chrono::system_clock::now();
-    EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
-    auto t2 = std::chrono::system_clock::now();
+   // Make sure that the address of the service call provider is known.
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
+   EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
+   EXPECT_EQ(req.data(), rep.data());
+   EXPECT_TRUE(result);
 
-    double elapsed =
-      std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+   auto t1 = std::chrono::system_clock::now();
+   EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
+   auto t2 = std::chrono::system_clock::now();
 
-    // Check if the elapsed time was close to the timeout.
-    EXPECT_NEAR(elapsed, timeout, 5.0);
+   double elapsed =
+     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
-    // Wait for the child process to return.
-    int status;
-    waitpid(pid, &status, 0);
-  }
+   // Check if the elapsed time was close to the timeout.
+   EXPECT_NEAR(elapsed, timeout, 5.0);
+
+   // Wait for the child process to return.
+   testing::wait_and_cleanup_fork(pi);
 }
 
 //////////////////////////////////////////////////
