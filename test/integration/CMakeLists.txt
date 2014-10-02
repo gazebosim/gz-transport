@@ -7,6 +7,7 @@ set(tests
   twoProcessesPubSub.cc
   twoProcessesPubSubSubscriber_aux.cc
   twoProcessesSrvCall.cc
+  twoProcessesSrvCallReplier_aux.cc
   twoProcessesSrvCallSync1.cc
   twoProcessesSrvCallSync2.cc
 )
