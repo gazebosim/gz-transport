@@ -86,6 +86,17 @@ elseif (MSVC)
   message (STATUS "Using Windows RPC UuidCreate function")
 endif()
 
+#################################################
+# Find ifaddrs.h
+find_path(HAVE_IFADDRS ifaddrs.h)
+if (HAVE_IFADDRS)
+  message (STATUS "ifaddrs.h found.")
+  set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
+else ()
+  BUILD_WARNING ("ifaddrs.h not found.")
+  set (HAVE_IFADDRS OFF CACHE BOOL "HAVE IFADDRS" FORCE)
+endif()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)

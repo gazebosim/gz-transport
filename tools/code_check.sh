@@ -53,7 +53,7 @@ else
     CPPCHECK_FILES=`find $CHECK_DIRS -name "*.cc" -o -name "*.hh"`
   fi
   CPPLINT_FILES=`\
-    find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h"`
+    find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h" | grep -v -e NetUtils`
 fi
 
 SUPPRESS=/tmp/cpp_check.suppress

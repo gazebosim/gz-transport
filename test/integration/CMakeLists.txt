@@ -1,7 +1,6 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  #beaconTest.cc
   scopedTopic.cc
   scopedTopicSubscriber_aux.cc
   twoProcessesPubSub.cc

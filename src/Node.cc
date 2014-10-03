@@ -15,7 +15,6 @@
  *
 */
 
-//#include <czmq.h>
 #include <google/protobuf/message.h>
 #include <cstdlib>
 #include <algorithm>
