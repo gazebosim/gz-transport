@@ -69,15 +69,15 @@ int transport::hostname_to_ip(char * hostname, std::string &_ip)
 std::string transport::DetermineHost()
 {
   char *ip_env;
-  // First, did the user set DZMQ_IP?
-  ip_env = std::getenv("DZMQ_IP");
+  // First, did the user set IGN_IP?
+  ip_env = std::getenv("IGN_IP");
 
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
       return ip_env;
     else
-      std::cerr << "invalid DZMQ_IP (an empty string)" << std::endl;
+      std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
   }
 
   // Second, try the hostname

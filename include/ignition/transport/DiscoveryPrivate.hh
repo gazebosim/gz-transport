@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
+#include <arpa/inet.h>
 #include <functional>
 #include <map>
 #include <memory>
@@ -147,8 +148,8 @@ namespace ignition
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
-      /// \brief IP Address used for broadcast.
-      public: const std::string BcastIP = "255.255.255.255";
+      /// \brief IP Address used for multicast.
+      public: const std::string MulticastGroup = "224.0.0.1";
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
@@ -161,9 +162,6 @@ namespace ignition
 
       /// \brief Host IP address.
       public: std::string hostAddr;
-
-      /// \brief Broadcast address;
-      public: std::string bcastAddr;
 
       /// \brief Process UUID.
       public: std::string pUuid;
@@ -216,10 +214,10 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for receiving discovery messages.
-      public: int bcastSockIn;
+      public: int sock;
 
-      /// \bried UDP socket used for sending discovery messages.
-      public: int bcastSockOut;
+      /// \brief Internet socket address for sending to the multicast group.
+      public: sockaddr_in mcastAddr;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
