@@ -105,6 +105,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     return;
   }
 
+#ifdef SO_REUSEPORT
   // Socket option: SO_REUSEPORT.
   int reusePort = 1;
   if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT,
@@ -113,6 +114,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
     return;
   }
+#endif
 
   // Socket option: IP_MULTICAST_IF.
   // This option selects the source interface for outgoing messages.
