@@ -34,15 +34,22 @@ available at the Open Source Robotics Foundation.*
 
 1. Setup your computer to accept software from packages.osrfoundation.org.
 
+    ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
+    ```
 
 1. Setup keys.
 
+    ```
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+    ```
 
 1. Install libzmq3.
+
+    ```
     sudo apt-get update
     sudo apt-get install libzmq3 libzmq3-dev
+    ```
 
 ## Installation
 
