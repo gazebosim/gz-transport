@@ -208,8 +208,7 @@ namespace ignition
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage connections;
 
-      /// \brief Remote connections for request/response messages. The key is
-      /// zeromq end point and the value its zeromq identity.
+      /// \brief List of connected zmq end points for request/response.
       private: std::vector<std::string> srvConnections;
 
       /// \brief Remote subscribers.
