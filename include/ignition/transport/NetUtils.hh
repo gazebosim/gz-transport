@@ -27,7 +27,7 @@ namespace ignition
     /// \brief Determine if an IP is private.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
-    /// \param[in] Input IP address.
+    /// \param[in] _ip Input IP address.
     /// \return true if the IP address is private.
     bool isPrivateIP(const char *_ip);
 
