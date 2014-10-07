@@ -15,11 +15,12 @@
  *
 */
 
+#include <chrono>
 #include <csignal>
 #include <ignition/transport.hh>
 #include "msg/stringmsg.pb.h"
 
-bool terminate = false;
+bool terminatePub = false;
 
 //////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -28,7 +29,7 @@ bool terminate = false;
 void signal_handler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
-    terminate = true;
+    terminatePub = true;
 }
 
 //////////////////////////////////////////////////
@@ -46,12 +47,12 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
-  while(!terminate)
+  while(!terminatePub)
   {
     node.Publish("/foo", msg);
 
     std::cout << "Publishing hello\n";
-    usleep(1000000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
   return 0;

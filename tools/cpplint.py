@@ -4387,7 +4387,7 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
 
   # Make Windows paths like Unix.
   fullname = os.path.abspath(filename).replace('\\', '/')
-  
+
   # Perform other checks now that we are sure that this is not an include line
   CheckCasts(filename, clean_lines, linenum, error)
   CheckGlobalStatic(filename, clean_lines, linenum, error)
@@ -4487,7 +4487,7 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
       # A catch all for tricky sizeof cases, including 'sizeof expression',
       # 'sizeof(*type)', 'sizeof(const type)', 'sizeof(struct StructName)'
       # requires skipping the next token because we split on ' ' and '*'.
-      if tok.startswith('sizeof'):
+      if tok.startswith('sizeof') or tok.startswith('this'):
         skip_next = True
         continue
       is_const = False
@@ -5334,7 +5334,7 @@ def ProcessLine(filename, file_extension, clean_lines, line,
   # CheckDefaultLambdaCaptures(filename, clean_lines, line, error)
   for check_fn in extra_check_functions:
     check_fn(filename, clean_lines, line, error)
-	
+
 def FlagCxx11Features(filename, clean_lines, linenum, error):
   """Flag those c++11 features that we only allow in certain places.
 

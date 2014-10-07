@@ -29,9 +29,6 @@ endif()
 if (NOT PROTOBUF_PROTOC_EXECUTABLE)
   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
 endif()
-if (NOT PROTOBUF_PROTOC_LIBRARY)
-  BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
-endif()
 
 #################################################
 # Find ZeroMQ.
@@ -57,25 +54,6 @@ else()
 endif()
 
 #################################################
-# Find czmq
-# Seems to work fine with 2.2.0 version of czmq in linux but MacOsX needs 3.0.0
-# See: https://bitbucket.org/ignitionrobotics/ign-transport/commits/73be1b2
-if(APPLE)
-  pkg_check_modules(czmq libczmq>=3.0.0)
-else()
-  pkg_check_modules(czmq libczmq>=2.0.0)
-endif()
-
-if (NOT czmq_FOUND)
-  message (STATUS "Looking for czmq pkgconfig file - not found")
-  BUILD_ERROR ("czmq not found, Please install czmq")
-else ()
-  message (STATUS "Looking for czmq pkgconfig file - found")
-  include_directories(${czmq_INCLUDE_DIRS})
-  link_directories(${czmq_LIBRARY_DIRS})
-endif ()
-
-#################################################
 # Find uuid:
 pkg_check_modules(uuid uuid)
 
@@ -87,6 +65,17 @@ else ()
   include_directories(${uuid_INCLUDE_DIRS})
   link_directories(${uuid_LIBRARY_DIRS})
 endif ()
+
+#################################################
+# Find ifaddrs.h
+find_path(HAVE_IFADDRS ifaddrs.h)
+if (HAVE_IFADDRS)
+  message (STATUS "ifaddrs.h found.")
+  set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
+else ()
+  BUILD_WARNING ("ifaddrs.h not found.")
+  set (HAVE_IFADDRS OFF CACHE BOOL "HAVE IFADDRS" FORCE)
+endif()
 
 ########################################
 # Include man pages stuff

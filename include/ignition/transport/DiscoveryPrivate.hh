@@ -18,14 +18,12 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#include <czmq.h>
-#include <uuid/uuid.h>
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <string>
+#include <thread>
 #include <vector>
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
@@ -126,21 +124,6 @@ namespace ignition
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
-      /// \brief Create a new beacon for a given topic advertised by a node.
-      /// \param[in] _advType Used to distinguish between regular pub/sub
-      /// messages or services.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void NewBeacon(const MsgType &_advType,
-                             const std::string &_topic,
-                             const std::string &_nUuid);
-
-      /// \brief Delete a beacon.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void DelBeacon(const std::string &_topic,
-                             const std::string &_nUuid);
-
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
@@ -164,14 +147,23 @@ namespace ignition
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
 
+      /// \brief IP Address used for broadcast.
+      public: const std::string BcastIP = "255.255.255.255";
+
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
+
+      /// \brief Longest string to receive.
+      public: static const int MaxRcvStr = 65536;
 
       /// \brief Discovery protocol version.
       static const uint8_t Version = 1;
 
       /// \brief Host IP address.
       public: std::string hostAddr;
+
+      /// \brief Broadcast address;
+      public: std::string bcastAddr;
 
       /// \brief Process UUID.
       public: std::string pUuid;
@@ -208,10 +200,6 @@ namespace ignition
       /// \brief Callback executed when a service is no longer available.
       public: DiscoveryCallback disconnectionSrvCb;
 
-      /// \brief Beacons to advertise topics periodically. The key is the topic
-      /// name. The value is another map, where the key is the node UUID.
-      public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
-
       /// \brief Message addressing information.
       public: TopicStorage infoMsg;
 
@@ -227,11 +215,11 @@ namespace ignition
       /// \brief Print discovery information to stdout.
       public: bool verbose;
 
-      /// \brief ZMQ context for the discovery beacon.
-      public: zctx_t *ctx;
+      /// \brief UDP socket used for receiving discovery messages.
+      public: int bcastSockIn;
 
-      /// \brief Discovery beacon.
-      public: zbeacon_t *beacon;
+      /// \bried UDP socket used for sending discovery messages.
+      public: int bcastSockOut;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
@@ -250,6 +238,12 @@ namespace ignition
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
+
+      /// \brief Topics advertised inside this process.
+      public: TopicStorage advertisedTopics;
+
+      /// \brief Services advertised inside this process.
+      public: TopicStorage advertisedSrvs;
     };
   }
 }

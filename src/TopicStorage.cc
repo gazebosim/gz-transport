@@ -190,6 +190,28 @@ bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 }
 
 //////////////////////////////////////////////////
+void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
+  std::map<std::string, std::vector<Address_t>> &_nodes)
+{
+  _nodes.clear();
+
+  // Iterate over all the topics.
+  for (auto &topic : this->data)
+  {
+    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    auto &m = topic.second;
+    if (m.find(_pUuid) != m.end())
+    {
+      auto &v = m[_pUuid];
+      for (auto &info : v)
+      {
+        _nodes[topic.first].push_back(info);
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;
