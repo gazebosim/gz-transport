@@ -158,7 +158,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   }
 
   // Get this host IP address.
-  this->hostAddr = DetermineHost();
+  this->hostAddr = determineHost();
 
   // Start the thread that receives discovery information.
   this->threadReception =
