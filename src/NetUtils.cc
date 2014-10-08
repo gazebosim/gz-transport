@@ -54,7 +54,7 @@ int transport::hostnameToIp(char *_hostname, std::string &_ip)
   if ((he = gethostbyname(_hostname)) == nullptr)
   {
     // get the host info
-    std::cerr << "Error in gethostbyname when using hostname = " << hostname;
+    std::cerr << "Error in gethostbyname when using hostname = " << _hostname;
     return 1;
   }
 
