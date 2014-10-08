@@ -14,45 +14,49 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "msg/int.pb.h"
 #include "gtest/gtest.h"
-#include "msg/vector3d.pb.h"
 #include "test_config.h"
 
 using namespace ignition;
 
+bool srvExecuted;
+bool responseExecuted;
+
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
+int counter = 0;
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber processs there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
+/// \brief Provide a service.
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
-   std::string subscriber_path = testing::portable_path_union(
-      PROJECT_BINARY_PATH, 
-      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
+  EXPECT_EQ(_topic, topic);
+  EXPECT_EQ(_req.data(), data);
+  _rep.set_data(_req.data());
+  _result = true;
 
-   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  srvExecuted = true;
+}
 
-   transport::msgs::Vector3d msg;
-   msg.set_x(1.0);
-   msg.set_y(2.0);
-   msg.set_z(3.0);
+//////////////////////////////////////////////////
+void runReplier()
+{
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-   transport::Node node1;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
 
-   EXPECT_TRUE(node1.Advertise(topic));
-   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-   EXPECT_TRUE(node1.Publish(topic, msg));
-   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-   EXPECT_TRUE(node1.Publish(topic, msg));
 
-   testing::wait_and_cleanup_fork(pi);
+TEST(twoProcSrvCall, SrvTwoProcsReplier)
+{
+  runReplier();
 }
 
 //////////////////////////////////////////////////
