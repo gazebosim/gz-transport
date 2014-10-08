@@ -9,7 +9,7 @@ when using Visual Studio 2013. Patches for other versions are welcome.
 
  - ZeroMQ Libraries
     - [ZeroMQ 4.0.4 32bits installer](http://miru.hk/archive/ZeroMQ-4.0.4~miru1.0-x86.exe)
-    - [ZeroMQ 4.0.4 64bits installer](http://miru.hk/archive/ZeroMQ-4.0.4~miru1.0-x64.exe]
+    - [ZeroMQ 4.0.4 64bits installer](http://miru.hk/archive/ZeroMQ-4.0.4~miru1.0-x64.exe)
 
  - cppzmq header file
     - [Download it](https://github.com/zeromq/cppzmq) and place at any folder in your system
@@ -28,10 +28,8 @@ when using Visual Studio 2013. Patches for other versions are welcome.
 
 ### 32bits compilation
 
-    ```
     "C:\Program Files(x86)\Microsft Visual Studio 12\VC\vcvarsall.bat" x86
     cmake .. -G"Visual Studio 12" -DZeroMQ_ROOT_DIR="C:\Program Files (x86)\ZeroMQ 4.0.4" -DPROTOBUF_SRC_ROOT_FOLDER="C:\<path_to_protobuf-2.6.0>" -DCPPZMQ_HEADER_PATH="C:\<path_to_cppzmq>"
-    ```
 
 ### 64 bits compilation
 
@@ -41,7 +39,5 @@ when using Visual Studio 2013. Patches for other versions are welcome.
 
 ## Run tests
 
-    ```
     set PATH=%PATH%;c:\Program Files (x86)\ZeroMQ 4.0.4\bin
     ctest -C "Release" --extra-verbose
-    ```
