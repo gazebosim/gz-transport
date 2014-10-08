@@ -37,21 +37,21 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
-bool transport::isPrivateIP(const char *ip)
+bool transport::isPrivateIP(const char *_ip)
 {
-  bool b = !strncmp("192.168", ip, 7) || !strncmp("10.", ip, 3) ||
-           !strncmp("169.254", ip, 7);
+  bool b = !strncmp("192.168", _ip, 7) || !strncmp("10.", _ip, 3) ||
+           !strncmp("169.254", _ip, 7);
   return b;
 }
 
 //////////////////////////////////////////////////
-int transport::hostname_to_ip(char * hostname, std::string &_ip)
+int transport::hostnameToIp(char *_hostname, std::string &_ip)
 {
   struct hostent *he;
   struct in_addr **addr_list;
   int i;
 
-  if ((he = gethostbyname(hostname)) == nullptr)
+  if ((he = gethostbyname(_hostname)) == nullptr)
   {
     // get the host info
     std::cerr << "Error in gethostbyname when using hostname = " << hostname;
@@ -71,7 +71,7 @@ int transport::hostname_to_ip(char * hostname, std::string &_ip)
 }
 
 //////////////////////////////////////////////////
-std::string transport::DetermineHost()
+std::string transport::determineHost()
 {
   char *ip_env;
   // First, did the user set DZMQ_IP?
@@ -96,7 +96,7 @@ std::string transport::DetermineHost()
   {
     std::string hostIP;
     strcat(host, ".local");
-    if (hostname_to_ip(host, hostIP) == 0)
+    if (hostnameToIp(host, hostIP) == 0)
     {
       return std::string(hostIP);
     }

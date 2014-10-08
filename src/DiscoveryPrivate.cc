@@ -15,7 +15,7 @@
  *
 */
 
-#ifdef WIN32
+#ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <winsock.h>
   // Type used for raw data on this platform.
@@ -51,7 +51,7 @@
 using namespace ignition;
 using namespace transport;
 
-#ifdef WIN32
+#ifdef _WIN32
   static bool initialized = false;
 #endif
 
@@ -69,8 +69,6 @@ static bool fillAddr(const std::string &_address, uint16_t _port,
   hostent *host;
   if ((host = gethostbyname(_address.c_str())) == NULL)
   {
-    // strerror() will not work for gethostbyname() and hstrerror()
-    // is supposedly obsolete.
     std::cerr << "Failed to resolve name (gethostbyname())" << std::endl;
     return false;
   }
@@ -94,7 +92,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     verbose(_verbose),
     exit(false)
 {
-#ifdef WIN32
+#ifdef _WIN32
   if (!initialized)
   {
     WORD wVersionRequested;
@@ -160,7 +158,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   }
 
   // Get this host IP address.
-  this->hostAddr = DetermineHost();
+  this->hostAddr = determineHost();
 
   // Start the thread that receives discovery information.
   this->threadReception =
@@ -197,7 +195,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
-#ifdef WIN32
+#ifdef _WIN32
   closesocket(this->bcastSockIn);
   closesocket(this->bcastSockOut);
 #else
