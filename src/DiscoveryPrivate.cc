@@ -126,10 +126,10 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 
   // Enable broadcast.
   setsockopt(this->bcastSockOut, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    reinterpret_cast<char *>(&broadcastPermission),
     sizeof(broadcastPermission));
   setsockopt(this->bcastSockOut, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
 
   // Make a new socket for receiving discovery information.
   if ((this->bcastSockIn = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
@@ -140,10 +140,10 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 
   // Enable broadcast for the socket.
   setsockopt(this->bcastSockIn, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    reinterpret_cast<char *>(&broadcastPermission),
     sizeof(broadcastPermission));
   setsockopt(this->bcastSockIn, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
 
   // Bind the socket to the discovery port.
   sockaddr_in localAddr;
