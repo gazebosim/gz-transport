@@ -178,7 +178,7 @@ endif()
 
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
 if (MSVC)
-  set(WARN_LEVEL "/W4")
+  set(WARN_LEVEL "/W2")
 else()
   set(WARN_LEVEL "-Wall")
 endif()
