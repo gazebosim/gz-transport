@@ -17,7 +17,9 @@
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
-  #include <winsock.h>
+  #include <Winsock2.h>
+  // for socklen_t
+  #include <WS2tcpip.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
@@ -103,7 +105,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     // Load WinSock DLL.
     if (WSAStartup(wVersionRequested, &wsaData) != 0)
     {
-     std::cer << "Unable to load WinSock DLL" << std::endl;
+     std::cerr << "Unable to load WinSock DLL" << std::endl;
      return;
     }
 
@@ -124,10 +126,10 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 
   // Enable broadcast.
   setsockopt(this->bcastSockOut, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    reinterpret_cast<char *>(&broadcastPermission),
     sizeof(broadcastPermission));
   setsockopt(this->bcastSockOut, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
 
   // Make a new socket for receiving discovery information.
   if ((this->bcastSockIn = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
@@ -138,10 +140,10 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 
   // Enable broadcast for the socket.
   setsockopt(this->bcastSockIn, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<sockaddr *>(&broadcastPermission),
+    reinterpret_cast<char *>(&broadcastPermission),
     sizeof(broadcastPermission));
   setsockopt(this->bcastSockIn, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr));
+    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
 
   // Bind the socket to the discovery port.
   sockaddr_in localAddr;
