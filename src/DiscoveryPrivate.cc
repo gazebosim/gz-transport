@@ -18,6 +18,8 @@
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
+  // for socklen_t
+  #include <WS2tcpip.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
@@ -103,7 +105,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     // Load WinSock DLL.
     if (WSAStartup(wVersionRequested, &wsaData) != 0)
     {
-     std::cer << "Unable to load WinSock DLL" << std::endl;
+     std::cerr << "Unable to load WinSock DLL" << std::endl;
      return;
     }
 
