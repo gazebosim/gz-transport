@@ -24,7 +24,7 @@ when using Visual Studio 2013. Patches for other versions are welcome.
     - Add protoc.exe to your PATH. (Control Panel > System > Advanced > Enviroment variable)    
       protoc-2.6.0\vc
 
-## Compilation
+## Configuration (cmake)
 
 ### 32bits compilation
 
@@ -36,6 +36,10 @@ when using Visual Studio 2013. Patches for other versions are welcome.
    Currently, FindProtobuf.cmake is not support 64bits compilations since the
    binaries are placed under vsprojects\x64\Release and that PATH is not being
    used by the cmake module.
+
+## Compilation
+ 
+    msbuild /p:Configuration=Release ALL_BUILD.vcxproj
 
 ## Run tests
 
