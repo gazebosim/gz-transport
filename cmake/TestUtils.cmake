@@ -1,6 +1,5 @@
 #################################################
 macro (ign_build_tests)
-if (UNIX)
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
@@ -36,5 +35,4 @@ if (UNIX)
     add_test(check_${BINARY_NAME} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
 	${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
   endforeach()
-endif()
 endmacro()
