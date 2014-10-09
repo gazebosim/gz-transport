@@ -92,6 +92,7 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
 endmacro()
 
 #################################################
