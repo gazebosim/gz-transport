@@ -17,7 +17,7 @@
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
-  #include <winsock.h>
+  #include <Winsock2.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
