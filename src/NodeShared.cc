@@ -745,7 +745,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void NodeShared::OnNewSrvConnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl,
+  const std::string &_addr, const std::string &_id,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
@@ -756,7 +756,7 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
     std::cout << "Service call connection callback" << std::endl;
     std::cout << "Topic: " << _topic << std::endl;
     std::cout << "Addr: " << _addr << std::endl;
-    std::cout << "Zmq ID: " << _ctrl << std::endl;
+    std::cout << "Zmq ID: " << _id << std::endl;
     std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
@@ -781,7 +781,7 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl,
+  const std::string &_addr, const std::string &_id,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
@@ -797,7 +797,7 @@ void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
     std::cout << "Service call disconnection callback" << std::endl;
     std::cout << "Topic: " << _topic << std::endl;
     std::cout << "Addr: " << _addr << std::endl;
-    std::cout << "Ctrl Addr: " << _ctrl << std::endl;
+    std::cout << "ZMQ id: " << _id << std::endl;
     std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
