@@ -787,6 +787,11 @@ void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
+  // Remove the address from the list of connected addresses.
+  this->srvConnections.erase(std::remove(std::begin(this->srvConnections),
+    std::end(this->srvConnections), _addr.c_str()),
+    std::end(this->srvConnections));
+
   if (this->verbose)
   {
     std::cout << "Service call disconnection callback" << std::endl;
