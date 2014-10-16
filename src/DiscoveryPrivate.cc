@@ -15,7 +15,7 @@
  *
 */
 
-#ifdef WIN32
+#ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <winsock.h>
   // Type used for raw data on this platform.
@@ -51,7 +51,7 @@
 using namespace ignition;
 using namespace transport;
 
-#ifdef WIN32
+#ifdef _WIN32
   static bool initialized = false;
 #endif
 
@@ -89,7 +89,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   }
 #endif
 
-  // Make a new socket for receiving discovery information.
+  // Make a new socket for sending/receiving discovery information.
   if ((this->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
   {
     std::cerr << "Socket creation failed." << std::endl;
@@ -182,7 +182,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
-#ifdef WIN32
+#ifdef _WIN32
   closesocket(this->sock);
 #else
   close(this->sock);

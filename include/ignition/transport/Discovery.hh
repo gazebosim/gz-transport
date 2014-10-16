@@ -63,7 +63,7 @@ namespace ignition
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
       /// \param[in] _addr ZeroMQ address of the service provider.
-      /// \param[in] _id ZeroMQ identity for the socket receiveing the response.
+      /// \param[in] _id ZeroMQ identity for the socket receiving the response.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
       public: void AdvertiseSrv(const std::string &_topic,
