@@ -68,9 +68,9 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     exit(false)
 {
   // Get this host IP address.
-  this->hostAddr = DetermineHost();
+  this->hostAddr = determineHost();
 
-#ifdef WIN32
+#ifdef _WIN32
   if (!initialized)
   {
     WORD wVersionRequested;
