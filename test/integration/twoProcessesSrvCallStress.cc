@@ -73,7 +73,9 @@ TEST(twoProcSrvCall, ThousandCalls)
 int main(int argc, char **argv)
 {
   // Enable verbose mode.
-  setenv("IGN_VERBOSE", "1", 1);
+  // Too much verbose generate tons of logs
+  // disabling
+  setenv("IGN_VERBOSE", "0", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
