@@ -15,6 +15,7 @@
  *
 */
 
+#pragma warning(push, 0)
 #include <zmq.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -23,6 +24,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/RepHandler.hh"

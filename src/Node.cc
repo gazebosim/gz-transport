@@ -17,7 +17,6 @@
 
 #pragma warning(push, 0)
 #include <google/protobuf/message.h>
-#pragma warning(pop)
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
@@ -25,6 +24,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"
