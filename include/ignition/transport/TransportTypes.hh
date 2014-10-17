@@ -17,7 +17,9 @@
 #ifndef _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 #define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
+#pragma warning(pop)
 #include <functional>
 #include <map>
 #include <memory>

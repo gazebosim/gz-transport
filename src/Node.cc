@@ -15,7 +15,9 @@
  *
 */
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
+#pragma warning(pop)
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>

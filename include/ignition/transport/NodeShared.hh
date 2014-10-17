@@ -18,7 +18,9 @@
 #ifndef _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 #define _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
+#pragma warning(pop)
 #include <zmq.hpp>
 #include <memory>
 #include <mutex>
