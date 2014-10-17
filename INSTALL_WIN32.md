@@ -50,33 +50,33 @@ when using Visual Studio 2013. Patches for other versions are welcome.
 
 Totally experimental, using pre-compiled binaries in a local workspace.
 
- 1. Make a directory to work in, e.g.:
+1. Make a directory to work in, e.g.:
 
     mkdir ign-ws
     cd ign-ws
 
- 1. Download the following things:
+1. Download the following things:
 
   - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq.zip)
   - [zeromq](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4.zip)
   - [protobuf](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
 
- 1. Unzip each of them.
+1. Unzip each of them.
 
- 1. Clone ign-transport:
+1. Clone ign-transport:
 
     hg clone https://bitbucket.org/ignitionrobotics/ign-transport
     cd ign-transport
 
- 1. Load your compiler setup, e.g.:
+1. Load your compiler setup, e.g.:
 
     "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
- 1. Run CMake via the supplied configure.bat file (modify as needed):
+1. Run CMake via the supplied configure.bat file (modify as needed):
 
     configure
 
- 1. Build and install, using nmake:
+1. Build and install, using nmake:
  
     nmake
     nmake install
