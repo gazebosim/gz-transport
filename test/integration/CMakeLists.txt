@@ -4,6 +4,7 @@ set(tests
   scopedTopic.cc
 	twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
+  twoProcessesSrvCallStress.cc
   twoProcessesSrvCallSync1.cc
   twoProcessesSrvCallSync2.cc
 )
