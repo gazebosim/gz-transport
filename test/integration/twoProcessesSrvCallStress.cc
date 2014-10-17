@@ -68,3 +68,13 @@ TEST(twoProcSrvCall, ThousandCalls)
   // kill the child
   kill(pid, SIGTERM);
 }
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Enable verbose mode.
+  setenv("IGN_VERBOSE", "1", 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
