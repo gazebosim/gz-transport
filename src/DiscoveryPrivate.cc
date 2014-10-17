@@ -16,8 +16,6 @@
 */
 
 #ifdef _WIN32
-  // For socket(), connect(), send(), and recv().
-  #include <Winsock2.h>
   // for socklen_t
   #include <WS2tcpip.h>
   // Type used for raw data on this platform.
@@ -29,8 +27,6 @@
   #include <sys/socket.h>
   // For gethostbyname()
   #include <netdb.h>
-  // For inet_addr()
-  #include <arpa/inet.h>
   // For close()
   #include <unistd.h>
   // For sockaddr_in
