@@ -20,7 +20,6 @@
 
 #pragma warning(push, 0)
 #include <google/protobuf/message.h>
-#pragma warning(pop)
 #include <algorithm>
 #include <condition_variable>
 #include <functional>
@@ -29,6 +28,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodePrivate.hh"
