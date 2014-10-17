@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_NODE_HH_INCLUDED__
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
 #include <algorithm>
 #include <condition_variable>
@@ -27,6 +28,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodePrivate.hh"
