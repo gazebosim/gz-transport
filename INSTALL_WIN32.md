@@ -52,33 +52,33 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 
 1. Make a directory to work in, e.g.:
 
-    mkdir ign-ws
-    cd ign-ws
+        mkdir ign-ws
+        cd ign-ws
 
-1. Download the following things:
+1. Download the following things into that directory:
 
-  - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq.zip)
-  - [zeromq](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4.zip)
-  - [protobuf](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
+    - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq.zip)
+    - [ZeroMQ 3.2.4](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4.zip)
+    - [Protobuf 2.6.0](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
 
 1. Unzip each of them.
 
 1. Clone ign-transport:
 
-    hg clone https://bitbucket.org/ignitionrobotics/ign-transport
-    cd ign-transport
+        hg clone https://bitbucket.org/ignitionrobotics/ign-transport
+        cd ign-transport
 
 1. Load your compiler setup, e.g.:
 
-    "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
+        "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
 1. Run CMake via the supplied configure.bat file (modify as needed):
 
-    configure
+        configure
 
 1. Build and install, using nmake:
  
-    nmake
-    nmake install
+        nmake
+        nmake install
 
 You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
