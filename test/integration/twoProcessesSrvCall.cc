@@ -57,11 +57,17 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 }
 
 //////////////////////////////////////////////////
-void runReplier()
+void runReplier(bool keep_running = false)
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
+  if (keep_running)
+  {
+    while(1);
+    return;
+  }
+  
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
 
@@ -118,6 +124,45 @@ TEST(twoProcSrvCall, SrvTwoProcs)
     waitpid(pid, &status, 0);
   }
 }
+
+TEST(twoProcSrvCall, ThousandCalls)
+{
+  const bool KEEP_RUNNING_FOREVER = true;
+  pid_t pid = fork();
+
+  if (pid == 0)
+  {
+    runReplier(KEEP_RUNNING_FOREVER);
+  }
+  else
+  {
+    responseExecuted = false;
+    counter = 0;
+    transport::msgs::Int req;
+    req.set_data(data);
+
+    transport::Node node1;
+
+    for (int c = 0; c < 15000; c++)
+    {
+      EXPECT_TRUE(node1.Request(topic, req, response));
+
+      int i = 0;
+      while (i < 100 && !responseExecuted)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++i;
+      }
+
+      // Check that the service call response was executed.
+      EXPECT_TRUE(responseExecuted);
+      EXPECT_EQ(counter, c);
+    }
+  }
+  // kill the child
+  kill(pid, SIGTERM);
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
