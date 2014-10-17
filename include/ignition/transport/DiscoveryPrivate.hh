@@ -26,7 +26,6 @@
   #include <arpa/inet.h>
 #endif
 
-#include <arpa/inet.h>
 #include <functional>
 #include <map>
 #include <memory>

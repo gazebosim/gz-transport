@@ -97,7 +97,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // Socket option: SO_REUSEADDR.
   int reuseAddr = 1;
   if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR,
-        reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr)) != 0)
+        reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
     return;
@@ -107,7 +107,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // Socket option: SO_REUSEPORT.
   int reusePort = 1;
   if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT,
-        reinterpret_cast<sockaddr *>(&reusePort), sizeof(reusePort)) != 0)
+        reinterpret_cast<char *>(&reusePort), sizeof(reusePort)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
     return;
@@ -118,8 +118,8 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // This option selects the source interface for outgoing messages.
   struct in_addr ifAddr;
   ifAddr.s_addr = inet_addr(this->hostAddr.c_str());
-  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF, &ifAddr,
-        sizeof(ifAddr)) != 0)
+  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF, 
+         reinterpret_cast<char *>(&ifAddr), sizeof(ifAddr)) != 0)
   {
     std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
     return;
