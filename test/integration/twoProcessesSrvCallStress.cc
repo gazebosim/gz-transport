@@ -45,7 +45,8 @@ TEST(twoProcSrvCall, ThousandCalls)
   {
     transport::Node node;
     EXPECT_TRUE(node.Advertise(topic, srvEcho));
-    while (1) {};
+    while (1)
+    { }
   }
   else
   {
