@@ -57,16 +57,10 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 }
 
 //////////////////////////////////////////////////
-void runReplier(bool keep_running = false)
+void runReplier()
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  if (keep_running)
-  {
-    while(1);
-    return;
-  }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }

@@ -45,7 +45,8 @@ TEST(twoProcSrvCall, ThousandCalls)
   {
     transport::Node node;
     EXPECT_TRUE(node.Advertise(topic, srvEcho));
-    getchar();
+    while (1)
+    { }
   }
   else
   {
@@ -67,4 +68,16 @@ TEST(twoProcSrvCall, ThousandCalls)
   }
   // kill the child
   kill(pid, SIGTERM);
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Enable verbose mode.
+  // Too much verbose generate tons of logs
+  // disabling
+  setenv("IGN_VERBOSE", "0", 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
