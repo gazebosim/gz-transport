@@ -29,8 +29,6 @@
 
 // Implement non POSIX setenv call in Visual Studio
 #if (_MSC_VER >= 1400)
-#include <sstream>
-
 int setenv(const char * name, const char * value, int /*rewrite*/)
 {
   std::stringstream sstr;

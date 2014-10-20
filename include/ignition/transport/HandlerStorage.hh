@@ -39,7 +39,7 @@ namespace ignition
       typedef std::map<std::string, UUIDHandler_M> UUIDHandler_Collection_M;
 
       /// \brief key is a topic name and value is UUIDHandler_M
-      typedef std::map<std::string, UUIDHandler_Collection_M> 
+      typedef std::map<std::string, UUIDHandler_Collection_M>
               TopicServiceCalls_M;
 
       /// \brief Constructor.
