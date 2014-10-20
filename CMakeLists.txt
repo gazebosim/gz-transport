@@ -187,7 +187,7 @@ else()
   # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
   # MSVC only pragmas all over the code
   list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
-  list(APPEND WARN_LEVEL -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type)
+  list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
   list(APPEND WARN_LEVEL -Wsequence-point -Wsign-compare -Wstrict-aliasing)
   list(APPEND WARN_LEVEL -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized)
   list(APPEND WARN_LEVEL -Wunused-function -Wunused-label -Wunused-value)
