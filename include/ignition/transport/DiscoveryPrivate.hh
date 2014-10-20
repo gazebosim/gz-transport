@@ -19,12 +19,17 @@
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
 #pragma warning(push, 0)
+#ifdef _WIN32
+  #include <Winsock2.h>
+#else
+  #include <arpa/inet.h>
+#endif
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
+#include <string>
 #include <vector>
 #pragma warning(pop)
 #include "ignition/transport/Helpers.hh"
@@ -43,7 +48,7 @@ namespace ignition
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.
-      typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
+      typedef std::chrono::steady_clock::time_point Timestamp;
 
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
