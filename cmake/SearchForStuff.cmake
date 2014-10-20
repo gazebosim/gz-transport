@@ -2,7 +2,6 @@ include (${project_cmake_dir}/Utils.cmake)
 include (CheckCXXSourceCompiles)
 
 include (${project_cmake_dir}/FindOS.cmake)
-include (FindPkgConfig)
 
 # It is know that raring compiler 4.7.3 is not able to compile the software
 # Check for a fully valid c++11 compiler
@@ -30,6 +29,9 @@ if (NOT PROTOBUF_PROTOC_EXECUTABLE)
   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
 endif()
 
+include_directories(${PROTOBUF_INCLUDE_DIR})
+
+
 #################################################
 # Find ZeroMQ.
 include (${project_cmake_dir}/FindZeroMQ.cmake)
@@ -44,7 +46,15 @@ endif ()
 #################################################
 # Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
 # different upstream projects and tarballs)
-find_path(cppzmq_INCLUDE_DIRS zmq.hpp PATHS ${zmq_INCLUDE_DIRS})
+# 
+# Provide the PATH using CPPZMQ_HEADER_PATH
+#
+find_path(cppzmq_INCLUDE_DIRS 
+          zmq.hpp 
+	  PATHS 
+	   ${zmq_INCLUDE_DIRS}
+	   ${CPPZMQ_HEADER_PATH})
+
 if (NOT cppzmq_INCLUDE_DIRS)
   message(STATUS "cppzmq header file was not found")
   BUILD_ERROR("cppzmq header file was not found")
@@ -54,17 +64,24 @@ else()
 endif()
 
 #################################################
-# Find uuid:
-pkg_check_modules(uuid uuid)
+# Find uuid
+#  - In UNIX we use uuid library
+#  - In Windows the native RPC call, no dependency needed
+if (UNIX)
+  include (FindPkgConfig REQUIRED)
+  pkg_check_modules(uuid uuid)
 
-if (NOT uuid_FOUND)
-  message (STATUS "Looking for uuid pkgconfig file - not found")
-  BUILD_ERROR ("uuid not found, Please install uuid")
-else ()
-  message (STATUS "Looking for uuid pkgconfig file - found")
-  include_directories(${uuid_INCLUDE_DIRS})
-  link_directories(${uuid_LIBRARY_DIRS})
-endif ()
+  if (NOT uuid_FOUND)
+    message (STATUS "Looking for uuid pkgconfig file - not found")
+    BUILD_ERROR ("uuid not found, Please install uuid")
+  else ()
+    message (STATUS "Looking for uuid pkgconfig file - found")
+    include_directories(${uuid_INCLUDE_DIRS})
+    link_directories(${uuid_LIBRARY_DIRS})
+  endif ()
+elseif (MSVC)
+  message (STATUS "Using Windows RPC UuidCreate function")
+endif()
 
 #################################################
 # Find ifaddrs.h

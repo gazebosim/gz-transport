@@ -18,7 +18,7 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#include <arpa/inet.h>
+#pragma warning(push, 0)
 #include <functional>
 #include <map>
 #include <memory>
@@ -26,6 +26,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TopicStorage.hh"

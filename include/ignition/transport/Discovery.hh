@@ -18,9 +18,11 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <functional>
 #include <memory>
 #include <string>
+#pragma warning(pop)
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"

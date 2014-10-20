@@ -15,10 +15,15 @@
  *
 */
 
-#include <arpa/inet.h>
-#include <netdb.h>
+#ifdef _WIN32
+  #include <Winsock2.h>
+#else
+  #include <arpa/inet.h>
+  #include <netdb.h>
+  #include <unistd.h>
+#endif
+
 #include <stdlib.h>
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -49,7 +54,7 @@ int transport::hostnameToIp(char *_hostname, std::string &_ip)
   if ((he = gethostbyname(_hostname)) == nullptr)
   {
     // get the host info
-    herror("gethostbyname");
+    std::cerr << "Error in gethostbyname when using hostname = " << _hostname;
     return 1;
   }
 

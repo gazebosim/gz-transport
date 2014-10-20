@@ -20,9 +20,22 @@
 #include <cstdlib>
 #include <string>
 #include <thread>
+#if (_MSC_VER >= 1400)  // VS2005 for setenv
+#include <sstream>
+#endif
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
+
+// Implement non POSIX setenv call in Visual Studio
+#if (_MSC_VER >= 1400)
+int setenv(const char * name, const char * value, int /*rewrite*/)
+{
+  std::stringstream sstr;
+  sstr << *name << '=' << value;
+  return _putenv(sstr.str().c_str());
+}
+#endif
 
 using namespace ignition;
 

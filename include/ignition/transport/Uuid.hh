@@ -18,10 +18,18 @@
 #ifndef __IGN_TRANSPORT_UUID_HH_INCLUDED__
 #define __IGN_TRANSPORT_UUID_HH_INCLUDED__
 
-#include <uuid/uuid.h>
 #include <iostream>
 #include <string>
 #include "ignition/transport/Helpers.hh"
+
+#ifdef _WIN32
+  #include <Rpc.h>
+  #pragma comment(lib, "Rpcrt4.lib")
+  typedef UUID portable_uuid_t;
+#else /* UNIX */
+  #include <uuid/uuid.h>
+  typedef uuid_t portable_uuid_t;
+#endif
 
 namespace ignition
 {
@@ -60,7 +68,8 @@ namespace ignition
       private: static const int UuidStrLen = 37;
 
       /// \brief Internal representation.
-      private: uuid_t data;
+
+      private: portable_uuid_t data;
     };
   }
 }
