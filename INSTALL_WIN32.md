@@ -22,8 +22,8 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 
 1. Download the following things into that directory:
 
-    - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq.zip)
-    - [ZeroMQ 3.2.4](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4.zip)
+    - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq-noarch.zip)
+    - [ZeroMQ 3.2.4](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-x86.zip)
     - [Protobuf 2.6.0](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
 
 1. Unzip each of them.
