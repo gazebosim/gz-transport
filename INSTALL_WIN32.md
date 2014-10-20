@@ -37,14 +37,13 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 
         "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
-1. Run CMake via the supplied configure.bat file (modify as needed):
+1. Configure and build:
 
-        configure
-
-1. Build and install, using nmake:
- 
-        nmake
-        nmake install
+	mkdir build
+	cd build
+        ..\configure
+	nmake
+	nmake install
 
 You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
 
