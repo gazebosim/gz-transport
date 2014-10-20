@@ -18,7 +18,9 @@
 #ifndef __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
+#pragma warning(pop)
 #include <functional>
 #include <iostream>
 #include <memory>

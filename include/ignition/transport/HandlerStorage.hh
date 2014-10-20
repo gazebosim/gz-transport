@@ -31,6 +31,17 @@ namespace ignition
     /// \brief Class to store and manage service call handlers.
     template<typename T> class HandlerStorage
     {
+      /// \brief Stores all the service call data for each topic. The key of
+      /// _data is the topic name. The value is another map, where the key is
+      /// the node UUID and the value is a smart pointer to the handler.
+      /// \TODO: Carlos, review this names and fix them
+      typedef std::map<std::string, std::shared_ptr<T>> UUIDHandler_M;
+      typedef std::map<std::string, UUIDHandler_M> UUIDHandler_Collection_M;
+
+      /// \brief key is a topic name and value is UUIDHandler_M
+      typedef std::map<std::string, UUIDHandler_Collection_M>
+              TopicServiceCalls_M;
+
       /// \brief Constructor.
       public: HandlerStorage() = default;
 
@@ -106,11 +117,11 @@ namespace ignition
       {
         // Create the topic entry.
         if (this->data.find(_topic) == this->data.end())
-          this->data[_topic] = {};
+          this->data[_topic] = UUIDHandler_Collection_M();
 
         // Create the Node UUID entry.
         if (this->data[_topic].find(_nUuid) == this->data[_topic].end())
-          this->data[_topic][_nUuid] = {};
+          this->data[_topic][_nUuid] = UUIDHandler_M();
 
         // Add/Replace the Req handler.
         this->data[_topic][_nUuid].insert(
@@ -189,8 +200,7 @@ namespace ignition
       /// \brief Stores all the service call data for each topic. The key of
       /// _data is the topic name. The value is another map, where the key is
       /// the node UUID and the value is a smart pointer to the handler.
-      private: std::map<std::string,
-        std::map<std::string, std::map<std::string, std::shared_ptr<T>> >> data;
+      private: TopicServiceCalls_M data;
     };
   }
 }
