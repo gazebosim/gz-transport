@@ -18,18 +18,22 @@
 #ifndef _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 #define _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 
+#pragma warning(push, 0)
 #include <google/protobuf/message.h>
+#pragma warning(pop)
 #include <zmq.hpp>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -89,13 +93,13 @@ namespace ignition
       /// \brief Callback executed when the discovery detects disconnections.
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _id 0MQ identity of the socket in charge of the service.
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
       public: void OnNewDisconnection(const std::string &_topic,
                                       const std::string &_addr,
-                                      const std::string &_ctrl,
+                                      const std::string &_id,
                                       const std::string &_pUuid,
                                       const std::string &_nUuid,
                                       const Scope &_scope);
@@ -103,13 +107,13 @@ namespace ignition
       /// \brief Callback executed when the discovery detects a new service call
       /// \param[in] _topic Topic name.
       /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
+      /// \param[in] _id 0MQ identity of the socket in charge of the service.
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
       public: void OnNewSrvConnection(const std::string &_topic,
                                       const std::string &_addr,
-                                      const std::string &_ctrl,
+                                      const std::string &_id,
                                       const std::string &_pUuid,
                                       const std::string &_nUuid,
                                       const Scope &_scope);
@@ -173,6 +177,15 @@ namespace ignition
       /// \brief ZMQ socket for sending service call requests.
       public: std::unique_ptr<zmq::socket_t> requester;
 
+      /// \brief ZMQ socket for receiving service call responses.
+      public: std::unique_ptr<zmq::socket_t> responseReceiver;
+
+      /// \brief Response receiver socket identity.
+      public: Uuid responseReceiverId;
+
+      /// \brief Replier socket identity.
+      public: Uuid replierId;
+
       /// \brief ZMQ socket to receive service call requests.
       public: std::unique_ptr<zmq::socket_t> replier;
 
@@ -196,6 +209,9 @@ namespace ignition
 
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage connections;
+
+      /// \brief List of connected zmq end points for request/response.
+      private: std::vector<std::string> srvConnections;
 
       /// \brief Remote subscribers.
       public: TopicStorage remoteSubscribers;

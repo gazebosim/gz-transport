@@ -15,6 +15,7 @@
  *
 */
 
+#pragma warning(push, 0)
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
@@ -45,6 +46,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"

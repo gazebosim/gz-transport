@@ -15,6 +15,7 @@
  *
 */
 
+#pragma warning(push, 0)
 #include <zmq.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -23,6 +24,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#pragma warning(pop)
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/RepHandler.hh"
@@ -49,8 +51,9 @@ NodeShared::NodeShared()
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
-    requester(new zmq::socket_t(*context, ZMQ_DEALER)),
-    replier(new zmq::socket_t(*context, ZMQ_DEALER)),
+    requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
+    responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
+    replier(new zmq::socket_t(*context, ZMQ_ROUTER)),
     timeout(Timeout),
     exit(false)
 {
@@ -76,6 +79,9 @@ NodeShared::NodeShared()
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+
+    int lingerVal = 0;
+    this->publisher->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
     this->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
     this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
@@ -86,15 +92,26 @@ NodeShared::NodeShared()
     this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myControlAddress = bindEndPoint;
 
-    // Requester socket listening in a random port.
-    this->requester->bind(anyTcpEp.c_str());
-    this->requester->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    // ResponseReceiver socket listening in a random port.
+    std::string id = this->responseReceiverId.ToString();
+    this->responseReceiver->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    this->responseReceiver->bind(anyTcpEp.c_str());
+    this->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myRequesterAddress = bindEndPoint;
 
     // Replier socket listening in a random port.
+    id = this->replierId.ToString();
+    this->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    int RouteOn = 1;
+    this->replier->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    this->replier->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn, sizeof(RouteOn));
     this->replier->bind(anyTcpEp.c_str());
     this->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myReplierAddress = bindEndPoint;
+
+    this->requester->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    this->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
+      sizeof(RouteOn));
   }
   catch(const zmq::error_t& ze)
   {
@@ -109,6 +126,10 @@ NodeShared::NodeShared()
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
+    std::cout << "Identity for receiving srv. requests: ["
+              << this->replierId.ToString() << "]" << std::endl;
+    std::cout << "Identity for receiving srv. responses: ["
+              << this->responseReceiverId.ToString() << "]" << std::endl;
   }
 
   // Start the service thread.
@@ -122,6 +143,9 @@ NodeShared::NodeShared()
 
   // Set the callback to notify svc discovery updates (new service calls).
   discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
+
+  // Set the callback to notify svc discovery updates (new service calls).
+  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -147,7 +171,7 @@ void NodeShared::RunReceptionTask()
       {*this->subscriber, 0, ZMQ_POLLIN, 0},
       {*this->control, 0, ZMQ_POLLIN, 0},
       {*this->replier, 0, ZMQ_POLLIN, 0},
-      {*this->requester, 0, ZMQ_POLLIN, 0}
+      {*this->responseReceiver, 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 
@@ -228,7 +252,6 @@ void NodeShared::RecvMsgUpdate()
     std::cout << "Error: " << _error.what() << std::endl;
     return;
   }
-
 
   // Execute the callbacks registered.
   std::map<std::string, ISubscriptionHandler_M> handlers;
@@ -331,9 +354,13 @@ void NodeShared::RecvSrvRequest()
   std::string req;
   std::string rep;
   std::string resultStr;
+  std::string dstId;
 
   try
   {
+    if (!this->replier->recv(&msg, 0))
+      return;
+
     if (!this->replier->recv(&msg, 0))
       return;
     topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
@@ -341,6 +368,10 @@ void NodeShared::RecvSrvRequest()
     if (!this->replier->recv(&msg, 0))
       return;
     sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->replier->recv(&msg, 0))
+      return;
+    dstId = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
     if (!this->replier->recv(&msg, 0))
       return;
@@ -356,7 +387,7 @@ void NodeShared::RecvSrvRequest()
   }
   catch(const zmq::error_t &_error)
   {
-    std::cerr << "NodeShared::RecvSrvRequest() error: "
+    std::cerr << "NodeShared::RecvSrvRequest() error parsing request: "
               << _error.what() << std::endl;
     return;
   }
@@ -374,36 +405,56 @@ void NodeShared::RecvSrvRequest()
     else
       resultStr = "0";
 
+    // I am still not connected to this address.
+    if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+          sender) == this->srvConnections.end())
+    {
+      this->replier->connect(sender.c_str());
+      this->srvConnections.push_back(sender);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      if (this->verbose)
+      {
+        std::cout << "\t* Connected to [" << sender
+                  << "] for sending a response" << std::endl;
+      }
+    }
+
     // Send the reply.
-    zmq::socket_t socket(*this->context, ZMQ_DEALER);
-    socket.connect(sender.c_str());
+    try
+    {
+      zmq::message_t response;
 
-    // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
-    // be discarded immediately when the socket is closed. That avoids
-    // infinite waits if the publisher is disconnected.
-    int lingerVal = 200;
-    socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+      response.rebuild(dstId.size());
+      memcpy(response.data(), dstId.data(), dstId.size());
+      this->replier->send(response, ZMQ_SNDMORE);
 
-    zmq::message_t response;
-    response.rebuild(topic.size());
-    memcpy(response.data(), topic.data(), topic.size());
-    socket.send(response, ZMQ_SNDMORE);
+      response.rebuild(topic.size());
+      memcpy(response.data(), topic.data(), topic.size());
+      this->replier->send(response, ZMQ_SNDMORE);
 
-    response.rebuild(nodeUuid.size());
-    memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
-    socket.send(response, ZMQ_SNDMORE);
+      response.rebuild(nodeUuid.size());
+      memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
+      this->replier->send(response, ZMQ_SNDMORE);
 
-    response.rebuild(reqUuid.size());
-    memcpy(response.data(), reqUuid.data(), reqUuid.size());
-    socket.send(response, ZMQ_SNDMORE);
+      response.rebuild(reqUuid.size());
+      memcpy(response.data(), reqUuid.data(), reqUuid.size());
+      this->replier->send(response, ZMQ_SNDMORE);
 
-    response.rebuild(rep.size());
-    memcpy(response.data(), rep.data(), rep.size());
-    socket.send(response, ZMQ_SNDMORE);
+      response.rebuild(rep.size());
+      memcpy(response.data(), rep.data(), rep.size());
+      this->replier->send(response, ZMQ_SNDMORE);
 
-    response.rebuild(resultStr.size());
-    memcpy(response.data(), resultStr.data(), resultStr.size());
-    socket.send(response, 0);
+      response.rebuild(resultStr.size());
+      memcpy(response.data(), resultStr.data(), resultStr.size());
+      this->replier->send(response, 0);
+    }
+    catch(const zmq::error_t &_error)
+    {
+      std::cerr << "NodeShared::RecvSrvRequest() error sending response: "
+                << _error.what() << std::endl;
+      return;
+    }
   }
   else
     std::cerr << "I do not have a service call registered for topic ["
@@ -428,23 +479,26 @@ void NodeShared::RecvSrvResponse()
 
   try
   {
-    if (!this->requester->recv(&msg, 0))
+    if (!this->responseReceiver->recv(&msg, 0))
+      return;
+
+    if (!this->responseReceiver->recv(&msg, 0))
       return;
     topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&msg, 0))
+    if (!this->responseReceiver->recv(&msg, 0))
       return;
     nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&msg, 0))
+    if (!this->responseReceiver->recv(&msg, 0))
       return;
     reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&msg, 0))
+    if (!this->responseReceiver->recv(&msg, 0))
       return;
     rep = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->requester->recv(&msg, 0))
+    if (!this->responseReceiver->recv(&msg, 0))
       return;
     resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     result = resultStr == "1";
@@ -476,6 +530,7 @@ void NodeShared::RecvSrvResponse()
 void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 {
   std::string responserAddr;
+  std::string responserId;
   Addresses_M addresses;
   this->discovery->GetSrvAddresses(_topic, addresses);
   if (addresses.empty())
@@ -484,6 +539,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
   // Get the first responder.
   auto &v = addresses.begin()->second;
   responserAddr = v.at(0).addr;
+  responserId = v.at(0).ctrl;
 
   if (verbose)
   {
@@ -513,40 +569,41 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 
       try
       {
-        zmq::socket_t socket(*this->context, ZMQ_DEALER);
-        socket.connect(responserAddr.c_str());
-
-        // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
-        // be discarded immediately when the socket is closed. That avoids
-        // infinite waits if the publisher is disconnected.
-        int lingerVal = 200;
-        socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-
         zmq::message_t msg;
+
+        msg.rebuild(responserId.size());
+        memcpy(msg.data(), responserId.data(), responserId.size());
+        this->requester->send(msg, ZMQ_SNDMORE);
+
         msg.rebuild(_topic.size());
         memcpy(msg.data(), _topic.data(), _topic.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(this->myRequesterAddress.size());
         memcpy(msg.data(), this->myRequesterAddress.data(),
           this->myRequesterAddress.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        this->requester->send(msg, ZMQ_SNDMORE);
+
+        std::string myId = this->responseReceiverId.ToString();
+        msg.rebuild(myId.size());
+        memcpy(msg.data(), myId.data(), myId.size());
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(nodeUuid.size());
         memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(reqUuid.size());
         memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
+        this->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
-        socket.send(msg, 0);
+        this->requester->send(msg, 0);
       }
       catch(const zmq::error_t& ze)
       {
-        // std::cerr << "Error connecting [" << ze.what() << "]\n";
+        std::cerr << "Error connecting [" << ze.what() << "]\n";
       }
     }
   }
@@ -590,7 +647,6 @@ void NodeShared::OnNewConnection(const std::string &_topic,
       // Send a message to the publisher's control socket to notify it
       // about all my remoteSubscribers.
       zmq::socket_t socket(*this->context, ZMQ_DEALER);
-      socket.connect(_ctrl.c_str());
 
       if (this->verbose)
       {
@@ -598,11 +654,11 @@ void NodeShared::OnNewConnection(const std::string &_topic,
         std::cout << "\t* Connected to [" << _ctrl << "] for control\n";
       }
 
-      // Set ZMQ_LINGER to 0 means no linger period. Pending messages will
-      // be discarded immediately when the socket is closed. That avoids
-      // infinite waits if the publisher is disconnected.
-      int lingerVal = 200;
+      int lingerVal = 300;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+      socket.connect(_ctrl.c_str());
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
       if (this->localSubscriptions.GetHandlers(_topic, handlers))
@@ -691,7 +747,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
 
 //////////////////////////////////////////////////
 void NodeShared::OnNewSrvConnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl,
+  const std::string &_addr, const std::string &_id,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
@@ -702,11 +758,49 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
     std::cout << "Service call connection callback" << std::endl;
     std::cout << "Topic: " << _topic << std::endl;
     std::cout << "Addr: " << _addr << std::endl;
-    std::cout << "Ctrl Addr: " << _ctrl << std::endl;
+    std::cout << "Zmq ID: " << _id << std::endl;
     std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
     std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
   }
 
+  // I am still not connected to this address.
+  if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+        _addr) == this->srvConnections.end())
+  {
+    this->requester->connect(_addr.c_str());
+    this->srvConnections.push_back(_addr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    if (this->verbose)
+    {
+      std::cout << "\t* Connected to [" << _addr
+                << "] for service requests" << std::endl;
+    }
+  }
+
   // Request all pending service calls for this topic.
   this->SendPendingRemoteReqs(_topic);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
+  const std::string &_addr, const std::string &_id,
+  const std::string &_pUuid, const std::string &_nUuid,
+  const Scope &/*_scope*/)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  // Remove the address from the list of connected addresses.
+  this->srvConnections.erase(std::remove(std::begin(this->srvConnections),
+    std::end(this->srvConnections), _addr.c_str()),
+    std::end(this->srvConnections));
+
+  if (this->verbose)
+  {
+    std::cout << "Service call disconnection callback" << std::endl;
+    std::cout << "Topic: " << _topic << std::endl;
+    std::cout << "Addr: " << _addr << std::endl;
+    std::cout << "ZMQ id: " << _id << std::endl;
+    std::cout << "Process UUID: [" << _pUuid << "]" << std::endl;
+    std::cout << "Node UUID: [" << _nUuid << "]" << std::endl;
+  }
 }

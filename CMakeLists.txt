@@ -179,15 +179,29 @@ endif()
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
 if (MSVC)
   set(WARN_LEVEL "/W4")
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  # Handling exceptions rightly 
+  set(UNFILTERED_FLAGS "/EHsc")
 else()
-  set(WARN_LEVEL "-Wall")
+  # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
+  # MSVC only pragmas all over the code
+  list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
+  list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
+  list(APPEND WARN_LEVEL -Wsequence-point -Wsign-compare -Wstrict-aliasing)
+  list(APPEND WARN_LEVEL -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized)
+  list(APPEND WARN_LEVEL -Wunused-function -Wunused-label -Wunused-value)
+  list(APPEND WARN_LEVEL -Wunused-variable -Wvolatile-register-var)
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  set(UNFILTERED_FLAGS "-Wc++11-compat")
 endif()
 
 filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
-  -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
+  -Wmissing-include-dirs -pedantic -Wno-pragmas)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} ${UNFILTERED_FLAGS}")
 
 #################################################
 # OS Specific initialization
