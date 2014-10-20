@@ -30,7 +30,7 @@ Uuid::Uuid()
   RPC_STATUS Result = ::UuidCreate(&this->data);
   if (Result != RPC_S_OK)
   {
-    std::cerr << "Call to UuidCreate return a non success RPC call. " << 
+    std::cerr << "Call to UuidCreate return a non success RPC call. " <<
                  "Return code: " << Result << std::endl;
   }
 }
@@ -48,7 +48,7 @@ std::string Uuid::ToString() const
   RPC_CSTR* szUuid = NULL;
   if (::UuidToStringA(&this->data, szUuid) == RPC_S_OK)
   {
-        uuidStr = (char*) szUuid;
+        uuidStr = reinterpret_cast<char*>(szUuid);
         ::RpcStringFreeA(szUuid);
   }
 

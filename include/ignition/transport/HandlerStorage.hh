@@ -37,9 +37,10 @@ namespace ignition
       /// \TODO: Carlos, review this names and fix them
       typedef std::map<std::string, std::shared_ptr<T>> UUIDHandler_M;
       typedef std::map<std::string, UUIDHandler_M> UUIDHandler_Collection_M;
-      
+
       /// \brief key is a topic name and value is UUIDHandler_M
-      typedef std::map<std::string, UUIDHandler_Collection_M> TopicServiceCalls_M;
+      typedef std::map<std::string, UUIDHandler_Collection_M> 
+              TopicServiceCalls_M;
 
       /// \brief Constructor.
       public: HandlerStorage() = default;
@@ -114,8 +115,6 @@ namespace ignition
                               const std::string &_nUuid,
                               const std::shared_ptr<T> &_handler)
       {
-
-
         // Create the topic entry.
         if (this->data.find(_topic) == this->data.end())
           this->data[_topic] = UUIDHandler_Collection_M();

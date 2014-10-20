@@ -20,12 +20,15 @@
 #include <cstdlib>
 #include <string>
 #include <thread>
+#if (_MSC_VER >= 1400)  // VS2005 for setenv
+#include <sstream>
+#endif
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
 
 // Implement non POSIX setenv call in Visual Studio
-#if (_MSC_VER >= 1400) // Visual Studio 2005
+#if (_MSC_VER >= 1400)
 #include <sstream>
 
 int setenv(const char * name, const char * value, int /*rewrite*/)
