@@ -219,7 +219,7 @@ namespace ignition
       /// \brief Print discovery information to stdout.
       public: bool verbose;
 
-      /// \brief UDP socket used for receiving discovery messages.
+      /// \brief UDP socket used for sending/receiving discovery messages.
       public: int sock;
 
       /// \brief Internet socket address for sending to the multicast group.
