@@ -20,7 +20,7 @@
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "msg/int.pb.h"
-#include "test_config.h"
+#include "ignition/transport/test_config.h"
 
 
 using namespace ignition;
