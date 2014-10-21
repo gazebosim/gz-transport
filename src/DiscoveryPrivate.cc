@@ -187,17 +187,21 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 //////////////////////////////////////////////////
 DiscoveryPrivate::~DiscoveryPrivate()
 {
-  std::cout << "~DiscoveryPrivate()" << std::endl;
   // Tell the service thread to terminate.
   this->exitMutex.lock();
   this->exit = true;
   this->exitMutex.unlock();
 
+  // Don't join on Windows, because it can hang when this object
+  // is destructed on process exit (e.g., when it's a global static).
+  // I think that it's due to this bug:
+  // 
+#ifndef _WIN32
   // Wait for the service threads to finish before exit.
   this->threadReception->join();
   this->threadHeartbeat->join();
   this->threadActivity->join();
-  std::cout << "~DiscoveryPrivate: threads joined" << std::endl;
+#endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
@@ -361,7 +365,6 @@ void DiscoveryPrivate::RunActivityTask()
 
     // Is it time to exit?
     {
-      std::cout << "getting exitMutex" << std::endl;
       std::lock_guard<std::mutex> lock(this->exitMutex);
       if (this->exit)
         break;

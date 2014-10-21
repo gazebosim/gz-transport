@@ -151,15 +151,19 @@ NodeShared::NodeShared()
 //////////////////////////////////////////////////
 NodeShared::~NodeShared()
 {
-  std::cout << "~NodeShared" << std::endl;
   // Tell the service thread to terminate.
   this->exitMutex.lock();
   this->exit = true;
   this->exitMutex.unlock();
 
+  // Don't join on Windows, because it can hang when this object
+  // is destructed on process exit (e.g., when it's a global static).
+  // I think that it's due to this bug:
+  // 
+#ifndef _WIN32
   // Wait for the service thread before exit.
   this->threadReception->join();
-  std::cout << "NodeShared joined; done" << std::endl;
+#endif
 }
 
 //////////////////////////////////////////////////
