@@ -41,7 +41,7 @@ endif()
 target_link_libraries(${PROJECT_NAME_LOWER} 
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES}
-                      ${PROTOBUF_LIBRARY})
+                      ${PROTOBUF_LIBRARY_DEBUG})
     
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER} wsock32 ws2_32)

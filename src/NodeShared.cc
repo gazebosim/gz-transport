@@ -151,6 +151,7 @@ NodeShared::NodeShared()
 //////////////////////////////////////////////////
 NodeShared::~NodeShared()
 {
+  std::cout << "~NodeShared" << std::endl;
   // Tell the service thread to terminate.
   this->exitMutex.lock();
   this->exit = true;
@@ -158,6 +159,7 @@ NodeShared::~NodeShared()
 
   // Wait for the service thread before exit.
   this->threadReception->join();
+  std::cout << "NodeShared joined; done" << std::endl;
 }
 
 //////////////////////////////////////////////////

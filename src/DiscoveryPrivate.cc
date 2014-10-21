@@ -151,7 +151,11 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   sockaddr_in localAddr;
   memset(&localAddr, 0, sizeof(localAddr));
   localAddr.sin_family = AF_INET;
+#ifdef _WIN32
+  localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+#else
   localAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#endif
   localAddr.sin_port = htons(this->DiscoveryPort);
 
   if (bind(this->bcastSockIn, reinterpret_cast<sockaddr *>(&localAddr),
@@ -183,6 +187,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
 //////////////////////////////////////////////////
 DiscoveryPrivate::~DiscoveryPrivate()
 {
+  std::cout << "~DiscoveryPrivate()" << std::endl;
   // Tell the service thread to terminate.
   this->exitMutex.lock();
   this->exit = true;
@@ -192,6 +197,7 @@ DiscoveryPrivate::~DiscoveryPrivate()
   this->threadReception->join();
   this->threadHeartbeat->join();
   this->threadActivity->join();
+  std::cout << "~DiscoveryPrivate: threads joined" << std::endl;
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
@@ -355,6 +361,7 @@ void DiscoveryPrivate::RunActivityTask()
 
     // Is it time to exit?
     {
+      std::cout << "getting exitMutex" << std::endl;
       std::lock_guard<std::mutex> lock(this->exitMutex);
       if (this->exit)
         break;
