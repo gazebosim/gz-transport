@@ -159,7 +159,7 @@ NodeShared::~NodeShared()
   // Don't join on Windows, because it can hang when this object
   // is destructed on process exit (e.g., when it's a global static).
   // I think that it's due to this bug:
-  // 
+  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service thread before exit.
   this->threadReception->join();
