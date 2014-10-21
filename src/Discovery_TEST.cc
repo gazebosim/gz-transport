@@ -770,7 +770,6 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   EXPECT_FALSE(disconnectionSrvExecuted);
 }
 
-
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
