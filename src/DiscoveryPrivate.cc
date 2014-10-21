@@ -18,7 +18,10 @@
 #pragma warning(push, 0)
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
-  #include <winsock.h>
+  #include <Winsock2.h>
+  #include <Ws2def.h>
+  #include <Ws2ipdef.h>
+  #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
@@ -83,7 +86,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     // Load WinSock DLL.
     if (WSAStartup(wVersionRequested, &wsaData) != 0)
     {
-     std::cer << "Unable to load WinSock DLL" << std::endl;
+     std::cerr << "Unable to load WinSock DLL" << std::endl;
      return;
     }
 
@@ -101,7 +104,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // Socket option: SO_REUSEADDR.
   int reuseAddr = 1;
   if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR,
-        reinterpret_cast<sockaddr *>(&reuseAddr), sizeof(reuseAddr)) != 0)
+        reinterpret_cast<const char *>(&reuseAddr), sizeof(reuseAddr)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
     return;
@@ -111,7 +114,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // Socket option: SO_REUSEPORT.
   int reusePort = 1;
   if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT,
-        reinterpret_cast<sockaddr *>(&reusePort), sizeof(reusePort)) != 0)
+        reinterpret_cast<const char *>(&reusePort), sizeof(reusePort)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
     return;
@@ -122,8 +125,8 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // This option selects the source interface for outgoing messages.
   struct in_addr ifAddr;
   ifAddr.s_addr = inet_addr(this->hostAddr.c_str());
-  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF, &ifAddr,
-        sizeof(ifAddr)) != 0)
+  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF,
+    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
   {
     std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
     return;
