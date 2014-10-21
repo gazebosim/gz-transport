@@ -60,11 +60,11 @@ bool TopicUtils::GetScopedName(const std::string &_ns,
   std::string topic = _topic;
 
   // If the namespace does not contain a trailing slash, append it.
-  if (!ns.empty() && ns.back() != '/')
+  if (ns.empty() || ns.back() != '/')
     ns.push_back('/');
 
   // If the namespace does not start with slash, add it.
-  if (!ns.empty() && ns.front() != '/')
+  if (ns.empty() || ns.front() != '/')
     ns.insert(0, 1, '/');
 
   // If the topic ends in "/", remove it.
