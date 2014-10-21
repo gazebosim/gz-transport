@@ -91,4 +91,15 @@ namespace testing
       std::cerr << "Error while running waitpid" << std::endl;
 #endif
    }
+
+   void kill_fork(const fork_handler_t pi)
+   {
+#ifdef _WIN32
+     // TerminateProcess return 0 on error
+     if (TerminateProcess(pi.hProcess, 0) == 0)
+       std::cerr << "Error running TerminateProcess: " << GetLastError(); 
+#else
+     kill(pi, SIGTERM);
+#endif
+   }
 }

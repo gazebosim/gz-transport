@@ -21,10 +21,11 @@
 #include "gtest/gtest.h"
 #include "msg/int.pb.h"
 
+#include "test_config.h"
+
 using namespace ignition;
 
 std::string topic = "/foo";
-
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -39,35 +40,30 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 //////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
-  pid_t pid = fork();
+   std::string subscriber_path = testing::portable_path_union(
+      PROJECT_BINARY_PATH, 
+      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  if (pid == 0)
-  {
-    transport::Node node;
-    EXPECT_TRUE(node.Advertise(topic, srvEcho));
-    while (1)
-    { }
-  }
-  else
-  {
-    transport::msgs::Int req;
-    transport::msgs::Int response;
-    bool result;
-    unsigned int timeout = 1000;
-    transport::Node node;
+   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 
-    for (int i = 0; i < 15000; i++)
-    {
-      req.set_data(i);
-      EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
+   transport::msgs::Int req;
+   transport::msgs::Int response;
+   bool result;
+   unsigned int timeout = 1000;
+   transport::Node node;
 
-      // Check the service response.
-      EXPECT_TRUE(result);
-      EXPECT_EQ(i, response.data());
-    }
-  }
-  // kill the child
-  kill(pid, SIGTERM);
+   for (int i = 0; i < 15000; i++)
+   {
+     req.set_data(i);
+     EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
+
+     // Check the service response.
+     EXPECT_TRUE(result);
+     EXPECT_EQ(i, response.data());
+   }
+
+   // Need to kill the transport node
+   testing::kill_fork(pi);
 }
 
 //////////////////////////////////////////////////
