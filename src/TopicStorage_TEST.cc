@@ -84,7 +84,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetAddress(topic, pUuid1, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
@@ -118,7 +118,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.scope, scope2);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
@@ -162,7 +162,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 2);
+  EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
@@ -214,7 +214,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 2);
+  EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
@@ -265,7 +265,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.scope, scope3);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 2);
+  EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
@@ -304,7 +304,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(info.scope, scope2);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
   EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
   EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
