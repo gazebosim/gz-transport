@@ -3,6 +3,8 @@
 
 #ifdef _WIN32
   #include <filesystem>
+#else
+  #include <signal.h> 
 #endif
 
 /* 
