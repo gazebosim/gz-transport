@@ -34,7 +34,7 @@ std::string data = "bar";
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 {
   std::string subscriber_path = testing::portable_path_union(
-     PROJECT_BINARY_PATH, 
+     PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
 
   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());

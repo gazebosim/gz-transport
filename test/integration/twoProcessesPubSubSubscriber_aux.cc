@@ -72,9 +72,9 @@ void runSubscriber()
   EXPECT_TRUE(node.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cb2));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  
+
   int interval = 100;
-  
+
   while (!cbExecuted || !cb2Executed) {
    std::cout << "Waiting ... " << std::endl;
    std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -36,11 +36,11 @@ int data = 5;
 TEST(twoProcSrvCallSync2, SrvTwoProcs)
 {
   std::string subscriber_path = testing::portable_path_union(
-      PROJECT_BINARY_PATH, 
+      PROJECT_BINARY_PATH,
       "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
-   
+
   unsigned int timeout = 1000;
   transport::msgs::Int req;
   transport::msgs::Int rep;

@@ -53,7 +53,7 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string subscriber_path = testing::portable_path_union(
-     PROJECT_BINARY_PATH, 
+     PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 

@@ -52,7 +52,7 @@ TEST(ScopedTopicTest, ProcessTest)
   EXPECT_TRUE(node1.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node1.Publish(topic, msg));
-  
+
   testing::wait_and_cleanup_fork(pi);
 }
 
