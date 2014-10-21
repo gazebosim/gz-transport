@@ -36,9 +36,9 @@ int data = 5;
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
-   std::string subscriber_path = testing::portable_path_union(
-      PROJECT_BINARY_PATH,
-      "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
+  std::string subscriber_path = testing::portable_path_union(
+     PROJECT_BINARY_PATH,
+     "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 

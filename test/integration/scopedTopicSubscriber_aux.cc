@@ -48,8 +48,8 @@ void subscriber()
   int i = 0;
   while (i < 100 && !cbExecuted)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
+   std::this_thread::sleep_for(std::chrono::milliseconds(10));
+   ++i;
   }
 
   // Check that the message was not received because the scope was Process.
@@ -59,7 +59,7 @@ void subscriber()
 
 TEST(ScopedTopicTest, SubscriberTest)
 {
-    subscriber();
+   subscriber();
 }
 
 //////////////////////////////////////////////////

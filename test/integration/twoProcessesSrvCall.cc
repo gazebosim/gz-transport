@@ -52,50 +52,50 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 /// node receives the message.
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
-   std::string subscriber_path = testing::portable_path_union(
-      PROJECT_BINARY_PATH, 
-      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+  std::string subscriber_path = testing::portable_path_union(
+     PROJECT_BINARY_PATH, 
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
-   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 
-   responseExecuted = false;
-   counter = 0;
-   transport::msgs::Int req;
-   req.set_data(data);
+  responseExecuted = false;
+  counter = 0;
+  transport::msgs::Int req;
+  req.set_data(data);
 
-   transport::Node node1;
-   EXPECT_TRUE(node1.Request(topic, req, response));
+  transport::Node node1;
+  EXPECT_TRUE(node1.Request(topic, req, response));
 
-   int i = 0;
-   while (i < 100 && !responseExecuted)
-   {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      ++i;
-   }
-
-   // Check that the service call response was executed.
-   EXPECT_TRUE(responseExecuted);
-   EXPECT_EQ(counter, 1);
-
-   // Make another request.
-   responseExecuted = false;
-   counter = 0;
-   EXPECT_TRUE(node1.Request(topic, req, response));
-
-   i = 0;
-   while (i < 100 && !responseExecuted)
-   {
+  int i = 0;
+  while (i < 100 && !responseExecuted)
+  {
      std::this_thread::sleep_for(std::chrono::milliseconds(10));
      ++i;
-   }
+  }
 
-   // Check that the service call response was executed.
-   EXPECT_TRUE(responseExecuted);
-   EXPECT_EQ(counter, 1);
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_EQ(counter, 1);
 
-   // Wait for the child process to return.
-   testing::wait_and_cleanup_fork(pi);
+  // Make another request.
+  responseExecuted = false;
+  counter = 0;
+  EXPECT_TRUE(node1.Request(topic, req, response));
+
+  i = 0;
+  while (i < 100 && !responseExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Wait for the child process to return.
+  testing::wait_and_cleanup_fork(pi);
 }
 
 //////////////////////////////////////////////////

@@ -76,12 +76,12 @@ void runSubscriber()
   int interval = 100;
   
   while (!cbExecuted || !cb2Executed) {
-    std::cout << "Waiting ... " << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    interval--;
+   std::cout << "Waiting ... " << std::endl;
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   interval--;
 
-    if (interval == 0)
-      break;
+   if (interval == 0)
+     break;
   }
 
   // Check that the message was received.

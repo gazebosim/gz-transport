@@ -33,26 +33,26 @@ std::string data = "bar";
 /// node receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 {
-   std::string subscriber_path = testing::portable_path_union(
-      PROJECT_BINARY_PATH, 
-      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
+  std::string subscriber_path = testing::portable_path_union(
+     PROJECT_BINARY_PATH, 
+     "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
 
-   testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
 
-   transport::msgs::Vector3d msg;
-   msg.set_x(1.0);
-   msg.set_y(2.0);
-   msg.set_z(3.0);
+  transport::msgs::Vector3d msg;
+  msg.set_x(1.0);
+  msg.set_y(2.0);
+  msg.set_z(3.0);
 
-   transport::Node node1;
+  transport::Node node1;
 
-   EXPECT_TRUE(node1.Advertise(topic));
-   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-   EXPECT_TRUE(node1.Publish(topic, msg));
-   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-   EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node1.Advertise(topic));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_TRUE(node1.Publish(topic, msg));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_TRUE(node1.Publish(topic, msg));
 
-   testing::wait_and_cleanup_fork(pi);
+  testing::wait_and_cleanup_fork(pi);
 }
 
 //////////////////////////////////////////////////
