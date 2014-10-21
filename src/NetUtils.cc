@@ -17,6 +17,7 @@
 
 #ifdef _WIN32
   #include <Winsock2.h>
+  #include <iphlpapi.h>
 #else
   #include <arpa/inet.h>
   #include <netdb.h>
@@ -53,8 +54,11 @@ int transport::hostnameToIp(char *_hostname, std::string &_ip)
 
   if ((he = gethostbyname(_hostname)) == nullptr)
   {
-    // get the host info
-    std::cerr << "Error in gethostbyname when using hostname = " << _hostname;
+#ifndef _WIN32
+    // Complain, but not on Windows, where this apparently always happens.
+    std::cerr << "Error in gethostbyname when using hostname = " << _hostname
+      << std::endl;
+#endif
     return 1;
   }
 
@@ -154,6 +158,69 @@ std::string transport::determineHost()
     return std::string("127.0.0.1");
   }
   return std::string(preferred_ip);
+#elif defined(_WIN32)
+  // Establish our default return value, in case everything below fails.
+  std::string ret_addr("127.0.0.1");
+  // Look up our address.
+  ULONG outBufLen = 0;
+  PIP_ADAPTER_ADDRESSES addrs = NULL;
+  // Not sure whether these are the right flags, but they work for 
+  // me on Windows 7
+  ULONG flags = (GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
+                 GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME);
+  // The first time, it'll fail; we're asking how much space is needed to 
+  // store the result.
+  GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen);
+  // Allocate the required space.
+  addrs = new IP_ADAPTER_ADDRESSES[outBufLen];
+  ULONG ret;
+  // Now the call should succeed.
+  if ((ret = GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen)) ==
+    NO_ERROR)
+  {
+    // Iterate over all returned adapters, arbitrarily sticking with the
+    // last non-loopback one that we find.
+    for(PIP_ADAPTER_ADDRESSES curr = addrs;
+        curr;
+	curr = curr->Next)
+    {
+      // Iterate over all unicast addresses for this adapter
+      for(PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
+          unicast;
+	  unicast = unicast->Next)
+      {
+	// Cast to get an IPv4 numeric address (the AF_INET flag used above
+	// ensures that we're only going to get IPv4 address here).
+        sockaddr_in* sockaddress = (sockaddr_in*)unicast->Address.lpSockaddr;
+        // Make it a dotted quad
+	char ipv4_str[3*4+3+1];
+	sprintf(ipv4_str, "%d.%d.%d.%d",
+	  sockaddress->sin_addr.S_un.S_un_b.s_b1,
+	  sockaddress->sin_addr.S_un.S_un_b.s_b2,
+	  sockaddress->sin_addr.S_un.S_un_b.s_b3,
+	  sockaddress->sin_addr.S_un.S_un_b.s_b4);
+	// Ignore loopback address (that's our default anyway)
+	if (!strcmp(ipv4_str, "127.0.0.1"))
+	  continue;
+	ret_addr = ipv4_str;
+      }
+    }
+  }
+  else
+    std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
+  delete [] addrs;
+  std::cerr << "DEBUG: Determined my IP address to be: " <<
+    ret_addr << std::endl;
+  if (ret_addr == "127.0.0.1")
+  {
+    std::cerr <<
+      "Couldn't find a preferred IP via the GetAdaptersAddresses() call; "
+      "I'm assuming that your IP "
+      "address is 127.0.0.1.  This should work for local processes, "
+      "but will almost certainly not work if you have remote processes."
+      "Report to the disc-zmq development team to seek a fix." << std::endl;
+  }
+  return ret_addr;
 #else
   // @todo Fix IP determination in the case where getifaddrs() isn't
   // available.
