@@ -99,7 +99,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.GetHandler(topic, "wrongNodeUuid", handlerUuid, handler));
   EXPECT_FALSE(reps.GetHandler(topic, nUuid1, "wrongHandlerUuid", handler));
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
@@ -145,7 +145,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
   EXPECT_EQ(handler->GetHandlerUuid(), handlerUuid);
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 2);
+  EXPECT_EQ(m.size(), 2u);
 
   reset();
 
@@ -167,7 +167,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
