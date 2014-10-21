@@ -50,7 +50,7 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that use this
-  while(1);
+  while (1);
 }
 
 
