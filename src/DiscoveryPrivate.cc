@@ -83,7 +83,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     // Load WinSock DLL.
     if (WSAStartup(wVersionRequested, &wsaData) != 0)
     {
-     std::cer << "Unable to load WinSock DLL" << std::endl;
+     std::cerr << "Unable to load WinSock DLL" << std::endl;
      return;
     }
 
