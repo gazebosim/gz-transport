@@ -164,11 +164,11 @@ std::string transport::determineHost()
   // Look up our address.
   ULONG outBufLen = 0;
   PIP_ADAPTER_ADDRESSES addrs = NULL;
-  // Not sure whether these are the right flags, but they work for 
+  // Not sure whether these are the right flags, but they work for
   // me on Windows 7
   ULONG flags = (GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
                  GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME);
-  // The first time, it'll fail; we're asking how much space is needed to 
+  // The first time, it'll fail; we're asking how much space is needed to
   // store the result.
   GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen);
   // Allocate the required space.
@@ -180,29 +180,27 @@ std::string transport::determineHost()
   {
     // Iterate over all returned adapters, arbitrarily sticking with the
     // last non-loopback one that we find.
-    for(PIP_ADAPTER_ADDRESSES curr = addrs;
-        curr;
-	curr = curr->Next)
+    for (PIP_ADAPTER_ADDRESSES curr = addrs; curr; curr = curr->Next)
     {
       // Iterate over all unicast addresses for this adapter
-      for(PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
-          unicast;
-	  unicast = unicast->Next)
+      for (PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
+           unicast; unicast = unicast->Next)
       {
-	// Cast to get an IPv4 numeric address (the AF_INET flag used above
-	// ensures that we're only going to get IPv4 address here).
-        sockaddr_in* sockaddress = (sockaddr_in*)unicast->Address.lpSockaddr;
+        // Cast to get an IPv4 numeric address (the AF_INET flag used above
+        // ensures that we're only going to get IPv4 address here).
+        sockaddr_in* sockaddress =
+          reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
         // Make it a dotted quad
-	char ipv4_str[3*4+3+1];
-	sprintf(ipv4_str, "%d.%d.%d.%d",
-	  sockaddress->sin_addr.S_un.S_un_b.s_b1,
-	  sockaddress->sin_addr.S_un.S_un_b.s_b2,
-	  sockaddress->sin_addr.S_un.S_un_b.s_b3,
-	  sockaddress->sin_addr.S_un.S_un_b.s_b4);
-	// Ignore loopback address (that's our default anyway)
-	if (!strcmp(ipv4_str, "127.0.0.1"))
-	  continue;
-	ret_addr = ipv4_str;
+        char ipv4_str[3*4+3+1];
+        sprintf(ipv4_str, "%d.%d.%d.%d",
+          sockaddress->sin_addr.S_un.S_un_b.s_b1,
+          sockaddress->sin_addr.S_un.S_un_b.s_b2,
+          sockaddress->sin_addr.S_un.S_un_b.s_b3,
+          sockaddress->sin_addr.S_un.S_un_b.s_b4);
+        // Ignore loopback address (that's our default anyway)
+        if (!strcmp(ipv4_str, "127.0.0.1"))
+          continue;
+        ret_addr = ipv4_str;
       }
     }
   }
