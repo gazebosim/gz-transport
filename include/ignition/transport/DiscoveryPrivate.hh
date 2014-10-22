@@ -129,22 +129,22 @@ namespace ignition
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
-      public: static constexpr unsigned int DefActivityInterval = 100;
+      public: static const unsigned int DefActivityInterval = 100;
 
       /// \brief Default heartbeat interval value (ms.).
       /// \sa GetHeartbeatInterval.
       /// \sa SetHeartbeatInterval.
-      public: static constexpr unsigned int DefHeartbeatInterval = 1000;
+      public: static const unsigned int DefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
-      public: static constexpr unsigned int DefSilenceInterval = 3000;
+      public: static const unsigned int DefSilenceInterval = 3000;
 
       /// \brief Default advertise interval value (ms.).
       /// \sa GetAdvertiseInterval.
       /// \sa SetAdvertiseInterval.
-      public: static constexpr unsigned int DefAdvertiseInterval = 1000;
+      public: static const unsigned int DefAdvertiseInterval = 1000;
 
       /// \brief Port used to broadcast the discovery messages.
       public: static const int DiscoveryPort = 11312;
@@ -153,10 +153,10 @@ namespace ignition
       public: const std::string BcastIP = "255.255.255.255";
 
       /// \brief Timeout used for receiving messages (ms.).
-      public: static constexpr int Timeout = 250;
+      public: static const int Timeout = 250;
 
       /// \brief Longest string to receive.
-      public: static constexpr int MaxRcvStr = 65536;
+      public: static const int MaxRcvStr = 65536;
 
       /// \brief Discovery protocol version.
       static const uint8_t Version = 1;

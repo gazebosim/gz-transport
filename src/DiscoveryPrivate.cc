@@ -441,7 +441,7 @@ void DiscoveryPrivate::RunReceptionTask()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
-  char * rcvStr = new char[this->MaxRcvStr];
+  char rcvStr[DiscoveryPrivate::MaxRcvStr];
   std::string srcAddr;
   uint16_t srcPort;
   sockaddr_in clntAddr;
@@ -464,7 +464,6 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   }
 
   this->DispatchDiscoveryMsg(srcAddr, rcvStr);
-  delete[] rcvStr;
 }
 
 //////////////////////////////////////////////////
