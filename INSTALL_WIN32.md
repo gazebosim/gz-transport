@@ -39,6 +39,8 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 
 1. Run CMake via the supplied configure.bat file (modify as needed):
 
+        mkdir build
+        cd build
         configure
 
 1. Build and install, using nmake:
