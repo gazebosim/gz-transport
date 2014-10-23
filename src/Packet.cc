@@ -115,7 +115,6 @@ size_t Header::Pack(char *_buffer)
 
   // Pack the process UUID length.
   uint64_t pUuidLength = this->pUuid.size();
-  std::cout << "pUuidLength: " << pUuidLength << std::endl;
   memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
