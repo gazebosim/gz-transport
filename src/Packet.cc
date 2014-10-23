@@ -86,7 +86,7 @@ void Header::SetFlags(const uint16_t _flags)
 int Header::GetHeaderLength()
 {
   return sizeof(this->version) +
-         sizeof(size_t) + this->pUuid.size() +
+         sizeof(uint64_t) + this->pUuid.size() +
          sizeof(this->type) + sizeof(this->flags);
 }
 
@@ -109,24 +109,25 @@ size_t Header::Pack(char *_buffer)
     return 0;
   }
 
-  // Pack the discovery protocol version.
+  // Pack the discovery protocol version, which is a uint16_t
   memcpy(_buffer, &this->version, sizeof(this->version));
   _buffer += sizeof(this->version);
 
   // Pack the process UUID length.
-  size_t pUuidLength = this->pUuid.size();
+  uint64_t pUuidLength = this->pUuid.size();
+  std::cout << "pUuidLength: " << pUuidLength << std::endl;
   memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
   // Pack the process UUID.
-  memcpy(_buffer, this->pUuid.data(), pUuidLength);
+  memcpy(_buffer, this->pUuid.data(), static_cast<size_t>(pUuidLength));
   _buffer += pUuidLength;
 
-  // Pack the message type (ADVERTISE, SUBSCRIPTION, ...).
+  // Pack the message type (ADVERTISE, SUBSCRIPTION, ...), which is uint8_t
   memcpy(_buffer, &this->type, sizeof(this->type));
   _buffer += sizeof(this->type);
 
-  // Pack the flags.
+  // Pack the flags, which is uint16_t
   memcpy(_buffer, &this->flags, sizeof(this->flags));
 
   return this->GetHeaderLength();
@@ -147,7 +148,7 @@ size_t Header::Unpack(const char *_buffer)
   _buffer += sizeof(this->version);
 
   // Unpack the process UUID length.
-  size_t pUuidLength;
+  uint64_t pUuidLength;
   memcpy(&pUuidLength, _buffer, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
@@ -202,7 +203,7 @@ void SubscriptionMsg::SetTopic(const std::string &_topic)
 size_t SubscriptionMsg::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
-         sizeof(size_t) + this->topic.size();
+         sizeof(uint64_t) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
@@ -223,12 +224,12 @@ size_t SubscriptionMsg::Pack(char *_buffer)
   _buffer += headerLen;
 
   // Pack the topic length.
-  size_t topicLength = this->topic.size();
+  uint64_t topicLength = this->topic.size();
   memcpy(_buffer, &topicLength, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
   // Pack the topic.
-  memcpy(_buffer, this->topic.data(), topicLength);
+  memcpy(_buffer, this->topic.data(), static_cast<size_t>(topicLength));
 
   return this->GetMsgLength();
 }
@@ -245,7 +246,7 @@ size_t SubscriptionMsg::UnpackBody(char *_buffer)
   }
 
   // Unpack the topic length.
-  size_t topicLength;
+  uint64_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
@@ -253,7 +254,7 @@ size_t SubscriptionMsg::UnpackBody(char *_buffer)
   this->topic = std::string(_buffer, _buffer + topicLength);
   _buffer += topicLength;
 
-  return sizeof(topicLength) + topicLength;
+  return sizeof(topicLength) + static_cast<size_t>(topicLength);
 }
 
 //////////////////////////////////////////////////
@@ -348,11 +349,11 @@ void AdvertiseBase::SetScope(const Scope &_scope)
 size_t AdvertiseBase::GetMsgLength()
 {
   return this->header.GetHeaderLength() +
-         sizeof(size_t) + this->topic.size() +
-         sizeof(size_t) + this->addr.size() +
-         sizeof(size_t) + this->ctrl.size() +
-         sizeof(size_t) + this->nUuid.size() +
-         sizeof(this->scope);
+         sizeof(uint64_t) + this->topic.size() +
+         sizeof(uint64_t) + this->addr.size() +
+         sizeof(uint64_t) + this->ctrl.size() +
+         sizeof(uint64_t) + this->nUuid.size() +
+         sizeof(uint8_t);
 }
 
 //////////////////////////////////////////////////
@@ -373,43 +374,44 @@ size_t AdvertiseBase::Pack(char *_buffer)
   _buffer += headerLen;
 
   // Pack the topic length.
-  size_t topicLength = this->topic.size();
+  uint64_t topicLength = this->topic.size();
   memcpy(_buffer, &topicLength, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
   // Pack the topic.
-  memcpy(_buffer, this->topic.data(), topicLength);
+  memcpy(_buffer, this->topic.data(), static_cast<size_t>(topicLength));
   _buffer += topicLength;
 
   // Pack the zeromq address length.
-  size_t addrLength = this->addr.size();
+  uint64_t addrLength = this->addr.size();
   memcpy(_buffer, &addrLength, sizeof(addrLength));
   _buffer += sizeof(addrLength);
 
   // Pack the zeromq address.
-  memcpy(_buffer, this->addr.data(), addrLength);
+  memcpy(_buffer, this->addr.data(), static_cast<size_t>(addrLength));
   _buffer += addrLength;
 
   // Pack the zeromq control address length.
-  size_t ctrlLength = this->ctrl.size();
+  uint64_t ctrlLength = this->ctrl.size();
   memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
   _buffer += sizeof(ctrlLength);
 
   // Pack the zeromq control address.
-  memcpy(_buffer, this->ctrl.data(), ctrlLength);
+  memcpy(_buffer, this->ctrl.data(), static_cast<size_t>(ctrlLength));
   _buffer += ctrlLength;
 
   // Pack the node UUID length.
-  size_t nUuidLength = this->nUuid.size();
+  uint64_t nUuidLength = this->nUuid.size();
   memcpy(_buffer, &nUuidLength, sizeof(nUuidLength));
   _buffer += sizeof(nUuidLength);
 
   // Pack the node UUID.
-  memcpy(_buffer, this->nUuid.data(), nUuidLength);
+  memcpy(_buffer, this->nUuid.data(), static_cast<size_t>(nUuidLength));
   _buffer += nUuidLength;
 
   // Pack the topic scope.
-  memcpy(_buffer, &this->scope, sizeof(this->scope));
+  uint8_t intscope = static_cast<uint8_t>(this->scope);
+  memcpy(_buffer, &intscope, sizeof(intscope));
 
   return this->GetMsgLength();
 }
@@ -426,7 +428,7 @@ size_t AdvertiseBase::UnpackBody(char *_buffer)
   }
 
   // Unpack the topic length.
-  size_t topicLength;
+  uint64_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
@@ -435,7 +437,7 @@ size_t AdvertiseBase::UnpackBody(char *_buffer)
   _buffer += topicLength;
 
   // Unpack the zeromq address length.
-  size_t addrLength;
+  uint64_t addrLength;
   memcpy(&addrLength, _buffer, sizeof(addrLength));
   _buffer += sizeof(addrLength);
 
@@ -444,7 +446,7 @@ size_t AdvertiseBase::UnpackBody(char *_buffer)
   _buffer += addrLength;
 
   // Unpack the zeromq control address length.
-  size_t ctrlLength;
+  uint64_t ctrlLength;
   memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
   _buffer += sizeof(ctrlLength);
 
@@ -453,7 +455,7 @@ size_t AdvertiseBase::UnpackBody(char *_buffer)
   _buffer += ctrlLength;
 
   // Unpack the node UUID length.
-  size_t nUuidLength;
+  uint64_t nUuidLength;
   memcpy(&nUuidLength, _buffer, sizeof(nUuidLength));
   _buffer += sizeof(nUuidLength);
 
@@ -462,13 +464,15 @@ size_t AdvertiseBase::UnpackBody(char *_buffer)
   _buffer += nUuidLength;
 
   // Unpack the topic scope.
-  memcpy(&this->scope, _buffer, sizeof(this->scope));
+  uint8_t intscope;
+  memcpy(&intscope, _buffer, sizeof(intscope));
+  this->scope = static_cast<Scope>(intscope);
 
-  return sizeof(topicLength) + topicLength +
-         sizeof(addrLength) + addrLength +
-         sizeof(ctrlLength) + ctrlLength +
-         sizeof(nUuidLength) + nUuidLength +
-         sizeof(this->scope);
+  return sizeof(topicLength) + static_cast<size_t>(topicLength) +
+         sizeof(addrLength) + static_cast<size_t>(addrLength) +
+         sizeof(ctrlLength) + static_cast<size_t>(ctrlLength) +
+         sizeof(nUuidLength) + static_cast<size_t>(nUuidLength) +
+         sizeof(intscope);
 }
 
 //////////////////////////////////////////////////
@@ -500,7 +504,7 @@ void AdvertiseMsg::SetMsgTypeName(const std::string &_msgTypeName)
 size_t AdvertiseMsg::GetMsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
-         sizeof(size_t) + this->msgTypeName.size();
+         sizeof(uint64_t) + this->msgTypeName.size();
 }
 
 //////////////////////////////////////////////////
@@ -521,12 +525,13 @@ size_t AdvertiseMsg::Pack(char *_buffer)
   _buffer += len;
 
   // Pack the length of the probouf name contained in the message.
-  size_t msgTypeNameLength = this->msgTypeName.size();
+  uint64_t msgTypeNameLength = this->msgTypeName.size();
   memcpy(_buffer, &msgTypeNameLength, sizeof(msgTypeNameLength));
   _buffer += sizeof(msgTypeNameLength);
 
   // Pack the protobuf name contained in the message.
-  memcpy(_buffer, this->msgTypeName.data(), msgTypeNameLength);
+  memcpy(_buffer, this->msgTypeName.data(),
+    static_cast<size_t>(msgTypeNameLength));
 
   return this->GetMsgLength();
 }
@@ -542,7 +547,7 @@ size_t AdvertiseMsg::UnpackBody(char *_buffer)
   _buffer += advCommonLen;
 
   // Unpack the msgTypeName length.
-  size_t msgTypeNameLen;
+  uint64_t msgTypeNameLen;
   memcpy(&msgTypeNameLen, _buffer, sizeof(msgTypeNameLen));
   _buffer += sizeof(msgTypeNameLen);
 
@@ -595,8 +600,8 @@ void AdvertiseSrv::SetRepTypeName(const std::string &_repTypeName)
 size_t AdvertiseSrv::GetMsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
-         sizeof(size_t) + this->reqTypeName.size() +
-         sizeof(size_t) + this->repTypeName.size();
+         sizeof(uint64_t) + this->reqTypeName.size() +
+         sizeof(uint64_t) + this->repTypeName.size();
 }
 
 //////////////////////////////////////////////////
@@ -617,21 +622,23 @@ size_t AdvertiseSrv::Pack(char *_buffer)
   _buffer += len;
 
   // Pack the length of the protobuf name used as a service call request.
-  size_t reqTypeNameLength = this->reqTypeName.size();
+  uint64_t reqTypeNameLength = this->reqTypeName.size();
   memcpy(_buffer, &reqTypeNameLength, sizeof(reqTypeNameLength));
   _buffer += sizeof(reqTypeNameLength);
 
   // Pack the protobuf name used as a service call request.
-  memcpy(_buffer, this->reqTypeName.data(), reqTypeNameLength);
+  memcpy(_buffer, this->reqTypeName.data(),
+    static_cast<size_t>(reqTypeNameLength));
   _buffer += reqTypeNameLength;
 
   // Pack the length of the protobuf name used as a service call response.
-  size_t repTypeNameLength = this->repTypeName.size();
+  uint64_t repTypeNameLength = this->repTypeName.size();
   memcpy(_buffer, &repTypeNameLength, sizeof(repTypeNameLength));
   _buffer += sizeof(repTypeNameLength);
 
   // Pack the protobuf name used as a service call response.
-  memcpy(_buffer, this->repTypeName.data(), repTypeNameLength);
+  memcpy(_buffer, this->repTypeName.data(),
+    static_cast<size_t>(repTypeNameLength));
 
   return this->GetMsgLength();
 }
@@ -648,7 +655,7 @@ size_t AdvertiseSrv::UnpackBody(char *_buffer)
   _buffer += advCommonLen;
 
   // Unpack the reqTypeName length.
-  size_t reqTypeNameLen;
+  uint64_t reqTypeNameLen;
   memcpy(&reqTypeNameLen, _buffer, sizeof(reqTypeNameLen));
   _buffer += sizeof(reqTypeNameLen);
 
@@ -657,7 +664,7 @@ size_t AdvertiseSrv::UnpackBody(char *_buffer)
   _buffer += reqTypeNameLen;
 
   // Unpack the repTypeName length.
-  size_t repTypeNameLen;
+  uint64_t repTypeNameLen;
   memcpy(&repTypeNameLen, _buffer, sizeof(repTypeNameLen));
   _buffer += sizeof(repTypeNameLen);
 
