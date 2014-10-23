@@ -132,6 +132,18 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     return;
   }
 
+  // Join the multicast group
+  struct ip_mreq group;
+  group.imr_multiaddr.s_addr = inet_addr(this->MulticastGroup.c_str());
+  group.imr_interface.s_addr = htonl(INADDR_ANY);
+  if (setsockopt(this->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+    reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)." <<
+      std::endl;
+    return;
+  }
+
   // Bind the socket to the discovery port.
   sockaddr_in localAddr;
   memset(&localAddr, 0, sizeof(localAddr));
