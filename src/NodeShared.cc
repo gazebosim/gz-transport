@@ -166,7 +166,7 @@ NodeShared::~NodeShared()
   this->threadReception->join();
 #else
   // Give some time to the receiving thread to terminate. The receiving thread
-  // is blocking in zmq::poll for a maximum of Timeout milliseconds. 
+  // is blocking in zmq::poll for a maximum of Timeout milliseconds.
   std::this_thread::sleep_for(std::chrono::milliseconds(this->Timeout * 2));
 #endif
 }
