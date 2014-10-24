@@ -19,8 +19,9 @@
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
-  // for socklen_t
-  #include <WS2tcpip.h>
+  #include <Ws2def.h>
+  #include <Ws2ipdef.h>
+  #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
@@ -60,33 +61,8 @@ using namespace transport;
 #endif
 
 //////////////////////////////////////////////////
-/// \brief Function to fill in address structure given an address and port.
-static bool fillAddr(const std::string &_address, uint16_t _port,
-                     sockaddr_in &_addr)
-{
-  // Zero out address structure.
-  memset(&_addr, 0, sizeof(_addr));
-  // Internet address.
-  _addr.sin_family = AF_INET;
-
-  // Resolve name.
-  hostent *host;
-  if ((host = gethostbyname(_address.c_str())) == NULL)
-  {
-    std::cerr << "Failed to resolve name (gethostbyname())" << std::endl;
-    return false;
-  }
-  _addr.sin_addr.s_addr = *(reinterpret_cast<uint64_t *>(host->h_addr_list[0]));
-
-  // Assign port in network byte order.
-  _addr.sin_port = htons(_port);
-  return true;
-}
-
-//////////////////////////////////////////////////
 DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
-  : bcastAddr(BcastIP),
-    pUuid(_pUuid),
+  : pUuid(_pUuid),
     silenceInterval(DefSilenceInterval),
     activityInterval(DefActivityInterval),
     advertiseInterval(DefAdvertiseInterval),
@@ -96,6 +72,9 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     verbose(_verbose),
     exit(false)
 {
+  // Get this host IP address.
+  this->hostAddr = determineHost();
+
 #ifdef _WIN32
   if (!initialized)
   {
@@ -115,54 +94,63 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   }
 #endif
 
-  // Make a new socket for sending discovery information.
-  if ((this->bcastSockOut = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  // Make a new socket for sending/receiving discovery information.
+  if ((this->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
   {
     std::cerr << "Socket creation failed." << std::endl;
     return;
   }
 
-  // Socket options.
+  // Socket option: SO_REUSEADDR.
   int reuseAddr = 1;
-  int broadcastPermission = 1;
-
-  // Enable broadcast.
-  setsockopt(this->bcastSockOut, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<char *>(&broadcastPermission),
-    sizeof(broadcastPermission));
-  setsockopt(this->bcastSockOut, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
-
-  // Make a new socket for receiving discovery information.
-  if ((this->bcastSockIn = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR,
+        reinterpret_cast<const char *>(&reuseAddr), sizeof(reuseAddr)) != 0)
   {
-    std::cerr << "Socket creation failed." << std::endl;
+    std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
     return;
   }
 
-  // Enable broadcast for the socket.
-  setsockopt(this->bcastSockIn, SOL_SOCKET, SO_BROADCAST,
-    reinterpret_cast<char *>(&broadcastPermission),
-    sizeof(broadcastPermission));
-  setsockopt(this->bcastSockIn, SOL_SOCKET, SO_REUSEADDR,
-    reinterpret_cast<char *>(&reuseAddr), sizeof(reuseAddr));
+#ifdef SO_REUSEPORT
+  // Socket option: SO_REUSEPORT.
+  int reusePort = 1;
+  if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT,
+        reinterpret_cast<const char *>(&reusePort), sizeof(reusePort)) != 0)
+  {
+    std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
+    return;
+  }
+#endif
+
+  // Socket option: IP_MULTICAST_IF.
+  // This option selects the source interface for outgoing messages.
+  struct in_addr ifAddr;
+  ifAddr.s_addr = inet_addr(this->hostAddr.c_str());
+  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF,
+    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
+    return;
+  }
 
   // Bind the socket to the discovery port.
   sockaddr_in localAddr;
   memset(&localAddr, 0, sizeof(localAddr));
   localAddr.sin_family = AF_INET;
-  localAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+  localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
   localAddr.sin_port = htons(this->DiscoveryPort);
 
-  if (bind(this->bcastSockIn, reinterpret_cast<sockaddr *>(&localAddr),
+  if (bind(this->sock, reinterpret_cast<sockaddr *>(&localAddr),
         sizeof(sockaddr_in)) < 0)
   {
     std::cerr << "Binding to a local port failed." << std::endl;
     return;
   }
 
-  // Get this host IP address.
-  this->hostAddr = determineHost();
+  // Set 'mcastAddr' to the multicast discovery group.
+  memset(&this->mcastAddr, 0, sizeof(this->mcastAddr));
+  this->mcastAddr.sin_family = AF_INET;
+  this->mcastAddr.sin_addr.s_addr = inet_addr(this->MulticastGroup.c_str());
+  this->mcastAddr.sin_port = htons(this->DiscoveryPort);
 
   // Start the thread that receives discovery information.
   this->threadReception =
@@ -188,10 +176,16 @@ DiscoveryPrivate::~DiscoveryPrivate()
   this->exit = true;
   this->exitMutex.unlock();
 
+  // Don't join on Windows, because it can hang when this object
+  // is destructed on process exit (e.g., when it's a global static).
+  // I think that it's due to this bug:
+  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
+#ifndef _WIN32
   // Wait for the service threads to finish before exit.
   this->threadReception->join();
   this->threadHeartbeat->join();
   this->threadActivity->join();
+#endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
@@ -200,11 +194,9 @@ DiscoveryPrivate::~DiscoveryPrivate()
 
   // Close sockets.
 #ifdef _WIN32
-  closesocket(this->bcastSockIn);
-  closesocket(this->bcastSockOut);
+  closesocket(this->sock);
 #else
-  close(this->bcastSockIn);
-  close(this->bcastSockOut);
+  close(this->sock);
 #endif
 }
 
@@ -416,7 +408,7 @@ void DiscoveryPrivate::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {0, this->bcastSockIn, ZMQ_POLLIN, 0},
+      {0, this->sock, ZMQ_POLLIN, 0},
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -447,7 +439,7 @@ void DiscoveryPrivate::RecvDiscoveryUpdate()
   sockaddr_in clntAddr;
   socklen_t addrLen = sizeof(clntAddr);
 
-  if ((recvfrom(this->bcastSockIn, reinterpret_cast<raw_type *>(rcvStr),
+  if ((recvfrom(this->sock, reinterpret_cast<raw_type *>(rcvStr),
     this->MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
      reinterpret_cast<socklen_t *>(&addrLen))) < 0)
   {
@@ -715,16 +707,11 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       return;
   }
 
-  // Broadcast the message.
-  sockaddr_in destAddr;
-  if (!fillAddr(this->bcastAddr, this->DiscoveryPort, destAddr))
-    return;
-
-  // Write out the whole buffer as a single message.
-  if (sendto(this->bcastSockOut, reinterpret_cast<const raw_type *>(
+  // Send the discovery message to the multicast group.
+  if (sendto(this->sock, reinterpret_cast<const raw_type *>(
     reinterpret_cast<unsigned char*>(&buffer[0])),
-    msgLength, 0, reinterpret_cast<sockaddr *>(&destAddr),
-    sizeof(destAddr)) != msgLength)
+    msgLength, 0, reinterpret_cast<sockaddr *>(&this->mcastAddr),
+    sizeof(this->mcastAddr)) != msgLength)
   {
     std::cerr << "Exception sending a message" << std::endl;
     return;
@@ -781,3 +768,4 @@ void DiscoveryPrivate::PrintCurrentState()
   }
   std::cout << "---------------" << std::endl;
 }
+

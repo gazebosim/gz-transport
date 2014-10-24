@@ -13,7 +13,8 @@ used by the cmake module.
 
 ## Installation
 
-Totally experimental, using pre-compiled binaries in a local workspace.
+Totally experimental, using pre-compiled binaries in a local workspace.  To make things easier, use a MinGW shell for your editing work, and only use the
+Windows `cmd` for configuring and building.  You might also need to [disable the Windows firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).  Not sure about that.
 
 1. Make a directory to work in, e.g.:
 
@@ -37,17 +38,32 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 
         "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
-1. Run CMake via the supplied configure.bat file (modify as needed):
+1. Configure and build:
 
-        configure
+	mkdir build
+	cd build
+        ..\configure
+	nmake
+	nmake install
 
-1. Build and install, using nmake:
- 
+    You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
+
+1. Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
+
+        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
+        
+1. Now build the examples:
+
+        cd ign-ws\ign-transport\example
+        mkdir build
+        cd build
+        ..\configure
         nmake
-        nmake install
+        
+1. Now try an example:
 
-You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
-
+        requester
+      
 ## Alternative installation: dependencies from upstream and installed on the system
 
 ### Dependencies
