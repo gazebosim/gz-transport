@@ -13,7 +13,8 @@ used by the cmake module.
 
 ## Installation
 
-Totally experimental, using pre-compiled binaries in a local workspace.
+Totally experimental, using pre-compiled binaries in a local workspace.  To make things easier, use a MinGW shell for your editing work, and only use the
+Windows `cmd` for configuring and building.  You might also need to [disable the Windows firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).  Not sure about that.
 
 1. Make a directory to work in, e.g.:
 
@@ -45,8 +46,24 @@ Totally experimental, using pre-compiled binaries in a local workspace.
 	nmake
 	nmake install
 
-You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
+    You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
 
+1. Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
+
+        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
+        
+1. Now build the examples:
+
+        cd ign-ws\ign-transport\example
+        mkdir build
+        cd build
+        ..\configure
+        nmake
+        
+1. Now try an example:
+
+        requester
+      
 ## Alternative installation: dependencies from upstream and installed on the system
 
 ### Dependencies
