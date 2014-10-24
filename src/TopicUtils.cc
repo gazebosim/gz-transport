@@ -60,20 +60,20 @@ bool TopicUtils::GetScopedName(const std::string &_ns,
   std::string topic = _topic;
 
   // If the namespace does not contain a trailing slash, append it.
-  if (ns.back() != '/')
+  if (ns.empty() || ns.back() != '/')
     ns.push_back('/');
 
   // If the namespace does not start with slash, add it.
-  if (ns.front() != '/')
+  if (ns.empty() || ns.front() != '/')
     ns.insert(0, 1, '/');
 
   // If the topic ends in "/", remove it.
-  if (topic.back() == '/')
+  if (!topic.empty() && topic.back() == '/')
     topic.pop_back();
 
   // If the topic does starts with '/' is considered an absolute topic and the
   // namespace will not be prefixed.
-  if (topic.front() == '/')
+  if (!topic.empty() && topic.front() == '/')
     _scoped = topic;
   else
     _scoped = ns + topic;
