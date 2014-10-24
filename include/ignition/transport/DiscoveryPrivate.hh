@@ -155,7 +155,7 @@ namespace ignition
       public: static const int DiscoveryPort = 11312;
 
       /// \brief IP Address used for multicast.
-      public: const std::string MulticastGroup = "224.0.0.1";
+      public: const std::string MulticastGroup = "224.0.0.7";
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;

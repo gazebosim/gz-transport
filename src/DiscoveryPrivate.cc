@@ -139,8 +139,8 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   if (setsockopt(this->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
     reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
   {
-    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)." <<
-      std::endl;
+    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+              << std::endl;
     return;
   }
 
