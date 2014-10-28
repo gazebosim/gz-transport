@@ -45,7 +45,7 @@ set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
 include_directories(${CMAKE_BINARY_DIR})
 
 if(WIN32)
-  set(EXTRA_LIBRARIES ${ZeroMQ_LIBRARIES} wsock32 ws2_32 Iphlpapi)
+  set(EXTRA_LIBRARIES ${ZeroMQ_LIBRARIES} ws2_32 Iphlpapi)
 endif()
 
 add_executable(publisher publisher.cc ${PROTO_SRC})

@@ -38,6 +38,7 @@ elseif(WIN32)
 endif()
 
 # Protobuf module does not have LIBRARIES but LIBRARY
+message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME_LOWER} 
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES})
