@@ -17,6 +17,7 @@
 
 #pragma warning(push, 0)
 #include <zmq.hpp>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -163,6 +164,10 @@ NodeShared::~NodeShared()
 #ifndef _WIN32
   // Wait for the service thread before exit.
   this->threadReception->join();
+#else
+  // Give some time to the receiving thread to terminate. The receiving thread
+  // is blocking in zmq::poll for a maximum of Timeout milliseconds.
+  std::this_thread::sleep_for(std::chrono::milliseconds(this->Timeout * 2));
 #endif
 }
 
