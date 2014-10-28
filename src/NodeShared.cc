@@ -26,6 +26,7 @@
 #include <thread>
 #include <vector>
 #pragma warning(pop)
+#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"

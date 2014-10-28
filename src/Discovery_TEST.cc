@@ -18,6 +18,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Packet.hh"
