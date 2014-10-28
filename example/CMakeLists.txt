@@ -44,7 +44,8 @@ set (EXAMPLES_LIBS ${IGNITION-TRANSPORT_LIBRARIES}
 if (MSVC)
   # same filename for 64bits version of Ws2
   set(EXAMPLES_LIBS ${EXAMPLES_LIBS} 
-                    Ws2_32.lib)
+                    Ws2_32.lib
+                    Iphlpapi.lib)
 endif()
 
 add_executable(publisher publisher.cc ${PROTO_SRC})

@@ -38,7 +38,7 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.GetType(), transport::AdvType);
   EXPECT_EQ(header.GetFlags(), 0);
   int headerLength = sizeof(header.GetVersion()) +
-    sizeof(size_t) + header.GetPUuid().size() +
+    sizeof(uint64_t) + header.GetPUuid().size() +
     sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
@@ -51,7 +51,7 @@ TEST(PacketTest, BasicHeaderAPI)
   header.SetFlags(1);
   EXPECT_EQ(header.GetFlags(), 1);
   headerLength = sizeof(header.GetVersion()) +
-    sizeof(size_t) + header.GetPUuid().size() +
+    sizeof(uint64_t) + header.GetPUuid().size() +
     sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
@@ -122,7 +122,7 @@ TEST(PacketTest, BasicSubscriptionAPI)
   EXPECT_EQ(subMsg.GetTopic(), topic);
 
   size_t msgLength = subMsg.GetHeader().GetHeaderLength() +
-    sizeof(size_t) + topic.size();
+    sizeof(uint64_t) + topic.size();
   EXPECT_EQ(subMsg.GetMsgLength(), msgLength);
 
   // Check Sub setters.
@@ -229,12 +229,12 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(advMsg.GetMsgTypeName(), typeName);
 
   size_t msgLength = advMsg.GetHeader().GetHeaderLength() +
-    sizeof(size_t) + topic.size() +
-    sizeof(size_t) + addr.size() +
-    sizeof(size_t) + ctrl.size() +
-    sizeof(size_t) + nodeUuid.size() +
-    sizeof(advMsg.GetScope()) +
-    sizeof(size_t) + advMsg.GetMsgTypeName().size();
+    sizeof(uint64_t) + topic.size() +
+    sizeof(uint64_t) + addr.size() +
+    sizeof(uint64_t) + ctrl.size() +
+    sizeof(uint64_t) + nodeUuid.size() +
+    sizeof(uint8_t) +
+    sizeof(uint64_t) + advMsg.GetMsgTypeName().size();
   EXPECT_EQ(advMsg.GetMsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -248,7 +248,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(header.GetType(), transport::AdvSrvType);
   EXPECT_EQ(header.GetFlags(), 3);
   int headerLength = sizeof(header.GetVersion()) +
-    sizeof(size_t) + header.GetPUuid().size() +
+    sizeof(uint64_t) + header.GetPUuid().size() +
     sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 
@@ -449,13 +449,13 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.GetRepTypeName(), repType);
 
   size_t msgLength = advSrv.GetHeader().GetHeaderLength() +
-    sizeof(size_t) + topic.size() +
-    sizeof(size_t) + addr.size() +
-    sizeof(size_t) + ctrl.size() +
-    sizeof(size_t) + nodeUuid.size() +
-    sizeof(advSrv.GetScope()) +
-    sizeof(size_t) + advSrv.GetReqTypeName().size() +
-    sizeof(size_t) + advSrv.GetRepTypeName().size();
+    sizeof(uint64_t) + topic.size() +
+    sizeof(uint64_t) + addr.size() +
+    sizeof(uint64_t) + ctrl.size() +
+    sizeof(uint64_t) + nodeUuid.size() +
+    sizeof(uint8_t) +
+    sizeof(uint64_t) + advSrv.GetReqTypeName().size() +
+    sizeof(uint64_t) + advSrv.GetRepTypeName().size();
   EXPECT_EQ(advSrv.GetMsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -469,7 +469,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(header.GetType(), transport::AdvSrvType);
   EXPECT_EQ(header.GetFlags(), 3);
   int headerLength = sizeof(header.GetVersion()) +
-    sizeof(size_t) + header.GetPUuid().size() +
+    sizeof(uint64_t) + header.GetPUuid().size() +
     sizeof(header.GetType()) + sizeof(header.GetFlags());
   EXPECT_EQ(header.GetHeaderLength(), headerLength);
 

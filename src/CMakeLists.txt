@@ -38,13 +38,20 @@ elseif(WIN32)
 endif()
 
 # Protobuf module does not have LIBRARIES but LIBRARY
+message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME_LOWER} 
                       ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES}
-                      ${PROTOBUF_LIBRARY})
+                      ${uuid_LIBRARIES})
     
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER} wsock32 ws2_32 Iphlpapi)
+  target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 )
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(${PROJECT_NAME_LOWER} ${PROTOBUF_LIBRARY_DEBUG})
+  else()
+    target_link_libraries(${PROJECT_NAME_LOWER} ${PROTOBUF_LIBRARY})
+  endif()
+else()
+  target_link_libraries(${PROJECT_NAME_LOWER} ${PROTOBUF_LIBRARY})
 endif()
 
 ign_install_library(${PROJECT_NAME_LOWER})
