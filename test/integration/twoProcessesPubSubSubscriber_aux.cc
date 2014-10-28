@@ -38,7 +38,6 @@ std::string data = "bar";
 /// \brief Function is called everytime a topic update is received.
 void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
-  std::cout << "Callback1" << std::endl;
   EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
   EXPECT_FLOAT_EQ(_msg.y(), 2.0);
@@ -50,7 +49,6 @@ void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 /// \brief Function is called everytime a topic update is received.
 void cb2(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
-  std::cout << "Callback2" << std::endl;
   EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
   EXPECT_FLOAT_EQ(_msg.y(), 2.0);
@@ -75,8 +73,8 @@ void runSubscriber()
 
   int interval = 100;
 
-  while (!cbExecuted || !cb2Executed) {
-    std::cout << "Waiting ... " << std::endl;
+  while (!cbExecuted || !cb2Executed)
+  {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     interval--;
 
@@ -94,13 +92,12 @@ void runSubscriber()
   EXPECT_TRUE(node.Unsubscribe(topic));
   std::this_thread::sleep_for(std::chrono::milliseconds(600));
 
-  // Check that the message was only received in node3.
+  // Check that the message was only received in node2
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cb2Executed);
   cbExecuted = false;
   cb2Executed = false;
 }
-
 
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
 {
