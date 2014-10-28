@@ -31,8 +31,6 @@
 #pragma warning(pop)
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodePrivate.hh"
-#include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"

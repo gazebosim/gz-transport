@@ -25,8 +25,8 @@
 #include <string>
 #include <vector>
 #pragma warning(pop)
+#include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"

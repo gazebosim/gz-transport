@@ -23,7 +23,6 @@
 #include <memory>
 #include <string>
 #pragma warning(pop)
-#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -31,6 +30,8 @@ namespace ignition
 {
   namespace transport
   {
+    class DiscoveryPrivate;
+
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
     /// protocol. It uses UDP broadcast for sending/receiving messages and

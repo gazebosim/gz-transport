@@ -17,6 +17,7 @@
 
 #include <mutex>
 #include <string>
+#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
