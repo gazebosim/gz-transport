@@ -70,9 +70,9 @@ namespace testing
    }
 
 #ifdef _WIN32
-   typedef PROCESS_INFORMATION fork_handler_t;
+   typedef PROCESS_INFORMATION forkHandlerType;
 #else
-   typedef pid_t fork_handler_t;
+   typedef pid_t forkHandlerType;
 #endif
 
 
@@ -85,7 +85,7 @@ namespace testing
    ///
    /// \param[in] command the full system path to the binary to run into the
    ///            new process
-   fork_handler_t forkAndRun(const char * command)
+   forkHandlerType forkAndRun(const char * command)
    {
 #ifdef _WIN32
       STARTUPINFO info={sizeof(info)};
@@ -115,8 +115,8 @@ namespace testing
    ///
    /// \brief wait for the end of a process and handle the termination
    /// \param[in] pi process handler of the process to wait for
-   /// (PROCESS_INFORMATION in windows or fork_handler_t in UNIX)
-   void waitAndCleanupFork(const fork_handler_t pi)
+   /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX)
+   void waitAndCleanupFork(const forkHandlerType pi)
    {
 #ifdef _WIN32
      // Wait until child process exits.
@@ -138,8 +138,8 @@ namespace testing
    ///
    /// \brief send a termination signal to the process handled by pi
    /// \param[in] pi process handler of the process to stop
-   /// (PROCESS_INFORMATION in windows or fork_handler_t in UNIX)
-   void killFork(const fork_handler_t pi)
+   /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX)
+   void killFork(const forkHandlerType pi)
    {
 #ifdef _WIN32
      // TerminateProcess return 0 on error

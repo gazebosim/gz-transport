@@ -57,7 +57,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
-  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
 
   responseExecuted = false;
   counter = 0;

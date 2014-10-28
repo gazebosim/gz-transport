@@ -44,7 +44,7 @@ TEST(twoProcSrvCall, ThousandCalls)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;

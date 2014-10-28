@@ -37,7 +37,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
 
-  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
 
   transport::msgs::Vector3d msg;
   msg.set_x(1.0);

@@ -39,7 +39,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
 
   unsigned int timeout = 500;
   transport::msgs::Int req;
