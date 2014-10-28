@@ -21,110 +21,112 @@
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
 
+#include <iostream>
+#include <string>
+
 #ifdef _WIN32
   #include <filesystem>
 #else
   #include <signal.h>
 #endif
 
-//////////////////////////////////////////////////
-/*
- * setenv/unstenv are not present in Windows. Define them to make the code
- * portable
- */
 #if (_MSC_VER >= 1400) // Visual Studio 2005
-#include <sstream>
+  #include <sstream>
 
-int setenv(const char * name, const char * value, int /*rewrite*/)
-{
-  std::stringstream sstr;
-  sstr << *name << '=' << *value;
-  return _putenv(sstr.str().c_str());
-}
+  /// \brief setenv/unstenv are not present in Windows. Define them to make
+  /// the code portable.
+  /// \param[in] name Variable name.
+  /// \param[in] value Value.
+  /// \param[in] rewrite If 'name' does exist in the environment, then its
+  /// value is changed to 'value' if 'rewrite' is nonzero. If overwrite is
+  /// zero, then the value of 'name' is not changed.
+  /// /return 0 on success or -1 on error.
+  int setenv(const char * name, const char * value, int /*rewrite*/)
+  {
+    std::stringstream sstr;
+    sstr << *name << '=' << *value;
+    return _putenv(sstr.str().c_str());
+  }
 
-//////////////////////////////////////////////////
-void unsetenv(const char * name)
-{
-  std::stringstream sstr;
-  sstr << *name << '=';
-  _putenv(sstr.str().c_str());
-}
+  /// \brief Deletes an environment variable.
+  /// \param[in] name Variable name.
+  void unsetenv(const char * name)
+  {
+    std::stringstream sstr;
+    sstr << *name << '=';
+    _putenv(sstr.str().c_str());
+  }
 #endif
 
 namespace testing
 {
-   //////////////////////////////////////////////////
-   ///
-   /// \brief Join str1 and str2 considering both as storing system paths
-   /// \param[in] str1 string containing a path
-   /// \param[in] str2 string containing a path
-   std::string portablePathUnion(const std::string str1, const std::string str2)
-   {
+  /// \brief Join str1 and str2 considering both as storing system paths.
+  /// \param[in] str1 string containing a path.
+  /// \param[in] str2 string containing a path.
+  /// \return The string representation of the union of two paths.
+  std::string portablePathUnion(const std::string str1, const std::string str2)
+  {
 #ifdef _WIN32
-        std::tr2::sys::path base_path(str1);
-        return base_path /= str2;
+    std::tr2::sys::path base_path(str1);
+    return base_path /= str2;
 #else
-        // Ugly as hell but trying to avoid boost::filesystem
-        return str1 + "/" + str2;
+    // Ugly as hell but trying to avoid boost::filesystem
+    return str1 + "/" + str2;
 #endif
-   }
+  }
 
 #ifdef _WIN32
-   typedef PROCESS_INFORMATION forkHandlerType;
+  typedef PROCESS_INFORMATION forkHandlerType;
 #else
-   typedef pid_t forkHandlerType;
+  typedef pid_t forkHandlerType;
 #endif
 
-
-   //////////////////////////////////////////////////
-   ///
-   /// \brief create a new process and run command on it
-   /// This function is implementing the creation of a new process on both
-   /// Linux (fork) and Windows (CreateProcess) and the execution of the
-   /// command provided
-   ///
-   /// \param[in] command the full system path to the binary to run into the
-   ///            new process
-   forkHandlerType forkAndRun(const char * command)
-   {
+  /// \brief create a new process and run command on it. This function is
+  /// implementing the creation of a new process on both Linux (fork) and
+  /// Windows (CreateProcess) and the execution of the command provided.
+  /// \param[in] command The full system path to the binary to run into the
+  /// new process.
+  /// \return On success, the PID of the child process is returned in the
+  /// parent, an 0 is returned in the child. On failure, -1 is returned in the
+  /// parent and no child process is created.
+  forkHandlerType forkAndRun(const char * command)
+  {
 #ifdef _WIN32
-      STARTUPINFO info={sizeof(info)};
-      PROCESS_INFORMATION processInfo;
+    STARTUPINFO info= {sizeof(info)};
+    PROCESS_INFORMATION processInfo;
 
-      if (! CreateProcess(NULL, const_cast<LPSTR>(command), NULL, NULL, TRUE,
-		          0, NULL, NULL, &info, &processInfo))
-      {
-        std::cerr << "CreateProcess call failed" << std::endl;
-      }
+    if (!CreateProcess(NULL, const_cast<LPSTR>(command), NULL, NULL, TRUE,
+          0, NULL, NULL, &info, &processInfo))
+    {
+      std::cerr << "CreateProcess call failed" << std::endl;
+    }
 
-      return processInfo;
+    return processInfo;
 #else
-      pid_t pid = fork();
+    pid_t pid = fork();
 
-      if (pid == 0)
-      {
-        if (execl(command, command, (char *)0) == -1)
-          std::cerr << "Error running execl call: " << command << std::endl;
-      }
+    if (pid == 0)
+    {
+      if (execl(command, command, reinterpret_cast<char *>(0)) == -1)
+        std::cerr << "Error running execl call: " << command << std::endl;
+    }
 
-      return pid;
+    return pid;
 #endif
-   }
+  }
 
-   //////////////////////////////////////////////////
-   ///
-   /// \brief wait for the end of a process and handle the termination
-   /// \param[in] pi process handler of the process to wait for
-   /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX)
-   void waitAndCleanupFork(const forkHandlerType pi)
-   {
+  /// \brief Wait for the end of a process and handle the termination
+  /// \param[in] pi Process handler of the process to wait for
+  /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX).
+  void waitAndCleanupFork(const forkHandlerType pi)
+  {
 #ifdef _WIN32
-     // Wait until child process exits.
-     WaitForSingleObject( pi.hProcess, INFINITE );
+    // Wait until child process exits.
+    WaitForSingleObject(pi.hProcess, INFINITE);
 
-     // Close process and thread handles.
-     CloseHandle( pi.hProcess );
-     CloseHandle( pi.hThread );
+    // Close process and thread handler.
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 #else
     // Wait for the child process to return.
     int status;
@@ -132,23 +134,21 @@ namespace testing
     if (status == -1)
       std::cerr << "Error while running waitpid" << std::endl;
 #endif
-   }
+  }
 
-   //////////////////////////////////////////////////
-   ///
-   /// \brief send a termination signal to the process handled by pi
-   /// \param[in] pi process handler of the process to stop
-   /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX)
-   void killFork(const forkHandlerType pi)
-   {
+  /// \brief Send a termination signal to the process handled by pi.
+  /// \param[in] pi Process handler of the process to stop
+  /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX).
+  void killFork(const forkHandlerType pi)
+  {
 #ifdef _WIN32
-     // TerminateProcess return 0 on error
-     if (TerminateProcess(pi.hProcess, 0) == 0)
-       std::cerr << "Error running TerminateProcess: " << GetLastError();
+    // TerminateProcess return 0 on error
+    if (TerminateProcess(pi.hProcess, 0) == 0)
+      std::cerr << "Error running TerminateProcess: " << GetLastError();
 #else
-     kill(pi, SIGTERM);
+    kill(pi, SIGTERM);
 #endif
-   }
+  }
 }
 
 #endif  // header guard
