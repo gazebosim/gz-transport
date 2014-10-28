@@ -36,11 +36,11 @@ int data = 5;
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
-  std::string subscriber_path = testing::portable_path_union(
+  std::string subscriber_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
-  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
 
   transport::msgs::Int msg;
   msg.set_data(data);
@@ -53,7 +53,7 @@ TEST(ScopedTopicTest, ProcessTest)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node1.Publish(topic, msg));
 
-  testing::wait_and_cleanup_fork(pi);
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

@@ -52,12 +52,12 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 /// node receives the message.
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
-  std::string subscriber_path = testing::portable_path_union(
+  std::string subscriber_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
-  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
 
   responseExecuted = false;
   counter = 0;
@@ -95,7 +95,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   EXPECT_EQ(counter, 1);
 
   // Wait for the child process to return.
-  testing::wait_and_cleanup_fork(pi);
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

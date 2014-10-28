@@ -40,11 +40,11 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 //////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
-  std::string subscriber_path = testing::portable_path_union(
+  std::string subscriber_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  testing::fork_handler_t pi = testing::fork_and_run(subscriber_path.c_str());
+  testing::fork_handler_t pi = testing::forkAndRun(subscriber_path.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;
@@ -63,7 +63,7 @@ TEST(twoProcSrvCall, ThousandCalls)
   }
 
   // Need to kill the transport node
-  testing::kill_fork(pi);
+  testing::killFork(pi);
 }
 
 //////////////////////////////////////////////////
