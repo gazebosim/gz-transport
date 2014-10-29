@@ -18,42 +18,45 @@
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
-#include "gtest/gtest.h"
 #include "msg/int.pb.h"
+#include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-
 
 using namespace ignition;
 
-bool cbExecuted;
+bool srvExecuted;
+bool responseExecuted;
 
 std::string topic = "/foo";
-int data = 5;
+int counter = 0;
 
 //////////////////////////////////////////////////
-/// \brief Two different nodes, each one running in a different process. The
-/// publisher advertises the topic as "process". This test checks that the topic
-/// is not seen by the other node running in a different process.
-TEST(ScopedTopicTest, ProcessTest)
+/// \brief Provide a service.
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
-  std::string subscriber_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
+  EXPECT_EQ(_topic, topic);
+  _rep.set_data(_req.data());
+  _result = true;
+  counter++;
 
-  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
+  srvExecuted = true;
+}
 
-  transport::msgs::Int msg;
-  msg.set_data(data);
+//////////////////////////////////////////////////
+void runReplier()
+{
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  transport::Node node1;
+  // Run the node forever. Should be killed by the test that use this
+  while (1);
+}
 
-  EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node1.Publish(topic, msg));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node1.Publish(topic, msg));
 
-  testing::waitAndCleanupFork(pi);
+TEST(twoProcSrvCall, SrvTwoProcsReplier)
+{
+  runReplier();
 }
 
 //////////////////////////////////////////////////

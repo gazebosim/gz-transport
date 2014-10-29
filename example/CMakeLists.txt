@@ -7,12 +7,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-TRANSPORT_CXX_FLAGS}")
 include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
-#################################################
-# Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
-# different upstream projects and tarballs)
-# 
-# Provide the PATH using CPPZMQ_HEADER_PATH
-#
+#Find the cppzeromq
 find_path(cppzmq_INCLUDE_DIRS 
           zmq.hpp 
 	  PATHS 
@@ -27,9 +22,8 @@ else()
   include_directories(${cppzmq_INCLUDE_DIRS})
 endif()
 
-#################################################
-# Find ZeroMQ.
-include (${PROJECT_SOURCE_DIR}/cmake/FindZeroMQ.cmake)
+# Find the ZeroMQ library
+include (${PROJECT_SOURCE_DIR}/../cmake/FindZeroMQ.cmake)
 
 if (NOT ZeroMQ_FOUND)
   BUILD_ERROR ("zmq not found, Please install zmq")
@@ -44,26 +38,32 @@ set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
                             GENERATED TRUE)
 include_directories(${CMAKE_BINARY_DIR})
 
-if(WIN32)
-  set(EXTRA_LIBRARIES ${ZeroMQ_LIBRARIES} ws2_32 Iphlpapi)
+set (EXAMPLES_LIBS ${IGNITION-TRANSPORT_LIBRARIES}
+                   ${ZeroMQ_LIBRARIES}
+                   ${PROTOBUF_LIBRARY})
+if (MSVC)
+  # same filename for 64bits version of Ws2
+  set(EXAMPLES_LIBS ${EXAMPLES_LIBS} 
+                    Ws2_32.lib
+                    Iphlpapi.lib)
 endif()
 
 add_executable(publisher publisher.cc ${PROTO_SRC})
-target_link_libraries(publisher ${IGNITION-TRANSPORT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(publisher ${EXAMPLES_LIBS})
 add_dependencies(publisher protobuf_compilation)
 
 add_executable(subscriber subscriber.cc ${PROTO_SRC})
-target_link_libraries(subscriber ${IGNITION-TRANSPORT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(subscriber ${EXAMPLES_LIBS})
 add_dependencies(subscriber protobuf_compilation)
 
 add_executable(responser responser.cc ${PROTO_SRC})
-target_link_libraries(responser ${IGNITION-TRANSPORT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(responser ${EXAMPLES_LIBS})
 add_dependencies(responser protobuf_compilation)
 
 add_executable(requester requester.cc ${PROTO_SRC})
-target_link_libraries(requester ${IGNITION-TRANSPORT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(requester ${EXAMPLES_LIBS})
 add_dependencies(requester protobuf_compilation)
 
 add_executable(requester_async requester_async.cc ${PROTO_SRC})
-target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(requester_async ${EXAMPLES_LIBS})
 add_dependencies(requester_async protobuf_compilation)
