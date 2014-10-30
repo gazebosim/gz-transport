@@ -44,7 +44,7 @@ target_link_libraries(${PROJECT_NAME_LOWER}
                       ${uuid_LIBRARIES})
     
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 )
+  target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 Iphlpapi)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_link_libraries(${PROJECT_NAME_LOWER} ${PROTOBUF_LIBRARY_DEBUG})
   else()
