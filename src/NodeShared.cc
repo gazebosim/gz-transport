@@ -15,7 +15,9 @@
  *
 */
 
-#pragma warning(push, 0)
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <zmq.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -25,7 +27,9 @@
 #include <string>
 #include <thread>
 #include <vector>
-#pragma warning(pop)
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/RepHandler.hh"
