@@ -33,7 +33,7 @@
 #include <thread>
 #include <string>
 #include <vector>
-#ifdef
+#ifdef _MSC_VER
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Helpers.hh"
