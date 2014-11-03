@@ -17,18 +17,16 @@
 #ifndef _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 #define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
 
-#ifdef _MSC_VER
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+
 # pragma warning(push, 0)
-#endif
 #include <google/protobuf/message.h>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+# pragma warning(pop)
 
 namespace ignition
 {

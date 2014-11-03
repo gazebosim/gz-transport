@@ -18,15 +18,13 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
-#ifdef _MSC_VER
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+
 # pragma warning(push, 0)
-#endif
 #include <functional>
 #include <memory>
 #include <string>
-#ifdef _MSC_VER
 # pragma warning(pop)
-#endif
 
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Helpers.hh"
