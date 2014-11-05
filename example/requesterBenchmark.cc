@@ -70,15 +70,17 @@ int main(int argc, char **argv)
   // size in blocks of 4 bytes.
   std::map<int, std::string> sizes;
 
-  // 4B.
-  sizes[exp2(2) / 4] = "4B";
-  // 32B.
-  sizes[exp2(5) / 4] = "32B";
-  // 128B.
-  sizes[exp2(7) / 4] = "128B";
-  // 1KB.
+  // 4 B.
+  sizes[exp2(2) / 4] = "4 B";
+  // 32 B.
+  sizes[exp2(5) / 4] = "32 B";
+  // 128 B.
+  sizes[exp2(7) / 4] = "128 B";
+  // 580 B. (Max package size in HAPTIX using APL arm).
+  sizes[580 / 4] = "580 B (HAPTIX)";
+  // 1 KB.
   sizes[exp2(10) / 4] = "1 KB";
-  // 100KB.
+  // 100 KB.
   sizes[100 * exp2(10) / 4] = "100 KB";
   // 1 MB.
   sizes[exp2(20) / 4] = "1 MB";
@@ -95,7 +97,7 @@ int main(int argc, char **argv)
   // Communication between different processes in the same machine.
   topics["/host/echo"] = "host";
   // Communication between different machines in the same LAN.
-  //topics["/LAN/echo"] = "LAN";
+  topics["/LAN/echo"] = "LAN";
 
     // Create a transport node.
   ignition::transport::Node node;
@@ -108,6 +110,7 @@ int main(int argc, char **argv)
   for (auto &topic : topics)
   {
     std::cout << "Configuration: " << topic.second << std::endl;
+    std::cout << "Size, Size label, Frequency" << std::endl;
 
     // Send a first a message to trigger the discovery.
     sendRequest(node, topic.first, 1, elapsed);
@@ -120,32 +123,39 @@ int main(int argc, char **argv)
         boost::accumulators::tag::median, boost::accumulators::tag::variance>>
         acc;
 
-      std::cout << "\tSize: " << s.second << std::endl;
+      //std::cout << "\tSize: " << s.second << std::endl;
+      std::cout << s.first * 4 << "," << s.second << ",";
       for (auto counter = 0; counter < 5; ++counter)
       {
         if (sendRequest(node, topic.first, s.first, elapsed))
         {
-          std::cout << "\t\tElapsed: " << elapsed.count() << " us. / " <<
-                       elapsed.count() / 1000.0 << "ms." << std::endl;
+          //std::cout << "\t\tElapsed: " << elapsed.count() << " us. / " <<
+          //             elapsed.count() / 1000.0 << "ms." << std::endl;
           acc(elapsed.count());
         }
         else
         {
-          std::cout << "\t\tElapsed: Lost!" << std::endl;
+          //std::cout << "\t\tElapsed: Lost!" << std::endl;
         }
       }
 
-      std::cout << "\n\t\tSummary:" << std::endl;
+      /*std::cout << "\n\t\tSummary:" << std::endl;
       std::cout << "\t\t\tMean: " << boost::accumulators::mean(acc) << " us. / "
                 << boost::accumulators::mean(acc) / 1000.0 << " ms."
-                << std::endl;
-      std::cout << "\t\t\tMedian: " << boost::accumulators::median(acc)
+                << std::endl;*/
+      /*std::cout << boost::accumulators::mean(acc) << ","
+                << sqrt(boost::accumulators::variance(acc)) << ","*/
+      std::cout << 1000000 / boost::accumulators::mean(acc) << std::endl;
+      /*std::cout << "\t\t\tMedian: " << boost::accumulators::median(acc)
                 << " us. / " << boost::accumulators::median(acc) / 1000.0
                 << " ms." << std::endl;
       std::cout << "\t\t\tStd dev: " << sqrt(boost::accumulators::variance(acc))
                 << " us. / "
                 << sqrt(boost::accumulators::variance(acc)) / 1000.0
                 << " ms." << std::endl;
+      std::cout << "\t\t\tMax. frequency: "
+                << 1000000 / boost::accumulators::mean(acc) << " Hz."
+                << std::endl;*/
     }
   }
 }
