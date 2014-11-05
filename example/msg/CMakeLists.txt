@@ -1,4 +1,5 @@
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER
+  benchmark.proto
   int.proto
   stringmsg.proto
 )
