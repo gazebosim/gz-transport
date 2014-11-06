@@ -139,7 +139,8 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   // Join the multicast group
   struct ip_mreq group;
   group.imr_multiaddr.s_addr = inet_addr(this->MulticastGroup.c_str());
-  group.imr_interface.s_addr = htonl(INADDR_ANY);
+  //group.imr_interface.s_addr = htonl(INADDR_ANY);
+  group.imr_interface.s_addr = inet_addr(this->hostAddr.c_str());
   if (setsockopt(this->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
     reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
   {
@@ -153,6 +154,7 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
   memset(&localAddr, 0, sizeof(localAddr));
   localAddr.sin_family = AF_INET;
   localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  //localAddr.sin_addr.s_addr = inet_addr(this->hostAddr.c_str());
   localAddr.sin_port = htons(this->DiscoveryPort);
 
   if (bind(this->sock, reinterpret_cast<sockaddr *>(&localAddr),
