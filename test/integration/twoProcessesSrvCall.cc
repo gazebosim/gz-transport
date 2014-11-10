@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
-
-#include <ignition/msgs.hh>
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
+
+#include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
@@ -28,25 +29,12 @@ bool srvExecuted;
 bool responseExecuted;
 
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
 int counter = 0;
 
 //////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_req.data(), data);
-  _rep.set_data(_req.data());
-  _result = true;
-
-  srvExecuted = true;
-}
-
-//////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
+void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
   EXPECT_EQ(_topic, topic);
@@ -58,66 +46,56 @@ void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
 }
 
 //////////////////////////////////////////////////
-void runReplier()
-{
-  transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-}
-
-//////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
-  pid_t pid = fork();
+  std::string subscriber_path = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  if (pid == 0)
-    runReplier();
-  else
+
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
+
+  responseExecuted = false;
+  counter = 0;
+  transport::msgs::Int req;
+  req.set_data(data);
+
+  transport::Node node1;
+  EXPECT_TRUE(node1.Request(topic, req, response));
+
+  int i = 0;
+  while (i < 100 && !responseExecuted)
   {
-    responseExecuted = false;
-    counter = 0;
-    ignition::msgs::StringMsg req;
-    req.set_data(data);
-
-    transport::Node node1;
-    EXPECT_TRUE(node1.Request(topic, req, response));
-
-    int i = 0;
-    while (i < 100 && !responseExecuted)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      ++i;
-    }
-
-    // Check that the service call response was executed.
-    EXPECT_TRUE(responseExecuted);
-    EXPECT_EQ(counter, 1);
-
-    // Make another request.
-    responseExecuted = false;
-    counter = 0;
-    EXPECT_TRUE(node1.Request(topic, req, response));
-
-    i = 0;
-    while (i < 100 && !responseExecuted)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      ++i;
-    }
-
-    // Check that the service call response was executed.
-    EXPECT_TRUE(responseExecuted);
-    EXPECT_EQ(counter, 1);
-
-    // Wait for the child process to return.
-    int status;
-    waitpid(pid, &status, 0);
+     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+     ++i;
   }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Make another request.
+  responseExecuted = false;
+  counter = 0;
+  EXPECT_TRUE(node1.Request(topic, req, response));
+
+  i = 0;
+  while (i < 100 && !responseExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

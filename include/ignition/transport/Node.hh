@@ -18,6 +18,9 @@
 #ifndef __IGN_TRANSPORT_NODE_HH_INCLUDED__
 #define __IGN_TRANSPORT_NODE_HH_INCLUDED__
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
 #include <algorithm>
 #include <condition_variable>
@@ -27,6 +30,9 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodePrivate.hh"
@@ -230,7 +236,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
         return true;
@@ -286,7 +293,8 @@ namespace ignition
 
         // Notify the discovery service to register and advertise my responser.
         this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
-          this->dataPtr->shared->myReplierAddress, this->dataPtr->nUuid,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
         return true;

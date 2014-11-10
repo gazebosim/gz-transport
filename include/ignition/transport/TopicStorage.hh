@@ -20,6 +20,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -105,6 +106,14 @@ namespace ignition
       /// \param[in] _pUuid Process' UUID of the publisher.
       /// \return True when at least one address was removed or false otherwise.
       public: bool DelAddressesByProc(const std::string &_pUuid);
+
+      /// \brief Given a process UUID, the function returns the list of nodes
+      /// contained in this process UUID with its address information.
+      /// \param _pUuid Process UUID.
+      /// \param _nodes Map of nodes where the keys are the node UUIDs and the
+      /// value is its address information.
+      public: void GetAddressesByProc(const std::string &_pUuid,
+                         std::map<std::string, std::vector<Address_t>> &_nodes);
 
       public: void GetTopicList(std::vector<std::string> &_topics);
 

@@ -15,47 +15,20 @@
  *
 */
 
-#include <ignition/msgs/msgs.hh>
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
+#include "ignition/transport/test_config.h"
+
 
 using namespace ignition;
 
 bool cbExecuted;
 
 std::string topic = "/foo";
-std::string data = "bar";
-
-//////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
-{
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_msg.data(), data);
-  cbExecuted = true;
-}
-
-//////////////////////////////////////////////////
-void runSubscriber()
-{
-  cbExecuted = false;
-  transport::Node node;
-
-  EXPECT_TRUE(node.Subscribe(topic, cb));
-
-  int i = 0;
-  while (i < 100 && !cbExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
-
-  // Check that the message was not received because the scope was Process.
-  EXPECT_FALSE(cbExecuted);
-  cbExecuted = false;
-}
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Two different nodes, each one running in a different process. The
@@ -63,27 +36,24 @@ void runSubscriber()
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
-  pid_t pid = fork();
+  std::string subscriber_path = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
-  if (pid == 0)
-    runSubscriber();
-  else
-  {
-    ignition::msgs::StringMsg msg;
-    msg.set_data(data);
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
 
-    transport::Node node1;
+  transport::msgs::Int msg;
+  msg.set_data(data);
 
-    EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_TRUE(node1.Publish(topic, msg));
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_TRUE(node1.Publish(topic, msg));
+  transport::Node node1;
 
-    // Wait for the child process to return.
-    int status;
-    waitpid(pid, &status, 0);
-  }
+  EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_TRUE(node1.Publish(topic, msg));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_TRUE(node1.Publish(topic, msg));
+
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

@@ -15,9 +15,10 @@
  *
 */
 
-#include <czmq.h>
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
@@ -25,6 +26,9 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"

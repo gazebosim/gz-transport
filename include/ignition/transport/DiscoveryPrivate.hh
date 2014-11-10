@@ -18,8 +18,14 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#include <czmq.h>
-#include <uuid/uuid.h>
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
+#ifdef _WIN32
+  #include <Winsock2.h>
+#else
+  #include <arpa/inet.h>
+#endif
 #include <functional>
 #include <map>
 #include <memory>
@@ -27,6 +33,9 @@
 #include <thread>
 #include <string>
 #include <vector>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -43,7 +52,7 @@ namespace ignition
     {
       /// \def Timestamp
       /// \brief Used to evaluate the validity of a discovery entry.
-      typedef std::chrono::time_point<std::chrono::steady_clock> Timestamp;
+      typedef std::chrono::steady_clock::time_point Timestamp;
 
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
@@ -126,21 +135,6 @@ namespace ignition
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
-      /// \brief Create a new beacon for a given topic advertised by a node.
-      /// \param[in] _advType Used to distinguish between regular pub/sub
-      /// messages or services.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void NewBeacon(const MsgType &_advType,
-                             const std::string &_topic,
-                             const std::string &_nUuid);
-
-      /// \brief Delete a beacon.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _nUuid Node UUID of the advertiser.
-      public: void DelBeacon(const std::string &_topic,
-                             const std::string &_nUuid);
-
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
@@ -162,10 +156,16 @@ namespace ignition
       public: static const unsigned int DefAdvertiseInterval = 500;
 
       /// \brief Port used to broadcast the discovery messages.
-      public: static const int DiscoveryPort = 11312;
+      public: static const int DiscoveryPort = 11319;
+
+      /// \brief IP Address used for multicast.
+      public: const std::string MulticastGroup = "224.0.0.7";
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
+
+      /// \brief Longest string to receive.
+      public: static const int MaxRcvStr = 65536;
 
       /// \brief Discovery protocol version.
       static const uint8_t Version = 1;
@@ -208,10 +208,6 @@ namespace ignition
       /// \brief Callback executed when a service is no longer available.
       public: DiscoveryCallback disconnectionSrvCb;
 
-      /// \brief Beacons to advertise topics periodically. The key is the topic
-      /// name. The value is another map, where the key is the node UUID.
-      public: std::map<std::string, std::map<std::string, zbeacon_t*>> beacons;
-
       /// \brief Message addressing information.
       public: TopicStorage infoMsg;
 
@@ -227,11 +223,11 @@ namespace ignition
       /// \brief Print discovery information to stdout.
       public: bool verbose;
 
-      /// \brief ZMQ context for the discovery beacon.
-      public: zctx_t *ctx;
+      /// \brief UDP socket used for sending/receiving discovery messages.
+      public: int sock;
 
-      /// \brief Discovery beacon.
-      public: zbeacon_t *beacon;
+      /// \brief Internet socket address for sending to the multicast group.
+      public: sockaddr_in mcastAddr;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::mutex mutex;
@@ -250,6 +246,12 @@ namespace ignition
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
+
+      /// \brief Topics advertised inside this process.
+      public: TopicStorage advertisedTopics;
+
+      /// \brief Services advertised inside this process.
+      public: TopicStorage advertisedSrvs;
     };
   }
 }

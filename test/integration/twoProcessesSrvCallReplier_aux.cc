@@ -15,31 +15,48 @@
  *
 */
 
-#include <czmq.h>
-#include <iostream>
+#include <chrono>
 #include <string>
+#include "ignition/transport/Node.hh"
+#include "msg/int.pb.h"
 #include "gtest/gtest.h"
+#include "ignition/transport/test_config.h"
+
+using namespace ignition;
+
+bool srvExecuted;
+bool responseExecuted;
+
+std::string topic = "/foo";
+int data = 5;
+int counter = 0;
 
 //////////////////////////////////////////////////
-/// \brief Set broadcast/listen discovery beacon.
-TEST(beaconTest, pubRecv)
+/// \brief Provide a service.
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
-  zctx_t *ctx = zctx_new();
-  zbeacon_t *beacon = zbeacon_new(ctx, 11312);
-  zbeacon_subscribe(beacon, NULL, 0);
+  EXPECT_EQ(_topic, topic);
+  EXPECT_EQ(_req.data(), data);
+  _rep.set_data(_req.data());
+  _result = true;
 
-  zbeacon_publish(beacon, reinterpret_cast<byte*>(strdup("A message")), 9);
+  srvExecuted = true;
+}
 
-  char *srcAddr = zstr_recv(zbeacon_socket(beacon));
-  zframe_t *frame = zframe_recv(zbeacon_socket(beacon));
-  byte *data = zframe_data(frame);
-  char *msg = reinterpret_cast<char*>(&data[0]);
-  std::string recvMsg = std::string(msg);
-  EXPECT_EQ(recvMsg, "A message");
+//////////////////////////////////////////////////
+void runReplier()
+{
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  std::cout << "Received beacon from " << srcAddr << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
 
-  zbeacon_destroy(&beacon);
+
+TEST(twoProcSrvCall, SrvTwoProcsReplier)
+{
+  runReplier();
 }
 
 //////////////////////////////////////////////////

@@ -16,9 +16,8 @@
 */
 
 #include <iostream>
-
-#include <ignition/msgs.hh>
 #include <ignition/transport.hh>
+#include "msg/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
@@ -27,10 +26,10 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  example::mymsgs::StringMsg req;
   req.set_data("HELLO");
 
-  ignition::msgs::StringMsg rep;
+  example::mymsgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 

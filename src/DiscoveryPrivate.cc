@@ -15,20 +15,54 @@
  *
 */
 
-#include <czmq.h>
-#include <uuid/uuid.h>
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
+#ifdef _WIN32
+  // For socket(), connect(), send(), and recv().
+  #include <Winsock2.h>
+  #include <Ws2def.h>
+  #include <Ws2ipdef.h>
+  #include <Ws2tcpip.h>
+  // Type used for raw data on this platform.
+  typedef char raw_type;
+#else
+  // For data types
+  #include <sys/types.h>
+  // For socket(), connect(), send(), and recv()
+  #include <sys/socket.h>
+  // For gethostbyname()
+  #include <netdb.h>
+  // For inet_addr()
+  #include <arpa/inet.h>
+  // For close()
+  #include <unistd.h>
+  // For sockaddr_in
+  #include <netinet/in.h>
+  // Type used for raw data on this platform
+  typedef void raw_type;
+#endif
+
 #include <zmq.hpp>
 #include <chrono>
 #include <iostream>
 #include <mutex>
 #include <string>
 #include <vector>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include "ignition/transport/DiscoveryPrivate.hh"
+#include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
+
+#ifdef _WIN32
+  static bool initialized = false;
+#endif
 
 //////////////////////////////////////////////////
 DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
@@ -42,18 +76,97 @@ DiscoveryPrivate::DiscoveryPrivate(const std::string &_pUuid, bool _verbose)
     verbose(_verbose),
     exit(false)
 {
-  // We need this environment variable in order to disable the signal capture
-  // in czmq.
-  putenv(const_cast<char*>("ZSYS_SIGHANDLER=true"));
-
-  this->ctx = zctx_new();
-
-  // Discovery beacon.
-  this->beacon = zbeacon_new(this->ctx, this->DiscoveryPort);
-  zbeacon_subscribe(this->beacon, NULL, 0);
-
   // Get this host IP address.
-  this->hostAddr = this->GetHostAddr();
+  this->hostAddr = determineHost();
+
+#ifdef _WIN32
+  if (!initialized)
+  {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+
+    // Request WinSock v2.0.
+    wVersionRequested = MAKEWORD(2, 0);
+    // Load WinSock DLL.
+    if (WSAStartup(wVersionRequested, &wsaData) != 0)
+    {
+     std::cerr << "Unable to load WinSock DLL" << std::endl;
+     return;
+    }
+
+    initialized = true;
+  }
+#endif
+
+  // Make a new socket for sending/receiving discovery information.
+  if ((this->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  {
+    std::cerr << "Socket creation failed." << std::endl;
+    return;
+  }
+
+  // Socket option: SO_REUSEADDR.
+  int reuseAddr = 1;
+  if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR,
+        reinterpret_cast<const char *>(&reuseAddr), sizeof(reuseAddr)) != 0)
+  {
+    std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
+    return;
+  }
+
+#ifdef SO_REUSEPORT
+  // Socket option: SO_REUSEPORT.
+  int reusePort = 1;
+  if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT,
+        reinterpret_cast<const char *>(&reusePort), sizeof(reusePort)) != 0)
+  {
+    std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
+    return;
+  }
+#endif
+
+  // Socket option: IP_MULTICAST_IF.
+  // This option selects the source interface for outgoing messages.
+  struct in_addr ifAddr;
+  ifAddr.s_addr = inet_addr(this->hostAddr.c_str());
+  if (setsockopt(this->sock, IPPROTO_IP, IP_MULTICAST_IF,
+    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
+    return;
+  }
+
+  // Join the multicast group
+  struct ip_mreq group;
+  group.imr_multiaddr.s_addr = inet_addr(this->MulticastGroup.c_str());
+  group.imr_interface.s_addr = inet_addr(this->hostAddr.c_str());
+  if (setsockopt(this->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+    reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+              << std::endl;
+    return;
+  }
+
+  // Bind the socket to the discovery port.
+  sockaddr_in localAddr;
+  memset(&localAddr, 0, sizeof(localAddr));
+  localAddr.sin_family = AF_INET;
+  localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  localAddr.sin_port = htons(this->DiscoveryPort);
+
+  if (bind(this->sock, reinterpret_cast<sockaddr *>(&localAddr),
+        sizeof(sockaddr_in)) < 0)
+  {
+    std::cerr << "Binding to a local port failed." << std::endl;
+    return;
+  }
+
+  // Set 'mcastAddr' to the multicast discovery group.
+  memset(&this->mcastAddr, 0, sizeof(this->mcastAddr));
+  this->mcastAddr.sin_family = AF_INET;
+  this->mcastAddr.sin_addr.s_addr = inet_addr(this->MulticastGroup.c_str());
+  this->mcastAddr.sin_port = htons(this->DiscoveryPort);
 
   // Start the thread that receives discovery information.
   this->threadReception =
@@ -79,30 +192,28 @@ DiscoveryPrivate::~DiscoveryPrivate()
   this->exit = true;
   this->exitMutex.unlock();
 
+  // Don't join on Windows, because it can hang when this object
+  // is destructed on process exit (e.g., when it's a global static).
+  // I think that it's due to this bug:
+  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
+#ifndef _WIN32
   // Wait for the service threads to finish before exit.
   this->threadReception->join();
   this->threadHeartbeat->join();
   this->threadActivity->join();
+#endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   this->SendMsg(ByeType, "", "", "", "", Scope::All);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Stop all the beacons.
-  for (auto &topic : this->beacons)
-  {
-    for (auto &proc : topic.second)
-    {
-      zbeacon_t *b = proc.second;
-      // Destroy the beacon.
-      zbeacon_silence(b);
-      zbeacon_destroy(&b);
-    }
-  }
-
-  zbeacon_destroy(&this->beacon);
-  zctx_destroy(&this->ctx);
+  // Close sockets.
+#ifdef _WIN32
+  closesocket(this->sock);
+#else
+  close(this->sock);
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -123,7 +234,10 @@ void DiscoveryPrivate::Advertise(const MsgType &_advType,
     return;
 
   // Broadcast periodically my topic information.
-  this->NewBeacon(_advType, _topic, _nUuid);
+  if (_advType == MsgType::Msg)
+    this->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  else
+    this->SendMsg(AdvSrvType, _topic, _addr, _ctrl, _nUuid, _scope);
 }
 
 //////////////////////////////////////////////////
@@ -159,9 +273,6 @@ void DiscoveryPrivate::Unadvertise(const MsgType &_unadvType,
     return;
 
   this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
-
-  // Remove the beacon for this topic in this node.
-  this->DelBeacon(_topic, _nUuid);
 }
 
 //////////////////////////////////////////////////
@@ -264,9 +375,34 @@ void DiscoveryPrivate::RunHeartbeatTask()
 {
   while (true)
   {
-    this->mutex.lock();
-    this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
-    this->mutex.unlock();
+    {
+      std::lock_guard<std::mutex> lock(this->mutex);
+
+      this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
+
+      // Re-advertise topics that are advertised inside this process.
+      std::map<std::string, std::vector<Address_t>> nodes;
+      this->infoMsg.GetAddressesByProc(this->pUuid, nodes);
+      for (auto &topic : nodes)
+      {
+        for (auto &node : topic.second)
+        {
+          this->SendMsg(AdvType, topic.first, node.addr, node.ctrl, node.nUuid,
+            node.scope);
+        }
+      }
+
+      // Re-advertise services that are advertised inside this process.
+      this->infoSrv.GetAddressesByProc(this->pUuid, nodes);
+      for (auto &topic : nodes)
+      {
+        for (auto &node : topic.second)
+        {
+          this->SendMsg(AdvSrvType, topic.first, node.addr, node.ctrl,
+            node.nUuid, node.scope);
+        }
+      }
+    }
 
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->heartbeatInterval));
@@ -288,7 +424,7 @@ void DiscoveryPrivate::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {zbeacon_socket(this->beacon), 0, ZMQ_POLLIN, 0}
+      {0, this->sock, ZMQ_POLLIN, 0},
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->Timeout);
 
@@ -313,25 +449,29 @@ void DiscoveryPrivate::RunReceptionTask()
 //////////////////////////////////////////////////
 void DiscoveryPrivate::RecvDiscoveryUpdate()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  char rcvStr[DiscoveryPrivate::MaxRcvStr];
+  std::string srcAddr;
+  uint16_t srcPort;
+  sockaddr_in clntAddr;
+  socklen_t addrLen = sizeof(clntAddr);
 
-  // Address of datagram source.
-  char *srcAddr = zstr_recv(zbeacon_socket(this->beacon));
-
-  // A zmq message.
-  zframe_t *frame = zframe_recv(zbeacon_socket(this->beacon));
-
-  // Pointer to the raw discovery data.
-  byte *data = zframe_data(frame);
+  if ((recvfrom(this->sock, reinterpret_cast<raw_type *>(rcvStr),
+    this->MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
+     reinterpret_cast<socklen_t *>(&addrLen))) < 0)
+  {
+    std:: cerr << "Receive failed" << std::endl;
+    return;
+  }
+  srcAddr = inet_ntoa(clntAddr.sin_addr);
+  srcPort = ntohs(clntAddr.sin_port);
 
   if (this->verbose)
-    std::cout << "\nReceived discovery update from " << srcAddr << std::endl;
+  {
+    std::cout << "\nReceived discovery update from " << srcAddr << ": "
+              << srcPort << std::endl;
+  }
 
-  this->DispatchDiscoveryMsg(std::string(srcAddr),
-    reinterpret_cast<char*>(&data[0]));
-
-  zstr_free(&srcAddr);
-  zframe_destroy(&frame);
+  this->DispatchDiscoveryMsg(srcAddr, rcvStr);
 }
 
 //////////////////////////////////////////////////
@@ -340,6 +480,8 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
 {
   Header header;
   char *pBody = _msg;
+
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   // Create the header from the raw bytes.
   header.Unpack(_msg);
@@ -392,6 +534,7 @@ void DiscoveryPrivate::DispatchDiscoveryMsg(const std::string &_fromIp,
       // Register an advertised address for the topic.
       bool added = storage->AddAddress(recvTopic, recvAddr, recvCtrl, recvPUuid,
         recvNUuid, recvScope);
+
       if (added && cb)
       {
         // Execute the client's callback.
@@ -531,10 +674,10 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope, int _flags)
 {
-  zbeacon_t *aBeacon = zbeacon_new(this->ctx, this->DiscoveryPort);
-
   // Create the header.
   Header header(Version, this->pUuid, _type, _flags);
+  auto msgLength = 0;
+  std::vector<char> buffer;
 
   switch (_type)
   {
@@ -547,14 +690,10 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
         "not used");
 
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(advMsg.GetMsgLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(advMsg.GetMsgLength());
       advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
-
+      msgLength = advMsg.GetMsgLength();
       break;
     }
     case SubType:
@@ -563,37 +702,36 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
       // Create the [UN]SUBSCRIBE message.
       SubscriptionMsg subMsg(header, _topic);
 
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(subMsg.GetMsgLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(subMsg.GetMsgLength());
       subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), subMsg.GetMsgLength());
-
+      msgLength = subMsg.GetMsgLength();
       break;
     }
     case HeartbeatType:
     case ByeType:
     {
-      // Create a buffer and serialize the message.
-      std::vector<char> buffer(header.GetHeaderLength());
+      // Allocate a buffer and serialize the message.
+      buffer.resize(header.GetHeaderLength());
       header.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Broadcast the message.
-      zbeacon_publish(aBeacon,
-        reinterpret_cast<unsigned char*>(&buffer[0]), header.GetHeaderLength());
-
+      msgLength = header.GetHeaderLength();
       break;
     }
     default:
       std::cerr << "DiscoveryPrivate::SendMsg() error: Unrecognized message"
                 << " type [" << _type << "]" << std::endl;
-      break;
+      return;
   }
 
-  zbeacon_silence(aBeacon);
-  zbeacon_destroy(&aBeacon);
+  // Send the discovery message to the multicast group.
+  if (sendto(this->sock, reinterpret_cast<const raw_type *>(
+    reinterpret_cast<unsigned char*>(&buffer[0])),
+    msgLength, 0, reinterpret_cast<sockaddr *>(&this->mcastAddr),
+    sizeof(this->mcastAddr)) != msgLength)
+  {
+    std::cerr << "Exception sending a message" << std::endl;
+    return;
+  }
 
   if (this->verbose)
   {
@@ -605,8 +743,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 //////////////////////////////////////////////////
 std::string DiscoveryPrivate::GetHostAddr()
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
-  return zbeacon_hostname(this->beacon);
+  return this->hostAddr;
 }
 
 //////////////////////////////////////////////////
@@ -648,79 +785,3 @@ void DiscoveryPrivate::PrintCurrentState()
   std::cout << "---------------" << std::endl;
 }
 
-//////////////////////////////////////////////////
-void DiscoveryPrivate::NewBeacon(const MsgType &_advType,
-  const std::string &_topic, const std::string &_nUuid)
-{
-  std::unique_ptr<Header> header;
-
-  if (this->beacons.find(_topic) == this->beacons.end() ||
-      this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
-  {
-    // Create a new beacon and set the advertise interval.
-    zbeacon_t *b = zbeacon_new(this->ctx, this->DiscoveryPort);
-    zbeacon_set_interval(b, this->advertiseInterval);
-    this->beacons[_topic][_nUuid] = b;
-
-    Address_t node;
-
-    // Create the header.
-    if (_advType == MsgType::Msg)
-    {
-      // Prepare the content for the beacon.
-      if (!this->infoMsg.GetAddress(_topic, this->pUuid, _nUuid, node))
-        return;
-      header.reset(new Header(Version, this->pUuid, AdvType));
-
-      // Create the ADV message.
-      AdvertiseMsg advMsg(*header, _topic, node.addr, node.ctrl, node.nUuid,
-        node.scope, "not Used");
-      std::vector<char> buffer(advMsg.GetMsgLength());
-      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Setup the beacon.
-      zbeacon_publish(
-        b, reinterpret_cast<unsigned char*>(&buffer[0]), advMsg.GetMsgLength());
-    }
-    else
-    {
-      // Prepare the content for the beacon.
-      if (!this->infoSrv.GetAddress(_topic, this->pUuid, _nUuid, node))
-        return;
-      header.reset(new Header(Version, this->pUuid, AdvSrvType));
-
-      // Create the ADV SRV message.
-      AdvertiseSrv advSrv(*header, _topic, node.addr, node.ctrl, node.nUuid,
-        node.scope, "req not used", "rep not used");
-      std::vector<char> buffer(advSrv.GetMsgLength());
-      advSrv.Pack(reinterpret_cast<char*>(&buffer[0]));
-
-      // Setup the beacon.
-      zbeacon_publish(
-        b, reinterpret_cast<unsigned char*>(&buffer[0]), advSrv.GetMsgLength());
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void DiscoveryPrivate::DelBeacon(const std::string &_topic,
-                                 const std::string &_nUuid)
-{
-  if (this->beacons.find(_topic) == this->beacons.end())
-    return;
-
-  if (this->beacons[_topic].find(_nUuid) == this->beacons[_topic].end())
-    return;
-
-  // Get the beacon.
-  zbeacon_t *b = this->beacons[_topic][_nUuid];
-
-  // Destroy the beacon.
-  zbeacon_silence(b);
-  zbeacon_destroy(&b);
-
-  // Remove the beacon from the map.
-  this->beacons[_topic].erase(_nUuid);
-  if (this->beacons[_topic].empty())
-    this->beacons.erase(_topic);
-}

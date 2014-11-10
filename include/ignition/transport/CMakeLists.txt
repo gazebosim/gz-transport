@@ -6,6 +6,7 @@ set (headers
   HandlerStorage.hh
   Helpers.hh
   ign.hh
+  NetUtils.hh
   Node.hh
   NodePrivate.hh
   NodeShared.hh

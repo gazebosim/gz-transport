@@ -34,10 +34,12 @@ std::string topic   = "/foo";
 std::string service = "/service";
 std::string addr1   = "tcp://127.0.0.1:12345";
 std::string ctrl1   = "tcp://127.0.0.1:12346";
+std::string id1     = "identity1";
 std::string pUuid1  = "UUID-Proc-1";
 std::string nUuid1  = "UUID-Node-1";
 std::string addr2   = "tcp://127.0.0.1:12347";
 std::string ctrl2   = "tcp://127.0.0.1:12348";
+std::string id2     = "identity2";
 std::string pUuid2  = "UUID-Proc-2";
 std::string nUuid2  = "UUID-Node-2";
 transport::Scope scope = transport::Scope::All;
@@ -410,14 +412,14 @@ TEST(DiscoveryTest, TestDiscover)
 
   // Create a second discovery node that did not see the previous ADV message.
   transport::Discovery discovery2(pUuid2);
-
-  // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponse);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.
   EXPECT_FALSE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
+
+  // Register one callback for receiving notifications.
+  discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
   discovery2.DiscoverMsg(topic);
@@ -564,9 +566,6 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   transport::Discovery discovery2(pUuid2);
   discovery2.AdvertiseMsg(topic, addr2, ctrl2, nUuid2, scope);
 
-  // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponseMultiple);
-
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -574,6 +573,9 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // I should not see any discovery updates.
   EXPECT_FALSE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
+
+  // Register one callback for receiving notifications.
+  discovery2.SetConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
   discovery2.DiscoverMsg(topic);
@@ -618,7 +620,7 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -642,7 +644,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   object.RegisterSrvConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -665,7 +667,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -705,7 +707,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.RegisterSrvDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -732,23 +734,23 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 {
   reset();
 
-  // Create one discovery node and advertise a topic.
+  // Create one discovery node and advertise a service.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseSrv(service, addr1, nUuid1, scope);
+  discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);
-
-  // Register one callback for receiving notifications.
-  discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.
   EXPECT_FALSE(connectionSrvExecuted);
   EXPECT_FALSE(disconnectionSrvExecuted);
 
-  // Request the discovery of a topic.
-  discovery2.DiscoverSrv(topic);
+  // Register one callback for receiving notifications.
+  discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
+
+  // Request the discovery of a service.
+  discovery2.DiscoverSrv(service);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -767,7 +769,6 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   EXPECT_TRUE(connectionSrvExecuted);
   EXPECT_FALSE(disconnectionSrvExecuted);
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

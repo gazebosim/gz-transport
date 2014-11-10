@@ -15,25 +15,38 @@
  *
 */
 
-#include <ignition/msgs.hh>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <string>
 #include <thread>
+#if (_MSC_VER >= 1400)  // VS2005 for setenv
+#include <sstream>
+#endif
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "msg/int.pb.h"
+
+// Implement non POSIX setenv call in Visual Studio
+#if (_MSC_VER >= 1400)
+int setenv(const char * name, const char * value, int /*rewrite*/)
+{
+  std::stringstream sstr;
+  sstr << *name << '=' << value;
+  return _putenv(sstr.str().c_str());
+}
+#endif
 
 using namespace ignition;
 
 std::string topic = "/foo";
-std::string data = "bar";
+int data = 5;
 bool cbExecuted;
 bool cb2Executed;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
-bool terminate = false;
+bool terminatePub = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -44,12 +57,12 @@ void reset()
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  terminate = false;
+  terminatePub = false;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -59,7 +72,7 @@ void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -68,8 +81,8 @@ void cb2(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   srvExecuted = true;
@@ -81,7 +94,7 @@ void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
+void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
   EXPECT_EQ(_topic, topic);
@@ -110,7 +123,7 @@ class MyTestClass
 
   // Member function used as a callback for responding to a service call.
   public: void Echo(const std::string &_topic,
-    const ignition::msgs::StringMsg &_req, ignition::msgs::StringMsg &_rep,
+    const transport::msgs::Int &_req, transport::msgs::Int &_rep,
     bool &_result)
   {
     EXPECT_EQ(_topic, topic);
@@ -122,7 +135,7 @@ class MyTestClass
 
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const std::string &_topic,
-                  const ignition::msgs::StringMsg &_msg)
+    const transport::msgs::Int &_msg)
   {
     EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
@@ -132,7 +145,7 @@ class MyTestClass
   /// \brief Advertise a topic and publish a message.
   public: void SendSomeData()
   {
-    ignition::msgs::StringMsg msg;
+    transport::msgs::Int msg;
     msg.set_data(data);
 
     // Advertise an illegal topic.
@@ -144,8 +157,8 @@ class MyTestClass
 
   public: void TestServiceCall()
   {
-    ignition::msgs::StringMsg req;
-    ignition::msgs::StringMsg rep;
+    transport::msgs::Int req;
+    transport::msgs::Int rep;
     int timeout = 500;
     bool result;
 
@@ -191,7 +204,7 @@ void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
@@ -220,7 +233,7 @@ TEST(NodeTest, PubWithoutAdvertise)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
@@ -229,9 +242,9 @@ TEST(NodeTest, PubWithoutAdvertise)
   transport::Node node2;
 
   // Check the advertised/subscribed topics and advertised services.
-  EXPECT_EQ(node1.GetAdvertisedTopics().size(), 0);
-  EXPECT_EQ(node1.GetSubscribedTopics().size(), 0);
-  EXPECT_EQ(node1.GetAdvertisedServices().size(), 0);
+  EXPECT_EQ(node1.GetAdvertisedTopics().size(), 0u);
+  EXPECT_EQ(node1.GetSubscribedTopics().size(), 0u);
+  EXPECT_EQ(node1.GetAdvertisedServices().size(), 0u);
 
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
@@ -239,17 +252,17 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.Advertise(topic));
 
   auto v = node1.GetAdvertisedTopics();
-  ASSERT_EQ(v.size(), 1);
+  ASSERT_EQ(v.size(), 1u);
   EXPECT_EQ(v.at(0), topic);
 
   EXPECT_TRUE(node2.Advertise(topic));
   v = node2.GetAdvertisedTopics();
-  ASSERT_EQ(v.size(), 1);
+  ASSERT_EQ(v.size(), 1u);
   EXPECT_EQ(v.at(0), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
   auto m = node2.GetSubscribedTopics();
-  ASSERT_EQ(m.size(), 1);
+  ASSERT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, topic);
 
   // Wait some time before publishing.
@@ -273,7 +286,7 @@ TEST(NodeTest, PubSubSameThread)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
@@ -346,7 +359,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node1;
@@ -374,7 +387,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_TRUE(cb2Executed);
 
   auto m = node1.GetSubscribedTopics();
-  ASSERT_EQ(m.size(), 1);
+  ASSERT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, topic);
 
   reset();
@@ -399,7 +412,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
-  ASSERT_EQ(node1.GetSubscribedTopics().size(), 0);
+  ASSERT_EQ(node1.GetSubscribedTopics().size(), 0u);
 
   reset();
 
@@ -416,7 +429,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_FALSE(cb2Executed);
 
   auto v = node1.GetAdvertisedServices();
-  ASSERT_EQ(v.size(), 0);
+  ASSERT_EQ(v.size(), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -471,7 +484,7 @@ TEST(NodeTest, ServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  ignition::msgs::StringMsg req;
+  transport::msgs::Int req;
   req.set_data(data);
 
   transport::Node node;
@@ -482,7 +495,7 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   auto v = node.GetAdvertisedServices();
-  ASSERT_EQ(v.size(), 1);
+  ASSERT_EQ(v.size(), 1u);
   EXPECT_EQ(v.at(0), topic);
 
   // Request an invalid service name.
@@ -525,7 +538,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
 
-  ASSERT_EQ(node.GetAdvertisedServices().size(), 0);
+  ASSERT_EQ(node.GetAdvertisedServices().size(), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -535,7 +548,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  ignition::msgs::StringMsg req;
+  transport::msgs::Int req;
   req.set_data(data);
 
   transport::Node node;
@@ -592,8 +605,8 @@ TEST(NodeTest, MultipleServiceCallAsync)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSync)
 {
-  ignition::msgs::StringMsg req;
-  ignition::msgs::StringMsg rep;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -616,8 +629,8 @@ TEST(NodeTest, ServiceCallSync)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
-  ignition::msgs::StringMsg req;
-  ignition::msgs::StringMsg rep;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -646,14 +659,14 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 /// the method Interrupted().
 void createInfinitePublisher()
 {
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
   transport::Node node;
 
   EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
-  while (!terminate)
+  while (!terminatePub)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
@@ -666,7 +679,7 @@ void createInfinitePublisher()
 void signal_handler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
-    terminate = true;
+    terminatePub = true;
 }
 
 //////////////////////////////////////////////////

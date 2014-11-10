@@ -34,7 +34,7 @@ namespace ignition
  * Use to represent "symbol hidden" if supported
  */
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined __WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
     #ifdef __GNUC__
       #define IGNITION_VISIBLE __attribute__ ((dllexport))

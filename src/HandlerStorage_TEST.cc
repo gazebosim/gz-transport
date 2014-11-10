@@ -15,7 +15,6 @@
  *
 */
 
-#include <ignition/msgs.hh>
 #include <map>
 #include <string>
 #include "ignition/transport/HandlerStorage.hh"
@@ -23,15 +22,17 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
+#include "msg/vector3d.pb.h"
 
 using namespace ignition;
 
 // Global variables used for multiple tests.
 std::string topic   = "foo";
-std::string reqData = "Walter White";
 std::string nUuid1  = "node-UUID-1";
 std::string nUuid2  = "node-UUID-2";
 std::string hUuid   = "handler-UUID";
+int intResult       = 4;
 bool cbExecuted = false;
 
 //////////////////////////////////////////////////
@@ -43,12 +44,14 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Callback providing a service call.
-void cb1(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::Int &_rep, bool &_result)
+void cb1(const std::string &_topic, const transport::msgs::Vector3d &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_req.data(), reqData);
-  _rep.set_data(reqData.size());
+  EXPECT_FLOAT_EQ(_req.x(), 1.0);
+  EXPECT_FLOAT_EQ(_req.y(), 2.0);
+  EXPECT_FLOAT_EQ(_req.z(), 3.0);
+  _rep.set_data(intResult);
   _result = true;
 
   cbExecuted = true;
@@ -61,11 +64,13 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::IRepHandlerPtr handler;
   std::map<std::string, std::map<std::string, transport::IRepHandlerPtr>> m;
   transport::HandlerStorage<transport::IRepHandler> reps;
-  ignition::msgs::Int rep1Msg;
+  transport::msgs::Int rep1Msg;
   bool result;
 
-  ignition::msgs::StringMsg reqMsg;
-  reqMsg.set_data(reqData);
+  transport::msgs::Vector3d reqMsg;
+  reqMsg.set_x(1.0);
+  reqMsg.set_y(2.0);
+  reqMsg.set_z(3.0);
 
   // Check some operations when there is no data stored.
   EXPECT_FALSE(reps.GetHandlers(topic, m));
@@ -76,9 +81,9 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
-  std::shared_ptr<transport::RepHandler<ignition::msgs::StringMsg,
-    ignition::msgs::Int>> rep1HandlerPtr(new transport::RepHandler
-      <ignition::msgs::StringMsg, ignition::msgs::Int>());
+  std::shared_ptr<transport::RepHandler<transport::msgs::Vector3d,
+    transport::msgs::Int>> rep1HandlerPtr(new transport::RepHandler<
+      transport::msgs::Vector3d, transport::msgs::Int>());
 
   rep1HandlerPtr->SetCallback(cb1);
 
@@ -94,7 +99,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.GetHandler(topic, "wrongNodeUuid", handlerUuid, handler));
   EXPECT_FALSE(reps.GetHandler(topic, nUuid1, "wrongHandlerUuid", handler));
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
@@ -103,7 +108,7 @@ TEST(RepStorageTest, RepStorageAPI)
   handler = m[nUuid1].begin()->second;
   handler->RunLocalCallback(topic, reqMsg, rep1Msg, result);
   EXPECT_TRUE(cbExecuted);
-  EXPECT_EQ(rep1Msg.data(), reqData.size());
+  EXPECT_EQ(rep1Msg.data(), intResult);
   EXPECT_TRUE(result);
 
   reset();
@@ -115,20 +120,20 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
   rep1Msg.ParseFromString(repSerialized);
-  EXPECT_EQ(rep1Msg.data(), reqData.size());
+  EXPECT_EQ(rep1Msg.data(), intResult);
 
   // Create another REP handler without a callback for node1.
-  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
-    ignition::msgs::Int>> rep2HandlerPtr(new transport::RepHandler
-      <ignition::msgs::Vector2d, ignition::msgs::Int>());
+  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
+    transport::msgs::Int>> rep2HandlerPtr(new transport::RepHandler
+      <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
 
   // Create a REP handler without a callback for node2.
-  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
-    ignition::msgs::Int>> rep3HandlerPtr(new transport::RepHandler
-      <ignition::msgs::Vector2d, ignition::msgs::Int>());
+  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
+    transport::msgs::Int>> rep3HandlerPtr(new transport::RepHandler
+      <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
@@ -140,7 +145,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
   EXPECT_EQ(handler->GetHandlerUuid(), handlerUuid);
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 2);
+  EXPECT_EQ(m.size(), 2u);
 
   reset();
 
@@ -162,7 +167,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
   EXPECT_TRUE(reps.GetHandlers(topic, m));
-  EXPECT_EQ(m.size(), 1);
+  EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
@@ -175,9 +180,9 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Insert another handler, remove it, and check that the map is empty.
-  std::shared_ptr<transport::RepHandler<ignition::msgs::Vector2d,
-    ignition::msgs::Int>> rep4HandlerPtr(new transport::RepHandler
-      <ignition::msgs::Vector2d, ignition::msgs::Int>());
+  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
+    transport::msgs::Int>> rep4HandlerPtr(new transport::RepHandler
+      <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
@@ -197,13 +202,13 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   std::map<std::string, std::map<std::string,
     transport::ISubscriptionHandlerPtr>> m;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
-  ignition::msgs::StringMsg msg;
-  msg.set_data("some data");
+  transport::msgs::Int msg;
+  msg.set_data(5);
 
   // Create a Subscription handler.
-  std::shared_ptr<transport::SubscriptionHandler<ignition::msgs::StringMsg>>
+  std::shared_ptr<transport::SubscriptionHandler<transport::msgs::Int>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <ignition::msgs::StringMsg>(nUuid1));
+      <transport::msgs::Int>(nUuid1));
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);

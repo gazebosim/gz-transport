@@ -18,8 +18,13 @@
 #ifndef __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include <functional>
 #include <iostream>
 #include <memory>
