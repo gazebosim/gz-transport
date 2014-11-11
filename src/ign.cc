@@ -15,10 +15,10 @@
  *
 */
 
+#include <tclap/CmdLine.h>
 #include <chrono>
 #include <iostream>
 #include <list>
-#include <tclap/CmdLine.h>
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
 
@@ -70,7 +70,7 @@ void Command::Execute(int argc, char **argv)
     TCLAP::CmdLine cmd("Tool for printing information about topics",
       ' ', "0.9");
 
-    //cmd.setOutput(this);
+    // cmd.setOutput(this);
 
     TCLAP::UnlabeledValueArg<std::string> commandLabel("commmand", "Command",
       true, "topic", &allowedCmdVals);
