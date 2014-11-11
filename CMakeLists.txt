@@ -181,7 +181,7 @@ if (MSVC)
   set(WARN_LEVEL "/W4")
 
   # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
-  # Handling exceptions rightly 
+  # Handling exceptions rightly
   set(UNFILTERED_FLAGS "/EHsc")
 else()
   # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
@@ -295,9 +295,6 @@ else (build_errors)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
     DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
     COMPONENT cmake)
-
-  # Also install the yaml configuration files in an unversioned location
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/conf/transport.yaml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,

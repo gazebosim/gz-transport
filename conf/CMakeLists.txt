@@ -4,4 +4,5 @@ set (confs
   transport.yaml
 )
 
-install(FILES ${confs} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# Install the yaml configuration files in an unversioned location.
+install(FILES ${confs} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)

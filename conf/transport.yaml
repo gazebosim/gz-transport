@@ -3,4 +3,5 @@
 library: libignition-transport.so
 commands:
     - topic   : Print information about topics
+    - service : Print information about services
 ---

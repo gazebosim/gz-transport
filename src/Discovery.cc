@@ -182,3 +182,10 @@ void Discovery::GetTopicList(std::vector<std::string> &_topics)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->infoMsg.GetTopicList(_topics);
 }
+
+//////////////////////////////////////////////////
+void Discovery::GetServiceList(std::vector<std::string> &_services)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->infoSrv.GetTopicList(_services);
+}

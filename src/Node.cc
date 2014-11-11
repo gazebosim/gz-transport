@@ -324,3 +324,10 @@ void Node::GetTopicList(std::vector<std::string> &_topics)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetTopicList(_topics);
 }
+
+//////////////////////////////////////////////////
+void Node::GetServiceList(std::vector<std::string> &_services)
+{
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  this->dataPtr->shared->discovery->GetServiceList(_services);
+}

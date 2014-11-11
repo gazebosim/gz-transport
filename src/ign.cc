@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <iostream>
 #include <list>
 #include <tclap/CmdLine.h>
@@ -60,7 +61,7 @@ void Command::Execute(int argc, char **argv)
     std::cout << argv[i] << std::endl;
   std::cout << "--" << std::endl;*/
 
-  std::vector<std::string> allowedCommands = {"topic"};
+  std::vector<std::string> allowedCommands = {"topic", "service"};
   TCLAP::ValuesConstraint<std::string> allowedCmdVals(allowedCommands);
   std::vector<std::string> allowedSubcommands = {"list"};
   TCLAP::ValuesConstraint<std::string> allowedSubcmdVals(allowedSubcommands);
@@ -87,14 +88,18 @@ void Command::Execute(int argc, char **argv)
     std::string command = commandLabel.getValue();
     std::string subcommand = subcommandLabel.getValue();
 
-    if (command == "topic")
+    if (command == "topic" || command == "service")
     {
       if (subcommand == "list")
       {
         // Give the node some time to receive topic updates.
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         std::vector<std::string> topics;
-        node.GetTopicList(topics);
+
+        if (command == "topic")
+          node.GetTopicList(topics);
+        else
+          node.GetServiceList(topics);
 
        for (auto topic : topics)
           std::cout << topic << std::endl;

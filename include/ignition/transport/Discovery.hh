@@ -301,7 +301,13 @@ namespace ignition
             std::placeholders::_6));
       }
 
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
       public: void GetTopicList(std::vector<std::string> &_topics);
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void GetServiceList(std::vector<std::string> &_services);
 
       /// \internal
       /// \brief Shared pointer to private data.
