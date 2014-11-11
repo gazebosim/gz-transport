@@ -49,6 +49,7 @@ import subprocess
 def usage():
     print("""Usage:
 \t%s test-file.xml
+\t%s [test-type] optional, value: GTEST, QTEST. (default GTEST)
 """%(NAME), file=sys.stderr)
     print(sys.argv)
     sys.exit(getattr(os, 'EX_USAGE', 1))
@@ -79,9 +80,15 @@ def run_xsltproc(stylesheet, document):
 def check_main():
     if len(sys.argv) < 2:
         usage()
+    
     test_file = sys.argv[1]
+
+    if len(sys.argv) == 3:
+        test_type = sys.argv[2]
+    else:
+        test_type = "GTEST"
         
-    print("Checking for test results in %s"%test_file)
+    print("Checking for " + test_type + " results in " + test_file)
     
     if not os.path.exists(test_file):
         if not os.path.exists(os.path.dirname(test_file)):
@@ -101,8 +108,12 @@ def check_main():
         sys.exit(getattr(os, 'EX_USAGE', 1))
 
     # Checking if test is a QTest file
-    stdout, stderr = run_grep(test_file, "QtVersion")
-    if (stdout):
+    if test_type == "QTEST":
+        # Be sure we are checking for a QTEST
+        stdout, stderr = run_grep(test_file, "QtVersion")
+        if (not stdout):
+            print("QTEST defined in the call to the checker but no QtVersion in TEST... failing")
+            sys.exit(-1)
         print("Detect QTest xml file. Converting to JUNIT ...")
         stylesheet = os.path.dirname(os.path.abspath(__file__)) + "/qtest_to_junit.xslt"
         run_xsltproc(stylesheet, test_file)
