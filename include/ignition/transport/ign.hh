@@ -26,15 +26,8 @@ namespace ignition
   namespace transport
   {
     /// \brief Base class for all commands.
-    class IGNITION_VISIBLE Command  // : public TCLAP::StdOutput
+    class IGNITION_VISIBLE Command
     {
-      //  virtual void failure(TCLAP::CmdLineInterface& c,
-      //  TCLAP::ArgException& e);
-
-      //  virtual void usage(TCLAP::CmdLineInterface& c);
-
-      //  virtual void version(TCLAP::CmdLineInterface& c);
-
       /// \brief Execute an 'ign' command related with ignition-transport.
       public: void Execute(int argc, char **argv);
     };

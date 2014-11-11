@@ -18,7 +18,6 @@
 #include <tclap/CmdLine.h>
 #include <chrono>
 #include <iostream>
-#include <list>
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
 
@@ -26,59 +25,25 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-/*void Command::failure(TCLAP::CmdLineInterface& c, TCLAP::ArgException& e)
-{
-  TCLAP::Arg arg = *(c.getArgList().front());
-  //std::cout << arg << std::endl;
-
-  std::cerr << ": " << std::endl
-            << e.what() << std::endl;
-  exit(1);
-}
-
-//////////////////////////////////////////////////
-void Command::usage(TCLAP::CmdLineInterface& c)
-{
-  std::cout << "my usage message:" << std::endl;
-  std::list<TCLAP::Arg*> args = c.getArgList();
-  for (TCLAP::ArgListIterator it = args.begin(); it != args.end(); it++)
-    std::cout << (*it)->longID()
-              << "  (" << (*it)->getDescription() << ")" << std::endl;
-}
-
-//////////////////////////////////////////////////
-void Command::version(TCLAP::CmdLineInterface& c)
-{
-  std::cout << "my version message: 0.1" << std::endl;
-}*/
-
-//////////////////////////////////////////////////
 void Command::Execute(int argc, char **argv)
 {
-  /*std::cout << "ignition::transport::Execute()" << std::endl;
-  std::cout << "Args:" << std::endl;
-  for (int i = 0; i < argc; ++i)
-    std::cout << argv[i] << std::endl;
-  std::cout << "--" << std::endl;*/
-
+  // Used to constraint the list of commands.
   std::vector<std::string> allowedCommands = {"topic", "service"};
   TCLAP::ValuesConstraint<std::string> allowedCmdVals(allowedCommands);
+
+  // Used to constraint the list of subcommands.
   std::vector<std::string> allowedSubcommands = {"list"};
   TCLAP::ValuesConstraint<std::string> allowedSubcmdVals(allowedSubcommands);
 
   try {
     TCLAP::CmdLine cmd("Tool for printing information about topics",
-      ' ', "0.9");
-
-    // cmd.setOutput(this);
+      ' ', "0.1");
 
     TCLAP::UnlabeledValueArg<std::string> commandLabel("commmand", "Command",
-      true, "topic", &allowedCmdVals);
-    cmd.add(commandLabel);
+      true, "topic", &allowedCmdVals, cmd);
 
     TCLAP::UnlabeledValueArg<std::string> subcommandLabel("subcommand",
-      "Subcommands", true, "list", &allowedSubcmdVals);
-    cmd.add(subcommandLabel);
+      "Subcommands", true, "list", &allowedSubcmdVals, cmd);
 
     // Parse the argv array.
     cmd.parse(argc, argv);
