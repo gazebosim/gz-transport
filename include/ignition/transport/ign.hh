@@ -42,4 +42,9 @@ extern "C" IGNITION_VISIBLE void execute(int argc, char **argv)
   cmd.Execute(argc, argv);
 }
 
+extern "C" IGNITION_VISIBLE void test(int argc)
+{
+  printf("test");
+}
+
 #endif

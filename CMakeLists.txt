@@ -271,6 +271,7 @@ else (build_errors)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(conf)
+    add_subdirectory(tools)
     add_subdirectory(test)
   endif (BUILD_IGNITION)
 
