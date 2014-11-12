@@ -28,7 +28,6 @@ macro (ign_build_tests)
         libgtest.a
         libgtest_main.a
         pthread
-        dl
       )
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
