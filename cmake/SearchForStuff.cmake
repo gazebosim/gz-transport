@@ -34,12 +34,12 @@ endif ()
 #################################################
 # Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
 # different upstream projects and tarballs)
-# 
+#
 # Provide the PATH using CPPZMQ_HEADER_PATH
 #
-find_path(cppzmq_INCLUDE_DIRS 
-          zmq.hpp 
-	  PATHS 
+find_path(cppzmq_INCLUDE_DIRS
+          zmq.hpp
+	  PATHS
 	   ${zmq_INCLUDE_DIRS}
 	   ${CPPZMQ_HEADER_PATH})
 
@@ -92,6 +92,15 @@ if (NOT tclap_FOUND)
 else ()
   message (STATUS "Looking for tclap pkgconfig file - found")
   include_directories(${tclap_INCLUDE_DIRS})
+endif ()
+
+#################################################
+# Find ign command line utility:
+find_program(IGN_COMMAND NAMES ign)
+if (IGN_COMMAND)
+  message (STATUS "Looking for ign - found")
+else ()
+  message (STATUS "Looking for ign - not found. Skipping tool tests")
 endif ()
 
 ########################################

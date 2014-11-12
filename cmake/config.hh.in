@@ -15,3 +15,5 @@
 #cmakedefine BUILD_TYPE_RELEASE 1
 
 #cmakedefine HAVE_IFADDRS 1
+
+#cmakedefine IGN_PATH ${IGN_COMMAND}

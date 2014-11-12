@@ -18,8 +18,6 @@ set (test_sources
   ign_TEST.cc
 )
 
-ign_build_tests(${test_sources})
-
-#add_executable(ign ign.cc)
-#target_link_libraries(ign dl)
-#ign_install_executable(ign)
+if (IGN_COMMAND)
+  ign_build_tests(${test_sources})
+endif ()

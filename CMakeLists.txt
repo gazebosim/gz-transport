@@ -245,7 +245,7 @@ if (build_errors)
 else (build_errors)
 
   ########################################
-  # Write the config.h file
+  # Write the config.hh file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
   ign_install_includes(${IGN_PROJECT_NAME}
