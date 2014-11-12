@@ -39,8 +39,31 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node(const std::string &_ns)
+Node::Node()
   : dataPtr(new NodePrivate())
+{
+  // Check if the environment variable IGN_PARTITION is present.
+  char *envPartition;
+  std::string partitionStr;
+  envPartition = std::getenv("IGN_PARTITION");
+
+  if (envPartition)
+  {
+    partitionStr = std::string(envPartition);
+    if (TopicUtils::IsValidNamespace(partitionStr))
+      this->dataPtr->partition = "@" + partitionStr + "@";
+    else
+      std::cerr << "invalid IGN_PARTITION value." << std::endl;
+  }
+
+  // Generate the node UUID.
+  Uuid uuid;
+  this->dataPtr->nUuid = uuid.ToString();
+}
+
+//////////////////////////////////////////////////
+Node::Node(const std::string &_partition, const std::string &_ns)
+  : Node()
 {
   if (TopicUtils::IsValidNamespace(_ns))
     this->dataPtr->ns = _ns;
@@ -48,6 +71,14 @@ Node::Node(const std::string &_ns)
   {
     std::cerr << "Namespace [" << _ns << "] is not valid." << std::endl;
     std::cerr << "Using default namespace." << std::endl;
+  }
+
+  if (TopicUtils::IsValidNamespace(_partition))
+    this->dataPtr->partition = "@" + _partition + "@";
+  else
+  {
+    std::cerr << "Partition [" << _partition << "] is not valid." << std::endl;
+    std::cerr << "Using default partition." << std::endl;
   }
 
   // Generate the node UUID.
@@ -84,7 +115,7 @@ Node::~Node()
 bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
   std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -120,7 +151,7 @@ std::vector<std::string> Node::GetAdvertisedTopics()
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -142,7 +173,7 @@ bool Node::Unadvertise(const std::string &_topic)
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -214,7 +245,7 @@ std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -296,7 +327,7 @@ std::vector<std::string> Node::GetAdvertisedServices()
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
   std::string scTopic;
-  if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
   {
     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
     return false;

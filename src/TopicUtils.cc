@@ -34,6 +34,11 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
   if (_ns == "/")
     return false;
 
+  // If the topic name has a '@' is not valid
+  if (_ns.find("@") != std::string::npos)
+    return false;
+
+  // If the topic name has a '~' is not valid
   if (_ns.find("~") != std::string::npos)
     return false;
 
@@ -49,8 +54,8 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 }
 
 //////////////////////////////////////////////////
-bool TopicUtils::GetScopedName(const std::string &_ns,
-  const std::string &_topic, std::string &_scoped)
+bool TopicUtils::GetFullyQualifiedName(const std::string &_ns,
+  const std::string &_topic, std::string &_name)
 {
   // Sanity check, first things first.
   if (!IsValidNamespace(_ns) || !IsValidTopic(_topic))
@@ -74,9 +79,9 @@ bool TopicUtils::GetScopedName(const std::string &_ns,
   // If the topic does starts with '/' is considered an absolute topic and the
   // namespace will not be prefixed.
   if (!topic.empty() && topic.front() == '/')
-    _scoped = topic;
+    _name = topic;
   else
-    _scoped = ns + topic;
+    _name = ns + topic;
 
   return true;
 }

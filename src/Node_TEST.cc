@@ -238,7 +238,7 @@ TEST(NodeTest, PubWithoutAdvertise)
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
-  transport::Node node1("invalid namespace");
+  transport::Node node1("", "invalid namespace");
   transport::Node node2;
 
   // Check the advertised/subscribed topics and advertised services.

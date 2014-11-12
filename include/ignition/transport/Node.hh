@@ -55,9 +55,14 @@ namespace ignition
     class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
-      /// \param[in] _ns Default namespace used by this topic. This might
+      public: Node();
+
+      /// \brief Constructor.
+      /// \param[in] _partition Partition name used by this node.
+      /// \param[in] _ns Default namespace used by this node. This might
       /// be a prefix that can be added to each advertise message if required.
-      public: Node(const std::string &_ns = "");
+      public: Node(const std::string &_partition,
+                   const std::string &_ns);
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -98,7 +103,8 @@ namespace ignition
           void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -144,7 +150,8 @@ namespace ignition
           C *_obj)
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -209,7 +216,8 @@ namespace ignition
         const Scope &_scope = Scope::All)
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -264,7 +272,8 @@ namespace ignition
         const Scope &_scope = Scope::All)
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -321,7 +330,8 @@ namespace ignition
         void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -390,7 +400,8 @@ namespace ignition
         C *_obj)
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -458,7 +469,8 @@ namespace ignition
         bool &_result)
       {
         std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic,
+          scTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;

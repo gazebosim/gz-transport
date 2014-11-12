@@ -49,11 +49,12 @@ namespace ignition
       /// \brief Get the full topic path given a namespace and a topic name.
       /// \param[in] _ns Namespace.
       /// \param[in] _topic Topic name.
-      /// \param[out] _scoped Scoped topic name.
-      /// \return True if the scoped name is valid (if namespace and topic are).
-      public: static bool GetScopedName(const std::string &_ns,
-                                        const std::string &_topic,
-                                        std::string &_scoped);
+      /// \param[out] _name Fully qualified topic name.
+      /// \return True if the fully qualified name is valid
+      /// (if partition, namespace and topic are correct).
+      public: static bool GetFullyQualifiedName(const std::string &_ns,
+                                                const std::string &_topic,
+                                                std::string &_name);
     };
   }
 }
