@@ -27,6 +27,8 @@ using namespace ignition;
 
 bool cbExecuted;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 int data = 5;
 
@@ -45,7 +47,7 @@ TEST(ScopedTopicTest, ProcessTest)
   transport::msgs::Int msg;
   msg.set_data(data);
 
-  transport::Node node1;
+  transport::Node node1(partition, ns);
 
   EXPECT_TRUE(node1.Advertise(topic, transport::Scope::Process));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

@@ -15,6 +15,7 @@
  *
 */
 
+#include <stdio.h>
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
@@ -27,6 +28,8 @@ using namespace ignition;
 bool srvExecuted;
 bool responseExecuted;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 int counter = 0;
 
@@ -46,14 +49,14 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 //////////////////////////////////////////////////
 void runReplier()
 {
-  transport::Node node;
+  transport::Node node(partition, ns);
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  // Run the node forever. Should be killed by the test that use this
-  while (1);
+  // Run the node forever. Should be killed by the test that uses this.
+  getchar();
 }
 
-
+//////////////////////////////////////////////////
 TEST(twoProcSrvCall, SrvTwoProcsReplier)
 {
   runReplier();

@@ -58,7 +58,7 @@ namespace ignition
       public: NodeShared *shared = NodeShared::GetInstance();
 
       /// \brief Partition for this node.
-      public: std::string partition = "@@";
+      public: std::string partition = "";
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";

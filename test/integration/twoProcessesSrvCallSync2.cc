@@ -25,6 +25,8 @@
 
 using namespace ignition;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 int data = 5;
 
@@ -48,13 +50,13 @@ TEST(twoProcSrvCallSync2, SrvTwoProcs)
 
   req.set_data(data);
 
-  transport::Node node1;
-  EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
+  transport::Node node(partition, ns);
+  EXPECT_TRUE(node.Request(topic, req, timeout, rep, result));
   EXPECT_EQ(req.data(), rep.data());
   EXPECT_TRUE(result);
 
   auto t1 = std::chrono::system_clock::now();
-  EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
+  EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
   auto t2 = std::chrono::system_clock::now();
 
   double elapsed =

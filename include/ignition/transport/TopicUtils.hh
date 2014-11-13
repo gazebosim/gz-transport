@@ -29,14 +29,6 @@ namespace ignition
     /// \brief This class provides different utilities related with topics.
     class IGNITION_VISIBLE TopicUtils
     {
-      /// \brief Determines if a topic name is valid. A topic name is any
-      /// non-empty alphanumeric string. The symbol '/' is also allowed as part
-      /// of a topic name. Examples of valid topics: abc, /abc, /abc/de,
-      /// /abc/de/
-      /// \param[in] _topic Topic name to be checked.
-      /// \return true if the topic name is valid.
-      public: static bool IsValidTopic(const std::string &_topic);
-
       /// \brief Determines if a namespace is valid. A namespace is considered a
       /// prefix that will be potentially applied to other topic names.
       /// The same rules to validate a topic name applies to a namespace with
@@ -46,13 +38,23 @@ namespace ignition
       /// \return true if the namespace is valid.
       public: static bool IsValidNamespace(const std::string &_ns);
 
+      /// \brief Determines if a topic name is valid. A topic name is any
+      /// non-empty alphanumeric string. The symbol '/' is also allowed as part
+      /// of a topic name. Examples of valid topics: abc, /abc, /abc/de,
+      /// /abc/de/
+      /// \param[in] _topic Topic name to be checked.
+      /// \return true if the topic name is valid.
+      public: static bool IsValidTopic(const std::string &_topic);
+
       /// \brief Get the full topic path given a namespace and a topic name.
+      /// \param[in] _partition Partition name.
       /// \param[in] _ns Namespace.
       /// \param[in] _topic Topic name.
       /// \param[out] _name Fully qualified topic name.
       /// \return True if the fully qualified name is valid
       /// (if partition, namespace and topic are correct).
-      public: static bool GetFullyQualifiedName(const std::string &_ns,
+      public: static bool GetFullyQualifiedName(const std::string &_partition,
+                                                const std::string &_ns,
                                                 const std::string &_topic,
                                                 std::string &_name);
     };

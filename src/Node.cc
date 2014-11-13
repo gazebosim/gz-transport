@@ -51,9 +51,9 @@ Node::Node()
   {
     partitionStr = std::string(envPartition);
     if (TopicUtils::IsValidNamespace(partitionStr))
-      this->dataPtr->partition = "@" + partitionStr + "@";
+      this->dataPtr->partition = partitionStr;
     else
-      std::cerr << "invalid IGN_PARTITION value." << std::endl;
+      std::cerr << "Invalid IGN_PARTITION value." << std::endl;
   }
 
   // Generate the node UUID.
@@ -74,7 +74,7 @@ Node::Node(const std::string &_partition, const std::string &_ns)
   }
 
   if (TopicUtils::IsValidNamespace(_partition))
-    this->dataPtr->partition = "@" + _partition + "@";
+    this->dataPtr->partition = _partition;
   else
   {
     std::cerr << "Partition [" << _partition << "] is not valid." << std::endl;
@@ -93,6 +93,9 @@ Node::~Node()
   while (!this->dataPtr->topicsSubscribed.empty())
   {
     auto topic = *this->dataPtr->topicsSubscribed.begin();
+    // Remove the partition information.
+    topic.erase(0, topic.find_last_of("@") + 1);
+
     this->Unsubscribe(topic);
   }
 
@@ -100,6 +103,10 @@ Node::~Node()
   while (!this->dataPtr->topicsAdvertised.empty())
   {
     auto topic = *this->dataPtr->topicsAdvertised.begin();
+
+    // Remove the partition information.
+    topic.erase(0, topic.find_last_of("@") + 1);
+
     this->Unadvertise(topic);
   }
 
@@ -107,6 +114,10 @@ Node::~Node()
   while (!this->dataPtr->srvsAdvertised.empty())
   {
     auto topic = *this->dataPtr->srvsAdvertised.begin();
+
+    // Remove the partition information.
+    topic.erase(0, topic.find_last_of("@") + 1);
+
     this->UnadvertiseSrv(topic);
   }
 }
@@ -114,8 +125,9 @@ Node::~Node()
 //////////////////////////////////////////////////
 bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 {
-  std::string scTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -124,10 +136,10 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before)
-  this->dataPtr->topicsAdvertised.insert(scTopic);
+  this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->AdvertiseMsg(scTopic,
+  this->dataPtr->shared->discovery->AdvertiseMsg(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->nUuid, _scope);
 
@@ -150,8 +162,9 @@ std::vector<std::string> Node::GetAdvertisedTopics()
 //////////////////////////////////////////////////
 bool Node::Unadvertise(const std::string &_topic)
 {
-  std::string scTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
+  std::string fullyQualifiedTopic = _topic;
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -160,11 +173,11 @@ bool Node::Unadvertise(const std::string &_topic)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->topicsAdvertised.erase(scTopic);
+  this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
   this->dataPtr->shared->discovery->UnadvertiseMsg(
-    scTopic, this->dataPtr->nUuid);
+    fullyQualifiedTopic, this->dataPtr->nUuid);
 
   return true;
 }
@@ -172,8 +185,9 @@ bool Node::Unadvertise(const std::string &_topic)
 //////////////////////////////////////////////////
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
-  std::string scTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -182,7 +196,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Topic not advertised before.
-  if (this->dataPtr->topicsAdvertised.find(scTopic) ==
+  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
       this->dataPtr->topicsAdvertised.end())
   {
     return false;
@@ -190,7 +204,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   // Local subscribers.
   std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->dataPtr->shared->localSubscriptions.GetHandlers(scTopic, handlers))
+  if (this->dataPtr->shared->localSubscriptions.GetHandlers(fullyQualifiedTopic,
+        handlers))
   {
     for (auto &node : handlers)
     {
@@ -199,7 +214,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
         if (subscriptionHandlerPtr)
-          subscriptionHandlerPtr->RunLocalCallback(scTopic, _msg);
+          subscriptionHandlerPtr->RunLocalCallback(fullyQualifiedTopic, _msg);
         else
         {
           std::cerr << "Node::Publish(): Subscription handler is NULL"
@@ -210,11 +225,11 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (this->dataPtr->shared->remoteSubscribers.HasTopic(scTopic))
+  if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
   {
     std::string data;
     _msg.SerializeToString(&data);
-    this->dataPtr->shared->Publish(scTopic, data);
+    this->dataPtr->shared->Publish(fullyQualifiedTopic, data);
   }
   // Debug output.
   // else
@@ -244,8 +259,9 @@ std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
 //////////////////////////////////////////////////
 bool Node::Unsubscribe(const std::string &_topic)
 {
-  std::string scTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -254,22 +270,26 @@ bool Node::Unsubscribe(const std::string &_topic)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
-    scTopic, this->dataPtr->nUuid);
+    fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Remove the topic from the list of subscribed topics in this node.
-  this->dataPtr->topicsSubscribed.erase(scTopic);
+  this->dataPtr->topicsSubscribed.erase(fullyQualifiedTopic);
 
   // Remove the filter for this topic if I am the last subscriber.
-  if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(scTopic))
+  if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
+    fullyQualifiedTopic))
   {
     this->dataPtr->shared->subscriber->setsockopt(
-      ZMQ_UNSUBSCRIBE, scTopic.data(), scTopic.size());
+      ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
   }
 
   // Notify the publishers that I am no longer insterested in the topic.
   Addresses_M addresses;
-  if (!this->dataPtr->shared->discovery->GetMsgAddresses(scTopic, addresses))
+  if (!this->dataPtr->shared->discovery->GetMsgAddresses(fullyQualifiedTopic,
+    addresses))
+  {
     return false;
+  }
 
   for (auto &proc : addresses)
   {
@@ -286,8 +306,9 @@ bool Node::Unsubscribe(const std::string &_topic)
       socket.connect(node.ctrl.c_str());
 
       zmq::message_t msg;
-      msg.rebuild(scTopic.size());
-      memcpy(msg.data(), scTopic.data(), scTopic.size());
+      msg.rebuild(fullyQualifiedTopic.size());
+      memcpy(msg.data(), fullyQualifiedTopic.data(),
+        fullyQualifiedTopic.size());
       socket.send(msg, ZMQ_SNDMORE);
 
       msg.rebuild(this->dataPtr->shared->myAddress.size());
@@ -326,8 +347,9 @@ std::vector<std::string> Node::GetAdvertisedServices()
 //////////////////////////////////////////////////
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
-  std::string scTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->ns, _topic, scTopic))
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -336,15 +358,15 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->srvsAdvertised.erase(scTopic);
+  this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
 
   // Remove all the REP handlers for this node.
   this->dataPtr->shared->repliers.RemoveHandlersForNode(
-    scTopic, this->dataPtr->nUuid);
+    fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
   this->dataPtr->shared->discovery->UnadvertiseMsg(
-    scTopic, this->dataPtr->nUuid);
+    fullyQualifiedTopic, this->dataPtr->nUuid);
 
   return true;
 }

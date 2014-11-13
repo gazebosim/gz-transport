@@ -22,23 +22,13 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-bool TopicUtils::IsValidTopic(const std::string &_topic)
-{
-  return IsValidNamespace(_topic) && (_topic != "");
-}
-
-//////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
-  // The empty string or "/" are not valid.
+  // "/" is not valid.
   if (_ns == "/")
     return false;
 
-  // If the topic name has a '@' is not valid
-  if (_ns.find("@") != std::string::npos)
-    return false;
-
-  // If the topic name has a '~' is not valid
+  // If the topic name has a '~' is not valid.
   if (_ns.find("~") != std::string::npos)
     return false;
 
@@ -50,19 +40,41 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
   if (_ns.find("//") != std::string::npos)
     return false;
 
+  // It the topic name has a '@' is not valid.
+  if (_ns.find("@") != std::string::npos)
+    return false;
+
   return true;
 }
 
 //////////////////////////////////////////////////
-bool TopicUtils::GetFullyQualifiedName(const std::string &_ns,
-  const std::string &_topic, std::string &_name)
+bool TopicUtils::IsValidTopic(const std::string &_topic)
+{
+  return IsValidNamespace(_topic) && !_topic.empty();
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
+  const std::string &_ns, const std::string &_topic, std::string &_name)
 {
   // Sanity check, first things first.
-  if (!IsValidNamespace(_ns) || !IsValidTopic(_topic))
+  if (!IsValidNamespace(_partition) || !IsValidNamespace(_ns) ||
+      !IsValidTopic(_topic))
+  {
     return false;
+  }
 
+  std::string partition = _partition;
   std::string ns = _ns;
   std::string topic = _topic;
+
+  // If partition is not empty and does not start with slash, add it.
+  if (!partition.empty() && partition.front() != '/')
+    partition.insert(0, 1, '/');
+
+  // If the partition contains a trailing slash, remove it.
+  if (!partition.empty() && partition.back() == '/')
+    partition.pop_back();
 
   // If the namespace does not contain a trailing slash, append it.
   if (ns.empty() || ns.back() != '/')
@@ -82,6 +94,9 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_ns,
     _name = topic;
   else
     _name = ns + topic;
+
+  // Add the partition prefix.
+  _name.insert(0, "@" + partition + "@");
 
   return true;
 }

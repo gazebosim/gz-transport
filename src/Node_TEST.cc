@@ -15,9 +15,14 @@
  *
 */
 
+// Testing
+#include <iostream>
+
+#include <algorithm>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <thread>
 #if (_MSC_VER >= 1400)  // VS2005 for setenv
@@ -25,6 +30,7 @@
 #endif
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "msg/int.pb.h"
 
 // Implement non POSIX setenv call in Visual Studio
@@ -39,7 +45,10 @@ int setenv(const char * name, const char * value, int /*rewrite*/)
 
 using namespace ignition;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
+
 int data = 5;
 bool cbExecuted;
 bool cb2Executed;
@@ -64,7 +73,9 @@ void reset()
 /// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, fullyQualifiedTopic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -74,7 +85,9 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 /// \brief Function called each time a topic update is received.
 void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, fullyQualifiedTopic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
@@ -84,7 +97,9 @@ void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, fullyQualifiedTopic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -97,7 +112,9 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
-  EXPECT_EQ(_topic, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, fullyQualifiedTopic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -115,10 +132,11 @@ class MyTestClass
     : callbackExecuted(false),
       callbackSrvExecuted(false)
   {
+    this->node.reset(new transport::Node(partition, ""));
     // Subscribe to an illegal topic.
-    EXPECT_FALSE(node.Subscribe("invalid topic", &MyTestClass::Cb, this));
+    EXPECT_FALSE(this->node->Subscribe("Bad Topic", &MyTestClass::Cb, this));
 
-    EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
+    EXPECT_TRUE(this->node->Subscribe(topic, &MyTestClass::Cb, this));
   }
 
   // Member function used as a callback for responding to a service call.
@@ -126,7 +144,10 @@ class MyTestClass
     const transport::msgs::Int &_req, transport::msgs::Int &_rep,
     bool &_result)
   {
-    EXPECT_EQ(_topic, topic);
+    std::string fullyQualifiedTopic;
+    TopicUtils::GetFullyQualifiedName(partition, ns, topic,
+      fullyQualifiedTopic);
+    EXPECT_EQ(_topic, fullyQualifiedTopic);
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
     _result = true;
@@ -137,7 +158,10 @@ class MyTestClass
   public: void Cb(const std::string &_topic,
     const transport::msgs::Int &_msg)
   {
-    EXPECT_EQ(_topic, topic);
+    std::string fullyQualifiedTopic;
+    TopicUtils::GetFullyQualifiedName(partition, ns, topic,
+      fullyQualifiedTopic);
+    EXPECT_EQ(_topic, fullyQualifiedTopic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
@@ -149,10 +173,10 @@ class MyTestClass
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    EXPECT_FALSE(node.Advertise("invalid topic"));
+    EXPECT_FALSE(this->node->Advertise("invalid topic"));
 
-    EXPECT_TRUE(this->node.Advertise(topic));
-    EXPECT_TRUE(this->node.Publish(topic, msg));
+    EXPECT_TRUE(this->node->Advertise(topic));
+    EXPECT_TRUE(this->node->Publish(topic, msg));
   }
 
   public: void TestServiceCall()
@@ -165,10 +189,10 @@ class MyTestClass
     req.set_data(data);
 
     // Advertise an illegal service name.
-    EXPECT_FALSE(node.Advertise("invalid service", &MyTestClass::Echo, this));
+    EXPECT_FALSE(this->node->Advertise("Bad Srv", &MyTestClass::Echo, this));
 
-    EXPECT_TRUE(this->node.Advertise(topic, &MyTestClass::Echo, this));
-    EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
+    EXPECT_TRUE(this->node->Advertise(topic, &MyTestClass::Echo, this));
+    EXPECT_TRUE(this->node->Request(topic, req, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
   }
@@ -178,14 +202,14 @@ class MyTestClass
   public: bool callbackSrvExecuted;
 
   /// \brief Transport node;
-  private: transport::Node node;
+  private: std::unique_ptr<transport::Node> node;
 };
 
 //////////////////////////////////////////////////
 /// \brief Create a subscriber and wait for a callback to be executed.
 void CreateSubscriber()
 {
-  transport::Node node;
+  transport::Node node(partition, ns);
   EXPECT_TRUE(node.Subscribe(topic, cb));
 
   int i = 0;
@@ -207,7 +231,7 @@ void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
   transport::msgs::Int msg;
   msg.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
   EXPECT_TRUE(node.Advertise(topic, _sc));
 
   // Subscribe to a topic in a different thread and wait until the callback is
@@ -238,8 +262,8 @@ TEST(NodeTest, PubWithoutAdvertise)
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
-  transport::Node node1("", "invalid namespace");
-  transport::Node node2;
+  transport::Node node1(partition, "invalid namespace");
+  transport::Node node2(partition, ns);
 
   // Check the advertised/subscribed topics and advertised services.
   EXPECT_EQ(node1.GetAdvertisedTopics().size(), 0u);
@@ -253,17 +277,19 @@ TEST(NodeTest, PubWithoutAdvertise)
 
   auto v = node1.GetAdvertisedTopics();
   ASSERT_EQ(v.size(), 1u);
-  EXPECT_EQ(v.at(0), topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
 
   EXPECT_TRUE(node2.Advertise(topic));
   v = node2.GetAdvertisedTopics();
   ASSERT_EQ(v.size(), 1u);
-  EXPECT_EQ(v.at(0), topic);
+  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
   auto m = node2.GetSubscribedTopics();
   ASSERT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, topic);
+  EXPECT_EQ(m.begin()->first, fullyQualifiedTopic);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -289,7 +315,7 @@ TEST(NodeTest, PubSubSameThread)
   transport::msgs::Int msg;
   msg.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   // Advertise an illegal topic.
   EXPECT_FALSE(node.Advertise("invalid topic"));
@@ -362,8 +388,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::msgs::Int msg;
   msg.set_data(data);
 
-  transport::Node node1;
-  transport::Node node2;
+  transport::Node node1(partition, ns);
+  transport::Node node2(partition, ns);
 
   EXPECT_TRUE(node1.Advertise(topic));
 
@@ -388,7 +414,9 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   auto m = node1.GetSubscribedTopics();
   ASSERT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(m.begin()->first, fullyQualifiedTopic);
 
   reset();
 
@@ -487,7 +515,7 @@ TEST(NodeTest, ServiceCallAsync)
   transport::msgs::Int req;
   req.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
@@ -496,7 +524,9 @@ TEST(NodeTest, ServiceCallAsync)
 
   auto v = node.GetAdvertisedServices();
   ASSERT_EQ(v.size(), 1u);
-  EXPECT_EQ(v.at(0), topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
@@ -551,7 +581,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   transport::msgs::Int req;
   req.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
@@ -612,7 +642,7 @@ TEST(NodeTest, ServiceCallSync)
 
   req.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Request an invalid service name.
@@ -636,7 +666,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   req.set_data(data);
 
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   auto t1 = std::chrono::system_clock::now();
   bool executed = node.Request(topic, req, timeout, rep, result);
@@ -661,7 +691,7 @@ void createInfinitePublisher()
 {
   transport::msgs::Int msg;
   msg.set_data(data);
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   EXPECT_TRUE(node.Advertise(topic));
 
