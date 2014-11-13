@@ -15,10 +15,6 @@
  *
 */
 
-// Testing
-#include <iostream>
-
-#include <algorithm>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
