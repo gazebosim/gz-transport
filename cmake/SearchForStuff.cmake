@@ -96,12 +96,12 @@ endif ()
 
 #################################################
 # Find ign command line utility:
-find_program(IGN_COMMAND NAMES ign)
-if (IGN_COMMAND)
-  message (STATUS "Looking for ign - found")
-else ()
-  message (STATUS "Looking for ign - not found. Skipping tool tests")
-endif ()
+find_package(ignition-tools)
+if (IGNITION-TOOLS_BINARY_DIRS)
+  set (HAVE_IGN TRUE)
+else()
+  BUILD_WARNING ("ignition-tools not found, for command line utilities, please install ignition-tools.")
+endif()
 
 ########################################
 # Include man pages stuff

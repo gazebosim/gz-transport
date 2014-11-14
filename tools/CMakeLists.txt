@@ -18,6 +18,6 @@ set (test_sources
   ign_TEST.cc
 )
 
-if (IGN_COMMAND)
+if (IGNITION-TOOLS_BINARY_DIRS)
   ign_build_tests(${test_sources})
 endif ()

@@ -1,7 +1,8 @@
 --- # Subcommands available inside ignition-transport.
-
+format: 1.0.0
+library_version: 0.4.4
 library: libignition-transport.so
 commands:
-    - topic   : Print information about topics
-    - service : Print information about services
+    - topic   : Print information about topics.
+    - service : Print information about services.
 ---

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include "gtest/gtest.h"
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
@@ -66,7 +67,8 @@ TEST(ignTest, TopicList)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str());
 
   // Check the 'ign topic list' command.
-  std::string output = custom_exec_str("ign topic list");
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " topic list");
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -86,7 +88,8 @@ TEST(ignTest, ServiceList)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str());
 
   // Check the 'ign service list' command.
-  std::string output = custom_exec_str("ign service list");
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service list");
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -108,7 +111,8 @@ TEST(ignTest, TopicListSameProc)
   node.Publish("/foo", msg);
 
   // Check the 'ign topic list' command.
-  std::string output = custom_exec_str("ign topic list");
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " topic list");
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -120,7 +124,8 @@ TEST(ignTest, ServiceListSameProc)
   node.Advertise("/foo", srvEcho);
 
   // Check the 'ign service list' command.
-  std::string output = custom_exec_str("ign service list");
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service list");
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -128,6 +133,10 @@ TEST(ignTest, ServiceListSameProc)
 /// Main
 int main(int argc, char **argv)
 {
+  // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
+  // is located.
+  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
