@@ -36,8 +36,7 @@ void Command::Execute(int argc, char **argv)
   TCLAP::ValuesConstraint<std::string> allowedSubcmdVals(allowedSubcommands);
 
   try {
-    TCLAP::CmdLine cmd("Tool for printing information about topics",
-      ' ', "0.1");
+    TCLAP::CmdLine cmd("Tool for printing information about topics", ' ');
 
     TCLAP::UnlabeledValueArg<std::string> commandLabel("commmand", "Command",
       true, "topic", &allowedCmdVals, cmd);
