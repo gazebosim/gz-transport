@@ -52,7 +52,8 @@ Node::Node()
     if (TopicUtils::IsValidNamespace(partitionStr))
       this->dataPtr->partition = partitionStr;
     else
-      std::cerr << "Invalid IGN_PARTITION value." << std::endl;
+      std::cerr << "Invalid IGN_PARTITION value [" << partitionStr << "]"
+                << std::endl;
   }
 
   // Generate the node UUID.
