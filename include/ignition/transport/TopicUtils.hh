@@ -40,8 +40,9 @@ namespace ignition
 
       /// \brief Determines if a topic name is valid. A topic name is any
       /// non-empty alphanumeric string. The symbol '/' is also allowed as part
-      /// of a topic name. Examples of valid topics: abc, /abc, /abc/de,
-      /// /abc/de/
+      /// of a topic name. The symbol '@' is not allowed in a topic name
+      // because it is used as a partition delimitier.
+      // Examples of valid topics: abc, /abc, /abc/de, /abc/de/
       /// \param[in] _topic Topic name to be checked.
       /// \return true if the topic name is valid.
       public: static bool IsValidTopic(const std::string &_topic);
