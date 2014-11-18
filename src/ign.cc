@@ -57,7 +57,7 @@ void Command::Execute(int argc, char **argv)
       if (subcommand == "list")
       {
         // Give the node some time to receive topic updates.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         std::vector<std::string> topics;
 
         if (command == "topic")
