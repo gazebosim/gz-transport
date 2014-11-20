@@ -25,6 +25,8 @@
 
 using namespace ignition;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
@@ -50,7 +52,7 @@ TEST(twoProcSrvCall, ThousandCalls)
   transport::msgs::Int response;
   bool result;
   unsigned int timeout = 1000;
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   for (int i = 0; i < 15000; i++)
   {

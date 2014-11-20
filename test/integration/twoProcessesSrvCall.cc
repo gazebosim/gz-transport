@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "msg/int.pb.h"
 
@@ -28,6 +29,8 @@ using namespace ignition;
 bool srvExecuted;
 bool responseExecuted;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 int data = 5;
 int counter = 0;
@@ -37,7 +40,9 @@ int counter = 0;
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
-  EXPECT_EQ(_topic, topic);
+  std::string fullyQualifiedTopic;
+  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, fullyQualifiedTopic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -64,8 +69,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   transport::msgs::Int req;
   req.set_data(data);
 
-  transport::Node node1;
-  EXPECT_TRUE(node1.Request(topic, req, response));
+  transport::Node node(partition, ns);
+  EXPECT_TRUE(node.Request(topic, req, response));
 
   int i = 0;
   while (i < 100 && !responseExecuted)
@@ -81,7 +86,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   // Make another request.
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node1.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(topic, req, response));
 
   i = 0;
   while (i < 100 && !responseExecuted)

@@ -62,7 +62,7 @@ SUPPRESS=/tmp/cpp_check.suppress
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
 #echo "missingIncludeSystem" >> $SUPPRESS
-echo "*:include/ignition/transport/TransportTypes.hh:59" > $SUPPRESS
+echo "*:include/ignition/transport/TransportTypes.hh:63" > $SUPPRESS
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"

@@ -31,6 +31,8 @@ using namespace ignition;
 bool cbExecuted;
 bool cb2Executed;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 std::string data = "bar";
 
@@ -63,8 +65,8 @@ void runSubscriber()
   cb2Executed = false;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  transport::Node node;
-  transport::Node node2;
+  transport::Node node(partition, ns);
+  transport::Node node2(partition, ns);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Subscribe(topic, cb));

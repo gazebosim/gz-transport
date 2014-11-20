@@ -25,6 +25,8 @@ using namespace ignition;
 
 bool cbExecuted;
 
+std::string partition = "testPartition";
+std::string ns = "";
 std::string topic = "/foo";
 int data = 5;
 
@@ -41,7 +43,7 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 void subscriber()
 {
   cbExecuted = false;
-  transport::Node node;
+  transport::Node node(partition, ns);
 
   EXPECT_TRUE(node.Subscribe(topic, cb));
 
