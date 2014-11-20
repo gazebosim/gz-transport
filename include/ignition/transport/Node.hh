@@ -104,7 +104,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -117,7 +117,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->shared->localSubscriptions.AddHandler(
+        this->dataPtr->shared->localSubscriptions->AddHandler(
           scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
@@ -150,7 +150,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -164,7 +164,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->dataPtr->shared->localSubscriptions.AddHandler(
+        this->dataPtr->shared->localSubscriptions->AddHandler(
           scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
@@ -215,7 +215,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
         this->dataPtr->srvsAdvertised.insert(scTopic);
@@ -270,7 +270,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
         this->dataPtr->srvsAdvertised.insert(scTopic);
@@ -327,7 +327,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -396,7 +396,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -464,7 +464,8 @@ namespace ignition
           return false;
         }
 
-        std::unique_lock<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+        std::unique_lock<std::recursive_mutex>
+          lk(*this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;

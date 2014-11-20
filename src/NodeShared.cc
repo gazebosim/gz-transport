@@ -240,7 +240,7 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
 //////////////////////////////////////////////////
 void NodeShared::RecvMsgUpdate()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   zmq::message_t msg(0);
   std::string topic;
@@ -270,7 +270,7 @@ void NodeShared::RecvMsgUpdate()
 
   // Execute the callbacks registered.
   std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->localSubscriptions.GetHandlers(topic, handlers))
+  if (this->localSubscriptions->GetHandlers(topic, handlers))
   {
     for (auto &node : handlers)
     {
@@ -294,7 +294,7 @@ void NodeShared::RecvMsgUpdate()
 //////////////////////////////////////////////////
 void NodeShared::RecvControlUpdate()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   zmq::message_t msg(0);
   std::string topic;
@@ -337,7 +337,7 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Register that we have another remote subscriber.
-    this->remoteSubscribers.AddAddress(topic, "", "", procUuid, nodeUuid);
+    this->remoteSubscribers->AddAddress(topic, "", "", procUuid, nodeUuid);
   }
   else if (std::stoi(data) == EndConnection)
   {
@@ -349,14 +349,14 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Delete a remote subscriber.
-    this->remoteSubscribers.DelAddressByNode(topic, procUuid, nodeUuid);
+    this->remoteSubscribers->DelAddressByNode(topic, procUuid, nodeUuid);
   }
 }
 
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvRequest()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   if (verbose)
     std::cout << "Message received requesting a service call" << std::endl;
@@ -479,7 +479,7 @@ void NodeShared::RecvSrvRequest()
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvResponse()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   if (verbose)
     std::cout << "Message received containing a service call REP" << std::endl;
@@ -630,7 +630,7 @@ void NodeShared::OnNewConnection(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &_scope)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   if (this->verbose)
   {
@@ -643,7 +643,7 @@ void NodeShared::OnNewConnection(const std::string &_topic,
   }
 
   // Check if we are interested in this topic.
-  if (this->localSubscriptions.HasHandlersForTopic(_topic) &&
+  if (this->localSubscriptions->HasHandlersForTopic(_topic) &&
       this->pUuid.compare(_pUuid) != 0)
   {
     try
@@ -676,7 +676,7 @@ void NodeShared::OnNewConnection(const std::string &_topic,
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
-      if (this->localSubscriptions.GetHandlers(_topic, handlers))
+      if (this->localSubscriptions->GetHandlers(_topic, handlers))
       {
         for (auto &node : handlers)
         {
@@ -718,7 +718,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   if (this->verbose)
   {
@@ -729,7 +729,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
   // A remote subscriber[s] has been disconnected.
   if (_topic != "" && _nUuid != "")
   {
-    this->remoteSubscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
+    this->remoteSubscribers->DelAddressByNode(_topic, _pUuid, _nUuid);
 
     Address_t connection;
     if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, connection))
@@ -745,7 +745,7 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
   }
   else
   {
-    this->remoteSubscribers.DelAddressesByProc(_pUuid);
+    this->remoteSubscribers->DelAddressesByProc(_pUuid);
 
     Addresses_M info;
     if (!this->connections.GetAddresses(_topic, info))
@@ -766,7 +766,7 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   if (this->verbose)
   {
@@ -802,7 +802,7 @@ void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid,
   const Scope &/*_scope*/)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(*this->mutex);
 
   // Remove the address from the list of connected addresses.
   this->srvConnections.erase(std::remove(std::begin(this->srvConnections),

@@ -202,8 +202,9 @@ namespace ignition
       /// \brief thread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
 
-      /// \brief Mutex to guarantee exclusive access between all threads.
-      public: std::recursive_mutex mutex;
+      /// \brief Shared pointer to the mutex to guarantee exclusive access
+      //  between all threads.
+      public: std::shared_ptr<std::recursive_mutex> mutex;
 
       /// \brief When true, the reception thread will finish.
       public: bool exit;
@@ -217,11 +218,12 @@ namespace ignition
       /// \brief List of connected zmq end points for request/response.
       private: std::vector<std::string> srvConnections;
 
-      /// \brief Remote subscribers.
-      public: TopicStorage remoteSubscribers;
+      /// \brief Shared pointer to the remote subscribers.
+      public: std::shared_ptr<TopicStorage> remoteSubscribers;
 
-      /// \brief Subscriptions.
-      public: HandlerStorage<ISubscriptionHandler> localSubscriptions;
+      /// \brief Shared pointer to the local subscriptions.
+      public: std::shared_ptr<HandlerStorage<ISubscriptionHandler>>
+        localSubscriptions;
 
       /// \brief Service call repliers.
       public: HandlerStorage<IRepHandler> repliers;

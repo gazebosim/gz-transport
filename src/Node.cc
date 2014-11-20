@@ -90,7 +90,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before)
   this->dataPtr->topicsAdvertised.insert(scTopic);
@@ -106,7 +106,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 //////////////////////////////////////////////////
 std::vector<std::string> Node::GetAdvertisedTopics()
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   std::vector<std::string> v;
 
@@ -126,7 +126,7 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.erase(scTopic);
@@ -148,7 +148,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   // Topic not advertised before.
   if (this->dataPtr->topicsAdvertised.find(scTopic) ==
@@ -159,7 +159,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   // Local subscribers.
   std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->dataPtr->shared->localSubscriptions.GetHandlers(scTopic, handlers))
+  if (this->dataPtr->shared->localSubscriptions->GetHandlers(scTopic, handlers))
   {
     for (auto &node : handlers)
     {
@@ -179,7 +179,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (this->dataPtr->shared->remoteSubscribers.HasTopic(scTopic))
+  if (this->dataPtr->shared->remoteSubscribers->HasTopic(scTopic))
   {
     std::string data;
     _msg.SerializeToString(&data);
@@ -195,7 +195,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 //////////////////////////////////////////////////
 std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   std::map<std::string, Addresses_M> m;
 
@@ -220,16 +220,16 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
-  this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
+  this->dataPtr->shared->localSubscriptions->RemoveHandlersForNode(
     scTopic, this->dataPtr->nUuid);
 
   // Remove the topic from the list of subscribed topics in this node.
   this->dataPtr->topicsSubscribed.erase(scTopic);
 
   // Remove the filter for this topic if I am the last subscriber.
-  if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(scTopic))
+  if (!this->dataPtr->shared->localSubscriptions->HasHandlersForTopic(scTopic))
   {
     this->dataPtr->shared->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, scTopic.data(), scTopic.size());
@@ -282,7 +282,7 @@ bool Node::Unsubscribe(const std::string &_topic)
 //////////////////////////////////////////////////
 std::vector<std::string> Node::GetAdvertisedServices()
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   std::vector<std::string> v;
 
@@ -302,7 +302,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->srvsAdvertised.erase(scTopic);
@@ -321,13 +321,13 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 //////////////////////////////////////////////////
 void Node::GetTopicList(std::vector<std::string> &_topics)
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetTopicList(_topics);
 }
 
 //////////////////////////////////////////////////
 void Node::GetServiceList(std::vector<std::string> &_services)
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> lk(*this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetServiceList(_services);
 }
