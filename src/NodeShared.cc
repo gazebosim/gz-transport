@@ -60,7 +60,10 @@ NodeShared::NodeShared()
     responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
     replier(new zmq::socket_t(*context, ZMQ_ROUTER)),
     timeout(Timeout),
-    exit(false)
+    mutex(new std::recursive_mutex),
+    exit(false),
+    remoteSubscribers(new TopicStorage),
+    localSubscriptions(new HandlerStorage<ISubscriptionHandler>)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
   char const *tmp = std::getenv("IGN_VERBOSE");
@@ -74,7 +77,8 @@ NodeShared::NodeShared()
   this->pUuid = uuid.ToString();
 
   // Initialize my discovery service.
-  this->discovery.reset(new Discovery(this->pUuid, false));
+  this->discovery.reset(new Discovery(this->pUuid, this->localSubscriptions,
+    this->remoteSubscribers));
 
   // Initialize the 0MQ objects.
   try

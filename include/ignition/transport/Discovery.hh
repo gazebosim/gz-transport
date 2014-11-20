@@ -31,6 +31,8 @@
 
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -50,8 +52,13 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
+      /// \param[in] _lSubscribers Pointer to the list of remote subscribers.
+      /// \param[in] _rSubscribers Pointer to the list of local subscribers.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Discovery(const std::string &_pUuid, bool _verbose = false);
+      public: Discovery(const std::string &_pUuid,
+            std::shared_ptr<HandlerStorage<ISubscriptionHandler>> _lSubscribers,
+                        std::shared_ptr<TopicStorage> _rSubscribers,
+                        bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Discovery() = default;

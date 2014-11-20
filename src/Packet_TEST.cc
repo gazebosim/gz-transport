@@ -210,8 +210,9 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   std::string nodeUuid = "nodeUUID";
   transport::Scope scope = transport::Scope::All;
   std::string typeName = "StringMsg";
+  std::string subscribers = "\tsubscriber1:12345\n\tsubscriber2:23456\n";
   transport::AdvertiseMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
-    scope, typeName);
+    scope, typeName, subscribers);
 
   // Check AdvertiseMsg getters.
   transport::Header header = advMsg.GetHeader();
@@ -234,7 +235,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     sizeof(uint64_t) + ctrl.size() +
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t) +
-    sizeof(uint64_t) + advMsg.GetMsgTypeName().size();
+    sizeof(uint64_t) + advMsg.GetMsgTypeName().size() +
+    sizeof(uint64_t) + advMsg.GetSubscribers().size();
   EXPECT_EQ(advMsg.GetMsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -287,7 +289,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tControl address: inproc://control\n"
     "\tNode UUID: nodeUUID2\n"
     "\tTopic Scope: Host\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "\tSubscribers:\n\tsubscriber1:12345\n\tsubscriber2:23456\n\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 
@@ -307,7 +310,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tControl address: inproc://control\n"
     "\tNode UUID: nodeUUID2\n"
     "\tTopic Scope: Process\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "\tSubscribers:\n\tsubscriber1:12345\n\tsubscriber2:23456\n\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 
@@ -328,7 +332,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tControl address: inproc://control\n"
     "\tNode UUID: nodeUUID2\n"
     "\tTopic Scope: All\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "\tSubscribers:\n\tsubscriber1:12345\n\tsubscriber2:23456\n\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 }
@@ -345,6 +350,7 @@ TEST(PacketTest, AdvertiseMsgIO)
   std::string nodeUuid = "nodeUUID";
   transport::Scope scope = transport::Scope::Host;
   std::string typeName = "StringMsg";
+  std::string subscribers = "subscriber1:12345\nsubscriber2:23456\n";
 
   // Try to pack an empty AdvMsg.
   transport::AdvertiseMsg emptyMsg;
@@ -354,31 +360,31 @@ TEST(PacketTest, AdvertiseMsgIO)
   // Try to pack an incomplete AdvMsg (empty topic).
   transport::Header otherHeader(version, pUuid, transport::AdvType, 3);
   transport::AdvertiseMsg noTopicMsg(otherHeader, "", addr, ctrl, nodeUuid,
-    scope, typeName);
+    scope, typeName, subscribers);
   buffer.resize(noTopicMsg.GetMsgLength());
   EXPECT_EQ(0u, noTopicMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty address).
   transport::AdvertiseMsg noAddrMsg(otherHeader, topic, "", ctrl, nodeUuid,
-    scope, typeName);
+    scope, typeName, subscribers);
   buffer.resize(noAddrMsg.GetMsgLength());
   EXPECT_EQ(0u, noAddrMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty node UUID).
   transport::AdvertiseMsg noNodeUuidMsg(otherHeader, topic, addr, ctrl, "",
-    scope, typeName);
+    scope, typeName, subscribers);
   buffer.resize(noNodeUuidMsg.GetMsgLength());
   EXPECT_EQ(0u, noNodeUuidMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty message type name).
   transport::AdvertiseMsg noTypeMsg(otherHeader, topic, addr, ctrl, nodeUuid,
-    scope, "");
+    scope, "", subscribers);
   buffer.resize(noTypeMsg.GetMsgLength());
   EXPECT_EQ(0u, noTypeMsg.Pack(&buffer[0]));
 
   // Pack an AdvertiseMsg.
   transport::AdvertiseMsg advMsg(otherHeader, topic, addr, ctrl, nodeUuid,
-    scope, typeName);
+    scope, typeName, subscribers);
   buffer.resize(advMsg.GetMsgLength());
   size_t bytes = advMsg.Pack(&buffer[0]);
   EXPECT_EQ(bytes, advMsg.GetMsgLength());

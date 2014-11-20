@@ -36,6 +36,8 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+
+#include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -57,8 +59,12 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
+      /// \param[in] _lSubscribers Pointer to the list of remote subscribers.
+      /// \param[in] _rSubscribers Pointer to the list of local subscribers.
       /// \param[in] _verbose true for enabling verbose mode.
       public: DiscoveryPrivate(const std::string &_pUuid,
+            std::shared_ptr<HandlerStorage<ISubscriptionHandler>> _lSubscribers,
+                               std::shared_ptr<TopicStorage> _rSubscribers,
                                bool _verbose);
 
       /// \brief Destructor.
@@ -117,6 +123,8 @@ namespace ignition
       /// \param[in] _addr 0MQ Address.
       /// \param[in] _ctrl 0MQ control address.
       /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _scope Scope of the message.
+      /// \param[in] _subscribers List of subscribers.
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
@@ -126,6 +134,7 @@ namespace ignition
                            const std::string &_ctrl,
                            const std::string &_nUuid,
                            const Scope &_scope,
+                           const std::string &_subscribers,
                            int _flags = 0);
 
       /// \brief Get the IP address of this host.
@@ -252,6 +261,13 @@ namespace ignition
 
       /// \brief Services advertised inside this process.
       public: TopicStorage advertisedSrvs;
+
+      /// \brief Shared pointer to the local subscriptions.
+      public: std::shared_ptr<HandlerStorage<ISubscriptionHandler>>
+        localSubscribers;
+
+      /// \brief Shared pointer to the remote subscribers.
+      public: std::shared_ptr<TopicStorage> remoteSubscribers;
     };
   }
 }

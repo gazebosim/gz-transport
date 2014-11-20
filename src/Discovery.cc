@@ -25,8 +25,10 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Discovery::Discovery(const std::string &_pUuid, bool _verbose)
-: dataPtr(new DiscoveryPrivate(_pUuid, _verbose))
+Discovery::Discovery(const std::string &_pUuid,
+  std::shared_ptr<HandlerStorage<ISubscriptionHandler>> _lSubscribers,
+  std::shared_ptr<TopicStorage> _rSubscribers, bool _verbose)
+: dataPtr(new DiscoveryPrivate(_pUuid, _lSubscribers, _rSubscribers, _verbose))
 {
 }
 

@@ -68,6 +68,11 @@ void Command::Execute(int argc, char **argv)
        for (auto topic : topics)
           std::cout << topic << std::endl;
       }
+
+      if (command == "topic" && subcommand == "info")
+      {
+
+      }
     }
   } catch (TCLAP::ArgException &e)
   {

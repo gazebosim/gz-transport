@@ -481,10 +481,12 @@ AdvertiseMsg::AdvertiseMsg(const Header &_header,
                            const std::string &_ctrl,
                            const std::string &_nUuid,
                            const Scope &_scope,
-                           const std::string &_msgTypeName)
+                           const std::string &_msgTypeName,
+                           const std::string &_subscribers)
   : AdvertiseBase(_header, _topic, _addr, _ctrl, _nUuid, _scope)
 {
   this->SetMsgTypeName(_msgTypeName);
+  this->SetSubscribers(_subscribers);
 }
 
 //////////////////////////////////////////////////
@@ -500,10 +502,23 @@ void AdvertiseMsg::SetMsgTypeName(const std::string &_msgTypeName)
 }
 
 //////////////////////////////////////////////////
+std::string AdvertiseMsg::GetSubscribers() const
+{
+  return this->subscribers;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseMsg::SetSubscribers(const std::string &_subscribers)
+{
+  this->subscribers = _subscribers;
+}
+
+//////////////////////////////////////////////////
 size_t AdvertiseMsg::GetMsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
-         sizeof(uint64_t) + this->msgTypeName.size();
+         sizeof(uint64_t) + this->msgTypeName.size() +
+         sizeof(uint64_t) + this->subscribers.size();
 }
 
 //////////////////////////////////////////////////
@@ -531,6 +546,16 @@ size_t AdvertiseMsg::Pack(char *_buffer)
   // Pack the protobuf name contained in the message.
   memcpy(_buffer, this->msgTypeName.data(),
     static_cast<size_t>(msgTypeNameLength));
+  _buffer += msgTypeNameLength;
+
+  // Pack the subscriber list.
+  uint64_t subscribersLength = this->subscribers.size();
+  memcpy(_buffer, &subscribersLength, sizeof(subscribersLength));
+  _buffer += sizeof(subscribersLength);
+
+  // Pack the subscriber list contained in the message.
+  memcpy(_buffer, this->subscribers.data(),
+    static_cast<size_t>(subscribersLength));
 
   return this->GetMsgLength();
 }
@@ -552,6 +577,15 @@ size_t AdvertiseMsg::UnpackBody(char *_buffer)
 
   // Unpack the msgTypeName.
   this->msgTypeName = std::string(_buffer, _buffer + msgTypeNameLen);
+  _buffer += msgTypeNameLen;
+
+  // Unpack the subscribers length.
+  uint64_t subscribersLen;
+  memcpy(&subscribersLen, _buffer, sizeof(subscribersLen));
+  _buffer += sizeof(subscribersLen);
+
+  // Unpack the subscribers.
+  this->subscribers = std::string(_buffer, _buffer + subscribersLen);
 
   return this->GetMsgLength() - this->GetHeader().GetHeaderLength();
 }

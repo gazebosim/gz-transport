@@ -156,7 +156,7 @@ class MyClass
   /// \brief Class constructor.
   public: MyClass(const std::string &_pUuid)
   {
-    this->discov.reset(new transport::Discovery(_pUuid));
+    this->discov.reset(new transport::Discovery(_pUuid, nullptr, nullptr));
   }
 
   /// \brief Class destructor.
@@ -254,7 +254,7 @@ TEST(DiscoveryTest, TestBasicAPI)
   unsigned int newHeartbeatInterval  = 400;
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
 
   discovery1.SetSilenceInterval(newSilenceInterval);
   discovery1.SetActivityInterval(newActivityInterval);
@@ -275,8 +275,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
@@ -298,7 +298,7 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
 
   // This should generate discovery traffic but no response on object because
   // there is no callback registered.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   MyClass object(pUuid2);
 
   // This should trigger a discovery response on discovery2.
@@ -317,8 +317,8 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2, true);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr, true);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);
@@ -362,8 +362,8 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid1, nullptr, nullptr);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsCb(onDiscoveryResponse);
@@ -386,7 +386,7 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   reset();
 
   // Create two discovery nodes (one is embedded in an object).
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   MyClass object(pUuid2);
   object.RegisterConnections();
 
@@ -407,11 +407,11 @@ TEST(DiscoveryTest, TestDiscover)
   reset();
 
   // Create one discovery node and advertise a topic.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADV message.
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.
@@ -450,8 +450,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.SetDisconnectionsCb(ondisconnection);
@@ -490,7 +490,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   MyClass object(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
@@ -526,8 +526,8 @@ TEST(DiscoveryTest, TestNodeBye)
 
   // Create two discovery nodes.
   std::unique_ptr<transport::Discovery> discovery1(
-    new transport::Discovery(pUuid1));
-  transport::Discovery discovery2(pUuid2);
+    new transport::Discovery(pUuid1, nullptr, nullptr));
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.SetDisconnectionsCb(ondisconnection);
@@ -561,9 +561,9 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   reset();
 
   // Create two discovery nodes and advertise the same topic.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
   discovery2.AdvertiseMsg(topic, addr2, ctrl2, nUuid2, scope);
 
   // The callbacks should not be triggered but let's wait some time in case
@@ -613,8 +613,8 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
 
   // Register one callback for receiving notifications.
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
@@ -639,7 +639,7 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   reset();
 
   // Create two discovery nodes (one is embedded in an object).
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   MyClass object(pUuid2);
   object.RegisterSrvConnections();
 
@@ -660,8 +660,8 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
 
   // Register one callback for receiving disconnect  notifications (srv calls).
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
@@ -700,7 +700,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   MyClass object(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
@@ -735,11 +735,11 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   reset();
 
   // Create one discovery node and advertise a service.
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery1(pUuid1, nullptr, nullptr);
   discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
-  transport::Discovery discovery2(pUuid2);
+  transport::Discovery discovery2(pUuid2, nullptr, nullptr);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.

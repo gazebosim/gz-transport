@@ -357,21 +357,31 @@ namespace ignition
       /// \param[in] _nUuid Node's UUID.
       /// \param[in] _scope Topic scope.
       /// \param[in] _msgTypeName Name of the protobuf message advertised.
+      /// \param[in] _subscribers List of subscribers.
       public: AdvertiseMsg(const Header &_header,
                            const std::string &_topic,
                            const std::string &_addr,
                            const std::string &_ctrl,
                            const std::string &_nUuid,
                            const Scope &_scope,
-                           const std::string &_msgTypeName);
+                           const std::string &_msgTypeName,
+                           const std::string &_subscribers);
 
       /// \brief Get the name of the protobuf message advertised.
       /// \return The protobuf message type.
       public: std::string GetMsgTypeName() const;
 
       /// \brief Set the name of the protobuf message advertised.
-      /// \param[in] The protobuf message type.
+      /// \param[in] _msgTypeName The protobuf message type.
       public: void SetMsgTypeName(const std::string &_msgTypeName);
+
+      /// \brief Get the subscriber list for this advertise topic.
+      /// \return The list of subscribers.
+      public: std::string GetSubscribers() const;
+
+      /// \brief Set the list of subscribers for the topic advertised.
+      /// \param[in] _subscribers The list of subscribers.
+      public: void SetSubscribers(const std::string &_subscribers);
 
       // Documentation inherited.
       public: size_t GetMsgLength();
@@ -381,7 +391,8 @@ namespace ignition
                                               const AdvertiseMsg &_msg)
       {
          _out << static_cast<const AdvertiseBase&>(_msg)
-              << "\tMessage type: " << _msg.GetMsgTypeName() << std::endl;
+              << "\tMessage type: " << _msg.GetMsgTypeName() << std::endl
+              << "\tSubscribers:\n" << _msg.GetSubscribers() << std::endl;
 
         return _out;
       }
@@ -394,6 +405,9 @@ namespace ignition
 
       /// \brief The name of the protobuf message advertised.
       private: std::string msgTypeName = "";
+
+      /// \brief The list of subscribers information.
+      private: std::string subscribers = "";
     };
 
     /// \class AdvertiseSrv Packet.hh ignition/transport/Packet.hh
