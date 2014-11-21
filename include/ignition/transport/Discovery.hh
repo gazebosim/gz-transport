@@ -55,30 +55,6 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Discovery();
 
-      /// \brief Advertise a new message.
-      /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void AdvertiseMessage(const std::string &_topic,
-                                    const std::string &_addr,
-                                    const std::string &_ctrl,
-                                    const std::string &_nUuid,
-                                    const Scope &_scope = Scope::All);
-
-      /// \brief Advertise a new service.
-      /// \param[in] _topic Topic to be advertised.
-      /// \param[in] _addr ZeroMQ address of the service provider.
-      /// \param[in] _id ZeroMQ identity for the socket receiving the response.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void AdvertiseService(const std::string &_topic,
-                                    const std::string &_addr,
-                                    const std::string &_id,
-                                    const std::string &_nUuid,
-                                    const Scope &_scope = Scope::All);
-
       /// \brief Advertise a new message or service.
       /// \param[in] _advType Message (Msg) or service (Srv).
       /// \param[in] _topic Topic name to be advertised.
@@ -93,27 +69,19 @@ namespace ignition
                              const std::string &_nUuid,
                              const Scope &_scope);
 
-      /// \brief Request discovery information about a topic. The user
-      /// might want to use this function with SetConnectionsCb() and
-      /// SetDisconnectionCb(), that register callbacks that will be executed
-      /// when the topic address is discovered or when the node providing the
-      /// topic is disconnected.
+      /// \brief Request discovery information about a topic or service.
+      /// When using this method with messages, the user might want to use
+      /// SetConnectionsCb() and SetDisconnectionCb(), that register callbacks
+      /// that will be executed when the topic address is discovered or when the
+      /// node providing the topic is disconnected.
+      /// When using this method with services, the user might want to use
+      /// SetConnectionsSrvCb() and SetDisconnectionSrvCb(), that register
+      /// callbacks that will be executed when the service address is discovered
+      /// or when the node providing the service is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
-      /// \param[in] _topic Topic requested.
-      public: void DiscoverMsg(const std::string &_topic);
-
-      /// \brief Request discovery information about a service. The user
-      /// might want to use this function with SetConnectionsSrvCb() and
-      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
-      /// when the service address is discovered or when the node providing the
-      /// service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
-      /// \param[in] _topic Topic requested.
-      public: void DiscoverSrv(const std::string &_topic);
-
-      /// \brief Request discovery information about a topic.
       /// \param[in] _topic Topic name requested.
       /// \param[in] _isSrv True if the topic corresponds to a service.
       public: void Discover(const std::string &_topic, bool _isSrv);
@@ -132,29 +100,15 @@ namespace ignition
       public: bool GetSrvAddresses(const std::string &_topic,
                                    Addresses_M &_addresses);
 
-      /// \brief Unadvertise a new message or service.
+      /// \brief Unadvertise a new message or service. Broadcast a discovery
+      /// message that will cancel all the discovery information for the topic
+      /// or service advertised by a specific node.
       /// \param[in] _unadvType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic name to be unadvertised.
+      /// \param[in] _topic Topic/service name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
       public: void Unadvertise(const MsgType &_unadvType,
                                const std::string &_topic,
                                const std::string &_nUuid);
-
-      /// \brief Unadvertise a topic. Broadcast a discovery message that will
-      /// cancel all the discovery information for the topic advertised by a
-      /// specific node.
-      /// \param[in] _topic Topic to be unadvertised.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      public: void UnadvertiseMsg(const std::string &_topic,
-                                  const std::string &_nUuid);
-
-      /// \brief Unadvertise a service. Broadcast a discovery message that
-      /// will cancel all the discovery information for the service advertised
-      /// by a specific node.
-      /// \param[in] _topic Topic to be unadvertised.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      public: void UnadvertiseSrv(const std::string &_topic,
-                                  const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
@@ -364,10 +318,6 @@ namespace ignition
                            const std::string &_nUuid,
                            const Scope &_scope,
                            int _flags = 0);
-
-      /// \brief Get the IP address of this host.
-      /// \return A string with this host's IP address.
-      public: std::string GetHostAddr();
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();

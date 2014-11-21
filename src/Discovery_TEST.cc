@@ -280,7 +280,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -302,7 +303,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
   MyClass object(pUuid2);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecutedMF);
 
@@ -324,7 +326,8 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // This should trigger a discovery response on discovery2.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -335,7 +338,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
-  discovery1.AdvertiseMessage("/topic2", addr1, ctrl1, nUuid1,
+  discovery1.Advertise(transport::MsgType::Msg, "/topic2", addr1, ctrl1, nUuid1,
     transport::Scope::Process);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -346,7 +349,7 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should trigger a discovery response on discovery2.
-  discovery1.AdvertiseMessage("/topic3", addr1, ctrl1, nUuid1,
+  discovery1.Advertise(transport::MsgType::Msg, "/topic3", addr1, ctrl1, nUuid1,
     transport::Scope::Host);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -370,7 +373,8 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
 
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -391,7 +395,8 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   object.RegisterConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecutedMF);
 
@@ -408,7 +413,8 @@ TEST(DiscoveryTest, TestDiscover)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   // Create a second discovery node that did not see the previous ADV message.
   transport::Discovery discovery2(pUuid2);
@@ -422,7 +428,7 @@ TEST(DiscoveryTest, TestDiscover)
   discovery2.SetConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
-  discovery2.DiscoverMsg(topic);
+  discovery2.Discover(topic, false);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -435,7 +441,7 @@ TEST(DiscoveryTest, TestDiscover)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.DiscoverMsg(topic);
+  discovery2.Discover(topic, false);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -457,7 +463,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -468,7 +475,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseMsg(topic, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Msg, topic, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -477,7 +484,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   EXPECT_TRUE(disconnectionExecuted);
 
   // Unadvertise a topic not advertised.
-  discovery1.UnadvertiseMsg(topic, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Msg, topic, nUuid1);
   transport::Addresses_M addresses;
   EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
 }
@@ -497,7 +504,8 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   object.RegisterDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
 
@@ -508,7 +516,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseMsg(topic, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Msg, topic, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
 
@@ -533,7 +541,8 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.SetDisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1->AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1->Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -562,9 +571,11 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // Create two discovery nodes and advertise the same topic.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseMessage(topic, addr1, ctrl1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Msg, topic, addr1, ctrl1, nUuid1,
+    scope);
   transport::Discovery discovery2(pUuid2);
-  discovery2.AdvertiseMessage(topic, addr2, ctrl2, nUuid2, scope);
+  discovery2.Advertise(transport::MsgType::Msg, topic, addr2, ctrl2, nUuid2,
+    scope);
 
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
@@ -578,7 +589,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   discovery2.SetConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
-  discovery2.DiscoverMsg(topic);
+  discovery2.Discover(topic, false);
 
   int i = 0;
   while (i < MaxIters && counter < 2)
@@ -597,7 +608,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.DiscoverMsg(topic);
+  discovery2.Discover(topic, false);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -620,7 +631,8 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
-  discovery1.AdvertiseService(service, addr1, id1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Srv, service, addr1, id1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -644,7 +656,8 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   object.RegisterSrvConnections();
 
   // This should trigger a discovery response on object.
-  discovery1.AdvertiseService(service, addr1, id1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Srv, service, addr1, id1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -667,7 +680,8 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
-  discovery1.AdvertiseService(service, addr1, id1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Srv, service, addr1, id1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -678,7 +692,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseSrv(service, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Srv, service, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -687,7 +701,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   EXPECT_TRUE(disconnectionSrvExecuted);
 
   // Unadvertise a topic not advertised.
-  discovery1.UnadvertiseSrv(service, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Srv, service, nUuid1);
   transport::Addresses_M addresses;
   EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
 }
@@ -707,7 +721,8 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.RegisterSrvDisconnections();
 
   // This should not trigger a disconnect response on object.
-  discovery1.AdvertiseService(service, addr1, id1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Srv, service, addr1, id1, nUuid1,
+    scope);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -718,7 +733,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  discovery1.UnadvertiseSrv(service, nUuid1);
+  discovery1.Unadvertise(transport::MsgType::Srv, service, nUuid1);
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -736,7 +751,8 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 
   // Create one discovery node and advertise a service.
   transport::Discovery discovery1(pUuid1);
-  discovery1.AdvertiseService(service, addr1, id1, nUuid1, scope);
+  discovery1.Advertise(transport::MsgType::Srv, service, addr1, id1, nUuid1,
+    scope);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);
@@ -750,7 +766,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
 
   // Request the discovery of a service.
-  discovery2.DiscoverSrv(service);
+  discovery2.Discover(service, true);
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -763,7 +779,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Request again the discovery of a service. The callback should be executed
   // from the Discover method this time because the service information should
   // be known.
-  discovery2.DiscoverSrv(service);
+  discovery2.Discover(service, true);
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);

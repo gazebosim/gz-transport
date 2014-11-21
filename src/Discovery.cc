@@ -222,22 +222,6 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseMessage(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
-  const Scope &_scope)
-{
-  this->Advertise(MsgType::Msg, _topic, _addr, _ctrl, _nUuid, _scope);
-}
-
-//////////////////////////////////////////////////
-void Discovery::AdvertiseService(const std::string &_topic,
-  const std::string &_addr, const std::string &_id, const std::string &_nUuid,
-  const Scope &_scope)
-{
-  this->Advertise(MsgType::Srv, _topic, _addr, _id, _nUuid, _scope);
-}
-
-//////////////////////////////////////////////////
 void Discovery::Advertise(const MsgType &_advType, const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
   const Scope &_scope)
@@ -300,18 +284,6 @@ void Discovery::Unadvertise(const MsgType &_unadvType,
     return;
 
   this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
-}
-
-//////////////////////////////////////////////////
-void Discovery::DiscoverMsg(const std::string &_topic)
-{
-  this->Discover(_topic, false);
-}
-
-//////////////////////////////////////////////////
-void Discovery::DiscoverSrv(const std::string &_topic)
-{
-  this->Discover(_topic, true);
 }
 
 //////////////////////////////////////////////////
@@ -378,23 +350,9 @@ bool Discovery::GetSrvAddresses(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseMsg(const std::string &_topic,
-                               const std::string &_nUuid)
-{
-  this->Unadvertise(MsgType::Msg, _topic, _nUuid);
-}
-
-//////////////////////////////////////////////////
-void Discovery::UnadvertiseSrv(const std::string &_topic,
-                               const std::string &_nUuid)
-{
-  this->Unadvertise(MsgType::Srv, _topic, _nUuid);
-}
-
-//////////////////////////////////////////////////
 std::string Discovery::GetHostAddr() const
 {
-  return this->GetHostAddr();
+  return this->dataPtr->hostAddr;
 }
 
 //////////////////////////////////////////////////
@@ -898,12 +856,6 @@ void Discovery::SendMsg(uint8_t _type, const std::string &_topic,
     std::cout << "\t* Sending " << MsgTypesStr[_type]
               << " msg [" << _topic << "]" << std::endl;
   }
-}
-
-//////////////////////////////////////////////////
-std::string Discovery::GetHostAddr()
-{
-  return this->dataPtr->hostAddr;
 }
 
 //////////////////////////////////////////////////
