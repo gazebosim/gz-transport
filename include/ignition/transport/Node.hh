@@ -243,7 +243,7 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
+        this->dataPtr->shared->discovery->AdvertiseService(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
@@ -301,7 +301,7 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
+        this->dataPtr->shared->discovery->AdvertiseService(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);

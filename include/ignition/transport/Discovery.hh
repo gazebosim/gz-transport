@@ -53,7 +53,7 @@ namespace ignition
       public: Discovery(const std::string &_pUuid, bool _verbose = false);
 
       /// \brief Destructor.
-      public: virtual ~Discovery() = default;
+      public: virtual ~Discovery();
 
       /// \brief Advertise a new message.
       /// \param[in] _topic Topic name to be advertised.
@@ -61,11 +61,11 @@ namespace ignition
       /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void AdvertiseMsg(const std::string &_topic,
-                                const std::string &_addr,
-                                const std::string &_ctrl,
-                                const std::string &_nUuid,
-                                const Scope &_scope = Scope::All);
+      public: void AdvertiseMessage(const std::string &_topic,
+                                    const std::string &_addr,
+                                    const std::string &_ctrl,
+                                    const std::string &_nUuid,
+                                    const Scope &_scope = Scope::All);
 
       /// \brief Advertise a new service.
       /// \param[in] _topic Topic to be advertised.
@@ -73,11 +73,25 @@ namespace ignition
       /// \param[in] _id ZeroMQ identity for the socket receiving the response.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _scope Topic scope.
-      public: void AdvertiseSrv(const std::string &_topic,
-                                const std::string &_addr,
-                                const std::string &_id,
-                                const std::string &_nUuid,
-                                const Scope &_scope = Scope::All);
+      public: void AdvertiseService(const std::string &_topic,
+                                    const std::string &_addr,
+                                    const std::string &_id,
+                                    const std::string &_nUuid,
+                                    const Scope &_scope = Scope::All);
+
+      /// \brief Advertise a new message or service.
+      /// \param[in] _advType Message (Msg) or service (Srv).
+      /// \param[in] _topic Topic name to be advertised.
+      /// \param[in] _addr ZeroMQ address of the topic's publisher.
+      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _scope Topic scope.
+      public: void Advertise(const MsgType &_advType,
+                             const std::string &_topic,
+                             const std::string &_addr,
+                             const std::string &_ctrl,
+                             const std::string &_nUuid,
+                             const Scope &_scope);
 
       /// \brief Request discovery information about a topic. The user
       /// might want to use this function with SetConnectionsCb() and
@@ -99,6 +113,11 @@ namespace ignition
       /// \param[in] _topic Topic requested.
       public: void DiscoverSrv(const std::string &_topic);
 
+      /// \brief Request discovery information about a topic.
+      /// \param[in] _topic Topic name requested.
+      /// \param[in] _isSrv True if the topic corresponds to a service.
+      public: void Discover(const std::string &_topic, bool _isSrv);
+
       /// \brief Get all the addresses known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _addresses Addresses requested.
@@ -112,6 +131,14 @@ namespace ignition
       /// \return True if the topic is found and there is at least one address.
       public: bool GetSrvAddresses(const std::string &_topic,
                                    Addresses_M &_addresses);
+
+      /// \brief Unadvertise a new message or service.
+      /// \param[in] _unadvType Message (Msg) or service (Srv).
+      /// \param[in] _topic Topic name to be unadvertised.
+      /// \param[in] _nUuid Node UUID.
+      public: void Unadvertise(const MsgType &_unadvType,
+                               const std::string &_topic,
+                               const std::string &_nUuid);
 
       /// \brief Unadvertise a topic. Broadcast a discovery message that will
       /// cancel all the discovery information for the topic advertised by a
@@ -300,6 +327,50 @@ namespace ignition
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
       }
+
+      /// \brief Check the validity of the topic information. Each topic update
+      /// has its own timestamp. This method iterates over the list of topics
+      /// and invalids the old topics.
+      public: void RunActivityTask();
+
+      /// \brief Broadcast periodic heartbeats.
+      public: void RunHeartbeatTask();
+
+      /// \brief Receive discovery messages.
+      public: void RunReceptionTask();
+
+      /// \brief Method in charge of receiving the discovery updates.
+      public: void RecvDiscoveryUpdate();
+
+      /// \brief Parse a discovery message received via the UDP broadcast socket
+      /// \param[in] _fromIp IP address of the message sender.
+      /// \param[in] _msg Received message.
+      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
+                                        char *_msg);
+
+      /// \brief Broadcast a discovery message.
+      /// \param[in] _type Message type.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr 0MQ Address.
+      /// \param[in] _ctrl 0MQ control address.
+      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _flags Optional flags. Currently, the flags are not used
+      /// but they will in the future for specifying things like compression,
+      /// or encryption.
+      public: void SendMsg(uint8_t _type,
+                           const std::string &_topic,
+                           const std::string &_addr,
+                           const std::string &_ctrl,
+                           const std::string &_nUuid,
+                           const Scope &_scope,
+                           int _flags = 0);
+
+      /// \brief Get the IP address of this host.
+      /// \return A string with this host's IP address.
+      public: std::string GetHostAddr();
+
+      /// \brief Print the current discovery state (info, activity, unknown).
+      public: void PrintCurrentState();
 
       /// \internal
       /// \brief Shared pointer to private data.

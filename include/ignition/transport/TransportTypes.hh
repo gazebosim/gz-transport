@@ -24,6 +24,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -144,6 +145,10 @@ namespace ignition
       const std::string &_addr, const std::string &_ctrl,
       const std::string &_pUuid, const std::string &_nUuid,
       const Scope &_scope)> DiscoveryCallback;
+
+    /// \def Timestamp
+    /// \brief Used to evaluate the validity of a discovery entry.
+    typedef std::chrono::steady_clock::time_point Timestamp;
   }
 }
 #endif

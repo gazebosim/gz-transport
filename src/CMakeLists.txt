@@ -2,7 +2,7 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
   Discovery.cc
-  DiscoveryPrivate.cc
+#  DiscoveryPrivate.cc
   NetUtils.cc
   Node.cc
   NodeShared.cc
@@ -39,10 +39,10 @@ endif()
 
 # Protobuf module does not have LIBRARIES but LIBRARY
 message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME_LOWER} 
+target_link_libraries(${PROJECT_NAME_LOWER}
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES})
-    
+
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 Iphlpapi)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -139,7 +139,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->AdvertiseMsg(fullyQualifiedTopic,
+  this->dataPtr->shared->discovery->AdvertiseMessage(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->nUuid, _scope);
 
