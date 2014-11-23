@@ -140,7 +140,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedTopics()
+std::vector<std::string> Node::GetAdvertisedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -236,7 +236,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetSubscribedTopics()
+std::vector<std::string> Node::GetSubscribedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -329,7 +329,7 @@ bool Node::Unsubscribe(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedServices()
+std::vector<std::string> Node::GetAdvertisedServices() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 

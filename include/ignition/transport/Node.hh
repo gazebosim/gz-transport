@@ -76,7 +76,7 @@ namespace ignition
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
-      public: std::vector<std::string> GetAdvertisedTopics();
+      public: std::vector<std::string> GetAdvertisedTopics() const;
 
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic name to be unadvertised.
@@ -188,7 +188,7 @@ namespace ignition
       /// address of a publisher.
       /// \return A vector containing the subscribed topics (even if we do not
       /// have an address for a particular topic yet).
-      public: std::vector<std::string> GetSubscribedTopics();
+      public: std::vector<std::string> GetSubscribedTopics() const;
 
       /// \brief Unsubscribe from a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
@@ -309,7 +309,7 @@ namespace ignition
 
       /// \brief Get the list of services advertised by this node.
       /// \return A vector containing all services advertised by this node.
-      public: std::vector<std::string> GetAdvertisedServices();
+      public: std::vector<std::string> GetAdvertisedServices() const;
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a free function.
