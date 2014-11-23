@@ -347,7 +347,8 @@ namespace ignition
           bool result;
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
 
-          // Notify the requester with the response and removing the partition.
+          // Notify the requester with the response and remove the partition
+          // part from the topic name.
           std::string topicName = fullyQualifiedTopic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
@@ -423,7 +424,8 @@ namespace ignition
           bool result;
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
 
-          // Notify the requester with the response and removing the partition.
+          // Notify the requester with the response and remove the partition
+          // part from the topic name.
           std::string topicName = fullyQualifiedTopic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
