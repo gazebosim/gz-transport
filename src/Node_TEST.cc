@@ -69,9 +69,7 @@ void reset()
 /// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -81,9 +79,7 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 /// \brief Function called each time a topic update is received.
 void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
@@ -93,9 +89,7 @@ void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -108,9 +102,7 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -140,10 +132,7 @@ class MyTestClass
     const transport::msgs::Int &_req, transport::msgs::Int &_rep,
     bool &_result)
   {
-    std::string fullyQualifiedTopic;
-    TopicUtils::GetFullyQualifiedName(partition, ns, topic,
-      fullyQualifiedTopic);
-    EXPECT_EQ(_topic, fullyQualifiedTopic);
+    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
     _result = true;
@@ -154,10 +143,7 @@ class MyTestClass
   public: void Cb(const std::string &_topic,
     const transport::msgs::Int &_msg)
   {
-    std::string fullyQualifiedTopic;
-    TopicUtils::GetFullyQualifiedName(partition, ns, topic,
-      fullyQualifiedTopic);
-    EXPECT_EQ(_topic, fullyQualifiedTopic);
+    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
@@ -262,30 +248,28 @@ TEST(NodeTest, PubWithoutAdvertise)
   transport::Node node2(partition, ns);
 
   // Check the advertised/subscribed topics and advertised services.
-  EXPECT_EQ(node1.GetAdvertisedTopics().size(), 0u);
-  EXPECT_EQ(node1.GetSubscribedTopics().size(), 0u);
-  EXPECT_EQ(node1.GetAdvertisedServices().size(), 0u);
+  EXPECT_TRUE(node1.GetAdvertisedTopics().empty());
+  EXPECT_TRUE(node1.GetSubscribedTopics().empty());
+  EXPECT_TRUE(node1.GetAdvertisedServices().empty());
 
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
   EXPECT_TRUE(node1.Advertise(topic));
 
-  auto v = node1.GetAdvertisedTopics();
-  ASSERT_EQ(v.size(), 1u);
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
+  auto advertisedTopics = node1.GetAdvertisedTopics();
+  ASSERT_EQ(advertisedTopics.size(), 1u);
+  EXPECT_EQ(advertisedTopics.at(0), topic);
 
   EXPECT_TRUE(node2.Advertise(topic));
-  v = node2.GetAdvertisedTopics();
-  ASSERT_EQ(v.size(), 1u);
-  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
+  advertisedTopics = node2.GetAdvertisedTopics();
+  ASSERT_EQ(advertisedTopics.size(), 1u);
+  EXPECT_EQ(advertisedTopics.at(0), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
-  auto m = node2.GetSubscribedTopics();
-  ASSERT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, fullyQualifiedTopic);
+  auto subscribedTopics = node2.GetSubscribedTopics();
+  ASSERT_EQ(subscribedTopics.size(), 1u);
+  EXPECT_EQ(subscribedTopics.at(0), topic);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -408,11 +392,9 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
-  auto m = node1.GetSubscribedTopics();
-  ASSERT_EQ(m.size(), 1u);
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(m.begin()->first, fullyQualifiedTopic);
+  auto subscribedTopics = node1.GetSubscribedTopics();
+  ASSERT_EQ(subscribedTopics.size(), 1u);
+  EXPECT_EQ(subscribedTopics.at(0), topic);
 
   reset();
 
@@ -431,12 +413,12 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Check that the msg was no received by node1.
+  // Check that the msg was not received by node1.
   EXPECT_FALSE(cbExecuted);
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
-  ASSERT_EQ(node1.GetSubscribedTopics().size(), 0u);
+  ASSERT_TRUE(node1.GetSubscribedTopics().empty());
 
   reset();
 
@@ -452,8 +434,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
 
-  auto v = node1.GetAdvertisedServices();
-  ASSERT_EQ(v.size(), 0u);
+  auto subscribedServices = node1.GetAdvertisedServices();
+  ASSERT_TRUE(subscribedServices.empty());
 }
 
 //////////////////////////////////////////////////
@@ -518,11 +500,9 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  auto v = node.GetAdvertisedServices();
-  ASSERT_EQ(v.size(), 1u);
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(v.at(0), fullyQualifiedTopic);
+  auto advertisedServices = node.GetAdvertisedServices();
+  ASSERT_EQ(advertisedServices.size(), 1u);
+  EXPECT_EQ(advertisedServices.at(0), topic);
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
@@ -564,7 +544,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
 
-  ASSERT_EQ(node.GetAdvertisedServices().size(), 0u);
+  ASSERT_TRUE(node.GetAdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
@@ -739,7 +719,6 @@ TEST(NodeTest, SigTermTermination)
   std::raise(SIGINT);
   thread.join();
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

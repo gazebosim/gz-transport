@@ -183,14 +183,12 @@ namespace ignition
         return true;
       }
 
-      /// \brief Get the list of topics subscribed by this node and its
-      /// publisher's information.
-      /// \return A map where the keys are the topic names subscribed. For each
-      /// key, the value is an 'Addresses_M' map. In an 'Addresses_M', the keys
-      /// are the process uuid of the publisher. For each uuid key, the
-      /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
-      /// advertising the topic.
-      public: std::map<std::string, Addresses_M> GetSubscribedTopics();
+      /// \brief Get the list of topics subscribed by this node. Note that
+      /// we might be interested in one topic but we still don't know the
+      /// address of a publisher.
+      /// \return A vector containing the subscribed topics (even if we do not
+      /// have an address for a particular topic yet).
+      public: std::vector<std::string> GetSubscribedTopics();
 
       /// \brief Unsubscribe from a topic.
       /// \param[in] _topic Topic name to be unsubscribed.
@@ -348,7 +346,12 @@ namespace ignition
           T2 rep;
           bool result;
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
-          _cb(fullyQualifiedTopic, rep, result);
+
+          // Notify the requester with the response and removing the partition.
+          std::string topicName = fullyQualifiedTopic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          _cb(topicName, rep, result);
           return true;
         }
 
@@ -419,7 +422,12 @@ namespace ignition
           T2 rep;
           bool result;
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
-          _cb(fullyQualifiedTopic, rep, result);
+
+          // Notify the requester with the response and removing the partition.
+          std::string topicName = fullyQualifiedTopic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          _cb(topicName, rep, result);
           return true;
         }
 
