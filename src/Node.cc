@@ -323,6 +323,10 @@ void Node::GetTopicList(std::vector<std::string> &_topics)
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetTopicList(_topics);
+
+  // Remove the partition part from the topic.
+  for (auto &topic : _topics)
+    topic.erase(0, topic.find_last_of("@") + 1);
 }
 
 //////////////////////////////////////////////////
@@ -330,4 +334,8 @@ void Node::GetServiceList(std::vector<std::string> &_services)
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetServiceList(_services);
+
+  // Remove the partition part from the service.
+  for (auto &service : _services)
+    service.erase(0, service.find_last_of("@") + 1);
 }
