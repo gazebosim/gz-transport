@@ -40,10 +40,10 @@ endif()
 
 # Protobuf module does not have LIBRARIES but LIBRARY
 message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME_LOWER} 
+target_link_libraries(${PROJECT_NAME_LOWER}
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES})
-    
+
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 Iphlpapi)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -58,3 +58,5 @@ endif()
 ign_install_library(${PROJECT_NAME_LOWER})
 
 add_dependencies(${PROJECT_NAME_LOWER} protobuf_compilation)
+
+add_subdirectory(cmd)

@@ -49,6 +49,14 @@ extern "C" IGNITION_VISIBLE void execute(int argc, char **argv)
   cmd.Execute(argc, argv);
 }
 
+/// \brief External hook to execute 'ign topic list' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdTopicList();
+
+/// \brief External hook to execute 'ign service list' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdServiceList();
+
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
 extern "C" IGNITION_VISIBLE char *version()

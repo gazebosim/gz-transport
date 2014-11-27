@@ -15,6 +15,9 @@
  *
 */
 
+// testing
+#include <vector>
+
 #include <tclap/CmdLine.h>
 #include <chrono>
 #include <iostream>
@@ -23,6 +26,39 @@
 
 using namespace ignition;
 using namespace transport;
+
+//////////////////////////////////////////////////
+/// \brief External hook to execute 'ign topic list' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdTopicList()
+{
+  Node node;
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  std::vector<std::string> topics;
+  node.GetTopicList(topics);
+
+  for (auto const &topic : topics)
+    std::cout << topic << std::endl;
+}
+
+/// \brief External hook to execute 'ign service list' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdServiceList()
+{
+  Node node;
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  std::vector<std::string> services;
+  node.GetServiceList(services);
+
+  for (auto const &service : services)
+    std::cout << service << std::endl;
+}
 
 //////////////////////////////////////////////////
 void Command::Execute(int argc, char **argv)
@@ -41,8 +77,18 @@ void Command::Execute(int argc, char **argv)
     TCLAP::UnlabeledValueArg<std::string> commandLabel("commmand", "Command",
       true, "topic", &allowedCmdVals, cmd);
 
-    TCLAP::UnlabeledValueArg<std::string> subcommandLabel("subcommand",
-      "Subcommands", true, "list", &allowedSubcmdVals, cmd);
+    TCLAP::SwitchArg listArg("l", "alist", "List all topics.", cmd, false);
+
+    TCLAP::SwitchArg infoArg("i", "info", "Get information about a topic.",
+      cmd, false);
+
+    //TCLAP::UnlabeledValueArg<std::string> subcommandLabel("subcommand",
+    //  "Subcommands", true, "list", &allowedSubcmdVals, cmd);
+
+    std::vector<TCLAP::Arg*> xorlist;
+    xorlist.push_back(&listArg);
+    xorlist.push_back(&infoArg);
+    cmd.xorAdd(xorlist);
 
     // Parse the argv array.
     cmd.parse(argc, argv);
@@ -50,12 +96,14 @@ void Command::Execute(int argc, char **argv)
     Node node;
 
     std::string command = commandLabel.getValue();
-    std::string subcommand = subcommandLabel.getValue();
+    // std::string subcommand = subcommandLabel.getValue();
+    bool haveList = listArg.getValue();
 
     if (command == "topic" || command == "service")
     {
-      if (subcommand == "list")
+      if (haveList)
       {
+        std::cout << "List" << std::endl;
         // Give the node some time to receive topic updates.
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         std::vector<std::string> topics;
@@ -68,6 +116,8 @@ void Command::Execute(int argc, char **argv)
        for (auto topic : topics)
           std::cout << topic << std::endl;
       }
+      else
+        std::cout << "No List" << std::endl;
     }
   } catch (TCLAP::ArgException &e)
   {
