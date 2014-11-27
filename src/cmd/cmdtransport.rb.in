@@ -23,7 +23,7 @@ LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMON_OPTIONS =
                "  -h [ --help ]              Print this help message.\n"\
                "  --force-version <VERSION>  Use a specific library version.\n"\
-               "  --versions                 Show the available versions."
+               '  --versions                 Show the available versions.'
 COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
