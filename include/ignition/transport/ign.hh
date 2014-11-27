@@ -18,36 +18,10 @@
 #ifndef __IGN_TRANSPORT_IGN_HH_INCLUDED__
 #define __IGN_TRANSPORT_IGN_HH_INCLUDED__
 
-#include <tclap/CmdLine.h>
 #include <cstring>
 #include <string>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
-
-namespace ignition
-{
-  namespace transport
-  {
-    /// \brief Base class for all commands.
-    class IGNITION_VISIBLE Command
-    {
-      /// \brief Execute an 'ign' command related with ignition-transport.
-      /// \param[in] _argc Number of arguments.
-      /// \param[in] _argv Command line arguments.
-      public: void Execute(int argc, char **argv);
-    };
-  }
-}
-
-/// \brief External hook to use the 'ign' command from the outside of the
-/// library.
-/// \param[in] _argc Number of arguments.
-/// \param[in] _argv Command line arguments.
-extern "C" IGNITION_VISIBLE void execute(int argc, char **argv)
-{
-  ignition::transport::Command cmd;
-  cmd.Execute(argc, argv);
-}
 
 /// \brief External hook to execute 'ign topic list' command from the command
 /// line.

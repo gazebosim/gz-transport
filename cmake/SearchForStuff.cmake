@@ -83,18 +83,6 @@ else ()
 endif()
 
 #################################################
-# Find tclap:
-pkg_check_modules(tclap tclap)
-
-if (NOT tclap_FOUND)
-  message (STATUS "Looking for tclap pkgconfig file - not found")
-  BUILD_ERROR ("tclap not found, Please install libtclap-dev")
-else ()
-  message (STATUS "Looking for tclap pkgconfig file - found")
-  include_directories(${tclap_INCLUDE_DIRS})
-endif ()
-
-#################################################
 # Find ign command line utility:
 find_package(ignition-tools)
 if (IGNITION-TOOLS_BINARY_DIRS)
