@@ -20,18 +20,23 @@ require 'optparse'
 # Constants.
 LIBRARY_NAME = 'lib@PROJECT_NAME_LOWER@.so.@PROJECT_VERSION_FULL@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+COMMON_OPTIONS =
+               "  -h [ --help ]              Print this help message.\n"\
+               "  --force-version <VERSION>  Use a specific library version.\n"\
+               "  --versions                 Show the available versions."
 COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
-                       "  -h [ --help ]    Print this help message.\n"\
-                       "  -l [ --list ]    List all topics.\n",
+                       "  -l [ --list ]              List all topics.\n" +
+                       COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
-                       "  -h [ --help ]    Print this help message.\n"\
-                       "  -l [ --list ]    List all services.\n"
+                       "  -l [ --list ]              List all services.\n" +
+                       COMMON_OPTIONS
+
             }
 
 #
