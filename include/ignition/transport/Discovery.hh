@@ -304,11 +304,11 @@ namespace ignition
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetTopicList(std::vector<std::string> &_topics);
+      public: void GetTopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetServiceList(std::vector<std::string> &_services);
+      public: void GetServiceList(std::vector<std::string> &_services) const;
 
       /// \internal
       /// \brief Shared pointer to private data.

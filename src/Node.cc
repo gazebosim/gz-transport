@@ -319,7 +319,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void Node::GetTopicList(std::vector<std::string> &_topics)
+void Node::GetTopicList(std::vector<std::string> &_topics) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetTopicList(_topics);
@@ -330,7 +330,7 @@ void Node::GetTopicList(std::vector<std::string> &_topics)
 }
 
 //////////////////////////////////////////////////
-void Node::GetServiceList(std::vector<std::string> &_services)
+void Node::GetServiceList(std::vector<std::string> &_services) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
   this->dataPtr->shared->discovery->GetServiceList(_services);
