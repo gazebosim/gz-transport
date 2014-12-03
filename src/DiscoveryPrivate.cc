@@ -741,7 +741,7 @@ void DiscoveryPrivate::SendMsg(uint8_t _type, const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-std::string DiscoveryPrivate::GetHostAddr()
+std::string DiscoveryPrivate::HostAddr()
 {
   return this->hostAddr;
 }

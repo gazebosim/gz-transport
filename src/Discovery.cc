@@ -59,14 +59,14 @@ void Discovery::DiscoverSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetMsgAddresses(const std::string &_topic,
+bool Discovery::MsgAddresses(const std::string &_topic,
                                 Addresses_M &_addresses)
 {
   return this->dataPtr->infoMsg.GetAddresses(_topic, _addresses);
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetSrvAddresses(const std::string &_topic,
+bool Discovery::SrvAddresses(const std::string &_topic,
                                 Addresses_M &_addresses)
 {
   return this->dataPtr->infoSrv.GetAddresses(_topic, _addresses);
@@ -87,90 +87,90 @@ void Discovery::UnadvertiseSrv(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-std::string Discovery::GetHostAddr() const
+std::string Discovery::HostAddr() const
 {
-  return this->dataPtr->GetHostAddr();
+  return this->dataPtr->HostAddr();
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetActivityInterval() const
+unsigned int Discovery::ActivityInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->activityInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbeatInterval() const
+unsigned int Discovery::HeartbeatInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->heartbeatInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetAdvertiseInterval() const
+unsigned int Discovery::AdvertiseInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->advertiseInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetSilenceInterval() const
+unsigned int Discovery::SilenceInterval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->silenceInterval;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetActivityInterval(const unsigned int _ms)
+void Discovery::ActivityInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbeatInterval(const unsigned int _ms)
+void Discovery::HeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetAdvertiseInterval(const unsigned int _ms)
+void Discovery::AdvertiseInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->advertiseInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetSilenceInterval(const unsigned int _ms)
+void Discovery::SilenceInterval(const unsigned int _ms)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->silenceInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsCb(const DiscoveryCallback &_cb)
+void Discovery::ConnectionsCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsCb(const DiscoveryCallback &_cb)
+void Discovery::DisconnectionsCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsSrvCb(const DiscoveryCallback &_cb)
+void Discovery::ConnectionsSrvCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionSrvCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsSrvCb(const DiscoveryCallback &_cb)
+void Discovery::DisconnectionsSrvCb(const DiscoveryCallback &_cb)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionSrvCb = _cb;

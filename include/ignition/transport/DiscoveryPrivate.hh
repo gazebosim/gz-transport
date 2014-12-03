@@ -130,7 +130,7 @@ namespace ignition
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
-      public: std::string GetHostAddr();
+      public: std::string HostAddr();
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();

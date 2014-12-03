@@ -167,26 +167,26 @@ class MyClass
   /// \brief Register a member function as a discovery callback.
   public: void RegisterConnections()
   {
-    this->discov->SetConnectionsCb(&MyClass::OnConnectResponse, this);
+    this->discov->ConnectionsCb(&MyClass::OnConnectResponse, this);
   }
 
   /// \brief Register a member function as a discovery disconnection callback.
   public: void RegisterDisconnections()
   {
-    this->discov->SetDisconnectionsCb(&MyClass::Ondisconnection, this);
+    this->discov->DisconnectionsCb(&MyClass::Ondisconnection, this);
   }
 
     /// \brief Register a member function as a discovery callback (services).
   public: void RegisterSrvConnections()
   {
-    this->discov->SetConnectionsSrvCb(&MyClass::OnConnectSrvResponse, this);
+    this->discov->ConnectionsSrvCb(&MyClass::OnConnectSrvResponse, this);
   }
 
   /// \brief Register a member function as a discovery disconnection callback
   /// (services).
   public: void RegisterSrvDisconnections()
   {
-    this->discov->SetDisconnectionsSrvCb(&MyClass::OndisconnectionSrv, this);
+    this->discov->DisconnectionsSrvCb(&MyClass::OndisconnectionSrv, this);
   }
 
   /// \brief Member function called each time a discovery update is received.
@@ -256,16 +256,16 @@ TEST(DiscoveryTest, TestBasicAPI)
   // Create two discovery nodes.
   transport::Discovery discovery1(pUuid1);
 
-  discovery1.SetSilenceInterval(newSilenceInterval);
-  discovery1.SetActivityInterval(newActivityInterval);
-  discovery1.SetAdvertiseInterval(newAdvertiseInterval);
-  discovery1.SetHeartbeatInterval(newHeartbeatInterval);
-  EXPECT_EQ(discovery1.GetSilenceInterval(), newSilenceInterval);
-  EXPECT_EQ(discovery1.GetActivityInterval(), newActivityInterval);
-  EXPECT_EQ(discovery1.GetAdvertiseInterval(), newAdvertiseInterval);
-  EXPECT_EQ(discovery1.GetHeartbeatInterval(), newHeartbeatInterval);
+  discovery1.SilenceInterval(newSilenceInterval);
+  discovery1.ActivityInterval(newActivityInterval);
+  discovery1.AdvertiseInterval(newAdvertiseInterval);
+  discovery1.HeartbeatInterval(newHeartbeatInterval);
+  EXPECT_EQ(discovery1.SilenceInterval(), newSilenceInterval);
+  EXPECT_EQ(discovery1.ActivityInterval(), newActivityInterval);
+  EXPECT_EQ(discovery1.AdvertiseInterval(), newAdvertiseInterval);
+  EXPECT_EQ(discovery1.HeartbeatInterval(), newHeartbeatInterval);
 
-  EXPECT_NE(discovery1.GetHostAddr(), "");
+  EXPECT_NE(discovery1.HostAddr(), "");
 }
 
 //////////////////////////////////////////////////
@@ -321,7 +321,7 @@ TEST(DiscoveryTest, TestAdvertise)
   transport::Discovery discovery2(pUuid2, true);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponse);
+  discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // This should trigger a discovery response on discovery2.
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
@@ -366,7 +366,7 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
   transport::Discovery discovery2(pUuid1);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponse);
+  discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
@@ -419,7 +419,7 @@ TEST(DiscoveryTest, TestDiscover)
   EXPECT_FALSE(disconnectionExecuted);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponse);
+  discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
   discovery2.DiscoverMsg(topic);
@@ -454,7 +454,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.SetDisconnectionsCb(ondisconnection);
+  discovery2.DisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   discovery1.AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
@@ -479,7 +479,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   // Unadvertise a topic not advertised.
   discovery1.UnadvertiseMsg(topic, nUuid1);
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
+  EXPECT_FALSE(discovery2.MsgAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -530,7 +530,7 @@ TEST(DiscoveryTest, TestNodeBye)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.SetDisconnectionsCb(ondisconnection);
+  discovery2.DisconnectionsCb(ondisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   discovery1->AdvertiseMsg(topic, addr1, ctrl1, nUuid1, scope);
@@ -575,7 +575,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   EXPECT_FALSE(disconnectionExecuted);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsCb(onDiscoveryResponseMultiple);
+  discovery2.ConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
   discovery2.DiscoverMsg(topic);
@@ -617,7 +617,7 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
+  discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
 
   // This should trigger a discovery srv call response on discovery2.
   discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
@@ -664,7 +664,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect  notifications (srv calls).
-  discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
+  discovery2.DisconnectionsSrvCb(ondisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
   discovery1.AdvertiseSrv(service, addr1, id1, nUuid1, scope);
@@ -689,7 +689,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   // Unadvertise a topic not advertised.
   discovery1.UnadvertiseSrv(service, nUuid1);
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.GetMsgAddresses(topic, addresses));
+  EXPECT_FALSE(discovery2.MsgAddresses(topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -747,7 +747,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   EXPECT_FALSE(disconnectionSrvExecuted);
 
   // Register one callback for receiving notifications.
-  discovery2.SetConnectionsSrvCb(onDiscoverySrvResponse);
+  discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
 
   // Request the discovery of a service.
   discovery2.DiscoverSrv(service);

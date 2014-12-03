@@ -249,7 +249,7 @@ std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
   for (auto topic : this->dataPtr->topicsSubscribed)
   {
     Addresses_M addresses;
-    if (this->dataPtr->shared->discovery->GetMsgAddresses(topic, addresses))
+    if (this->dataPtr->shared->discovery->MsgAddresses(topic, addresses))
       m[topic] = addresses;
   }
 
@@ -285,7 +285,7 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   // Notify the publishers that I am no longer insterested in the topic.
   Addresses_M addresses;
-  if (!this->dataPtr->shared->discovery->GetMsgAddresses(fullyQualifiedTopic,
+  if (!this->dataPtr->shared->discovery->MsgAddresses(fullyQualifiedTopic,
     addresses))
   {
     return false;

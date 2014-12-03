@@ -103,15 +103,15 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _addresses Addresses requested.
       /// \return True if the topic is found and there is at least one address.
-      public: bool GetMsgAddresses(const std::string &_topic,
+      public: bool MsgAddresses(const std::string &_topic,
                                    Addresses_M &_addresses);
 
       /// \brief Get all the addresses known for a given service.
       /// \param[in] _topic Service name.
       /// \param[out] _addresses Addresses requested.
       /// \return True if the topic is found and there is at least one address.
-      public: bool GetSrvAddresses(const std::string &_topic,
-                                   Addresses_M &_addresses);
+      public: bool SrvAddresses(const std::string &_topic,
+                                Addresses_M &_addresses);
 
       /// \brief Unadvertise a topic. Broadcast a discovery message that will
       /// cancel all the discovery information for the topic advertised by a
@@ -131,58 +131,58 @@ namespace ignition
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
-      public: std::string GetHostAddr() const;
+      public: std::string HostAddr() const;
 
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' milliseconds.
       /// \sa SetActivityInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetActivityInterval() const;
+      public: unsigned int ActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in other nodes. A heartbeat message is sent after
       /// 'heartbeat interval' milliseconds.
-      /// \sa SetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetHeartbeatInterval() const;
+      public: unsigned int HeartbeatInterval() const;
 
       /// \brief While a topic is being advertised by a node, a beacon is sent
       /// periodically every 'advertise interval' milliseconds.
-      /// \sa SetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetAdvertiseInterval() const;
+      public: unsigned int AdvertiseInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entries.
-      /// \sa SetSilenceInterval.
+      /// \sa SilenceInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetSilenceInterval() const;
+      public: unsigned int SilenceInterval() const;
 
       /// \brief Set the activity interval.
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetActivityInterval(const unsigned int _ms);
+      public: void ActivityInterval(const unsigned int _ms);
 
       /// \brief Set the heartbeat interval.
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetHeartbeatInterval(const unsigned int _ms);
+      public: void HeartbeatInterval(const unsigned int _ms);
 
       /// \brief Set the advertise interval.
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetAdvertiseInterval(const unsigned int _ms);
+      public: void AdvertiseInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
-      /// \sa GetSilenceInterval.
+      /// \sa SilenceInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetSilenceInterval(const unsigned int _ms);
+      public: void SilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is connected, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetConnectionsCb(const DiscoveryCallback &_cb);
+      public: void ConnectionsCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is discovered, the callback will be executed.
@@ -195,13 +195,13 @@ namespace ignition
       ///                _nUuid UUID of the node publishing the topic.
       ///                _scope Topic scope.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetConnectionsCb(
+      public: template<typename C> void ConnectionsCb(
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
         C *_obj)
       {
-        this->SetConnectionsCb(
+        this->ConnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
@@ -211,7 +211,7 @@ namespace ignition
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetDisconnectionsCb(const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
@@ -224,13 +224,13 @@ namespace ignition
       ///                _nUuid UUID of the node publishing the topic.
       ///                _scope Topic scope.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetDisconnectionsCb(
+      public: template<typename C> void DisconnectionsCb(
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
         C *_obj)
       {
-        this->SetDisconnectionsCb(
+        this->DisconnectionsCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
@@ -242,7 +242,7 @@ namespace ignition
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
+      public: void ConnectionsSrvCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
@@ -256,13 +256,13 @@ namespace ignition
       ///                _nUuid UUID of the node publishing the topic.
       ///                _scope Topic scope.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetConnectionsSrvCb(
+      public: template<typename C> void ConnectionsSrvCb(
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
         C *_obj)
       {
-        this->SetConnectionsSrvCb(
+        this->ConnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
@@ -274,8 +274,7 @@ namespace ignition
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetDisconnectionsSrvCb(
-        const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsSrvCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a service is no longer available, the callback will be
@@ -289,13 +288,13 @@ namespace ignition
       ///                _nUuid UUID of the node publishing the topic.
       ///                _scope Topic scope.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetDisconnectionsSrvCb(
+      public: template<typename C> void DisconnectionsSrvCb(
         void(C::*_cb)(const std::string &_topic, const std::string &_addr,
           const std::string &_ctrl, const std::string &_pUuid,
           const std::string &_nUuid, const Scope &_scope),
         C *_obj)
       {
-        this->SetDisconnectionsSrvCb(
+        this->DisconnectionsSrvCb(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));

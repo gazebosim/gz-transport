@@ -368,8 +368,8 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          fullyQualifiedTopic, addresses))
+        if (this->dataPtr->shared->discovery->SrvAddresses(fullyQualifiedTopic,
+            addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
@@ -441,8 +441,8 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          fullyQualifiedTopic, addresses))
+        if (this->dataPtr->shared->discovery->SrvAddresses(fullyQualifiedTopic,
+            addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
@@ -504,8 +504,8 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          fullyQualifiedTopic, addresses))
+        if (this->dataPtr->shared->discovery->SrvAddresses(fullyQualifiedTopic,
+            addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
