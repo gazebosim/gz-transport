@@ -135,7 +135,6 @@ int main(int argc, char **argv)
 {
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
-  std::cout << "Config path: " IGN_CONFIG_PATH << std::endl;
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
 
   ::testing::InitGoogleTest(&argc, argv);
