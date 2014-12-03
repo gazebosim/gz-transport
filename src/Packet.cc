@@ -35,55 +35,55 @@ Header::Header(const uint16_t _version,
 }
 
 //////////////////////////////////////////////////
-uint16_t Header::GetVersion() const
+uint16_t Header::Version() const
 {
   return this->version;
 }
 
 //////////////////////////////////////////////////
-std::string Header::GetPUuid() const
+std::string Header::PUuid() const
 {
   return this->pUuid;
 }
 
 //////////////////////////////////////////////////
-uint8_t Header::GetType() const
+uint8_t Header::Type() const
 {
   return this->type;
 }
 
 //////////////////////////////////////////////////
-uint16_t Header::GetFlags() const
+uint16_t Header::Flags() const
 {
   return this->flags;
 }
 
 //////////////////////////////////////////////////
-void Header::SetVersion(const uint16_t _version)
+void Header::Version(const uint16_t _version)
 {
   this->version = _version;
 }
 
 //////////////////////////////////////////////////
-void Header::SetPUuid(const std::string &_pUuid)
+void Header::PUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
 }
 
 //////////////////////////////////////////////////
-void Header::SetType(const uint8_t _type)
+void Header::Type(const uint8_t _type)
 {
   this->type = _type;
 }
 
 //////////////////////////////////////////////////
-void Header::SetFlags(const uint16_t _flags)
+void Header::Flags(const uint16_t _flags)
 {
   this->flags = _flags;
 }
 
 //////////////////////////////////////////////////
-int Header::GetHeaderLength()
+int Header::HeaderLength()
 {
   return sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
@@ -175,31 +175,31 @@ SubscriptionMsg::SubscriptionMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header SubscriptionMsg::GetHeader() const
+Header SubscriptionMsg::Header() const
 {
   return this->header;
 }
 
 //////////////////////////////////////////////////
-std::string SubscriptionMsg::GetTopic() const
+std::string SubscriptionMsg::Topic() const
 {
   return this->topic;
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetHeader(const Header &_header)
+void SubscriptionMsg::Header(const Header &_header)
 {
   this->header = _header;
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetTopic(const std::string &_topic)
+void SubscriptionMsg::Topic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::GetMsgLength()
+size_t SubscriptionMsg::MsgLength()
 {
   return this->header.GetHeaderLength() +
          sizeof(uint64_t) + this->topic.size();
@@ -273,79 +273,79 @@ AdvertiseBase::AdvertiseBase(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header AdvertiseBase::GetHeader() const
+Header AdvertiseBase::Header() const
 {
   return this->header;
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseBase::GetTopic() const
+std::string AdvertiseBase::Topic() const
 {
   return this->topic;
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseBase::GetAddress() const
+std::string AdvertiseBase::Address() const
 {
   return this->addr;
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseBase::GetControlAddress() const
+std::string AdvertiseBase::ControlAddress() const
 {
   return this->ctrl;
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseBase::GetNodeUuid() const
+std::string AdvertiseBase::NodeUuid() const
 {
   return this->nUuid;
 }
 
 //////////////////////////////////////////////////
-transport::Scope AdvertiseBase::GetScope() const
+transport::Scope AdvertiseBase::Scope() const
 {
   return this->scope;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetHeader(const Header &_header)
+void AdvertiseBase::Header(const Header &_header)
 {
   this->header = _header;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetTopic(const std::string &_topic)
+void AdvertiseBase::Topic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetAddress(const std::string &_addr)
+void AdvertiseBase::Address(const std::string &_addr)
 {
   this->addr = _addr;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetControlAddress(const std::string &_ctrl)
+void AdvertiseBase::ControlAddress(const std::string &_ctrl)
 {
   this->ctrl = _ctrl;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetNodeUuid(const std::string &_nUuid)
+void AdvertiseBase::NodeUuid(const std::string &_nUuid)
 {
   this->nUuid = _nUuid;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseBase::SetScope(const Scope &_scope)
+void AdvertiseBase::Scope(const Scope &_scope)
 {
   this->scope = _scope;
 }
 
 //////////////////////////////////////////////////
-size_t AdvertiseBase::GetMsgLength()
+size_t AdvertiseBase::MsgLength()
 {
   return this->header.GetHeaderLength() +
          sizeof(uint64_t) + this->topic.size() +
@@ -488,19 +488,19 @@ AdvertiseMsg::AdvertiseMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseMsg::GetMsgTypeName() const
+std::string AdvertiseMsg::MsgTypeName() const
 {
   return this->msgTypeName;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseMsg::SetMsgTypeName(const std::string &_msgTypeName)
+void AdvertiseMsg::MsgTypeName(const std::string &_msgTypeName)
 {
   this->msgTypeName = _msgTypeName;
 }
 
 //////////////////////////////////////////////////
-size_t AdvertiseMsg::GetMsgLength()
+size_t AdvertiseMsg::MsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
          sizeof(uint64_t) + this->msgTypeName.size();
@@ -572,31 +572,31 @@ AdvertiseSrv::AdvertiseSrv(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseSrv::GetReqTypeName() const
+std::string AdvertiseSrv::ReqTypeName() const
 {
   return this->reqTypeName;
 }
 
 //////////////////////////////////////////////////
-std::string AdvertiseSrv::GetRepTypeName() const
+std::string AdvertiseSrv::RepTypeName() const
 {
   return this->repTypeName;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseSrv::SetReqTypeName(const std::string &_reqTypeName)
+void AdvertiseSrv::ReqTypeName(const std::string &_reqTypeName)
 {
   this->reqTypeName = _reqTypeName;
 }
 
 //////////////////////////////////////////////////
-void AdvertiseSrv::SetRepTypeName(const std::string &_repTypeName)
+void AdvertiseSrv::RepTypeName(const std::string &_repTypeName)
 {
   this->repTypeName = _repTypeName;
 }
 
 //////////////////////////////////////////////////
-size_t AdvertiseSrv::GetMsgLength()
+size_t AdvertiseSrv::MsgLength()
 {
   return AdvertiseBase::GetMsgLength() +
          sizeof(uint64_t) + this->reqTypeName.size() +

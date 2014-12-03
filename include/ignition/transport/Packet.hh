@@ -75,39 +75,39 @@ namespace ignition
 
       /// \brief Get the discovery protocol version.
       /// \return The discovery protocol version.
-      public: uint16_t GetVersion() const;
+      public: uint16_t Version() const;
 
       /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
-      public: std::string GetPUuid() const;
+      public: std::string PUuid() const;
 
       /// \brief Get the message type.
       /// \return Message type (ADVERTISE, SUBSCRIPTION, ...)
-      public: uint8_t GetType() const;
+      public: uint8_t Type() const;
 
       /// \brief Get the message flags.
       /// \return Message flags used for compression or other optional features.
-      public: uint16_t GetFlags() const;
+      public: uint16_t Flags() const;
 
       /// \brief Set the discovery protocol version.
       /// \param[in] _version Discovery protocol version.
-      public: void SetVersion(const uint16_t _version);
+      public: void Version(const uint16_t _version);
 
       /// \brief Set the process uuid.
       /// \param[in] _pUuid A unique global identifier for every process.
-      public: void SetPUuid(const std::string &_pUuid);
+      public: void PUuid(const std::string &_pUuid);
 
       /// \brief Set the message type.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
-      public: void SetType(const uint8_t _type);
+      public: void Type(const uint8_t _type);
 
       /// \brief Set the message flags.
       /// \param[in] _flags Used for enable optional features.
-      public: void SetFlags(const uint16_t _flags);
+      public: void Flags(const uint16_t _flags);
 
       /// \brief Get the header length.
       /// \return The header length in bytes.
-      public: int GetHeaderLength();
+      public: int HeaderLength();
 
       /// \brief Serialize the header. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -164,23 +164,23 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const;
+      public: Header Header() const;
 
       /// \brief Get the topic.
       /// \return Topic name.
-      public: std::string GetTopic() const;
+      public: std::string Topic() const;
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header);
+      public: void Header(const Header &_header);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
-      public: void SetTopic(const std::string &_topic);
+      public: void Topic(const std::string &_topic);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength();
+      public: size_t MsgLength();
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -238,55 +238,55 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const;
+      public: Header Header() const;
 
       /// \brief Get the topic.
       /// \return Topic name.
-      public: std::string GetTopic() const;
+      public: std::string Topic() const;
 
       /// \brief Get the ZMQ address.
       /// \return Return the ZMQ address.
-      public: std::string GetAddress() const;
+      public: std::string Address() const;
 
       /// \brief Get the ZMQ control address.
       /// \return Return the ZMQ control address.
-      public: std::string GetControlAddress() const;
+      public: std::string ControlAddress() const;
 
       /// \brief Get the node UUID.
       /// \return Return the node UUID.
-      public: std::string GetNodeUuid() const;
+      public: std::string NodeUuid() const;
 
       /// \brief Get the topic scope.
       /// \return Return the topic scope.
-      public: Scope GetScope() const;
+      public: Scope Scope() const;
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header);
+      public: void Header(const Header &_header);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
-      public: void SetTopic(const std::string &_topic);
+      public: void Topic(const std::string &_topic);
 
       /// \brief Set the ZMQ address.
       /// \param[in] _addr ZMQ address to be contained in the message.
-      public: void SetAddress(const std::string &_addr);
+      public: void Address(const std::string &_addr);
 
       /// \brief Set the ZMQ control address.
       /// \param[in] _ctrl ZMQ control address to be contained in the message.
-      public: void SetControlAddress(const std::string &_ctrl);
+      public: void ControlAddress(const std::string &_ctrl);
 
       /// \brief Set the node UUID.
       /// \param[in] _nUuid Node UUID.
-      public: void SetNodeUuid(const std::string &_nUuid);
+      public: void NodeUuid(const std::string &_nUuid);
 
       /// \brief Set the topic scope.
       /// \param[in] _scope Topic scope.
-      public: void SetScope(const Scope &_scope);
+      public: void Scope(const Scope &_scope);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength();
+      public: size_t MsgLength();
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -367,14 +367,14 @@ namespace ignition
 
       /// \brief Get the name of the protobuf message advertised.
       /// \return The protobuf message type.
-      public: std::string GetMsgTypeName() const;
+      public: std::string MsgTypeName() const;
 
       /// \brief Set the name of the protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void SetMsgTypeName(const std::string &_msgTypeName);
+      public: void MsgTypeName(const std::string &_msgTypeName);
 
       // Documentation inherited.
-      public: size_t GetMsgLength();
+      public: size_t MsgLength();
 
       // Documentation inherited.
       public: friend std::ostream &operator<<(std::ostream &_out,
@@ -426,22 +426,22 @@ namespace ignition
 
       /// \brief Get the name of the request's protobuf message advertised.
       /// \return The protobuf message type.
-      public: std::string GetReqTypeName() const;
+      public: std::string ReqTypeName() const;
 
       /// \brief Get the name of the response's protobuf message advertised.
       /// \return The protobuf message type.
-      public: std::string GetRepTypeName() const;
+      public: std::string RepTypeName() const;
 
       /// \brief Set the name of the request's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void SetReqTypeName(const std::string &_reqTypeName);
+      public: void ReqTypeName(const std::string &_reqTypeName);
 
       /// \brief Set the name of the response's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void SetRepTypeName(const std::string &_repTypeName);
+      public: void RepTypeName(const std::string &_repTypeName);
 
       // Documentation inherited.
-      public: size_t GetMsgLength();
+      public: size_t MsgLength();
 
       // Documentation inherited.
       public: friend std::ostream &operator<<(std::ostream &_out,
