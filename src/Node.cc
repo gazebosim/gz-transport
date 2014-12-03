@@ -91,28 +91,28 @@ Node::Node(const std::string &_partition, const std::string &_ns)
 Node::~Node()
 {
   // Unsubscribe from all the topics.
-  auto subsTopics = this->GetSubscribedTopics();
+  auto subsTopics = this->SubscribedTopics();
   for (auto const &topic : subsTopics)
     this->Unsubscribe(topic);
 
   // The list of subscribed topics should be empty.
-  assert(this->GetSubscribedTopics().empty());
+  assert(this->SubscribedTopics().empty());
 
   // Unadvertise all my topics.
-  auto advTopics = this->GetAdvertisedTopics();
+  auto advTopics = this->AdvertisedTopics();
   for (auto const &topic : advTopics)
     this->Unadvertise(topic);
 
   // The list of advertised topics should be empty.
-  assert(this->GetAdvertisedTopics().empty());
+  assert(this->AdvertisedTopics().empty());
 
   // Unadvertise all my services.
-  auto advServices = this->GetAdvertisedServices();
+  auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)
     this->UnadvertiseSrv(service);
 
   // The list of advertised services should be empty.
-  assert(this->GetAdvertisedServices().empty());
+  assert(this->AdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
@@ -140,7 +140,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedTopics() const
+std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -236,7 +236,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetSubscribedTopics() const
+std::vector<std::string> Node::SubscribedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -329,7 +329,7 @@ bool Node::Unsubscribe(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedServices() const
+std::vector<std::string> Node::AdvertisedServices() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 

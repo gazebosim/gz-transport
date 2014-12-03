@@ -248,26 +248,26 @@ TEST(NodeTest, PubWithoutAdvertise)
   transport::Node node2(partition, ns);
 
   // Check the advertised/subscribed topics and advertised services.
-  EXPECT_TRUE(node1.GetAdvertisedTopics().empty());
-  EXPECT_TRUE(node1.GetSubscribedTopics().empty());
-  EXPECT_TRUE(node1.GetAdvertisedServices().empty());
+  EXPECT_TRUE(node1.AdvertisedTopics().empty());
+  EXPECT_TRUE(node1.SubscribedTopics().empty());
+  EXPECT_TRUE(node1.AdvertisedServices().empty());
 
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
   EXPECT_TRUE(node1.Advertise(topic));
 
-  auto advertisedTopics = node1.GetAdvertisedTopics();
+  auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);
 
   EXPECT_TRUE(node2.Advertise(topic));
-  advertisedTopics = node2.GetAdvertisedTopics();
+  advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
-  auto subscribedTopics = node2.GetSubscribedTopics();
+  auto subscribedTopics = node2.SubscribedTopics();
   ASSERT_EQ(subscribedTopics.size(), 1u);
   EXPECT_EQ(subscribedTopics.at(0), topic);
 
@@ -392,7 +392,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
-  auto subscribedTopics = node1.GetSubscribedTopics();
+  auto subscribedTopics = node1.SubscribedTopics();
   ASSERT_EQ(subscribedTopics.size(), 1u);
   EXPECT_EQ(subscribedTopics.at(0), topic);
 
@@ -418,7 +418,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
-  ASSERT_TRUE(node1.GetSubscribedTopics().empty());
+  ASSERT_TRUE(node1.SubscribedTopics().empty());
 
   reset();
 
@@ -434,7 +434,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
 
-  auto subscribedServices = node1.GetAdvertisedServices();
+  auto subscribedServices = node1.AdvertisedServices();
   ASSERT_TRUE(subscribedServices.empty());
 }
 
@@ -500,7 +500,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
-  auto advertisedServices = node.GetAdvertisedServices();
+  auto advertisedServices = node.AdvertisedServices();
   ASSERT_EQ(advertisedServices.size(), 1u);
   EXPECT_EQ(advertisedServices.at(0), topic);
 
@@ -544,7 +544,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
 
-  ASSERT_TRUE(node.GetAdvertisedServices().empty());
+  ASSERT_TRUE(node.AdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
