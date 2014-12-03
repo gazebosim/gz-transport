@@ -55,9 +55,14 @@ namespace ignition
     class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
-      /// \param[in] _ns Default namespace used by this topic. This might
+      public: Node();
+
+      /// \brief Constructor.
+      /// \param[in] _partition Partition name used by this node.
+      /// \param[in] _ns Default namespace used by this node. This might
       /// be a prefix that can be added to each advertise message if required.
-      public: Node(const std::string &_ns = "");
+      public: Node(const std::string &_partition,
+                   const std::string &_ns);
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -97,8 +102,9 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const std::string &_topic, const T &_msg))
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -118,13 +124,13 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->shared->localSubscriptions.AddHandler(
-          scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        this->dataPtr->topicsSubscribed.insert(scTopic);
+        this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(scTopic);
+        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
 
         return true;
       }
@@ -143,8 +149,9 @@ namespace ignition
           void(C::*_cb)(const std::string &_topic, const T &_msg),
           C *_obj)
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -165,13 +172,13 @@ namespace ignition
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
         this->dataPtr->shared->localSubscriptions.AddHandler(
-          scTopic, this->dataPtr->nUuid, subscrHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, subscrHandlerPtr);
 
         // Add the topic to the list of subscribed topics (if it was not before)
-        this->dataPtr->topicsSubscribed.insert(scTopic);
+        this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(scTopic);
+        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
 
         return true;
       }
@@ -208,8 +215,9 @@ namespace ignition
                    T2 &_rep, bool &_result),
         const Scope &_scope = Scope::All)
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -218,7 +226,7 @@ namespace ignition
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
-        this->dataPtr->srvsAdvertised.insert(scTopic);
+        this->dataPtr->srvsAdvertised.insert(fullyQualifiedTopic);
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
@@ -232,10 +240,10 @@ namespace ignition
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
         this->dataPtr->shared->repliers.AddHandler(
-          scTopic, this->dataPtr->nUuid, repHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
+        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
@@ -263,8 +271,9 @@ namespace ignition
         C *_obj,
         const Scope &_scope = Scope::All)
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -273,7 +282,7 @@ namespace ignition
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
-        this->dataPtr->srvsAdvertised.insert(scTopic);
+        this->dataPtr->srvsAdvertised.insert(fullyQualifiedTopic);
 
         // Create a new service reply handler.
         std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
@@ -289,10 +298,10 @@ namespace ignition
         // it will recover the replier handler associated to the topic and
         // will invoke the service call.
         this->dataPtr->shared->repliers.AddHandler(
-          scTopic, this->dataPtr->nUuid, repHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(scTopic,
+        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
@@ -320,8 +329,9 @@ namespace ignition
         const T1 &_req,
         void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -331,13 +341,14 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(scTopic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
+          repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(scTopic, _req, rep, result);
-          _cb(scTopic, rep, result);
+          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          _cb(fullyQualifiedTopic, rep, result);
           return true;
         }
 
@@ -353,19 +364,19 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          scTopic, addresses))
+          fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         return true;
@@ -389,8 +400,9 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const T2 &_rep, bool _result),
         C *_obj)
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -400,13 +412,14 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(scTopic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
+          repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(scTopic, _req, rep, result);
-          _cb(scTopic, rep, result);
+          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          _cb(fullyQualifiedTopic, rep, result);
           return true;
         }
 
@@ -424,19 +437,19 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          scTopic, addresses))
+          fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         return true;
@@ -457,8 +470,9 @@ namespace ignition
         T2 &_rep,
         bool &_result)
       {
-        std::string scTopic;
-        if (!TopicUtils::GetScopedName(this->dataPtr->ns, _topic, scTopic))
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -468,10 +482,12 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(scTopic, repHandler))
+        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
+          repHandler))
         {
           // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(scTopic, _req, _rep, _result);
+          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
+            _result);
           return true;
         }
 
@@ -484,19 +500,19 @@ namespace ignition
 
         // Store the request handler.
         this->dataPtr->shared->requests.AddHandler(
-          scTopic, this->dataPtr->nUuid, reqHandlerPtr);
+          fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
-          scTopic, addresses))
+          fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(scTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
         }
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(scTopic);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         // Wait until the REP is available.
