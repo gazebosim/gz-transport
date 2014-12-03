@@ -17,4 +17,4 @@
 #cmakedefine HAVE_IFADDRS 1
 
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
-#define IGN_CONFIG_PATH "@CMAKE_SOURCE_DIR@/conf"
+#define IGN_CONFIG_PATH "@CMAKE_INSTALL_PREFIX@/share/ignition/"

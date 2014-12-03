@@ -68,7 +68,7 @@ TEST(ignTest, TopicList)
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic list");
+  std::string output = custom_exec_str(ign + " topic -l");
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -89,7 +89,7 @@ TEST(ignTest, ServiceList)
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service list");
+  std::string output = custom_exec_str(ign + " service -l");
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -112,7 +112,7 @@ TEST(ignTest, TopicListSameProc)
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic list");
+  std::string output = custom_exec_str(ign + " topic -l");
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -125,7 +125,7 @@ TEST(ignTest, ServiceListSameProc)
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service list");
+  std::string output = custom_exec_str(ign + " service -l");
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -135,6 +135,7 @@ int main(int argc, char **argv)
 {
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
+  std::cout << "Config path: " IGN_CONFIG_PATH << std::endl;
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
 
   ::testing::InitGoogleTest(&argc, argv);
