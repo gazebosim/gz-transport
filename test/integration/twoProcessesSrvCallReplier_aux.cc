@@ -39,9 +39,7 @@ int counter = 0;
 void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;

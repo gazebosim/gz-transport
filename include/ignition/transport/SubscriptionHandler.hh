@@ -137,7 +137,12 @@ namespace ignition
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-          this->cb(_topic, *msgPtr);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgPtr);
           return true;
         }
         else
@@ -158,7 +163,11 @@ namespace ignition
         // Execute the callback (if existing).
         if (this->cb)
         {
-          this->cb(_topic, *msg);
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msg);
           return true;
         }
         else

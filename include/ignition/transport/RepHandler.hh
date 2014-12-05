@@ -119,7 +119,12 @@ namespace ignition
         {
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
-          this->cb(_topic, *msgReq, *msgRep, _result);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgReq, *msgRep, _result);
         }
         else
         {
@@ -142,7 +147,12 @@ namespace ignition
           Rep msgRep;
 
           auto msgReq = this->CreateMsg(_req);
-          this->cb(_topic, *msgReq, msgRep, _result);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgReq, msgRep, _result);
           msgRep.SerializeToString(&_rep);
         }
         else
