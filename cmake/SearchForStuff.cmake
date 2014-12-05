@@ -20,7 +20,6 @@ endif()
 
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
-
 #################################################
 # Find ZeroMQ.
 include (${project_cmake_dir}/FindZeroMQ.cmake)
@@ -35,12 +34,12 @@ endif ()
 #################################################
 # Find cppzeromq header (shipped together with zeromq in debian/ubuntu but
 # different upstream projects and tarballs)
-# 
+#
 # Provide the PATH using CPPZMQ_HEADER_PATH
 #
-find_path(cppzmq_INCLUDE_DIRS 
-          zmq.hpp 
-	  PATHS 
+find_path(cppzmq_INCLUDE_DIRS
+          zmq.hpp
+	  PATHS
 	   ${zmq_INCLUDE_DIRS}
 	   ${CPPZMQ_HEADER_PATH})
 
@@ -81,6 +80,15 @@ if (HAVE_IFADDRS)
 else ()
   BUILD_WARNING ("ifaddrs.h not found.")
   set (HAVE_IFADDRS OFF CACHE BOOL "HAVE IFADDRS" FORCE)
+endif()
+
+#################################################
+# Find ign command line utility:
+find_package(ignition-tools)
+if (IGNITION-TOOLS_BINARY_DIRS)
+  set (HAVE_IGN TRUE)
+else()
+  BUILD_WARNING ("ignition-tools not found, for command line utilities, please install ignition-tools.")
 endif()
 
 ########################################

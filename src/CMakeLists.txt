@@ -2,6 +2,7 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
   Discovery.cc
+  ign.cc
   NetUtils.cc
   Node.cc
   NodeShared.cc
@@ -56,3 +57,5 @@ endif()
 ign_install_library(${PROJECT_NAME_LOWER})
 
 add_dependencies(${PROJECT_NAME_LOWER} protobuf_compilation)
+
+add_subdirectory(cmd)

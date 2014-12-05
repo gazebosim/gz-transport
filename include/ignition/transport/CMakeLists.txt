@@ -5,6 +5,7 @@ set (headers
   DiscoveryPrivate.hh
   HandlerStorage.hh
   Helpers.hh
+  ign.hh
   NetUtils.hh
   Node.hh
   NodePrivate.hh

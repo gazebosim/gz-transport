@@ -1,5 +1,5 @@
 ##################################################
-# Hack: to just build the files but not add them into the testsuite 
+# Hack: to just build the files but not add them into the testsuite
 # (like auxiliary apps using gtest files called from other tests)
 # set the IGN_SKIP_IN_TESTSUITE variable to true. The variable will
 # be set to false at the end of the function.
@@ -43,18 +43,18 @@ macro (ign_build_tests)
 
     if (NOT IGN_SKIP_IN_TESTSUITE)
       add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
-         --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+        --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
       set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
       # Check that the test produced a result and create a failure if it didn't.
       # Guards against crashed and timed out tests.
       add_test(check_${BINARY_NAME} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
-         ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+        ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
     endif()
   endforeach()
 
-  # If IGN_SKIP_IN_TESTSUITE was set to True, back to default. This way 
+  # If IGN_SKIP_IN_TESTSUITE was set to True, back to default. This way
   # we request for explicit definition before calling the macro
   if (IGN_SKIP_IN_TESTSUITE)
     set(IGN_SKIP_IN_TESTSUITE False)

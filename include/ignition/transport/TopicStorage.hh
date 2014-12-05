@@ -115,6 +115,10 @@ namespace ignition
       public: void GetAddressesByProc(const std::string &_pUuid,
                          std::map<std::string, std::vector<Address_t>> &_nodes);
 
+      /// \brief Get the list of topics currently stored.
+      /// \param[out] _topics List of stored topics.
+      public: void GetTopicList(std::vector<std::string> &_topics) const;
+
       /// \brief Print all the information for debugging purposes.
       public: void Print();
 

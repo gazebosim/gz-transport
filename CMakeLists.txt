@@ -181,7 +181,7 @@ if (MSVC)
   set(WARN_LEVEL "/W4")
 
   # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
-  # Handling exceptions rightly 
+  # Handling exceptions rightly
   set(UNFILTERED_FLAGS "/EHsc")
 else()
   # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
@@ -245,7 +245,7 @@ if (build_errors)
 else (build_errors)
 
   ########################################
-  # Write the config.h file
+  # Write the config.hh file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
   ign_install_includes(${IGN_PROJECT_NAME}
@@ -270,6 +270,8 @@ else (build_errors)
     add_subdirectory(test/msg)
     add_subdirectory(src)
     add_subdirectory(include)
+    add_subdirectory(conf)
+    add_subdirectory(tools)
     add_subdirectory(test)
   endif (BUILD_IGNITION)
 

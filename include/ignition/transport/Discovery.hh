@@ -24,6 +24,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
@@ -321,6 +322,14 @@ namespace ignition
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void GetTopicList(std::vector<std::string> &_topics) const;
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void GetServiceList(std::vector<std::string> &_services) const;
 
       /// \internal
       /// \brief Shared pointer to private data.
