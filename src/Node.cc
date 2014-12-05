@@ -19,6 +19,7 @@
 # pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
+#include <cassert>
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
@@ -90,36 +91,28 @@ Node::Node(const std::string &_partition, const std::string &_ns)
 Node::~Node()
 {
   // Unsubscribe from all the topics.
-  while (!this->dataPtr->topicsSubscribed.empty())
-  {
-    auto topic = *this->dataPtr->topicsSubscribed.begin();
-    // Remove the partition information.
-    topic.erase(0, topic.find_last_of("@") + 1);
-
+  auto subsTopics = this->SubscribedTopics();
+  for (auto const &topic : subsTopics)
     this->Unsubscribe(topic);
-  }
+
+  // The list of subscribed topics should be empty.
+  assert(this->SubscribedTopics().empty());
 
   // Unadvertise all my topics.
-  while (!this->dataPtr->topicsAdvertised.empty())
-  {
-    auto topic = *this->dataPtr->topicsAdvertised.begin();
-
-    // Remove the partition information.
-    topic.erase(0, topic.find_last_of("@") + 1);
-
+  auto advTopics = this->AdvertisedTopics();
+  for (auto const &topic : advTopics)
     this->Unadvertise(topic);
-  }
+
+  // The list of advertised topics should be empty.
+  assert(this->AdvertisedTopics().empty());
 
   // Unadvertise all my services.
-  while (!this->dataPtr->srvsAdvertised.empty())
-  {
-    auto topic = *this->dataPtr->srvsAdvertised.begin();
+  auto advServices = this->AdvertisedServices();
+  for (auto const &service : advServices)
+    this->UnadvertiseSrv(service);
 
-    // Remove the partition information.
-    topic.erase(0, topic.find_last_of("@") + 1);
-
-    this->UnadvertiseSrv(topic);
-  }
+  // The list of advertised services should be empty.
+  assert(this->AdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
@@ -135,7 +128,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  // Add the topic to the list of advertised topics (if it was not before)
+  // Add the topic to the list of advertised topics (if it was not before).
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
@@ -147,14 +140,18 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedTopics()
+std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   std::vector<std::string> v;
 
-  for (auto i : this->dataPtr->topicsAdvertised)
-    v.push_back(i);
+  for (auto topic : this->dataPtr->topicsAdvertised)
+  {
+    // Remove the partition information.
+    topic.erase(0, topic.find_last_of("@") + 1);
+    v.push_back(topic);
+  }
 
   return v;
 }
@@ -239,21 +236,21 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, Addresses_M> Node::GetSubscribedTopics()
+std::vector<std::string> Node::SubscribedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  std::map<std::string, Addresses_M> m;
+  std::vector<std::string> v;
 
   // I'm a real subscriber if I have interest in a topic and I know a publisher.
   for (auto topic : this->dataPtr->topicsSubscribed)
   {
-    Addresses_M addresses;
-    if (this->dataPtr->shared->discovery->GetMsgAddresses(topic, addresses))
-      m[topic] = addresses;
+    // Remove the partition information from the topic.
+    topic.erase(0, topic.find_last_of("@") + 1);
+    v.push_back(topic);
   }
 
-  return m;
+  return v;
 }
 
 //////////////////////////////////////////////////
@@ -283,7 +280,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
   }
 
-  // Notify the publishers that I am no longer insterested in the topic.
+  // Notify to the publishers that I am no longer interested in the topic.
   Addresses_M addresses;
   if (!this->dataPtr->shared->discovery->GetMsgAddresses(fullyQualifiedTopic,
     addresses))
@@ -332,14 +329,18 @@ bool Node::Unsubscribe(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> Node::GetAdvertisedServices()
+std::vector<std::string> Node::AdvertisedServices() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   std::vector<std::string> v;
 
-  for (auto i : this->dataPtr->srvsAdvertised)
-    v.push_back(i);
+  for (auto service : this->dataPtr->srvsAdvertised)
+  {
+    // Remove the partition information from the service name.
+    service.erase(0, service.find_last_of("@") + 1);
+    v.push_back(service);
+  }
 
   return v;
 }
