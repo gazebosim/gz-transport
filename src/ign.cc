@@ -25,8 +25,6 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-/// \brief External hook to execute 'ign topic list' command from the command
-/// line.
 extern "C" IGNITION_VISIBLE void cmdTopicList()
 {
   Node node;
@@ -41,8 +39,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
     std::cout << topic << std::endl;
 }
 
-/// \brief External hook to execute 'ign service list' command from the command
-/// line.
+//////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdServiceList()
 {
   Node node;
@@ -55,4 +52,16 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
 
   for (auto const &service : services)
     std::cout << service << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE char *ignitionVersion()
+{
+  int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
+  int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;
+  int patchVersion = IGNITION_TRANSPORT_PATCH_VERSION;
+
+  return strdup((std::to_string(majorVersion) + "." +
+                 std::to_string(minorVersion) + "." +
+                 std::to_string(patchVersion)).c_str());
 }

@@ -33,15 +33,6 @@ extern "C" IGNITION_VISIBLE void cmdServiceList();
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" IGNITION_VISIBLE char *version()
-{
-  int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
-  int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;
-  int patchVersion = IGNITION_TRANSPORT_PATCH_VERSION;
-
-  return strdup((std::to_string(majorVersion) + "." +
-                 std::to_string(minorVersion) + "." +
-                 std::to_string(patchVersion)).c_str());
-}
+extern "C" IGNITION_VISIBLE char *ignitionVersion();
 
 #endif
