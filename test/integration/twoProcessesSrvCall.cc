@@ -40,9 +40,7 @@ int counter = 0;
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
-  std::string fullyQualifiedTopic;
-  TopicUtils::GetFullyQualifiedName(partition, ns, topic, fullyQualifiedTopic);
-  EXPECT_EQ(_topic, fullyQualifiedTopic);
+  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 

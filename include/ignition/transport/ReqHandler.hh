@@ -219,7 +219,12 @@ namespace ignition
         {
           // Instantiate the specific protobuf message associated to this topic.
           auto msg = this->CreateMsg(_rep);
-          this->cb(_topic, *msg, _result);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msg, _result);
         }
         else
         {
