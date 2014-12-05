@@ -24,6 +24,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
@@ -300,6 +301,14 @@ namespace ignition
             std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
             std::placeholders::_6));
       }
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void GetTopicList(std::vector<std::string> &_topics) const;
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void GetServiceList(std::vector<std::string> &_services) const;
 
       /// \internal
       /// \brief Shared pointer to private data.

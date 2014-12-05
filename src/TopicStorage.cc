@@ -213,6 +213,13 @@ void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
 }
 
 //////////////////////////////////////////////////
+void TopicStorage::GetTopicList(std::vector<std::string> &_topics) const
+{
+  for (auto &topic : this->data)
+    _topics.push_back(topic.first);
+}
+
+//////////////////////////////////////////////////
 void TopicStorage::Print()
 {
   std::cout << "---" << std::endl;
