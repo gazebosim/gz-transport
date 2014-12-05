@@ -618,7 +618,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
       }
       catch(const zmq::error_t& ze)
       {
-        std::cerr << "Error connecting [" << ze.what() << "]\n";
+        // Debug output.
+        // std::cerr << "Error connecting [" << ze.what() << "]\n";
       }
     }
   }
