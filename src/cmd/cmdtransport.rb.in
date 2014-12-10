@@ -102,11 +102,11 @@ class Cmd
     end
 
     # Read the library version.
-    DL::Importer.extern 'char* version()'
+    DL::Importer.extern 'char* ignitionVersion()'
     begin
-      plugin_version = DL::Importer.version.to_s
+      plugin_version = DL::Importer.ignitionVersion.to_s
     rescue DL::DLError
-      puts "Library error: Problem running 'version()' from #{plugin}."
+      puts "Library error: Problem running 'ignitionVersion()' from #{plugin}."
       exit(-1)
     end
 
