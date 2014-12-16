@@ -2,7 +2,6 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
   Discovery.cc
-  DiscoveryPrivate.cc
   ign.cc
   NetUtils.cc
   Node.cc

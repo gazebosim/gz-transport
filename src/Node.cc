@@ -132,7 +132,7 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->AdvertiseMsg(fullyQualifiedTopic,
+  this->dataPtr->shared->discovery->Advertise(MsgType::Msg, fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->nUuid, _scope);
 
@@ -173,7 +173,7 @@ bool Node::Unadvertise(const std::string &_topic)
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->shared->discovery->UnadvertiseMsg(
+  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   return true;
@@ -366,7 +366,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  this->dataPtr->shared->discovery->UnadvertiseMsg(
+  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   return true;

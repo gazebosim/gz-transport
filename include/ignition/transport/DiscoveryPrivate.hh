@@ -50,90 +50,11 @@ namespace ignition
     /// \brief Private data for the Discovery class.
     class IGNITION_VISIBLE DiscoveryPrivate
     {
-      /// \def Timestamp
-      /// \brief Used to evaluate the validity of a discovery entry.
-      typedef std::chrono::steady_clock::time_point Timestamp;
-
       /// \brief Constructor.
-      /// \param[in] _pUuid This discovery instance will run inside a
-      /// transport process. This parameter is the transport process' UUID.
-      /// \param[in] _verbose true for enabling verbose mode.
-      public: DiscoveryPrivate(const std::string &_pUuid,
-                               bool _verbose);
+      public: DiscoveryPrivate() = default;
 
       /// \brief Destructor.
-      public: virtual ~DiscoveryPrivate();
-
-      /// \brief Advertise a new message or service.
-      /// \param[in] _advType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void Advertise(const MsgType &_advType,
-                             const std::string &_topic,
-                             const std::string &_addr,
-                             const std::string &_ctrl,
-                             const std::string &_nUuid,
-                             const Scope &_scope);
-
-      /// \brief Unadvertise a new message or service.
-      /// \param[in] _unadvType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic name to be unadvertised.
-      /// \param[in] _nUuid Node UUID.
-      public: void Unadvertise(const MsgType &_unadvType,
-                               const std::string &_topic,
-                               const std::string &_nUuid);
-
-      /// \brief Request discovery information about a topic.
-      /// \param[in] _topic Topic name requested.
-      /// \param[in] _isSrv True if the topic corresponds to a service.
-      public: void Discover(const std::string &_topic, bool _isSrv);
-
-      /// \brief Check the validity of the topic information. Each topic update
-      /// has its own timestamp. This method iterates over the list of topics
-      /// and invalids the old topics.
-      public: void RunActivityTask();
-
-      /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbeatTask();
-
-      /// \brief Receive discovery messages.
-      public: void RunReceptionTask();
-
-      /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdate();
-
-      /// \brief Parse a discovery message received via the UDP broadcast socket
-      /// \param[in] _fromIp IP address of the message sender.
-      /// \param[in] _msg Received message.
-      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                        char *_msg);
-
-      /// \brief Broadcast a discovery message.
-      /// \param[in] _type Message type.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ Address.
-      /// \param[in] _ctrl 0MQ control address.
-      /// \param[in] _nUuid Node's UUID.
-      /// \param[in] _flags Optional flags. Currently, the flags are not used
-      /// but they will in the future for specifying things like compression,
-      /// or encryption.
-      public: void SendMsg(uint8_t _type,
-                           const std::string &_topic,
-                           const std::string &_addr,
-                           const std::string &_ctrl,
-                           const std::string &_nUuid,
-                           const Scope &_scope,
-                           int _flags = 0);
-
-      /// \brief Get the IP address of this host.
-      /// \return A string with this host's IP address.
-      public: std::string GetHostAddr();
-
-      /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
+      public: virtual ~DiscoveryPrivate() = default;
 
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.

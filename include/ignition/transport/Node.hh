@@ -130,7 +130,7 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
+        this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, false);
 
         return true;
       }
@@ -178,7 +178,7 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
+        this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, false);
 
         return true;
       }
@@ -241,8 +241,8 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
-          this->dataPtr->shared->myReplierAddress,
+        this->dataPtr->shared->discovery->Advertise(MsgType::Srv,
+          fullyQualifiedTopic, this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
@@ -299,8 +299,8 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->AdvertiseSrv(fullyQualifiedTopic,
-          this->dataPtr->shared->myReplierAddress,
+        this->dataPtr->shared->discovery->Advertise(MsgType::Srv,
+          fullyQualifiedTopic, this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
           _scope);
 
@@ -380,7 +380,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
         }
 
         return true;
@@ -459,7 +459,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
         }
 
         return true;
@@ -522,7 +522,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
         }
 
         // Wait until the REP is available.
