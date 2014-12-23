@@ -85,7 +85,7 @@ namespace ignition
 
       /// \brief Publish a message.
       /// \param[in] _topic Topic to be published.
-      /// \param[in] _message protobuf message.
+      /// \param[in] _msg protobuf message.
       /// \return true when success.
       public: bool Publish(const std::string &_topic,
                            const ProtoMsg &_msg);
