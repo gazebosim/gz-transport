@@ -28,23 +28,21 @@ TEST(TopicStorageTest, TopicStorageAPI)
   std::string topic  = "foo";
 
   std::string nUuid1 = "node-UUID-1";
-  transport::Scope scope1 = transport::Scope::All;
+  transport::Scope_t scope1 = transport::Scope_t::All;
   std::string nUuid2  = "node-UUID-2";
-  transport::Scope scope2 = transport::Scope::Process;
+  transport::Scope_t scope2 = transport::Scope_t::Process;
   std::string nUuid3  = "node-UUID-3";
-  transport::Scope scope3 = transport::Scope::Host;
+  transport::Scope_t scope3 = transport::Scope_t::Host;
   std::string nUuid4  = "node-UUID-4";
-  transport::Scope scope4 = transport::Scope::All;
+  transport::Scope_t scope4 = transport::Scope_t::All;
 
   std::string pUuid1 = "process-UUID-1";
   std::string addr1  = "tcp://10.0.0.1:6001";
-  std::string ctrl1  = "tcp://10.0.0.1:60011";
   std::string pUuid2  = "process-UUID-2";
   std::string addr2  = "tcp://10.0.0.1:6002";
-  std::string ctrl2  = "tcp://10.0.0.1:60022";
 
   transport::Addresses_M m;
-  transport::Address_t info;
+  transport::Publisher info;
   transport::TopicStorage test;
 
   // Check HasTopic.
@@ -63,8 +61,10 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(test.DelAddressesByProc(pUuid1), 0);
 
   // Insert one node address.
-  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
-  EXPECT_FALSE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, scope1);
+  EXPECT_TRUE(test.AddAddress(publisher1));
+  // Insert an existing publisher.
+  EXPECT_FALSE(test.AddAddress(publisher1));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -76,24 +76,25 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.HasAddress(addr2));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid1, info));
   EXPECT_FALSE(test.GetAddress(topic, pUuid1, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
 
   // Insert one node address on the same process.
-  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
-  EXPECT_FALSE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
+  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, scope2);
+  EXPECT_TRUE(test.AddAddress(publisher2));
+  EXPECT_FALSE(test.AddAddress(publisher2));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -107,31 +108,32 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetAddress(topic, pUuid1, "wrong nUuid", info));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid2);
-  EXPECT_EQ(info.scope, scope2);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid2);
+  EXPECT_EQ(info.Scope(), scope2);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
-  EXPECT_EQ(m[pUuid1].at(1).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(1).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(1).nUuid, nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
+  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
+  EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
 
   // Insert a node address on a second process.
-  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
-  EXPECT_FALSE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
+  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, scope3);
+  EXPECT_TRUE(test.AddAddress(publisher3));
+  EXPECT_FALSE(test.AddAddress(publisher3));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -143,20 +145,20 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.HasAddress(addr2));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid2);
-  EXPECT_EQ(info.scope, scope2);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid2);
+  EXPECT_EQ(info.Scope(), scope2);
   EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.addr, addr2);
-  EXPECT_EQ(info.ctrl, ctrl2);
-  EXPECT_EQ(info.nUuid, nUuid3);
-  EXPECT_EQ(info.scope, scope3);
+  EXPECT_EQ(info.Addr(), addr2);
+  EXPECT_EQ(info.PUuid(), pUuid2);
+  EXPECT_EQ(info.NUuid(), nUuid3);
+  EXPECT_EQ(info.Scope(), scope3);
   EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid3, info));
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, "wrong nUuid", info));
 
@@ -164,22 +166,23 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
-  EXPECT_EQ(m[pUuid1].at(1).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(1).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(1).nUuid, nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
-  EXPECT_EQ(m[pUuid2].at(0).addr, addr2);
-  EXPECT_EQ(m[pUuid2].at(0).ctrl, ctrl2);
-  EXPECT_EQ(m[pUuid2].at(0).nUuid, nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).scope, scope3);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
+  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
+  EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
+  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
+  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
+  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
+  EXPECT_EQ(m[pUuid2].at(0).Scope(), scope3);
 
   // Insert another node on process2.
-  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid4, scope4));
-  EXPECT_FALSE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid4, scope4));
+  transport::Publisher publisher4(topic, addr2, pUuid2, nUuid4, scope4);
+  EXPECT_TRUE(test.AddAddress(publisher4));
+  EXPECT_FALSE(test.AddAddress(publisher4));
   // Check HasTopic.
   EXPECT_TRUE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
@@ -191,47 +194,47 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.HasAddress(addr2));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid2);
-  EXPECT_EQ(info.scope, scope2);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid2);
+  EXPECT_EQ(info.Scope(), scope2);
   EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.addr, addr2);
-  EXPECT_EQ(info.ctrl, ctrl2);
-  EXPECT_EQ(info.nUuid, nUuid3);
-  EXPECT_EQ(info.scope, scope3);
+  EXPECT_EQ(info.Addr(), addr2);
+  EXPECT_EQ(info.PUuid(), pUuid2);
+  EXPECT_EQ(info.NUuid(), nUuid3);
+  EXPECT_EQ(info.Scope(), scope3);
   EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid4, info));
-  EXPECT_EQ(info.addr, addr2);
-  EXPECT_EQ(info.ctrl, ctrl2);
-  EXPECT_EQ(info.nUuid, nUuid4);
-  EXPECT_EQ(info.scope, scope4);
+  EXPECT_EQ(info.Addr(), addr2);
+  EXPECT_EQ(info.PUuid(), pUuid2);
+  EXPECT_EQ(info.NUuid(), nUuid4);
+  EXPECT_EQ(info.Scope(), scope4);
   EXPECT_FALSE(test.GetAddress(topic, "wrong pUuid", nUuid4, info));
   EXPECT_FALSE(test.GetAddress(topic, pUuid2, "wrong nUuid", info));
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
-  EXPECT_EQ(m[pUuid1].at(1).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(1).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(1).nUuid, nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
-  EXPECT_EQ(m[pUuid2].at(0).addr, addr2);
-  EXPECT_EQ(m[pUuid2].at(0).ctrl, ctrl2);
-  EXPECT_EQ(m[pUuid2].at(0).nUuid, nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).scope, scope3);
-  EXPECT_EQ(m[pUuid2].at(1).addr, addr2);
-  EXPECT_EQ(m[pUuid2].at(1).ctrl, ctrl2);
-  EXPECT_EQ(m[pUuid2].at(1).nUuid, nUuid4);
-  EXPECT_EQ(m[pUuid2].at(1).scope, scope4);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
+  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
+  EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
+  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
+  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
+  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
+  EXPECT_EQ(m[pUuid2].at(0).Scope(), scope3);
+  EXPECT_EQ(m[pUuid2].at(1).Addr(), addr2);
+  EXPECT_EQ(m[pUuid2].at(1).PUuid(), pUuid2);
+  EXPECT_EQ(m[pUuid2].at(1).NUuid(), nUuid4);
+  EXPECT_EQ(m[pUuid2].at(1).Scope(), scope4);
 
   // Check that Print() does not break anything.
   test.Print();
@@ -249,36 +252,36 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.HasAddress(addr2));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid2);
-  EXPECT_EQ(info.scope, scope2);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid2);
+  EXPECT_EQ(info.Scope(), scope2);
   EXPECT_TRUE(test.GetAddress(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.addr, addr2);
-  EXPECT_EQ(info.ctrl, ctrl2);
-  EXPECT_EQ(info.nUuid, nUuid3);
-  EXPECT_EQ(info.scope, scope3);
+  EXPECT_EQ(info.Addr(), addr2);
+  EXPECT_EQ(info.PUuid(), pUuid2);
+  EXPECT_EQ(info.NUuid(), nUuid3);
+  EXPECT_EQ(info.Scope(), scope3);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 2u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
-  EXPECT_EQ(m[pUuid1].at(1).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(1).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(1).nUuid, nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
-  EXPECT_EQ(m[pUuid2].at(0).addr, addr2);
-  EXPECT_EQ(m[pUuid2].at(0).ctrl, ctrl2);
-  EXPECT_EQ(m[pUuid2].at(0).nUuid, nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).scope, scope3);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
+  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
+  EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
+  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
+  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
+  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
+  EXPECT_EQ(m[pUuid2].at(0).Scope(), scope3);
 
   // Remove the node3's address advertised for topic.
   EXPECT_TRUE(test.DelAddressByNode(topic, pUuid2, nUuid3));
@@ -293,27 +296,27 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.HasAddress(addr2));
   // Check GetAddress.
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid1);
-  EXPECT_EQ(info.scope, scope1);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid1);
+  EXPECT_EQ(info.Scope(), scope1);
   EXPECT_TRUE(test.GetAddress(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.addr, addr1);
-  EXPECT_EQ(info.ctrl, ctrl1);
-  EXPECT_EQ(info.nUuid, nUuid2);
-  EXPECT_EQ(info.scope, scope2);
+  EXPECT_EQ(info.Addr(), addr1);
+  EXPECT_EQ(info.PUuid(), pUuid1);
+  EXPECT_EQ(info.NUuid(), nUuid2);
+  EXPECT_EQ(info.Scope(), scope2);
   // Check GetAddresses.
   EXPECT_TRUE(test.GetAddresses(topic, m));
   EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(0).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(0).nUuid, nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).scope, scope1);
-  EXPECT_EQ(m[pUuid1].at(1).addr, addr1);
-  EXPECT_EQ(m[pUuid1].at(1).ctrl, ctrl1);
-  EXPECT_EQ(m[pUuid1].at(1).nUuid, nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).scope, scope2);
+  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
+  EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
+  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
+  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
+  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
+  EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
 
   // Remove all the addresses of process1.
   EXPECT_TRUE(test.DelAddressesByProc(pUuid1));
@@ -335,15 +338,19 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetAddresses(topic, m));
 
   // Insert a topic, remove it, and check that the map is empty.
-  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
+  transport::Publisher publisher5(topic, addr1, pUuid1, nUuid1, scope1);
+  EXPECT_TRUE(test.AddAddress(publisher5));
   EXPECT_TRUE(test.DelAddressByNode(topic, pUuid1, nUuid1));
   EXPECT_FALSE(test.HasTopic(topic));
 
   // Insert some topics, and remove all the topics from a process but keeping
   // the same topics from other proccesses.
-  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid1, scope1));
-  EXPECT_TRUE(test.AddAddress(topic, addr1, ctrl1, pUuid1, nUuid2, scope2));
-  EXPECT_TRUE(test.AddAddress(topic, addr2, ctrl2, pUuid2, nUuid3, scope3));
+  transport::Publisher publisher6(topic, addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher publisher7(topic, addr1, pUuid1, nUuid2, scope2);
+  transport::Publisher publisher8(topic, addr2, pUuid2, nUuid3, scope3);
+  EXPECT_TRUE(test.AddAddress(publisher6));
+  EXPECT_TRUE(test.AddAddress(publisher7));
+  EXPECT_TRUE(test.AddAddress(publisher8));
   EXPECT_TRUE(test.DelAddressesByProc(pUuid1));
 }
 

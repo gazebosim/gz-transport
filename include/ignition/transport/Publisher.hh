@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_MESSAGEPUBLISHER_HH_INCLUDED__
 #define __IGN_TRANSPORT_MESSAGEPUBLISHER_HH_INCLUDED__
 
+#include <iostream>
 #include <string>
 #include "ignition/transport/Helpers.hh"
 

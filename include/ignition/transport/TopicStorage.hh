@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -49,12 +50,7 @@ namespace ignition
       /// \param[in] _scope Topic Scope.
       /// \return true if the new entry is added or false if not (because it
       /// was already stored).
-      public: bool AddAddress(const std::string &_topic,
-                              const std::string &_addr,
-                              const std::string &_ctrl,
-                              const std::string &_pUuid,
-                              const std::string &_nUuid,
-                              const Scope_t &_scope = Scope_t::All);
+      public: bool AddAddress(const Publisher &_publisher);
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
@@ -79,12 +75,12 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[out] _info Address information requested.
+      /// \param[out] _publisher Address information requested.
       /// \return true if an entry is found for the given topic and node UUID.
       public: bool GetAddress(const std::string &_topic,
                               const std::string &_pUuid,
                               const std::string &_nUuid,
-                              Address_t &_info);
+                              Publisher &_publisher);
 
       /// \brief Get the map of addresses stored for a given topic.
       /// \param[in] _topic Topic name.
@@ -113,7 +109,7 @@ namespace ignition
       /// \param _nodes Map of nodes where the keys are the node UUIDs and the
       /// value is its address information.
       public: void GetAddressesByProc(const std::string &_pUuid,
-                         std::map<std::string, std::vector<Address_t>> &_nodes);
+                         std::map<std::string, std::vector<Publisher>> &_nodes);
 
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.

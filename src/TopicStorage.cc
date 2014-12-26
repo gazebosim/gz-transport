@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -25,34 +26,33 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-bool TopicStorage::AddAddress(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope_t &_scope)
+bool TopicStorage::AddAddress(const Publisher &_publisher)
 {
   // The topic does not exist.
-  if (this->data.find(_topic) == this->data.end())
+  if (this->data.find(_publisher.Topic()) == this->data.end())
     // VS2013 is buggy with initializer list here {}
-    this->data[_topic] = Addresses_M();
+    this->data[_publisher.Topic()] = Addresses_M();
 
   // Check if the process uuid exists.
-  auto &m = this->data[_topic];
-  if (m.find(_pUuid) != m.end())
+  auto &m = this->data[_publisher.Topic()];
+  if (m.find(_publisher.PUuid()) != m.end())
   {
-    // Check that the structure {_addr, _ctrl, _nUuid, scope} does not exist.
-    auto &v = m[_pUuid];
+    // Check that the Publisher does not exist.
+    auto &v = m[_publisher.PUuid()];
     auto found = std::find_if(v.begin(), v.end(),
-      [&](const Address_t &_addrInfo)
+      [&](const Publisher &_pub)
       {
-        return _addrInfo.addr == _addr && _addrInfo.nUuid == _nUuid;
+        return _pub.Addr()  == _publisher.Addr() &&
+               _pub.NUuid() == _publisher.NUuid();
       });
 
-    // _addr was already existing, just exit.
+    // The publisher was already existing, just exit.
     if (found != v.end())
       return false;
   }
 
-  // Add a new address information entry.
-  m[_pUuid].push_back({_addr, _ctrl, _nUuid, _scope});
+  // Add a new Publisher entry.
+  m[_publisher.PUuid()].push_back(Publisher(_publisher));
   return true;
 }
 
@@ -79,9 +79,9 @@ bool TopicStorage::HasAddress(const std::string &_addr)
   {
     for (auto &proc : topic.second)
     {
-      for (auto &info : proc.second)
+      for (auto &pub : proc.second)
       {
-        if (info.addr == _addr)
+        if (pub.Addr() == _addr)
           return true;
       }
     }
@@ -92,13 +92,13 @@ bool TopicStorage::HasAddress(const std::string &_addr)
 
 //////////////////////////////////////////////////
 bool TopicStorage::GetAddress(const std::string &_topic,
-  const std::string &_pUuid, const std::string &_nUuid, Address_t &_info)
+  const std::string &_pUuid, const std::string &_nUuid, Publisher &_publisher)
 {
   // Topic not found.
   if (this->data.find(_topic) == this->data.end())
     return false;
 
-  // m is pUUID->{addr, ctrl, nUuid, scope}.
+  // m is {pUUID=>Publisher}.
   auto &m = this->data[_topic];
 
   // pUuid not found.
@@ -108,14 +108,14 @@ bool TopicStorage::GetAddress(const std::string &_topic,
   // Vector of 0MQ known addresses for a given topic and pUuid.
   auto &v = m[_pUuid];
   auto found = std::find_if(v.begin(), v.end(),
-    [&](const Address_t &_addrInfo)
+    [&](const Publisher &_pub)
     {
-      return _addrInfo.nUuid == _nUuid;
+      return _pub.NUuid() == _nUuid;
     });
   // Address found!
   if (found != v.end())
   {
-    _info = *found;
+    _publisher = *found;
     return true;
   }
 
@@ -142,7 +142,7 @@ bool TopicStorage::DelAddressByNode(const std::string &_topic,
   // Iterate over all the topics.
   if (this->data.find(_topic) != this->data.end())
   {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    // m is {pUUID=>Publisher}.
     auto &m = this->data[_topic];
 
     // The pUuid exists.
@@ -152,9 +152,9 @@ bool TopicStorage::DelAddressByNode(const std::string &_topic,
       auto &v = m[_pUuid];
       auto priorSize = v.size();
       v.erase(std::remove_if(v.begin(), v.end(),
-        [&](const Address_t &_addrInfo)
+        [&](const Publisher &_pub)
         {
-          return _addrInfo.nUuid == _nUuid;
+          return _pub.NUuid() == _nUuid;
         }),
         v.end());
       counter = priorSize - v.size();
@@ -178,7 +178,7 @@ bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
   // Iterate over all the topics.
   for (auto it = this->data.begin(); it != this->data.end();)
   {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    // m is {pUUID=>Publisher}.
     auto &m = it->second;
     counter = m.erase(_pUuid);
     if (m.empty())
@@ -192,21 +192,21 @@ bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 
 //////////////////////////////////////////////////
 void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
-  std::map<std::string, std::vector<Address_t>> &_nodes)
+  std::map<std::string, std::vector<Publisher>> &_nodes)
 {
   _nodes.clear();
 
   // Iterate over all the topics.
   for (auto &topic : this->data)
   {
-    // m is pUUID->{addr, ctrl, nUuid, scope}.
+    // m is {pUUID=>Publisher}.
     auto &m = topic.second;
     if (m.find(_pUuid) != m.end())
     {
       auto &v = m[_pUuid];
-      for (auto &info : v)
+      for (auto &pub : v)
       {
-        _nodes[topic.first].push_back(info);
+        _nodes[topic.first].push_back(Publisher(pub));
       }
     }
   }
@@ -231,17 +231,9 @@ void TopicStorage::Print()
     {
       std::cout << "\tProc. UUID: " << proc.first << std::endl;
       auto &v = proc.second;
-      for (auto &info : v)
+      for (auto &publisher : v)
       {
-        std::cout << "\t\t* Addr:" << info.addr << std::endl;
-        std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
-        std::cout << "\t\t  Node UUID:" << info.nUuid << std::endl;
-        if (info.scope == Scope_t::Process)
-          std::cout << "\t\t  Scope: Process" << std::endl;
-        else if (info.scope == Scope_t::Host)
-          std::cout << "\t\t  Scope: Host" << std::endl;
-        else
-          std::cout << "\t\t  Scope: All" << std::endl;
+        std::cout << publisher;
       }
     }
   }
