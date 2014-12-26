@@ -30,6 +30,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "ignition/transport/Publisher.hh"
 
 namespace ignition
 {
@@ -48,7 +49,7 @@ namespace ignition
     /// * Host:    Topic only available to subscribers in the same machine as
     ///            the publisher.
     /// * All:     Topic available to any subscriber. This is the default scope.
-    enum class Scope {Process, Host, All};
+    //enum class Scope {Process, Host, All};
 
     /// \def The discovery layer can advertise two different types:
     /// * Msg: Regular pub/sub message.
@@ -61,8 +62,27 @@ namespace ignition
       std::string addr;
       std::string ctrl;
       std::string nUuid;
+      Scope_t scope;
+    };
+
+    /*struct Publisher
+    {
+      std::string topic;
+      std::string addr;
+      std::string pUuid;
+      std::string nUuid;
       Scope scope;
     };
+
+    struct MessagePublisher : Publisher
+    {
+      std::string ctrl;
+    };
+
+    struct ServicePublisher : Publisher
+    {
+      std::string socketId;
+    };*/
 
     /// \def Addresses_M
     /// \brief The map stores all the publishers advertising this topic.
@@ -144,7 +164,7 @@ namespace ignition
     typedef std::function<void(const std::string &_topic,
       const std::string &_addr, const std::string &_ctrl,
       const std::string &_pUuid, const std::string &_nUuid,
-      const Scope &_scope)> DiscoveryCallback;
+      const Scope_t &_scope)> DiscoveryCallback;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

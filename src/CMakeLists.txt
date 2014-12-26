@@ -1,11 +1,11 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-  Discovery.cc
-  ign.cc
+  #Discovery.cc
+  #ign.cc
   NetUtils.cc
-  Node.cc
-  NodeShared.cc
+  #Node.cc
+  #NodeShared.cc
   Packet.cc
   Publisher.cc
   TopicStorage.cc
@@ -14,11 +14,11 @@ set (sources
 )
 
 set (gtest_sources
-  Discovery_TEST.cc
-  HandlerStorage_TEST.cc
-  Node_TEST.cc
+  #Discovery_TEST.cc
+  #HandlerStorage_TEST.cc
+  #Node_TEST.cc
   Packet_TEST.cc
-  TopicStorage_TEST.cc
+  #TopicStorage_TEST.cc
   TopicUtils_TEST.cc
   Uuid_TEST.cc
 )

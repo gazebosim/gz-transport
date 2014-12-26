@@ -54,7 +54,7 @@ namespace ignition
                               const std::string &_ctrl,
                               const std::string &_pUuid,
                               const std::string &_nUuid,
-                              const Scope &_scope = Scope::All);
+                              const Scope_t &_scope = Scope_t::All);
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.

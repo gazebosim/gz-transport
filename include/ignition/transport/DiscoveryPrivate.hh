@@ -167,12 +167,6 @@ namespace ignition
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
-
-      /// \brief Topics advertised inside this process.
-      public: TopicStorage advertisedTopics;
-
-      /// \brief Services advertised inside this process.
-      public: TopicStorage advertisedSrvs;
     };
   }
 }

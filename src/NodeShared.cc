@@ -36,7 +36,6 @@
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -142,7 +141,7 @@ NodeShared::NodeShared()
   this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new topics).
-  discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
+  /*discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
 
   // Set the callback to notify discovery updates (invalid topics).
   discovery->SetDisconnectionsCb(&NodeShared::OnNewDisconnection, this);
@@ -151,7 +150,7 @@ NodeShared::NodeShared()
   discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
   // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);*/
 }
 
 //////////////////////////////////////////////////
@@ -627,12 +626,16 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewConnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl,
-  const std::string &_pUuid, const std::string &_nUuid,
-  const Scope &_scope)
+void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  std::string _topic = _pub.topic;
+  std::string _addr = _pub.addr;
+  std::string _ctrl = _pub.ctrl;
+  std::string _pUuid = _pub.pUuid;
+  std::string _nUuid = _pub.nUuid;
+  Scope _scope = _pub.scope;
 
   if (this->verbose)
   {
@@ -715,12 +718,13 @@ void NodeShared::OnNewConnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewDisconnection(const std::string &_topic,
-  const std::string &/*_addr*/, const std::string &/*_ctrlAddr*/,
-  const std::string &_pUuid, const std::string &_nUuid,
-  const Scope &/*_scope*/)
+void NodeShared::OnNewDisconnection(const MessagePublisher _pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  std::string _topic = _pub.topic;
+  std::string _pUuid = _pub.pUuid;
+  std::string _nUuid = _pub.nUuid;
 
   if (this->verbose)
   {
@@ -763,11 +767,14 @@ void NodeShared::OnNewDisconnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvConnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_id,
-  const std::string &_pUuid, const std::string &_nUuid,
-  const Scope &/*_scope*/)
+void NodeShared::OnNewSrvConnection(const ServicePublisher _pub)
 {
+  std::string _topic = _pub.topic;
+  std::string _addr = _pub.addr;
+  std::string _id = _pub.socketId;
+  std::string _pUuid = _pub.pUuid;
+  std::string _nUuid = _pub.nUuid;
+
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   if (this->verbose)
@@ -799,11 +806,14 @@ void NodeShared::OnNewSrvConnection(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvDisconnection(const std::string &_topic,
-  const std::string &_addr, const std::string &_id,
-  const std::string &_pUuid, const std::string &_nUuid,
-  const Scope &/*_scope*/)
+void NodeShared::OnNewSrvDisconnection(const ServicePublisher _pub)
 {
+  std::string _topic = _pub.topic;
+  std::string _addr = _pub.addr;
+  std::string _id = _pub.socketId;
+  std::string _pUuid = _pub.pUuid;
+  std::string _nUuid = _pub.nUuid;
+
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   // Remove the address from the list of connected addresses.

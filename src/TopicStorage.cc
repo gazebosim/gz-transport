@@ -27,7 +27,7 @@ using namespace transport;
 //////////////////////////////////////////////////
 bool TopicStorage::AddAddress(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope &_scope)
+  const std::string &_nUuid, const Scope_t &_scope)
 {
   // The topic does not exist.
   if (this->data.find(_topic) == this->data.end())
@@ -236,9 +236,9 @@ void TopicStorage::Print()
         std::cout << "\t\t* Addr:" << info.addr << std::endl;
         std::cout << "\t\t  Ctrl:" << info.ctrl << std::endl;
         std::cout << "\t\t  Node UUID:" << info.nUuid << std::endl;
-        if (info.scope == Scope::Process)
+        if (info.scope == Scope_t::Process)
           std::cout << "\t\t  Scope: Process" << std::endl;
-        else if (info.scope == Scope::Host)
+        else if (info.scope == Scope_t::Host)
           std::cout << "\t\t  Scope: Host" << std::endl;
         else
           std::cout << "\t\t  Scope: All" << std::endl;

@@ -34,10 +34,10 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
 namespace ignition
@@ -88,12 +88,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewConnection(const std::string &_topic,
-                                   const std::string &_addr,
-                                   const std::string &_ctrl,
-                                   const std::string &_pUuid,
-                                   const std::string &_nUuid,
-                                   const Scope &_scope);
+      public: void OnNewConnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects disconnections.
       /// \param[in] _topic Topic name.
@@ -102,12 +97,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewDisconnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_id,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
+      public: void OnNewDisconnection(const MessagePublisher _pub);
 
       /// \brief Callback executed when the discovery detects a new service call
       /// \param[in] _topic Topic name.
@@ -116,12 +106,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewSrvConnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_id,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
+      public: void OnNewSrvConnection(const ServicePublisher _pub);
 
       /// \brief Callback executed when a service call is no longer available.
       /// \param[in] _topic Topic name.
@@ -130,12 +115,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewSrvDisconnection(const std::string &_topic,
-                                         const std::string &_addr,
-                                         const std::string &_ctrl,
-                                         const std::string &_pUuid,
-                                         const std::string &_nUuid,
-                                         const Scope &_scope);
+      public: void OnNewSrvDisconnection(const ServicePublisher _pub);
 
       /// \brief Constructor.
       protected: NodeShared();

@@ -210,7 +210,8 @@ Discovery::~Discovery()
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
-  this->SendMsg(ByeType, "", "", "", "", Scope::All);
+  Publisher pub = {"", "", "", "", Scope::All};
+  this->SendMsg(ByeType, pub);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -246,9 +247,27 @@ void Discovery::Advertise(const MsgType &_advType, const std::string &_topic,
 
   // Broadcast periodically my topic information.
   if (_advType == MsgType::Msg)
-    this->SendMsg(AdvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  {
+    MessagePublisher pub;
+    pub.topic = _topic;
+    pub.addr = _addr;
+    pub.pUuid = this->dataPtr->pUuid;
+    pub.nUuid = _nUuid;
+    pub.scope = _scope;
+    pub.ctrl = _ctrl;
+    this->SendMsg(AdvType, pub);
+  }
   else
-    this->SendMsg(AdvSrvType, _topic, _addr, _ctrl, _nUuid, _scope);
+  {
+    ServicePublisher pub;
+    pub.topic = _topic;
+    pub.addr = _addr;
+    pub.pUuid = this->dataPtr->pUuid;
+    pub.nUuid = _nUuid;
+    pub.scope = _scope;
+    pub.socketId = "";
+    this->SendMsg(AdvSrvType, pub);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -271,7 +290,7 @@ void Discovery::Unadvertise(const MsgType &_unadvType,
     storage = &this->dataPtr->infoSrv;
   }
 
-  Address_t inf;
+  Publisher inf;
   // Don't do anything if the topic is not advertised by any of my nodes.
   if (!storage->GetAddress(_topic, this->dataPtr->pUuid, _nUuid, inf))
     return;
@@ -283,7 +302,7 @@ void Discovery::Unadvertise(const MsgType &_unadvType,
   if (inf.scope == Scope::Process)
     return;
 
-  this->SendMsg(msgType, _topic, inf.addr, inf.ctrl, _nUuid, inf.scope);
+  this->SendMsg(msgType, inf);
 }
 
 //////////////////////////////////////////////////
@@ -294,22 +313,28 @@ void Discovery::Discover(const std::string &_topic, bool _isSrv)
   uint8_t msgType;
   TopicStorage *storage;
   DiscoveryCallback cb;
+  Publisher *pub;
 
   if (_isSrv)
   {
     msgType = SubSrvType;
     storage = &this->dataPtr->infoSrv;
     cb = this->dataPtr->connectionSrvCb;
+    pub = new ServicePublisher();
   }
   else
   {
     msgType = SubType;
     storage = &this->dataPtr->infoMsg;
     cb = this->dataPtr->connectionCb;
+    pub = new MessagePublisher();
   }
 
+  pub->topic = _topic;
+  pub->scope = Scope::All;
+
   // Broadcast a discovery request for this service call.
-  this->SendMsg(msgType, _topic, "", "", "", Scope::All);
+  this->SendMsg(msgType, *pub);
 
   // I already have information about this topic.
   if (storage->HasTopic(_topic))
@@ -326,8 +351,8 @@ void Discovery::Discover(const std::string &_topic, bool _isSrv)
             // Execute the user's callback for a service request. Notice
             // that we only execute one callback for preventing receive multiple
             // service responses for a single request.
-            cb(_topic, node.addr, node.ctrl, proc.first, node.nUuid,
-               node.scope);
+            //cb(_topic, node.addr, node.ctrl, proc.first, node.nUuid,
+            //   node.scope);
           }
         }
       }
@@ -494,17 +519,24 @@ void Discovery::RunHeartbeatTask()
     {
       std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-      this->SendMsg(HeartbeatType, "", "", "", "", Scope::All);
+      Publisher pub = {"", "", "", "", Scope::All};
+      this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
-      std::map<std::string, std::vector<Address_t>> nodes;
+      std::map<std::string, std::vector<Publisher>> nodes;
       this->dataPtr->infoMsg.GetAddressesByProc(this->dataPtr->pUuid, nodes);
       for (auto &topic : nodes)
       {
         for (auto &node : topic.second)
         {
-          this->SendMsg(AdvType, topic.first, node.addr, node.ctrl, node.nUuid,
-            node.scope);
+          MessagePublisher *msgNode = dynamic_cast<MessagePublisher*>(&node);
+          MessagePublisher msgPub;
+          msgPub.topic = topic.first;
+          msgPub.addr = msgNode->addr;
+          msgPub.pUuid = this->dataPtr->pUuid;
+          msgPub.nUuid = node.nUuid;
+          msgPub.scope = node.scope;
+          this->SendMsg(AdvType, msgPub);
         }
       }
 
@@ -514,8 +546,14 @@ void Discovery::RunHeartbeatTask()
       {
         for (auto &node : topic.second)
         {
-          this->SendMsg(AdvSrvType, topic.first, node.addr, node.ctrl,
-            node.nUuid, node.scope);
+          ServicePublisher srvPub;
+          srvPub.topic = topic.first;
+          srvPub.addr = node.addr;
+          srvPub.pUuid = this->dataPtr->pUuid;
+          srvPub.nUuid = node.nUuid;
+          srvPub.scope = node.scope;
+          srvPub.socketId = node.socketId;
+          this->SendMsg(AdvSrvType, srvPub);
         }
       }
     }
@@ -697,9 +735,20 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
               continue;
             }
 
-            // Answer an ADVERTISE message.
-            this->SendMsg(msgType, recvTopic, nodeInfo.addr, nodeInfo.ctrl,
-              nodeInfo.nUuid, nodeInfo.scope);
+            if (header.GetType() == SubType)
+            {
+              MessagePublisher pub = {recvTopic, nodeIndo.addr, nodeInfo.ctrl,
+                this->dataPtr->pUuid, nodeInfo.nUuid, nodeInfo.scope};
+              // Answer an ADVERTISE message.
+              this->SendMsg(msgType, pub);
+            }
+            else
+            {
+              ServicePublisher pub = {recvTopic, nodeIndo.addr, nodeInfo.id,
+                this->dataPtr->pUuid, nodeInfo.nUuid, nodeInfo.scope};
+              // Answer an ADVERTISE message.
+              this->SendMsg(msgType, pub);
+            }
           }
         }
       }
@@ -788,24 +837,42 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 }
 
 //////////////////////////////////////////////////
-void Discovery::SendMsg(uint8_t _type, const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_nUuid,
-  const Scope &_scope, int _flags)
+void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
 {
   // Create the header.
   Header header(DiscoveryPrivate::Version, this->dataPtr->pUuid, _type, _flags);
   auto msgLength = 0;
   std::vector<char> buffer;
 
+  std::string _topic = _pub.topic;
+  std::string _addr = _pub.addr;
+  std::string _ctrl = _pub.nUuid;
+  std::string _scope = _pub.scope;
+
   switch (_type)
   {
     case AdvType:
     case UnadvType:
+    {
+      MessagePublisher *msgPub = dynamic_cast<MessagePublisher*>(_pub);
+      std::string _ctrl = msgPub->ctrl;
+      // Create the [UN]ADVERTISE message.
+      AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
+        "not used");
+
+      // Allocate a buffer and serialize the message.
+      buffer.resize(advMsg.GetMsgLength());
+      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+      msgLength = advMsg.GetMsgLength();
+      break;
+    }
     case AdvSrvType:
     case UnadvSrvType:
     {
+      ServicePublisher *srvPub = dynamic_cast<MessagePublisher*>(_pub);
+      std::string _id = srvPub->id;
       // Create the [UN]ADVERTISE message.
-      AdvertiseMsg advMsg(header, _topic, _addr, _ctrl, _nUuid, _scope,
+      AdvertiseMsg advMsg(header, _topic, _addr, _id, _nUuid, _scope,
         "not used");
 
       // Allocate a buffer and serialize the message.

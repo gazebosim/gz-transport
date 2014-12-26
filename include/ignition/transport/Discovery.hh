@@ -30,6 +30,7 @@
 #endif
 
 #include "ignition/transport/Helpers.hh"
+//#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -314,11 +315,7 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       public: void SendMsg(uint8_t _type,
-                           const std::string &_topic,
-                           const std::string &_addr,
-                           const std::string &_ctrl,
-                           const std::string &_nUuid,
-                           const Scope &_scope,
+                           const Publisher &_pub,
                            int _flags = 0);
 
       /// \brief Print the current discovery state (info, activity, unknown).
