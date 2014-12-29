@@ -26,7 +26,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-bool TopicStorage::AddAddress(const Publisher &_publisher)
+/*bool TopicStorage::AddAddress(const Publisher &_publisher)
 {
   // The topic does not exist.
   if (this->data.find(_publisher.Topic()) == this->data.end())
@@ -54,26 +54,26 @@ bool TopicStorage::AddAddress(const Publisher &_publisher)
   // Add a new Publisher entry.
   m[_publisher.PUuid()].push_back(Publisher(_publisher));
   return true;
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::HasTopic(const std::string &_topic)
+/*bool TopicStorage::HasTopic(const std::string &_topic)
 {
   return this->data.find(_topic) != this->data.end();
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::HasAnyAddresses(const std::string &_topic,
+/*bool TopicStorage::HasAnyAddresses(const std::string &_topic,
   const std::string &_pUuid)
 {
   if (!this->HasTopic(_topic))
     return false;
 
   return this->data[_topic].find(_pUuid) != this->data[_topic].end();
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::HasAddress(const std::string &_addr)
+/*bool TopicStorage::HasAddress(const std::string &_addr)
 {
   for (auto &topic : this->data)
   {
@@ -87,11 +87,11 @@ bool TopicStorage::HasAddress(const std::string &_addr)
     }
   }
   return false;
-}
+}*/
 
 
 //////////////////////////////////////////////////
-bool TopicStorage::GetAddress(const std::string &_topic,
+/*bool TopicStorage::GetAddress(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid, Publisher &_publisher)
 {
   // Topic not found.
@@ -121,20 +121,20 @@ bool TopicStorage::GetAddress(const std::string &_topic,
 
   // nUuid not found.
   return false;
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::GetAddresses(const std::string &_topic, Addresses_M &_info)
+/*bool TopicStorage::GetAddresses(const std::string &_topic, Addresses_M &_info)
 {
   if (!this->HasTopic(_topic))
     return false;
 
   _info = this->data[_topic];
   return true;
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::DelAddressByNode(const std::string &_topic,
+/*bool TopicStorage::DelAddressByNode(const std::string &_topic,
   const std::string &_pUuid, const std::string &_nUuid)
 {
   unsigned int counter = 0;
@@ -168,10 +168,10 @@ bool TopicStorage::DelAddressByNode(const std::string &_topic,
   }
 
   return counter > 0;
-}
+}*/
 
 //////////////////////////////////////////////////
-bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
+/*bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
 {
   unsigned int counter = 0;
 
@@ -188,10 +188,10 @@ bool TopicStorage::DelAddressesByProc(const std::string &_pUuid)
   }
 
   return counter > 0;
-}
+}*/
 
 //////////////////////////////////////////////////
-void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
+/*void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
   std::map<std::string, std::vector<Publisher>> &_nodes)
 {
   _nodes.clear();
@@ -210,10 +210,10 @@ void TopicStorage::GetAddressesByProc(const std::string &_pUuid,
       }
     }
   }
-}
+}*/
 
 //////////////////////////////////////////////////
-void TopicStorage::GetTopicList(std::vector<std::string> &_topics) const
+/*void TopicStorage::GetTopicList(std::vector<std::string> &_topics) const
 {
   for (auto &topic : this->data)
     _topics.push_back(topic.first);
@@ -237,4 +237,4 @@ void TopicStorage::Print()
       }
     }
   }
-}
+}*/

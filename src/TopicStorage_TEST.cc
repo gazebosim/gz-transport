@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
 
@@ -41,9 +42,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   std::string pUuid2  = "process-UUID-2";
   std::string addr2  = "tcp://10.0.0.1:6002";
 
-  transport::Addresses_M m;
+  std::map<std::string, std::vector<transport::Publisher>> m;
   transport::Publisher info;
-  transport::TopicStorage test;
+  transport::TopicStorage<transport::Publisher> test;
 
   // Check HasTopic.
   EXPECT_FALSE(test.HasTopic(topic));

@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
 #define __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
 
+#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -32,7 +33,7 @@ namespace ignition
     /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, remove it, etc.
-    class IGNITION_VISIBLE TopicStorage
+    template<typename T> class IGNITION_VISIBLE TopicStorage
     {
       /// \brief Constructor.
       public: TopicStorage() = default;
@@ -50,12 +51,46 @@ namespace ignition
       /// \param[in] _scope Topic Scope.
       /// \return true if the new entry is added or false if not (because it
       /// was already stored).
-      public: bool AddAddress(const Publisher &_publisher);
+      public: bool AddAddress(const T &_publisher)
+      {
+        // The topic does not exist.
+        if (this->data.find(_publisher.Topic()) == this->data.end())
+        {
+          // VS2013 is buggy with initializer list here {}
+          this->data[_publisher.Topic()] =
+            std::map<std::string, std::vector<T>>();
+        }
+
+        // Check if the process uuid exists.
+        auto &m = this->data[_publisher.Topic()];
+        if (m.find(_publisher.PUuid()) != m.end())
+        {
+          // Check that the Publisher does not exist.
+          auto &v = m[_publisher.PUuid()];
+          auto found = std::find_if(v.begin(), v.end(),
+            [&](const T &_pub)
+            {
+              return _pub.Addr()  == _publisher.Addr() &&
+                     _pub.NUuid() == _publisher.NUuid();
+            });
+
+          // The publisher was already existing, just exit.
+          if (found != v.end())
+            return false;
+        }
+
+        // Add a new Publisher entry.
+        m[_publisher.PUuid()].push_back(T(_publisher));
+        return true;
+      }
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
       /// \return True if there is at least one entry stored for the topic.
-      public: bool HasTopic(const std::string &_topic);
+      public: bool HasTopic(const std::string &_topic)
+      {
+        return this->data.find(_topic) != this->data.end();
+      }
 
       /// \brief Return if there is any address stored for the given topic and
       /// process UUID.
@@ -64,12 +99,32 @@ namespace ignition
       /// \return True if there is at least one address stored for the topic and
       /// process UUID.
       public: bool HasAnyAddresses(const std::string &_topic,
-                                   const std::string &_pUuid);
+                                   const std::string &_pUuid)
+      {
+        if (!this->HasTopic(_topic))
+          return false;
+
+        return this->data[_topic].find(_pUuid) != this->data[_topic].end();
+      }
 
       /// \brief Return if the requested address is stored.
       /// \param[in] _addr Address requested
       /// \return true if the address is stored.
-      public: bool HasAddress(const std::string &_addr);
+      public: bool HasAddress(const std::string &_addr)
+      {
+        for (auto &topic : this->data)
+        {
+          for (auto &proc : topic.second)
+          {
+            for (auto &pub : proc.second)
+            {
+              if (pub.Addr() == _addr)
+                return true;
+            }
+          }
+        }
+        return false;
+      }
 
       /// \brief Get the address information for a given topic and node UUID.
       /// \param[in] _topic Topic name.
@@ -80,14 +135,50 @@ namespace ignition
       public: bool GetAddress(const std::string &_topic,
                               const std::string &_pUuid,
                               const std::string &_nUuid,
-                              Publisher &_publisher);
+                              T &_publisher)
+      {
+        // Topic not found.
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        // m is {pUUID=>Publisher}.
+        auto &m = this->data[_topic];
+
+        // pUuid not found.
+        if (m.find(_pUuid) == m.end())
+          return false;
+
+        // Vector of 0MQ known addresses for a given topic and pUuid.
+        auto &v = m[_pUuid];
+        auto found = std::find_if(v.begin(), v.end(),
+          [&](const T &_pub)
+          {
+            return _pub.NUuid() == _nUuid;
+          });
+        // Address found!
+        if (found != v.end())
+        {
+          _publisher = *found;
+          return true;
+        }
+
+        // nUuid not found.
+        return false;
+      }
 
       /// \brief Get the map of addresses stored for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _info Map of addresses requested.
       /// \return true if at least there is one address stored.
       public: bool GetAddresses(const std::string &_topic,
-                                Addresses_M &_info);
+                                std::map<std::string, std::vector<T>> &_info)
+      {
+        if (!this->HasTopic(_topic))
+          return false;
+
+        _info = this->data[_topic];
+        return true;
+      }
 
       /// \brief Remove an address associated to a given topic, process and node
       /// \param[in] _topic Topic name
@@ -96,12 +187,62 @@ namespace ignition
       /// \return True when the address was removed or false otherwise.
       public: bool DelAddressByNode(const std::string &_topic,
                                     const std::string &_pUuid,
-                                    const std::string &_nUuid);
+                                    const std::string &_nUuid)
+      {
+        unsigned int counter = 0;
+
+        // Iterate over all the topics.
+        if (this->data.find(_topic) != this->data.end())
+        {
+          // m is {pUUID=>Publisher}.
+          auto &m = this->data[_topic];
+
+          // The pUuid exists.
+          if (m.find(_pUuid) != m.end())
+          {
+            // Vector of 0MQ known addresses for a given topic and pUuid.
+            auto &v = m[_pUuid];
+            auto priorSize = v.size();
+            v.erase(std::remove_if(v.begin(), v.end(),
+              [&](const T &_pub)
+              {
+                return _pub.NUuid() == _nUuid;
+              }),
+              v.end());
+            counter = priorSize - v.size();
+
+            if (v.empty())
+              m.erase(_pUuid);
+
+            if (m.empty())
+              this->data.erase(_topic);
+          }
+        }
+
+        return counter > 0;
+      }
 
       /// \brief Remove all the addresses associated to a given process.
       /// \param[in] _pUuid Process' UUID of the publisher.
       /// \return True when at least one address was removed or false otherwise.
-      public: bool DelAddressesByProc(const std::string &_pUuid);
+      public: bool DelAddressesByProc(const std::string &_pUuid)
+      {
+        unsigned int counter = 0;
+
+        // Iterate over all the topics.
+        for (auto it = this->data.begin(); it != this->data.end();)
+        {
+          // m is {pUUID=>Publisher}.
+          auto &m = it->second;
+          counter = m.erase(_pUuid);
+          if (m.empty())
+            this->data.erase(it++);
+          else
+            ++it;
+        }
+
+        return counter > 0;
+      }
 
       /// \brief Given a process UUID, the function returns the list of nodes
       /// contained in this process UUID with its address information.
@@ -109,19 +250,59 @@ namespace ignition
       /// \param _nodes Map of nodes where the keys are the node UUIDs and the
       /// value is its address information.
       public: void GetAddressesByProc(const std::string &_pUuid,
-                         std::map<std::string, std::vector<Publisher>> &_nodes);
+                         std::map<std::string, std::vector<T>> &_nodes)
+      {
+        _nodes.clear();
+
+        // Iterate over all the topics.
+        for (auto &topic : this->data)
+        {
+          // m is {pUUID=>Publisher}.
+          auto &m = topic.second;
+          if (m.find(_pUuid) != m.end())
+          {
+            auto &v = m[_pUuid];
+            for (auto &pub : v)
+            {
+              _nodes[topic.first].push_back(T(pub));
+            }
+          }
+        }
+      }
 
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const;
+      public: void GetTopicList(std::vector<std::string> &_topics) const
+      {
+        for (auto &topic : this->data)
+          _topics.push_back(topic.first);
+      }
 
       /// \brief Print all the information for debugging purposes.
-      public: void Print();
+      public: void Print()
+      {
+        std::cout << "---" << std::endl;
+        for (auto &topic : this->data)
+        {
+          std::cout << "[" << topic.first << "]" << std::endl;
+          auto &m = topic.second;
+          for (auto &proc : m)
+          {
+            std::cout << "\tProc. UUID: " << proc.first << std::endl;
+            auto &v = proc.second;
+            for (auto &publisher : v)
+            {
+              std::cout << publisher;
+            }
+          }
+        }
+      }
 
       // The keys are topics. The values are another map, where the key is
       // the process UUID and the value a vector of Address_t (0MQ address,
       // 0MQ control address, node UUID and topic scope).
-      private: std::map<std::string, Addresses_M> data;
+      private: std::map<std::string,
+                        std::map<std::string, std::vector<T>>> data;
     };
   }
 }
