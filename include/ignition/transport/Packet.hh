@@ -218,10 +218,10 @@ namespace ignition
     /// \brief Advertise packet used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
     /// contains the name of the protobuf message type advertised.
-    class IGNITION_VISIBLE AdvertiseMsg
+    template <class T> class IGNITION_VISIBLE AdvertiseMessage
     {
       /// \brief Constructor.
-      public: AdvertiseMsg() = default;
+      public: AdvertiseMessage() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
@@ -231,24 +231,53 @@ namespace ignition
       /// \param[in] _nUuid Node's UUID.
       /// \param[in] _scope Topic scope.
       /// \param[in] _msgTypeName Name of the protobuf message advertised.
-      public: AdvertiseMsg(const Header &_header,
-                           const MessagePublisher &_publisher);
+      public: AdvertiseMessage(const Header &_header,
+                               const T &_publisher)
+        : header(_header),
+          publisher(_publisher)
+      {
+      }
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength();
+      public: size_t GetMsgLength()
+      {
+        return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
+      }
 
       // Documentation inherited.
-      public: size_t Pack(char *_buffer);
+      public: size_t Pack(char *_buffer)
+      {
+        // Pack the common part of any advertise message.
+        size_t len = this->header.Pack(_buffer);
+        if (len == 0)
+          return 0;
+
+        _buffer += len;
+
+        len = this->publisher.Pack(_buffer);
+        if (len == 0)
+          return 0;
+
+        return this->GetMsgLength();
+      }
 
       // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
+      public: size_t Unpack(char *_buffer)
+      {
+        // Unpack the message publisher.
+        size_t len = this->publisher.Unpack(_buffer);
+        if (len == 0)
+          return 0;
+
+        return this->publisher.GetMsgLength();
+      }
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
       /// \param[in] _msg AdvertiseMsg to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const AdvertiseMsg &_msg)
+                                              const AdvertiseMessage &_msg)
       {
         _out << _msg.header << _msg.publisher;
 
@@ -258,7 +287,7 @@ namespace ignition
       /// \brief The name of the protobuf message advertised.
       public: Header header;
 
-      public: MessagePublisher publisher;
+      public: T publisher;
     };
 
     /// \class AdvertiseSrv Packet.hh ignition/transport/Packet.hh
@@ -266,7 +295,7 @@ namespace ignition
     /// information about the node advertising a service. The information sent
     /// contains the name of the protobuf messages advertised for the service
     /// request and service response.
-    class IGNITION_VISIBLE AdvertiseSrv
+    /*class IGNITION_VISIBLE AdvertiseSrv
     {
       /// \brief Constructor.
       public: AdvertiseSrv() = default;
@@ -307,7 +336,7 @@ namespace ignition
       public: Header header;
 
       public: ServicePublisher publisher;
-    };
+    };*/
   }
 }
 

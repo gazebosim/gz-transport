@@ -212,7 +212,7 @@ Discovery::~Discovery()
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
-  this->SendMsg(ByeType, &pub);
+  this->SendMsg(ByeType, pub);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -235,7 +235,7 @@ void Discovery::AdvertiseMsg(const MessagePublisher &_pub)
   if (_pub.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(AdvType, &_pub);
+  this->SendMsg(AdvType, _pub);
 }
 
 //////////////////////////////////////////////////
@@ -250,7 +250,7 @@ void Discovery::AdvertiseSrv(const ServicePublisher &_pub)
   if (_pub.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(AdvSrvType, &_pub);
+  this->SendMsg(AdvSrvType, _pub);
 }
 
 //////////////////////////////////////////////////
@@ -274,7 +274,7 @@ void Discovery::UnadvertiseMsg(const std::string &_topic,
   if (inf.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(UnadvType, &inf);
+  this->SendMsg(UnadvType, inf);
 }
 
 //////////////////////////////////////////////////
@@ -298,7 +298,7 @@ void Discovery::UnadvertiseSrv(const std::string &_topic,
   if (inf.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(UnadvSrvType, &inf);
+  this->SendMsg(UnadvSrvType, inf);
 }
 
 //////////////////////////////////////////////////
@@ -314,7 +314,7 @@ void Discovery::DiscoverMsg(const std::string &_topic)
   pub.Scope(Scope_t::All);
 
   // Broadcast a discovery request for this service call.
-  this->SendMsg(SubType, &pub);
+  this->SendMsg(SubType, pub);
 
   // I already have information about this topic.
   if (this->dataPtr->infoMsg.HasTopic(_topic))
@@ -352,7 +352,7 @@ void Discovery::DiscoverSrv(const std::string &_topic)
   pub.Scope(Scope_t::All);
 
   // Broadcast a discovery request for this service call.
-  this->SendMsg(SubSrvType, &pub);
+  this->SendMsg(SubSrvType, pub);
 
   // I already have information about this topic.
   if (this->dataPtr->infoSrv.HasTopic(_topic))
@@ -542,7 +542,7 @@ void Discovery::RunHeartbeatTask()
       std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
       Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
-      this->SendMsg(HeartbeatType, &pub);
+      this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
@@ -550,7 +550,7 @@ void Discovery::RunHeartbeatTask()
       for (auto &topic : msgNodes)
       {
         for (auto &node : topic.second)
-          this->SendMsg(AdvType, &node);
+          this->SendMsg(AdvType, node);
       }
 
       // Re-advertise services that are advertised inside this process.
@@ -559,7 +559,7 @@ void Discovery::RunHeartbeatTask()
       for (auto &topic : srvNodes)
       {
         for (auto &node : topic.second)
-          this->SendMsg(AdvSrvType, &node);
+          this->SendMsg(AdvSrvType, node);
       }
     }
 
@@ -660,7 +660,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case AdvType:
     {
       // Read the rest of the fields.
-      transport::AdvertiseMsg advMsg;
+      transport::AdvertiseMessage<MessagePublisher> advMsg;
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
@@ -685,7 +685,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case AdvSrvType:
     {
       // Read the rest of the fields.
-      transport::AdvertiseSrv advSrv;
+      transport::AdvertiseMessage<ServicePublisher> advSrv;
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
@@ -732,7 +732,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
             }
 
             // Answer an ADVERTISE message.
-            this->SendMsg(AdvType, &nodeInfo);
+            this->SendMsg(AdvType, nodeInfo);
           }
         }
       }
@@ -764,7 +764,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
             }
 
             // Answer an ADVERTISE message.
-            this->SendMsg(AdvSrvType, &nodeInfo);
+            this->SendMsg(AdvSrvType, nodeInfo);
           }
         }
       }
@@ -808,7 +808,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case UnadvType:
     {
       // Read the address.
-      transport::AdvertiseMsg advMsg;
+      transport::AdvertiseMessage<MessagePublisher> advMsg;
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
@@ -836,7 +836,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case UnadvSrvType:
     {
       // Read the address.
-      transport::AdvertiseSrv advSrv;
+      transport::AdvertiseMessage<ServicePublisher> advSrv;
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.

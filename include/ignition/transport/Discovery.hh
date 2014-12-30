@@ -333,46 +333,30 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       public: template<typename T> void SendMsg(uint8_t _type,
-                                                const T *_pub,
+                                                const T &_pub,
                                                 int _flags = 0)
       {
         // Create the header.
-        Header header(this->Version(), _pub->PUuid(), _type, _flags);
+        Header header(this->Version(), _pub.PUuid(), _type, _flags);
         auto msgLength = 0;
         std::vector<char> buffer;
 
-        std::string _topic = _pub->Topic();
+        std::string _topic = _pub.Topic();
 
         switch (_type)
         {
           case AdvType:
           case UnadvType:
+          case AdvSrvType:
+          case UnadvSrvType:
           {
-            const MessagePublisher *msgPub =
-              dynamic_cast<const MessagePublisher*>(_pub);
-
             // Create the [UN]ADVERTISE message.
-            transport::AdvertiseMsg advMsg(header, *msgPub);
+            transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.GetMsgLength());
             advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
             msgLength = advMsg.GetMsgLength();
-            break;
-          }
-          case AdvSrvType:
-          case UnadvSrvType:
-          {
-            const ServicePublisher *srvPub =
-              dynamic_cast<const ServicePublisher*>(_pub);
-
-            // Create the [UN]ADVERTISE message.
-            transport::AdvertiseSrv advSrv(header, *srvPub);
-
-            // Allocate a buffer and serialize the message.
-            buffer.resize(advSrv.GetMsgLength());
-            advSrv.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advSrv.GetMsgLength();
             break;
           }
           case SubType:

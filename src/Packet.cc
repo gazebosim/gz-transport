@@ -266,21 +266,21 @@ size_t SubscriptionMsg::Unpack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-AdvertiseMsg::AdvertiseMsg(const Header &_header,
+/*AdvertiseMsg::AdvertiseMsg(const Header &_header,
                            const MessagePublisher &_publisher)
   : header(_header),
     publisher(_publisher)
 {
-}
+}*/
 
 //////////////////////////////////////////////////
-size_t AdvertiseMsg::GetMsgLength()
+/*size_t AdvertiseMessage::GetMsgLength()
 {
   return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
-}
+}*/
 
 //////////////////////////////////////////////////
-size_t AdvertiseMsg::Pack(char *_buffer)
+/*size_t AdvertiseMessage::Pack(char *_buffer)
 {
   // Pack the common part of any advertise message.
   size_t len = this->header.Pack(_buffer);
@@ -294,11 +294,11 @@ size_t AdvertiseMsg::Pack(char *_buffer)
     return 0;
 
   return this->GetMsgLength();
-}
+}*/
 
 //////////////////////////////////////////////////
-size_t AdvertiseMsg::Unpack(char *_buffer)
-{
+//size_t AdvertiseMessage::Unpack(char *_buffer)
+//{
   // Unpack the header.
   /*size_t len = this->header.Unpack(_buffer);
   if (len == 0)
@@ -307,15 +307,15 @@ size_t AdvertiseMsg::Unpack(char *_buffer)
   _buffer += len;*/
 
   // Unpack the message publisher.
-  size_t len = this->publisher.Unpack(_buffer);
+/*  size_t len = this->publisher.Unpack(_buffer);
   if (len == 0)
     return 0;
 
   return this->publisher.GetMsgLength();
-}
+}*/
 
 //////////////////////////////////////////////////
-AdvertiseSrv::AdvertiseSrv(const Header &_header,
+/*AdvertiseSrv::AdvertiseSrv(const Header &_header,
                            const ServicePublisher &_publisher)
   : header(_header),
     publisher(_publisher)
@@ -343,11 +343,11 @@ size_t AdvertiseSrv::Pack(char *_buffer)
     return 0;
 
   return this->GetMsgLength();
-}
+}*/
 
 //////////////////////////////////////////////////
-size_t AdvertiseSrv::Unpack(char *_buffer)
-{
+//size_t AdvertiseSrv::Unpack(char *_buffer)
+//{
   // Unpack the header.
   /*size_t len = this->header.Unpack(_buffer);
   if (len == 0)
@@ -356,9 +356,9 @@ size_t AdvertiseSrv::Unpack(char *_buffer)
   _buffer += len;*/
 
   // Unpack the service publisher.
-  size_t len = this->publisher.Unpack(_buffer);
+/*  size_t len = this->publisher.Unpack(_buffer);
   if (len == 0)
     return 0;
 
   return this->publisher.GetMsgLength();
-}
+}*/
