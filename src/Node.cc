@@ -116,7 +116,7 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope &_scope)
+bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 {
   std::string fullyQualifiedTopic;
   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -132,9 +132,10 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->Advertise(MsgType::Msg, fullyQualifiedTopic,
+  MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->nUuid, _scope);
+    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "");
+  this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
 
   return true;
 }
@@ -173,8 +174,8 @@ bool Node::Unadvertise(const std::string &_topic)
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+  this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+    this->dataPtr->nUuid);
 
   return true;
 }
@@ -281,7 +282,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
-  Addresses_M addresses;
+  MsgAddresses_M addresses;
   if (!this->dataPtr->shared->discovery->GetMsgAddresses(fullyQualifiedTopic,
     addresses))
   {
@@ -300,7 +301,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-      socket.connect(node.ctrl.c_str());
+      socket.connect(node.Ctrl().c_str());
 
       zmq::message_t msg;
       msg.rebuild(fullyQualifiedTopic.size());
@@ -366,8 +367,8 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+  this->dataPtr->shared->discovery->UnadvertiseSrv(fullyQualifiedTopic,
+    this->dataPtr->nUuid);
 
   return true;
 }

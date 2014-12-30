@@ -4,7 +4,7 @@ set (sources
   Discovery.cc
   #ign.cc
   NetUtils.cc
-  #Node.cc
+  Node.cc
   NodeShared.cc
   Packet.cc
   Publisher.cc

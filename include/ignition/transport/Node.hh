@@ -38,6 +38,7 @@
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -72,7 +73,7 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       /// \return true if the topic was advertised.
       public: bool Advertise(const std::string &_topic,
-                             const Scope &_scope = Scope::All);
+                             const Scope_t &_scope = Scope_t::All);
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -130,7 +131,7 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, false);
+        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
 
         return true;
       }
@@ -178,7 +179,7 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, false);
+        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
 
         return true;
       }
@@ -211,7 +212,7 @@ namespace ignition
         const std::string &_topic,
         void(*_cb)(const std::string &_topic, const T1 &_req,
                    T2 &_rep, bool &_result),
-        const Scope &_scope = Scope::All)
+        const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -241,10 +242,11 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->Advertise(MsgType::Srv,
-          fullyQualifiedTopic, this->dataPtr->shared->myReplierAddress,
-          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
-          _scope);
+        ServicePublisher publisher(fullyQualifiedTopic,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(),
+          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "", "");
+        this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
 
         return true;
       }
@@ -267,7 +269,7 @@ namespace ignition
         void(C::*_cb)(const std::string &_topic, const T1 &_req,
                       T2 &_rep, bool &_result),
         C *_obj,
-        const Scope &_scope = Scope::All)
+        const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -299,10 +301,11 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        this->dataPtr->shared->discovery->Advertise(MsgType::Srv,
-          fullyQualifiedTopic, this->dataPtr->shared->myReplierAddress,
-          this->dataPtr->shared->replierId.ToString(), this->dataPtr->nUuid,
-          _scope);
+        ServicePublisher publisher(fullyQualifiedTopic,
+          this->dataPtr->shared->myReplierAddress,
+          this->dataPtr->shared->replierId.ToString(),
+          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "", "");
+        this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
 
         return true;
       }
@@ -371,7 +374,7 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        Addresses_M addresses;
+        SrvAddresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
           fullyQualifiedTopic, addresses))
         {
@@ -380,7 +383,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         return true;
@@ -450,7 +453,7 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        Addresses_M addresses;
+        SrvAddresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
           fullyQualifiedTopic, addresses))
         {
@@ -459,7 +462,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         return true;
@@ -513,7 +516,7 @@ namespace ignition
           fullyQualifiedTopic, this->dataPtr->nUuid, reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        Addresses_M addresses;
+        SrvAddresses_M addresses;
         if (this->dataPtr->shared->discovery->GetSrvAddresses(
           fullyQualifiedTopic, addresses))
         {
@@ -522,7 +525,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
+          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
 
         // Wait until the REP is available.

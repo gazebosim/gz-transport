@@ -98,7 +98,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewDisconnection(const MessagePublisher _pub);
+      public: void OnNewDisconnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects a new service call
       /// \param[in] _topic Topic name.
@@ -107,7 +107,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewSrvConnection(const ServicePublisher _pub);
+      public: void OnNewSrvConnection(const ServicePublisher &_pub);
 
       /// \brief Callback executed when a service call is no longer available.
       /// \param[in] _topic Topic name.
@@ -116,7 +116,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID of the publisher.
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[in] _scope Topic scope.
-      public: void OnNewSrvDisconnection(const ServicePublisher _pub);
+      public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
 
       /// \brief Constructor.
       protected: NodeShared();

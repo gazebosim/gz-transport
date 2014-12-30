@@ -141,7 +141,7 @@ NodeShared::NodeShared()
   this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new topics).
-  /*discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
+  discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
 
   // Set the callback to notify discovery updates (invalid topics).
   discovery->SetDisconnectionsCb(&NodeShared::OnNewDisconnection, this);
@@ -150,7 +150,7 @@ NodeShared::NodeShared()
   discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
   // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);*/
+  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -713,7 +713,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewDisconnection(const MessagePublisher _pub)
+void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -762,7 +762,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher _pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvConnection(const ServicePublisher _pub)
+void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 {
   std::string _topic = _pub.Topic();
   std::string _addr = _pub.Addr();
@@ -794,7 +794,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher _pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvDisconnection(const ServicePublisher _pub)
+void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
 {
   std::string _addr = _pub.Addr();
 
