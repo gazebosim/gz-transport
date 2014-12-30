@@ -52,9 +52,8 @@ namespace ignition
 
     /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
-    /// of the discovery protocol, the process UUID of the sender node, the
-    /// topic contained in the message, the type of message (ADV, SUB, ... ) and
-    /// optional flags.
+    /// of the discovery protocol, the process UUID of the sender node, the type
+    // of message (ADV, SUB, ... ) and optional flags.
     class IGNITION_VISIBLE Header
     {
       /// \brief Constructor.
@@ -69,8 +68,6 @@ namespace ignition
                      const std::string &_pUuid,
                      const uint8_t _type,
                      const uint16_t _flags = 0);
-
-      public: Header(const Header &_header);
 
       /// \brief Destructor.
       public: virtual ~Header() = default;
@@ -214,10 +211,13 @@ namespace ignition
       private: std::string topic = "";
     };
 
-    /// \class AdvertiseMsg Packet.hh ignition/transport/Packet.hh
+    /// \class AdvertiseMessage Packet.hh ignition/transport/Packet.hh
     /// \brief Advertise packet used in the discovery protocol to broadcast
     /// information about the node advertising a topic. The information sent
-    /// contains the name of the protobuf message type advertised.
+    /// contains the name of the protobuf message type advertised. This message
+    /// is used for advertising messages and services. 'T' is the Publisher
+    /// type used inside this AdvertiseMessage object.
+
     template <class T> class IGNITION_VISIBLE AdvertiseMessage
     {
       /// \brief Constructor.
@@ -225,12 +225,7 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
-      /// \param[in] _ctrl ZeroMQ control address.
-      /// \param[in] _nUuid Node's UUID.
-      /// \param[in] _scope Topic scope.
-      /// \param[in] _msgTypeName Name of the protobuf message advertised.
+      /// \param[in] _publisher Contains the topic name, UUIDs, addresses.
       public: AdvertiseMessage(const Header &_header,
                                const T &_publisher)
         : header(_header),
@@ -245,29 +240,31 @@ namespace ignition
         return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
       }
 
-      // Documentation inherited.
+      /// \brief Serialize the advertise message.
+      /// \param[out] _buffer Buffer where the message will be serialized.
+      /// \return The length of the serialized message in bytes.
       public: size_t Pack(char *_buffer)
       {
         // Pack the common part of any advertise message.
-        size_t len = this->header.Pack(_buffer);
-        if (len == 0)
+        if (this->header.Pack(_buffer) == 0)
           return 0;
 
         _buffer += len;
 
-        len = this->publisher.Pack(_buffer);
-        if (len == 0)
+        // Pack the publisher.
+        if (this->publisher.Pack(_buffer) == 0)
           return 0;
 
         return this->GetMsgLength();
       }
 
-      // Documentation inherited.
+      /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
+      /// \param[out] _buffer Unpack the body from the buffer.
+      /// \return The number of bytes from the body.
       public: size_t Unpack(char *_buffer)
       {
         // Unpack the message publisher.
-        size_t len = this->publisher.Unpack(_buffer);
-        if (len == 0)
+        if (this->publisher.Unpack(_buffer) == 0);
           return 0;
 
         return this->publisher.GetMsgLength();
@@ -280,63 +277,15 @@ namespace ignition
                                               const AdvertiseMessage &_msg)
       {
         _out << _msg.header << _msg.publisher;
-
         return _out;
       }
 
       /// \brief The name of the protobuf message advertised.
       public: Header header;
 
+      /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
       public: T publisher;
     };
-
-    /// \class AdvertiseSrv Packet.hh ignition/transport/Packet.hh
-    /// \brief Advertise packet used in the discovery protocol to broadcast
-    /// information about the node advertising a service. The information sent
-    /// contains the name of the protobuf messages advertised for the service
-    /// request and service response.
-    /*class IGNITION_VISIBLE AdvertiseSrv
-    {
-      /// \brief Constructor.
-      public: AdvertiseSrv() = default;
-
-      /// \brief Constructor.
-      /// \param[in] _header Message header.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr ZeroMQ address (e.g., "tcp://10.0.0.1:6000").
-      /// \param[in] _ctrl ZeroMQ control address.
-      /// \param[in] _nUuid Node's UUID.
-      /// \param[in] _scope Topic scope.
-      /// \param[in] _reqTypeName Name of the request's protobuf message.
-      /// \param[in] _repTypeName Name of the response's protobuf message.
-      public: AdvertiseSrv(const Header &_header,
-                           const ServicePublisher &_publisher);
-
-      /// \brief Stream insertion operator.
-      /// \param[out] _out The output stream.
-      /// \param[in] _msg ServiceMsg to write to the stream.
-      public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const AdvertiseSrv &_msg)
-      {
-        _out << _msg.header << _msg.publisher;
-
-        return _out;
-      }
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength();
-
-      // Documentation inherited.
-      public: size_t Pack(char *_buffer);
-
-      // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
-
-      public: Header header;
-
-      public: ServicePublisher publisher;
-    };*/
   }
 }
 

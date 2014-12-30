@@ -35,15 +35,6 @@ Header::Header(const uint16_t _version,
 }
 
 //////////////////////////////////////////////////
-Header::Header(const Header &_header)
-  : version(_header.GetVersion()),
-    pUuid(_header.GetPUuid()),
-    type(_header.GetType()),
-    flags(_header.GetFlags())
-{
-}
-
-//////////////////////////////////////////////////
 uint16_t Header::GetVersion() const
 {
   return this->version;
@@ -218,8 +209,7 @@ size_t SubscriptionMsg::GetMsgLength()
 size_t SubscriptionMsg::Pack(char *_buffer)
 {
   // Pack the header.
-  size_t headerLen = this->GetHeader().Pack(_buffer);
-  if (headerLen == 0)
+  if (this->GetHeader().Pack(_buffer) == 0)
     return 0;
 
   if (this->topic == "")
@@ -260,105 +250,6 @@ size_t SubscriptionMsg::Unpack(char *_buffer)
 
   // Unpack the topic.
   this->topic = std::string(_buffer, _buffer + topicLength);
-  _buffer += topicLength;
 
   return sizeof(topicLength) + static_cast<size_t>(topicLength);
 }
-
-//////////////////////////////////////////////////
-/*AdvertiseMsg::AdvertiseMsg(const Header &_header,
-                           const MessagePublisher &_publisher)
-  : header(_header),
-    publisher(_publisher)
-{
-}*/
-
-//////////////////////////////////////////////////
-/*size_t AdvertiseMessage::GetMsgLength()
-{
-  return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
-}*/
-
-//////////////////////////////////////////////////
-/*size_t AdvertiseMessage::Pack(char *_buffer)
-{
-  // Pack the common part of any advertise message.
-  size_t len = this->header.Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  len = this->publisher.Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  return this->GetMsgLength();
-}*/
-
-//////////////////////////////////////////////////
-//size_t AdvertiseMessage::Unpack(char *_buffer)
-//{
-  // Unpack the header.
-  /*size_t len = this->header.Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;*/
-
-  // Unpack the message publisher.
-/*  size_t len = this->publisher.Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  return this->publisher.GetMsgLength();
-}*/
-
-//////////////////////////////////////////////////
-/*AdvertiseSrv::AdvertiseSrv(const Header &_header,
-                           const ServicePublisher &_publisher)
-  : header(_header),
-    publisher(_publisher)
-{
-}
-
-//////////////////////////////////////////////////
-size_t AdvertiseSrv::GetMsgLength()
-{
-  return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
-}
-
-//////////////////////////////////////////////////
-size_t AdvertiseSrv::Pack(char *_buffer)
-{
-  // Pack the common part of any advertise message.
-  size_t len = this->header.Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  len = this->publisher.Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  return this->GetMsgLength();
-}*/
-
-//////////////////////////////////////////////////
-//size_t AdvertiseSrv::Unpack(char *_buffer)
-//{
-  // Unpack the header.
-  /*size_t len = this->header.Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;*/
-
-  // Unpack the service publisher.
-/*  size_t len = this->publisher.Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  return this->publisher.GetMsgLength();
-}*/
