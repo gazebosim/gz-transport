@@ -339,7 +339,7 @@ void NodeShared::RecvControlUpdate()
     // Register that we have another remote subscriber.
     MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::All,
       "");
-    this->remoteSubscribers.AddAddress(remoteNode);
+    this->remoteSubscribers.AddPublisher(remoteNode);
   }
   else if (std::stoi(data) == EndConnection)
   {
@@ -351,7 +351,7 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Delete a remote subscriber.
-    this->remoteSubscribers.DelAddressByNode(topic, procUuid, nodeUuid);
+    this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nodeUuid);
   }
 }
 
@@ -650,14 +650,14 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     try
     {
       // I am not connected to the process.
-      if (!this->connections.HasAddress(_addr))
+      if (!this->connections.HasPublisher(_addr))
         this->subscriber->connect(_addr.c_str());
 
       // Add a new filter for the topic.
       this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
 
       // Register the new connection with the publisher.
-      this->connections.AddAddress(_pub);
+      this->connections.AddPublisher(_pub);
 
       // Send a message to the publisher's control socket to notify it
       // about all my remoteSubscribers.
@@ -730,10 +730,10 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   // A remote subscriber[s] has been disconnected.
   if (_topic != "" && _nUuid != "")
   {
-    this->remoteSubscribers.DelAddressByNode(_topic, _pUuid, _nUuid);
+    this->remoteSubscribers.DelPublisherByNode(_topic, _pUuid, _nUuid);
 
     MessagePublisher connection;
-    if (!this->connections.GetAddress(_topic, _pUuid, _nUuid, connection))
+    if (!this->connections.GetPublisher(_topic, _pUuid, _nUuid, connection))
       return;
 
     // Disconnect from a publisher's socket.
@@ -742,14 +742,14 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     this->subscriber->disconnect(connection.Addr().c_str());
 
     // I am no longer connected.
-    this->connections.DelAddressByNode(_topic, _pUuid, _nUuid);
+    this->connections.DelPublisherByNode(_topic, _pUuid, _nUuid);
   }
   else
   {
-    this->remoteSubscribers.DelAddressesByProc(_pUuid);
+    this->remoteSubscribers.DelPublishersByProc(_pUuid);
 
     MsgAddresses_M info;
-    if (!this->connections.GetAddresses(_topic, info))
+    if (!this->connections.GetPublishers(_topic, info))
       return;
 
     // Disconnect from all the connections of that publisher.
@@ -757,7 +757,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
       this->subscriber->disconnect(connection.Addr().c_str());
 
     // Remove all the connections from the process disonnected.
-    this->connections.DelAddressesByProc(_pUuid);
+    this->connections.DelPublishersByProc(_pUuid);
   }
 }
 

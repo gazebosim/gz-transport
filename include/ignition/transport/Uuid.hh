@@ -68,7 +68,6 @@ namespace ignition
       private: static const int UuidStrLen = 37;
 
       /// \brief Internal representation.
-
       private: portable_uuid_t data;
     };
   }

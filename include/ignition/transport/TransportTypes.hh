@@ -42,55 +42,18 @@ namespace ignition
     class ISubscriptionHandler;
     class NodePrivate;
 
-    /// \def Scope This strongly typed enum defines the different options for
-    /// the scope of a topic:
-    /// * Process: Topic only available to subscribers in the same process as
-    ///            the publisher.
-    /// * Host:    Topic only available to subscribers in the same machine as
-    ///            the publisher.
-    /// * All:     Topic available to any subscriber. This is the default scope.
-    // enum class Scope {Process, Host, All};
-
-    /// \def The discovery layer can advertise two different types:
-    /// * Msg: Regular pub/sub message.
-    /// * Srv: Service call.
-    enum class MsgType {Msg, Srv};
-
-    /// \def Address_t All the data associated to a topic's publisher.
-    struct Address_t
-    {
-      std::string addr;
-      std::string ctrl;
-      std::string nUuid;
-      Scope_t scope;
-    };
-
-    /*struct Publisher
-    {
-      std::string topic;
-      std::string addr;
-      std::string pUuid;
-      std::string nUuid;
-      Scope scope;
-    };
-
-    struct MessagePublisher : Publisher
-    {
-      std::string ctrl;
-    };
-
-    struct ServicePublisher : Publisher
-    {
-      std::string socketId;
-    };*/
-
-    /// \def Addresses_M
+    /// \def MsgAddresses_M
     /// \brief The map stores all the publishers advertising this topic.
     /// The keys are the process uuid of the nodes. For each uuid key, the
-    /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
-    /// advertising the topic within the same process uuid.
+    /// value contains the list of publishers advertising the topic within the
+    // same process uuid.
     typedef std::map<std::string, std::vector<MessagePublisher>> MsgAddresses_M;
 
+    /// \def SrvAddresses_M
+    /// \brief The map stores all the publishers advertising this service.
+    /// The keys are the process uuid of the nodes. For each uuid key, the
+    /// value contains the list of publishers advertising the service within the
+    /// same process uuid.
     typedef std::map<std::string, std::vector<ServicePublisher>> SrvAddresses_M;
 
     /// \def ProtoMsg
@@ -154,23 +117,19 @@ namespace ignition
     typedef std::map<std::string, std::map<std::string, IReqHandlerPtr>>
       IReqHandler_M;
 
-    /// \def DiscoveryCallback
+    /// \def MsgDiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
-    /// callback is: topic name, 0MQ address, 0MQ control address, UUID of the
-    /// process advertising the topic, UUID of the node advertising the topic.
-    /// E.g.: void onDiscoveryResponse(const std::string &_topic,
-    /// const std::string &_addr, const std::string &_ctrl,
-    /// const std::string &_pUuid, const std::string &_nUuid,
-    /// const Scope &_scope).
-    typedef std::function<void(const std::string &_topic,
-      const std::string &_addr, const std::string &_ctrl,
-      const std::string &_pUuid, const std::string &_nUuid,
-      const Scope_t &_scope)> DiscoveryCallback;
-
+    /// callback contains the publisher's information advertising a topic.
+    /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
     typedef std::function<void(const MessagePublisher&_publisher)>
       MsgDiscoveryCallback;
 
+    /// \def SrvDiscoveryCallback
+    /// \brief The user can register callbacks of this type when new connections
+    /// or disconnections are detected by the discovery. The prototype of the
+    /// callback contains the publisher's information advertising a service.
+    /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
     typedef std::function<void(const ServicePublisher&_publisher)>
       SrvDiscoveryCallback;
 
