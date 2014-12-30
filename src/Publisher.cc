@@ -95,7 +95,7 @@ void Publisher::Scope(const Scope_t _scope)
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::Pack(char *_buffer)
+size_t Publisher::Pack(char *_buffer) const
 {
   if (this->topic.empty() || this->addr.empty() || this->nUuid.empty())
   {
@@ -203,7 +203,7 @@ size_t Publisher::Unpack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::GetMsgLength()
+size_t Publisher::GetMsgLength() const
 {
   return sizeof(uint64_t) + this->topic.size() +
          sizeof(uint64_t) + this->addr.size() +
@@ -224,7 +224,7 @@ MessagePublisher::MessagePublisher(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::Pack(char *_buffer)
+size_t MessagePublisher::Pack(char *_buffer) const
 {
   if (this->ctrl.empty() || this->msgTypeName.empty())
   {
@@ -300,7 +300,7 @@ size_t MessagePublisher::Unpack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::GetMsgLength()
+size_t MessagePublisher::GetMsgLength() const
 {
   return Publisher::GetMsgLength() +
          sizeof(uint64_t) + this->ctrl.size() +
@@ -344,7 +344,7 @@ ServicePublisher::ServicePublisher(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::Pack(char *_buffer)
+size_t ServicePublisher::Pack(char *_buffer) const
 {
   if (this->socketId.empty() || this->reqTypeName.empty() ||
       this->repTypeName.empty())
@@ -439,7 +439,7 @@ size_t ServicePublisher::Unpack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::GetMsgLength()
+size_t ServicePublisher::GetMsgLength() const
 {
   return Publisher::GetMsgLength() +
          sizeof(uint64_t) + this->socketId.size() +
