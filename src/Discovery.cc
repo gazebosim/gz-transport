@@ -380,6 +380,18 @@ void Discovery::DiscoverSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+TopicStorage<MessagePublisher>& Discovery::GetDiscoveryMsgInfo() const
+{
+  return this->dataPtr->infoMsg;
+}
+
+//////////////////////////////////////////////////
+TopicStorage<ServicePublisher>& Discovery::GetDiscoverySrvInfo() const
+{
+  return this->dataPtr->infoSrv;
+}
+
+//////////////////////////////////////////////////
 bool Discovery::GetMsgPublishers(const std::string &_topic,
                                  MsgAddresses_M &_publishers)
 {

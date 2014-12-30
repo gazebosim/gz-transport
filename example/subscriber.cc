@@ -20,10 +20,11 @@
 #include <string>
 #include <ignition/transport.hh>
 #include "msg/stringmsg.pb.h"
+#include "msg/int.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
+void cb(const std::string &_topic, const example::mymsgs::Int &_msg)
 {
   std::cout << "Topic:" << _topic << "\n"
             << "Msg:  " << _msg.data() << "\n\n";

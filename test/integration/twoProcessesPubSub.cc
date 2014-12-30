@@ -48,7 +48,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 
   transport::Node node(partition, ns);
 
-  EXPECT_TRUE(node.Advertise(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

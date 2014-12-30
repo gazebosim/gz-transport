@@ -116,31 +116,6 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Add the topic to the list of advertised topics (if it was not before).
-  this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
-
-  // Notify the discovery service to register and advertise my topic.
-  MessagePublisher publisher(fullyQualifiedTopic,
-    this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
-  this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
 std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
@@ -197,6 +172,26 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
       this->dataPtr->topicsAdvertised.end())
   {
+    return false;
+  }
+
+  // Check that the msg type matches the type previously advertised '_topic'.
+  MessagePublisher pub;
+  auto &info = this->dataPtr->shared->discovery->GetDiscoveryMsgInfo();
+  std::string procUuid = this->dataPtr->shared->pUuid;
+  std::string nodeUuid = this->dataPtr->nUuid;
+  if (!info.GetPublisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
+  {
+    std::cerr << "Node::Publish() I cannot find the msgType registered for "
+              << "topic [" << _topic << "]" << std::endl;
+    return false;
+  }
+
+  if (pub.MsgTypeName() != _msg.GetTypeName())
+  {
+    std::cerr << "Node::Publish() Type mismatch." << std::endl
+              << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
+              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
     return false;
   }
 

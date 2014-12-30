@@ -40,7 +40,8 @@ int main(int argc, char **argv)
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  node.Advertise("/foo");
+  if (!node.Advertise<example::mymsgs::StringMsg>("/foo"))
+    return -1;
 
   // Prepare the message.
   example::mymsgs::StringMsg msg;
@@ -49,7 +50,8 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while(!terminatePub)
   {
-    node.Publish("/foo", msg);
+    if (!node.Publish("/foo", msg))
+      break;
 
     std::cout << "Publishing hello\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

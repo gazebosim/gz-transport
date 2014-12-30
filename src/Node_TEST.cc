@@ -155,9 +155,9 @@ class MyTestClass
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    EXPECT_FALSE(this->node->Advertise("invalid topic"));
+    EXPECT_FALSE(this->node->Advertise<transport::msgs::Int>("invalid topic"));
 
-    EXPECT_TRUE(this->node->Advertise(topic));
+    EXPECT_TRUE(this->node->Advertise<transport::msgs::Int>(topic));
     EXPECT_TRUE(this->node->Publish(topic, msg));
   }
 
@@ -215,7 +215,7 @@ void CreatePubSubTwoThreads(
   msg.set_data(data);
 
   transport::Node node(partition, ns);
-  EXPECT_TRUE(node.Advertise(topic, _sc));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic, _sc));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -256,13 +256,13 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
-  EXPECT_TRUE(node1.Advertise(topic));
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);
 
-  EXPECT_TRUE(node2.Advertise(topic));
+  EXPECT_TRUE(node2.Advertise<transport::msgs::Int>(topic));
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);
@@ -299,9 +299,9 @@ TEST(NodeTest, PubSubSameThread)
   transport::Node node(partition, ns);
 
   // Advertise an illegal topic.
-  EXPECT_FALSE(node.Advertise("invalid topic"));
+  EXPECT_FALSE(node.Advertise<transport::msgs::Int>("invalid topic"));
 
-  EXPECT_TRUE(node.Advertise(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
 
   // Subscribe to an illegal topic.
   EXPECT_FALSE(node.Subscribe("invalid topic", cb));
@@ -372,7 +372,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node1(partition, ns);
   transport::Node node2(partition, ns);
 
-  EXPECT_TRUE(node1.Advertise(topic));
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
 
   // Subscribe to topic in node1.
   EXPECT_TRUE(node1.Subscribe(topic, cb));
@@ -670,7 +670,7 @@ void createInfinitePublisher()
   msg.set_data(data);
   transport::Node node(partition, ns);
 
-  EXPECT_TRUE(node.Advertise(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
 
   auto i = 0;
   while (!terminatePub)

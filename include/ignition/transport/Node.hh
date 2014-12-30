@@ -72,8 +72,32 @@ namespace ignition
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
       /// \return true if the topic was succesfully advertised.
-      public: bool Advertise(const std::string &_topic,
-                             const Scope_t &_scope = Scope_t::All);
+      public: template<typename T> bool Advertise(const std::string &_topic,
+                                           const Scope_t &_scope = Scope_t::All)
+      {
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+          this->dataPtr->ns, _topic, fullyQualifiedTopic))
+        {
+          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          return false;
+        }
+
+        std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+        // Add the topic to the list of advertised topics (if it was not before)
+        this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
+
+        // Notify the discovery service to register and advertise my topic.
+        MessagePublisher publisher(fullyQualifiedTopic,
+          this->dataPtr->shared->myAddress,
+          this->dataPtr->shared->myControlAddress,
+          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope,
+          T().GetTypeName());
+        this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
+
+        return true;
+      }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
