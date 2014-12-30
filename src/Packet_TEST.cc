@@ -462,6 +462,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.publisher.Topic(), topic);
   EXPECT_EQ(advSrv.publisher.Addr(), addr);
   EXPECT_EQ(advSrv.publisher.SocketId(), id);
+  EXPECT_EQ(advSrv.publisher.PUuid(), pUuid);
   EXPECT_EQ(advSrv.publisher.NUuid(), nodeUuid);
   EXPECT_EQ(advSrv.publisher.Scope(), scope);
   EXPECT_EQ(advSrv.publisher.GetReqTypeName(), reqType);
@@ -471,6 +472,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     sizeof(uint64_t) + topic.size() +
     sizeof(uint64_t) + addr.size() +
     sizeof(uint64_t) + id.size() +
+    sizeof(uint64_t) + pUuid.size() +
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
     sizeof(uint64_t) + advSrv.publisher.GetReqTypeName().size() +
