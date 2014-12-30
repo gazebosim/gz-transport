@@ -355,9 +355,13 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.DelAddressesByProc(pUuid1));
 }
 
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
+/*TEST(TopicStorageCarlos, TopicStorageCarlos)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+  transport::MessagePublisher pub("t", "a", "c", "p", "n",
+    transport::Scope_t::All, "m");
+  std::cout << pub;
+
+  transport::Publisher *p = &pub;
+
+  std::cout << p->Ctrl();
+}*/

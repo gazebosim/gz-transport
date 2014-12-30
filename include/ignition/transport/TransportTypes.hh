@@ -49,7 +49,7 @@ namespace ignition
     /// * Host:    Topic only available to subscribers in the same machine as
     ///            the publisher.
     /// * All:     Topic available to any subscriber. This is the default scope.
-    //enum class Scope {Process, Host, All};
+    // enum class Scope {Process, Host, All};
 
     /// \def The discovery layer can advertise two different types:
     /// * Msg: Regular pub/sub message.
@@ -89,7 +89,9 @@ namespace ignition
     /// The keys are the process uuid of the nodes. For each uuid key, the
     /// value contains the list of {0MQ addr, 0MQ ctrl addr, node UUID, scope}
     /// advertising the topic within the same process uuid.
-    typedef std::map<std::string, std::vector<Publisher>> Addresses_M;
+    typedef std::map<std::string, std::vector<MessagePublisher>> MsgAddresses_M;
+
+    typedef std::map<std::string, std::vector<ServicePublisher>> SrvAddresses_M;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
@@ -165,6 +167,12 @@ namespace ignition
       const std::string &_addr, const std::string &_ctrl,
       const std::string &_pUuid, const std::string &_nUuid,
       const Scope_t &_scope)> DiscoveryCallback;
+
+    typedef std::function<void(const MessagePublisher&_publisher)>
+      MsgDiscoveryCallback;
+
+    typedef std::function<void(const ServicePublisher&_publisher)>
+      SrvDiscoveryCallback;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

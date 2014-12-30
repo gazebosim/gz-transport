@@ -38,6 +38,7 @@
 #endif
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -118,22 +119,22 @@ namespace ignition
       public: unsigned int heartbeatInterval;
 
       /// \brief Callback executed when new topics are discovered.
-      public: DiscoveryCallback connectionCb;
+      public: MsgDiscoveryCallback connectionCb;
 
       /// \brief Callback executed when new topics are invalid.
-      public: DiscoveryCallback disconnectionCb;
+      public: MsgDiscoveryCallback disconnectionCb;
 
       /// \brief Callback executed when new services are discovered.
-      public: DiscoveryCallback connectionSrvCb;
+      public: SrvDiscoveryCallback connectionSrvCb;
 
       /// \brief Callback executed when a service is no longer available.
-      public: DiscoveryCallback disconnectionSrvCb;
+      public: SrvDiscoveryCallback disconnectionSrvCb;
 
       /// \brief Message addressing information.
-      public: TopicStorage infoMsg;
+      public: TopicStorage<MessagePublisher> infoMsg;
 
       /// \brief Service addressing information.
-      public: TopicStorage infoSrv;
+      public: TopicStorage<ServicePublisher> infoSrv;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

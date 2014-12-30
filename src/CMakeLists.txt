@@ -1,7 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
-  #Discovery.cc
+  Discovery.cc
   #ign.cc
   NetUtils.cc
   #Node.cc
@@ -13,7 +13,7 @@ set (sources
 )
 
 set (gtest_sources
-  #Discovery_TEST.cc
+  Discovery_TEST.cc
   #HandlerStorage_TEST.cc
   #Node_TEST.cc
   Packet_TEST.cc

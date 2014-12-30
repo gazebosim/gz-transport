@@ -235,6 +235,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     sizeof(uint64_t) + topic.size() +
     sizeof(uint64_t) + addr.size() +
     sizeof(uint64_t) + ctrl.size() +
+    sizeof(uint64_t) + procUuid.size() +
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
     sizeof(uint64_t) + typeName.size();

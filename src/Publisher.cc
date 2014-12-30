@@ -122,8 +122,14 @@ size_t Publisher::Pack(char *_buffer)
   memcpy(_buffer, this->addr.data(), static_cast<size_t>(addrLength));
   _buffer += addrLength;
 
-  // Note: We do not pack the process UUID because it will be packed inside
-  // the header.
+  // Pack the process UUID length.
+  uint64_t pUuidLength = this->pUuid.size();
+  memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
+  _buffer += sizeof(pUuidLength);
+
+  // Pack the process UUID.
+  memcpy(_buffer, this->pUuid.data(), static_cast<size_t>(pUuidLength));
+  _buffer += pUuidLength;
 
   // Pack the node UUID length.
   uint64_t nUuidLength = this->nUuid.size();
@@ -170,6 +176,15 @@ size_t Publisher::Unpack(char *_buffer)
   this->addr = std::string(_buffer, _buffer + addrLength);
   _buffer += addrLength;
 
+  // Unpack the process UUID length.
+  uint64_t pUuidLength;
+  memcpy(&pUuidLength, _buffer, sizeof(pUuidLength));
+  _buffer += sizeof(pUuidLength);
+
+  // Unpack the process UUID.
+  this->pUuid = std::string(_buffer, _buffer + pUuidLength);
+  _buffer += pUuidLength;
+
   // Unpack the node UUID length.
   uint64_t nUuidLength;
   memcpy(&nUuidLength, _buffer, sizeof(nUuidLength));
@@ -192,6 +207,7 @@ size_t Publisher::GetMsgLength()
 {
   return sizeof(uint64_t) + this->topic.size() +
          sizeof(uint64_t) + this->addr.size() +
+         sizeof(uint64_t) + this->pUuid.size() +
          sizeof(uint64_t) + this->nUuid.size() +
          sizeof(uint8_t);
 }
@@ -425,11 +441,8 @@ size_t ServicePublisher::Unpack(char *_buffer)
 //////////////////////////////////////////////////
 size_t ServicePublisher::GetMsgLength()
 {
-  return sizeof(uint64_t) + this->topic.size() +
-         sizeof(uint64_t) + this->addr.size() +
+  return Publisher::GetMsgLength() +
          sizeof(uint64_t) + this->socketId.size() +
-         sizeof(uint64_t) + this->nUuid.size() +
-         sizeof(uint8_t) +
          sizeof(uint64_t) + this->reqTypeName.size() +
          sizeof(uint64_t) + this->repTypeName.size();
 }
