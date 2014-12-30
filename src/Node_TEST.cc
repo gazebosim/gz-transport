@@ -206,7 +206,8 @@ void CreateSubscriber()
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// \param[in] _scope Scope used to advertise the topic.
-void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
+void CreatePubSubTwoThreads(
+  const transport::Scope_t &_sc = transport::Scope_t::All)
 {
   reset();
 
@@ -464,7 +465,7 @@ TEST(NodeTest, ClassMemberCallback)
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
-  CreatePubSubTwoThreads(transport::Scope::Process);
+  CreatePubSubTwoThreads(transport::Scope_t::Process);
 }
 
 //////////////////////////////////////////////////
@@ -472,7 +473,7 @@ TEST(NodeTest, ScopeProcess)
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
-  CreatePubSubTwoThreads(transport::Scope::Host);
+  CreatePubSubTwoThreads(transport::Scope_t::Host);
 }
 
 //////////////////////////////////////////////////
@@ -480,7 +481,7 @@ TEST(NodeTest, ScopeHost)
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
-  CreatePubSubTwoThreads(transport::Scope::All);
+  CreatePubSubTwoThreads(transport::Scope_t::All);
 }
 
 //////////////////////////////////////////////////
