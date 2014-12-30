@@ -549,7 +549,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->discovery->GetSrvAddresses(_topic, addresses);
+  this->discovery->GetSrvPublishers(_topic, addresses);
   if (addresses.empty())
     return;
 
@@ -632,10 +632,10 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  std::string _topic = _pub.Topic();
-  std::string _addr = _pub.Addr();
-  std::string _ctrl = _pub.Ctrl();
-  std::string _pUuid = _pub.PUuid();
+  std::string topic = _pub.Topic();
+  std::string addr = _pub.Addr();
+  std::string ctrl = _pub.Ctrl();
+  std::string procUuid = _pub.PUuid();
 
   if (this->verbose)
   {
@@ -644,17 +644,17 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   }
 
   // Check if we are interested in this topic.
-  if (this->localSubscriptions.HasHandlersForTopic(_topic) &&
-      this->pUuid.compare(_pUuid) != 0)
+  if (this->localSubscriptions.HasHandlersForTopic(topic) &&
+      this->pUuid.compare(procUuid) != 0)
   {
     try
     {
       // I am not connected to the process.
-      if (!this->connections.HasPublisher(_addr))
-        this->subscriber->connect(_addr.c_str());
+      if (!this->connections.HasPublisher(addr))
+        this->subscriber->connect(addr.c_str());
 
       // Add a new filter for the topic.
-      this->subscriber->setsockopt(ZMQ_SUBSCRIBE, _topic.data(), _topic.size());
+      this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
@@ -665,18 +665,18 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 
       if (this->verbose)
       {
-        std::cout << "\t* Connected to [" << _addr << "] for data\n";
-        std::cout << "\t* Connected to [" << _ctrl << "] for control\n";
+        std::cout << "\t* Connected to [" << addr << "] for data\n";
+        std::cout << "\t* Connected to [" << ctrl << "] for control\n";
       }
 
       int lingerVal = 300;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-      socket.connect(_ctrl.c_str());
+      socket.connect(ctrl.c_str());
 
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
-      if (this->localSubscriptions.GetHandlers(_topic, handlers))
+      if (this->localSubscriptions.GetHandlers(topic, handlers))
       {
         for (auto &node : handlers)
         {
@@ -685,8 +685,8 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
             std::string nodeUuid = handler.second->GetNodeUuid();
 
             zmq::message_t msg;
-            msg.rebuild(_topic.size());
-            memcpy(msg.data(), _topic.data(), _topic.size());
+            msg.rebuild(topic.size());
+            memcpy(msg.data(), topic.data(), topic.size());
             socket.send(msg, ZMQ_SNDMORE);
 
             msg.rebuild(this->pUuid.size());
@@ -717,55 +717,55 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  std::string _topic = _pub.Topic();
-  std::string _pUuid = _pub.PUuid();
-  std::string _nUuid = _pub.NUuid();
+  std::string topic = _pub.Topic();
+  std::string procUuid = _pub.PUuid();
+  std::string nUuid = _pub.NUuid();
 
   if (this->verbose)
   {
     std::cout << "New disconnection detected " << std::endl;
-    std::cout << "\tProcess UUID: " << _pUuid << std::endl;
+    std::cout << "\tProcess UUID: " << procUuid << std::endl;
   }
 
   // A remote subscriber[s] has been disconnected.
-  if (_topic != "" && _nUuid != "")
+  if (topic != "" && nUuid != "")
   {
-    this->remoteSubscribers.DelPublisherByNode(_topic, _pUuid, _nUuid);
+    this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nUuid);
 
     MessagePublisher connection;
-    if (!this->connections.GetPublisher(_topic, _pUuid, _nUuid, connection))
+    if (!this->connections.GetPublisher(topic, procUuid, nUuid, connection))
       return;
 
     // Disconnect from a publisher's socket.
-    // for (const auto &connection : this->connections[_pUuid])
+    // for (const auto &connection : this->connections[procUuid])
     //   this->subscriber->disconnect(connection.addr.c_str());
     this->subscriber->disconnect(connection.Addr().c_str());
 
     // I am no longer connected.
-    this->connections.DelPublisherByNode(_topic, _pUuid, _nUuid);
+    this->connections.DelPublisherByNode(topic, procUuid, nUuid);
   }
   else
   {
-    this->remoteSubscribers.DelPublishersByProc(_pUuid);
+    this->remoteSubscribers.DelPublishersByProc(procUuid);
 
     MsgAddresses_M info;
-    if (!this->connections.GetPublishers(_topic, info))
+    if (!this->connections.GetPublishers(topic, info))
       return;
 
     // Disconnect from all the connections of that publisher.
-    for (auto &connection : info[_pUuid])
+    for (auto &connection : info[procUuid])
       this->subscriber->disconnect(connection.Addr().c_str());
 
     // Remove all the connections from the process disonnected.
-    this->connections.DelPublishersByProc(_pUuid);
+    this->connections.DelPublishersByProc(procUuid);
   }
 }
 
 //////////////////////////////////////////////////
 void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 {
-  std::string _topic = _pub.Topic();
-  std::string _addr = _pub.Addr();
+  std::string topic = _pub.Topic();
+  std::string addr = _pub.Addr();
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -777,32 +777,32 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 
   // I am still not connected to this address.
   if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
-        _addr) == this->srvConnections.end())
+        addr) == this->srvConnections.end())
   {
-    this->requester->connect(_addr.c_str());
-    this->srvConnections.push_back(_addr);
+    this->requester->connect(addr.c_str());
+    this->srvConnections.push_back(addr);
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     if (this->verbose)
     {
-      std::cout << "\t* Connected to [" << _addr
+      std::cout << "\t* Connected to [" << addr
                 << "] for service requests" << std::endl;
     }
   }
 
   // Request all pending service calls for this topic.
-  this->SendPendingRemoteReqs(_topic);
+  this->SendPendingRemoteReqs(topic);
 }
 
 //////////////////////////////////////////////////
 void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
 {
-  std::string _addr = _pub.Addr();
+  std::string addr = _pub.Addr();
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   // Remove the address from the list of connected addresses.
   this->srvConnections.erase(std::remove(std::begin(this->srvConnections),
-    std::end(this->srvConnections), _addr.c_str()),
+    std::end(this->srvConnections), addr.c_str()),
     std::end(this->srvConnections));
 
   if (this->verbose)

@@ -25,22 +25,9 @@
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
-  #include <Ws2def.h>
-  #include <Ws2ipdef.h>
-  #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
 #else
-  // For data types
-  #include <sys/types.h>
-  // For socket(), connect(), send(), and recv()
-  #include <sys/socket.h>
-  // For gethostbyname()
-  #include <netdb.h>
-  // For inet_addr()
-  #include <arpa/inet.h>
-  // For close()
-  #include <unistd.h>
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
@@ -86,59 +73,61 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Discovery();
 
-      /// \brief Advertise a new message or service.
-      /// \param[in] _advType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void AdvertiseMsg(const MessagePublisher &_p);
+      /// \brief Advertise a new message.
+      /// \param[in] _publisher Publisher's information to advertise.
+      public: void AdvertiseMsg(const MessagePublisher &_publisher);
 
-      public: void AdvertiseSrv(const ServicePublisher &_p);
+      /// \brief Advertise a new service.
+      /// \param[in] _publisher Publisher's information to advertise.
+      public: void AdvertiseSrv(const ServicePublisher &_publisher);
 
-      /// \brief Request discovery information about a topic or service.
-      /// When using this method with messages, the user might want to use
+      /// \brief Request discovery information about a topic.
+      /// When using this method, the user might want to use
       /// SetConnectionsCb() and SetDisconnectionCb(), that register callbacks
       /// that will be executed when the topic address is discovered or when the
       /// node providing the topic is disconnected.
-      /// When using this method with services, the user might want to use
-      /// SetConnectionsSrvCb() and SetDisconnectionSrvCb(), that register
-      /// callbacks that will be executed when the service address is discovered
-      /// or when the node providing the service is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
+      /// \param[in] _topic Topic name requested.
+      public: void DiscoverMsg(const std::string &_topic);
+
+      /// \brief Request discovery information about a service.
+      /// The user might want to use SetConnectionsSrvCb() and
+      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
+      /// when the service address is discovered or when the node providing the
+      /// service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
-      /// \param[in] _isSrv True if the topic corresponds to a service.
-      public: void DiscoverMsg(const std::string &_topic);
-
       public: void DiscoverSrv(const std::string &_topic);
 
-      /// \brief Get all the addresses known for a given topic.
+      /// \brief Get all the publisher's known for a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[out] _addresses Addresses requested.
-      /// \return True if the topic is found and there is at least one address.
-      bool GetMsgAddresses(const std::string &_topic,
-                           MsgAddresses_M &_addresses);
+      /// \param[out] _publishers Publishers requested.
+      /// \return True if the topic is found and there is at least one publisher
+      bool GetMsgPublishers(const std::string &_topic,
+                            MsgAddresses_M &_publishers);
 
-      /// \brief Get all the addresses known for a given service.
+      /// \brief Get all the publishers known for a given service.
       /// \param[in] _topic Service name.
-      /// \param[out] _addresses Addresses requested.
-      /// \return True if the topic is found and there is at least one address.
-      public: bool GetSrvAddresses(const std::string &_topic,
-                                   SrvAddresses_M &_addresses);
+      /// \param[out] _publishers Publishers requested.
+      /// \return True if the topic is found and there is at least one publisher
+      public: bool GetSrvPublishers(const std::string &_topic,
+                                    SrvAddresses_M &_publishers);
 
-      /// \brief Unadvertise a new message or service. Broadcast a discovery
+      /// \brief Unadvertise a new message. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
-      /// or service advertised by a specific node.
-      /// \param[in] _unadvType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic/service name to be unadvertised.
+      /// advertised by a specific node.
+      /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
       public: void UnadvertiseMsg(const std::string &_topic,
                                   const std::string &_nUuid);
 
+      /// \brief Unadvertise a new message service. Broadcast a discovery
+      /// message that will cancel all the discovery information for the service
+      /// advertised by a specific node.
+      /// \param[in] _topic Service name to be unadvertised.
+      /// \param[in] _nUuid Node UUID.
       public: void UnadvertiseSrv(const std::string &_topic,
                                   const std::string &_nUuid);
 
@@ -201,12 +190,7 @@ namespace ignition
       /// Each time a new topic is discovered, the callback will be executed.
       /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetConnectionsCb(
         void(C::*_cb)(const MessagePublisher &_pub),
@@ -226,12 +210,7 @@ namespace ignition
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetDisconnectionsCb(
         void(C::*_cb)(const MessagePublisher &_pub),
@@ -242,8 +221,7 @@ namespace ignition
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
-      /// Each time a new service is available, the callback will be
-      /// executed.
+      /// Each time a new service is available, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void SetConnectionsSrvCb(const SrvDiscoveryCallback &_cb);
@@ -253,12 +231,7 @@ namespace ignition
       /// Each time a new service is available, the callback will be executed.
       /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetConnectionsSrvCb(
         void(C::*_cb)(const ServicePublisher &_pub),
@@ -281,12 +254,7 @@ namespace ignition
       /// executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void SetDisconnectionsSrvCb(
         void(C::*_cb)(const ServicePublisher &_pub), C *_obj)
@@ -315,20 +283,25 @@ namespace ignition
       public: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                         char *_msg);
 
+      /// \brief Get the socket used for sending/receiving discovery messages.
+      /// \return Discovery socket.
       private: int DiscoverySocket() const;
 
+      /// \brief Get the data structure used for multicast communication.
+      /// \return The data structure containing the multicast information.
       private: sockaddr_in* MulticastAddr() const;
 
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enable or false otherwise.
       private: bool Verbose() const;
 
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery version.
       private: uint8_t Version() const;
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ Address.
-      /// \param[in] _ctrl 0MQ control address.
-      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _pub Publishers's information to send.
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.

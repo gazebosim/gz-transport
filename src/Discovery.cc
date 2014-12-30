@@ -224,33 +224,33 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseMsg(const MessagePublisher &_pub)
+void Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Add the addressing information (local publisher).
-  this->dataPtr->infoMsg.AddPublisher(_pub);
+  this->dataPtr->infoMsg.AddPublisher(_publisher);
 
   // If the scope is 'Process', do not advertise a message outside this process.
-  if (_pub.Scope() == Scope_t::Process)
+  if (_publisher.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(AdvType, _pub);
+  this->SendMsg(AdvType, _publisher);
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseSrv(const ServicePublisher &_pub)
+void Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Add the addressing information (local publisher).
-  this->dataPtr->infoSrv.AddPublisher(_pub);
+  this->dataPtr->infoSrv.AddPublisher(_publisher);
 
   // If the scope is 'Process', do not advertise a message outside this process.
-  if (_pub.Scope() == Scope_t::Process)
+  if (_publisher.Scope() == Scope_t::Process)
     return;
 
-  this->SendMsg(AdvSrvType, _pub);
+  this->SendMsg(AdvSrvType, _publisher);
 }
 
 //////////////////////////////////////////////////
@@ -380,17 +380,17 @@ void Discovery::DiscoverSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetMsgAddresses(const std::string &_topic,
-                                MsgAddresses_M &_addresses)
+bool Discovery::GetMsgPublishers(const std::string &_topic,
+                                 MsgAddresses_M &_publishers)
 {
-  return this->dataPtr->infoMsg.GetPublishers(_topic, _addresses);
+  return this->dataPtr->infoMsg.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetSrvAddresses(const std::string &_topic,
-                                SrvAddresses_M &_addresses)
+bool Discovery::GetSrvPublishers(const std::string &_topic,
+                                 SrvAddresses_M &_publishers)
 {
-  return this->dataPtr->infoSrv.GetPublishers(_topic, _addresses);
+  return this->dataPtr->infoSrv.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
@@ -513,8 +513,6 @@ void Discovery::RunActivityTask()
         publisher.Scope(Scope_t::All);
         this->dataPtr->disconnectionCb(publisher);
 
-        // ToDo: Same for services?
-
         // Remove the activity entry.
         this->dataPtr->activity.erase(it++);
       }
@@ -543,13 +541,13 @@ void Discovery::RunHeartbeatTask()
     {
       std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
+      std::string pUuid = this->dataPtr->pUuid;
       Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
       this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
-      this->dataPtr->infoMsg.GetPublishersByProc(this->dataPtr->pUuid,
-        msgNodes);
+      this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
       for (auto &topic : msgNodes)
       {
         for (auto &node : topic.second)
@@ -558,8 +556,7 @@ void Discovery::RunHeartbeatTask()
 
       // Re-advertise services that are advertised inside this process.
       std::map<std::string, std::vector<ServicePublisher>> srvNodes;
-      this->dataPtr->infoSrv.GetPublishersByProc(this->dataPtr->pUuid,
-        srvNodes);
+      this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
       for (auto &topic : srvNodes)
       {
         for (auto &node : topic.second)
@@ -623,7 +620,7 @@ void Discovery::RecvDiscoveryUpdate()
         DiscoveryPrivate::MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
         reinterpret_cast<socklen_t *>(&addrLen))) < 0)
   {
-    std:: cerr << "Receive failed" << std::endl;
+    std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error" << std::endl;
     return;
   }
   srcAddr = inet_ntoa(clntAddr.sin_addr);

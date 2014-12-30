@@ -83,39 +83,19 @@ namespace ignition
       public: void SendPendingRemoteReqs(const std::string &_topic);
 
       /// \brief Callback executed when the discovery detects new topics.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _pub Information of the publisher in charge of the topic.
       public: void OnNewConnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects disconnections.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _id 0MQ identity of the socket in charge of the service.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _pub Information of the publisher in charge of the topic.
       public: void OnNewDisconnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects a new service call
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _id 0MQ identity of the socket in charge of the service.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _pub Information of the publisher in charge of the service.
       public: void OnNewSrvConnection(const ServicePublisher &_pub);
 
       /// \brief Callback executed when a service call is no longer available.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _pub Information of the publisher in charge of the service.
       public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
 
       /// \brief Constructor.

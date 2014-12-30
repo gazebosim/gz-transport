@@ -71,7 +71,7 @@ namespace ignition
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
-      /// \return true if the topic was advertised.
+      /// \return true if the topic was succesfully advertised.
       public: bool Advertise(const std::string &_topic,
                              const Scope_t &_scope = Scope_t::All);
 
@@ -377,7 +377,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -456,7 +456,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -519,7 +519,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->dataPtr->shared->discovery->GetSrvAddresses(
+        if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
