@@ -246,12 +246,13 @@ namespace ignition
       public: size_t Pack(char *_buffer)
       {
         // Pack the common part of any advertise message.
-        if (this->header.Pack(_buffer) == 0)
+        size_t len = this->header.Pack(_buffer);
+        if (len == 0)
           return 0;
 
         _buffer += len;
 
-        // Pack the publisher.
+        // Pack the part of the publisher.
         if (this->publisher.Pack(_buffer) == 0)
           return 0;
 
@@ -264,7 +265,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer)
       {
         // Unpack the message publisher.
-        if (this->publisher.Unpack(_buffer) == 0);
+        if (this->publisher.Unpack(_buffer) == 0)
           return 0;
 
         return this->publisher.GetMsgLength();

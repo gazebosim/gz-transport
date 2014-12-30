@@ -209,7 +209,8 @@ size_t SubscriptionMsg::GetMsgLength()
 size_t SubscriptionMsg::Pack(char *_buffer)
 {
   // Pack the header.
-  if (this->GetHeader().Pack(_buffer) == 0)
+  size_t headerLen = this->GetHeader().Pack(_buffer);
+  if (headerLen == 0)
     return 0;
 
   if (this->topic == "")
