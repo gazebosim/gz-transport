@@ -310,6 +310,7 @@ void Discovery::DiscoverMsg(const std::string &_topic)
   MessagePublisher pub;
 
   pub.Topic(_topic);
+  pub.PUuid(this->dataPtr->pUuid);
   pub.Scope(Scope_t::All);
 
   // Broadcast a discovery request for this service call.
@@ -347,6 +348,7 @@ void Discovery::DiscoverSrv(const std::string &_topic)
   ServicePublisher pub;
 
   pub.Topic(_topic);
+  pub.PUuid(this->dataPtr->pUuid);
   pub.Scope(Scope_t::All);
 
   // Broadcast a discovery request for this service call.

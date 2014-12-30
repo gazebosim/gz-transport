@@ -34,6 +34,7 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -193,13 +194,13 @@ namespace ignition
       private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
-      private: TopicStorage connections;
+      private: TopicStorage<MessagePublisher> connections;
 
       /// \brief List of connected zmq end points for request/response.
       private: std::vector<std::string> srvConnections;
 
       /// \brief Remote subscribers.
-      public: TopicStorage remoteSubscribers;
+      public: TopicStorage<MessagePublisher> remoteSubscribers;
 
       /// \brief Subscriptions.
       public: HandlerStorage<ISubscriptionHandler> localSubscriptions;

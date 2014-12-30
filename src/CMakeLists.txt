@@ -5,7 +5,7 @@ set (sources
   #ign.cc
   NetUtils.cc
   #Node.cc
-  #NodeShared.cc
+  NodeShared.cc
   Packet.cc
   Publisher.cc
   TopicUtils.cc
@@ -14,7 +14,7 @@ set (sources
 
 set (gtest_sources
   Discovery_TEST.cc
-  #HandlerStorage_TEST.cc
+  HandlerStorage_TEST.cc
   #Node_TEST.cc
   Packet_TEST.cc
   TopicStorage_TEST.cc
