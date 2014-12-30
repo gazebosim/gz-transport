@@ -46,8 +46,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   transport::Publisher info;
   transport::TopicStorage<transport::Publisher> test;
 
-  // Check HasPublisher.
-  EXPECT_FALSE(test.HasPublisher(topic));
+  // Check HasTopic.
+  EXPECT_FALSE(test.HasTopic(topic));
+
   // Check HasAnyPublishers.
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid1));
   // Check HasPublisher.
@@ -64,17 +65,14 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Insert one node address.
   transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, scope1);
   EXPECT_TRUE(test.AddPublisher(publisher1));
+
   // Insert an existing publisher.
   EXPECT_FALSE(test.AddPublisher(publisher1));
 
-  test.Print();
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
 
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-
-  return;
-
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
@@ -102,9 +100,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, scope2);
   EXPECT_TRUE(test.AddPublisher(publisher2));
   EXPECT_FALSE(test.AddPublisher(publisher2));
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
@@ -141,9 +139,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, scope3);
   EXPECT_TRUE(test.AddPublisher(publisher3));
   EXPECT_FALSE(test.AddPublisher(publisher3));
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
@@ -190,9 +188,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
   transport::Publisher publisher4(topic, addr2, pUuid2, nUuid4, scope4);
   EXPECT_TRUE(test.AddPublisher(publisher4));
   EXPECT_FALSE(test.AddPublisher(publisher4));
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
@@ -248,9 +246,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   // Remove the node4's address advertised for topic.
   EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid2, nUuid4));
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
@@ -292,9 +290,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   // Remove the node3's address advertised for topic.
   EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid2, nUuid3));
-  // Check HasPublisher.
-  EXPECT_TRUE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
@@ -327,9 +325,9 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   // Remove all the addresses of process1.
   EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
-  // Check HasPublisher.
-  EXPECT_FALSE(test.HasPublisher(topic));
-  EXPECT_FALSE(test.HasPublisher("Unknown topic"));
+  // Check HasTopic.
+  EXPECT_FALSE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
@@ -348,7 +346,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   transport::Publisher publisher5(topic, addr1, pUuid1, nUuid1, scope1);
   EXPECT_TRUE(test.AddPublisher(publisher5));
   EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid1, nUuid1));
-  EXPECT_FALSE(test.HasPublisher(topic));
+  EXPECT_FALSE(test.HasTopic(topic));
 
   // Insert some topics, and remove all the topics from a process but keeping
   // the same topics from other proccesses.
