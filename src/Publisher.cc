@@ -25,7 +25,7 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 Publisher::Publisher(const std::string &_topic, const std::string &_addr,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t _scope)
+  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope)
   : topic(_topic),
     addr(_addr),
     pUuid(_pUuid),
@@ -89,7 +89,7 @@ void Publisher::NUuid(const std::string &_nUuid)
 }
 
 //////////////////////////////////////////////////
-void Publisher::Scope(const Scope_t _scope)
+void Publisher::Scope(const Scope_t &_scope)
 {
   this->scope = _scope;
 }
@@ -215,7 +215,7 @@ size_t Publisher::GetMsgLength() const
 //////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope_t _scope,
+  const std::string &_nUuid, const Scope_t &_scope,
   const std::string &_msgTypeName)
   : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
     ctrl(_ctrl),
@@ -334,7 +334,7 @@ void MessagePublisher::MsgTypeName(const std::string &_msgTypeName)
 //////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_socketId,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t _scope,
+  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope,
   const std::string &_reqType, const std::string &_repType)
   : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
     socketId(_socketId),
