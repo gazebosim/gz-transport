@@ -97,10 +97,18 @@ void Publisher::Scope(const Scope_t &_scope)
 //////////////////////////////////////////////////
 size_t Publisher::Pack(char *_buffer) const
 {
-  if (this->topic.empty() || this->addr.empty() || this->nUuid.empty())
+  if (this->topic.empty() || this->addr.empty() ||
+      this->pUuid.empty() || this->nUuid.empty())
   {
     std::cerr << "Publisher::Pack() error: You're trying to pack an "
               << "incomplete Publisher:" << std::endl << *this;
+    return 0;
+  }
+
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "Publisher::Pack() error: NULL output buffer" << std::endl;
     return 0;
   }
 
@@ -460,25 +468,25 @@ void ServicePublisher::SocketId(const std::string &_socketId)
 }
 
 //////////////////////////////////////////////////
-std::string ServicePublisher::GetReqTypeName() const
+std::string ServicePublisher::ReqTypeName() const
 {
   return this->reqTypeName;
 }
 
 //////////////////////////////////////////////////
-std::string ServicePublisher::GetRepTypeName() const
+std::string ServicePublisher::RepTypeName() const
 {
   return this->repTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SetReqTypeName(const std::string &_reqTypeName)
+void ServicePublisher::ReqTypeName(const std::string &_reqTypeName)
 {
   this->reqTypeName = _reqTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
+void ServicePublisher::RepTypeName(const std::string &_repTypeName)
 {
   this->repTypeName = _repTypeName;
 }
