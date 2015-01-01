@@ -54,7 +54,7 @@ namespace ignition
                         const std::string &_addr,
                         const std::string &_pUuid,
                         const std::string &_nUuid,
-                        const Scope_t _scope);
+                        const Scope_t &_scope);
 
       /// \brief Destructor.
       public: virtual ~Publisher() = default;
@@ -92,7 +92,7 @@ namespace ignition
       public: void NUuid(const std::string &_nUuid);
 
       /// \brief Set the scope of the topic advertised by this publisher.
-      public: void Scope(const Scope_t _scope);
+      public: void Scope(const Scope_t &_scope);
 
       /// \brief Serialize the publisher. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -168,7 +168,7 @@ namespace ignition
                                const std::string &_ctrl,
                                const std::string &_pUuid,
                                const std::string &_nUuid,
-                               const Scope_t _scope,
+                               const Scope_t &_scope,
                                const std::string &_msgTypeName);
 
       /// \brief Destructor.
@@ -239,7 +239,7 @@ namespace ignition
                                const std::string &_id,
                                const std::string &_pUuid,
                                const std::string &_nUuid,
-                               const Scope_t _scope,
+                               const Scope_t &_scope,
                                const std::string &_reqType,
                                const std::string &_repType);
 

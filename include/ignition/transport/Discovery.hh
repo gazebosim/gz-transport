@@ -45,7 +45,6 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -101,14 +100,14 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       public: void DiscoverSrv(const std::string &_topic);
 
-      /// \brief Get all the publisher's known for a given topic.
+      /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       bool GetMsgPublishers(const std::string &_topic,
                             MsgAddresses_M &_publishers);
 
-      /// \brief Get all the publishers known for a given service.
+      /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
@@ -314,7 +313,7 @@ namespace ignition
         auto msgLength = 0;
         std::vector<char> buffer;
 
-        std::string _topic = _pub.Topic();
+        std::string topic = _pub.Topic();
 
         switch (_type)
         {
@@ -336,7 +335,7 @@ namespace ignition
           case SubSrvType:
           {
             // Create the [UN]SUBSCRIBE message.
-            SubscriptionMsg subMsg(header, _topic);
+            SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.GetMsgLength());
@@ -372,7 +371,7 @@ namespace ignition
         if (this->Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << _topic << "]" << std::endl;
+                    << " msg [" << topic << "]" << std::endl;
         }
       }
 
