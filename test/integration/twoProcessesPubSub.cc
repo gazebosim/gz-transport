@@ -138,7 +138,7 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   // Check that the message was not received.
-  //EXPECT_FALSE(cbExecuted);
+  EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
 
   reset();
