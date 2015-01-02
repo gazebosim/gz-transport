@@ -64,14 +64,11 @@ void runSubscriber()
   cbExecuted = false;
   cb2Executed = false;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   transport::Node node(partition, ns);
   transport::Node node2(partition, ns);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cb2));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   int interval = 100;
 

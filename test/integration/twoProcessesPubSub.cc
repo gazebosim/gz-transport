@@ -18,6 +18,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
 #include "ignition/transport/test_config.h"
 
@@ -27,6 +28,35 @@ std::string partition = "testPartition";
 std::string ns = "";
 std::string topic = "/foo";
 std::string data = "bar";
+bool cbExecuted = false;
+bool cbVectorExecuted = false;
+int counter = 0;
+
+//////////////////////////////////////////////////
+/// \brief Initialize some global variables.
+void reset()
+{
+  counter = 0;
+  cbExecuted = false;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+{
+  EXPECT_EQ(_topic, topic);
+  cbExecuted = true;
+  counter++;
+}
+
+
+//////////////////////////////////////////////////
+/// \brief Callback for receiving Vector3d data.
+void cbVector(const std::string &_topic, const transport::msgs::Vector3d &_msg)
+{
+  EXPECT_EQ(_topic, topic);
+  cbVectorExecuted = true;
+}
 
 //////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
@@ -53,6 +83,65 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node.Publish(topic, msg));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a message is not received if the callback does not use
+/// the advertised types.
+TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str());
+
+  reset();
+
+  transport::Node node(partition, ns);
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbExecuted);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two subscribers on the same topic. One of the
+/// subscribers has a wrong callback (types in the callback does not match the
+/// advertised type). Check that only the good callback is executed.
+TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str());
+
+  reset();
+
+  transport::Node node1(partition, ns);
+  transport::Node node2(partition, ns);
+  EXPECT_TRUE(node1.Subscribe(topic, cb));
+  EXPECT_TRUE(node2.Subscribe(topic, cbVector));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  // Check that the message was not received.
+  //EXPECT_FALSE(cbExecuted);
+  EXPECT_TRUE(cbVectorExecuted);
+
+  reset();
 
   testing::waitAndCleanupFork(pi);
 }
