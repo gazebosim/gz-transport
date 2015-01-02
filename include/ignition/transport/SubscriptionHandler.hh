@@ -71,6 +71,8 @@ namespace ignition
       public: virtual bool RunCallback(const std::string &_topic,
                                        const std::string &_data) = 0;
 
+      public: virtual std::string GetTypeName() = 0;
+
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
       public: std::string GetNodeUuid()
@@ -105,18 +107,9 @@ namespace ignition
       {
       }
 
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T> CreateMsg(const std::string &_data)
+      public: std::string GetTypeName()
       {
-        // Instantiate a specific protobuf message
-        std::shared_ptr<T> msgPtr(new T());
-
-        // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
-
-        return msgPtr;
+        return T().GetTypeName();
       }
 
       /// \brief Set the callback for this handler.
@@ -158,7 +151,9 @@ namespace ignition
                                const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
-        auto msg = this->CreateMsg(_data);
+        std::shared_ptr<T> msg(new T());
+        if (!msg->ParseFromString(_data))
+          return false;
 
         // Execute the callback (if existing).
         if (this->cb)

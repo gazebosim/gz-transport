@@ -269,8 +269,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(),
-          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused",
-          "unused");
+          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope,
+          T1().GetTypeName(), T2().GetTypeName());
         this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
 
         return true;
@@ -329,8 +329,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->dataPtr->shared->myReplierAddress,
           this->dataPtr->shared->replierId.ToString(),
-          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused",
-          "unused");
+          this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope,
+          T1().GetTypeName(), T2().GetTypeName());
         this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
 
         return true;

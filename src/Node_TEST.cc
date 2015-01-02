@@ -28,6 +28,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "msg/int.pb.h"
+#include "msg/vector3d.pb.h"
 
 // Implement non POSIX setenv call in Visual Studio
 #if (_MSC_VER >= 1400)
@@ -48,6 +49,7 @@ std::string topic = "/foo";
 int data = 5;
 bool cbExecuted;
 bool cb2Executed;
+bool cbVectorExecuted;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
@@ -60,6 +62,7 @@ void reset()
   cbExecuted = false;
   cb2Executed = false;
   srvExecuted = false;
+  cbVectorExecuted = false;
   responseExecuted = false;
   counter = 0;
   terminatePub = false;
@@ -108,6 +111,14 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
   responseExecuted = true;
   ++counter;
+}
+
+//////////////////////////////////////////////////
+/// \brief Callback for receiving Vector3d data.
+void cbVector(const std::string &_topic, const transport::msgs::Vector3d &_msg)
+{
+  EXPECT_EQ(_topic, topic);
+  cbVectorExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -485,6 +496,25 @@ TEST(NodeTest, ScopeAll)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check that the types advertised and published match.
+TEST(NodeTest, TypeMismatch)
+{
+  transport::msgs::Int rightMsg;
+  transport::msgs::Vector3d wrongMsg;
+  rightMsg.set_data(1);
+  wrongMsg.set_x(1);
+  wrongMsg.set_y(2);
+  wrongMsg.set_z(3);
+
+  transport::Node node(partition, ns);
+
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+
+  EXPECT_FALSE(node.Publish(topic, wrongMsg));
+  EXPECT_TRUE(node.Publish(topic, rightMsg));
+}
+
+//////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallAsync)
 {
@@ -719,6 +749,116 @@ TEST(NodeTest, SigTermTermination)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
   thread.join();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a message is not published if the type does not match
+/// the type advertised.
+TEST(NodeTest, PubSubWrongTypesOnPublish)
+{
+  reset();
+
+  transport::msgs::Int msg;
+  msg.set_data(data);
+  transport::msgs::Vector3d msgV;
+  msgV.set_x(1);
+  msgV.set_y(2);
+  msgV.set_z(3);
+
+  transport::Node node(partition, ns);
+
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Send a message with a wrong type.
+  EXPECT_FALSE(node.Publish(topic, msgV));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(node.Publish(topic, msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a message is not received if the callback does not use
+/// the advertised types.
+TEST(NodeTest, PubSubWrongTypesOnSubscription)
+{
+  reset();
+
+  transport::msgs::Vector3d msgV;
+  msgV.set_x(1);
+  msgV.set_y(2);
+  msgV.set_z(3);
+
+  transport::Node node(partition, ns);
+
+  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
+
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Send a message with a wrong type.
+  EXPECT_TRUE(node.Publish(topic, msgV));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two subscribers on the same topic. One of the
+/// subscribers has a wrong callback (types in the callback does not match the
+/// advertised type). Check that only the good callback is executed.
+TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
+{
+  reset();
+
+  transport::msgs::Int msg;
+  msg.set_data(data);
+
+  transport::Node node1(partition, ns);
+  transport::Node node2(partition, ns);
+
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+
+  // Good subscriber.
+  EXPECT_TRUE(node1.Subscribe(topic, cb));
+
+  // Bad subscriber: cbVector does not match the types advertised by node1.
+  EXPECT_TRUE(node2.Subscribe(topic, cbVector));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  EXPECT_TRUE(node1.Publish(topic, msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received by node1.
+  EXPECT_TRUE(cbExecuted);
+
+  // Check that the message was not received by node2.
+  EXPECT_FALSE(cbVectorExecuted);
 }
 
 //////////////////////////////////////////////////

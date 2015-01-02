@@ -207,7 +207,12 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
         if (subscriptionHandlerPtr)
+        {
+          if (subscriptionHandlerPtr->GetTypeName() != _msg.GetTypeName())
+            continue;
+
           subscriptionHandlerPtr->RunLocalCallback(fullyQualifiedTopic, _msg);
+        }
         else
         {
           std::cerr << "Node::Publish(): Subscription handler is NULL"

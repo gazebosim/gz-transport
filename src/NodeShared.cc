@@ -682,6 +682,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         {
           for (auto &handler : node.second)
           {
+            if (handler.second->GetTypeName() != _pub.MsgTypeName())
+              continue;
+
             std::string nodeUuid = handler.second->GetNodeUuid();
 
             zmq::message_t msg;

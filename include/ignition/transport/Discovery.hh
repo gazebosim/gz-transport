@@ -45,6 +45,7 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -99,6 +100,14 @@ namespace ignition
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
       public: void DiscoverSrv(const std::string &_topic);
+
+      /// \brief Get the discovery information object (messages).
+      /// \return Reference to the discovery information object.
+      public: TopicStorage<MessagePublisher>& GetDiscoveryMsgInfo() const;
+
+      /// \brief Get the discovery information object (services).
+      /// \return Reference to the discovery information object.
+      public: TopicStorage<ServicePublisher>& GetDiscoverySrvInfo() const;
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
