@@ -54,7 +54,7 @@ TEST(twoProcSrvCall, ThousandCalls)
   unsigned int timeout = 1000;
   transport::Node node(partition, ns);
 
-  for (int i = 0; i < 15000; i++)
+  for (int i = 0; i < 10; i++)
   {
     req.set_data(i);
     EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
