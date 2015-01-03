@@ -575,6 +575,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       if (pub.GetReqTypeName() == _reqType && pub.GetRepTypeName() == _repType)
       {
         found = true;
+        responserAddr = pub.Addr();
+        responserId = pub.SocketId();
         break;
       }
     }
@@ -584,11 +586,6 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
   if (!found)
     return;
-
-  // Get the first responder.
-  auto &v = addresses.begin()->second;
-  responserAddr = v.at(0).Addr();
-  responserId = v.at(0).SocketId();
 
   if (verbose)
   {
@@ -608,6 +605,13 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       // Check if this service call has been already requested.
       if (req.second->Requested())
         continue;
+
+      // Check that the pending service call has types that match the responser.
+      if (req.second->GetReqTypeName() != _reqType ||
+          req.second->GetRepTypeName() != _repType)
+      {
+        continue;
+      }
 
       // Mark the handler as requested.
       req.second->SetRequested(true);
@@ -834,8 +838,14 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
     }
   }
 
-  // Request all pending service calls for this topic.
-  this->SendPendingRemoteReqs(topic, reqType, repType);
+  // Check if there's a pending service request with this specific combination
+  // of request and response types.
+  IReqHandlerPtr handler;
+  if (this->requests.GetFirstHandler(topic, reqType, repType, handler))
+  {
+    // Request all pending service calls for this topic and req/rep types.
+    this->SendPendingRemoteReqs(topic, reqType, repType);
+  }
 }
 
 //////////////////////////////////////////////////

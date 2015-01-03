@@ -976,7 +976,6 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   req.set_data(data);
 
   transport::Node node(partition, ns);
-  transport::Node node2(partition, ns);
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Request service calls with wrong types in the response.
