@@ -372,6 +372,8 @@ void NodeShared::RecvSrvRequest()
   std::string rep;
   std::string resultStr;
   std::string dstId;
+  std::string reqType;
+  std::string repType;
 
   try
   {
@@ -401,6 +403,14 @@ void NodeShared::RecvSrvRequest()
     if (!this->replier->recv(&msg, 0))
       return;
     req = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->replier->recv(&msg, 0))
+      return;
+    reqType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->replier->recv(&msg, 0))
+      return;
+    repType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -411,7 +421,7 @@ void NodeShared::RecvSrvRequest()
 
   // Get the REP handler.
   IRepHandlerPtr repHandler;
-  if (this->repliers.GetHandler(topic, repHandler))
+  if (this->repliers.GetFirstHandler(topic, reqType, repType, repHandler))
   {
     bool result;
     // Run the service call and get the results.
@@ -544,13 +554,35 @@ void NodeShared::RecvSrvResponse()
 }
 
 //////////////////////////////////////////////////
-void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
+void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
+  const std::string &_reqType, const std::string &_repType)
 {
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
   this->discovery->GetSrvPublishers(_topic, addresses);
   if (addresses.empty())
+    return;
+
+  // Find a publisher that offers this service with a particular pair of REQ/REP
+  // types.
+  bool found = false;
+  for (auto &proc : addresses)
+  {
+    auto &v = proc.second;
+    for (auto &pub : v)
+    {
+      if (pub.GetReqTypeName() == _reqType && pub.GetRepTypeName() == _repType)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (found)
+      break;
+  }
+
+  if (!found)
     return;
 
   // Get the first responder.
@@ -616,6 +648,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
+        this->requester->send(msg, ZMQ_SNDMORE);
+
+        msg.rebuild(_reqType.size());
+        memcpy(msg.data(), _reqType.data(), _reqType.size());
+        this->requester->send(msg, ZMQ_SNDMORE);
+
+        msg.rebuild(_repType.size());
+        memcpy(msg.data(), _repType.data(), _repType.size());
         this->requester->send(msg, 0);
       }
       catch(const zmq::error_t& ze)
@@ -769,6 +809,8 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 {
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
+  std::string reqType = _pub.GetReqTypeName();
+  std::string repType = _pub.GetRepTypeName();
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -793,7 +835,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   }
 
   // Request all pending service calls for this topic.
-  this->SendPendingRemoteReqs(topic);
+  this->SendPendingRemoteReqs(topic, reqType, repType);
 }
 
 //////////////////////////////////////////////////

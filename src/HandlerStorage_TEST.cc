@@ -66,15 +66,19 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::HandlerStorage<transport::IRepHandler> reps;
   transport::msgs::Int rep1Msg;
   bool result;
-
   transport::msgs::Vector3d reqMsg;
+  std::string reqType = reqMsg.GetTypeName();
+  std::string rep1Type = rep1Msg.GetTypeName();
+  std::string rep2Type = transport::msgs::Int().GetTypeName();
+  std::string rep3Type = transport::msgs::Int().GetTypeName();
+
   reqMsg.set_x(1.0);
   reqMsg.set_y(2.0);
   reqMsg.set_z(3.0);
 
   // Check some operations when there is no data stored.
   EXPECT_FALSE(reps.GetHandlers(topic, m));
-  EXPECT_FALSE(reps.GetHandler(topic, handler));
+  EXPECT_FALSE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
   EXPECT_FALSE(reps.GetHandler(topic, nUuid1, hUuid, handler));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
   EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
@@ -92,7 +96,8 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
-  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
+  ASSERT_TRUE(handler != NULL);
   std::string handlerUuid = handler->GetHandlerUuid();
   EXPECT_EQ(handlerUuid, rep1HandlerPtr->GetHandlerUuid());
   EXPECT_TRUE(reps.GetHandler(topic, nUuid1, handlerUuid, handler));
@@ -140,7 +145,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid2));
-  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
   handlerUuid = rep3HandlerPtr->GetHandlerUuid();
   EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
   EXPECT_EQ(handler->GetHandlerUuid(), handlerUuid);

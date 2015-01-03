@@ -20,7 +20,6 @@
 #include <string>
 #include <ignition/transport.hh>
 #include "msg/stringmsg.pb.h"
-#include "msg/int.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
@@ -31,38 +30,12 @@ void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-/// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const example::mymsgs::Int &_msg)
-{
-  std::cout << "Topic:" << _topic << "\n"
-            << "Msg:  " << _msg.data() << "\n\n";
-}
-
-//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node, node2;
+  ignition::transport::Node node;
 
   // Subscribe to a topic by registering a callback.
-  node.Subscribe("/foo", cb2);
-
-  node2.Subscribe("/foo", cb);
-
-  if (!node.Advertise<example::mymsgs::StringMsg>("/foo"))
-    return -1;
-
-  // Prepare the message.
-  example::mymsgs::StringMsg msg;
-  msg.set_data("HELLO");
-
-  for (int i = 0; i < 10; ++i)
-  {
-    if (!node.Publish("/foo", msg))
-      break;
-
-    std::cout << "Publishing hello\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  }
+  node.Subscribe("/foo", cb);
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;

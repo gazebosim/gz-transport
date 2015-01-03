@@ -127,6 +127,14 @@ namespace ignition
           });
       }
 
+      /// \brief Get the message type name used in the service request.
+      /// \return Message type name.
+      public: virtual std::string GetReqTypeName() const = 0;
+
+      /// \brief Get the message type name used in the service response.
+      /// \return Message type name.
+      public: virtual std::string GetRepTypeName() const = 0;
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
       protected: std::condition_variable_any condition;
@@ -234,6 +242,18 @@ namespace ignition
 
         this->repAvailable = true;
         this->condition.notify_one();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetReqTypeName() const
+      {
+        return Req().GetTypeName();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetRepTypeName() const
+      {
+        return Rep().GetTypeName();
       }
 
       // Protobuf message containing the request's parameters.

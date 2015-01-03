@@ -56,10 +56,6 @@ add_executable(subscriber subscriber.cc ${PROTO_SRC})
 target_link_libraries(subscriber ${EXAMPLES_LIBS})
 add_dependencies(subscriber protobuf_compilation)
 
-add_executable(subscriber2 subscriber2.cc ${PROTO_SRC})
-target_link_libraries(subscriber2 ${EXAMPLES_LIBS})
-add_dependencies(subscriber2 protobuf_compilation)
-
 add_executable(responser responser.cc ${PROTO_SRC})
 target_link_libraries(responser ${EXAMPLES_LIBS})
 add_dependencies(responser protobuf_compilation)

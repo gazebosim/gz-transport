@@ -368,8 +368,8 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
+        if (this->dataPtr->shared->repliers.GetFirstHandler(fullyQualifiedTopic,
+          T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -404,7 +404,8 @@ namespace ignition
         if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName());
         }
         else
         {
@@ -445,8 +446,8 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
+        if (this->dataPtr->shared->repliers.GetFirstHandler(fullyQualifiedTopic,
+          T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -483,7 +484,8 @@ namespace ignition
         if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName());
         }
         else
         {
@@ -521,8 +523,8 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->dataPtr->shared->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
+        if (this->dataPtr->shared->repliers.GetFirstHandler(fullyQualifiedTopic,
+          T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
@@ -546,7 +548,8 @@ namespace ignition
         if (this->dataPtr->shared->discovery->GetSrvPublishers(
           fullyQualifiedTopic, addresses))
         {
-          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic);
+          this->dataPtr->shared->SendPendingRemoteReqs(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName());
         }
         else
         {

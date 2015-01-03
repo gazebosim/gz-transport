@@ -80,7 +80,9 @@ namespace ignition
 
       /// \brief Try to send all the requests for a given service call.
       /// \param[in] _topic Topic name.
-      public: void SendPendingRemoteReqs(const std::string &_topic);
+      public: void SendPendingRemoteReqs(const std::string &_topic,
+                                         const std::string &_reqType,
+                                         const std::string &_repType);
 
       /// \brief Callback executed when the discovery detects new topics.
       /// \param[in] _pub Information of the publisher in charge of the topic.

@@ -52,6 +52,7 @@ bool cb2Executed;
 bool cbVectorExecuted;
 bool srvExecuted;
 bool responseExecuted;
+bool wrongResponseExecuted;
 int counter = 0;
 bool terminatePub = false;
 
@@ -64,6 +65,7 @@ void reset()
   srvExecuted = false;
   cbVectorExecuted = false;
   responseExecuted = false;
+  wrongResponseExecuted = false;
   counter = 0;
   terminatePub = false;
 }
@@ -114,6 +116,14 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 }
 
 //////////////////////////////////////////////////
+/// \brief Service call response callback.
+void wrongResponse(const std::string &_topic,
+  const transport::msgs::Vector3d &_rep, bool _result)
+{
+  wrongResponseExecuted = true;
+}
+
+//////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
 void cbVector(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 {
@@ -150,6 +160,15 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
+  // Member function used as a callback for responding to a service call.
+  public: void WrongEcho(const std::string &_topic,
+    const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
+    bool &_result)
+  {
+    _result = true;
+    this->wrongCallbackSrvExecuted = true;
+  }
+
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const std::string &_topic,
     const transport::msgs::Int &_msg)
@@ -176,23 +195,46 @@ class MyTestClass
   {
     transport::msgs::Int req;
     transport::msgs::Int rep;
+    transport::msgs::Vector3d wrongReq;
+    transport::msgs::Vector3d wrongRep;
     int timeout = 500;
     bool result;
 
     req.set_data(data);
 
+    this->Reset();
+
     // Advertise an illegal service name.
     EXPECT_FALSE(this->node->Advertise("Bad Srv", &MyTestClass::Echo, this));
 
+    // Advertise and request a valid service.
     EXPECT_TRUE(this->node->Advertise(topic, &MyTestClass::Echo, this));
     EXPECT_TRUE(this->node->Request(topic, req, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
+
+    this->Reset();
+
+    // Service requests with wrong types.
+    EXPECT_FALSE(this->node->Request(topic, req, timeout, wrongRep, result));
+    EXPECT_TRUE(this->node->Request(topic, wrongReq, response));
+    EXPECT_TRUE(this->node->Request(topic, req, wrongResponse));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_FALSE(this->callbackSrvExecuted);
+    EXPECT_FALSE(this->wrongCallbackSrvExecuted);
+  }
+
+  public: void Reset()
+  {
+    this->callbackExecuted = false;
+    this->callbackSrvExecuted = false;
+    this->wrongCallbackSrvExecuted = false;
   }
 
   /// \brief Member variable that flags when the callback is executed.
   public: bool callbackExecuted;
   public: bool callbackSrvExecuted;
+  public: bool wrongCallbackSrvExecuted;
 
   /// \brief Transport node;
   private: std::unique_ptr<transport::Node> node;
@@ -467,8 +509,6 @@ TEST(NodeTest, ClassMemberCallback)
   EXPECT_TRUE(client.callbackExecuted);
 
   client.TestServiceCall();
-
-  EXPECT_TRUE(client.callbackSrvExecuted);
 }
 
 //////////////////////////////////////////////////
@@ -860,6 +900,98 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   // Check that the message was not received by node2.
   EXPECT_FALSE(cbVectorExecuted);
 }
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service responser and a service requester. The
+/// requester uses a wrong type for the request argument. The test should verify
+/// that the service call does not succeed.
+TEST(NodeTest, SrvRequestWrongReq)
+{
+  transport::msgs::Vector3d req;
+  transport::msgs::Int rep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  req.set_x(1);
+  req.set_y(2);
+  req.set_z(3);
+
+  reset();
+
+  transport::Node node(partition, ns);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  // Request an asynchronous service call with wrong type in the request.
+  EXPECT_TRUE(node.Request(topic, req, response));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_FALSE(responseExecuted);
+
+  // Request a synchronous service call with wrong type in the request.
+  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service responser and a service requester. The
+/// requester uses a wrong type for the response argument. The test should
+/// verify that the service call does not succeed.
+TEST(NodeTest, SrvRequestWrongRep)
+{
+  transport::msgs::Int req;
+  transport::msgs::Vector3d rep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
+  reset();
+
+  transport::Node node(partition, ns);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  // Request an asynchronous service call with wrong type in the response.
+  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_FALSE(wrongResponseExecuted);
+
+  // Request a synchronous service call with wrong type in the response.
+  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service responser and two service requesters. One
+/// requester uses wrong type arguments. The test should verify that only one
+/// of the requesters receives the response.
+TEST(NodeTest, SrvTwoRequestsOneWrong)
+{
+  transport::msgs::Int req;
+  transport::msgs::Int goodRep;
+  transport::msgs::Vector3d badRep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
+  transport::Node node(partition, ns);
+  transport::Node node2(partition, ns);
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  // Request service calls with wrong types in the response.
+  EXPECT_FALSE(node.Request(topic, req, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_FALSE(wrongResponseExecuted);
+
+  // Valid service requests.
+  EXPECT_TRUE(node.Request(topic, req, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(topic, req, response));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_TRUE(responseExecuted);
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
