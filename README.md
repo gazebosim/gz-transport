@@ -12,7 +12,7 @@ of libraries designed to rapidly develop robot applications.
 Please refer to the [drone.io
 job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/latest)
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/default)
 
 [![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=latest)](https://readthedocs.org/projects/ignition-transport/?badge=latest)
 
