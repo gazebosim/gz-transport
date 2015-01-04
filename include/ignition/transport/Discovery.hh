@@ -387,7 +387,7 @@ namespace ignition
       public: void GetServiceList(std::vector<std::string> &_services) const;
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
     };
   }
