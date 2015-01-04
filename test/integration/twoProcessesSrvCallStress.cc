@@ -56,3 +56,10 @@ TEST(twoProcSrvCall, ThousandCalls)
   // Need to kill the transport node
   testing::killFork(pi);
 }
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
