@@ -29,6 +29,16 @@ std::string ns = "";
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
+/// \brief Provide a service.
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
+{
+  EXPECT_EQ(_topic, topic);
+  _rep.set_data(_req.data());
+  _result = true;
+}
+
+//////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
@@ -43,29 +53,16 @@ TEST(twoProcSrvCall, ThousandCalls)
   unsigned int timeout = 1000;
   transport::Node node(partition, ns);
 
-  req.set_data(1);
-
-  for (int i = 0; i < 1; i++)
+  for (int i = 0; i < 15000; i++)
   {
-    EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
+    req.set_data(i);
+    ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
 
     // Check the service response.
-    EXPECT_TRUE(result);
-    EXPECT_EQ(1, response.data());
+    ASSERT_TRUE(result);
+    EXPECT_EQ(i, response.data());
   }
 
   // Need to kill the transport node
   testing::killFork(pi);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Enable verbose mode.
-  // Too much verbose generate tons of logs
-  // disabling
-  setenv("IGN_VERBOSE", "0", 1);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

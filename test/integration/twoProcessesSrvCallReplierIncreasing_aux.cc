@@ -15,7 +15,8 @@
  *
 */
 
-#include <cstdio>
+#include <chrono>
+#include <climits>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
@@ -24,13 +25,10 @@
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-
 std::string partition = "testPartition";
 std::string ns = "";
 std::string topic = "/foo";
-int counter = 0;
+int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -40,9 +38,6 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   EXPECT_EQ(_topic, topic);
   _rep.set_data(_req.data());
   _result = true;
-  counter++;
-
-  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -52,18 +47,11 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(200000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
 }
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallAux, SrvTwoProcsReplier)
+TEST(twoProcSrvCallReplierAux, SrvProcReplier)
 {
   runReplier();
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
