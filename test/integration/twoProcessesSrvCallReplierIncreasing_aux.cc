@@ -15,8 +15,7 @@
  *
 */
 
-#include <stdio.h>
-#include <chrono>
+#include <cstdio>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
@@ -57,7 +56,7 @@ void runReplier()
 }
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCall, SrvTwoProcsReplier)
+TEST(twoProcSrvCallAux, SrvTwoProcsReplier)
 {
   runReplier();
 }

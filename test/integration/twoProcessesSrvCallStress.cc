@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
@@ -30,23 +29,13 @@ std::string ns = "";
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  _rep.set_data(_req.data());
-  _result = true;
-}
-
-//////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
-  std::string subscriber_path = testing::portablePathUnion(
+  std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;
@@ -54,14 +43,15 @@ TEST(twoProcSrvCall, ThousandCalls)
   unsigned int timeout = 1000;
   transport::Node node(partition, ns);
 
-  for (int i = 0; i < 10; i++)
+  req.set_data(1);
+
+  for (int i = 0; i < 1; i++)
   {
-    req.set_data(i);
     EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
 
     // Check the service response.
     EXPECT_TRUE(result);
-    EXPECT_EQ(i, response.data());
+    EXPECT_EQ(1, response.data());
   }
 
   // Need to kill the transport node
