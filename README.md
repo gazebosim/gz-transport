@@ -14,6 +14,8 @@ job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
 
 [![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/latest)
 
+[![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=latest)](https://readthedocs.org/projects/ignition-transport/?badge=latest)
+
 
 ## Dependencies
 
