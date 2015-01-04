@@ -29,16 +29,6 @@ std::string ns = "";
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  _rep.set_data(_req.data());
-  _result = true;
-}
-
-//////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
