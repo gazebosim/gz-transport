@@ -52,7 +52,7 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that uses this.
-  getchar();
+  std::this_thread::sleep_for(std::chrono::milliseconds(200000));
 }
 
 //////////////////////////////////////////////////
