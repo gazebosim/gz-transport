@@ -100,9 +100,9 @@ std::string transport::determineHost()
   {
     std::string hostIP;
     strcat(host, ".local");
-    if (hostnameToIp(host, hostIP) == 0)
+    if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
     {
-      return std::string(hostIP);
+      return hostIP;
     }
   }
 
