@@ -30,9 +30,6 @@ using namespace ignition;
 
 bool cbExecuted;
 bool cb2Executed;
-
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
 std::string data = "bar";
 
@@ -65,13 +62,18 @@ void runSubscriber()
   cb2Executed = false;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  transport::Node node(partition, ns);
-  transport::Node node2(partition, ns);
+  transport::Node node;
+  transport::Node node2;
+
+  std::cout << "Partition node: [" << node.Partition() << "]" << std::endl;
+  std::cout << "Partition node2: [" << node2.Partition() << "]" << std::endl;
+
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cb2));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::cout << "subscribe" << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
   int interval = 100;
 
@@ -84,6 +86,7 @@ void runSubscriber()
       break;
   }
 
+  std::cout << "Checking callbacks" << std::endl;
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cb2Executed);
@@ -92,7 +95,10 @@ void runSubscriber()
   cb2Executed = false;
 
   EXPECT_TRUE(node.Unsubscribe(topic));
-  std::this_thread::sleep_for(std::chrono::milliseconds(600));
+  std::cout << "Unsubscribe()" << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  std::cout << "Checking callbacks" << std::endl;
 
   // Check that the message was only received in node2
   EXPECT_FALSE(cbExecuted);
@@ -109,6 +115,15 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

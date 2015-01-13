@@ -18,14 +18,12 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "msg/int.pb.h"
-
 #include "ignition/transport/test_config.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
-std::string partition = "testPartition";
-std::string ns = "";
+std::string partition;
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
@@ -35,13 +33,14 @@ TEST(twoProcSrvCall, ThousandCalls)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;
   bool result;
   unsigned int timeout = 1000;
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   for (int i = 0; i < 15000; i++)
   {
@@ -60,6 +59,12 @@ TEST(twoProcSrvCall, ThousandCalls)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

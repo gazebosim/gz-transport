@@ -554,6 +554,11 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void GetServiceList(std::vector<std::string> &_services) const;
 
+      public: std::string Partition()
+      {
+        return this->dataPtr->partition;
+      }
+
       /// \internal
       /// \brief Pointer to private data.
       protected: NodePrivatePtr dataPtr;

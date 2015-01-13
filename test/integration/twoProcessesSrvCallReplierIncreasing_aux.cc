@@ -25,8 +25,6 @@
 
 using namespace ignition;
 
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
 int Forever = INT_MAX;
 
@@ -43,7 +41,7 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 //////////////////////////////////////////////////
 void runReplier()
 {
-  transport::Node node(partition, ns);
+  transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that uses this.
@@ -59,6 +57,15 @@ TEST(twoProcSrvCallReplierAux, SrvProcReplier)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -18,53 +18,42 @@
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/TopicUtils.hh"
 #include "msg/int.pb.h"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
-int data = 5;
-int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
 void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
   _result = true;
-
-  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void runReplier()
 {
-  transport::Node node(partition, ns);
+  transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-}
-
-
-TEST(twoProcSrvCall, SrvTwoProcsReplier)
-{
-  runReplier();
+  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
+  runReplier();
 }

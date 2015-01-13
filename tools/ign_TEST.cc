@@ -24,6 +24,8 @@
 #include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
 
+std::string partition = "testPartition";
+
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
 {
@@ -64,7 +66,8 @@ TEST(ignTest, TopicList)
     PROJECT_BINARY_PATH,
     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    partition.c_str());
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -85,7 +88,8 @@ TEST(ignTest, ServiceList)
     PROJECT_BINARY_PATH,
     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
+    partition.c_str());
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
