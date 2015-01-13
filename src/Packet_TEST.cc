@@ -466,8 +466,8 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.publisher.PUuid(), pUuid);
   EXPECT_EQ(advSrv.publisher.NUuid(), nodeUuid);
   EXPECT_EQ(advSrv.publisher.Scope(), scope);
-  EXPECT_EQ(advSrv.publisher.GetReqTypeName(), reqType);
-  EXPECT_EQ(advSrv.publisher.GetRepTypeName(), repType);
+  EXPECT_EQ(advSrv.publisher.ReqTypeName(), reqType);
+  EXPECT_EQ(advSrv.publisher.RepTypeName(), repType);
 
   size_t msgLength = advSrv.header.GetHeaderLength() +
     sizeof(uint64_t) + topic.size() +
@@ -476,8 +476,8 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     sizeof(uint64_t) + pUuid.size() +
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
-    sizeof(uint64_t) + advSrv.publisher.GetReqTypeName().size() +
-    sizeof(uint64_t) + advSrv.publisher.GetRepTypeName().size();
+    sizeof(uint64_t) + advSrv.publisher.ReqTypeName().size() +
+    sizeof(uint64_t) + advSrv.publisher.RepTypeName().size();
   EXPECT_EQ(advSrv.GetMsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -515,10 +515,10 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.publisher.NUuid(), nodeUuid);
   advSrv.publisher.Scope(scope);
   EXPECT_EQ(advSrv.publisher.Scope(), scope);
-  advSrv.publisher.SetReqTypeName(reqType);
-  EXPECT_EQ(advSrv.publisher.GetReqTypeName(), reqType);
-  advSrv.publisher.SetRepTypeName(repType);
-  EXPECT_EQ(advSrv.publisher.GetRepTypeName(), repType);
+  advSrv.publisher.ReqTypeName(reqType);
+  EXPECT_EQ(advSrv.publisher.ReqTypeName(), reqType);
+  advSrv.publisher.RepTypeName(repType);
+  EXPECT_EQ(advSrv.publisher.RepTypeName(), repType);
 
   // Check << operator
   std::ostringstream output;
@@ -601,10 +601,10 @@ TEST(PacketTest, AdvertiseSrvIO)
   EXPECT_EQ(otherAdvSrv.publisher.SocketId(), advSrv.publisher.SocketId());
   EXPECT_EQ(otherAdvSrv.publisher.NUuid(), advSrv.publisher.NUuid());
   EXPECT_EQ(otherAdvSrv.publisher.Scope(), advSrv.publisher.Scope());
-  EXPECT_EQ(otherAdvSrv.publisher.GetReqTypeName(),
-    advSrv.publisher.GetReqTypeName());
-  EXPECT_EQ(otherAdvSrv.publisher.GetRepTypeName(),
-    advSrv.publisher.GetRepTypeName());
+  EXPECT_EQ(otherAdvSrv.publisher.ReqTypeName(),
+    advSrv.publisher.ReqTypeName());
+  EXPECT_EQ(otherAdvSrv.publisher.RepTypeName(),
+    advSrv.publisher.RepTypeName());
   EXPECT_EQ(otherAdvSrv.GetMsgLength(), advSrv.GetMsgLength());
   EXPECT_EQ(otherAdvSrv.GetMsgLength() -
             otherAdvSrv.header.GetHeaderLength(), advSrv.GetMsgLength() -
