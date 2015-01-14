@@ -24,7 +24,7 @@
 #include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
 
-std::string partition = "testPartition";
+std::string partition;
 
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
@@ -137,6 +137,12 @@ TEST(ignTest, ServiceListSameProc)
 /// Main
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);

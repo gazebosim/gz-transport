@@ -110,7 +110,8 @@ namespace ignition
           return false;
         }
 
-        //std::lock_guard<std::recursive_mutex> discLk(this->dataPtr->shared->discovery->GetMutex());
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
@@ -511,6 +512,7 @@ namespace ignition
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
             _result);
+          this->dataPtr->shared->discovery->GetMutex().unlock();
           return true;
         }
 
@@ -568,10 +570,9 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void GetServiceList(std::vector<std::string> &_services) const;
 
-      public: std::string Partition()
-      {
-        return this->dataPtr->partition;
-      }
+      /// \brief Get the partition name used by this node.
+      /// \return The partition name.
+      public: std::string Partition() const;
 
       /// \internal
       /// \brief Pointer to private data.
