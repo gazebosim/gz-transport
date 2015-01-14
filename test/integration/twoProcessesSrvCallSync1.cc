@@ -52,7 +52,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   transport::Node node;
 
   // Make sure that the address of the service call provider is known.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
   EXPECT_EQ(req.data(), rep.data());
   EXPECT_TRUE(result);
