@@ -83,14 +83,9 @@ void runSubscriber()
   EXPECT_TRUE(cb2Executed);
 
   cb2Executed = false;
-
-  std::cout << "Before unsubscribe()" << std::endl;
   EXPECT_TRUE(node.Unsubscribe(topic));
-
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   cbExecuted = false;
-
-  std::cout << "After unsubscribe()" << std::endl;
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was only received in node2

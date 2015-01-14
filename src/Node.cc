@@ -292,14 +292,10 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  std::cout << "Notifying publishers" << std::endl;
   for (auto &proc : addresses)
   {
     for (auto &node : proc.second)
     {
-      std::cout << "Publisher: " << node.addr << std::endl;
-
-      std::cout << "Sending unsubscribe message" << std::endl;
       zmq::socket_t socket(*this->dataPtr->shared->context, ZMQ_DEALER);
 
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be

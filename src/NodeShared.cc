@@ -342,12 +342,12 @@ void NodeShared::RecvControlUpdate()
   }
   else if (std::stoi(data) == EndConnection)
   {
-    //if (this->verbose)
-    //{
+    if (this->verbose)
+    {
       std::cout << "Registering the end of a remote connection" << std::endl;
       std::cout << "\tProc UUID: " << procUuid << std::endl;
       std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
-    //}
+    }
 
     // Delete a remote subscriber.
     this->remoteSubscribers.DelAddressByNode(topic, procUuid, nodeUuid);
