@@ -25,7 +25,6 @@
 #include <limits>
 #include <random>
 #include <string>
-#include <unistd.h>
 
 #ifdef _WIN32
   #include <filesystem>
@@ -33,6 +32,7 @@
   #include <signal.h>
   #include <sys/types.h>
   #include <sys/wait.h>
+  #include <unistd.h>
 #endif
 
 #if (_MSC_VER >= 1400) // Visual Studio 2005
