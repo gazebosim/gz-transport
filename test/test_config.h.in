@@ -22,7 +22,7 @@
 #define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
 
 #include <iostream>
-#include <limits>
+#include <climits>
 #include <random>
 #include <string>
 
@@ -164,7 +164,7 @@ namespace testing
     std::mt19937 randGenerator(seed);
 
     // Create a random partition name based on an integer converted to string.
-    std::uniform_int_distribution<int32_t> d(0, std::numeric_limits<int>::max());
+    std::uniform_int_distribution<int32_t> d(0, INT_MAX);
 
     return std::to_string(d(randGenerator));
   }
