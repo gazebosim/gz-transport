@@ -52,8 +52,8 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
@@ -69,8 +69,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   int i = 0;
   while (i < 300 && !responseExecuted)
   {
-     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-     ++i;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
   }
 
   // Check that the service call response was executed.

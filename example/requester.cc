@@ -45,17 +45,4 @@ int main(int argc, char **argv)
   }
   else
     std::cerr << "Service call timed out" << std::endl;
-
-  // Request the "/echo" service.
-  executed = node.Request("/echo", req, timeout, rep, result);
-
-  if (executed)
-  {
-    if (result)
-      std::cout << "Response: [" << rep.data() << "]" << std::endl;
-    else
-      std::cout << "Service call failed" << std::endl;
-  }
-  else
-    std::cerr << "Service call timed out" << std::endl;
 }
