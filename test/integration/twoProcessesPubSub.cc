@@ -47,16 +47,14 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_z(3.0);
 
   transport::Node node;
-
-  std::cout << "Partition name: [" << node.Partition() << "]" << std::endl;
-
   EXPECT_TRUE(node.Advertise(topic));
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  EXPECT_TRUE(node.Publish(topic, msg));
-  std::cout << "Publish()" << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  EXPECT_TRUE(node.Publish(topic, msg));
-  std::cout << "Publish()" << std::endl;
+
+  // Publish messages for a few seconds
+  for (auto i = 0; i < 20; ++i)
+  {
+    EXPECT_TRUE(node.Publish(topic, msg));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 
   testing::waitAndCleanupFork(pi);
 }

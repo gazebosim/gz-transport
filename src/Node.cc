@@ -126,6 +126,8 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before).
@@ -167,6 +169,8 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
@@ -288,10 +292,14 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
+  std::cout << "Notifying publishers" << std::endl;
   for (auto &proc : addresses)
   {
     for (auto &node : proc.second)
     {
+      std::cout << "Publisher: " << node.addr << std::endl;
+
+      std::cout << "Sending unsubscribe message" << std::endl;
       zmq::socket_t socket(*this->dataPtr->shared->context, ZMQ_DEALER);
 
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
@@ -356,6 +364,8 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.

@@ -61,19 +61,11 @@ void runSubscriber()
   cbExecuted = false;
   cb2Executed = false;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   transport::Node node;
   transport::Node node2;
 
-  std::cout << "Partition node: [" << node.Partition() << "]" << std::endl;
-  std::cout << "Partition node2: [" << node2.Partition() << "]" << std::endl;
-
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cb2));
-  std::cout << "subscribe" << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
   int interval = 100;
 
@@ -86,19 +78,20 @@ void runSubscriber()
       break;
   }
 
-  std::cout << "Checking callbacks" << std::endl;
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cb2Executed);
 
-  cbExecuted = false;
   cb2Executed = false;
 
+  std::cout << "Before unsubscribe()" << std::endl;
   EXPECT_TRUE(node.Unsubscribe(topic));
-  std::cout << "Unsubscribe()" << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  std::cout << "Checking callbacks" << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  cbExecuted = false;
+
+  std::cout << "After unsubscribe()" << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was only received in node2
   EXPECT_FALSE(cbExecuted);

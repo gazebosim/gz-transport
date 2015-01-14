@@ -23,6 +23,7 @@
 #endif
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 #ifdef _MSC_VER
@@ -331,6 +332,8 @@ namespace ignition
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
       public: void GetServiceList(std::vector<std::string> &_services) const;
+
+      public: std::recursive_mutex& GetMutex();
 
       /// \internal
       /// \brief Shared pointer to private data.

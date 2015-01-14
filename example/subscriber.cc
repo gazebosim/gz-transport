@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -23,8 +24,18 @@
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
+void cb2(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
+{
+  std::cout << "Callback2" << std::endl;
+  std::cout << "Topic:" << _topic << "\n"
+            << "Msg:  " << _msg.data() << "\n\n";
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 {
+  std::cout << "Callback1" << std::endl;
   std::cout << "Topic:" << _topic << "\n"
             << "Msg:  " << _msg.data() << "\n\n";
 }
@@ -33,9 +44,15 @@ void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 int main(int argc, char **argv)
 {
   ignition::transport::Node node;
+  ignition::transport::Node node2;
 
   // Subscribe to a topic by registering a callback.
   node.Subscribe("/foo", cb);
+  node2.Subscribe("/foo", cb2);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+  node.Unsubscribe("/foo");
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;
