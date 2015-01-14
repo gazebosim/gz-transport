@@ -110,8 +110,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->GetMutex());
+        //std::lock_guard<std::recursive_mutex> discLk(this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
