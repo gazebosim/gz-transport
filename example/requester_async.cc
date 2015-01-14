@@ -44,11 +44,6 @@ int main(int argc, char **argv)
   // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
-  // Request the "/echo" service.
-  node.Request("/echo", req, responseCb);
-
   // Wait for the response.
   std::cout << "Press <ENTER> to exit" << std::endl;
   getchar();
