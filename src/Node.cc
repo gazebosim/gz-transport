@@ -389,12 +389,13 @@ void Node::GetTopicList(std::vector<std::string> &_topics) const
   _topics.clear();
   for (auto &topic : allTopics)
   {
-    // Discard if the partition name does not match this node's partition.
+    // Get the partition name.
     std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
 
+    // Discard if the partition name does not match this node's partition.
     if (partition != this->Partition())
       continue;
 
@@ -416,12 +417,13 @@ void Node::GetServiceList(std::vector<std::string> &_services) const
   _services.clear();
   for (auto &service : allServices)
   {
-    // Discard if the partition name does not match this node's partition.
+    // Get the partition name.
     std::string partition = service.substr(1, service.find_last_of("@") - 1);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
 
+    // Discard if the partition name does not match this node's partition.
     if (partition != this->Partition())
       continue;
 

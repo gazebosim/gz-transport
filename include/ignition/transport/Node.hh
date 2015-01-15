@@ -501,8 +501,7 @@ namespace ignition
         }
 
         this->dataPtr->shared->discovery->GetMutex().lock();
-        std::unique_lock<std::recursive_mutex> lk(
-          this->dataPtr->shared->mutex);
+        std::unique_lock<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
