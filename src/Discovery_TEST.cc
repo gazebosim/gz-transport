@@ -342,7 +342,7 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery1.Advertise(transport::MsgType::Msg, "/topic2", addr1, ctrl1, nUuid1,
     transport::Scope::Process);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  //std::this_thread::sleep_for(std::chrono::milliseconds(300));
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
   EXPECT_FALSE(connectionExecuted);
@@ -354,7 +354,7 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery1.Advertise(transport::MsgType::Msg, "/topic3", addr1, ctrl1, nUuid1,
     transport::Scope::Host);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  //std::this_thread::sleep_for(std::chrono::milliseconds(300));
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
   EXPECT_TRUE(connectionExecuted);
