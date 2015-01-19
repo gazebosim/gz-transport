@@ -6,7 +6,6 @@ set(tests
   twoProcessesSrvCall.cc
   twoProcessesSrvCallStress.cc
   twoProcessesSrvCallSync1.cc
-  twoProcessesSrvCallSync2.cc
 )
 
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)

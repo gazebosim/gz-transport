@@ -17,6 +17,7 @@
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/test_config.h"
 #include "msg/vector3d.pb.h"
 
 using namespace ignition;
@@ -44,5 +45,14 @@ void advertiseAndPublish()
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   advertiseAndPublish();
 }

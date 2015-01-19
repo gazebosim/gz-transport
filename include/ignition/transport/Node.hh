@@ -110,6 +110,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
@@ -157,6 +159,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Create a new subscription handler.
@@ -221,6 +225,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
@@ -277,6 +283,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // Add the topic to the list of advertised services.
@@ -335,6 +343,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
@@ -412,6 +422,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
         std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
@@ -488,6 +500,7 @@ namespace ignition
           return false;
         }
 
+        this->dataPtr->shared->discovery->GetMutex().lock();
         std::unique_lock<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
         // If the responser is within my process.
@@ -498,6 +511,7 @@ namespace ignition
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
             _result);
+          this->dataPtr->shared->discovery->GetMutex().unlock();
           return true;
         }
 
@@ -524,6 +538,7 @@ namespace ignition
           // Discover the service responser.
           this->dataPtr->shared->discovery->Discover(fullyQualifiedTopic, true);
         }
+        this->dataPtr->shared->discovery->GetMutex().unlock();
 
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
@@ -553,6 +568,10 @@ namespace ignition
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
       public: void GetServiceList(std::vector<std::string> &_services) const;
+
+      /// \brief Get the partition name used by this node.
+      /// \return The partition name.
+      public: std::string Partition() const;
 
       /// \internal
       /// \brief Pointer to private data.
