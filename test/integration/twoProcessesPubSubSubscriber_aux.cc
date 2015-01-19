@@ -30,9 +30,6 @@ using namespace ignition;
 
 bool cbExecuted;
 bool cb2Executed;
-
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
 std::string data = "bar";
 
@@ -64,14 +61,11 @@ void runSubscriber()
   cbExecuted = false;
   cb2Executed = false;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  transport::Node node(partition, ns);
-  transport::Node node2(partition, ns);
+  transport::Node node;
+  transport::Node node2;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(node.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cb2));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   int interval = 100;
 
@@ -88,11 +82,11 @@ void runSubscriber()
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cb2Executed);
 
-  cbExecuted = false;
   cb2Executed = false;
-
   EXPECT_TRUE(node.Unsubscribe(topic));
-  std::this_thread::sleep_for(std::chrono::milliseconds(600));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  cbExecuted = false;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was only received in node2
   EXPECT_FALSE(cbExecuted);
@@ -109,6 +103,15 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
