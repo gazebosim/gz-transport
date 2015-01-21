@@ -83,7 +83,7 @@ TEST(PublisherTest, PublisherIO)
   Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
 
   buffer.resize(publisher.GetMsgLength());
-  int bytes = publisher.Pack(&buffer[0]);
+  size_t bytes = publisher.Pack(&buffer[0]);
   EXPECT_EQ(bytes, publisher.GetMsgLength());
 
   // Unpack the Publisher.
@@ -150,7 +150,7 @@ TEST(PublisherTest, MessagePublisherIO)
     MsgTypeName);
 
   buffer.resize(publisher.GetMsgLength());
-  int bytes = publisher.Pack(&buffer[0]);
+  size_t bytes = publisher.Pack(&buffer[0]);
   EXPECT_EQ(bytes, publisher.GetMsgLength());
 
   // Unpack the Publisher.
@@ -222,7 +222,7 @@ TEST(PublisherTest, ServicePublisherIO)
     ReqTypeName, RepTypeName);
 
   buffer.resize(publisher.GetMsgLength());
-  int bytes = publisher.Pack(&buffer[0]);
+  size_t bytes = publisher.Pack(&buffer[0]);
   EXPECT_EQ(bytes, publisher.GetMsgLength());
 
   // Unpack the Publisher.
