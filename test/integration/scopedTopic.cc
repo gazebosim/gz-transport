@@ -22,13 +22,9 @@
 #include "msg/int.pb.h"
 #include "ignition/transport/test_config.h"
 
-
 using namespace ignition;
 
-bool cbExecuted;
-
-std::string partition = "testPartition";
-std::string ns = "";
+std::string partition;
 std::string topic = "/foo";
 int data = 5;
 
@@ -42,18 +38,19 @@ TEST(ScopedTopicTest, ProcessTest)
      PROJECT_BINARY_PATH,
      "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
+    partition.c_str());
 
   transport::msgs::Int msg;
   msg.set_data(data);
 
-  transport::Node node1(partition, ns);
+  transport::Node node;
 
-  EXPECT_TRUE(node1.Advertise(topic, transport::Scope_t::Process));
+  EXPECT_TRUE(node.Advertise(topic, transport::Scope_t::Process));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(topic, msg));
 
   testing::waitAndCleanupFork(pi);
 }
@@ -61,6 +58,12 @@ TEST(ScopedTopicTest, ProcessTest)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

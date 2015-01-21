@@ -167,6 +167,8 @@ namespace ignition
           std::string topicName = _topic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
+          std::cout << "RunCallback()" << std::endl;
+          std::cout << msg->DebugString() << std::endl;
           this->cb(topicName, *msg);
           return true;
         }

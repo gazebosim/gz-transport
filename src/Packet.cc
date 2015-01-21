@@ -16,6 +16,7 @@
 */
 
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include "ignition/transport/Packet.hh"
 

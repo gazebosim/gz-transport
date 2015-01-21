@@ -36,6 +36,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 #ifdef _MSC_VER
@@ -104,8 +105,8 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
-      bool GetMsgPublishers(const std::string &_topic,
-                            MsgAddresses_M &_publishers);
+      public: bool GetMsgPublishers(const std::string &_topic,
+                                    MsgAddresses_M &_publishers);
 
       /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
@@ -385,6 +386,10 @@ namespace ignition
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
       public: void GetServiceList(std::vector<std::string> &_services) const;
+
+      /// \brief Get mutex used in the Discovery class.
+      /// \return The discovery mutex.
+      public: std::recursive_mutex& GetMutex();
 
       /// \internal
       /// \brief Shared pointer to private data.

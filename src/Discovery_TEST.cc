@@ -121,7 +121,7 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void ondisconnection(const transport::MessagePublisher &_publisher)
+void onDisconnection(const transport::MessagePublisher &_publisher)
 {
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
   disconnectionExecuted = true;
@@ -129,7 +129,7 @@ void ondisconnection(const transport::MessagePublisher &_publisher)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void ondisconnectionSrv(const transport::ServicePublisher &_publisher)
+void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
 {
   EXPECT_EQ(_publisher.Topic(), service);
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
@@ -161,7 +161,7 @@ class MyClass
   /// \brief Register a member function as a discovery disconnection callback.
   public: void RegisterDisconnections()
   {
-    this->discov->SetDisconnectionsCb(&MyClass::Ondisconnection, this);
+    this->discov->SetDisconnectionsCb(&MyClass::OnDisconnection, this);
   }
 
     /// \brief Register a member function as a discovery callback (services).
@@ -174,7 +174,7 @@ class MyClass
   /// (services).
   public: void RegisterSrvDisconnections()
   {
-    this->discov->SetDisconnectionsSrvCb(&MyClass::OndisconnectionSrv, this);
+    this->discov->SetDisconnectionsSrvCb(&MyClass::OnDisconnectionSrv, this);
   }
 
   /// \brief Member function called each time a discovery update is received.
@@ -190,7 +190,7 @@ class MyClass
   }
 
   /// \brief Member function called each time a disconnect. update is received.
-  public: void Ondisconnection(const transport::MessagePublisher &_publisher)
+  public: void OnDisconnection(const transport::MessagePublisher &_publisher)
   {
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
     disconnectionExecutedMF = true;
@@ -211,7 +211,7 @@ class MyClass
 
   /// \brief Member function called each time a disconnect. update is received
   /// (services).
-  public: void OndisconnectionSrv(const transport::ServicePublisher &_publisher)
+  public: void OnDisconnectionSrv(const transport::ServicePublisher &_publisher)
   {
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
     disconnectionSrvExecutedMF = true;
@@ -445,7 +445,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.SetDisconnectionsCb(ondisconnection);
+  discovery2.SetDisconnectionsCb(onDisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
@@ -525,7 +525,7 @@ TEST(DiscoveryTest, TestNodeBye)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect notifications.
-  discovery2.SetDisconnectionsCb(ondisconnection);
+  discovery2.SetDisconnectionsCb(onDisconnection);
 
   // This should not trigger a disconnect response on discovery2.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
@@ -670,7 +670,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving disconnect  notifications (srv calls).
-  discovery2.SetDisconnectionsSrvCb(ondisconnectionSrv);
+  discovery2.SetDisconnectionsSrvCb(onDisconnectionSrv);
 
   // This should not trigger a disconnect response on discovery2.
   transport::ServicePublisher publisher1(service, addr1, id1, pUuid1, nUuid1,

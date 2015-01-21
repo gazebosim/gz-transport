@@ -152,7 +152,7 @@ namespace ignition
       public: sockaddr_in mcastAddr;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
-      public: std::mutex mutex;
+      public: std::recursive_mutex mutex;
 
       /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
@@ -164,7 +164,7 @@ namespace ignition
       public: std::thread *threadActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
-      public: std::mutex exitMutex;
+      public: std::recursive_mutex exitMutex;
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
