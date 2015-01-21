@@ -48,8 +48,8 @@ namespace ignition
       public: ISubscriptionHandler(const std::string &_nUuid,
                                    SubscriberOptions *_opts)
         : hUuid(Uuid().ToString()),
-          nUuid(_nUuid),
-          opts(_opts)
+          opts(_opts),
+          nUuid(_nUuid)
       {
       }
 
@@ -91,11 +91,11 @@ namespace ignition
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
+      /// \brief Subscriber options.
+      protected: SubscriberOptions *opts;
+
       /// \brief Node UUID.
       private: std::string nUuid;
-
-      /// \brief Subscriber options.
-      private: SubscriberOptions *opts;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh

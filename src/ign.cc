@@ -20,9 +20,25 @@
 #include <vector>
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/SubscriberOptions.hh"
 
 using namespace ignition;
 using namespace transport;
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicEcho(const std::string &_topic)
+{
+  SubscriberOptions opts;
+  Node node;
+
+  // This will print the content of each message received.
+  opts.Debug(true);
+
+  node.Subscribe(_topic, NULL, &opts);
+
+  getchar();
+}
+
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdTopicList()
