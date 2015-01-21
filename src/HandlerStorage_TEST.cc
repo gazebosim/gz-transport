@@ -208,7 +208,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   // Create a Subscription handler.
   std::shared_ptr<transport::SubscriptionHandler<transport::msgs::Int>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <transport::msgs::Int>(nUuid1));
+      <transport::msgs::Int>(nUuid1, nullptr));
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);

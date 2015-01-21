@@ -40,6 +40,7 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/SubscriberOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -100,7 +101,8 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &_topic, const T &_msg))
+          void(*_cb)(const std::string &_topic, const T &_msg),
+          SubscriberOptions *_opts = nullptr)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -116,7 +118,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->dataPtr->nUuid));
+            new SubscriptionHandler<T>(this->dataPtr->nUuid, _opts));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -149,7 +151,8 @@ namespace ignition
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const std::string &_topic, const T &_msg),
-          C *_obj)
+          C *_obj,
+          SubscriberOptions *_opts = nullptr)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -165,7 +168,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-          new SubscriptionHandler<T>(this->dataPtr->nUuid));
+          new SubscriptionHandler<T>(this->dataPtr->nUuid, _opts));
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->SetCallback(

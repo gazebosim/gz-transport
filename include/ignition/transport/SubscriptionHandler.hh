@@ -30,6 +30,7 @@
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/SubscriberOptions.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -44,9 +45,11 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
-      public: ISubscriptionHandler(const std::string &_nUuid)
+      public: ISubscriptionHandler(const std::string &_nUuid,
+                                   SubscriberOptions *_opts)
         : hUuid(Uuid().ToString()),
-          nUuid(_nUuid)
+          nUuid(_nUuid),
+          opts(_opts)
       {
       }
 
@@ -90,6 +93,9 @@ namespace ignition
 
       /// \brief Node UUID.
       private: std::string nUuid;
+
+      /// \brief Subscriber options.
+      private: SubscriberOptions *opts;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -100,8 +106,9 @@ namespace ignition
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: SubscriptionHandler(const std::string &_nUuid)
-        : ISubscriptionHandler(_nUuid)
+      public: SubscriptionHandler(const std::string &_nUuid,
+                                  SubscriberOptions *_opts)
+        : ISubscriptionHandler(_nUuid, _opts)
       {
       }
 
@@ -133,22 +140,29 @@ namespace ignition
       public: bool RunLocalCallback(const std::string &_topic,
                                     const transport::ProtoMsg &_msg)
       {
+        auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+
+        // Remove the partition part from the topic.
+        std::string topicName = _topic;
+        topicName.erase(0, topicName.find_last_of("@") + 1);
+
+        // Check for subscriber options.
+        if (this->opts)
+        {
+          if (this->opts->Debug())
+          {
+            std::cout << msgPtr->DebugString() << std::endl;
+          }
+        }
+
         // Execute the callback (if existing)
         if (this->cb)
         {
-          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
           this->cb(topicName, *msgPtr);
           return true;
         }
         else
         {
-          std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
-                    << "Callback is NULL" << std::endl;
           return false;
         }
       }
@@ -160,20 +174,27 @@ namespace ignition
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data);
 
+        // Remove the partition part from the topic.
+        std::string topicName = _topic;
+        topicName.erase(0, topicName.find_last_of("@") + 1);
+
+        // Check for subscriber options.
+        if (this->opts)
+        {
+          if (this->opts->Debug())
+          {
+            std::cout << msg->DebugString() << std::endl;
+          }
+        }
+
         // Execute the callback (if existing).
         if (this->cb)
         {
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
           this->cb(topicName, *msg);
           return true;
         }
         else
         {
-          std::cerr << "SubscriptionHandler::RunCallback() error: "
-                    << "Callback is NULL" << std::endl;
           return false;
         }
       }
