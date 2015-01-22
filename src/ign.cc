@@ -17,9 +17,12 @@
 
 #include <chrono>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -28,6 +31,31 @@ using namespace transport;
 extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic)
 {
   std::cout << "Running ign topic -i " << _topic << std::endl;
+
+  NodeShared *shared = NodeShared::GetInstance();
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  std::vector<std::string> allTopics;
+  shared->discovery->GetTopicList(allTopics);
+
+  for (auto &topic : allTopics)
+  {
+    std::cout << topic << std::endl;
+  }
+
+
+  MsgAddresses_M pubs;
+  std::string topic = "@@" + std::string(_topic);
+  std::cout << "Topic: [" << topic << "]" << std::endl;
+  shared->discovery->GetMsgPublishers(topic, pubs);
+  for (auto &proc : pubs)
+    for (auto pub : proc.second)
+    {
+      std::cout << pub.Addr() << std::endl;
+      std::cout << pub.MsgTypeName() << std::endl;
+    }
 }
 
 //////////////////////////////////////////////////

@@ -390,6 +390,7 @@ void Node::GetTopicList(std::vector<std::string> &_topics) const
   _topics.clear();
   for (auto &topic : allTopics)
   {
+    std::cout << topic << std::endl;
     // Get the partition name.
     std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
     // Remove the front '/'
