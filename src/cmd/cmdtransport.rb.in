@@ -28,7 +28,7 @@ COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
-                       "  -i [ --info ] arg          Get information about a "\
+                       '  -i [ --info ] arg          Get information about a '\
                        "topic\n"\
                        "  -l [ --list ]              List all topics.\n" +
                        COMMON_OPTIONS,
@@ -36,7 +36,7 @@ COMMANDS = {  'topic' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
-                       "  -i [ --info ] arg          Get information about a "\
+                       '  -i [ --info ] arg          Get information about a '\
                        "service\n"\
                        "  -l [ --list ]              List all services.\n" +
                        COMMON_OPTIONS
