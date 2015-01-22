@@ -20,10 +20,9 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
+#include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
-
-#include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
@@ -31,8 +30,7 @@ bool srvExecuted;
 bool responseExecuted;
 bool wrongResponseExecuted;
 
-std::string partition = "testPartition";
-std::string ns = "";
+std::string partition;
 std::string topic = "/foo";
 int data = 5;
 int counter = 0;
@@ -68,32 +66,30 @@ void wrongResponse(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber processs there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
+/// \brief Two different nodes running in two different processes. One node
+/// advertises a service and the other requests a few service calls.
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   responseExecuted = false;
   counter = 0;
   transport::msgs::Int req;
   req.set_data(data);
 
-  transport::Node node(partition, ns);
+  transport::Node node;
   EXPECT_TRUE(node.Request(topic, req, response));
 
   int i = 0;
-  while (i < 100 && !responseExecuted)
+  while (i < 300 && !responseExecuted)
   {
-     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-     ++i;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
   }
 
   // Check that the service call response was executed.
@@ -106,7 +102,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   EXPECT_TRUE(node.Request(topic, req, response));
 
   i = 0;
-  while (i < 100 && !responseExecuted)
+  while (i < 300 && !responseExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -136,7 +132,8 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   req.set_x(1);
   req.set_y(2);
@@ -144,7 +141,7 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 
   reset();
 
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   // Request an asynchronous service call with wrong type in the request.
   EXPECT_TRUE(node.Request(topic, req, response));
@@ -176,13 +173,14 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   req.set_data(data);
 
   reset();
 
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   // Request an asynchronous service call with wrong type in the response.
   EXPECT_TRUE(node.Request(topic, req, wrongResponse));
@@ -214,13 +212,14 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   req.set_data(data);
 
   reset();
 
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   // Request service calls with wrong types in the response.
   EXPECT_FALSE(node.Request(topic, req, timeout, badRep, result));
@@ -245,6 +244,12 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);
 

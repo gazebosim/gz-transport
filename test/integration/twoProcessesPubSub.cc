@@ -24,8 +24,7 @@
 
 using namespace ignition;
 
-std::string partition = "testPartition";
-std::string ns = "";
+std::string partition;
 std::string topic = "/foo";
 std::string data = "bar";
 bool cbExecuted = false;
@@ -69,21 +68,23 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
+    partition.c_str());
 
   transport::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  transport::Node node(partition, ns);
-
+  transport::Node node;
   EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  // Publish messages for a few seconds
+  for (auto i = 0; i < 20; ++i)
+  {
+    EXPECT_TRUE(node.Publish(topic, msg));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 
   testing::waitAndCleanupFork(pi);
 }
@@ -97,11 +98,12 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
 
   reset();
 
-  transport::Node node(partition, ns);
+  transport::Node node;
   EXPECT_TRUE(node.Subscribe(topic, cb));
 
   // Wait some time before publishing.
@@ -125,12 +127,13 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
 
   reset();
 
-  transport::Node node1(partition, ns);
-  transport::Node node2(partition, ns);
+  transport::Node node1;
+  transport::Node node2;
   EXPECT_TRUE(node1.Subscribe(topic, cb));
   EXPECT_TRUE(node2.Subscribe(topic, cbVector));
 
@@ -149,6 +152,12 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

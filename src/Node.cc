@@ -143,6 +143,8 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
@@ -357,6 +359,8 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->GetMutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
@@ -376,21 +380,65 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 //////////////////////////////////////////////////
 void Node::GetTopicList(std::vector<std::string> &_topics) const
 {
+  std::cout << "Partition: " << this->Partition() << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-  this->dataPtr->shared->discovery->GetTopicList(_topics);
 
-  // Remove the partition part from the topic.
-  for (auto &topic : _topics)
+  std::vector<std::string> allTopics;
+  this->dataPtr->shared->discovery->GetTopicList(allTopics);
+
+  _topics.clear();
+  std::cout << "allTopics:" << std::endl;
+  for (auto &topic : allTopics)
+  {
+    std::cout << "Topic: " << topic << std::endl;
+    // Get the partition name.
+    std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
+    // Remove the front '/'
+    if (!partition.empty())
+      partition.erase(partition.begin());
+
+    // Discard if the partition name does not match this node's partition.
+    if (partition != this->Partition())
+      continue;
+
+    // Remove the partition part from the topic.
     topic.erase(0, topic.find_last_of("@") + 1);
+
+    _topics.push_back(topic);
+  }
 }
 
 //////////////////////////////////////////////////
 void Node::GetServiceList(std::vector<std::string> &_services) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-  this->dataPtr->shared->discovery->GetServiceList(_services);
 
-  // Remove the partition part from the service.
-  for (auto &service : _services)
+  std::vector<std::string> allServices;
+  this->dataPtr->shared->discovery->GetServiceList(allServices);
+
+  _services.clear();
+  for (auto &service : allServices)
+  {
+    // Get the partition name.
+    std::string partition = service.substr(1, service.find_last_of("@") - 1);
+    // Remove the front '/'
+    if (!partition.empty())
+      partition.erase(partition.begin());
+
+    // Discard if the partition name does not match this node's partition.
+    if (partition != this->Partition())
+      continue;
+
+    // Remove the partition part from the service.
     service.erase(0, service.find_last_of("@") + 1);
+
+    _services.push_back(service);
+  }
+}
+
+//////////////////////////////////////////////////
+std::string Node::Partition() const
+{
+  return this->dataPtr->partition;
 }
