@@ -17,12 +17,41 @@
 
 #include <chrono>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
+
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic)
+{
+  Node node;
+  NodeShared *shared = NodeShared::GetInstance();
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(node.Partition(),
+    "", std::string(_topic), fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return;
+  }
+
+  MsgAddresses_M pubs;
+  shared->discovery->GetMsgPublishers(fullyQualifiedTopic, pubs);
+  for (auto &proc : pubs)
+    for (auto pub : proc.second)
+    {
+      std::cout << "Publisher: " << pub.Addr() << std::endl;
+      std::cout << "Type: " << pub.MsgTypeName() << std::endl << std::endl;
+    }
+}
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdTopicList()
@@ -37,6 +66,35 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 
   for (auto const &topic : topics)
     std::cout << topic << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(char *_service)
+{
+  Node node;
+  NodeShared *shared = NodeShared::GetInstance();
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  std::string fullyQualifiedService;
+  if (!TopicUtils::GetFullyQualifiedName(node.Partition(),
+    "", std::string(_service), fullyQualifiedService))
+  {
+    std::cerr << "Service [" << _service << "] is not valid." << std::endl;
+    return;
+  }
+
+  SrvAddresses_M pubs;
+  shared->discovery->GetSrvPublishers(fullyQualifiedService, pubs);
+  for (auto &proc : pubs)
+    for (auto pub : proc.second)
+    {
+      std::cout << "Publisher: " << pub.Addr() << std::endl;
+      std::cout << "Request type: " << pub.GetReqTypeName() << std::endl;
+      std::cout << "Response type: " << pub.GetRepTypeName()
+                << std::endl << std::endl;
+    }
 }
 
 //////////////////////////////////////////////////

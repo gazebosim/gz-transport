@@ -23,9 +23,17 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
 
+/// \brief External hook to execute 'ign topic info' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic);
+
 /// \brief External hook to execute 'ign topic list' command from the command
 /// line.
 extern "C" IGNITION_VISIBLE void cmdTopicList();
+
+/// \brief External hook to execute 'ign service info' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(char *_service);
 
 /// \brief External hook to execute 'ign service list' command from the command
 /// line.
