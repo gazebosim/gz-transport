@@ -107,7 +107,7 @@ TEST(ignTest, TopicListSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  node.Advertise("/foo");
+  node.Advertise<ignition::transport::msgs::Vector3d>("/foo");
   node.Publish("/foo", msg);
 
   // Check the 'ign topic list' command.
