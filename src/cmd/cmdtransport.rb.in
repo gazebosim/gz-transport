@@ -28,12 +28,16 @@ COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
+                       "  -i [ --info ] arg          Get information about a "\
+                       "topic\n"\
                        "  -l [ --list ]              List all topics.\n" +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
+                       "  -i [ --info ] arg          Get information about a "\
+                       "service\n"\
                        "  -l [ --list ]              List all services.\n" +
                        COMMON_OPTIONS
 
@@ -59,7 +63,10 @@ class Cmd
         puts usage
         exit(0)
       end
-      opts.on('-l', '--list', 'Print information about topics') do |l|
+      opts.on('-i', '--info', 'Get information about topics/services') do |i|
+        options['info'] = i
+      end
+      opts.on('-l', '--list', 'Print information about topics/services') do |l|
         options['list'] = l
       end
     end
@@ -74,13 +81,24 @@ class Cmd
     # Check that there is at least one command and there is a plugin that knows
     # how to handle it.
     if ARGV.empty? || !COMMANDS.key?(ARGV[0]) ||
-       options.empty? || options.empty?
+       options.empty?
       puts usage
       exit(-1)
     end
 
     options['command'] = ARGV[0]
 
+    # ign topic -i <arg> / ign service -i <arg>
+    if (options['command'].eql?('topic')   && options.key?('info')) ||
+       (options['command'].eql?('service') && options.key?('info'))
+
+      # Sanity check: Verify that we have the extra arg for topic/service.
+      unless ARGV.size == 2
+        puts usage
+        exit(-1)
+      end
+      options['arg'] = ARGV.at(1)
+    end
     options
   end  # parse()
 
@@ -121,7 +139,10 @@ class Cmd
     begin
       case options['command']
       when 'topic'
-        if options.key?('list')
+        if options.key?('info')
+          DL::Importer.extern 'void cmdTopicInfo(char*)'
+          DL::Importer.cmdTopicInfo(options['arg'])
+        elsif options.key?('list')
           DL::Importer.extern 'void cmdTopicList()'
           DL::Importer.cmdTopicList
         else
@@ -129,7 +150,10 @@ class Cmd
                'for this command.'
         end
       when 'service'
-        if options.key?('list')
+        if options.key?('info')
+          DL::Importer.extern 'void cmdServiceInfo(char*)'
+          DL::Importer.cmdServiceInfo(options['arg'])
+        elsif options.key?('list')
           DL::Importer.extern 'void cmdServiceList()'
           DL::Importer.cmdServiceList
         else

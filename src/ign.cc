@@ -25,6 +25,12 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic)
+{
+  std::cout << "Running ign topic -i " << _topic << std::endl;
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdTopicList()
 {
   Node node;
@@ -37,6 +43,12 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 
   for (auto const &topic : topics)
     std::cout << topic << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(char *_service)
+{
+  std::cout << "Running ign service -i " << _service << std::endl;
 }
 
 //////////////////////////////////////////////////
