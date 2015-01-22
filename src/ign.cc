@@ -22,6 +22,7 @@
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;

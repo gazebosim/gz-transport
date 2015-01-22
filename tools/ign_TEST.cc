@@ -58,7 +58,8 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic --info' running the advertiser on a separate process
+/// \brief Check 'ign topic --info arg' running the advertiser on a separate
+/// process
 TEST(ignTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
@@ -69,7 +70,7 @@ TEST(ignTest, TopicInfo)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     partition.c_str());
 
-  // Check the 'ign topic --info' command.
+  // Check the 'ign topic --info arg' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -i /foo");
 
@@ -107,7 +108,7 @@ TEST(ignTest, TopicList)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service --info' running the responser on a separate
+/// \brief Check 'ign service --info arg' running the responser on a separate
 /// process.
 TEST(ignTest, ServiceInfo)
 {
@@ -119,7 +120,7 @@ TEST(ignTest, ServiceInfo)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     partition.c_str());
 
-  // Check the 'ign topic --info' command.
+  // Check the 'ign service --info arg' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -i /foo");
 
