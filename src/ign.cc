@@ -32,9 +32,6 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic)
   Node node;
   NodeShared *shared = NodeShared::GetInstance();
 
-  // Give the node some time to receive topic updates.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
   std::string fullyQualifiedTopic;
   if (!TopicUtils::GetFullyQualifiedName(node.Partition(),
     "", std::string(_topic), fullyQualifiedTopic))
@@ -42,6 +39,9 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(char *_topic)
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return;
   }
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   MsgAddresses_M pubs;
   shared->discovery->GetMsgPublishers(fullyQualifiedTopic, pubs);
@@ -74,9 +74,6 @@ extern "C" IGNITION_VISIBLE void cmdServiceInfo(char *_service)
   Node node;
   NodeShared *shared = NodeShared::GetInstance();
 
-  // Give the node some time to receive topic updates.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
   std::string fullyQualifiedService;
   if (!TopicUtils::GetFullyQualifiedName(node.Partition(),
     "", std::string(_service), fullyQualifiedService))
@@ -84,6 +81,9 @@ extern "C" IGNITION_VISIBLE void cmdServiceInfo(char *_service)
     std::cerr << "Service [" << _service << "] is not valid." << std::endl;
     return;
   }
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   SrvAddresses_M pubs;
   shared->discovery->GetSrvPublishers(fullyQualifiedService, pubs);

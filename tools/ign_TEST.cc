@@ -73,10 +73,13 @@ TEST(ignTest, TopicInfo)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -i /foo");
 
-  // Check that the output contains one publisher on this machine and the type
-  // advertised matches.
+  // Check that the output contains the type advertised.
   EXPECT_TRUE(
     output.find("Type: ignition.transport.msgs.Vector3d") != std::string::npos);
+
+  // Check that there is only one publisher.
+  EXPECT_EQ(output.find("Type: ignition.transport.msgs.Vector3d"),
+            output.rfind("Type: ignition.transport.msgs.Vector3d"));
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -120,12 +123,15 @@ TEST(ignTest, ServiceInfo)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -i /foo");
 
-  // Check that the output contains one publisher on this machine and the types
-  // advertised match.
+  // Check that the output contains the types advertised.
   EXPECT_TRUE(output.find("Request type: ignition.transport.msgs.Int") !=
     std::string::npos);
   EXPECT_TRUE(output.find("Response type: ignition.transport.msgs.Int") !=
     std::string::npos);
+
+  // Check that there is only one responser.
+  EXPECT_EQ(output.find("Request type: ignition.transport.msgs.Int"),
+            output.rfind("Request type: ignition.transport.msgs.Int"));
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
