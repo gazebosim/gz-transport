@@ -380,7 +380,6 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 //////////////////////////////////////////////////
 void Node::GetTopicList(std::vector<std::string> &_topics) const
 {
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   std::vector<std::string> allTopics;

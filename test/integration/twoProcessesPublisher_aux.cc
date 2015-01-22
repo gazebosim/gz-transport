@@ -38,7 +38,7 @@ void advertiseAndPublish()
   node.Advertise<transport::msgs::Vector3d>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   node.Publish(topic, msg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
