@@ -22,8 +22,6 @@
 
 using namespace ignition;
 
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
 
 //////////////////////////////////////////////////
@@ -35,7 +33,7 @@ void advertiseAndPublish()
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   node.Advertise<transport::msgs::Vector3d>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

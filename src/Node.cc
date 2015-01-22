@@ -380,7 +380,6 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 //////////////////////////////////////////////////
 void Node::GetTopicList(std::vector<std::string> &_topics) const
 {
-  std::cout << "Partition: " << this->Partition() << std::endl;
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -388,10 +387,8 @@ void Node::GetTopicList(std::vector<std::string> &_topics) const
   this->dataPtr->shared->discovery->GetTopicList(allTopics);
 
   _topics.clear();
-  std::cout << "allTopics:" << std::endl;
   for (auto &topic : allTopics)
   {
-    std::cout << "Topic: " << topic << std::endl;
     // Get the partition name.
     std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
     // Remove the front '/'
