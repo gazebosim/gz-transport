@@ -8,9 +8,9 @@ include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
 #Find the cppzeromq
-find_path(cppzmq_INCLUDE_DIRS 
-          zmq.hpp 
-	  PATHS 
+find_path(cppzmq_INCLUDE_DIRS
+          zmq.hpp
+	  PATHS
 	   ${zmq_INCLUDE_DIRS}
 	   ${CPPZMQ_HEADER_PATH})
 
@@ -43,7 +43,7 @@ set (EXAMPLES_LIBS ${IGNITION-TRANSPORT_LIBRARIES}
                    ${PROTOBUF_LIBRARY})
 if (MSVC)
   # same filename for 64bits version of Ws2
-  set(EXAMPLES_LIBS ${EXAMPLES_LIBS} 
+  set(EXAMPLES_LIBS ${EXAMPLES_LIBS}
                     Ws2_32.lib
                     Iphlpapi.lib)
 endif()

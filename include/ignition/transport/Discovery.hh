@@ -49,6 +49,14 @@ namespace ignition
     /// new topics are discovered or topics are no longer available.
     class IGNITION_VISIBLE Discovery
     {
+      /// \brief NatNet major version.
+      public: const int NatNetVersionMajor = 2;
+
+      /// \brief NatNet minor version.
+      public: const int NatNetVersionMinor = 7;
+
+      #define MAX_NAMELENGTH              256
+
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
@@ -57,6 +65,8 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~Discovery();
+
+      public: void Unpack(char *pData);
 
       /// \brief Advertise a new message or service.
       /// \param[in] _advType Message (Msg) or service (Srv).
