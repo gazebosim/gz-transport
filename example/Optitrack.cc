@@ -230,9 +230,10 @@ void Optitrack::Unpack(char *pData)
         static float prevY = y;
         static float prevZ = z;
 
-        if ((std::abs(x - prevX) > threshold) ||
-            (std::abs(y - prevY) > threshold) ||
-            (std::abs(z - prevZ) > threshold))
+        // Check if we have movement.
+        if ((std::abs(x - prevX) > this->threshold) ||
+            (std::abs(y - prevY) > this->threshold) ||
+            (std::abs(z - prevZ) > this->threshold))
         {
           std::cout << "The body has moved!" << std::endl;
           prevX = x;
