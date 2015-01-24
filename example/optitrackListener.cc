@@ -32,16 +32,18 @@ void usage()
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Sanity check: Verify that we have expected command line args.
   if (argc != 3)
   {
     usage();
     return -1;
   }
 
-  // Blocking call to listen OptiTrack updates.
   std::string localIP = std::string(argv[1]);
   float threshold = std::stof(std::string(argv[2]));
   Optitrack optitrack(localIP, threshold);
+
+  // Blocking call to listen OptiTrack updates.
   optitrack.Receive();
 
   return 0;
