@@ -67,3 +67,6 @@ add_dependencies(requester protobuf_compilation)
 add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${EXAMPLES_LIBS})
 add_dependencies(requester_async protobuf_compilation)
+
+add_executable(optitrackListener optitrackListener.cc Optitrack.cc)
+target_link_libraries(optitrackListener ${EXAMPLES_LIBS})
