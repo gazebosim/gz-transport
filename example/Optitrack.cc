@@ -83,7 +83,6 @@ Optitrack::Optitrack(const std::string &_localIP, float _threshold)
     reinterpret_cast<const char *>(&value), sizeof(value)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
-    close(this->dataSocket);
     return;
   }
 
