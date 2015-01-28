@@ -307,74 +307,7 @@ namespace ignition
       /// or encryption.
       public: template<typename T> void SendMsg(uint8_t _type,
                                                 const T &_pub,
-                                                int _flags = 0)
-      {
-        // Create the header.
-        Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
-        std::vector<char> buffer;
-
-        std::string topic = _pub.Topic();
-
-        switch (_type)
-        {
-          case AdvType:
-          case UnadvType:
-          case AdvSrvType:
-          case UnadvSrvType:
-          {
-            // Create the [UN]ADVERTISE message.
-            transport::AdvertiseMessage<T> advMsg(header, _pub);
-
-            // Allocate a buffer and serialize the message.
-            buffer.resize(advMsg.GetMsgLength());
-            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.GetMsgLength();
-            break;
-          }
-          case SubType:
-          case SubSrvType:
-          {
-            // Create the [UN]SUBSCRIBE message.
-            SubscriptionMsg subMsg(header, topic);
-
-            // Allocate a buffer and serialize the message.
-            buffer.resize(subMsg.GetMsgLength());
-            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.GetMsgLength();
-            break;
-          }
-          case HeartbeatType:
-          case ByeType:
-          {
-            // Allocate a buffer and serialize the message.
-            buffer.resize(header.GetHeaderLength());
-            header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = header.GetHeaderLength();
-            break;
-          }
-          default:
-            std::cerr << "Discovery::SendMsg() error: Unrecognized message"
-                      << " type [" << _type << "]" << std::endl;
-            return;
-        }
-
-        // Send the discovery message to the multicast group.
-        if (sendto(this->DiscoverySocket(), reinterpret_cast<const raw_type *>(
-          reinterpret_cast<unsigned char*>(&buffer[0])),
-          msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-          sizeof(*(this->MulticastAddr()))) != msgLength)
-        {
-          std::cerr << "Exception sending a message" << std::endl;
-          return;
-        }
-
-        if (this->Verbose())
-        {
-          std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << topic << "]" << std::endl;
-        }
-      }
+                                                int _flags = 0);
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
@@ -395,6 +328,79 @@ namespace ignition
       /// \brief Shared pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
     };
+
+
+    template<typename T> void Discovery::SendMsg(uint8_t _type,
+                                                 const T &_pub,
+                                                 int _flags)
+    {
+      // Create the header.
+      Header header(this->Version(), _pub.PUuid(), _type, _flags);
+      auto msgLength = 0;
+      std::vector<char> buffer;
+
+      std::string topic = _pub.Topic();
+
+      switch (_type)
+      {
+        case AdvType:
+        case UnadvType:
+        case AdvSrvType:
+        case UnadvSrvType:
+        {
+          // Create the [UN]ADVERTISE message.
+          transport::AdvertiseMessage<T> advMsg(header, _pub);
+
+          // Allocate a buffer and serialize the message.
+          buffer.resize(advMsg.GetMsgLength());
+          advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+          msgLength = advMsg.GetMsgLength();
+          break;
+        }
+        case SubType:
+        case SubSrvType:
+        {
+          // Create the [UN]SUBSCRIBE message.
+          SubscriptionMsg subMsg(header, topic);
+
+          // Allocate a buffer and serialize the message.
+          buffer.resize(subMsg.GetMsgLength());
+          subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+          msgLength = subMsg.GetMsgLength();
+          break;
+        }
+        case HeartbeatType:
+        case ByeType:
+        {
+          // Allocate a buffer and serialize the message.
+          buffer.resize(header.GetHeaderLength());
+          header.Pack(reinterpret_cast<char*>(&buffer[0]));
+          msgLength = header.GetHeaderLength();
+          break;
+        }
+        default:
+          std::cerr << "Discovery::SendMsg() error: Unrecognized message"
+                    << " type [" << _type << "]" << std::endl;
+          return;
+      }
+
+      // Send the discovery message to the multicast group.
+      if (sendto(this->DiscoverySocket(), reinterpret_cast<const raw_type *>(
+        reinterpret_cast<unsigned char*>(&buffer[0])),
+        msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
+        sizeof(*(this->MulticastAddr()))) != msgLength)
+      {
+        std::cerr << "Exception sending a message" << std::endl;
+        return;
+      }
+
+      if (this->Verbose())
+      {
+        std::cout << "\t* Sending " << MsgTypesStr[_type]
+                  << " msg [" << topic << "]" << std::endl;
+      }
+    }
+
   }
 }
 #endif
