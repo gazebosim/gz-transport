@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
@@ -45,7 +46,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   unsigned int timeout = 500;
   transport::msgs::Int req;
   transport::msgs::Int rep;
-  bool result;
+  transport::ServiceResult result;
 
   req.set_data(data);
 
@@ -55,7 +56,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
   EXPECT_EQ(req.data(), rep.data());
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(result.ReturnCode() == transport::Result_t::Success);
 
   auto t1 = std::chrono::system_clock::now();
   EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));

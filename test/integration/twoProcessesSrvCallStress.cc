@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
@@ -40,7 +41,7 @@ TEST(twoProcSrvCall, ThousandCalls)
 
   transport::msgs::Int req;
   transport::msgs::Int response;
-  bool result;
+  transport::ServiceResult result;
   unsigned int timeout = 1000;
   transport::Node node;
 
@@ -52,7 +53,7 @@ TEST(twoProcSrvCall, ThousandCalls)
     ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
 
     // Check the service response.
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result.ReturnCode() == transport::Result_t::Success);
     EXPECT_EQ(i, response.data());
   }
 

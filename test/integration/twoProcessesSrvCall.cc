@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
@@ -47,11 +48,11 @@ void reset()
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+  const ServiceResult &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
-  EXPECT_TRUE(_result);
+  EXPECT_TRUE(_result.ReturnCode() == transport::Result_t::Success);
 
   responseExecuted = true;
   ++counter;
@@ -60,7 +61,7 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void wrongResponse(const std::string &_topic,
-  const transport::msgs::Vector3d &_rep, bool _result)
+  const transport::msgs::Vector3d &_rep, const ServiceResult &_result)
 {
   wrongResponseExecuted = true;
 }
@@ -124,7 +125,7 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 {
   transport::msgs::Vector3d req;
   transport::msgs::Int rep;
-  bool result;
+  transport::ServiceResult result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
@@ -165,7 +166,7 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 {
   transport::msgs::Int req;
   transport::msgs::Vector3d rep;
-  bool result;
+  transport::ServiceResult result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
@@ -205,7 +206,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::msgs::Int req;
   transport::msgs::Int goodRep;
   transport::msgs::Vector3d badRep;
-  bool result;
+  transport::ServiceResult result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(

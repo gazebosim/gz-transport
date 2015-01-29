@@ -510,8 +510,7 @@ void NodeShared::RecvSrvResponse()
   std::string nodeUuid;
   std::string reqUuid;
   std::string rep;
-  std::string resultStr;
-  bool result;
+  std::string result;
 
   try
   {
@@ -536,8 +535,7 @@ void NodeShared::RecvSrvResponse()
 
     if (!this->responseReceiver->recv(&msg, 0))
       return;
-    resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-    result = resultStr == "1";
+    result = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {

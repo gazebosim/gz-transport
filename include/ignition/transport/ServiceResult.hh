@@ -27,13 +27,15 @@ namespace ignition
   {
     /// \def Result_t This strongly typed enum defines the different options for
     /// the result of a service request.
+    /// * Pending:   The service request is still in transit. The requester
+    ///              should not use the response parameter.
     /// * Success:   The service request was succesfully executed.
     /// * Fail:      The service request was received but failed. The requester
     ///              should not use the response parameter.
     /// * Exception: The service request was received but generated an
     ///              exception. The exception information will be available and
     ///              could be consulted.
-    enum class Result_t {Success, Fail, Exception};
+    enum class Result_t {Pending, Success, Fail, Exception};
 
     /// \class ServiceResult ServiceResult.hh
     /// ignition/transport/ServiceResult.hh
@@ -49,22 +51,34 @@ namespace ignition
 
       /// \brief Get the return code stored in this object.
       /// \return The return code.
-      public: Result_t ReturnCode() const;
+      public: Result_t ReturnCode() const
+      {
+        return this->returnCode;
+      }
 
       /// \brief Get the exception message.
       /// \return The exception message.
-      public: std::string ExceptionMsg() const;
+      public: std::string ExceptionMsg() const
+      {
+        return this->exceptionMsg;
+      }
 
       /// \brief Set the return code.
       /// \param[in] _code New return code.
-      public: void ReturnCode(const Result_t &_code);
+      public: void ReturnCode(const Result_t &_code)
+      {
+        this->returnCode = _code;
+      }
 
       /// \brief Set the exception message.
       /// \param[in] _msg New exception message.
-      public: void ExceptionMsg(const std::string &_msg);
+      public: void ExceptionMsg(const std::string &_msg)
+      {
+        this->exceptionMsg = _msg;
+      }
 
       /// \brief Result of the service request.
-      private: Result_t returnCode = Result_t::Success;
+      private: Result_t returnCode = Result_t::Pending;
 
       /// \brief Stores the exception information (if any).
       private: std::string exceptionMsg;

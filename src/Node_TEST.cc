@@ -23,6 +23,7 @@
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
@@ -92,11 +93,11 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+  const ServiceResult &_result)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
-  EXPECT_TRUE(_result);
+  EXPECT_TRUE(_result.ReturnCode() == Result_t::Success);
 
   responseExecuted = true;
   ++counter;
@@ -105,7 +106,7 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void wrongResponse(const std::string &_topic,
-  const transport::msgs::Vector3d &_rep, bool _result)
+  const transport::msgs::Vector3d &_rep, const ServiceResult &_result)
 {
   wrongResponseExecuted = true;
 }
@@ -184,7 +185,7 @@ class MyTestClass
     transport::msgs::Vector3d wrongReq;
     transport::msgs::Vector3d wrongRep;
     int timeout = 500;
-    bool result;
+    ServiceResult result;
 
     req.set_data(data);
 
@@ -196,7 +197,7 @@ class MyTestClass
     // Advertise and request a valid service.
     EXPECT_TRUE(this->node.Advertise(topic, &MyTestClass::Echo, this));
     EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result.ReturnCode() == Result_t::Success);
     EXPECT_EQ(rep.data(), data);
 
     this->Reset();
@@ -670,7 +671,7 @@ TEST(NodeTest, ServiceCallSync)
 {
   transport::msgs::Int req;
   transport::msgs::Int rep;
-  bool result;
+  ServiceResult result;
   unsigned int timeout = 1000;
 
   req.set_data(data);
@@ -684,7 +685,7 @@ TEST(NodeTest, ServiceCallSync)
   EXPECT_TRUE(node.Request(topic, req, timeout, rep, result));
 
   // Check that the service call response was executed.
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(result.ReturnCode() == Result_t::Success);
   EXPECT_EQ(rep.data(), req.data());
 }
 
@@ -694,7 +695,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 {
   transport::msgs::Int req;
   transport::msgs::Int rep;
-  bool result;
+  ServiceResult result;
   unsigned int timeout = 1000;
 
   req.set_data(data);
@@ -895,7 +896,7 @@ TEST(NodeTest, SrvRequestWrongReq)
 {
   transport::msgs::Vector3d req;
   transport::msgs::Int rep;
-  bool result;
+  ServiceResult result;
   unsigned int timeout = 1000;
 
   req.set_x(1);
@@ -926,7 +927,7 @@ TEST(NodeTest, SrvRequestWrongRep)
 {
   transport::msgs::Int req;
   transport::msgs::Vector3d rep;
-  bool result;
+  ServiceResult result;
   unsigned int timeout = 1000;
 
   req.set_data(data);
@@ -956,7 +957,7 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   transport::msgs::Int req;
   transport::msgs::Int goodRep;
   transport::msgs::Vector3d badRep;
-  bool result;
+  ServiceResult result;
   unsigned int timeout = 1000;
 
   req.set_data(data);

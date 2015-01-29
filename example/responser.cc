@@ -30,6 +30,8 @@ void srvEcho(const std::string &_topic, const example::mymsgs::StringMsg &_req,
 
   // The response succeed.
   _result = true;
+
+  throw std::overflow_error("Divide by zero exception");
 }
 
 //////////////////////////////////////////////////

@@ -24,6 +24,7 @@
 #include <google/protobuf/message.h>
 #include <algorithm>
 #include <condition_variable>
+#include <exception>
 #include <functional>
 #include <map>
 #include <memory>
@@ -41,6 +42,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -356,13 +358,13 @@ namespace ignition
       /// response arrives. The callback has the following parameters:
       ///   \param[in] _topic Service name to be requested.
       ///   \param[in] _rep Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
-      ///   a problem executing your request.
+      ///   \param[in] _result Result of the service call.
       /// \return true when the service call was succesfully requested.
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
+        void(*_cb)(const std::string &_topic, const T2 &_rep,
+          const ServiceResult &_result))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -382,16 +384,33 @@ namespace ignition
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
+          ServiceResult srvResult;
           T2 rep;
-          bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+
+          try
+          {
+            bool result;
+
+            repHandler->RunLocalCallback(
+              fullyQualifiedTopic, _req, rep, result);
+
+            if (result)
+              srvResult.ReturnCode(Result_t::Success);
+            else
+              srvResult.ReturnCode(Result_t::Fail);
+          }
+          catch(const std::exception &_e)
+          {
+            srvResult.ReturnCode(Result_t::Exception);
+            srvResult.ExceptionMsg(_e.what());
+          }
 
           // Notify the requester with the response and remove the partition
           // part from the topic name.
           std::string topicName = fullyQualifiedTopic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
-          _cb(topicName, rep, result);
+          _cb(topicName, rep, srvResult);
           return true;
         }
 
@@ -462,16 +481,33 @@ namespace ignition
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
+          ServiceResult srvResult;
           T2 rep;
-          bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+
+          try
+          {
+            bool result;
+
+            repHandler->RunLocalCallback(
+              fullyQualifiedTopic, _req, rep, result);
+
+            if (result)
+              srvResult.ReturnCode(Result_t::Success);
+            else
+              srvResult.ReturnCode(Result_t::Fail);
+          }
+          catch(const std::exception &_e)
+          {
+            srvResult.ReturnCode(Result_t::Exception);
+            srvResult.ExceptionMsg(_e.what());
+          }
 
           // Notify the requester with the response and remove the partition
           // part from the topic name.
           std::string topicName = fullyQualifiedTopic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
-          _cb(topicName, rep, result);
+          _cb(topicName, rep, srvResult);
           return true;
         }
 
@@ -521,7 +557,7 @@ namespace ignition
         const T1 &_req,
         const unsigned int &_timeout,
         T2 &_rep,
-        bool &_result)
+        ServiceResult &_result)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -540,8 +576,24 @@ namespace ignition
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
-            _result);
+          try
+          {
+            bool result;
+
+            repHandler->RunLocalCallback(
+              fullyQualifiedTopic, _req, _rep, result);
+
+            if (result)
+              _result.ReturnCode(Result_t::Success);
+            else
+              _result.ReturnCode(Result_t::Fail);
+          }
+          catch(const std::exception &_e)
+          {
+            _result.ReturnCode(Result_t::Exception);
+            _result.ExceptionMsg(_e.what());
+          }
+
           this->dataPtr->shared->discovery->GetMutex().unlock();
           return true;
         }
@@ -577,7 +629,7 @@ namespace ignition
 
         if (executed)
         {
-          if (reqHandlerPtr->GetResult())
+          if (reqHandlerPtr->GetResult().ReturnCode() == Result_t::Success)
             _rep.ParseFromString(reqHandlerPtr->GetRep());
 
           _result = reqHandlerPtr->GetResult();

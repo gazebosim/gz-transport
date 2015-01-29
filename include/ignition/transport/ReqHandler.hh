@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/ServiceResult.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -39,12 +40,11 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
       public: IReqHandler(const std::string &_nUuid)
-        : rep(""),
-          result(false),
+        : repAvailable(false),
+          rep(""),
           hUuid(Uuid().ToString()),
           nUuid(_nUuid),
-          requested(false),
-          repAvailable(false)
+          requested(false)
       {
       }
 
@@ -60,7 +60,7 @@ namespace ignition
       /// the service call responser.
       public: virtual void NotifyResult(const std::string &_topic,
                                         const std::string &_rep,
-                                        const bool _result) = 0;
+                                        const std::string &_result) = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -77,8 +77,8 @@ namespace ignition
       }
 
       /// \brief Get the result of the service response.
-      /// \return The boolean result.
-      public: bool GetResult()
+      /// \return The service call result.
+      public: ServiceResult& GetResult()
       {
         return this->result;
       }
@@ -135,6 +135,11 @@ namespace ignition
       /// \return Message type name.
       public: virtual std::string GetRepTypeName() const = 0;
 
+      /// \brief When there is a blocking service call request, the call can
+      /// be unlocked when a service call REP is available. This variable
+      /// captures if we have found a node that can satisty our request.
+      public: bool repAvailable;
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
       protected: std::condition_variable_any condition;
@@ -143,7 +148,7 @@ namespace ignition
       protected: std::string rep;
 
       /// \brief Stores the result of the service call.
-      protected: bool result;
+      protected: ServiceResult result;
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
@@ -154,11 +159,6 @@ namespace ignition
       /// \brief When true, the REQ was already sent and the REP should be on
       /// its way. Used to not resend the same REQ more than one time.
       private: bool requested;
-
-      /// \brief When there is a blocking service call request, the call can
-      /// be unlocked when a service call REP is available. This variable
-      /// captures if we have found a node that can satisty our request.
-      public: bool repAvailable;
     };
 
     /// \class ReqHandler ReqHandler.hh
@@ -196,7 +196,8 @@ namespace ignition
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       public: void SetCallback(const std::function <void(
-        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
+        const std::string &_topic, const Rep &_rep,
+        const ServiceResult &_result)> &_cb)
       {
         this->cb = _cb;
       }
@@ -220,8 +221,19 @@ namespace ignition
       // Documentation inherited.
       public: void NotifyResult(const std::string &_topic,
                                 const std::string &_rep,
-                                const bool _result)
+                                const std::string &_result)
       {
+        // Create the ServiceResult.
+        if (_result == "1")
+          this->result.ReturnCode(Result_t::Success);
+        else if (_result == "0")
+          this->result.ReturnCode(Result_t::Fail);
+        else
+        {
+          this->result.ReturnCode(Result_t::Exception);
+          this->result.ExceptionMsg(_result);
+        }
+
         // Execute the callback (if existing).
         if (this->cb)
         {
@@ -232,13 +244,10 @@ namespace ignition
           std::string topicName = _topic;
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
-          this->cb(topicName, *msg, _result);
+          this->cb(topicName, *msg, this->result);
         }
         else
-        {
           this->rep = _rep;
-          this->result = _result;
-        }
 
         this->repAvailable = true;
         this->condition.notify_one();
@@ -266,7 +275,7 @@ namespace ignition
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       private: std::function<void(const std::string &_topic, const Rep &_rep,
-        bool _result)> cb;
+        const ServiceResult &_result)> cb;
     };
   }
 }
