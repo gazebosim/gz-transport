@@ -665,20 +665,20 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.publisher.Scope() == Scope_t::Process) ||
-          (advMsg.publisher.Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
       }
 
       // Register an advertised address for the topic.
-      bool added = this->dataPtr->infoMsg.AddPublisher(advMsg.publisher);
+      bool added = this->dataPtr->infoMsg.AddPublisher(advMsg.GetPublisher());
 
       if (added && this->dataPtr->connectionCb)
       {
         // Execute the client's callback.
-        this->dataPtr->connectionCb(advMsg.publisher);
+        this->dataPtr->connectionCb(advMsg.GetPublisher());
       }
 
       break;
@@ -690,20 +690,20 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.publisher.Scope() == Scope_t::Process) ||
-          (advSrv.publisher.Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
       }
 
       // Register an advertised address for the topic.
-      bool added = this->dataPtr->infoSrv.AddPublisher(advSrv.publisher);
+      bool added = this->dataPtr->infoSrv.AddPublisher(advSrv.GetPublisher());
 
       if (added && this->dataPtr->connectionSrvCb)
       {
         // Execute the client's callback.
-        this->dataPtr->connectionSrvCb(advSrv.publisher);
+        this->dataPtr->connectionSrvCb(advSrv.GetPublisher());
       }
 
       break;
@@ -813,8 +813,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.publisher.Scope() == Scope_t::Process) ||
-          (advMsg.publisher.Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -825,12 +825,12 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (cb)
       {
         // Notify the new disconnection.
-        cb(advMsg.publisher);
+        cb(advMsg.GetPublisher());
       }
 
       // Remove the address entry for this topic.
-      this->dataPtr->infoMsg.DelPublisherByNode(advMsg.publisher.Topic(),
-        advMsg.publisher.PUuid(), advMsg.publisher.NUuid());
+      this->dataPtr->infoMsg.DelPublisherByNode(advMsg.GetPublisher().Topic(),
+        advMsg.GetPublisher().PUuid(), advMsg.GetPublisher().NUuid());
 
       break;
     }
@@ -841,8 +841,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.publisher.Scope() == Scope_t::Process) ||
-          (advSrv.publisher.Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -853,12 +853,12 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (cb)
       {
         // Notify the new disconnection.
-        cb(advSrv.publisher);
+        cb(advSrv.GetPublisher());
       }
 
       // Remove the address entry for this topic.
-      this->dataPtr->infoSrv.DelPublisherByNode(advSrv.publisher.Topic(),
-        advSrv.publisher.PUuid(), advSrv.publisher.NUuid());
+      this->dataPtr->infoSrv.DelPublisherByNode(advSrv.GetPublisher().Topic(),
+        advSrv.GetPublisher().PUuid(), advSrv.GetPublisher().NUuid());
 
       break;
     }

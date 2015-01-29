@@ -233,6 +233,34 @@ namespace ignition
       {
       }
 
+      /// \brief Get the message header.
+      /// \return Reference to the message header.
+      public: Header GetHeader() const
+      {
+        return this->header;
+      }
+
+      /// \brief Get the publisher of this message.
+      /// \return Publisher.
+      public: T& GetPublisher()
+      {
+        return this->publisher;
+      }
+
+      /// \brief Set the header of the message.
+      /// \param[in] _header Message header.
+      public: void SetHeader(const Header &_header)
+      {
+        this->header = _header;
+      }
+
+      /// \brief Set the publisher of this message.
+      /// \param[in] _publisher New publisher.
+      public: void SetPublisher(const T &_publisher)
+      {
+        this->publisher = _publisher;
+      }
+
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
       public: size_t GetMsgLength()
@@ -282,10 +310,10 @@ namespace ignition
       }
 
       /// \brief The name of the protobuf message advertised.
-      public: Header header;
+      private: Header header;
 
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
-      public: T publisher;
+      private: T publisher;
     };
   }
 }
