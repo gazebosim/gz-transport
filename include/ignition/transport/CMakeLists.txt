@@ -13,6 +13,7 @@ set (headers
   Publisher.hh
   RepHandler.hh
   ReqHandler.hh
+  ServiceResult.hh
   SubscriptionHandler.hh
   TopicStorage.hh
   TopicUtils.hh

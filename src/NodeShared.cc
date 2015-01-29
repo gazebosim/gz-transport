@@ -21,6 +21,7 @@
 #include <zmq.hpp>
 #include <chrono>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -423,14 +424,22 @@ void NodeShared::RecvSrvRequest()
   IRepHandlerPtr repHandler;
   if (this->repliers.GetFirstHandler(topic, reqType, repType, repHandler))
   {
-    bool result;
-    // Run the service call and get the results.
-    repHandler->RunCallback(topic, req, rep, result);
+    try
+    {
+      bool result;
 
-    if (result)
-      resultStr = "1";
-    else
-      resultStr = "0";
+      // Run the service call and get the results.
+      repHandler->RunCallback(topic, req, rep, result);
+
+      if (result)
+        resultStr = "1";
+      else
+        resultStr = "0";
+    }
+    catch(const std::exception &_e)
+    {
+      resultStr = _e.what();
+    }
 
     // I am still not connected to this address.
     if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
