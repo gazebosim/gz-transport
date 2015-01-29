@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_SRVRESULT_HH_INCLUDED__
 #define __IGN_TRANSPORT_SRVRESULT_HH_INCLUDED__
 
+#include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
 
@@ -25,6 +26,8 @@ namespace ignition
 {
   namespace transport
   {
+    class ServiceResultPrivate;
+
     /// \def Result_t This strongly typed enum defines the different options for
     /// the result of a service request.
     /// * Pending:   The service request is still in transit. The requester
@@ -43,45 +46,37 @@ namespace ignition
     /// can be Success, Fail or Exeption.
     class IGNITION_VISIBLE ServiceResult
     {
-      /// \brief Default class constructor.
-      public: ServiceResult() = default;
+      /// \brief Class constructor.
+      public: ServiceResult();
 
       /// \brief Default class destructor.
-      public: ~ServiceResult() = default;
+      public: virtual ~ServiceResult();
+
+      /// \brief Copy constructor.
+      public: ServiceResult(const ServiceResult &_res);
+
+      /// \brief Copy assignment operator.
+      public: ServiceResult& operator=(ServiceResult _other);
 
       /// \brief Get the return code stored in this object.
       /// \return The return code.
-      public: Result_t ReturnCode() const
-      {
-        return this->returnCode;
-      }
+      public: Result_t ReturnCode() const;
 
       /// \brief Get the exception message.
       /// \return The exception message.
-      public: std::string ExceptionMsg() const
-      {
-        return this->exceptionMsg;
-      }
+      public: std::string ExceptionMsg() const;
 
       /// \brief Set the return code.
       /// \param[in] _code New return code.
-      public: void ReturnCode(const Result_t &_code)
-      {
-        this->returnCode = _code;
-      }
+      public: void ReturnCode(const Result_t &_code);
 
       /// \brief Set the exception message.
       /// \param[in] _msg New exception message.
-      public: void ExceptionMsg(const std::string &_msg)
-      {
-        this->exceptionMsg = _msg;
-      }
+      public: void ExceptionMsg(const std::string &_msg);
 
-      /// \brief Result of the service request.
-      private: Result_t returnCode = Result_t::Pending;
-
-      /// \brief Stores the exception information (if any).
-      private: std::string exceptionMsg;
+      /// \internal
+      /// \brief Shared pointer to private data.
+      protected: std::unique_ptr<ServiceResultPrivate> dataPtr;
     };
   }
 }
