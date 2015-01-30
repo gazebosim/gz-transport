@@ -74,39 +74,39 @@ namespace ignition
 
       /// \brief Get the discovery protocol version.
       /// \return The discovery protocol version.
-      public: uint16_t GetVersion() const;
+      public: uint16_t Version() const;
 
       /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
-      public: std::string GetPUuid() const;
+      public: std::string PUuid() const;
 
       /// \brief Get the message type.
       /// \return Message type (ADVERTISE, SUBSCRIPTION, ...)
-      public: uint8_t GetType() const;
+      public: uint8_t Type() const;
 
       /// \brief Get the message flags.
       /// \return Message flags used for compression or other optional features.
-      public: uint16_t GetFlags() const;
+      public: uint16_t Flags() const;
 
       /// \brief Set the discovery protocol version.
       /// \param[in] _version Discovery protocol version.
-      public: void SetVersion(const uint16_t _version);
+      public: void Version(const uint16_t _version);
 
       /// \brief Set the process uuid.
       /// \param[in] _pUuid A unique global identifier for every process.
-      public: void SetPUuid(const std::string &_pUuid);
+      public: void PUuid(const std::string &_pUuid);
 
       /// \brief Set the message type.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
-      public: void SetType(const uint8_t _type);
+      public: void Type(const uint8_t _type);
 
       /// \brief Set the message flags.
       /// \param[in] _flags Used for enable optional features.
-      public: void SetFlags(const uint16_t _flags);
+      public: void Flags(const uint16_t _flags);
 
       /// \brief Get the header length.
       /// \return The header length in bytes.
-      public: int GetHeaderLength();
+      public: int HeaderLength();
 
       /// \brief Serialize the header. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -127,10 +127,10 @@ namespace ignition
       {
         _out << "--------------------------------------\n"
              << "Header:" << std::endl
-             << "\tVersion: " << _header.GetVersion() << "\n"
-             << "\tProcess UUID: " << _header.GetPUuid() << "\n"
-             << "\tType: " << MsgTypesStr.at(_header.GetType()) << "\n"
-             << "\tFlags: " << _header.GetFlags() << "\n";
+             << "\tVersion: " << _header.Version() << "\n"
+             << "\tProcess UUID: " << _header.PUuid() << "\n"
+             << "\tType: " << MsgTypesStr.at(_header.Type()) << "\n"
+             << "\tFlags: " << _header.Flags() << "\n";
         return _out;
       }
 
@@ -167,7 +167,7 @@ namespace ignition
 
       /// \brief Get the topic.
       /// \return Topic name.
-      public: std::string GetTopic() const;
+      public: std::string Topic() const;
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
@@ -175,11 +175,11 @@ namespace ignition
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
-      public: void SetTopic(const std::string &_topic);
+      public: void Topic(const std::string &_topic);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength();
+      public: size_t MsgLength();
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -189,7 +189,7 @@ namespace ignition
       {
         _out << _msg.GetHeader()
              << "Body:" << std::endl
-             << "\tTopic: [" << _msg.GetTopic() << "]" << std::endl;
+             << "\tTopic: [" << _msg.Topic() << "]" << std::endl;
 
         return _out;
       }
@@ -263,9 +263,9 @@ namespace ignition
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength()
+      public: size_t MsgLength()
       {
-        return this->header.GetHeaderLength() + this->publisher.GetMsgLength();
+        return this->header.HeaderLength() + this->publisher.MsgLength();
       }
 
       /// \brief Serialize the advertise message.
@@ -284,7 +284,7 @@ namespace ignition
         if (this->publisher.Pack(_buffer) == 0)
           return 0;
 
-        return this->GetMsgLength();
+        return this->MsgLength();
       }
 
       /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
@@ -296,7 +296,7 @@ namespace ignition
         if (this->publisher.Unpack(_buffer) == 0)
           return 0;
 
-        return this->publisher.GetMsgLength();
+        return this->publisher.MsgLength();
       }
 
       /// \brief Stream insertion operator.

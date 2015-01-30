@@ -211,8 +211,8 @@ Discovery::~Discovery()
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
-  Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
-  this->SendMsg(ByeType, pub);
+  this->SendMsg(ByeType,
+    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::All));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -380,104 +380,104 @@ void Discovery::DiscoverSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetMsgPublishers(const std::string &_topic,
-                                 MsgAddresses_M &_publishers)
+bool Discovery::MsgPublishers(const std::string &_topic,
+                              MsgAddresses_M &_publishers)
 {
   return this->dataPtr->infoMsg.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetSrvPublishers(const std::string &_topic,
-                                 SrvAddresses_M &_publishers)
+bool Discovery::SrvPublishers(const std::string &_topic,
+                              SrvAddresses_M &_publishers)
 {
   return this->dataPtr->infoSrv.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
-std::string Discovery::GetHostAddr() const
+std::string Discovery::HostAddr() const
 {
   return this->dataPtr->hostAddr;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetActivityInterval() const
+unsigned int Discovery::ActivityInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->activityInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbeatInterval() const
+unsigned int Discovery::HeartbeatInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->heartbeatInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetAdvertiseInterval() const
+unsigned int Discovery::AdvertiseInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->advertiseInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetSilenceInterval() const
+unsigned int Discovery::SilenceInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->silenceInterval;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetActivityInterval(const unsigned int _ms)
+void Discovery::ActivityInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbeatInterval(const unsigned int _ms)
+void Discovery::HeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetAdvertiseInterval(const unsigned int _ms)
+void Discovery::AdvertiseInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->advertiseInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetSilenceInterval(const unsigned int _ms)
+void Discovery::SilenceInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->silenceInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::ConnectionsCb(const MsgDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::DisconnectionsCb(const MsgDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::ConnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionSrvCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionSrvCb = _cb;
@@ -645,9 +645,9 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
   // Create the header from the raw bytes.
   header.Unpack(_msg);
-  pBody += header.GetHeaderLength();
+  pBody += header.HeaderLength();
 
-  auto recvPUuid = header.GetPUuid();
+  auto recvPUuid = header.PUuid();
 
   // Discard our own discovery messages.
   if (recvPUuid == this->dataPtr->pUuid)
@@ -656,7 +656,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   // Update timestamp.
   this->dataPtr->activity[recvPUuid] = std::chrono::steady_clock::now();
 
-  switch (header.GetType())
+  switch (header.Type())
   {
     case AdvType:
     {
@@ -713,7 +713,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
       subMsg.Unpack(pBody);
-      auto recvTopic = subMsg.GetTopic();
+      auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
       if (this->dataPtr->infoMsg.HasAnyPublishers(recvTopic,
@@ -745,7 +745,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
       subMsg.Unpack(pBody);
-      auto recvTopic = subMsg.GetTopic();
+      auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
       if (this->dataPtr->infoSrv.HasAnyPublishers(
@@ -864,7 +864,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     }
     default:
     {
-      std::cerr << "Unknown message type [" << header.GetType() << "]\n";
+      std::cerr << "Unknown message type [" << header.Type() << "]\n";
       break;
     }
   }
@@ -937,21 +937,21 @@ void Discovery::PrintCurrentState()
 }
 
 //////////////////////////////////////////////////
-void Discovery::GetTopicList(std::vector<std::string> &_topics) const
+void Discovery::TopicList(std::vector<std::string> &_topics) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->infoMsg.GetTopicList(_topics);
 }
 
 //////////////////////////////////////////////////
-void Discovery::GetServiceList(std::vector<std::string> &_services) const
+void Discovery::ServiceList(std::vector<std::string> &_services) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->infoSrv.GetTopicList(_services);
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::GetMutex()
+std::recursive_mutex& Discovery::Mutex()
 {
   return this->dataPtr->mutex;
 }

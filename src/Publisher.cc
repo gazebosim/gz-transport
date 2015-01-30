@@ -145,7 +145,7 @@ size_t Publisher::Pack(char *_buffer) const
   uint8_t intscope = static_cast<uint8_t>(this->scope);
   memcpy(_buffer, &intscope, sizeof(intscope));
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
@@ -200,11 +200,11 @@ size_t Publisher::Unpack(char *_buffer)
   memcpy(&intscope, _buffer, sizeof(intscope));
   this->scope = static_cast<Scope_t>(intscope);
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::GetMsgLength() const
+size_t Publisher::MsgLength() const
 {
   return sizeof(uint64_t) + this->topic.size() +
          sizeof(uint64_t) + this->addr.size() +
@@ -259,7 +259,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
   memcpy(_buffer, this->msgTypeName.data(),
     static_cast<size_t>(typeNameLength));
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
@@ -297,13 +297,13 @@ size_t MessagePublisher::Unpack(char *_buffer)
   // Unpack the type name.
   this->msgTypeName = std::string(_buffer, _buffer + typeNameLength);
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::GetMsgLength() const
+size_t MessagePublisher::MsgLength() const
 {
-  return Publisher::GetMsgLength() +
+  return Publisher::MsgLength() +
          sizeof(uint64_t) + this->ctrl.size() +
          sizeof(uint64_t) + this->msgTypeName.size();
 }
@@ -388,7 +388,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   // Pack the response.
   memcpy(_buffer, this->repTypeName.data(), static_cast<size_t>(repTypeLength));
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
@@ -436,13 +436,13 @@ size_t ServicePublisher::Unpack(char *_buffer)
   this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
   _buffer += repTypeLength;
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::GetMsgLength() const
+size_t ServicePublisher::MsgLength() const
 {
-  return Publisher::GetMsgLength() +
+  return Publisher::MsgLength() +
          sizeof(uint64_t) + this->socketId.size() +
          sizeof(uint64_t) + this->reqTypeName.size() +
          sizeof(uint64_t) + this->repTypeName.size();
@@ -461,25 +461,25 @@ void ServicePublisher::SocketId(const std::string &_socketId)
 }
 
 //////////////////////////////////////////////////
-std::string ServicePublisher::GetReqTypeName() const
+std::string ServicePublisher::ReqTypeName() const
 {
   return this->reqTypeName;
 }
 
 //////////////////////////////////////////////////
-std::string ServicePublisher::GetRepTypeName() const
+std::string ServicePublisher::RepTypeName() const
 {
   return this->repTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SetReqTypeName(const std::string &_reqTypeName)
+void ServicePublisher::ReqTypeName(const std::string &_reqTypeName)
 {
   this->reqTypeName = _reqTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
+void ServicePublisher::RepTypeName(const std::string &_repTypeName)
 {
   this->repTypeName = _repTypeName;
 }
