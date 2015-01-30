@@ -148,6 +148,8 @@ namespace ignition
                                std::string &_rep,
                                bool &_result)
       {
+        _rep = "";
+
         // Execute the callback (if existing).
         if (this->cb)
         {
@@ -161,7 +163,16 @@ namespace ignition
           topicName.erase(0, topicName.find_last_of("@") + 1);
 
           this->cb(topicName, *msgReq, msgRep, _result);
-          msgRep.SerializeToString(&_rep);
+
+          if (msgRep.IsInitialized())
+            msgRep.SerializeToString(&_rep);
+          else
+          {
+            std::cerr << "RepHandler::RunCallback() error: "
+                      << "REP message does not have all the required fields"
+                      << std::endl;
+            _result = false;
+          }
         }
         else
         {

@@ -76,15 +76,15 @@ namespace ignition
 
       /// \brief Return if the ServiceResult returned succesfully.
       /// \return True when the result was Success or false otherwise.
-      public: bool Succeed();
+      public: bool Succeed() const;
 
       /// \brief Return if the ServiceResult failed.
       /// \return True when the result was Fail or false otherwise.
-      public: bool Failed();
+      public: bool Failed() const;
 
       /// \brief Return if the ServiceResult triggered an exception.
       /// \return True when the result was Exception or false otherwise.
-      public: bool Raised();
+      public: bool Raised() const;
 
       /// \internal
       /// \brief Shared pointer to private data.

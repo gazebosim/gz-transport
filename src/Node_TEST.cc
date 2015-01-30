@@ -33,6 +33,7 @@ using namespace ignition;
 
 std::string partition;
 std::string topic = "/foo";
+static const std::string kExceptionMsg = "Exception message";
 
 int data = 5;
 bool cbExecuted;
@@ -91,6 +92,16 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a ervice call that raises an exception.
+void srvEchoException(const std::string &/*_topic*/,
+  const transport::msgs::Int &/*_req*/, transport::msgs::Int &/*_rep*/,
+  bool &/*_result*/)
+{
+  // Raise an exception to test the exception propagation to the requester.
+  throw std::overflow_error(kExceptionMsg);
+}
+
+//////////////////////////////////////////////////
 /// \brief Service call response callback.
 void response(const std::string &_topic, const transport::msgs::Int &_rep,
   const ServiceResult &_result)
@@ -101,6 +112,18 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
   responseExecuted = true;
   ++counter;
+}
+
+//////////////////////////////////////////////////
+/// \brief Service call response callback.
+void responseException(const std::string &_topic,
+  const transport::msgs::Int &/*_rep*/, const ServiceResult &_result)
+{
+  EXPECT_EQ(_topic, topic);
+  EXPECT_TRUE(_result.Raised());
+  EXPECT_EQ(_result.ExceptionMsg(), kExceptionMsg);
+
+  responseExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -975,6 +998,35 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   EXPECT_TRUE(node.Request(topic, req, timeout, goodRep, result));
   EXPECT_TRUE(node.Request(topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_TRUE(responseExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service responser that advertises a service. The
+/// callback that implements the service in the responser raises an exception.
+/// We verify in this test that the requesters (both synchronous and
+/// asynchronous) receive the service response with the exception.
+TEST(NodeTest, SrvException)
+{
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
+  ServiceResult result;
+  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(topic, srvEchoException));
+
+  // Request a synchronous service call that raises exception.
+  EXPECT_TRUE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_TRUE(result.Raised());
+  EXPECT_EQ(result.ExceptionMsg(), kExceptionMsg);
+
+  reset();
+
+  // Request an asynchronous service call that raises an exception.
+  EXPECT_TRUE(node.Request(topic, req, responseException));
   EXPECT_TRUE(responseExecuted);
 }
 

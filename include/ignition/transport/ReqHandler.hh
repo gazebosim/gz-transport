@@ -180,11 +180,13 @@ namespace ignition
       /// \return Pointer to the specific protobuf message.
       public: std::shared_ptr<Rep> CreateMsg(const std::string &_data)
       {
-        // Instantiate a specific protobuf message
+        // Instantiate a specific protobuf message.
         std::shared_ptr<Rep> msgPtr(new Rep());
 
-        // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        // Create the message using some serialized data. If the message is
+        // empty we're propagating an exception.
+        if (!_data.empty())
+          msgPtr->ParseFromString(_data);
 
         return msgPtr;
       }

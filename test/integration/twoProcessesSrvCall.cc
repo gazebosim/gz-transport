@@ -31,8 +31,10 @@ bool srvExecuted;
 bool responseExecuted;
 bool wrongResponseExecuted;
 
+static const std::string kExceptionMsg = "Exception message";
 std::string partition;
 std::string topic = "/foo";
+std::string topicException = "/exception";
 int data = 5;
 int counter = 0;
 
@@ -60,10 +62,24 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
+void responseException(const std::string &_topic,
+  const transport::msgs::Int &_rep, const ServiceResult &_result)
+{
+  EXPECT_EQ(_topic, topicException);
+  EXPECT_TRUE(_result.Raised());
+  EXPECT_EQ(_result.ExceptionMsg(), kExceptionMsg);
+
+  responseExecuted = true;
+  ++counter;
+}
+
+//////////////////////////////////////////////////
+/// \brief Service call response callback.
 void wrongResponse(const std::string &_topic,
   const transport::msgs::Vector3d &_rep, const ServiceResult &_result)
 {
   wrongResponseExecuted = true;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -237,6 +253,57 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   EXPECT_TRUE(responseExecuted);
 
   reset();
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service responser that advertises a service. The
+/// callback that implements the service in the responser raises an exception.
+/// We verify in this test that the requesters (both synchronous and
+/// asynchronous) receive the service response with the exception.
+TEST(twoProcSrvCall, SrvTwoProcsException)
+{
+  std::string responser_path = testing::portablePathUnion(
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
+
+  responseExecuted = false;
+  counter = 0;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
+  ServiceResult result;
+  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
+  reset();
+
+  transport::Node node;
+  // Request an asynchronous service call that raises an exception.
+  EXPECT_TRUE(node.Request(topicException, req, responseException));
+
+  int i = 0;
+  while (i < 300 && !responseExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_EQ(counter, 1);
+
+  reset();
+
+  // Request an asynchronous service call that raises an exception.
+  EXPECT_TRUE(node.Request(topicException, req, timeout, rep, result));
+  EXPECT_TRUE(result.Raised());
+  EXPECT_EQ(result.ExceptionMsg(), kExceptionMsg);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);

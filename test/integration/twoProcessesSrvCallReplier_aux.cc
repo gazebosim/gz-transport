@@ -24,7 +24,9 @@
 
 using namespace ignition;
 
-std::string topic = "/foo";
+static const std::string kExceptionMsg = "Exception message";
+static const std::string kTopic = "/foo";
+static const std::string kTopicException = "/exception";
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -36,10 +38,21 @@ void srvEcho(const std::string &/*_topic*/, const transport::msgs::Int &_req,
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a service that raises an exception.
+void srvEchoException(const std::string &/*_topic*/,
+  const transport::msgs::Int &/*_req*/,
+  transport::msgs::Int &/*_rep*/, bool &/*_result*/)
+{
+  // Raise an exception to test the exception propagation to the requester.
+  throw std::overflow_error(kExceptionMsg);
+}
+
+//////////////////////////////////////////////////
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(kTopic, srvEcho));
+  EXPECT_TRUE(node.Advertise(kTopicException, srvEchoException));
   std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 

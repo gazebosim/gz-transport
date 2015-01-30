@@ -75,19 +75,19 @@ void ServiceResult::ExceptionMsg(const std::string &_msg)
 }
 
 //////////////////////////////////////////////////
-bool ServiceResult::Succeed()
+bool ServiceResult::Succeed() const
 {
   return this->ReturnCode() == Result_t::Success;
 }
 
 //////////////////////////////////////////////////
-bool ServiceResult::Failed()
+bool ServiceResult::Failed() const
 {
   return this->ReturnCode() == Result_t::Fail;
 }
 
 //////////////////////////////////////////////////
-bool ServiceResult::Raised()
+bool ServiceResult::Raised() const
 {
   return this->ReturnCode() == Result_t::Exception;
 }
