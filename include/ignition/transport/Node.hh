@@ -629,7 +629,7 @@ namespace ignition
 
         if (executed)
         {
-          if (reqHandlerPtr->GetResult().ReturnCode() == Result_t::Success)
+          if (reqHandlerPtr->GetResult().Succeed())
             _rep.ParseFromString(reqHandlerPtr->GetRep());
 
           _result = reqHandlerPtr->GetResult();

@@ -38,9 +38,9 @@ int main(int argc, char **argv)
 
   if (executed)
   {
-    if (result.ReturnCode() == ignition::transport::Result_t::Success)
+    if (result.Succeed())
       std::cout << "Response: [" << rep.data() << "]" << std::endl;
-    else if (result.ReturnCode() == ignition::transport::Result_t::Fail)
+    else if (result.Failed())
       std::cout << "Service call failed" << std::endl;
     else
     {

@@ -74,6 +74,18 @@ namespace ignition
       /// \param[in] _msg New exception message.
       public: void ExceptionMsg(const std::string &_msg);
 
+      /// \brief Return if the ServiceResult returned succesfully.
+      /// \return True when the result was Success or false otherwise.
+      public: bool Succeed();
+
+      /// \brief Return if the ServiceResult failed.
+      /// \return True when the result was Fail or false otherwise.
+      public: bool Failed();
+
+      /// \brief Return if the ServiceResult triggered an exception.
+      /// \return True when the result was Exception or false otherwise.
+      public: bool Raised();
+
       /// \internal
       /// \brief Shared pointer to private data.
       protected: std::unique_ptr<ServiceResultPrivate> dataPtr;

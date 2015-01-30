@@ -29,15 +29,16 @@ ServiceResult::ServiceResult()
 }
 
 //////////////////////////////////////////////////
-ServiceResult::~ServiceResult()
-{
-}
-
-//////////////////////////////////////////////////
 ServiceResult::ServiceResult(const ServiceResult &_res)
+  : dataPtr(new ServiceResultPrivate())
 {
   this->ReturnCode(_res.ReturnCode());
   this->ExceptionMsg(_res.ExceptionMsg());
+}
+
+//////////////////////////////////////////////////
+ServiceResult::~ServiceResult()
+{
 }
 
 //////////////////////////////////////////////////
@@ -71,4 +72,22 @@ void ServiceResult::ReturnCode(const Result_t &_code)
 void ServiceResult::ExceptionMsg(const std::string &_msg)
 {
   this->dataPtr->exceptionMsg = _msg;
+}
+
+//////////////////////////////////////////////////
+bool ServiceResult::Succeed()
+{
+  return this->ReturnCode() == Result_t::Success;
+}
+
+//////////////////////////////////////////////////
+bool ServiceResult::Failed()
+{
+  return this->ReturnCode() == Result_t::Fail;
+}
+
+//////////////////////////////////////////////////
+bool ServiceResult::Raised()
+{
+  return this->ReturnCode() == Result_t::Exception;
 }
