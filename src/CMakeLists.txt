@@ -18,6 +18,7 @@ set (gtest_sources
   HandlerStorage_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
+  ServiceResult_TEST.cc
   TopicStorage_TEST.cc
   TopicUtils_TEST.cc
   Uuid_TEST.cc
