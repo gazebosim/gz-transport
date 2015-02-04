@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
-if RUBY_VERSION.split('.')[0] < 2
+if RUBY_VERSION.split('.')[0] < '2'
   require 'dl'
   require 'dl/import'
   include DL
