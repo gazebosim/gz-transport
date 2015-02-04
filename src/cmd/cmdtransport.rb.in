@@ -14,7 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'dl/import'
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < 2
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
 require 'optparse'
 
 # Constants.
@@ -95,17 +105,17 @@ class Cmd
     conf_version = LIBRARY_VERSION
 
     begin
-      DL::Importer.dlload plugin
-    rescue DL::DLError
+      Importer.dlload plugin
+    rescue DLError
       puts "Library error: [#{plugin}] not found."
       exit(-1)
     end
 
     # Read the library version.
-    DL::Importer.extern 'char* ignitionVersion()'
+    Importer.extern 'char* ignitionVersion()'
     begin
-      plugin_version = DL::Importer.ignitionVersion.to_s
-    rescue DL::DLError
+      plugin_version = Importer.ignitionVersion.to_s
+    rescue DLError
       puts "Library error: Problem running 'ignitionVersion()' from #{plugin}."
       exit(-1)
     end
@@ -122,16 +132,16 @@ class Cmd
       case options['command']
       when 'topic'
         if options.key?('list')
-          DL::Importer.extern 'void cmdTopicList()'
-          DL::Importer.cmdTopicList
+          Importer.extern 'void cmdTopicList()'
+          Importer.cmdTopicList
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
         end
       when 'service'
         if options.key?('list')
-          DL::Importer.extern 'void cmdServiceList()'
-          DL::Importer.cmdServiceList
+          Importer.extern 'void cmdServiceList()'
+          Importer.cmdServiceList
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
