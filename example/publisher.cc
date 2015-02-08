@@ -18,6 +18,7 @@
 #include <chrono>
 #include <csignal>
 #include <ignition/transport.hh>
+#include "msg/benchmark.pb.h"
 #include "msg/stringmsg.pb.h"
 
 bool terminatePub = false;
@@ -43,16 +44,26 @@ int main(int argc, char **argv)
   node.Advertise("/foo");
 
   // Prepare the message.
-  example::mymsgs::StringMsg msg;
-  msg.set_data("HELLO");
+  //example::mymsgs::StringMsg msg;
+  //msg.set_data("HELLO");
+
+  // Prepare the message.
+  example::mymsgs::BenchmarkMsg msg;
+
+  // int numBlocks = exp2(10) / 4; // 1 KB.
+  int numBlocks = 1 * exp2(20) / 4; // 100 MB.
+
+  for (auto i = 0; i < numBlocks; ++i)
+    msg.add_data(1);
+
 
   // Publish messages at 1Hz.
   while(!terminatePub)
   {
     node.Publish("/foo", msg);
 
-    std::cout << "Publishing hello\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //std::cout << "Publishing hello\n";
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
   return 0;

@@ -19,14 +19,20 @@
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
+#include "msg/benchmark.pb.h"
 #include "msg/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
+void cb(const std::string &_topic, const example::mymsgs::BenchmarkMsg &_msg)
 {
-  std::cout << "Topic:" << _topic << "\n"
-            << "Msg:  " << _msg.data() << "\n\n";
+  std::cout << "Msg received" << std::endl;
+  /*std::cout << "Topic:" << _topic << "\n"
+            << "Msg:  " << _msg.data() << "\n\n";*/
+
+  static int counter = 0;
+  if (++counter == 10)
+    exit(0);
 }
 
 //////////////////////////////////////////////////

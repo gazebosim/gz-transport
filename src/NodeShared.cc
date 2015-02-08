@@ -84,7 +84,7 @@ NodeShared::NodeShared()
     this->hostAddr = this->discovery->GetHostAddr();
 
     // Publisher socket listening in a random port.
-    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+    std::string anyTcpEp = "tcp://0.0.0.0:*";// + this->hostAddr + ":*";
 
     int lingerVal = 0;
     this->publisher->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
@@ -225,7 +225,13 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
     this->publisher->send(msg, ZMQ_SNDMORE);
 
     msg.rebuild(_data.size());
+    Timestamp start = std::chrono::steady_clock::now();
     memcpy(msg.data(), _data.data(), _data.size());
+    Timestamp end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "rebuild + memcpy: "
+              << std::chrono::duration_cast<std::chrono::microseconds>
+           (elapsed).count() << " us." << std::endl;
     this->publisher->send(msg, 0);
   }
   catch(const zmq::error_t& ze)

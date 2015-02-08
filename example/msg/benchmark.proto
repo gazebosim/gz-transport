@@ -1,0 +1,8 @@
+package example.mymsgs;
+
+/// \brief Benchmark message
+
+message BenchmarkMsg
+{
+  repeated int32 data = 1;
+}

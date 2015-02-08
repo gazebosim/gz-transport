@@ -36,6 +36,10 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
+
+#include <sstream>
+
+
 using namespace ignition;
 using namespace transport;
 
@@ -228,9 +232,49 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   // Remote subscribers.
   if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
   {
-    std::string data;
+    /*Timestamp start = std::chrono::steady_clock::now();
+    size_t size = _msg.ByteSize();
+    void *buffer = malloc(size);
+    _msg.SerializeToArray(buffer, size);
+    Timestamp end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "SerializeToArray: "
+              << std::chrono::duration_cast<std::chrono::microseconds>
+           (elapsed).count() << " us." << std::endl;
+    free(buffer);*/
+
+    std::ostringstream stream;
+    Timestamp start = std::chrono::steady_clock::now();
+    _msg.SerializeToOstream(&stream);
+    Timestamp end = std::chrono::steady_clock::now();
+    this->dataPtr->shared->Publish(fullyQualifiedTopic, stream.str());
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "SerializeToOstream: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>
+           (elapsed).count() << " ms." << std::endl;
+
+
+    /*start = std::chrono::steady_clock::now();
+    size = _msg.ByteSize();
+    uint8 *buffer2 = (uint8 *)malloc(size);
+    _msg.SerializeWithCachedSizesToArray(buffer2);
+    end = std::chrono::steady_clock::now();
+    elapsed = end - start;
+    std::cout << "SerializeToArray: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>
+           (elapsed).count() << " ms." << std::endl;
+    free(buffer);*/
+    //this->dataPtr->shared->Publish(fullyQualifiedTopic, data, size);
+
+    /*std::string data;
+    Timestamp start = std::chrono::steady_clock::now();
     _msg.SerializeToString(&data);
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data);
+    Timestamp end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "SerializeToString: "
+              << std::chrono::duration_cast<std::chrono::microseconds>
+           (elapsed).count() << " us." << std::endl;
+    */
   }
   // Debug output.
   // else
