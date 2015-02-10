@@ -199,8 +199,6 @@ TEST(RepStorageTest, RepStorageAPI)
 TEST(RepStorageTest, SubStorageNoCallbacks)
 {
   transport::ISubscriptionHandlerPtr handler;
-  std::map<std::string, std::map<std::string,
-    transport::ISubscriptionHandlerPtr>> m;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
   transport::msgs::Int msg;
   msg.set_data(5);
