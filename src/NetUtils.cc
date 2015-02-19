@@ -362,7 +362,7 @@ std::vector<std::string> transport::determineInterfaces()
         // Add the new interface if it's new and unique.
         if (!ret_addr.empty() &&
         std::find(std::begin(result),
-                  std::end(resutl), ret_addr) == std::end(result))
+                  std::end(result), ret_addr) == std::end(result))
         {
           result.push_back(std::string(ret_addr));
         }
