@@ -366,6 +366,7 @@ std::vector<std::string> transport::determineInterfaces()
         {
           result.push_back(std::string(ret_addr));
         }
+      }
     }
   }
   else
