@@ -259,6 +259,12 @@ std::vector<std::string> transport::determineInterfaces()
     exit(-1);
   }
   char preferred_ip[200] = {0};
+
+  if (preferred_ip[0])
+    std::cout << "true" << std::endl;
+  else
+    std::cout << "false" << std::endl;
+
   for (ifa = ifp; ifa; ifa = ifa->ifa_next)
   {
     char ip_[200];
@@ -279,13 +285,16 @@ std::vector<std::string> transport::determineInterfaces()
                    ifa->ifa_name << std::endl;
       continue;
     }
-    // prefer non-private IPs over private IPs
+    // prefer non-loopback IPs
     if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
       continue;  // ignore loopback unless we have no other choice
+    // IPv6 interface.
     if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
       interface = std::string(ip_);
+    // Private network interface.
     else if (isPrivateIP(ip_) && !preferred_ip[0])
       interface = std::string(ip_);
+    // Any other interface.
     else if (!isPrivateIP(ip_) &&
              (isPrivateIP(preferred_ip) || !preferred_ip[0]))
       interface = std::string(ip_);
