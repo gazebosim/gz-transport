@@ -35,8 +35,6 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  auto interfaces = determineInterfaces();
-
   // Install a signal handler for SIGINT.
   std::signal(SIGINT, signal_handler);
 
