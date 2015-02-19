@@ -276,6 +276,7 @@ std::vector<std::string> transport::determineInterfaces()
       salen = sizeof(struct sockaddr_in);
     else if (ifa->ifa_addr->sa_family == AF_INET6)
       salen = sizeof(struct sockaddr_in6);
+    // Unknown family.
     else
       continue;
     if (getnameinfo(ifa->ifa_addr, salen, ip_, sizeof(ip_), nullptr, 0,
