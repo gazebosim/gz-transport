@@ -260,11 +260,6 @@ std::vector<std::string> transport::determineInterfaces()
   }
   char preferred_ip[200] = {0};
 
-  if (preferred_ip[0])
-    std::cout << "true" << std::endl;
-  else
-    std::cout << "false" << std::endl;
-
   for (ifa = ifp; ifa; ifa = ifa->ifa_next)
   {
     char ip_[200];
