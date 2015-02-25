@@ -73,14 +73,14 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string GetNodeUuid()
+      public: std::string NodeUuid()
       {
         return this->nUuid;
       }
 
       /// \brief Get the unique UUID of this handler.
       /// \return a string representation of the handler UUID.
-      public: std::string GetHandlerUuid() const
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
@@ -123,7 +123,7 @@ namespace ignition
       /// \param[in] _cb The callback with the following parameters:
       /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void SetCallback(const std::function <void(
+      public: void Callback(const std::function <void(
         const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;

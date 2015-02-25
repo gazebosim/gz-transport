@@ -116,7 +116,7 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope &_scope)
+bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 {
   std::string fullyQualifiedTopic;
   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
@@ -127,16 +127,17 @@ bool Node::Advertise(const std::string &_topic, const Scope &_scope)
   }
 
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->GetMutex());
+          this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before).
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  this->dataPtr->shared->discovery->Advertise(MsgType::Msg, fullyQualifiedTopic,
+  MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->nUuid, _scope);
+    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
+  this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
 
   return true;
 }
@@ -170,15 +171,15 @@ bool Node::Unadvertise(const std::string &_topic)
   }
 
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->GetMutex());
+          this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+  this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+    this->dataPtr->nUuid);
 
   return true;
 }
@@ -285,8 +286,8 @@ bool Node::Unsubscribe(const std::string &_topic)
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
-  Addresses_M addresses;
-  if (!this->dataPtr->shared->discovery->GetMsgAddresses(fullyQualifiedTopic,
+  MsgAddresses_M addresses;
+  if (!this->dataPtr->shared->discovery->MsgPublishers(fullyQualifiedTopic,
     addresses))
   {
     return false;
@@ -304,7 +305,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       int lingerVal = 200;
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
 
-      socket.connect(node.ctrl.c_str());
+      socket.connect(node.Ctrl().c_str());
 
       zmq::message_t msg;
       msg.rebuild(fullyQualifiedTopic.size());
@@ -361,7 +362,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   }
 
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->GetMutex());
+          this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
@@ -372,19 +373,19 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  this->dataPtr->shared->discovery->Unadvertise(MsgType::Msg,
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+  this->dataPtr->shared->discovery->UnadvertiseSrv(fullyQualifiedTopic,
+    this->dataPtr->nUuid);
 
   return true;
 }
 
 //////////////////////////////////////////////////
-void Node::GetTopicList(std::vector<std::string> &_topics) const
+void Node::TopicList(std::vector<std::string> &_topics) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   std::vector<std::string> allTopics;
-  this->dataPtr->shared->discovery->GetTopicList(allTopics);
+  this->dataPtr->shared->discovery->TopicList(allTopics);
 
   _topics.clear();
   for (auto &topic : allTopics)
@@ -407,12 +408,12 @@ void Node::GetTopicList(std::vector<std::string> &_topics) const
 }
 
 //////////////////////////////////////////////////
-void Node::GetServiceList(std::vector<std::string> &_services) const
+void Node::ServiceList(std::vector<std::string> &_services) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   std::vector<std::string> allServices;
-  this->dataPtr->shared->discovery->GetServiceList(allServices);
+  this->dataPtr->shared->discovery->ServiceList(allServices);
 
   _services.clear();
   for (auto &service : allServices)

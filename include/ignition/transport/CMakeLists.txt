@@ -10,6 +10,7 @@ set (headers
   NodePrivate.hh
   NodeShared.hh
   Packet.hh
+  Publisher.hh
   RepHandler.hh
   ReqHandler.hh
   SubscriptionHandler.hh

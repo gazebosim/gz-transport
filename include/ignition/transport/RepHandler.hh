@@ -74,7 +74,7 @@ namespace ignition
 
       /// \brief Get the unique UUID of this handler.
       /// \return a string representation of the handler UUID.
-      public: std::string GetHandlerUuid() const
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
@@ -102,7 +102,7 @@ namespace ignition
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
-      public: void SetCallback(const std::function
+      public: void Callback(const std::function
         <void(const std::string &_topic, const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;

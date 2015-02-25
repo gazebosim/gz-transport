@@ -21,6 +21,19 @@
 #ifdef _MSC_VER
 # pragma warning(push, 0)
 #endif
+
+#ifdef _WIN32
+  // For socket(), connect(), send(), and recv().
+  #include <Winsock2.h>
+  // Type used for raw data on this platform.
+  typedef char raw_type;
+#else
+  // For sockaddr_in
+  #include <netinet/in.h>
+  // Type used for raw data on this platform
+  typedef void raw_type;
+#endif
+
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -31,6 +44,8 @@
 #endif
 
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Packet.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -58,198 +73,171 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Discovery();
 
-      /// \brief Advertise a new message or service.
-      /// \param[in] _advType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _addr ZeroMQ address of the topic's publisher.
-      /// \param[in] _ctrl ZeroMQ control address of the topic's publisher.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[in] _scope Topic scope.
-      public: void Advertise(const MsgType &_advType,
-                             const std::string &_topic,
-                             const std::string &_addr,
-                             const std::string &_ctrl,
-                             const std::string &_nUuid,
-                             const Scope &_scope);
+      /// \brief Advertise a new message.
+      /// \param[in] _publisher Publisher's information to advertise.
+      public: void AdvertiseMsg(const MessagePublisher &_publisher);
 
-      /// \brief Request discovery information about a topic or service.
-      /// When using this method with messages, the user might want to use
+      /// \brief Advertise a new service.
+      /// \param[in] _publisher Publisher's information to advertise.
+      public: void AdvertiseSrv(const ServicePublisher &_publisher);
+
+      /// \brief Request discovery information about a topic.
+      /// When using this method, the user might want to use
       /// SetConnectionsCb() and SetDisconnectionCb(), that register callbacks
       /// that will be executed when the topic address is discovered or when the
       /// node providing the topic is disconnected.
-      /// When using this method with services, the user might want to use
-      /// SetConnectionsSrvCb() and SetDisconnectionSrvCb(), that register
-      /// callbacks that will be executed when the service address is discovered
-      /// or when the node providing the service is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
+      /// \param[in] _topic Topic name requested.
+      public: void DiscoverMsg(const std::string &_topic);
+
+      /// \brief Request discovery information about a service.
+      /// The user might want to use SetConnectionsSrvCb() and
+      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
+      /// when the service address is discovered or when the node providing the
+      /// service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
-      /// \param[in] _isSrv True if the topic corresponds to a service.
-      public: void Discover(const std::string &_topic, bool _isSrv);
+      public: void DiscoverSrv(const std::string &_topic);
 
-      /// \brief Get all the addresses known for a given topic.
+      /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
-      /// \param[out] _addresses Addresses requested.
-      /// \return True if the topic is found and there is at least one address.
-      public: bool GetMsgAddresses(const std::string &_topic,
-                                   Addresses_M &_addresses);
+      /// \param[out] _publishers Publishers requested.
+      /// \return True if the topic is found and there is at least one publisher
+      public: bool MsgPublishers(const std::string &_topic,
+                                    MsgAddresses_M &_publishers);
 
-      /// \brief Get all the addresses known for a given service.
+      /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
-      /// \param[out] _addresses Addresses requested.
-      /// \return True if the topic is found and there is at least one address.
-      public: bool GetSrvAddresses(const std::string &_topic,
-                                   Addresses_M &_addresses);
+      /// \param[out] _publishers Publishers requested.
+      /// \return True if the topic is found and there is at least one publisher
+      public: bool SrvPublishers(const std::string &_topic,
+                                    SrvAddresses_M &_publishers);
 
-      /// \brief Unadvertise a new message or service. Broadcast a discovery
+      /// \brief Unadvertise a new message. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
-      /// or service advertised by a specific node.
-      /// \param[in] _unadvType Message (Msg) or service (Srv).
-      /// \param[in] _topic Topic/service name to be unadvertised.
+      /// advertised by a specific node.
+      /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      public: void Unadvertise(const MsgType &_unadvType,
-                               const std::string &_topic,
-                               const std::string &_nUuid);
+      public: void UnadvertiseMsg(const std::string &_topic,
+                                  const std::string &_nUuid);
+
+      /// \brief Unadvertise a new message service. Broadcast a discovery
+      /// message that will cancel all the discovery information for the service
+      /// advertised by a specific node.
+      /// \param[in] _topic Service name to be unadvertised.
+      /// \param[in] _nUuid Node UUID.
+      public: void UnadvertiseSrv(const std::string &_topic,
+                                  const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
-      public: std::string GetHostAddr() const;
+      public: std::string HostAddr() const;
 
       /// \brief The discovery checks the validity of the topic information
       /// every 'activity interval' milliseconds.
       /// \sa SetActivityInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetActivityInterval() const;
+      public: unsigned int ActivityInterval() const;
 
       /// \brief Each node broadcasts periodic heartbeats to keep its topic
       /// information alive in other nodes. A heartbeat message is sent after
       /// 'heartbeat interval' milliseconds.
       /// \sa SetHeartbeatInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetHeartbeatInterval() const;
+      public: unsigned int HeartbeatInterval() const;
 
       /// \brief While a topic is being advertised by a node, a beacon is sent
       /// periodically every 'advertise interval' milliseconds.
       /// \sa SetAdvertiseInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetAdvertiseInterval() const;
+      public: unsigned int AdvertiseInterval() const;
 
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entries.
       /// \sa SetSilenceInterval.
       /// \return The value in milliseconds.
-      public: unsigned int GetSilenceInterval() const;
+      public: unsigned int SilenceInterval() const;
 
       /// \brief Set the activity interval.
       /// \sa GetActivityInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetActivityInterval(const unsigned int _ms);
+      public: void ActivityInterval(const unsigned int _ms);
 
       /// \brief Set the heartbeat interval.
       /// \sa GetHeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetHeartbeatInterval(const unsigned int _ms);
+      public: void HeartbeatInterval(const unsigned int _ms);
 
       /// \brief Set the advertise interval.
       /// \sa GetAdvertiseInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetAdvertiseInterval(const unsigned int _ms);
+      public: void AdvertiseInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
       /// \sa GetSilenceInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SetSilenceInterval(const unsigned int _ms);
+      public: void SilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is connected, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetConnectionsCb(const DiscoveryCallback &_cb);
+      public: void ConnectionsCb(const MsgDiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is discovered, the callback will be executed.
       /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetConnectionsCb(
-        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
-          const std::string &_ctrl, const std::string &_pUuid,
-          const std::string &_nUuid, const Scope &_scope),
+      public: template<typename C> void ConnectionsCb(
+        void(C::*_cb)(const MessagePublisher &_pub),
         C *_obj)
       {
-        this->SetConnectionsCb(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
-            std::placeholders::_6));
+        this->ConnectionsCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetDisconnectionsCb(const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsCb(
+        const transport::MsgDiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetDisconnectionsCb(
-        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
-          const std::string &_ctrl, const std::string &_pUuid,
-          const std::string &_nUuid, const Scope &_scope),
+      public: template<typename C> void DisconnectionsCb(
+        void(C::*_cb)(const MessagePublisher &_pub),
         C *_obj)
       {
-        this->SetDisconnectionsCb(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
-            std::placeholders::_6));
+        this->DisconnectionsCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
-      /// Each time a new service is available, the callback will be
-      /// executed.
+      /// Each time a new service is available, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetConnectionsSrvCb(const DiscoveryCallback &_cb);
+      public: void ConnectionsSrvCb(const SrvDiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
       /// Each time a new service is available, the callback will be executed.
       /// This version uses a member functions as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetConnectionsSrvCb(
-        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
-          const std::string &_ctrl, const std::string &_pUuid,
-          const std::string &_nUuid, const Scope &_scope),
+      public: template<typename C> void ConnectionsSrvCb(
+        void(C::*_cb)(const ServicePublisher &_pub),
         C *_obj)
       {
-        this->SetConnectionsSrvCb(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
-            std::placeholders::_6));
+        this->ConnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
       /// \brief Register a callback to receive discovery disconnection events
@@ -258,31 +246,20 @@ namespace ignition
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void SetDisconnectionsSrvCb(
-        const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsSrvCb(
+        const transport::SrvDiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a service is no longer available, the callback will be
       /// executed.
       /// This version uses a member function as callback.
       /// \param[in] _cb Function callback with the following parameters.
-      ///                _topic Topic name
-      ///                _addr ZeroMQ address of the publisher.
-      ///                _ctrl ZeroMQ control address of the publisher
-      ///                _pUuid UUID of the process publishing the topic.
-      ///                _nUuid UUID of the node publishing the topic.
-      ///                _scope Topic scope.
+      ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
-      public: template<typename C> void SetDisconnectionsSrvCb(
-        void(C::*_cb)(const std::string &_topic, const std::string &_addr,
-          const std::string &_ctrl, const std::string &_pUuid,
-          const std::string &_nUuid, const Scope &_scope),
-        C *_obj)
+      public: template<typename C> void DisconnectionsSrvCb(
+        void(C::*_cb)(const ServicePublisher &_pub), C *_obj)
       {
-        this->SetDisconnectionsSrvCb(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4, std::placeholders::_5,
-            std::placeholders::_6));
+        this->DisconnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
       /// \brief Check the validity of the topic information. Each topic update
@@ -305,37 +282,113 @@ namespace ignition
       public: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                         char *_msg);
 
+      /// \brief Get the socket used for sending/receiving discovery messages.
+      /// \return Discovery socket.
+      private: int DiscoverySocket() const;
+
+      /// \brief Get the data structure used for multicast communication.
+      /// \return The data structure containing the multicast information.
+      private: sockaddr_in* MulticastAddr() const;
+
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enable or false otherwise.
+      private: bool Verbose() const;
+
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery version.
+      private: uint8_t Version() const;
+
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ Address.
-      /// \param[in] _ctrl 0MQ control address.
-      /// \param[in] _nUuid Node's UUID.
+      /// \param[in] _pub Publishers's information to send.
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      public: void SendMsg(uint8_t _type,
-                           const std::string &_topic,
-                           const std::string &_addr,
-                           const std::string &_ctrl,
-                           const std::string &_nUuid,
-                           const Scope &_scope,
-                           int _flags = 0);
+      public: template<typename T> void SendMsg(uint8_t _type,
+                                                const T &_pub,
+                                                int _flags = 0)
+      {
+        // Create the header.
+        Header header(this->Version(), _pub.PUuid(), _type, _flags);
+        auto msgLength = 0;
+        std::vector<char> buffer;
+
+        std::string topic = _pub.Topic();
+
+        switch (_type)
+        {
+          case AdvType:
+          case UnadvType:
+          case AdvSrvType:
+          case UnadvSrvType:
+          {
+            // Create the [UN]ADVERTISE message.
+            transport::AdvertiseMessage<T> advMsg(header, _pub);
+
+            // Allocate a buffer and serialize the message.
+            buffer.resize(advMsg.MsgLength());
+            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+            msgLength = advMsg.MsgLength();
+            break;
+          }
+          case SubType:
+          case SubSrvType:
+          {
+            // Create the [UN]SUBSCRIBE message.
+            SubscriptionMsg subMsg(header, topic);
+
+            // Allocate a buffer and serialize the message.
+            buffer.resize(subMsg.MsgLength());
+            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+            msgLength = subMsg.MsgLength();
+            break;
+          }
+          case HeartbeatType:
+          case ByeType:
+          {
+            // Allocate a buffer and serialize the message.
+            buffer.resize(header.HeaderLength());
+            header.Pack(reinterpret_cast<char*>(&buffer[0]));
+            msgLength = header.HeaderLength();
+            break;
+          }
+          default:
+            std::cerr << "Discovery::SendMsg() error: Unrecognized message"
+                      << " type [" << _type << "]" << std::endl;
+            return;
+        }
+
+        // Send the discovery message to the multicast group.
+        if (sendto(this->DiscoverySocket(), reinterpret_cast<const raw_type *>(
+          reinterpret_cast<unsigned char*>(&buffer[0])),
+          msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
+          sizeof(*(this->MulticastAddr()))) != msgLength)
+        {
+          std::cerr << "Exception sending a message" << std::endl;
+          return;
+        }
+
+        if (this->Verbose())
+        {
+          std::cout << "\t* Sending " << MsgTypesStr[_type]
+                    << " msg [" << topic << "]" << std::endl;
+        }
+      }
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState();
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const;
+      public: void TopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetServiceList(std::vector<std::string> &_services) const;
+      public: void ServiceList(std::vector<std::string> &_services) const;
 
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
-      public: std::recursive_mutex& GetMutex();
+      public: std::recursive_mutex& Mutex();
 
       /// \internal
       /// \brief Shared pointer to private data.

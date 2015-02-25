@@ -34,9 +34,11 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
 namespace ignition
@@ -81,60 +83,20 @@ namespace ignition
       public: void SendPendingRemoteReqs(const std::string &_topic);
 
       /// \brief Callback executed when the discovery detects new topics.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewConnection(const std::string &_topic,
-                                   const std::string &_addr,
-                                   const std::string &_ctrl,
-                                   const std::string &_pUuid,
-                                   const std::string &_nUuid,
-                                   const Scope &_scope);
+      /// \param[in] _pub Information of the publisher in charge of the topic.
+      public: void OnNewConnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects disconnections.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _id 0MQ identity of the socket in charge of the service.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewDisconnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_id,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
+      /// \param[in] _pub Information of the publisher in charge of the topic.
+      public: void OnNewDisconnection(const MessagePublisher &_pub);
 
       /// \brief Callback executed when the discovery detects a new service call
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _id 0MQ identity of the socket in charge of the service.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewSrvConnection(const std::string &_topic,
-                                      const std::string &_addr,
-                                      const std::string &_id,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid,
-                                      const Scope &_scope);
+      /// \param[in] _pub Information of the publisher in charge of the service.
+      public: void OnNewSrvConnection(const ServicePublisher &_pub);
 
       /// \brief Callback executed when a service call is no longer available.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr 0MQ address of the publisher.
-      /// \param[in] _ctrl 0MQ control address of the publisher.
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \param[in] _scope Topic scope.
-      public: void OnNewSrvDisconnection(const std::string &_topic,
-                                         const std::string &_addr,
-                                         const std::string &_ctrl,
-                                         const std::string &_pUuid,
-                                         const std::string &_nUuid,
-                                         const Scope &_scope);
+      /// \param[in] _pub Information of the publisher in charge of the service.
+      public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
 
       /// \brief Constructor.
       protected: NodeShared();
@@ -212,13 +174,13 @@ namespace ignition
       private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
-      private: TopicStorage connections;
+      private: TopicStorage<MessagePublisher> connections;
 
       /// \brief List of connected zmq end points for request/response.
       private: std::vector<std::string> srvConnections;
 
       /// \brief Remote subscribers.
-      public: TopicStorage remoteSubscribers;
+      public: TopicStorage<MessagePublisher> remoteSubscribers;
 
       /// \brief Subscriptions.
       public: HandlerStorage<ISubscriptionHandler> localSubscriptions;
