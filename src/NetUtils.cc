@@ -244,7 +244,10 @@ std::vector<std::string> transport::determineInterfaces()
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
+    {
       result.push_back(std::string(ip_env));
+      return result;
+    }
     else
       std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
   }
