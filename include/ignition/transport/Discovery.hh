@@ -282,9 +282,9 @@ namespace ignition
       public: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                         char *_msg);
 
-      /// \brief Get the socket used for sending/receiving discovery messages.
-      /// \return Discovery socket.
-      private: int DiscoverySocket() const;
+      /// \brief Get the list of sockets used for discovery.
+      /// \return The list of sockets.
+      private: std::vector<int>& Sockets() const;
 
       /// \brief Get the data structure used for multicast communication.
       /// \return The data structure containing the multicast information.
@@ -358,14 +358,18 @@ namespace ignition
             return;
         }
 
-        // Send the discovery message to the multicast group.
-        if (sendto(this->DiscoverySocket(), reinterpret_cast<const raw_type *>(
-          reinterpret_cast<unsigned char*>(&buffer[0])),
-          msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-          sizeof(*(this->MulticastAddr()))) != msgLength)
+        // Send the discovery message to the multicast group through all the
+        // sockets.
+        for (const auto &sock : this->Sockets())
         {
-          std::cerr << "Exception sending a message" << std::endl;
-          return;
+          if (sendto(sock, reinterpret_cast<const raw_type *>(
+            reinterpret_cast<unsigned char*>(&buffer[0])),
+            msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
+            sizeof(*(this->MulticastAddr()))) != msgLength)
+          {
+            std::cerr << "Exception sending a message" << std::endl;
+            return;
+          }
         }
 
         if (this->Verbose())
