@@ -669,6 +669,10 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   header.Unpack(_msg);
   pBody += header.HeaderLength();
 
+  // Discard the message if the wire protocol is different than mine.
+  if (this->dataPtr->Version != header.Version())
+    return;
+
   auto recvPUuid = header.PUuid();
 
   // Discard our own discovery messages.
