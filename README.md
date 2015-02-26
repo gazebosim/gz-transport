@@ -24,6 +24,8 @@ source:
 
  - uuid-dev
  - libzmq3-dev
+ - libprotobuf-dev
+ - protobuf-compiler
  - cmake
  - ruby-ronn
  - mercurial

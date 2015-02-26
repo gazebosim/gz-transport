@@ -64,21 +64,21 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string GetNodeUuid()
+      public: std::string NodeUuid()
       {
         return this->nUuid;
       }
 
       /// \brief Get the service response as raw bytes.
       /// \return The string containing the service response.
-      public: std::string & GetRep()
+      public: std::string & Response()
       {
         return this->rep;
       }
 
       /// \brief Get the result of the service response.
       /// \return The boolean result.
-      public: bool GetResult()
+      public: bool Result()
       {
         return this->result;
       }
@@ -92,7 +92,7 @@ namespace ignition
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void SetRequested(bool _value)
+      public: void Requested(bool _value)
       {
         this->requested = _value;
       }
@@ -103,7 +103,7 @@ namespace ignition
 
       /// \brief Returns the unique handler UUID.
       /// \return The handler's UUID.
-      public: std::string GetHandlerUuid() const
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
@@ -187,7 +187,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      public: void SetCallback(const std::function <void(
+      public: void Callback(const std::function <void(
         const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
@@ -196,7 +196,7 @@ namespace ignition
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
-      public: void SetMessage(const Req &_reqMsg)
+      public: void Message(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }

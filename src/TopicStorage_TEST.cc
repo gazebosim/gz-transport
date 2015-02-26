@@ -76,7 +76,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_FALSE(test.HasPublisher(addr2));
   // Check GetPublisher.
@@ -106,7 +106,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_FALSE(test.HasPublisher(addr2));
   EXPECT_FALSE(test.GetPublisher(topic, "wrong pUuid", nUuid2, info));
@@ -145,7 +145,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_TRUE(test.HasPublisher(addr2));
   // Check GetPublisher.
@@ -194,7 +194,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_TRUE(test.HasPublisher(addr2));
   // Check GetPublisher.
@@ -252,7 +252,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_TRUE(test.HasPublisher(addr2));
   // Check GetPublisher.
@@ -296,7 +296,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_TRUE(test.HasPublisher(addr1));
   EXPECT_FALSE(test.HasPublisher(addr2));
   // Check GetPublisher.
@@ -331,7 +331,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check HasAnyPublishers.
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid1));
   EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
-  // Check HasPublisheres.
+  // Check HasPublishers.
   EXPECT_FALSE(test.HasPublisher(addr1));
   EXPECT_FALSE(test.HasPublisher(addr2));
   // Check GetPublisher.

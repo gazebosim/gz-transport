@@ -78,7 +78,7 @@ namespace ignition
       public: static const unsigned int DefAdvertiseInterval = 1000;
 
       /// \brief Port used to broadcast the discovery messages.
-      public: static const int DiscoveryPort = 11319;
+      public: static const int DiscoveryPort = 11312;
 
       /// \brief IP Address used for multicast.
       public: const std::string MulticastGroup = "224.0.0.7";

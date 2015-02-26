@@ -107,7 +107,7 @@ namespace ignition
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -181,7 +181,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer);
 
       // Documentation inherited.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
@@ -253,7 +253,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer);
 
       // Documentation inherited.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.

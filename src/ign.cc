@@ -33,7 +33,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   std::vector<std::string> topics;
-  node.GetTopicList(topics);
+  node.TopicList(topics);
 
   for (auto const &topic : topics)
     std::cout << topic << std::endl;
@@ -48,7 +48,7 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   std::vector<std::string> services;
-  node.GetServiceList(services);
+  node.ServiceList(services);
 
   for (auto const &service : services)
     std::cout << service << std::endl;

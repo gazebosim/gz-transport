@@ -76,15 +76,15 @@ TEST(PublisherTest, PublisherIO)
 {
   // Try to pack an empty publisher.
   Publisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.GetMsgLength());
+  std::vector<char> buffer(emptyPublisher.MsgLength());
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
 
-  buffer.resize(publisher.GetMsgLength());
+  buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.GetMsgLength());
+  EXPECT_EQ(bytes, publisher.MsgLength());
 
   // Unpack the Publisher.
   Publisher otherPublisher;
@@ -142,16 +142,16 @@ TEST(PublisherTest, MessagePublisherIO)
 {
   // Try to pack an empty publisher.
   MessagePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.GetMsgLength());
+  std::vector<char> buffer(emptyPublisher.MsgLength());
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
     MsgTypeName);
 
-  buffer.resize(publisher.GetMsgLength());
+  buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.GetMsgLength());
+  EXPECT_EQ(bytes, publisher.MsgLength());
 
   // Unpack the Publisher.
   MessagePublisher otherPublisher;
@@ -214,16 +214,16 @@ TEST(PublisherTest, ServicePublisherIO)
 {
   // Try to pack an empty publisher.
   ServicePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.GetMsgLength());
+  std::vector<char> buffer(emptyPublisher.MsgLength());
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
     ReqTypeName, RepTypeName);
 
-  buffer.resize(publisher.GetMsgLength());
+  buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.GetMsgLength());
+  EXPECT_EQ(bytes, publisher.MsgLength());
 
   // Unpack the Publisher.
   ServicePublisher otherPublisher;
