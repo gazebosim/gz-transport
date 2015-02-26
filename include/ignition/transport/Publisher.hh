@@ -144,7 +144,7 @@ namespace ignition
       protected: std::string nUuid;
 
       /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope;
+      protected: Scope_t scope = Scope_t::All;
     };
 
     /// \class MessagePublisher Publisher.hh

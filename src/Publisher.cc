@@ -98,10 +98,18 @@ void Publisher::Scope(const Scope_t &_scope)
 //////////////////////////////////////////////////
 size_t Publisher::Pack(char *_buffer) const
 {
-  if (this->topic.empty() || this->addr.empty() || this->nUuid.empty())
+  if (this->topic.empty() || this->addr.empty() ||
+      this->pUuid.empty() || this->nUuid.empty())
   {
     std::cerr << "Publisher::Pack() error: You're trying to pack an "
               << "incomplete Publisher:" << std::endl << *this;
+    return 0;
+  }
+
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "Publisher::Pack() error: NULL output buffer" << std::endl;
     return 0;
   }
 
