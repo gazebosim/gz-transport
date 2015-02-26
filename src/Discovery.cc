@@ -83,6 +83,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
+  std::cout << "Using: " << this->dataPtr->hostAddr << std::endl;
 
   // Get the list of network interfaces in this host.
   this->dataPtr->hostInterfaces = determineInterfaces();
