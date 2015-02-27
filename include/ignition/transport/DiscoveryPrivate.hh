@@ -98,6 +98,9 @@ namespace ignition
       /// \brief Process UUID.
       public: std::string pUuid;
 
+      /// \brief Partition name.
+      public: std::string partition;
+
       /// \brief Silence interval value (ms.).
       /// \sa GetMaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.

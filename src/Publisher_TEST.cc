@@ -16,7 +16,9 @@
 */
 
 #include <string>
+#include <vector>
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/test_config.h"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -44,6 +46,8 @@ static const std::string NewSocketId    = "socketId2";
 static const std::string NewMsgTypeName = "MessageType2";
 static const std::string NewReqTypeName = "RequestType2";
 static const std::string NewRepTypeName = "ResponseType2";
+
+std::string partition;
 
 //////////////////////////////////////////////////
 /// \brief Check the Publisher accessors.
@@ -244,4 +248,17 @@ TEST(PublisherTest, ServicePublisherIO)
 
   // Try to unpack a header passing a NULL buffer.
   EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

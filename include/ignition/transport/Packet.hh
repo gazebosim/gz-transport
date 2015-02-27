@@ -88,7 +88,7 @@ namespace ignition
 
       /// \brief Get the partition name.
       /// \return The partition name.
-      public: std:string Partition() const;
+      public: std::string Partition() const;
 
       /// \brief Get the message flags.
       /// \return Message flags used for compression or other optional features.

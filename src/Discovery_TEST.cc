@@ -24,12 +24,16 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
 // Global constants used for multiple tests.
 static const int MaxIters = 100;
 static const int Nap = 10;
+
+// Global partition name.
+std::string partition;
 
 // Global variables used for multiple tests.
 std::string topic   = "/foo";
@@ -780,4 +784,17 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);
   EXPECT_FALSE(disconnectionSrvExecuted);
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

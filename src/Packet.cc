@@ -27,7 +27,7 @@ using namespace transport;
 Header::Header(const uint16_t _version,
                const std::string &_pUuid,
                const uint8_t _type,
-               const std::string _partition,
+               const std::string &_partition,
                const uint16_t _flags)
 {
   this->Version(_version);
@@ -56,6 +56,12 @@ uint8_t Header::Type() const
 }
 
 //////////////////////////////////////////////////
+std::string Header::Partition() const
+{
+  return this->partition;
+}
+
+//////////////////////////////////////////////////
 uint16_t Header::Flags() const
 {
   return this->flags;
@@ -80,6 +86,12 @@ void Header::Type(const uint8_t _type)
 }
 
 //////////////////////////////////////////////////
+void Header::Partition(const std::string &_partition)
+{
+  this->partition = _partition;
+}
+
+//////////////////////////////////////////////////
 void Header::Flags(const uint16_t _flags)
 {
   this->flags = _flags;
@@ -90,7 +102,9 @@ int Header::HeaderLength()
 {
   return sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(this->type) + sizeof(this->flags);
+         sizeof(this->type) +
+         sizeof(uint64_t) + this->partition.size() +
+         sizeof(this->flags);
 }
 
 //////////////////////////////////////////////////
@@ -129,6 +143,15 @@ size_t Header::Pack(char *_buffer)
   memcpy(_buffer, &this->type, sizeof(this->type));
   _buffer += sizeof(this->type);
 
+  // Pack the partition length.
+  uint64_t partitionLength = this->partition.size();
+  memcpy(_buffer, &partitionLength, sizeof(partitionLength));
+  _buffer += sizeof(partitionLength);
+
+  // Pack the partition name.
+  memcpy(_buffer, this->partition.data(), static_cast<size_t>(partitionLength));
+  _buffer += partitionLength;
+
   // Pack the flags, which is uint16_t
   memcpy(_buffer, &this->flags, sizeof(this->flags));
 
@@ -161,6 +184,15 @@ size_t Header::Unpack(const char *_buffer)
   // Unpack the message type.
   memcpy(&this->type, _buffer, sizeof(this->type));
   _buffer += sizeof(this->type);
+
+  // Unpack the partition length.
+  uint64_t partitionLength;
+  memcpy(&partitionLength, _buffer, sizeof(partitionLength));
+  _buffer += sizeof(partitionLength);
+
+  // Unpack the partition name.
+  this->partition = std::string(_buffer, _buffer + partitionLength);
+  _buffer += partitionLength;
 
   // Unpack the flags.
   memcpy(&this->flags, _buffer, sizeof(this->flags));

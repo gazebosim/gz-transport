@@ -68,7 +68,8 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Discovery(const std::string &_pUuid, bool _verbose = false);
+      public: Discovery(const std::string &_pUuid,
+                        bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Discovery();
@@ -282,22 +283,6 @@ namespace ignition
       public: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                         char *_msg);
 
-      /// \brief Get the socket used for sending/receiving discovery messages.
-      /// \return Discovery socket.
-      private: int DiscoverySocket() const;
-
-      /// \brief Get the data structure used for multicast communication.
-      /// \return The data structure containing the multicast information.
-      private: sockaddr_in* MulticastAddr() const;
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enable or false otherwise.
-      private: bool Verbose() const;
-
-      /// \brief Get the discovery protocol version.
-      /// \return The discovery version.
-      private: uint8_t Version() const;
-
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
       /// \param[in] _pub Publishers's information to send.
@@ -309,7 +294,8 @@ namespace ignition
                                                 int _flags = 0)
       {
         // Create the header.
-        Header header(this->Version(), _pub.PUuid(), _type, _flags);
+        Header header(this->Version(), _pub.PUuid(), _type, this->Partition(),
+          _flags);
         auto msgLength = 0;
         std::vector<char> buffer;
 
@@ -389,6 +375,26 @@ namespace ignition
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
       public: std::recursive_mutex& Mutex();
+
+      /// \brief Get the socket used for sending/receiving discovery messages.
+      /// \return Discovery socket.
+      private: int DiscoverySocket() const;
+
+      /// \brief Get the data structure used for multicast communication.
+      /// \return The data structure containing the multicast information.
+      private: sockaddr_in* MulticastAddr() const;
+
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enable or false otherwise.
+      private: bool Verbose() const;
+
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery version.
+      private: uint8_t Version() const;
+
+      /// \brief Get the partition name of this discovery node.
+      /// \return the partition name.
+      private: std::string& Partition() const;
 
       /// \internal
       /// \brief Shared pointer to private data.

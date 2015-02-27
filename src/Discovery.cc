@@ -57,6 +57,7 @@
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
@@ -68,8 +69,23 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 Discovery::Discovery(const std::string &_pUuid, bool _verbose)
-: dataPtr(new DiscoveryPrivate())
+  : dataPtr(new DiscoveryPrivate())
 {
+  // Check if the environment variable IGN_PARTITION is present.
+  char *envPartition = std::getenv("IGN_PARTITION");
+
+  if (envPartition)
+  {
+    std::string partitionStr = std::string(envPartition);
+    if (TopicUtils::IsValidNamespace(partitionStr))
+      this->dataPtr->partition = partitionStr;
+    else
+      std::cerr << "Invalid IGN_PARTITION value [" << partitionStr << "]"
+                << std::endl;
+  }
+
+  std::cout << "Partition name:" << this->Partition() << std::endl;
+
   // Initialization
   this->dataPtr->pUuid = _pUuid;
   this->dataPtr->silenceInterval = this->dataPtr->DefSilenceInterval;
@@ -648,7 +664,11 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   pBody += header.HeaderLength();
 
   // Discard the message if the wire protocol is different than mine.
-  if (this->dataPtr->Version != header.Version())
+  if (this->Version() != header.Version())
+    return;
+
+  // Discard the message if the partition name is different than mine.
+  if (this->Partition() != header.Partition())
     return;
 
   auto recvPUuid = header.PUuid();
@@ -875,30 +895,6 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 }
 
 //////////////////////////////////////////////////
-int Discovery::DiscoverySocket() const
-{
-  return this->dataPtr->sock;
-}
-
-//////////////////////////////////////////////////
-sockaddr_in* Discovery::MulticastAddr() const
-{
-  return &this->dataPtr->mcastAddr;
-}
-
-//////////////////////////////////////////////////
-bool Discovery::Verbose() const
-{
-  return this->dataPtr->verbose;
-}
-
-//////////////////////////////////////////////////
-uint8_t Discovery::Version() const
-{
-  return this->dataPtr->Version;
-}
-
-//////////////////////////////////////////////////
 void Discovery::PrintCurrentState()
 {
   std::cout << "---------------" << std::endl;
@@ -958,4 +954,34 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 std::recursive_mutex& Discovery::Mutex()
 {
   return this->dataPtr->mutex;
+}
+
+//////////////////////////////////////////////////
+int Discovery::DiscoverySocket() const
+{
+  return this->dataPtr->sock;
+}
+
+//////////////////////////////////////////////////
+sockaddr_in* Discovery::MulticastAddr() const
+{
+  return &this->dataPtr->mcastAddr;
+}
+
+//////////////////////////////////////////////////
+bool Discovery::Verbose() const
+{
+  return this->dataPtr->verbose;
+}
+
+//////////////////////////////////////////////////
+uint8_t Discovery::Version() const
+{
+  return this->dataPtr->Version;
+}
+
+//////////////////////////////////////////////////
+std::string& Discovery::Partition() const
+{
+  return this->dataPtr->partition;
 }
