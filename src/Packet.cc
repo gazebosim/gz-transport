@@ -16,6 +16,7 @@
 */
 
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include "ignition/transport/Packet.hh"
 
@@ -28,62 +29,62 @@ Header::Header(const uint16_t _version,
                const uint8_t _type,
                const uint16_t _flags)
 {
-  this->SetVersion(_version);
-  this->SetPUuid(_pUuid);
-  this->SetType(_type);
-  this->SetFlags(_flags);
+  this->Version(_version);
+  this->PUuid(_pUuid);
+  this->Type(_type);
+  this->Flags(_flags);
 }
 
 //////////////////////////////////////////////////
-uint16_t Header::GetVersion() const
+uint16_t Header::Version() const
 {
   return this->version;
 }
 
 //////////////////////////////////////////////////
-std::string Header::GetPUuid() const
+std::string Header::PUuid() const
 {
   return this->pUuid;
 }
 
 //////////////////////////////////////////////////
-uint8_t Header::GetType() const
+uint8_t Header::Type() const
 {
   return this->type;
 }
 
 //////////////////////////////////////////////////
-uint16_t Header::GetFlags() const
+uint16_t Header::Flags() const
 {
   return this->flags;
 }
 
 //////////////////////////////////////////////////
-void Header::SetVersion(const uint16_t _version)
+void Header::Version(const uint16_t _version)
 {
   this->version = _version;
 }
 
 //////////////////////////////////////////////////
-void Header::SetPUuid(const std::string &_pUuid)
+void Header::PUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
 }
 
 //////////////////////////////////////////////////
-void Header::SetType(const uint8_t _type)
+void Header::Type(const uint8_t _type)
 {
   this->type = _type;
 }
 
 //////////////////////////////////////////////////
-void Header::SetFlags(const uint16_t _flags)
+void Header::Flags(const uint16_t _flags)
 {
   this->flags = _flags;
 }
 
 //////////////////////////////////////////////////
-int Header::GetHeaderLength()
+int Header::HeaderLength()
 {
   return sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
@@ -129,7 +130,7 @@ size_t Header::Pack(char *_buffer)
   // Pack the flags, which is uint16_t
   memcpy(_buffer, &this->flags, sizeof(this->flags));
 
-  return this->GetHeaderLength();
+  return this->HeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -163,7 +164,7 @@ size_t Header::Unpack(const char *_buffer)
   memcpy(&this->flags, _buffer, sizeof(this->flags));
   _buffer += sizeof(this->flags);
 
-  return this->GetHeaderLength();
+  return this->HeaderLength();
 }
 
 //////////////////////////////////////////////////
@@ -171,7 +172,7 @@ SubscriptionMsg::SubscriptionMsg(const Header &_header,
                                  const std::string &_topic)
 {
   this->SetHeader(_header);
-  this->SetTopic(_topic);
+  this->Topic(_topic);
 }
 
 //////////////////////////////////////////////////
@@ -181,7 +182,7 @@ Header SubscriptionMsg::GetHeader() const
 }
 
 //////////////////////////////////////////////////
-std::string SubscriptionMsg::GetTopic() const
+std::string SubscriptionMsg::Topic() const
 {
   return this->topic;
 }
@@ -193,16 +194,15 @@ void SubscriptionMsg::SetHeader(const Header &_header)
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetTopic(const std::string &_topic)
+void SubscriptionMsg::Topic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::GetMsgLength()
+size_t SubscriptionMsg::MsgLength()
 {
-  return this->header.GetHeaderLength() +
-         sizeof(uint64_t) + this->topic.size();
+  return this->header.HeaderLength() + sizeof(uint64_t) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
@@ -230,7 +230,7 @@ size_t SubscriptionMsg::Pack(char *_buffer)
   // Pack the topic.
   memcpy(_buffer, this->topic.data(), static_cast<size_t>(topicLength));
 
-  return this->GetMsgLength();
+  return this->MsgLength();
 }
 
 //////////////////////////////////////////////////

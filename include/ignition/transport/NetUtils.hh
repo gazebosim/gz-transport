@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
@@ -41,7 +42,15 @@ namespace ignition
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
     /// \return The IP or hostname of this host.
+    IGNITION_VISIBLE
     std::string determineHost();
+
+    /// \brief Determine the list of network interfaces for this machine.
+    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
+    /// roscpp/src/libros/network.cpp
+    /// \return The list of network interfaces.
+    IGNITION_VISIBLE
+    std::vector<std::string> determineInterfaces();
   }
 }
 

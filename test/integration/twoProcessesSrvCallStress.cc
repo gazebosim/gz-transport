@@ -14,67 +14,60 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "msg/int.pb.h"
-
 #include "ignition/transport/test_config.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
-std::string partition = "testPartition";
-std::string ns = "";
+std::string partition;
 std::string topic = "/foo";
-
-//////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  _rep.set_data(_req.data());
-  _result = true;
-}
 
 //////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
 {
-  std::string subscriber_path = testing::portablePathUnion(
+  std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;
   bool result;
   unsigned int timeout = 1000;
-  transport::Node node(partition, ns);
+  transport::Node node;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   for (int i = 0; i < 15000; i++)
   {
     req.set_data(i);
-    EXPECT_TRUE(node.Request(topic, req, timeout, response, result));
+    ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
 
     // Check the service response.
-    EXPECT_TRUE(result);
+    ASSERT_TRUE(result);
     EXPECT_EQ(i, response.data());
   }
 
-  // Need to kill the transport node
+  // Need to kill the responser node running on an external process.
   testing::killFork(pi);
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Enable verbose mode.
-  // Too much verbose generate tons of logs
-  // disabling
-  setenv("IGN_VERBOSE", "0", 1);
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -125,7 +125,7 @@ namespace ignition
 
         // Add/Replace the Req handler.
         this->data[_topic][_nUuid].insert(
-          std::make_pair(_handler->GetHandlerUuid(), _handler));
+          std::make_pair(_handler->HandlerUuid(), _handler));
       }
 
       /// \brief Return true if we have stored at least one request for the

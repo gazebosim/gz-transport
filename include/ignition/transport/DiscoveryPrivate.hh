@@ -90,7 +90,7 @@ namespace ignition
       public: static const int MaxRcvStr = 65536;
 
       /// \brief Discovery protocol version.
-      static const uint8_t Version = 1;
+      static const uint8_t Version = 2;
 
       /// \brief Host IP address.
       public: std::string hostAddr;
@@ -152,7 +152,7 @@ namespace ignition
       public: sockaddr_in mcastAddr;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
-      public: std::mutex mutex;
+      public: std::recursive_mutex mutex;
 
       /// \brief tTread in charge of receiving and handling incoming messages.
       public: std::thread *threadReception;
@@ -164,7 +164,7 @@ namespace ignition
       public: std::thread *threadActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
-      public: std::mutex exitMutex;
+      public: std::recursive_mutex exitMutex;
 
       /// \brief When true, the service threads will finish.
       public: bool exit;

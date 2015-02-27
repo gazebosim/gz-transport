@@ -24,6 +24,10 @@
 #include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
 
+using namespace ignition;
+
+std::string partition;
+
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
 {
@@ -64,7 +68,8 @@ TEST(ignTest, TopicList)
     PROJECT_BINARY_PATH,
     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    partition.c_str());
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -85,7 +90,8 @@ TEST(ignTest, ServiceList)
     PROJECT_BINARY_PATH,
     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str());
+  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
+    partition.c_str());
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -133,6 +139,12 @@ TEST(ignTest, ServiceListSameProc)
 /// Main
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomPartition();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);

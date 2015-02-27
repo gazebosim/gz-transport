@@ -15,8 +15,8 @@
  *
 */
 
-#include <stdio.h>
 #include <chrono>
+#include <climits>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "msg/int.pb.h"
@@ -25,13 +25,8 @@
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
-int counter = 0;
+int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -41,23 +36,20 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
   EXPECT_EQ(_topic, topic);
   _rep.set_data(_req.data());
   _result = true;
-  counter++;
-
-  srvExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void runReplier()
 {
-  transport::Node node(partition, ns);
+  transport::Node node;
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that uses this.
-  getchar();
+  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
 }
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCall, SrvTwoProcsReplier)
+TEST(twoProcSrvCallReplierAux, SrvProcReplier)
 {
   runReplier();
 }
@@ -65,6 +57,15 @@ TEST(twoProcSrvCall, SrvTwoProcsReplier)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

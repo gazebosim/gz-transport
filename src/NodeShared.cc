@@ -80,7 +80,7 @@ NodeShared::NodeShared()
   try
   {
     // Set the hostname's ip address.
-    this->hostAddr = this->discovery->GetHostAddr();
+    this->hostAddr = this->discovery->HostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -141,16 +141,16 @@ NodeShared::NodeShared()
   this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new topics).
-  discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
+  discovery->ConnectionsCb(&NodeShared::OnNewConnection, this);
 
   // Set the callback to notify discovery updates (invalid topics).
-  discovery->SetDisconnectionsCb(&NodeShared::OnNewDisconnection, this);
+  discovery->DisconnectionsCb(&NodeShared::OnNewDisconnection, this);
 
   // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
+  discovery->ConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
   // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+  discovery->DisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
 }
 
 //////////////////////////////////////////////////
@@ -473,9 +473,9 @@ void NodeShared::RecvSrvRequest()
       return;
     }
   }
-  else
-    std::cerr << "I do not have a service call registered for topic ["
-              << topic << "]\n";
+  // else
+  //  std::cerr << "I do not have a service call registered for topic ["
+  //            << topic << "]\n";
 }
 
 //////////////////////////////////////////////////
@@ -549,7 +549,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->discovery->GetSrvPublishers(_topic, addresses);
+  this->discovery->SrvPublishers(_topic, addresses);
   if (addresses.empty())
     return;
 
@@ -578,11 +578,11 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
         continue;
 
       // Mark the handler as requested.
-      req.second->SetRequested(true);
+      req.second->Requested(true);
 
       auto data = req.second->Serialize();
-      auto nodeUuid = req.second->GetNodeUuid();
-      auto reqUuid = req.second->GetHandlerUuid();
+      auto nodeUuid = req.second->NodeUuid();
+      auto reqUuid = req.second->HandlerUuid();
 
       try
       {
@@ -682,7 +682,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         {
           for (auto &handler : node.second)
           {
-            std::string nodeUuid = handler.second->GetNodeUuid();
+            std::string nodeUuid = handler.second->NodeUuid();
 
             zmq::message_t msg;
             msg.rebuild(topic.size());

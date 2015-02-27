@@ -19,14 +19,12 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "ignition/transport/test_config.h"
 #include "msg/int.pb.h"
 
 using namespace ignition;
 
 bool cbExecuted;
-
-std::string partition = "testPartition";
-std::string ns = "";
 std::string topic = "/foo";
 int data = 5;
 
@@ -43,7 +41,7 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 void subscriber()
 {
   cbExecuted = false;
-  transport::Node node(partition, ns);
+  transport::Node node;
 
   EXPECT_TRUE(node.Subscribe(topic, cb));
 
@@ -67,6 +65,15 @@ TEST(ScopedTopicTest, SubscriberTest)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
+
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

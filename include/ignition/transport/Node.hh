@@ -113,6 +113,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Create a new subscription handler.
@@ -120,7 +122,7 @@ namespace ignition
             new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler.
-        subscrHandlerPtr->SetCallback(_cb);
+        subscrHandlerPtr->Callback(_cb);
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -160,6 +162,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Create a new subscription handler.
@@ -167,7 +171,7 @@ namespace ignition
           new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->SetCallback(
+        subscrHandlerPtr->Callback(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
 
         // Store the subscription handler. Each subscription handler is
@@ -224,6 +228,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Add the topic to the list of advertised services.
@@ -234,7 +240,7 @@ namespace ignition
           new RepHandler<T1, T2>());
 
         // Insert the callback into the handler.
-        repHandlerPtr->SetCallback(_cb);
+        repHandlerPtr->Callback(_cb);
 
         // Store the replier handler. Each replier handler is
         // associated with a topic. When the receiving thread gets new requests,
@@ -282,6 +288,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Add the topic to the list of advertised services.
@@ -292,7 +300,7 @@ namespace ignition
           new RepHandler<T1, T2>());
 
         // Insert the callback into the handler.
-        repHandlerPtr->SetCallback(
+        repHandlerPtr->Callback(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3, std::placeholders::_4));
 
@@ -342,6 +350,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // If the responser is within my process.
@@ -368,10 +378,10 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->Message(_req);
 
         // Insert the callback into the handler.
-        reqHandlerPtr->SetCallback(_cb);
+        reqHandlerPtr->Callback(_cb);
 
         // Store the request handler.
         this->Shared()->requests.AddHandler(
@@ -379,7 +389,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->Shared()->discovery->GetSrvPublishers(
+        if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -419,6 +429,8 @@ namespace ignition
           return false;
         }
 
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // If the responser is within my process.
@@ -458,7 +470,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->Shared()->discovery->GetSrvPublishers(
+        if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -495,6 +507,7 @@ namespace ignition
           return false;
         }
 
+        this->Shared()->discovery->Mutex().lock();
         std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // If the responser is within my process.
@@ -505,6 +518,7 @@ namespace ignition
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
             _result);
+          this->Shared()->discovery->Mutex().unlock();
           return true;
         }
 
@@ -513,7 +527,7 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->Message(_req);
 
         // Store the request handler.
         this->Shared()->requests.AddHandler(
@@ -521,7 +535,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->Shared()->discovery->GetSrvPublishers(
+        if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -531,16 +545,17 @@ namespace ignition
           // Discover the service responser.
           this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic);
         }
+        this->Shared()->discovery->Mutex().unlock();
 
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
         if (executed)
         {
-          if (reqHandlerPtr->GetResult())
-            _rep.ParseFromString(reqHandlerPtr->GetRep());
+          if (reqHandlerPtr->Result())
+            _rep.ParseFromString(reqHandlerPtr->Response());
 
-          _result = reqHandlerPtr->GetResult();
+          _result = reqHandlerPtr->Result();
         }
 
         lk.unlock();
@@ -555,13 +570,13 @@ namespace ignition
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const;
+      public: void TopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void GetServiceList(std::vector<std::string> &_services) const;
+      public: void ServiceList(std::vector<std::string> &_services) const;
 
-      /// \brief Get the partition name used in this node.
+      /// \brief Get the partition name used by this node.
       /// \return The partition name.
       private: std::string& Partition() const;
 
