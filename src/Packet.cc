@@ -53,8 +53,6 @@ uint8_t Header::Type() const
   return this->type;
 }
 
-std:string Partition() const;
-
 //////////////////////////////////////////////////
 uint16_t Header::Flags() const
 {

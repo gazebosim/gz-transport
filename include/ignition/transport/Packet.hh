@@ -68,7 +68,6 @@ namespace ignition
       public: Header(const uint16_t _version,
                      const std::string &_pUuid,
                      const uint8_t _type,
-                     const std::string &_partition,
                      const uint16_t _flags = 0);
 
       /// \brief Destructor.
@@ -86,10 +85,6 @@ namespace ignition
       /// \return Message type (ADVERTISE, SUBSCRIPTION, ...)
       public: uint8_t Type() const;
 
-      /// \brief Get the partition name.
-      /// \return The partition name.
-      public: std:string Partition() const;
-
       /// \brief Get the message flags.
       /// \return Message flags used for compression or other optional features.
       public: uint16_t Flags() const;
@@ -105,10 +100,6 @@ namespace ignition
       /// \brief Set the message type.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
       public: void Type(const uint8_t _type);
-
-      /// \brief Set the partition name.
-      /// \param[in] _partition New partition name.
-      public: void Partition(const std::string &_partition);
 
       /// \brief Set the message flags.
       /// \param[in] _flags Used for enable optional features.
@@ -140,7 +131,6 @@ namespace ignition
              << "\tVersion: " << _header.Version() << "\n"
              << "\tProcess UUID: " << _header.PUuid() << "\n"
              << "\tType: " << MsgTypesStr.at(_header.Type()) << "\n"
-             << "\tPartition: " << _header.Partition() << "\n"
              << "\tFlags: " << _header.Flags() << "\n";
         return _out;
       }
@@ -153,10 +143,6 @@ namespace ignition
 
       /// \brief Message type (ADVERTISE, SUBSCRIPTION, ...).
       private: uint8_t type = Uninitialized;
-
-      /// \brief Partition name used to isolate different discovery nodes
-      /// sharing the same physical network and port.
-      private: std::string partition;
 
       /// \brief Optional flags that you want to include in the header.
       private: uint16_t flags = 0;
