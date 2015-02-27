@@ -106,7 +106,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   }
 #endif
 
-  for (const auto &interface : this->dataPtr->hostInterfaces)
+  for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
     // Make a new socket for sending discovery information.
     int sock;
@@ -120,7 +120,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     // This socket option needs to be applied to each socket used to send data.
     // This option selects the source interface for outgoing messages.
     struct in_addr ifAddr;
-    ifAddr.s_addr = inet_addr(interface.c_str());
+    ifAddr.s_addr = inet_addr(netIface.c_str());
     if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
       reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
     {
@@ -137,7 +137,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     struct ip_mreq group;
     group.imr_multiaddr.s_addr =
       inet_addr(this->dataPtr->MulticastGroup.c_str());
-    group.imr_interface.s_addr = inet_addr(interface.c_str());
+    group.imr_interface.s_addr = inet_addr(netIface.c_str());
     if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
       reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
     {
