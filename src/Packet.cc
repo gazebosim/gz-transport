@@ -27,11 +27,13 @@ using namespace transport;
 Header::Header(const uint16_t _version,
                const std::string &_pUuid,
                const uint8_t _type,
+               const std::string _partition,
                const uint16_t _flags)
 {
   this->Version(_version);
   this->PUuid(_pUuid);
   this->Type(_type);
+  this->Partition(_partition);
   this->Flags(_flags);
 }
 
