@@ -176,15 +176,15 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 
   // Start the thread that receives discovery information.
   this->dataPtr->threadReception =
-    new std::thread(&Discovery::RunReceptionTask, this);
+    std::thread(&Discovery::RunReceptionTask, this);
 
   // Start the thread that sends heartbeats.
   this->dataPtr->threadHeartbeat =
-    new std::thread(&Discovery::RunHeartbeatTask, this);
+    std::thread(&Discovery::RunHeartbeatTask, this);
 
   // Start the thread that checks the topic information validity.
   this->dataPtr->threadActivity =
-    new std::thread(&Discovery::RunActivityTask, this);
+    std::thread(&Discovery::RunActivityTask, this);
 
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
@@ -204,9 +204,9 @@ Discovery::~Discovery()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service threads to finish before exit.
-  this->dataPtr->threadReception->join();
-  this->dataPtr->threadHeartbeat->join();
-  this->dataPtr->threadActivity->join();
+  this->dataPtr->threadReception.join();
+  this->dataPtr->threadHeartbeat.join();
+  this->dataPtr->threadActivity.join();
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of

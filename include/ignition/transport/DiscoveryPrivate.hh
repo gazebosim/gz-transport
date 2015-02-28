@@ -154,14 +154,14 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access between the threads.
       public: std::recursive_mutex mutex;
 
-      /// \brief tTread in charge of receiving and handling incoming messages.
-      public: std::thread *threadReception;
+      /// \brief Thread in charge of receiving and handling incoming messages.
+      public: std::thread threadReception;
 
       /// \brief Thread in charge of sending heartbeats.
-      public: std::thread *threadHeartbeat;
+      public: std::thread threadHeartbeat;
 
       /// \brief Thread in charge of update the activity.
-      public: std::thread *threadActivity;
+      public: std::thread threadActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::recursive_mutex exitMutex;
