@@ -217,6 +217,12 @@ class MyClass
     disconnectionSrvExecutedMF = true;
   }
 
+  /// \brief Start the discovery service.
+  public: void Start()
+  {
+    this->discov->Start();
+  }
+
   // \brief A discovery object.
   private: std::unique_ptr<transport::Discovery> discov;
 };
@@ -255,6 +261,9 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   transport::Discovery discovery1(pUuid1);
   transport::Discovery discovery2(pUuid2);
 
+  discovery1.Start();
+  discovery2.Start();
+
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
@@ -275,12 +284,14 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
 {
   reset();
 
-  // This should generate discovery traffic but no response on object because
-  // there is no callback registered.
   transport::Discovery discovery1(pUuid1);
   MyClass object(pUuid2);
 
-  // This should trigger a discovery response on discovery2.
+  discovery1.Start();
+  object.Start();
+
+  // This should generate discovery traffic but no response on object because
+  // there is no callback registered.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
   discovery1.AdvertiseMsg(publisher);
@@ -303,6 +314,9 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Register one callback for receiving notifications.
   discovery2.ConnectionsCb(onDiscoveryResponse);
+
+  discovery1.Start();
+  discovery2.Start();
 
   // This should trigger a discovery response on discovery2.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
@@ -353,6 +367,9 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
   // Register one callback for receiving notifications.
   discovery2.ConnectionsCb(onDiscoveryResponse);
 
+  discovery1.Start();
+  discovery2.Start();
+
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
@@ -377,6 +394,9 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   MyClass object(pUuid2);
   object.RegisterConnections();
 
+  discovery1.Start();
+  object.Start();
+
   // This should trigger a discovery response on object.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
@@ -397,12 +417,15 @@ TEST(DiscoveryTest, TestDiscover)
 
   // Create one discovery node and advertise a topic.
   transport::Discovery discovery1(pUuid1);
+  discovery1.Start();
+
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
   discovery1.AdvertiseMsg(publisher);
 
   // Create a second discovery node that did not see the previous ADV message.
   transport::Discovery discovery2(pUuid2);
+  discovery2.Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.
@@ -447,6 +470,9 @@ TEST(DiscoveryTest, TestUnadvertise)
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
 
+  discovery1.Start();
+  discovery2.Start();
+
   // This should not trigger a disconnect response on discovery2.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
@@ -489,6 +515,9 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   // Register one callback for receiving disconnect notifications.
   object.RegisterDisconnections();
 
+  discovery1.Start();
+  object.Start();
+
   // This should not trigger a disconnect response on object.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
@@ -527,6 +556,9 @@ TEST(DiscoveryTest, TestNodeBye)
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
 
+  discovery1->Start();
+  discovery2.Start();
+
   // This should not trigger a disconnect response on discovery2.
   transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
@@ -559,12 +591,17 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
 
   // Create two discovery nodes and advertise the same topic.
   transport::Discovery discovery1(pUuid1);
+  transport::Discovery discovery2(pUuid2);
+
   transport::MessagePublisher publisher1(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  discovery1.AdvertiseMsg(publisher1);
-  transport::Discovery discovery2(pUuid2);
   transport::MessagePublisher publisher2(topic, addr2, ctrl2, pUuid2, nUuid2,
     scope, "type");
+
+  discovery1.Start();
+  discovery2.Start();
+
+  discovery1.AdvertiseMsg(publisher1);
   discovery2.AdvertiseMsg(publisher2);
 
   // The callbacks should not be triggered but let's wait some time in case
@@ -620,6 +657,9 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   // Register one callback for receiving notifications.
   discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
 
+  discovery1.Start();
+  discovery2.Start();
+
   // This should trigger a discovery srv call response on discovery2.
   transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
@@ -647,6 +687,9 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   MyClass object(pUuid2);
   object.RegisterSrvConnections();
 
+  discovery1.Start();
+  object.Start();
+
   // This should trigger a discovery response on object.
   transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
@@ -671,6 +714,9 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
 
   // Register one callback for receiving disconnect  notifications (srv calls).
   discovery2.DisconnectionsSrvCb(onDisconnectionSrv);
+
+  discovery1.Start();
+  discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
   transport::ServicePublisher publisher1(service, addr1, id1, pUuid1, nUuid1,
@@ -714,6 +760,9 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   // Register one callback for receiving disconnect notifications.
   object.RegisterSrvDisconnections();
 
+  discovery1.Start();
+  object.Start();
+
   // This should not trigger a disconnect response on object.
   transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
@@ -746,12 +795,14 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 
   // Create one discovery node and advertise a service.
   transport::Discovery discovery1(pUuid1);
+  discovery1.Start();
   transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
   discovery1.AdvertiseSrv(publisher);
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);
+  discovery2.Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // I should not see any discovery updates.
