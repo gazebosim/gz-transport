@@ -40,7 +40,11 @@ int main(int argc, char **argv)
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  node.Advertise("/foo");
+  if (!node.Advertise("/foo"))
+  {
+    std::cerr << "Advertise error" << std::endl;
+    return -1;
+  }
 
   // Prepare the message.
   example::mymsgs::StringMsg msg;

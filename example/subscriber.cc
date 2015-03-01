@@ -35,7 +35,11 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Subscribe to a topic by registering a callback.
-  node.Subscribe("/foo", cb);
+  if (!node.Subscribe("/foo", cb))
+  {
+    std::cerr << "Subscribe error" << std::endl;
+    return -1;
+  }
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;
