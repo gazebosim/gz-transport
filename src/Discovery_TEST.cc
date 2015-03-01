@@ -516,6 +516,7 @@ TEST(DiscoveryTest, TestUnadvertise)
 
   // Unadvertise a topic not advertised.
   EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+
   transport::MsgAddresses_M addresses;
   EXPECT_FALSE(discovery2.MsgPublishers(topic, addresses));
 }

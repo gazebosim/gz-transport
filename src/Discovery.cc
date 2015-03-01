@@ -425,6 +425,7 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
 bool Discovery::MsgPublishers(const std::string &_topic,
                               MsgAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoMsg.GetPublishers(_topic, _publishers);
 }
 
@@ -432,12 +433,14 @@ bool Discovery::MsgPublishers(const std::string &_topic,
 bool Discovery::SrvPublishers(const std::string &_topic,
                               SrvAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoSrv.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
 std::string Discovery::HostAddr() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->hostAddr;
 }
 
