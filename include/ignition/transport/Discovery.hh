@@ -80,11 +80,15 @@ namespace ignition
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
-      public: void AdvertiseMsg(const MessagePublisher &_publisher);
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool AdvertiseMsg(const MessagePublisher &_publisher);
 
       /// \brief Advertise a new service.
       /// \param[in] _publisher Publisher's information to advertise.
-      public: void AdvertiseSrv(const ServicePublisher &_publisher);
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool AdvertiseSrv(const ServicePublisher &_publisher);
 
       /// \brief Request discovery information about a topic.
       /// When using this method, the user might want to use
@@ -94,7 +98,9 @@ namespace ignition
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
       /// \param[in] _topic Topic name requested.
-      public: void DiscoverMsg(const std::string &_topic);
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool DiscoverMsg(const std::string &_topic);
 
       /// \brief Request discovery information about a service.
       /// The user might want to use SetConnectionsSrvCb() and
@@ -104,28 +110,32 @@ namespace ignition
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
-      public: void DiscoverSrv(const std::string &_topic);
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool DiscoverSrv(const std::string &_topic);
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool MsgPublishers(const std::string &_topic,
-                                    MsgAddresses_M &_publishers);
+                                 MsgAddresses_M &_publishers);
 
       /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool SrvPublishers(const std::string &_topic,
-                                    SrvAddresses_M &_publishers);
+                                 SrvAddresses_M &_publishers);
 
       /// \brief Unadvertise a new message. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
       /// advertised by a specific node.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      public: void UnadvertiseMsg(const std::string &_topic,
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool UnadvertiseMsg(const std::string &_topic,
                                   const std::string &_nUuid);
 
       /// \brief Unadvertise a new message service. Broadcast a discovery
@@ -133,7 +143,9 @@ namespace ignition
       /// advertised by a specific node.
       /// \param[in] _topic Service name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      public: void UnadvertiseSrv(const std::string &_topic,
+      /// \return True if the method suceed or false otherwise (e.g. if the
+      /// discovery has not been started).
+      public: bool UnadvertiseSrv(const std::string &_topic,
                                   const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
@@ -267,25 +279,40 @@ namespace ignition
         this->DisconnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
+      /// \brief Print the current discovery state (info, activity, unknown).
+      public: void PrintCurrentState();
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void TopicList(std::vector<std::string> &_topics) const;
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void ServiceList(std::vector<std::string> &_services) const;
+
+      /// \brief Get mutex used in the Discovery class.
+      /// \return The discovery mutex.
+      public: std::recursive_mutex& Mutex();
+
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalids the old topics.
-      public: void RunActivityTask();
+      private: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbeatTask();
+      private: void RunHeartbeatTask();
 
       /// \brief Receive discovery messages.
-      public: void RunReceptionTask();
+      private: void RunReceptionTask();
 
       /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdate();
+      private: void RecvDiscoveryUpdate();
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
-      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                        char *_msg);
+      private: void DispatchDiscoveryMsg(const std::string &_fromIp,
+                                         char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -293,9 +320,9 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      public: template<typename T> void SendMsg(uint8_t _type,
-                                                const T &_pub,
-                                                int _flags = 0)
+      private: template<typename T> void SendMsg(uint8_t _type,
+                                                 const T &_pub,
+                                                 int _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -363,21 +390,6 @@ namespace ignition
                     << " msg [" << topic << "]" << std::endl;
         }
       }
-
-      /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
-
-      /// \brief Get the list of topics currently advertised in the network.
-      /// \param[out] _topics List of advertised topics.
-      public: void TopicList(std::vector<std::string> &_topics) const;
-
-      /// \brief Get the list of topics currently advertised in the network.
-      /// \param[out] _topics List of advertised topics.
-      public: void ServiceList(std::vector<std::string> &_services) const;
-
-      /// \brief Get mutex used in the Discovery class.
-      /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex();
 
       /// \brief Get the socket used for sending/receiving discovery messages.
       /// \return Discovery socket.
