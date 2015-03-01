@@ -133,7 +133,13 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
+        if (!this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic))
+        {
+          std::cerr << "Node::Subscribe(): Error discovering a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -183,7 +189,13 @@ namespace ignition
         this->dataPtr->topicsSubscribed.insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic);
+        if (!this->dataPtr->shared->discovery->DiscoverMsg(fullyQualifiedTopic))
+        {
+          std::cerr << "Node::Subscribe(): Error discovering a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -253,7 +265,14 @@ namespace ignition
           this->dataPtr->shared->replierId.ToString(),
           this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused",
           "unused");
-        this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
+
+        if (!this->dataPtr->shared->discovery->AdvertiseSrv(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a service. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -315,7 +334,14 @@ namespace ignition
           this->dataPtr->shared->replierId.ToString(),
           this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused",
           "unused");
-        this->dataPtr->shared->discovery->AdvertiseSrv(publisher);
+
+        if (!this->dataPtr->shared->discovery->AdvertiseSrv(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a service. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -395,7 +421,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->dataPtr->shared->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
 
         return true;
@@ -476,7 +509,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->dataPtr->shared->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
 
         return true;
@@ -541,7 +581,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->dataPtr->shared->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->dataPtr->shared->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
         this->dataPtr->shared->discovery->Mutex().unlock();
 

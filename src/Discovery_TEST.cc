@@ -455,7 +455,7 @@ TEST(DiscoveryTest, TestDiscover)
   discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
-  discovery2.DiscoverMsg(topic);
+  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -468,7 +468,7 @@ TEST(DiscoveryTest, TestDiscover)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.DiscoverMsg(topic);
+  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -635,7 +635,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   discovery2.ConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
-  discovery2.DiscoverMsg(topic);
+  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
 
   int i = 0;
   while (i < MaxIters && counter < 2)
@@ -654,7 +654,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  discovery2.DiscoverMsg(topic);
+  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -832,7 +832,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
 
   // Request the discovery of a service.
-  discovery2.DiscoverSrv(service);
+  EXPECT_TRUE(discovery2.DiscoverSrv(service));
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -845,7 +845,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Request again the discovery of a service. The callback should be executed
   // from the Discover method this time because the service information should
   // be known.
-  discovery2.DiscoverSrv(service);
+  EXPECT_TRUE(discovery2.DiscoverSrv(service));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);

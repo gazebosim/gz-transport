@@ -137,7 +137,13 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
-  this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
+
+  if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher))
+  {
+    std::cerr << "Node::Advertise(): Error advertising a topic. "
+              << "Did you forget to start the discovery service?" << std::endl;
+    return false;
+  }
 
   return true;
 }
