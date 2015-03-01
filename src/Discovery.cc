@@ -80,6 +80,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   this->dataPtr->disconnectionCb = nullptr;
   this->dataPtr->verbose = _verbose;
   this->dataPtr->exit = false;
+  this->dataPtr->enabled = false;
 
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
@@ -174,18 +175,6 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     inet_addr(this->dataPtr->MulticastGroup.c_str());
   this->dataPtr->mcastAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
 
-  // Start the thread that receives discovery information.
-  this->dataPtr->threadReception =
-    std::thread(&Discovery::RunReceptionTask, this);
-
-  // Start the thread that sends heartbeats.
-  this->dataPtr->threadHeartbeat =
-    std::thread(&Discovery::RunHeartbeatTask, this);
-
-  // Start the thread that checks the topic information validity.
-  this->dataPtr->threadActivity =
-    std::thread(&Discovery::RunActivityTask, this);
-
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
 }
@@ -204,9 +193,14 @@ Discovery::~Discovery()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service threads to finish before exit.
-  this->dataPtr->threadReception.join();
-  this->dataPtr->threadHeartbeat.join();
-  this->dataPtr->threadActivity.join();
+  if (this->dataPtr->threadReception.joinable())
+    this->dataPtr->threadReception.join();
+
+  if (this->dataPtr->threadHeartbeat.joinable())
+    this->dataPtr->threadHeartbeat.join();
+
+  if (this->dataPtr->threadActivity.joinable())
+    this->dataPtr->threadActivity.join();
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -221,6 +215,30 @@ Discovery::~Discovery()
 #else
   close(this->dataPtr->sock);
 #endif
+}
+
+//////////////////////////////////////////////////
+void Discovery::Start()
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  // The service is already running.
+  if (this->dataPtr->enabled)
+    return;
+
+  this->dataPtr->enabled = true;
+
+  // Start the thread that receives discovery information.
+  this->dataPtr->threadReception =
+    std::thread(&Discovery::RunReceptionTask, this);
+
+  // Start the thread that sends heartbeats.
+  this->dataPtr->threadHeartbeat =
+    std::thread(&Discovery::RunHeartbeatTask, this);
+
+  // Start the thread that checks the topic information validity.
+  this->dataPtr->threadActivity =
+    std::thread(&Discovery::RunActivityTask, this);
 }
 
 //////////////////////////////////////////////////

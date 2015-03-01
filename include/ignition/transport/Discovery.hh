@@ -73,6 +73,11 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Discovery();
 
+      /// \brief Start the discovery service. You probably want to register the
+      /// callbacks for receiving discovery notifications before start the
+      /// service.
+      public: void Start();
+
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
       public: void AdvertiseMsg(const MessagePublisher &_publisher);
@@ -282,22 +287,6 @@ namespace ignition
       public: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                         char *_msg);
 
-      /// \brief Get the socket used for sending/receiving discovery messages.
-      /// \return Discovery socket.
-      private: int DiscoverySocket() const;
-
-      /// \brief Get the data structure used for multicast communication.
-      /// \return The data structure containing the multicast information.
-      private: sockaddr_in* MulticastAddr() const;
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enable or false otherwise.
-      private: bool Verbose() const;
-
-      /// \brief Get the discovery protocol version.
-      /// \return The discovery version.
-      private: uint8_t Version() const;
-
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
       /// \param[in] _pub Publishers's information to send.
@@ -389,6 +378,22 @@ namespace ignition
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
       public: std::recursive_mutex& Mutex();
+
+      /// \brief Get the socket used for sending/receiving discovery messages.
+      /// \return Discovery socket.
+      private: int DiscoverySocket() const;
+
+      /// \brief Get the data structure used for multicast communication.
+      /// \return The data structure containing the multicast information.
+      private: sockaddr_in* MulticastAddr() const;
+
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enable or false otherwise.
+      private: bool Verbose() const;
+
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery version.
+      private: uint8_t Version() const;
 
       /// \internal
       /// \brief Shared pointer to private data.

@@ -168,6 +168,9 @@ namespace ignition
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
+
+      /// \brief When true, the service is enabled.
+      public: bool enabled;
     };
   }
 }
