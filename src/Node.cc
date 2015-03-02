@@ -438,13 +438,13 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::string& Node::Partition() const
+const std::string& Node::Partition() const
 {
   return this->dataPtr->partition;
 }
 
 //////////////////////////////////////////////////
-std::string& Node::NameSpace() const
+const std::string& Node::NameSpace() const
 {
   return this->dataPtr->ns;
 }
@@ -456,7 +456,7 @@ NodeShared* Node::Shared() const
 }
 
 //////////////////////////////////////////////////
-std::string& Node::NodeUuid() const
+const std::string& Node::NodeUuid() const
 {
   return this->dataPtr->nUuid;
 }

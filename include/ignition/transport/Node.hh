@@ -578,11 +578,11 @@ namespace ignition
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
-      private: std::string& Partition() const;
+      private: const std::string& Partition() const;
 
       /// \brief Get the namespace used in this node.
       /// \return The namespace
-      private: std::string& NameSpace() const;
+      private: const std::string& NameSpace() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
@@ -591,7 +591,7 @@ namespace ignition
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
-      private: std::string& NodeUuid() const;
+      private: const std::string& NodeUuid() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
