@@ -80,7 +80,7 @@ namespace ignition
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
-      /// \return True if the method succeed edor false otherwise
+      /// \return True if the method succeed or false otherwise
       /// (e.g. if the discovery has not been started).
       public: bool AdvertiseMsg(const MessagePublisher &_publisher);
 
