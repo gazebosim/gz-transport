@@ -80,7 +80,7 @@ namespace ignition
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
-      /// \return True if the method succeed edor false otherwise 
+      /// \return True if the method succeed edor false otherwise
       /// (e.g. if the discovery has not been started).
       public: bool AdvertiseMsg(const MessagePublisher &_publisher);
 
@@ -104,9 +104,9 @@ namespace ignition
 
       /// \brief Request discovery information about a service.
       /// The user might want to use SetConnectionsSrvCb() and
-      /// SetDisconnectionSrvCb(), that registers callbacks that will be executed
-      /// when the service address is discovered or when the node providing the
-      /// service is disconnected.
+      /// SetDisconnectionSrvCb(), that registers callbacks that will be
+      /// executed when the service address is discovered or when the node
+      /// providing the service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
