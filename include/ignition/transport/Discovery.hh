@@ -74,44 +74,44 @@ namespace ignition
       public: virtual ~Discovery();
 
       /// \brief Start the discovery service. You probably want to register the
-      /// callbacks for receiving discovery notifications before start the
+      /// callbacks for receiving discovery notifications before starting the
       /// service.
       public: void Start();
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeed edor false otherwise 
+      /// (e.g. if the discovery has not been started).
       public: bool AdvertiseMsg(const MessagePublisher &_publisher);
 
       /// \brief Advertise a new service.
       /// \param[in] _publisher Publisher's information to advertise.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
       public: bool AdvertiseSrv(const ServicePublisher &_publisher);
 
       /// \brief Request discovery information about a topic.
       /// When using this method, the user might want to use
-      /// SetConnectionsCb() and SetDisconnectionCb(), that register callbacks
+      /// SetConnectionsCb() and SetDisconnectionCb(), that registers callbacks
       /// that will be executed when the topic address is discovered or when the
       /// node providing the topic is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
       /// \param[in] _topic Topic name requested.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
       public: bool DiscoverMsg(const std::string &_topic);
 
       /// \brief Request discovery information about a service.
       /// The user might want to use SetConnectionsSrvCb() and
-      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
+      /// SetDisconnectionSrvCb(), that registers callbacks that will be executed
       /// when the service address is discovered or when the node providing the
       /// service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
       public: bool DiscoverSrv(const std::string &_topic);
 
       /// \brief Get all the publishers' information known for a given topic.
@@ -133,8 +133,8 @@ namespace ignition
       /// advertised by a specific node.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
       public: bool UnadvertiseMsg(const std::string &_topic,
                                   const std::string &_nUuid);
 
@@ -143,8 +143,8 @@ namespace ignition
       /// advertised by a specific node.
       /// \param[in] _topic Service name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      /// \return True if the method suceed or false otherwise (e.g. if the
-      /// discovery has not been started).
+      /// \return True if the method succeed or false otherwise
+      /// (e.g. if the discovery has not been started).
       public: bool UnadvertiseSrv(const std::string &_topic,
                                   const std::string &_nUuid);
 
@@ -286,8 +286,8 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics) const;
 
-      /// \brief Get the list of topics currently advertised in the network.
-      /// \param[out] _topics List of advertised topics.
+      /// \brief Get the list of services currently advertised in the network.
+      /// \param[out] _topics List of advertised services.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
       /// \brief Get mutex used in the Discovery class.
@@ -400,7 +400,7 @@ namespace ignition
       private: sockaddr_in* MulticastAddr() const;
 
       /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enable or false otherwise.
+      /// \return True when verbose mode is enabled or false otherwise.
       private: bool Verbose() const;
 
       /// \brief Get the discovery protocol version.
