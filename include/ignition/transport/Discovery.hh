@@ -391,7 +391,7 @@ namespace ignition
       public: std::recursive_mutex& Mutex();
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
     };
   }

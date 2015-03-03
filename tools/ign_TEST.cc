@@ -24,6 +24,8 @@
 #include "msg/int.pb.h"
 #include "msg/vector3d.pb.h"
 
+using namespace ignition;
+
 std::string partition;
 
 /////////////////////////////////////////////////
