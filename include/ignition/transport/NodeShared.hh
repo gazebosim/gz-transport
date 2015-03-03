@@ -162,7 +162,7 @@ namespace ignition
       public: int timeout;
 
       /// \brief thread in charge of receiving and handling incoming messages.
-      public: std::thread *threadReception;
+      public: std::thread threadReception;
 
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: std::recursive_mutex mutex;

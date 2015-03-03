@@ -40,7 +40,6 @@ namespace ignition
     class IRepHandler;
     class IReqHandler;
     class ISubscriptionHandler;
-    class NodePrivate;
 
     /// \def MsgAddresses_M
     /// \brief The map stores all the publishers advertising this topic.
@@ -84,10 +83,6 @@ namespace ignition
     /// otherwise.
     typedef std::function<void (const std::string &_topic,
       const ProtoMsgPtr _rep, bool _result)> RepCallback;
-
-    /// \def NodePrivatePtr
-    /// \brief Pointer to internal class NodePrivate.
-    typedef std::unique_ptr<transport::NodePrivate> NodePrivatePtr;
 
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.

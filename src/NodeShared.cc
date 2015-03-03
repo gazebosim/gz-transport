@@ -138,7 +138,7 @@ NodeShared::NodeShared()
   }
 
   // Start the service thread.
-  this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
+  this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
   // Set the callback to notify discovery updates (new topics).
   discovery->ConnectionsCb(&NodeShared::OnNewConnection, this);
@@ -146,11 +146,14 @@ NodeShared::NodeShared()
   // Set the callback to notify discovery updates (invalid topics).
   discovery->DisconnectionsCb(&NodeShared::OnNewDisconnection, this);
 
-  // Set the callback to notify svc discovery updates (new service calls).
+  // Set the callback to notify svc discovery updates (new services).
   discovery->ConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
-  // Set the callback to notify svc discovery updates (new service calls).
+  // Set the callback to notify svc discovery updates (invalid services).
   discovery->DisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+
+  // Start the discovery service.
+  discovery->Start();
 }
 
 //////////////////////////////////////////////////
@@ -167,7 +170,8 @@ NodeShared::~NodeShared()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service thread before exit.
-  this->threadReception->join();
+  if (this->threadReception.joinable())
+    this->threadReception.join();
 #else
   // Give some time to the receiving thread to terminate. The receiving thread
   // is blocking in zmq::poll for a maximum of Timeout milliseconds.

@@ -73,54 +73,69 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Discovery();
 
+      /// \brief Start the discovery service. You probably want to register the
+      /// callbacks for receiving discovery notifications before starting the
+      /// service.
+      public: void Start();
+
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
-      public: void AdvertiseMsg(const MessagePublisher &_publisher);
+      /// \return True if the method succeed or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool AdvertiseMsg(const MessagePublisher &_publisher);
 
       /// \brief Advertise a new service.
       /// \param[in] _publisher Publisher's information to advertise.
-      public: void AdvertiseSrv(const ServicePublisher &_publisher);
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool AdvertiseSrv(const ServicePublisher &_publisher);
 
       /// \brief Request discovery information about a topic.
       /// When using this method, the user might want to use
-      /// SetConnectionsCb() and SetDisconnectionCb(), that register callbacks
+      /// SetConnectionsCb() and SetDisconnectionCb(), that registers callbacks
       /// that will be executed when the topic address is discovered or when the
       /// node providing the topic is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
       /// \param[in] _topic Topic name requested.
-      public: void DiscoverMsg(const std::string &_topic);
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool DiscoverMsg(const std::string &_topic);
 
       /// \brief Request discovery information about a service.
       /// The user might want to use SetConnectionsSrvCb() and
-      /// SetDisconnectionSrvCb(), that register callbacks that will be executed
-      /// when the service address is discovered or when the node providing the
-      /// service is disconnected.
+      /// SetDisconnectionSrvCb(), that registers callbacks that will be
+      /// executed when the service address is discovered or when the node
+      /// providing the service is disconnected.
       /// \sa SetConnectionsSrvCb.
       /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
-      public: void DiscoverSrv(const std::string &_topic);
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool DiscoverSrv(const std::string &_topic);
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool MsgPublishers(const std::string &_topic,
-                                    MsgAddresses_M &_publishers);
+                                 MsgAddresses_M &_publishers);
 
       /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool SrvPublishers(const std::string &_topic,
-                                    SrvAddresses_M &_publishers);
+                                 SrvAddresses_M &_publishers);
 
       /// \brief Unadvertise a new message. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
       /// advertised by a specific node.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      public: void UnadvertiseMsg(const std::string &_topic,
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool UnadvertiseMsg(const std::string &_topic,
                                   const std::string &_nUuid);
 
       /// \brief Unadvertise a new message service. Broadcast a discovery
@@ -128,7 +143,9 @@ namespace ignition
       /// advertised by a specific node.
       /// \param[in] _topic Service name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
-      public: void UnadvertiseSrv(const std::string &_topic,
+      /// \return True if the method succeed or false otherwise
+      /// (e.g. if the discovery has not been started).
+      public: bool UnadvertiseSrv(const std::string &_topic,
                                   const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
@@ -262,41 +279,40 @@ namespace ignition
         this->DisconnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
 
+      /// \brief Print the current discovery state (info, activity, unknown).
+      public: void PrintCurrentState();
+
+      /// \brief Get the list of topics currently advertised in the network.
+      /// \param[out] _topics List of advertised topics.
+      public: void TopicList(std::vector<std::string> &_topics) const;
+
+      /// \brief Get the list of services currently advertised in the network.
+      /// \param[out] _topics List of advertised services.
+      public: void ServiceList(std::vector<std::string> &_services) const;
+
+      /// \brief Get mutex used in the Discovery class.
+      /// \return The discovery mutex.
+      public: std::recursive_mutex& Mutex();
+
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalids the old topics.
-      public: void RunActivityTask();
+      private: void RunActivityTask();
 
       /// \brief Broadcast periodic heartbeats.
-      public: void RunHeartbeatTask();
+      private: void RunHeartbeatTask();
 
       /// \brief Receive discovery messages.
-      public: void RunReceptionTask();
+      private: void RunReceptionTask();
 
       /// \brief Method in charge of receiving the discovery updates.
-      public: void RecvDiscoveryUpdate();
+      private: void RecvDiscoveryUpdate();
 
       /// \brief Parse a discovery message received via the UDP broadcast socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
-      public: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                        char *_msg);
-
-      /// \brief Get the list of sockets used for discovery.
-      /// \return The list of sockets.
-      private: std::vector<int>& Sockets() const;
-
-      /// \brief Get the data structure used for multicast communication.
-      /// \return The data structure containing the multicast information.
-      private: sockaddr_in* MulticastAddr() const;
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enable or false otherwise.
-      private: bool Verbose() const;
-
-      /// \brief Get the discovery protocol version.
-      /// \return The discovery version.
-      private: uint8_t Version() const;
+      private: void DispatchDiscoveryMsg(const std::string &_fromIp,
+                                         char *_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -304,9 +320,9 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      public: template<typename T> void SendMsg(uint8_t _type,
-                                                const T &_pub,
-                                                int _flags = 0)
+      private: template<typename T> void SendMsg(uint8_t _type,
+                                                 const T &_pub,
+                                                 int _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -379,23 +395,24 @@ namespace ignition
         }
       }
 
-      /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
+      /// \brief Get the list of sockets used for discovery.
+      /// \return The list of sockets.
+      private: std::vector<int>& Sockets() const;
 
-      /// \brief Get the list of topics currently advertised in the network.
-      /// \param[out] _topics List of advertised topics.
-      public: void TopicList(std::vector<std::string> &_topics) const;
+      /// \brief Get the data structure used for multicast communication.
+      /// \return The data structure containing the multicast information.
+      private: sockaddr_in* MulticastAddr() const;
 
-      /// \brief Get the list of topics currently advertised in the network.
-      /// \param[out] _topics List of advertised topics.
-      public: void ServiceList(std::vector<std::string> &_services) const;
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enabled or false otherwise.
+      private: bool Verbose() const;
 
-      /// \brief Get mutex used in the Discovery class.
-      /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex();
+      /// \brief Get the discovery protocol version.
+      /// \return The discovery version.
+      private: uint8_t Version() const;
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
     };
   }
