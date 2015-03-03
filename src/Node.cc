@@ -26,11 +26,13 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -460,7 +462,37 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::string Node::Partition() const
+const std::string& Node::Partition() const
 {
   return this->dataPtr->partition;
+}
+
+//////////////////////////////////////////////////
+const std::string& Node::NameSpace() const
+{
+  return this->dataPtr->ns;
+}
+
+//////////////////////////////////////////////////
+NodeShared* Node::Shared() const
+{
+  return this->dataPtr->shared;
+}
+
+//////////////////////////////////////////////////
+const std::string& Node::NodeUuid() const
+{
+  return this->dataPtr->nUuid;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<std::string>& Node::TopicsSubscribed() const
+{
+  return this->dataPtr->topicsSubscribed;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<std::string>& Node::SrvsAdvertised() const
+{
+  return this->dataPtr->srvsAdvertised;
 }

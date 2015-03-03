@@ -408,7 +408,7 @@ namespace ignition
       private: uint8_t Version() const;
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
     };
   }
