@@ -80,6 +80,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   this->dataPtr->disconnectionCb = nullptr;
   this->dataPtr->verbose = _verbose;
   this->dataPtr->exit = false;
+  this->dataPtr->enabled = false;
 
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
@@ -174,18 +175,6 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     inet_addr(this->dataPtr->MulticastGroup.c_str());
   this->dataPtr->mcastAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
 
-  // Start the thread that receives discovery information.
-  this->dataPtr->threadReception =
-    new std::thread(&Discovery::RunReceptionTask, this);
-
-  // Start the thread that sends heartbeats.
-  this->dataPtr->threadHeartbeat =
-    new std::thread(&Discovery::RunHeartbeatTask, this);
-
-  // Start the thread that checks the topic information validity.
-  this->dataPtr->threadActivity =
-    new std::thread(&Discovery::RunActivityTask, this);
-
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
 }
@@ -204,9 +193,14 @@ Discovery::~Discovery()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service threads to finish before exit.
-  this->dataPtr->threadReception->join();
-  this->dataPtr->threadHeartbeat->join();
-  this->dataPtr->threadActivity->join();
+  if (this->dataPtr->threadReception.joinable())
+    this->dataPtr->threadReception.join();
+
+  if (this->dataPtr->threadHeartbeat.joinable())
+    this->dataPtr->threadHeartbeat.join();
+
+  if (this->dataPtr->threadActivity.joinable())
+    this->dataPtr->threadActivity.join();
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -224,89 +218,130 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
+void Discovery::Start()
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  // The service is already running.
+  if (this->dataPtr->enabled)
+    return;
+
+  this->dataPtr->enabled = true;
+
+  // Start the thread that receives discovery information.
+  this->dataPtr->threadReception =
+    std::thread(&Discovery::RunReceptionTask, this);
+
+  // Start the thread that sends heartbeats.
+  this->dataPtr->threadHeartbeat =
+    std::thread(&Discovery::RunHeartbeatTask, this);
+
+  // Start the thread that checks the topic information validity.
+  this->dataPtr->threadActivity =
+    std::thread(&Discovery::RunActivityTask, this);
+}
+
+//////////////////////////////////////////////////
+bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   // Add the addressing information (local publisher).
   this->dataPtr->infoMsg.AddPublisher(_publisher);
 
-  // If the scope is 'Process', do not advertise a message outside this process.
-  if (_publisher.Scope() == Scope_t::Process)
-    return;
+  // Only advertise a message outside this process if the scope is not 'Process'
+  if (_publisher.Scope() != Scope_t::Process)
+    this->SendMsg(AdvType, _publisher);
 
-  this->SendMsg(AdvType, _publisher);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
+bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   // Add the addressing information (local publisher).
   this->dataPtr->infoSrv.AddPublisher(_publisher);
 
-  // If the scope is 'Process', do not advertise a message outside this process.
-  if (_publisher.Scope() == Scope_t::Process)
-    return;
+  // Only advertise a message outside this process if the scope is not 'Process'
+  if (_publisher.Scope() != Scope_t::Process)
+    this->SendMsg(AdvSrvType, _publisher);
 
-  this->SendMsg(AdvSrvType, _publisher);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseMsg(const std::string &_topic,
+bool Discovery::UnadvertiseMsg(const std::string &_topic,
   const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   MessagePublisher inf;
   // Don't do anything if the topic is not advertised by any of my nodes.
   if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
     inf))
   {
-    return;
+    return true;
   }
 
   // Remove the topic information.
   this->dataPtr->infoMsg.DelPublisherByNode(_topic, this->dataPtr->pUuid,
     _nUuid);
 
-  // Do not advertise a message outside the process if the scope is 'Process'.
-  if (inf.Scope() == Scope_t::Process)
-    return;
+  // Only unadvertise a message outside this process if the scope
+  // is not 'Process'.
+  if (inf.Scope() != Scope_t::Process)
+    this->SendMsg(UnadvType, inf);
 
-  this->SendMsg(UnadvType, inf);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseSrv(const std::string &_topic,
+bool Discovery::UnadvertiseSrv(const std::string &_topic,
   const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   ServicePublisher inf;
   // Don't do anything if the topic is not advertised by any of my nodes.
   if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
     inf))
   {
-    return;
+    return true;
   }
 
   // Remove the topic information.
   this->dataPtr->infoSrv.DelPublisherByNode(_topic, this->dataPtr->pUuid,
     _nUuid);
 
-  // Do not advertise a message outside the process if the scope is 'Process'.
-  if (inf.Scope() == Scope_t::Process)
-    return;
+  // Only unadvertise a message outside this process if the scope
+  // is not 'Process'.
+  if (inf.Scope() != Scope_t::Process)
+    this->SendMsg(UnadvSrvType, inf);
 
-  this->SendMsg(UnadvSrvType, inf);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DiscoverMsg(const std::string &_topic)
+bool Discovery::DiscoverMsg(const std::string &_topic)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
   MessagePublisher pub;
@@ -339,12 +374,17 @@ void Discovery::DiscoverMsg(const std::string &_topic)
       }
     }
   }
+
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DiscoverSrv(const std::string &_topic)
+bool Discovery::DiscoverSrv(const std::string &_topic)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
   ServicePublisher pub;
@@ -377,12 +417,15 @@ void Discovery::DiscoverSrv(const std::string &_topic)
       }
     }
   }
+
+  return true;
 }
 
 //////////////////////////////////////////////////
 bool Discovery::MsgPublishers(const std::string &_topic,
                               MsgAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoMsg.GetPublishers(_topic, _publishers);
 }
 
@@ -390,12 +433,14 @@ bool Discovery::MsgPublishers(const std::string &_topic,
 bool Discovery::SrvPublishers(const std::string &_topic,
                               SrvAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoSrv.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
 std::string Discovery::HostAddr() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->hostAddr;
 }
 
@@ -902,6 +947,8 @@ uint8_t Discovery::Version() const
 void Discovery::PrintCurrentState()
 {
   std::cout << "---------------" << std::endl;
+  std::cout << std::boolalpha << "Enabled: "
+            << this->dataPtr->enabled << std::endl;
   std::cout << "Discovery state" << std::endl;
   std::cout << "\tUUID: " << this->dataPtr->pUuid << std::endl;
   std::cout << "Settings" << std::endl;

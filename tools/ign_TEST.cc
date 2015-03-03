@@ -113,8 +113,8 @@ TEST(ignTest, TopicListSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  node.Advertise("/foo");
-  node.Publish("/foo", msg);
+  EXPECT_TRUE(node.Advertise("/foo"));
+  EXPECT_TRUE(node.Publish("/foo", msg));
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -127,7 +127,7 @@ TEST(ignTest, TopicListSameProc)
 TEST(ignTest, ServiceListSameProc)
 {
   transport::Node node;
-  node.Advertise("/foo", srvEcho);
+  EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";

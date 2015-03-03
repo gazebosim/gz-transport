@@ -103,7 +103,13 @@ Node::~Node()
   // Unadvertise all my topics.
   auto advTopics = this->AdvertisedTopics();
   for (auto const &topic : advTopics)
-    this->Unadvertise(topic);
+  {
+    if (!this->Unadvertise(topic))
+    {
+      std::cerr << "Node::~Node(): Error unadvertising topic ["
+                << topic << "]" << std::endl;
+    }
+  }
 
   // The list of advertised topics should be empty.
   assert(this->AdvertisedTopics().empty());
@@ -111,7 +117,13 @@ Node::~Node()
   // Unadvertise all my services.
   auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)
-    this->UnadvertiseSrv(service);
+  {
+    if (!this->UnadvertiseSrv(service))
+    {
+      std::cerr << "Node::~Node(): Error unadvertising service ["
+                << service << "]" << std::endl;
+    }
+  }
 
   // The list of advertised services should be empty.
   assert(this->AdvertisedServices().empty());
@@ -139,7 +151,13 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
-  this->dataPtr->shared->discovery->AdvertiseMsg(publisher);
+
+  if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher))
+  {
+    std::cerr << "Node::Advertise(): Error advertising a topic. "
+              << "Did you forget to start the discovery service?" << std::endl;
+    return false;
+  }
 
   return true;
 }
@@ -180,8 +198,11 @@ bool Node::Unadvertise(const std::string &_topic)
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
 
   // Notify the discovery service to unregister and unadvertise my topic.
-  this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
-    this->dataPtr->nUuid);
+  if (!this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+    this->dataPtr->nUuid))
+  {
+    return false;
+  }
 
   return true;
 }
@@ -375,8 +396,11 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  this->dataPtr->shared->discovery->UnadvertiseSrv(fullyQualifiedTopic,
-    this->dataPtr->nUuid);
+  if (!this->dataPtr->shared->discovery->UnadvertiseSrv(fullyQualifiedTopic,
+    this->dataPtr->nUuid))
+  {
+    return false;
+  }
 
   return true;
 }

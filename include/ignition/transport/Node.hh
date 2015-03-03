@@ -135,7 +135,13 @@ namespace ignition
         this->TopicsSubscribed().insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic);
+        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
+        {
+          std::cerr << "Node::Subscribe(): Error discovering a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -185,7 +191,13 @@ namespace ignition
         this->TopicsSubscribed().insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic);
+        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
+        {
+          std::cerr << "Node::Subscribe(): Error discovering a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -255,7 +267,14 @@ namespace ignition
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
           "unused");
-        this->Shared()->discovery->AdvertiseSrv(publisher);
+
+        if (!this->Shared()->discovery->AdvertiseSrv(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a service. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -317,7 +336,14 @@ namespace ignition
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
           "unused");
-        this->Shared()->discovery->AdvertiseSrv(publisher);
+
+        if (!this->Shared()->discovery->AdvertiseSrv(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a service. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
 
         return true;
       }
@@ -397,7 +423,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->Shared()->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
 
         return true;
@@ -478,7 +511,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->Shared()->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
 
         return true;
@@ -543,7 +583,14 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic);
+          if (!this->Shared()->discovery->DiscoverSrv(
+            fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering a service. "
+                      << "Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
         this->Shared()->discovery->Mutex().unlock();
 
