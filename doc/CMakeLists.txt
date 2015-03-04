@@ -9,7 +9,7 @@ if (DOXYGEN_FOUND)
     # Generate the API documentation
     ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/ignition.dox
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND cp ${CMAKE_SOURCE_DIR}/doc/ignition_logo.png
+    COMMAND cp ${CMAKE_SOURCE_DIR}/doc/ignition_logo.svg
             ${CMAKE_BINARY_DIR}/doxygen/html
     COMMAND cp ${CMAKE_SOURCE_DIR}/doc/search.js
             ${CMAKE_BINARY_DIR}/doxygen/html/search
