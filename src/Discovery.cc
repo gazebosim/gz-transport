@@ -110,8 +110,8 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
     // Make a new socket for sending discovery information.
-    int sock;
-    if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0)
     {
       std::cerr << "Socket creation failed." << std::endl;
       return;
