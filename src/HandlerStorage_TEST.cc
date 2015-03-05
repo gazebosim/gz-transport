@@ -89,7 +89,7 @@ TEST(RepStorageTest, RepStorageAPI)
     transport::msgs::Int>> rep1HandlerPtr(new transport::RepHandler<
       transport::msgs::Vector3d, transport::msgs::Int>());
 
-  rep1HandlerPtr->SetCallback(cb1);
+  rep1HandlerPtr->Callback(cb1);
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid1, rep1HandlerPtr);
@@ -98,8 +98,8 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
   EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
   ASSERT_TRUE(handler != NULL);
-  std::string handlerUuid = handler->GetHandlerUuid();
-  EXPECT_EQ(handlerUuid, rep1HandlerPtr->GetHandlerUuid());
+  std::string handlerUuid = handler->HandlerUuid();
+  EXPECT_EQ(handlerUuid, rep1HandlerPtr->HandlerUuid());
   EXPECT_TRUE(reps.GetHandler(topic, nUuid1, handlerUuid, handler));
   EXPECT_FALSE(reps.GetHandler(topic, "wrongNodeUuid", handlerUuid, handler));
   EXPECT_FALSE(reps.GetHandler(topic, nUuid1, "wrongHandlerUuid", handler));
@@ -146,9 +146,9 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid2));
   EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
-  handlerUuid = rep3HandlerPtr->GetHandlerUuid();
+  handlerUuid = rep3HandlerPtr->HandlerUuid();
   EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
-  EXPECT_EQ(handler->GetHandlerUuid(), handlerUuid);
+  EXPECT_EQ(handler->HandlerUuid(), handlerUuid);
   EXPECT_TRUE(reps.GetHandlers(topic, m));
   EXPECT_EQ(m.size(), 2u);
 
@@ -167,7 +167,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(result);
 
   // Remove the last REP handler.
-  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid2, handler->GetHandlerUuid()));
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid2, handler->HandlerUuid()));
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
@@ -191,7 +191,7 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
-  handlerUuid = rep3HandlerPtr->GetHandlerUuid();
+  handlerUuid = rep3HandlerPtr->HandlerUuid();
   EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, handlerUuid));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
@@ -204,8 +204,6 @@ TEST(RepStorageTest, RepStorageAPI)
 TEST(RepStorageTest, SubStorageNoCallbacks)
 {
   transport::ISubscriptionHandlerPtr handler;
-  std::map<std::string, std::map<std::string,
-    transport::ISubscriptionHandlerPtr>> m;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
   transport::msgs::Int msg;
   msg.set_data(5);
@@ -219,7 +217,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);
 
   transport::ISubscriptionHandlerPtr h;
-  std::string handlerUuid = sub1HandlerPtr->GetHandlerUuid();
+  std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
   EXPECT_FALSE(h->RunLocalCallback(topic, msg));
   EXPECT_FALSE(h->RunCallback(topic, "some data"));

@@ -107,7 +107,7 @@ namespace ignition
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -144,7 +144,7 @@ namespace ignition
       protected: std::string nUuid;
 
       /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope;
+      protected: Scope_t scope = Scope_t::All;
     };
 
     /// \class MessagePublisher Publisher.hh
@@ -181,7 +181,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer);
 
       // Documentation inherited.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
@@ -253,7 +253,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer);
 
       // Documentation inherited.
-      public: size_t GetMsgLength() const;
+      public: size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
@@ -264,19 +264,19 @@ namespace ignition
 
       /// \brief Get the name of the request's protobuf message advertised.
       /// \return The protobuf message type.
-      public: std::string GetReqTypeName() const;
+      public: std::string ReqTypeName() const;
 
       /// \brief Get the name of the response's protobuf message advertised.
       /// \return The protobuf message type.
-      public: std::string GetRepTypeName() const;
+      public: std::string RepTypeName() const;
 
       /// \brief Set the name of the request's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void SetReqTypeName(const std::string &_reqTypeName);
+      public: void ReqTypeName(const std::string &_reqTypeName);
 
       /// \brief Set the name of the response's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void SetRepTypeName(const std::string &_repTypeName);
+      public: void RepTypeName(const std::string &_repTypeName);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -286,20 +286,20 @@ namespace ignition
       {
         _out << static_cast<Publisher>(_msg)
              << "\tSocket ID: "     << _msg.SocketId()       << std::endl
-             << "\tRequest type: "  << _msg.GetReqTypeName() << std::endl
-             << "\tResponse type: " << _msg.GetRepTypeName() << std::endl;
+             << "\tRequest type: "  << _msg.ReqTypeName() << std::endl
+             << "\tResponse type: " << _msg.RepTypeName() << std::endl;
 
         return _out;
       }
 
       /// ZeroMQ socket ID used by this publisher.
-      protected: std::string socketId = "";
+      protected: std::string socketId;
 
        /// \brief The name of the request's protobuf message advertised.
-      private: std::string reqTypeName = "";
+      private: std::string reqTypeName;
 
       /// \brief The name of the response's protobuf message advertised.
-      private: std::string repTypeName = "";
+      private: std::string repTypeName;
     };
   }
 }

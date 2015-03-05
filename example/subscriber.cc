@@ -33,9 +33,14 @@ void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 int main(int argc, char **argv)
 {
   ignition::transport::Node node;
+  std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  node.Subscribe("/foo", cb);
+  if (!node.Subscribe(topic, cb))
+  {
+    std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    return -1;
+  }
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;

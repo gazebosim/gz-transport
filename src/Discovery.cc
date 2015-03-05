@@ -81,6 +81,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   this->dataPtr->disconnectionCb = nullptr;
   this->dataPtr->verbose = _verbose;
   this->dataPtr->exit = false;
+  this->dataPtr->enabled = false;
 
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
@@ -175,18 +176,6 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     inet_addr(this->dataPtr->MulticastGroup.c_str());
   this->dataPtr->mcastAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
 
-  // Start the thread that receives discovery information.
-  this->dataPtr->threadReception =
-    new std::thread(&Discovery::RunReceptionTask, this);
-
-  // Start the thread that sends heartbeats.
-  this->dataPtr->threadHeartbeat =
-    new std::thread(&Discovery::RunHeartbeatTask, this);
-
-  // Start the thread that checks the topic information validity.
-  this->dataPtr->threadActivity =
-    new std::thread(&Discovery::RunActivityTask, this);
-
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
 }
@@ -205,15 +194,20 @@ Discovery::~Discovery()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service threads to finish before exit.
-  this->dataPtr->threadReception->join();
-  this->dataPtr->threadHeartbeat->join();
-  this->dataPtr->threadActivity->join();
+  if (this->dataPtr->threadReception.joinable())
+    this->dataPtr->threadReception.join();
+
+  if (this->dataPtr->threadHeartbeat.joinable())
+    this->dataPtr->threadHeartbeat.join();
+
+  if (this->dataPtr->threadActivity.joinable())
+    this->dataPtr->threadActivity.join();
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
-  Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
-  this->SendMsg(ByeType, pub);
+  this->SendMsg(ByeType,
+    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::All));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -225,89 +219,130 @@ Discovery::~Discovery()
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
+void Discovery::Start()
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  // The service is already running.
+  if (this->dataPtr->enabled)
+    return;
+
+  this->dataPtr->enabled = true;
+
+  // Start the thread that receives discovery information.
+  this->dataPtr->threadReception =
+    std::thread(&Discovery::RunReceptionTask, this);
+
+  // Start the thread that sends heartbeats.
+  this->dataPtr->threadHeartbeat =
+    std::thread(&Discovery::RunHeartbeatTask, this);
+
+  // Start the thread that checks the topic information validity.
+  this->dataPtr->threadActivity =
+    std::thread(&Discovery::RunActivityTask, this);
+}
+
+//////////////////////////////////////////////////
+bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   // Add the addressing information (local publisher).
   this->dataPtr->infoMsg.AddPublisher(_publisher);
 
-  // If the scope is 'Process', do not advertise a message outside this process.
-  if (_publisher.Scope() == Scope_t::Process)
-    return;
+  // Only advertise a message outside this process if the scope is not 'Process'
+  if (_publisher.Scope() != Scope_t::Process)
+    this->SendMsg(AdvType, _publisher);
 
-  this->SendMsg(AdvType, _publisher);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
+bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   // Add the addressing information (local publisher).
   this->dataPtr->infoSrv.AddPublisher(_publisher);
 
-  // If the scope is 'Process', do not advertise a message outside this process.
-  if (_publisher.Scope() == Scope_t::Process)
-    return;
+  // Only advertise a message outside this process if the scope is not 'Process'
+  if (_publisher.Scope() != Scope_t::Process)
+    this->SendMsg(AdvSrvType, _publisher);
 
-  this->SendMsg(AdvSrvType, _publisher);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseMsg(const std::string &_topic,
+bool Discovery::UnadvertiseMsg(const std::string &_topic,
   const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   MessagePublisher inf;
   // Don't do anything if the topic is not advertised by any of my nodes.
   if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
     inf))
   {
-    return;
+    return true;
   }
 
   // Remove the topic information.
   this->dataPtr->infoMsg.DelPublisherByNode(_topic, this->dataPtr->pUuid,
     _nUuid);
 
-  // Do not advertise a message outside the process if the scope is 'Process'.
-  if (inf.Scope() == Scope_t::Process)
-    return;
+  // Only unadvertise a message outside this process if the scope
+  // is not 'Process'.
+  if (inf.Scope() != Scope_t::Process)
+    this->SendMsg(UnadvType, inf);
 
-  this->SendMsg(UnadvType, inf);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::UnadvertiseSrv(const std::string &_topic,
+bool Discovery::UnadvertiseSrv(const std::string &_topic,
   const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   ServicePublisher inf;
   // Don't do anything if the topic is not advertised by any of my nodes.
   if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
     inf))
   {
-    return;
+    return true;
   }
 
   // Remove the topic information.
   this->dataPtr->infoSrv.DelPublisherByNode(_topic, this->dataPtr->pUuid,
     _nUuid);
 
-  // Do not advertise a message outside the process if the scope is 'Process'.
-  if (inf.Scope() == Scope_t::Process)
-    return;
+  // Only unadvertise a message outside this process if the scope
+  // is not 'Process'.
+  if (inf.Scope() != Scope_t::Process)
+    this->SendMsg(UnadvSrvType, inf);
 
-  this->SendMsg(UnadvSrvType, inf);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DiscoverMsg(const std::string &_topic)
+bool Discovery::DiscoverMsg(const std::string &_topic)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
   MessagePublisher pub;
@@ -340,12 +375,17 @@ void Discovery::DiscoverMsg(const std::string &_topic)
       }
     }
   }
+
+  return true;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DiscoverSrv(const std::string &_topic)
+bool Discovery::DiscoverSrv(const std::string &_topic)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
 
   SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
   ServicePublisher pub;
@@ -378,119 +418,126 @@ void Discovery::DiscoverSrv(const std::string &_topic)
       }
     }
   }
+
+  return true;
 }
 
 //////////////////////////////////////////////////
-TopicStorage<MessagePublisher>& Discovery::GetDiscoveryMsgInfo() const
+TopicStorage<MessagePublisher>& Discovery::DiscoveryMsgInfo() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoMsg;
 }
 
 //////////////////////////////////////////////////
-TopicStorage<ServicePublisher>& Discovery::GetDiscoverySrvInfo() const
+TopicStorage<ServicePublisher>& Discovery::DiscoverySrvInfo() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoSrv;
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetMsgPublishers(const std::string &_topic,
-                                 MsgAddresses_M &_publishers)
+bool Discovery::MsgPublishers(const std::string &_topic,
+                              MsgAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoMsg.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
-bool Discovery::GetSrvPublishers(const std::string &_topic,
-                                 SrvAddresses_M &_publishers)
+bool Discovery::SrvPublishers(const std::string &_topic,
+                              SrvAddresses_M &_publishers)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoSrv.GetPublishers(_topic, _publishers);
 }
 
 //////////////////////////////////////////////////
-std::string Discovery::GetHostAddr() const
+std::string Discovery::HostAddr() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->hostAddr;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetActivityInterval() const
+unsigned int Discovery::ActivityInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->activityInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetHeartbeatInterval() const
+unsigned int Discovery::HeartbeatInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->heartbeatInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetAdvertiseInterval() const
+unsigned int Discovery::AdvertiseInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->advertiseInterval;
 }
 
 //////////////////////////////////////////////////
-unsigned int Discovery::GetSilenceInterval() const
+unsigned int Discovery::SilenceInterval() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->silenceInterval;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetActivityInterval(const unsigned int _ms)
+void Discovery::ActivityInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetHeartbeatInterval(const unsigned int _ms)
+void Discovery::HeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetAdvertiseInterval(const unsigned int _ms)
+void Discovery::AdvertiseInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->advertiseInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetSilenceInterval(const unsigned int _ms)
+void Discovery::SilenceInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->silenceInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::ConnectionsCb(const MsgDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::DisconnectionsCb(const MsgDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetConnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::ConnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionSrvCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SetDisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionSrvCb = _cb;
@@ -658,9 +705,13 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
   // Create the header from the raw bytes.
   header.Unpack(_msg);
-  pBody += header.GetHeaderLength();
+  pBody += header.HeaderLength();
 
-  auto recvPUuid = header.GetPUuid();
+  // Discard the message if the wire protocol is different than mine.
+  if (this->dataPtr->Version != header.Version())
+    return;
+
+  auto recvPUuid = header.PUuid();
 
   // Discard our own discovery messages.
   if (recvPUuid == this->dataPtr->pUuid)
@@ -669,7 +720,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   // Update timestamp.
   this->dataPtr->activity[recvPUuid] = std::chrono::steady_clock::now();
 
-  switch (header.GetType())
+  switch (header.Type())
   {
     case AdvType:
     {
@@ -678,20 +729,20 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.publisher.Scope() == Scope_t::Process) ||
-          (advMsg.publisher.Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
       }
 
       // Register an advertised address for the topic.
-      bool added = this->dataPtr->infoMsg.AddPublisher(advMsg.publisher);
+      bool added = this->dataPtr->infoMsg.AddPublisher(advMsg.GetPublisher());
 
       if (added && this->dataPtr->connectionCb)
       {
         // Execute the client's callback.
-        this->dataPtr->connectionCb(advMsg.publisher);
+        this->dataPtr->connectionCb(advMsg.GetPublisher());
       }
 
       break;
@@ -703,20 +754,20 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.publisher.Scope() == Scope_t::Process) ||
-          (advSrv.publisher.Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
       }
 
       // Register an advertised address for the topic.
-      bool added = this->dataPtr->infoSrv.AddPublisher(advSrv.publisher);
+      bool added = this->dataPtr->infoSrv.AddPublisher(advSrv.GetPublisher());
 
       if (added && this->dataPtr->connectionSrvCb)
       {
         // Execute the client's callback.
-        this->dataPtr->connectionSrvCb(advSrv.publisher);
+        this->dataPtr->connectionSrvCb(advSrv.GetPublisher());
       }
 
       break;
@@ -726,7 +777,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
       subMsg.Unpack(pBody);
-      auto recvTopic = subMsg.GetTopic();
+      auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
       if (this->dataPtr->infoMsg.HasAnyPublishers(recvTopic,
@@ -758,7 +809,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
       subMsg.Unpack(pBody);
-      auto recvTopic = subMsg.GetTopic();
+      auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
       if (this->dataPtr->infoSrv.HasAnyPublishers(
@@ -826,8 +877,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.publisher.Scope() == Scope_t::Process) ||
-          (advMsg.publisher.Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -838,12 +889,12 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (cb)
       {
         // Notify the new disconnection.
-        cb(advMsg.publisher);
+        cb(advMsg.GetPublisher());
       }
 
       // Remove the address entry for this topic.
-      this->dataPtr->infoMsg.DelPublisherByNode(advMsg.publisher.Topic(),
-        advMsg.publisher.PUuid(), advMsg.publisher.NUuid());
+      this->dataPtr->infoMsg.DelPublisherByNode(advMsg.GetPublisher().Topic(),
+        advMsg.GetPublisher().PUuid(), advMsg.GetPublisher().NUuid());
 
       break;
     }
@@ -854,8 +905,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.publisher.Scope() == Scope_t::Process) ||
-          (advSrv.publisher.Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -866,18 +917,18 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (cb)
       {
         // Notify the new disconnection.
-        cb(advSrv.publisher);
+        cb(advSrv.GetPublisher());
       }
 
       // Remove the address entry for this topic.
-      this->dataPtr->infoSrv.DelPublisherByNode(advSrv.publisher.Topic(),
-        advSrv.publisher.PUuid(), advSrv.publisher.NUuid());
+      this->dataPtr->infoSrv.DelPublisherByNode(advSrv.GetPublisher().Topic(),
+        advSrv.GetPublisher().PUuid(), advSrv.GetPublisher().NUuid());
 
       break;
     }
     default:
     {
-      std::cerr << "Unknown message type [" << header.GetType() << "]\n";
+      std::cerr << "Unknown message type [" << header.Type() << "]\n";
       break;
     }
   }
@@ -911,6 +962,8 @@ uint8_t Discovery::Version() const
 void Discovery::PrintCurrentState()
 {
   std::cout << "---------------" << std::endl;
+  std::cout << std::boolalpha << "Enabled: "
+            << this->dataPtr->enabled << std::endl;
   std::cout << "Discovery state" << std::endl;
   std::cout << "\tUUID: " << this->dataPtr->pUuid << std::endl;
   std::cout << "Settings" << std::endl;
@@ -950,21 +1003,21 @@ void Discovery::PrintCurrentState()
 }
 
 //////////////////////////////////////////////////
-void Discovery::GetTopicList(std::vector<std::string> &_topics) const
+void Discovery::TopicList(std::vector<std::string> &_topics) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->infoMsg.GetTopicList(_topics);
 }
 
 //////////////////////////////////////////////////
-void Discovery::GetServiceList(std::vector<std::string> &_services) const
+void Discovery::ServiceList(std::vector<std::string> &_services) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->infoSrv.GetTopicList(_services);
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::GetMutex()
+std::recursive_mutex& Discovery::Mutex()
 {
   return this->dataPtr->mutex;
 }

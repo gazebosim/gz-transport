@@ -35,11 +35,21 @@ void srvEcho(const std::string &_topic, const example::mymsgs::StringMsg &_req,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Let's print the list of our network interfaces.
+  std::cout << "List of network interfaces in this machine:" << std::endl;
+  for (const auto &interface : ignition::transport::determineInterfaces())
+    std::cout << "\t" << interface << std::endl;
+
   // Create a transport node.
   ignition::transport::Node node;
+  std::string service = "/echo";
 
   // Advertise a service call.
-  node.Advertise("/echo", srvEcho);
+  if (!node.Advertise(service, srvEcho))
+  {
+    std::cerr << "Error advertising service [" << service << "]" << std::endl;
+    return -1;
+  }
 
   // Wait for requests.
   getchar();
