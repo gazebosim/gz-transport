@@ -10,9 +10,9 @@ link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 #Find the cppzeromq
 find_path(cppzmq_INCLUDE_DIRS
           zmq.hpp
-	  PATHS
-	   ${zmq_INCLUDE_DIRS}
-	   ${CPPZMQ_HEADER_PATH})
+	        PATHS
+	        ${zmq_INCLUDE_DIRS}
+	        ${CPPZMQ_HEADER_PATH})
 
 if (NOT cppzmq_INCLUDE_DIRS)
   message(STATUS "cppzmq header file was not found")
