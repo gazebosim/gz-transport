@@ -169,6 +169,12 @@ namespace ignition
       /// \brief When true, the service threads will finish.
       public: bool exit;
 
+#ifdef _WIN32
+      public: bool threadReceptionExiting;
+      public: bool threadHeartbeatExiting;
+      public: bool threadActivityExiting;
+#endif
+
       /// \brief When true, the service is enabled.
       public: bool enabled;
     };

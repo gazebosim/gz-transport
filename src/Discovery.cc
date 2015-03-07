@@ -201,6 +201,10 @@ Discovery::~Discovery()
 
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
+#else
+  while (!this->dataPtr->threadReceptionExiting ||
+         !this->dataPtr->threadHeartbeatExiting ||
+         !this->dataPtr->threadActivityExiting);
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -239,6 +243,15 @@ void Discovery::Start()
   // Start the thread that checks the topic information validity.
   this->dataPtr->threadActivity =
     std::thread(&Discovery::RunActivityTask, this);
+
+#ifdef _WIN32
+  this->dataPtr->threadReceptionExiting = false;
+  this->dataPtr->threadHeartbeatExiting = false;
+  this->dataPtr->threadActivityExiting = false;
+  this->dataPtr->threadReception.detach();
+  this->dataPtr->threadHeartbeat.detach();
+  this->dataPtr->threadActivity.detach();
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -576,6 +589,9 @@ void Discovery::RunActivityTask()
         break;
     }
   }
+#ifdef _WIN32
+  this->dataPtr->threadActivityExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -619,6 +635,9 @@ void Discovery::RunHeartbeatTask()
         break;
     }
   }
+#ifdef _WIN32
+  this->dataPtr->threadHeartbeatExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -650,6 +669,9 @@ void Discovery::RunReceptionTask()
         break;
     }
   }
+#ifdef _WIN32
+  this->dataPtr->threadReceptionExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////

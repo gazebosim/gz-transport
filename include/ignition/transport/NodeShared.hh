@@ -170,6 +170,10 @@ namespace ignition
       /// \brief When true, the reception thread will finish.
       public: bool exit;
 
+#ifdef _WIN32
+      public: bool threadReceptionExiting;
+#endif
+
       /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       private: std::mutex exitMutex;
 
