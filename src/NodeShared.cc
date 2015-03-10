@@ -198,9 +198,10 @@ NodeShared::~NodeShared()
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
-  // ToDo: We intentionally don't destroy the context in Windows.
+  // We intentionally don't destroy the context in Windows.
   // For some reason, when MATLAB deallocates the MEX file makes the context
   // destructor to hang (probably waiting for ZMQ sockets to terminate).
+  // ToDo: Fix it.
 #endif
 }
 
