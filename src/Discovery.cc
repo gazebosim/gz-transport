@@ -202,9 +202,19 @@ Discovery::~Discovery()
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
 #else
-  while (!this->dataPtr->threadReceptionExiting ||
-         !this->dataPtr->threadHeartbeatExiting ||
-         !this->dataPtr->threadActivityExiting);
+    while (true)
+    {
+      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+      {
+        if (this->dataPtr->threadReceptionExiting &&
+            this->dataPtr->threadHeartbeatExiting &&
+            this->dataPtr->threadActivityExiting)
+        {
+          break;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -590,6 +600,7 @@ void Discovery::RunActivityTask()
     }
   }
 #ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
   this->dataPtr->threadActivityExiting = true;
 #endif
 }
@@ -636,6 +647,7 @@ void Discovery::RunHeartbeatTask()
     }
   }
 #ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
   this->dataPtr->threadHeartbeatExiting = true;
 #endif
 }
@@ -670,6 +682,7 @@ void Discovery::RunReceptionTask()
     }
   }
 #ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
   this->dataPtr->threadReceptionExiting = true;
 #endif
 }

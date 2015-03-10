@@ -171,6 +171,7 @@ namespace ignition
       public: bool exit;
 
 #ifdef _WIN32
+      /// \brief True when the reception thread is finishing.
       public: bool threadReceptionExiting;
 #endif
 

@@ -187,7 +187,16 @@ NodeShared::~NodeShared()
   replier.reset();
   delete this->context;
 #else
-  while (!this->threadReceptionExiting);
+
+  while (true)
+  {
+    std::lock_guard<std::mutex> lock(this->exitMutex);
+    {
+      if (this->threadReceptionExiting)
+        break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
 
   // ToDo: We intentionally don't destroy the context in Windows.
   // For some reason, when MATLAB deallocates the MEX file makes the context
@@ -228,7 +237,10 @@ void NodeShared::RunReceptionTask()
     }
   }
 #ifdef _WIN32
-  this->threadReceptionExiting = true;
+  std::lock_guard<std::mutex> lock(this->exitMutex);
+  {
+    this->threadReceptionExiting = true;
+  }
 #endif
 }
 

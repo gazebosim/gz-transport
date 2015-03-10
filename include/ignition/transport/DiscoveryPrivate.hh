@@ -170,8 +170,11 @@ namespace ignition
       public: bool exit;
 
 #ifdef _WIN32
+      /// \brief True when the reception thread is finishing.
       public: bool threadReceptionExiting;
+      /// \brief True when the hearbeat thread is finishing.
       public: bool threadHeartbeatExiting;
+      /// \brief True when the activity thread is finishing.
       public: bool threadActivityExiting;
 #endif
 
