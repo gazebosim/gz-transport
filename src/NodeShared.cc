@@ -177,10 +177,21 @@ NodeShared::~NodeShared()
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
+
+  // We explicitly destroy the socket options before destroying the ZMQ context.
+  publisher.reset();
+  subscriber.reset();
+  control.reset();
+  requester.reset();
+  responseReceiver.reset();
+  replier.reset();
+  delete this->context;
 #else
   while (!this->threadReceptionExiting);
-  this->discovery.reset();
-  this->context.reset();
+
+  // ToDo: We intentionally don't destroy the context in Windows.
+  // For some reason, when MATLAB deallocates the MEX file makes the context
+  // destructor to hang (probably waiting for ZMQ sockets to terminate).
 #endif
 }
 

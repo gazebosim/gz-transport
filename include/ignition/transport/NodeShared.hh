@@ -129,7 +129,7 @@ namespace ignition
       public: std::unique_ptr<Discovery> discovery;
 
       /// \brief 0MQ context.
-      public: std::unique_ptr<zmq::context_t> context;
+      public: zmq::context_t *context;
 
       /// \brief ZMQ socket to send topic updates.
       public: std::unique_ptr<zmq::socket_t> publisher;
