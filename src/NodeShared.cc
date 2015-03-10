@@ -178,7 +178,7 @@ NodeShared::~NodeShared()
   if (this->threadReception.joinable())
     this->threadReception.join();
 
-  // We explicitly destroy the socket options before destroying the ZMQ context.
+  // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
   publisher.reset();
   subscriber.reset();
   control.reset();
