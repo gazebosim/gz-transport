@@ -68,13 +68,15 @@ add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${EXAMPLES_LIBS})
 add_dependencies(requester_async protobuf_compilation)
 
+if (MSVC)
 # Copy the ZMQ DLLs.
-add_custom_command(TARGET publisher POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-3_2_4.dll"
-    $<TARGET_FILE_DIR:publisher> VERBATIM)
-
-add_custom_command(TARGET publisher POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-gd-3_2_4.dll"
-    $<TARGET_FILE_DIR:publisher> VERBATIM)
+  add_custom_command(TARGET publisher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-3_2_4.dll"
+      $<TARGET_FILE_DIR:publisher> VERBATIM)
+  
+  add_custom_command(TARGET publisher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-gd-3_2_4.dll"
+      $<TARGET_FILE_DIR:publisher> VERBATIM)
+endif()
