@@ -95,6 +95,9 @@ namespace ignition
       /// \brief Host IP address.
       public: std::string hostAddr;
 
+      /// \brief List of host network interfaces.
+      public: std::vector<std::string> hostInterfaces;
+
       /// \brief Process UUID.
       public: std::string pUuid;
 
@@ -146,7 +149,7 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for sending/receiving discovery messages.
-      public: int sock;
+      public: std::vector<int> sockets;
 
       /// \brief Internet socket address for sending to the multicast group.
       public: sockaddr_in mcastAddr;
