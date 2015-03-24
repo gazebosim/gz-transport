@@ -88,11 +88,6 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Get the list of network interfaces in this host.
   this->dataPtr->hostInterfaces = determineInterfaces();
 
-  for (const auto iface : this->dataPtr->hostInterfaces)
-  {
-    std::cout << "Iface: " << iface << std::endl;
-  }
-
 #ifdef _WIN32
   if (!initialized)
   {
