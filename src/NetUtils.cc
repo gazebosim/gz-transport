@@ -352,6 +352,10 @@ std::vector<std::string> transport::determineInterfaces()
       if (curr->Flags & IP_ADAPTER_NO_MULTICAST)
         continue;
 
+      // The interface is not running.
+      if (curr->OperStatus != IfOperStatusUp)
+        continue;
+
       // Iterate over all unicast addresses for this adapter
       for (PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
            unicast; unicast = unicast->Next)
