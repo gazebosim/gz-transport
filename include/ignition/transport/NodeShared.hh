@@ -26,6 +26,7 @@
 # pragma warning(pop)
 #endif
 #include <zmq.hpp>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -195,6 +196,8 @@ namespace ignition
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
+
+      public: std::ofstream logFile;
     };
   }
 }

@@ -62,6 +62,10 @@ NodeShared::NodeShared()
     timeout(Timeout),
     exit(false)
 {
+  logFile.open("log.dat", std::ios::app);
+  logFile << "NodeShared()" << std::endl;
+  logFile.close();
+
   // If IGN_VERBOSE=1 enable the verbose mode.
   char const *tmp = std::getenv("IGN_VERBOSE");
   if (tmp)
