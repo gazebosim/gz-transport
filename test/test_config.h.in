@@ -155,15 +155,15 @@ namespace testing
 #endif
   }
 
-  /// \brief Get a random partition name based on an integer converted to string
-  /// \return A random partition name
-  std::string getRandomPartition()
+  /// \brief Get a random number based on an integer converted to string.
+  /// \return A random integer converted to string.
+  std::string getRandomNumber()
   {
     // Initialize random number generator.
     uint32_t seed = std::random_device {}();
     std::mt19937 randGenerator(seed);
 
-    // Create a random partition name based on an integer converted to string.
+    // Create a random number based on an integer converted to string.
     std::uniform_int_distribution<int32_t> d(0, INT_MAX);
 
     return std::to_string(d(randGenerator));

@@ -63,7 +63,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
