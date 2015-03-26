@@ -24,6 +24,8 @@
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/Uuid.hh"
+#include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
@@ -32,18 +34,18 @@ static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-std::string topic   = "/foo";
-std::string service = "/service";
+std::string topic   = testing::getRandomNumber();
+std::string service = testing::getRandomNumber();
 std::string addr1   = "tcp://127.0.0.1:12345";
 std::string ctrl1   = "tcp://127.0.0.1:12346";
 std::string id1     = "identity1";
-std::string pUuid1  = "UUID-Proc-1";
-std::string nUuid1  = "UUID-Node-1";
+std::string pUuid1  = transport::Uuid().ToString();
+std::string nUuid1  = transport::Uuid().ToString();
 std::string addr2   = "tcp://127.0.0.1:12347";
 std::string ctrl2   = "tcp://127.0.0.1:12348";
 std::string id2     = "identity2";
-std::string pUuid2  = "UUID-Proc-2";
-std::string nUuid2  = "UUID-Node-2";
+std::string pUuid2  = transport::Uuid().ToString();
+std::string nUuid2  = transport::Uuid().ToString();
 transport::Scope_t scope = transport::Scope_t::All;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
@@ -86,10 +88,13 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
 /// \brief Function called each time a discovery update is received.
 void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 {
+  // This discovery event is not relevant for the test, ignore it.
+  if (_publisher.NUuid() != nUuid1)
+    return;
+
   EXPECT_EQ(_publisher.Addr(), addr1);
   EXPECT_EQ(_publisher.Ctrl(), ctrl1);
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
-  EXPECT_EQ(_publisher.NUuid(), nUuid1);
   connectionExecuted = true;
 }
 
@@ -97,10 +102,13 @@ void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery srv call update is received.
 void onDiscoverySrvResponse(const transport::ServicePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Topic(), service);
+  // This discovery event is not relevant for the test, ignore it.
+  if (_publisher.NUuid() != nUuid1)
+    return;
+
   EXPECT_EQ(_publisher.Addr(), addr1);
+  EXPECT_EQ(_publisher.Topic(), service);
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
-  EXPECT_EQ(_publisher.NUuid(), nUuid1);
   EXPECT_EQ(_publisher.Scope(), scope);
   connectionSrvExecuted = true;
 }
@@ -110,7 +118,10 @@ void onDiscoverySrvResponse(const transport::ServicePublisher &_publisher)
 /// used in the case of multiple publishers.
 void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Topic(), topic);
+  // This discovery event is not relevant for the test, ignore it.
+  if (_publisher.Topic() != topic)
+    return;
+
   EXPECT_NE(_publisher.Addr(), "");
   EXPECT_NE(_publisher.Ctrl(), "");
   EXPECT_NE(_publisher.PUuid(), "");
@@ -123,7 +134,10 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery update is received.
 void onDisconnection(const transport::MessagePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.PUuid(), pUuid1);
+  // This discovery event is not relevant for the test, ignore it.
+  if (_publisher.PUuid() != pUuid1)
+    return;
+
   disconnectionExecuted = true;
 }
 
@@ -131,7 +145,10 @@ void onDisconnection(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery update is received.
 void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Topic(), service);
+  // This discovery event is not relevant for the test, ignore it.
+  if (_publisher.Topic() != service)
+    return;
+
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
   disconnectionSrvExecuted = true;
 }
@@ -180,7 +197,10 @@ class MyClass
   /// \brief Member function called each time a discovery update is received.
   public: void OnConnectResponse(const transport::MessagePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.Topic(), topic);
+    // This discovery event is not relevant for the test, ignore it.
+    if (_publisher.Topic() != topic)
+      return;
+
     EXPECT_EQ(_publisher.Addr(), addr1);
     EXPECT_EQ(_publisher.Ctrl(), ctrl1);
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
@@ -192,7 +212,10 @@ class MyClass
   /// \brief Member function called each time a disconnect. update is received.
   public: void OnDisconnection(const transport::MessagePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
+    // This discovery event is not relevant for the test, ignore it.
+    if (_publisher.PUuid() != pUuid1)
+      return;
+
     disconnectionExecutedMF = true;
   }
 
@@ -201,7 +224,10 @@ class MyClass
   public: void OnConnectSrvResponse(
     const transport::ServicePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.Topic(), service);
+    // This discovery event is not relevant for the test, ignore it.
+    if (_publisher.Topic() != service)
+      return;
+
     EXPECT_EQ(_publisher.Addr(), addr1);
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
     EXPECT_EQ(_publisher.NUuid(), nUuid1);
@@ -213,7 +239,10 @@ class MyClass
   /// (services).
   public: void OnDisconnectionSrv(const transport::ServicePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
+    // This discovery event is not relevant for the test, ignore it.
+    if (_publisher.PUuid() != pUuid1)
+      return;
+
     disconnectionSrvExecutedMF = true;
   }
 
