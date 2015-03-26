@@ -86,7 +86,10 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
 /// \brief Function called each time a discovery update is received.
 void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Addr(), addr1);
+  // This might be caused by other nodes in the same network, ignore it.
+  if (_publisher.Addr() != addr1)
+    return;
+
   EXPECT_EQ(_publisher.Ctrl(), ctrl1);
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
   EXPECT_EQ(_publisher.NUuid(), nUuid1);
@@ -97,8 +100,11 @@ void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery srv call update is received.
 void onDiscoverySrvResponse(const transport::ServicePublisher &_publisher)
 {
+  // This might be caused by other nodes in the same network, ignore it.
+  if (_publisher.Addr() != addr1)
+    return;
+
   EXPECT_EQ(_publisher.Topic(), service);
-  EXPECT_EQ(_publisher.Addr(), addr1);
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
   EXPECT_EQ(_publisher.NUuid(), nUuid1);
   EXPECT_EQ(_publisher.Scope(), scope);
@@ -110,7 +116,10 @@ void onDiscoverySrvResponse(const transport::ServicePublisher &_publisher)
 /// used in the case of multiple publishers.
 void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Topic(), topic);
+  // This might be caused by other nodes in the same network, ignore it.
+  if (_publisher.Topic() != topic)
+    return;
+
   EXPECT_NE(_publisher.Addr(), "");
   EXPECT_NE(_publisher.Ctrl(), "");
   EXPECT_NE(_publisher.PUuid(), "");
@@ -123,7 +132,10 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery update is received.
 void onDisconnection(const transport::MessagePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.PUuid(), pUuid1);
+  // This might be caused by other nodes in the same network, ignore it.
+  if (_publisher.PUuid() != pUuid1)
+    return;
+
   disconnectionExecuted = true;
 }
 
@@ -131,7 +143,10 @@ void onDisconnection(const transport::MessagePublisher &_publisher)
 /// \brief Function called each time a discovery update is received.
 void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
 {
-  EXPECT_EQ(_publisher.Topic(), service);
+  // This might be caused by other nodes in the same network, ignore it.
+  if (_publisher.Topic() != service)
+    return;
+
   EXPECT_EQ(_publisher.PUuid(), pUuid1);
   disconnectionSrvExecuted = true;
 }
@@ -180,7 +195,10 @@ class MyClass
   /// \brief Member function called each time a discovery update is received.
   public: void OnConnectResponse(const transport::MessagePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.Topic(), topic);
+    // This might be caused by other nodes in the same network, ignore it.
+    if (_publisher.Topic() != topic)
+      return;
+
     EXPECT_EQ(_publisher.Addr(), addr1);
     EXPECT_EQ(_publisher.Ctrl(), ctrl1);
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
@@ -192,7 +210,10 @@ class MyClass
   /// \brief Member function called each time a disconnect. update is received.
   public: void OnDisconnection(const transport::MessagePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
+    // This might be caused by other nodes in the same network, ignore it.
+    if (_publisher.PUuid() != pUuid1)
+      return;
+
     disconnectionExecutedMF = true;
   }
 
@@ -201,7 +222,10 @@ class MyClass
   public: void OnConnectSrvResponse(
     const transport::ServicePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.Topic(), service);
+    // This might be caused by other nodes in the same network, ignore it.
+    if (_publisher.Topic() != service)
+      return;
+
     EXPECT_EQ(_publisher.Addr(), addr1);
     EXPECT_EQ(_publisher.PUuid(), pUuid1);
     EXPECT_EQ(_publisher.NUuid(), nUuid1);
@@ -213,7 +237,10 @@ class MyClass
   /// (services).
   public: void OnDisconnectionSrv(const transport::ServicePublisher &_publisher)
   {
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
+    // This might be caused by other nodes in the same network, ignore it.
+    if (_publisher.PUuid() != pUuid1)
+      return;
+
     disconnectionSrvExecutedMF = true;
   }
 
