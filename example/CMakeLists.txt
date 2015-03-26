@@ -8,9 +8,9 @@ include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
 #Find the cppzeromq
-find_path(cppzmq_INCLUDE_DIRS 
-          zmq.hpp 
-	  PATHS 
+find_path(cppzmq_INCLUDE_DIRS
+          zmq.hpp
+	  PATHS
 	   ${zmq_INCLUDE_DIRS}
 	   ${CPPZMQ_HEADER_PATH})
 
@@ -43,7 +43,7 @@ set (EXAMPLES_LIBS ${IGNITION-TRANSPORT_LIBRARIES}
                    ${PROTOBUF_LIBRARY})
 if (MSVC)
   # same filename for 64bits version of Ws2
-  set(EXAMPLES_LIBS ${EXAMPLES_LIBS} 
+  set(EXAMPLES_LIBS ${EXAMPLES_LIBS}
                     Ws2_32.lib
                     Iphlpapi.lib)
 endif()
@@ -68,13 +68,17 @@ add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${EXAMPLES_LIBS})
 add_dependencies(requester_async protobuf_compilation)
 
+add_executable(cli cli.c ${PROTO_SRC})
+target_link_libraries(cli ${EXAMPLES_LIBS})
+add_dependencies(cli protobuf_compilation)
+
 if (MSVC)
 # Copy the ZMQ DLLs.
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-3_2_4.dll"
       $<TARGET_FILE_DIR:publisher> VERBATIM)
-  
+
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-gd-3_2_4.dll"

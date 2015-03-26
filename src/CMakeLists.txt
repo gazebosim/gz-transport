@@ -1,6 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
+  clib.cc
   Discovery.cc
   ign.cc
   NetUtils.cc

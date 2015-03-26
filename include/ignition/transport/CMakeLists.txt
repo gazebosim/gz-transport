@@ -1,6 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
+  clib.hh
   Discovery.hh
   HandlerStorage.hh
   Helpers.hh
