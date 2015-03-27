@@ -232,7 +232,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
   transport::Node node1(partition, "invalid namespace");
-  transport::Node node2;
+  transport::Node node2(partition, "");
 
   // Check the advertised/subscribed topics and advertised services.
   EXPECT_TRUE(node1.AdvertisedTopics().empty());
@@ -259,7 +259,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_EQ(subscribedTopics.at(0), topic);
 
   // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a message by each node.
   EXPECT_TRUE(node1.Publish(topic, msg));

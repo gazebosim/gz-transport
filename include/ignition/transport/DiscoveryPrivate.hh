@@ -174,11 +174,11 @@ namespace ignition
 
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.
-      public: bool threadReceptionExiting;
+      public: bool threadReceptionExiting = true;
       /// \brief True when the hearbeat thread is finishing.
-      public: bool threadHeartbeatExiting;
+      public: bool threadHeartbeatExiting = true;
       /// \brief True when the activity thread is finishing.
-      public: bool threadActivityExiting;
+      public: bool threadActivityExiting = true;
 #endif
 
       /// \brief When true, the service is enabled.
