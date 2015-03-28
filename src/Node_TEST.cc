@@ -31,6 +31,7 @@ using namespace ignition;
 
 std::string partition;
 std::string topic = "/foo";
+std::mutex exitMutex;
 
 int data = 5;
 bool cbExecuted;
@@ -659,18 +660,27 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
-  while (!terminatePub)
+  while (true)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    {
+      std::lock_guard<std::mutex> lock(exitMutex);
+      if (terminatePub)
+        break;
+    }
   }
 
   EXPECT_LT(i, 200);
 }
 
+//////////////////////////////////////////////////
+/// \brief Capture SIGINT and SIGTERM and flag that we want to exit.
 void signal_handler(int _signal)
 {
+  std::lock_guard<std::mutex> lock(exitMutex);
   if (_signal == SIGINT || _signal == SIGTERM)
     terminatePub = true;
 }
@@ -686,9 +696,20 @@ TEST(NodeTest, SigIntTermination)
   std::signal(SIGINT, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
-  thread.join();
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif;
 }
 
 //////////////////////////////////////////////////
@@ -698,13 +719,24 @@ TEST(NodeTest, SigTermTermination)
 {
   reset();
 
-  // Install a signal handler for SIGINT.
+  // Install a signal handler for SIGTERM.
   std::signal(SIGTERM, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  std::raise(SIGINT);
-  thread.join();
+  std::raise(SIGTERM);
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif;
 }
 
 //////////////////////////////////////////////////
