@@ -709,7 +709,7 @@ TEST(NodeTest, SigIntTermination)
 #else
   WaitForSingleObject(thread.native_handle(), INFINITE);
   CloseHandle(thread.native_handle());
-#endif;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -736,7 +736,7 @@ TEST(NodeTest, SigTermTermination)
 #else
   WaitForSingleObject(thread.native_handle(), INFINITE);
   CloseHandle(thread.native_handle());
-#endif;
+#endif
 }
 
 //////////////////////////////////////////////////

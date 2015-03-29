@@ -232,7 +232,7 @@ Discovery::~Discovery()
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-   }
+  }
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
