@@ -260,7 +260,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_EQ(subscribedTopics.at(0), topic);
 
   // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a message by each node.
   EXPECT_TRUE(node1.Publish(topic, msg));
