@@ -610,8 +610,14 @@ void Discovery::RunActivityTask()
     }
     this->dataPtr->mutex.unlock();
 
+#ifdef _WIN32
+    // We don't know why, but on Windows, during shutdown, when compiled
+    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+    Sleep(this->dataPtr->activityInterval);
+#else
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->dataPtr->activityInterval));
+#endif
 
     // Is it time to exit?
     {
@@ -657,8 +663,14 @@ void Discovery::RunHeartbeatTask()
       }
     }
 
+#ifdef _WIN32
+    // We don't know why, but on Windows, during shutdown, when compiled
+    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+    Sleep(this->dataPtr->heartbeatInterval);
+#else
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
+#endif
 
     // Is it time to exit?
     {
