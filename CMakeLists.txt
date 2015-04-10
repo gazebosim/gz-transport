@@ -22,6 +22,13 @@ include (${project_cmake_dir}/Utils.cmake)
 
 ##########
 # Package Creation:
+
+# If on windows, generate a file called version which host the current 
+# version to be used by releasing scripts
+if (MSVC)
+  file(WRITE ${PROJECT_BINARY_DIR}/VERSION ${PROJECT_VERSION_FULL})
+endif()
+
 include (${project_cmake_dir}/cpack.cmake)
 set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
 set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
