@@ -101,7 +101,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
   IF(NOT GREP_PATH)
     MESSAGE(FATAL_ERROR "grep not found! Run code coverage on linux or mac...")
-	ENDIF()
+  ENDIF()
 
 	# Setup target
 	ADD_CUSTOM_TARGET(${_targetname}
