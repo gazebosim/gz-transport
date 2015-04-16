@@ -220,19 +220,19 @@ Discovery::~Discovery()
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
 #else
-    while (true)
+  while (true)
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
     {
-      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+      if (this->dataPtr->threadReceptionExiting &&
+          this->dataPtr->threadHeartbeatExiting &&
+          this->dataPtr->threadActivityExiting)
       {
-        if (this->dataPtr->threadReceptionExiting &&
-            this->dataPtr->threadHeartbeatExiting &&
-            this->dataPtr->threadActivityExiting)
-        {
-          break;
-        }
+        break;
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of

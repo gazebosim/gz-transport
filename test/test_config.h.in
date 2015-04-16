@@ -100,8 +100,12 @@ namespace testing
     STARTUPINFO info= {sizeof(info)};
     PROCESS_INFORMATION processInfo;
 
-    if (!CreateProcess(NULL, const_cast<LPSTR>(_command), NULL, NULL, TRUE,
-          0, NULL, NULL, &info, &processInfo))
+    char cmd[500];
+    strcpy(cmd, _command);
+    strcat(cmd, " ");
+    strcat(cmd, _partition);
+
+    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
     {
       std::cerr << "CreateProcess call failed" << std::endl;
     }

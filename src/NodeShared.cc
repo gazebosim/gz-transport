@@ -187,7 +187,6 @@ NodeShared::~NodeShared()
   replier.reset();
   delete this->context;
 #else
-
   while (true)
   {
     std::lock_guard<std::mutex> lock(this->exitMutex);
