@@ -12,11 +12,11 @@ services.
 
 A publisher is a node that generates information and a subscriber is a node that
 consumes information. There are two categories or ways to communicate in
-ignition transport. First, we could use a publish/subscribe approach, where a
+Ignition transport. First, we could use a publish/subscribe approach, where a
 node advertises a topic, and then, publishes periodic updates. On the other
 side, one or more nodes subscribe to the same topic registering a function that
-will be executed each time a new message was received. The other way of
-communication allowed is by using service calls. A service call is a remote
+will be executed each time a new message is received. An alternative
+communication paradigm is based on service calls. A service call is a remote
 service that a node offers to the rest of the nodes. A node can request a
 service in a similar way a local function is executed.
 
@@ -26,7 +26,8 @@ Topics
 A topic is just a name for grouping a specific set of messages or a particular
 service. Imagine that you have a camera and want to publish periodically its
 images. Your node could advertise a topic called */image*, and then, publish a
-new message on this topic every time a new image is available. Other nodes, will subscribe to the same topic and will receive the messages containing the image.
+new message on this topic every time a new image is available. Other nodes, will
+subscribe to the same topic and will receive the messages containing the image.
 A node could also offer the service *echo* in the topic */echo*. Any node
 interested in this service will request a service call on topic */echo*. The
 service call will accept arguments and will return a result. In our *echo*
@@ -54,7 +55,8 @@ Topic name    Validity  Comment
 Topic scope
 ===========
 
-A topic can be optionally advertised with a scope. A scope allows you to set the visibility of this topic. The available scopes are *Process*, *Host*, and *All*.
+A topic can be optionally advertised with a scope. A scope allows you to set the
+visibility of this topic. The available scopes are *Process*, *Host*, and *All*.
 A *Process* scope means that the advertised topic will only be visible in the
 nodes within the same process as the advertiser. A topic with a *Host* scope
 restricts the visibility of a topic to nodes located in the same machine as the
