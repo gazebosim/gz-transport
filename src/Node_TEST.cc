@@ -15,24 +15,31 @@
  *
 */
 
-#include <ignition/msgs.hh>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/TopicUtils.hh"
+#include "ignition/transport/test_config.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
+std::string partition;
 std::string topic = "/foo";
-std::string data = "bar";
+std::mutex exitMutex;
+
+int data = 5;
 bool cbExecuted;
 bool cb2Executed;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
+bool terminatePub = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -43,11 +50,12 @@ void reset()
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
+  terminatePub = false;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -57,7 +65,7 @@ void cb(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
+void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
 {
   EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
@@ -66,8 +74,8 @@ void cb2(const std::string &_topic, const ignition::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+  transport::msgs::Int &_rep, bool &_result)
 {
   EXPECT_EQ(_topic, topic);
   srvExecuted = true;
@@ -79,7 +87,7 @@ void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const ignition::msgs::StringMsg &_rep,
+void response(const std::string &_topic, const transport::msgs::Int &_rep,
   bool _result)
 {
   EXPECT_EQ(_topic, topic);
@@ -97,17 +105,30 @@ class MyTestClass
 {
   /// \brief Class constructor.
   public: MyTestClass()
-    : callbackExecuted(false)
+    : callbackExecuted(false),
+      callbackSrvExecuted(false)
   {
     // Subscribe to an illegal topic.
-    EXPECT_FALSE(node.Subscribe("invalid topic", &MyTestClass::Cb, this));
+    EXPECT_FALSE(this->node.Subscribe("Bad Topic", &MyTestClass::Cb, this));
 
     EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
   }
 
+  // Member function used as a callback for responding to a service call.
+  public: void Echo(const std::string &_topic,
+    const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+    bool &_result)
+  {
+    EXPECT_EQ(_topic, topic);
+    EXPECT_EQ(_req.data(), data);
+    _rep.set_data(_req.data());
+    _result = true;
+    this->callbackSrvExecuted = true;
+  }
+
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const std::string &_topic,
-                  const ignition::msgs::StringMsg &_msg)
+    const transport::msgs::Int &_msg)
   {
     EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
@@ -117,18 +138,37 @@ class MyTestClass
   /// \brief Advertise a topic and publish a message.
   public: void SendSomeData()
   {
-    ignition::msgs::StringMsg msg;
+    transport::msgs::Int msg;
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    EXPECT_FALSE(node.Advertise("invalid topic"));
+    EXPECT_FALSE(this->node.Advertise("invalid topic"));
 
     EXPECT_TRUE(this->node.Advertise(topic));
     EXPECT_TRUE(this->node.Publish(topic, msg));
   }
 
+  public: void TestServiceCall()
+  {
+    transport::msgs::Int req;
+    transport::msgs::Int rep;
+    int timeout = 500;
+    bool result;
+
+    req.set_data(data);
+
+    // Advertise an illegal service name.
+    EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::Echo, this));
+
+    EXPECT_TRUE(this->node.Advertise(topic, &MyTestClass::Echo, this));
+    EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(rep.data(), data);
+  }
+
   /// \brief Member variable that flags when the callback is executed.
   public: bool callbackExecuted;
+  public: bool callbackSrvExecuted;
 
   /// \brief Transport node;
   private: transport::Node node;
@@ -153,11 +193,12 @@ void CreateSubscriber()
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// \param[in] _scope Scope used to advertise the topic.
-void CreatePubSubTwoThreads(const transport::Scope &_sc = transport::Scope::All)
+void CreatePubSubTwoThreads(
+  const transport::Scope_t &_sc = transport::Scope_t::All)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
@@ -186,21 +227,37 @@ TEST(NodeTest, PubWithoutAdvertise)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
-  transport::Node node1("invalid namespace");
-  transport::Node node2;
+  transport::Node node1(partition, "invalid namespace");
+  transport::Node node2(partition, "");
+
+  // Check the advertised/subscribed topics and advertised services.
+  EXPECT_TRUE(node1.AdvertisedTopics().empty());
+  EXPECT_TRUE(node1.SubscribedTopics().empty());
+  EXPECT_TRUE(node1.AdvertisedServices().empty());
 
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
   EXPECT_TRUE(node1.Advertise(topic));
+
+  auto advertisedTopics = node1.AdvertisedTopics();
+  ASSERT_EQ(advertisedTopics.size(), 1u);
+  EXPECT_EQ(advertisedTopics.at(0), topic);
+
   EXPECT_TRUE(node2.Advertise(topic));
+  advertisedTopics = node2.AdvertisedTopics();
+  ASSERT_EQ(advertisedTopics.size(), 1u);
+  EXPECT_EQ(advertisedTopics.at(0), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
+  auto subscribedTopics = node2.SubscribedTopics();
+  ASSERT_EQ(subscribedTopics.size(), 1u);
+  EXPECT_EQ(subscribedTopics.at(0), topic);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -223,7 +280,7 @@ TEST(NodeTest, PubSubSameThread)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
@@ -296,7 +353,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
   reset();
 
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node1;
@@ -323,6 +380,10 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
 
+  auto subscribedTopics = node1.SubscribedTopics();
+  ASSERT_EQ(subscribedTopics.size(), 1u);
+  EXPECT_EQ(subscribedTopics.at(0), topic);
+
   reset();
 
   // Try to unsubscribe from an invalid topic.
@@ -340,10 +401,12 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Check that the msg was no received by node1.
+  // Check that the msg was not received by node1.
   EXPECT_FALSE(cbExecuted);
   // Check that the msg was received by node2.
   EXPECT_TRUE(cb2Executed);
+
+  ASSERT_TRUE(node1.SubscribedTopics().empty());
 
   reset();
 
@@ -358,6 +421,9 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Anybody should have received the message.
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(cb2Executed);
+
+  auto subscribedServices = node1.AdvertisedServices();
+  ASSERT_TRUE(subscribedServices.empty());
 }
 
 //////////////////////////////////////////////////
@@ -375,6 +441,10 @@ TEST(NodeTest, ClassMemberCallback)
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
+
+  client.TestServiceCall();
+
+  EXPECT_TRUE(client.callbackSrvExecuted);
 }
 
 //////////////////////////////////////////////////
@@ -382,7 +452,7 @@ TEST(NodeTest, ClassMemberCallback)
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
-  CreatePubSubTwoThreads(transport::Scope::Process);
+  CreatePubSubTwoThreads(transport::Scope_t::Process);
 }
 
 //////////////////////////////////////////////////
@@ -390,7 +460,7 @@ TEST(NodeTest, ScopeProcess)
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
-  CreatePubSubTwoThreads(transport::Scope::Host);
+  CreatePubSubTwoThreads(transport::Scope_t::Host);
 }
 
 //////////////////////////////////////////////////
@@ -398,7 +468,7 @@ TEST(NodeTest, ScopeHost)
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
-  CreatePubSubTwoThreads(transport::Scope::All);
+  CreatePubSubTwoThreads(transport::Scope_t::All);
 }
 
 //////////////////////////////////////////////////
@@ -408,7 +478,7 @@ TEST(NodeTest, ServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  ignition::msgs::StringMsg req;
+  transport::msgs::Int req;
   req.set_data(data);
 
   transport::Node node;
@@ -417,6 +487,10 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
 
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
+
+  auto advertisedServices = node.AdvertisedServices();
+  ASSERT_EQ(advertisedServices.size(), 1u);
+  EXPECT_EQ(advertisedServices.at(0), topic);
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
@@ -457,6 +531,8 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
+
+  ASSERT_TRUE(node.AdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
@@ -466,7 +542,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  ignition::msgs::StringMsg req;
+  transport::msgs::Int req;
   req.set_data(data);
 
   transport::Node node;
@@ -523,8 +599,8 @@ TEST(NodeTest, MultipleServiceCallAsync)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSync)
 {
-  ignition::msgs::StringMsg req;
-  ignition::msgs::StringMsg rep;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -547,8 +623,8 @@ TEST(NodeTest, ServiceCallSync)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
-  ignition::msgs::StringMsg req;
-  ignition::msgs::StringMsg rep;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -564,7 +640,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 1.0);
+  EXPECT_NEAR(elapsed, timeout, 5.0);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -577,50 +653,101 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 /// the method Interrupted().
 void createInfinitePublisher()
 {
-  ignition::msgs::StringMsg msg;
+  transport::msgs::Int msg;
   msg.set_data(data);
   transport::Node node;
 
   EXPECT_TRUE(node.Advertise(topic));
 
   auto i = 0;
-  while (i < 200 && !node.Interrupted())
+  while (true)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    {
+      std::lock_guard<std::mutex> lock(exitMutex);
+      if (terminatePub)
+        break;
+    }
   }
 
   EXPECT_LT(i, 200);
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a transport client in a loop (and in a separate thread) and
-/// emit a SIGINT signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, TerminateSIGINT)
+/// \brief Capture SIGINT and SIGTERM and flag that we want to exit.
+void signal_handler(int _signal)
 {
-  std::thread publisherThread(createInfinitePublisher);
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  raise(SIGINT);
-  publisherThread.join();
+  std::lock_guard<std::mutex> lock(exitMutex);
+  if (_signal == SIGINT || _signal == SIGTERM)
+    terminatePub = true;
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a transport client in a loop (and in a separate thread) and
-/// emit a SIGTERM signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, TerminateSIGTERM)
+/// \brief Check that an external program can capture a SIGINT and terminate
+/// the program without problems.
+TEST(NodeTest, SigIntTermination)
 {
-  std::thread publisherThread(createInfinitePublisher);
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  raise(SIGTERM);
-  publisherThread.join();
+  reset();
+
+  // Install a signal handler for SIGINT.
+  std::signal(SIGINT, signal_handler);
+
+  auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::raise(SIGINT);
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that an external program can capture a SIGTERM and terminate
+/// the program without problems.
+TEST(NodeTest, SigTermTermination)
+{
+  reset();
+
+  // Install a signal handler for SIGTERM.
+  std::signal(SIGTERM, signal_handler);
+
+  auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::raise(SIGTERM);
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomNumber();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);
 

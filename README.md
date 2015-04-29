@@ -10,9 +10,11 @@ of libraries designed to rapidly develop robot applications.
 ## Continuous integration
 
 Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport).
+job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign_transport/latest)
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/default)
+
+[![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=latest)](https://readthedocs.org/projects/ignition-transport/?badge=latest)
 
 
 ## Dependencies
@@ -22,33 +24,36 @@ source:
 
  - uuid-dev
  - libzmq3-dev
- - czmq
- - ignition_msgs
+ - libprotobuf-dev
+ - protobuf-compiler
  - cmake
  - ruby-ronn
  - mercurial
  - C++ compiler with c++11 support (eg. GCC>=4.8).
 
-**Note:** *if you are using an Ubuntu platform previous to Saucy, you will need to install zeromq from source, since there is no libzmq3-dev*
+    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libzmq3-dev cmake ruby-ronn mercurial
 
-    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev cmake ruby-ronn git mercurial libboost-all-dev libtool automake
+**Note:** *if you are using an Ubuntu platform previous to Saucy, you will need to install zeromq from source, since there is no libzmq3-dev. Aternatively, you can use debian package
+available at the Open Source Robotics Foundation.*
 
-    git clone git://github.com/zeromq/czmq.git
-    cd czmq
-    git checkout v2.2.0 (or latest stable version)
-    ./autogen.sh
-    ./configure && make check
-    sudo make install
-    sudo ldconfig
-    cd ..
+1. Setup your computer to accept software from packages.osrfoundation.org.
 
-    hg clone https://bitbucket.org/ignitionrobotics/ign_msgs
-    cd ign_msgs
-    mkdir build
-    cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-    sudo make install
-    cd ..
+    ```
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
+    ```
+
+1. Setup keys.
+
+    ```
+    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+    ```
+
+1. Install libzmq3.
+
+    ```
+    sudo apt-get update
+    sudo apt-get install libzmq3 libzmq3-dev
+    ```
 
 ## Installation
 

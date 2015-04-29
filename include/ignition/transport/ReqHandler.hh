@@ -19,7 +19,6 @@
 #define __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
 #include <condition_variable>
 #include <functional>
 #include <iostream>
@@ -65,21 +64,21 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string GetNodeUuid()
+      public: std::string NodeUuid()
       {
         return this->nUuid;
       }
 
       /// \brief Get the service response as raw bytes.
       /// \return The string containing the service response.
-      public: std::string & GetRep()
+      public: std::string & Response()
       {
         return this->rep;
       }
 
       /// \brief Get the result of the service response.
       /// \return The boolean result.
-      public: bool GetResult()
+      public: bool Result()
       {
         return this->result;
       }
@@ -93,7 +92,7 @@ namespace ignition
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void SetRequested(bool _value)
+      public: void Requested(bool _value)
       {
         this->requested = _value;
       }
@@ -103,15 +102,34 @@ namespace ignition
       public: virtual std::string Serialize() = 0;
 
       /// \brief Returns the unique handler UUID.
-      /// \returns The handler's UUID.
-      public: std::string GetHandlerUuid() const
+      /// \return The handler's UUID.
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
 
+      /// \brief Block the current thread until the response to the
+      /// service request is available or until the timeout expires.
+      /// This method uses a condition variable to notify when the response is
+      /// available.
+      /// \param[in] _lock Lock used to protect the condition variable.
+      /// \param[in] _timeout Maximum waiting time in milliseconds.
+      /// \return True if the service call was executed or false otherwise.
+      public: template<typename Lock> bool WaitUntil(Lock &_lock,
+                                                     unsigned int _timeout)
+      {
+        auto now = std::chrono::system_clock::now();
+        return this->condition.wait_until(_lock,
+          now + std::chrono::milliseconds(_timeout),
+          [this]
+          {
+            return this->repAvailable;
+          });
+      }
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
-      public: std::condition_variable_any condition;
+      protected: std::condition_variable_any condition;
 
       /// \brief Stores the service response as raw bytes.
       protected: std::string rep;
@@ -152,7 +170,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<Rep> CreateMsg(const char *_data)
+      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data)
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Rep> msgPtr(new Rep());
@@ -169,7 +187,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      public: void SetCallback(const std::function <void(
+      public: void Callback(const std::function <void(
         const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
@@ -178,7 +196,7 @@ namespace ignition
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
-      public: void SetMessage(const Req &_reqMsg)
+      public: void Message(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }
@@ -200,8 +218,13 @@ namespace ignition
         if (this->cb)
         {
           // Instantiate the specific protobuf message associated to this topic.
-          auto msg = this->CreateMsg(_rep.c_str());
-          this->cb(_topic, *msg, _result);
+          auto msg = this->CreateMsg(_rep);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msg, _result);
         }
         else
         {

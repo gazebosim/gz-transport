@@ -18,7 +18,13 @@
 #ifndef __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -67,14 +73,14 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string GetNodeUuid()
+      public: std::string NodeUuid()
       {
         return this->nUuid;
       }
 
       /// \brief Get the unique UUID of this handler.
       /// \return a string representation of the handler UUID.
-      public: std::string GetHandlerUuid() const
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
@@ -102,7 +108,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T> CreateMsg(const char *_data)
+      public: std::shared_ptr<T> CreateMsg(const std::string &_data)
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<T> msgPtr(new T());
@@ -117,7 +123,7 @@ namespace ignition
       /// \param[in] _cb The callback with the following parameters:
       /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void SetCallback(const std::function <void(
+      public: void Callback(const std::function <void(
         const std::string &_topic, const T &_msg)> &_cb)
       {
         this->cb = _cb;
@@ -131,7 +137,12 @@ namespace ignition
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-          this->cb(_topic, *msgPtr);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgPtr);
           return true;
         }
         else
@@ -147,12 +158,16 @@ namespace ignition
                                const std::string &_data)
       {
         // Instantiate the specific protobuf message associated to this topic.
-        auto msg = this->CreateMsg(_data.c_str());
+        auto msg = this->CreateMsg(_data);
 
         // Execute the callback (if existing).
         if (this->cb)
         {
-          this->cb(_topic, *msg);
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msg);
           return true;
         }
         else

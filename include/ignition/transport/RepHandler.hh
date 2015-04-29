@@ -18,8 +18,13 @@
 #ifndef __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
-#include <uuid/uuid.h>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -69,7 +74,7 @@ namespace ignition
 
       /// \brief Get the unique UUID of this handler.
       /// \return a string representation of the handler UUID.
-      public: std::string GetHandlerUuid() const
+      public: std::string HandlerUuid() const
       {
         return this->hUuid;
       }
@@ -97,7 +102,7 @@ namespace ignition
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
-      public: void SetCallback(const std::function
+      public: void Callback(const std::function
         <void(const std::string &_topic, const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;
@@ -114,7 +119,12 @@ namespace ignition
         {
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
-          this->cb(_topic, *msgReq, *msgRep, _result);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgReq, *msgRep, _result);
         }
         else
         {
@@ -136,8 +146,13 @@ namespace ignition
           // Instantiate the specific protobuf message associated to this topic.
           Rep msgRep;
 
-          auto msgReq = this->CreateMsg(_req.c_str());
-          this->cb(_topic, *msgReq, msgRep, _result);
+          auto msgReq = this->CreateMsg(_req);
+
+          // Remove the partition part from the topic.
+          std::string topicName = _topic;
+          topicName.erase(0, topicName.find_last_of("@") + 1);
+
+          this->cb(topicName, *msgReq, msgRep, _result);
           msgRep.SerializeToString(&_rep);
         }
         else
@@ -151,7 +166,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<Req> CreateMsg(const char *_data)
+      private: std::shared_ptr<Req> CreateMsg(const std::string &_data)
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Req> msgPtr(new Req());

@@ -14,45 +14,19 @@
  * limitations under the License.
  *
 */
-
-#include <ignition/msgs.hh>
-#include <sys/types.h>
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "ignition/transport/test_config.h"
+#include "msg/int.pb.h"
 
 using namespace ignition;
 
+std::string partition;
 std::string topic = "/foo";
-std::string data = "bar";
-
-//////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const std::string &_topic, const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
-{
-  EXPECT_EQ(_topic, topic);
-  EXPECT_EQ(_req.data(), data);
-  _rep.set_data(_req.data());
-  _result = true;
-}
-
-//////////////////////////////////////////////////
-void runReplier()
-{
-  // srvExecuted = false;
-  transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  int i = 0;
-  while (i < 100)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
-}
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
@@ -61,46 +35,51 @@ void runReplier()
 /// node receives the message.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
-  pid_t pid = fork();
+  std::string responser_path = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-  if (pid == 0)
-    runReplier();
-  else
-  {
-    unsigned int timeout = 500;
-    ignition::msgs::StringMsg req;
-    ignition::msgs::StringMsg rep;
-    bool result;
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    partition.c_str());
 
-    req.set_data(data);
+  unsigned int timeout = 500;
+  transport::msgs::Int req;
+  transport::msgs::Int rep;
+  bool result;
 
-    transport::Node node1;
+  req.set_data(data);
 
-    // Make sure that the address of the service call provider is known.
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_TRUE(node1.Request(topic, req, timeout, rep, result));
-    EXPECT_EQ(req.data(), rep.data());
-    EXPECT_TRUE(result);
+  transport::Node node;
 
-    auto t1 = std::chrono::system_clock::now();
-    EXPECT_FALSE(node1.Request("unknown_service", req, timeout, rep, result));
-    auto t2 = std::chrono::system_clock::now();
+  // Make sure that the address of the service call provider is known.
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_EQ(req.data(), rep.data());
+  EXPECT_TRUE(result);
 
-    double elapsed =
-      std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+  auto t1 = std::chrono::system_clock::now();
+  EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
+  auto t2 = std::chrono::system_clock::now();
 
-    // Check if the elapsed time was close to the timeout.
-    EXPECT_NEAR(elapsed, timeout, 1.0);
+  double elapsed =
+    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
-    // Wait for the child process to return.
-    int status;
-    waitpid(pid, &status, 0);
-  }
+  // Check if the elapsed time was close to the timeout.
+  EXPECT_NEAR(elapsed, timeout, 5.0);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name.
+  partition = testing::getRandomNumber();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);
 

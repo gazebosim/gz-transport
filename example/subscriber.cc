@@ -15,36 +15,36 @@
  *
 */
 
-#include <czmq.h>
+#include <cstdio>
 #include <iostream>
 #include <string>
-#include "gtest/gtest.h"
+#include <ignition/transport.hh>
+#include "msg/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
-/// \brief Set broadcast/listen discovery beacon.
-TEST(beaconTest, pubRecv)
+/// \brief Function called each time a topic update is received.
+void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 {
-  zctx_t *ctx = zctx_new();
-  zbeacon_t *beacon = zbeacon_new(ctx, 11312);
-  zbeacon_subscribe(beacon, NULL, 0);
-
-  zbeacon_publish(beacon, reinterpret_cast<byte*>(strdup("A message")), 9);
-
-  char *srcAddr = zstr_recv(zbeacon_socket(beacon));
-  zframe_t *frame = zframe_recv(zbeacon_socket(beacon));
-  byte *data = zframe_data(frame);
-  char *msg = reinterpret_cast<char*>(&data[0]);
-  std::string recvMsg = std::string(msg);
-  EXPECT_EQ(recvMsg, "A message");
-
-  std::cout << "Received beacon from " << srcAddr << std::endl;
-
-  zbeacon_destroy(&beacon);
+  std::cout << "Topic:" << _topic << "\n"
+            << "Msg:  " << _msg.data() << "\n\n";
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  ignition::transport::Node node;
+  std::string topic = "/foo";
+
+  // Subscribe to a topic by registering a callback.
+  if (!node.Subscribe(topic, cb))
+  {
+    std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    return -1;
+  }
+
+  // Zzzzzz.
+  std::cout << "Press <ENTER> to exit" << std::endl;
+  getchar();
+
+  return 0;
 }

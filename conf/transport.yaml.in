@@ -1,0 +1,9 @@
+--- # Subcommands available inside ignition-transport.
+format: 1.0.0
+library_name: @PROJECT_NAME_LOWER@
+library_version: @PROJECT_VERSION_FULL@
+library_path: @CMAKE_INSTALL_PREFIX@/lib/ruby/ignition/cmdtransport@PROJECT_MAJOR_VERSION@
+commands:
+    - topic   : Print information about topics.
+    - service : Print information about services.
+---

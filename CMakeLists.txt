@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 set(IGN_PROJECT_NAME "transport")
 
-project (ignition_${IGN_PROJECT_NAME})
+project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 set (PROJECT_MAJOR_VERSION 0)
-set (PROJECT_MINOR_VERSION 3)
-set (PROJECT_PATCH_VERSION 0)
+set (PROJECT_MINOR_VERSION 8)
+set (PROJECT_PATCH_VERSION 1)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
 set (PROJECT_VERSION_FULL ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
@@ -20,9 +20,45 @@ set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
 
 include (${project_cmake_dir}/Utils.cmake)
 
+##########
+# Package Creation:
+
+# If on windows, generate a file called version which host the current 
+# version to be used by releasing scripts
+if (MSVC)
+  file(WRITE ${PROJECT_BINARY_DIR}/VERSION ${PROJECT_VERSION_FULL})
+endif()
+
+include (${project_cmake_dir}/cpack.cmake)
+set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
+set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
+set (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_MINOR_VERSION}")
+set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_PATCH_VERSION}")
+
+if (CPACK_GENERATOR)
+  message(STATUS "Found CPack generators: ${CPACK_GENERATOR}")
+
+  configure_file("${project_cmake_dir}/cpack_options.cmake.in"
+    ${PROJECT_CPACK_CFG_FILE} @ONLY)
+
+  set(CPACK_PROJECT_CONFIG_FILE ${PROJECT_CPACK_CFG_FILE})
+  include (CPack)
+endif()
+
+# If we're configuring only to package source, stop here
+if (PACKAGE_SOURCE_ONLY)
+  message(WARNING "Configuration was done in PACKAGE_SOURCE_ONLY mode."
+  "You can build a tarball (make package_source), but nothing else.")
+  return()
+endif()
+
 #################################################
 # Documentation:
 add_subdirectory(doc)
+
+# Configure documentation uploader
+configure_file("${project_cmake_dir}/upload_doc.sh.in"
+  ${CMAKE_BINARY_DIR}/upload_doc.sh @ONLY)
 
 # If we're configuring only to build docs, stop here
 if (DOC_ONLY)
@@ -64,7 +100,6 @@ endif()
 
 set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition")
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
 
 set (USE_FULL_RPATH OFF CACHE BOOL "Set to true to enable full rpath")
@@ -153,11 +188,31 @@ if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
 endif()
 
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
-filter_valid_compiler_warnings(-Wall -Wextra -Wno-long-long
+if (MSVC)
+  set(WARN_LEVEL "/W4")
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  # Handling exceptions rightly
+  set(UNFILTERED_FLAGS "/EHsc")
+else()
+  # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
+  # MSVC only pragmas all over the code
+  list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
+  list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
+  list(APPEND WARN_LEVEL -Wsequence-point -Wsign-compare -Wstrict-aliasing)
+  list(APPEND WARN_LEVEL -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized)
+  list(APPEND WARN_LEVEL -Wunused-function -Wunused-label -Wunused-value)
+  list(APPEND WARN_LEVEL -Wunused-variable -Wvolatile-register-var)
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  set(UNFILTERED_FLAGS "-Wc++11-compat")
+endif()
+
+filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
-  -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
+  -Wmissing-include-dirs -pedantic -Wno-pragmas)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} ${UNFILTERED_FLAGS}")
 
 #################################################
 # OS Specific initialization
@@ -201,7 +256,7 @@ if (build_errors)
 else (build_errors)
 
   ########################################
-  # Write the config.h file
+  # Write the config.hh file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
   ign_install_includes(${IGN_PROJECT_NAME}
@@ -223,8 +278,11 @@ else (build_errors)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
+    add_subdirectory(test/msg)
     add_subdirectory(src)
     add_subdirectory(include)
+    add_subdirectory(conf)
+    add_subdirectory(tools)
     add_subdirectory(test)
   endif (BUILD_IGNITION)
 
@@ -234,21 +292,20 @@ else (build_errors)
     ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
-    DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
+    DESTINATION ${LIB_INSTALL_DIR}/pkgconfig
     COMPONENT pkgconfig)
 
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
-
   set(PKG_DEPENDS Protobuf)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
     COMPONENT cmake)
 
   ########################################
