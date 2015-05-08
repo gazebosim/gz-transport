@@ -122,16 +122,16 @@ namespace ignition
       public: unsigned int heartbeatInterval;
 
       /// \brief Callback executed when new topics are discovered.
-      public: MsgDiscoveryCallback connectionCb;
+      public: DiscoveryCallback<MessagePublisher> connectionCb;
 
       /// \brief Callback executed when new topics are invalid.
-      public: MsgDiscoveryCallback disconnectionCb;
+      public: DiscoveryCallback<MessagePublisher> disconnectionCb;
 
       /// \brief Callback executed when new services are discovered.
-      public: SrvDiscoveryCallback connectionSrvCb;
+      public: DiscoveryCallback<ServicePublisher> connectionSrvCb;
 
       /// \brief Callback executed when a service is no longer available.
-      public: SrvDiscoveryCallback disconnectionSrvCb;
+      public: DiscoveryCallback<ServicePublisher> disconnectionSrvCb;
 
       /// \brief Message addressing information.
       public: TopicStorage<MessagePublisher> infoMsg;

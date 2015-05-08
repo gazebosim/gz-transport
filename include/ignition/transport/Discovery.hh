@@ -26,12 +26,12 @@
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   // Type used for raw data on this platform.
-  typedef char raw_type;
+  using raw_type = char;
 #else
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  typedef void raw_type;
+  using raw_type = void;
 #endif
 
 #include <functional>
@@ -201,7 +201,8 @@ namespace ignition
       /// Each time a new topic is connected, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void ConnectionsCb(const MsgDiscoveryCallback &_cb);
+      public: void ConnectionsCb(
+        const DiscoveryCallback<MessagePublisher> &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is discovered, the callback will be executed.
@@ -221,7 +222,7 @@ namespace ignition
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void DisconnectionsCb(
-        const transport::MsgDiscoveryCallback &_cb);
+        const DiscoveryCallback<MessagePublisher> &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
@@ -241,7 +242,8 @@ namespace ignition
       /// Each time a new service is available, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void ConnectionsSrvCb(const SrvDiscoveryCallback &_cb);
+      public: void ConnectionsSrvCb(
+        const DiscoveryCallback<ServicePublisher> &_cb);
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
@@ -264,7 +266,7 @@ namespace ignition
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void DisconnectionsSrvCb(
-        const transport::SrvDiscoveryCallback &_cb);
+        const DiscoveryCallback<ServicePublisher> &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a service is no longer available, the callback will be

@@ -24,8 +24,6 @@
   #include <Ws2def.h>
   #include <Ws2ipdef.h>
   #include <Ws2tcpip.h>
-  // Type used for raw data on this platform.
-  typedef char raw_type;
 #else
   // For data types
   #include <sys/types.h>
@@ -39,8 +37,6 @@
   #include <unistd.h>
   // For sockaddr_in
   #include <netinet/in.h>
-  // Type used for raw data on this platform
-  typedef void raw_type;
 #endif
 
 #include <zmq.hpp>
@@ -387,7 +383,7 @@ bool Discovery::DiscoverMsg(const std::string &_topic)
   if (!this->dataPtr->enabled)
     return false;
 
-  MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
+  DiscoveryCallback<MessagePublisher> cb = this->dataPtr->connectionCb;
   MessagePublisher pub;
 
   pub.Topic(_topic);
@@ -430,7 +426,7 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
   if (!this->dataPtr->enabled)
     return false;
 
-  SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
+  DiscoveryCallback<ServicePublisher> cb = this->dataPtr->connectionSrvCb;
   ServicePublisher pub;
 
   pub.Topic(_topic);
@@ -545,28 +541,29 @@ void Discovery::SilenceInterval(const unsigned int _ms)
 }
 
 //////////////////////////////////////////////////
-void Discovery::ConnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::ConnectionsCb(const DiscoveryCallback<MessagePublisher> &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DisconnectionsCb(const MsgDiscoveryCallback &_cb)
+void Discovery::DisconnectionsCb(const DiscoveryCallback<MessagePublisher> &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::ConnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::ConnectionsSrvCb(const DiscoveryCallback<ServicePublisher> &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->connectionSrvCb = _cb;
 }
 
 //////////////////////////////////////////////////
-void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
+void Discovery::DisconnectionsSrvCb(
+  const DiscoveryCallback<ServicePublisher> &_cb)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->disconnectionSrvCb = _cb;
@@ -938,7 +935,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
         return;
       }
 
-      MsgDiscoveryCallback cb = this->dataPtr->disconnectionCb;
+      DiscoveryCallback<MessagePublisher> cb = this->dataPtr->disconnectionCb;
 
       if (cb)
       {
@@ -966,7 +963,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
         return;
       }
 
-      SrvDiscoveryCallback cb = this->dataPtr->disconnectionSrvCb;
+      DiscoveryCallback<ServicePublisher> cb =
+        this->dataPtr->disconnectionSrvCb;
 
       if (cb)
       {
