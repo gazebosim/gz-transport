@@ -110,7 +110,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
     // Make a new socket for sending discovery information.
-    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    auto sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0)
     {
       std::cerr << "Socket creation failed." << std::endl;
@@ -121,7 +121,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     // This socket option needs to be applied to each socket used to send data.
     // This option selects the source interface for outgoing messages.
     struct in_addr ifAddr;
-    ifAddr.s_addr = inet_addr(netIface.c_str());
+    inet_pton(AF_INET, netIface.c_str(), &(ifAddr.s_addr));
     if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
       reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
     {
@@ -136,9 +136,9 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     // we can do it on the same socket. We will use the socket at position 0 for
     // receiving multicast information.
     struct ip_mreq group;
-    group.imr_multiaddr.s_addr =
-      inet_addr(this->dataPtr->MulticastGroup.c_str());
-    group.imr_interface.s_addr = inet_addr(netIface.c_str());
+    inet_pton(AF_INET, this->dataPtr->MulticastGroup.c_str(),
+      &(group.imr_multiaddr.s_addr));
+    inet_pton(AF_INET, netIface.c_str(), &(group.imr_interface.s_addr));
     if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
       reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
     {
@@ -189,8 +189,8 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Set 'mcastAddr' to the multicast discovery group.
   memset(&this->dataPtr->mcastAddr, 0, sizeof(this->dataPtr->mcastAddr));
   this->dataPtr->mcastAddr.sin_family = AF_INET;
-  this->dataPtr->mcastAddr.sin_addr.s_addr =
-    inet_addr(this->dataPtr->MulticastGroup.c_str());
+  inet_pton(AF_INET, this->dataPtr->MulticastGroup.c_str(),
+    &(this->dataPtr->mcastAddr.sin_addr.s_addr));
   this->dataPtr->mcastAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
 
   if (this->dataPtr->verbose)
@@ -220,7 +220,7 @@ Discovery::~Discovery()
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
 #else
-  while (true)
+  for (;;)
   {
     std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
     {
@@ -575,7 +575,7 @@ void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 //////////////////////////////////////////////////
 void Discovery::RunActivityTask()
 {
-  while (true)
+  for (;;)
   {
     this->dataPtr->mutex.lock();
 
@@ -635,7 +635,7 @@ void Discovery::RunActivityTask()
 //////////////////////////////////////////////////
 void Discovery::RunHeartbeatTask()
 {
-  while (true)
+  for (;;)
   {
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
@@ -688,7 +688,7 @@ void Discovery::RunHeartbeatTask()
 //////////////////////////////////////////////////
 void Discovery::RunReceptionTask()
 {
-  while (true)
+  for (;;)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -737,7 +737,14 @@ void Discovery::RecvDiscoveryUpdate()
     std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error" << std::endl;
     return;
   }
-  srcAddr = inet_ntoa(clntAddr.sin_addr);
+  //srcAddr = inet_ntoa(clntAddr.sin_addr);
+  char buffer[20];
+  if (inet_ntop(AF_INET, &(clntAddr.sin_addr), buffer, sizeof(buffer)) == 0)
+  {
+    std::cerr << "Discovery::RecvDiscoveryUpdate() inet_ntop error: " 
+              << "Failed to convert addrss to string" << std::endl;
+  }
+  srcAddr = std::string(buffer);
   srcPort = ntohs(clntAddr.sin_port);
 
   if (this->dataPtr->verbose)
@@ -989,7 +996,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 }
 
 //////////////////////////////////////////////////
-std::vector<int>& Discovery::Sockets() const
+std::vector<sock_t>& Discovery::Sockets() const
 {
   return this->dataPtr->sockets;
 }

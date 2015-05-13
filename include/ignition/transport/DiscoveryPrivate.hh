@@ -78,7 +78,7 @@ namespace ignition
       public: static const unsigned int DefAdvertiseInterval = 1000;
 
       /// \brief Port used to broadcast the discovery messages.
-      public: static const int DiscoveryPort = 11319;
+      public: static const unsigned short DiscoveryPort = 11319;
 
       /// \brief IP Address used for multicast.
       public: const std::string MulticastGroup = "224.0.0.7";
@@ -149,7 +149,7 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for sending/receiving discovery messages.
-      public: std::vector<int> sockets;
+      public: std::vector<sock_t> sockets;
 
       /// \brief Internet socket address for sending to the multicast group.
       public: sockaddr_in mcastAddr;

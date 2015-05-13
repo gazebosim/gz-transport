@@ -27,11 +27,15 @@
   #include <Winsock2.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
+
+  typedef SOCKET sock_t;
 #else
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
   typedef void raw_type;
+
+  typedef int sock_t;
 #endif
 
 #include <functional>
@@ -322,11 +326,11 @@ namespace ignition
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
                                                  const T &_pub,
-                                                 int _flags = 0)
+                                                 uint16_t _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
+        size_t msgLength = 0;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -397,7 +401,7 @@ namespace ignition
 
       /// \brief Get the list of sockets used for discovery.
       /// \return The list of sockets.
-      private: std::vector<int>& Sockets() const;
+      private: std::vector<sock_t>& Sockets() const;
 
       /// \brief Get the data structure used for multicast communication.
       /// \return The data structure containing the multicast information.
