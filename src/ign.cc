@@ -24,6 +24,10 @@
 using namespace ignition;
 using namespace transport;
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdTopicList()
 {

@@ -737,7 +737,7 @@ void Discovery::RecvDiscoveryUpdate()
     std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error" << std::endl;
     return;
   }
-  char buffer[20];
+  char buffer[200];
   if (inet_ntop(AF_INET, &(clntAddr.sin_addr), buffer, sizeof(buffer)) == 0)
   {
     std::cerr << "Discovery::RecvDiscoveryUpdate() inet_ntop error: "
