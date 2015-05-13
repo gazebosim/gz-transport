@@ -737,11 +737,10 @@ void Discovery::RecvDiscoveryUpdate()
     std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error" << std::endl;
     return;
   }
-  //srcAddr = inet_ntoa(clntAddr.sin_addr);
   char buffer[20];
   if (inet_ntop(AF_INET, &(clntAddr.sin_addr), buffer, sizeof(buffer)) == 0)
   {
-    std::cerr << "Discovery::RecvDiscoveryUpdate() inet_ntop error: " 
+    std::cerr << "Discovery::RecvDiscoveryUpdate() inet_ntop error: "
               << "Failed to convert addrss to string" << std::endl;
   }
   srcAddr = std::string(buffer);
