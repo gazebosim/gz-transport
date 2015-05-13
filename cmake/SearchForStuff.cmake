@@ -18,7 +18,7 @@ if (NOT PROTOBUF_PROTOC_EXECUTABLE)
   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
 endif()
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
+include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIR})
 
 #################################################
 # Find ZeroMQ.
@@ -27,7 +27,7 @@ include (${project_cmake_dir}/FindZeroMQ.cmake)
 if (NOT ZeroMQ_FOUND)
   BUILD_ERROR ("zmq not found, Please install zmq")
 else ()
-  include_directories(${ZeroMQ_INCLUDE_DIRS})
+  include_directories(SYSTEM ${ZeroMQ_INCLUDE_DIRS})
   link_directories(${ZeroMQ_LIBRARY_DIRS})
 endif ()
 
@@ -48,7 +48,7 @@ if (NOT cppzmq_INCLUDE_DIRS)
   BUILD_ERROR("cppzmq header file was not found")
 else()
   message(STATUS "cppzmq file - found")
-  include_directories(${cppzmq_INCLUDE_DIRS})
+  include_directories(SYSTEM ${cppzmq_INCLUDE_DIRS})
 endif()
 
 #################################################
@@ -64,7 +64,7 @@ if (UNIX)
     BUILD_ERROR ("uuid not found, Please install uuid")
   else ()
     message (STATUS "Looking for uuid pkgconfig file - found")
-    include_directories(${uuid_INCLUDE_DIRS})
+    include_directories(SYSTEM ${uuid_INCLUDE_DIRS})
     link_directories(${uuid_LIBRARY_DIRS})
   endif ()
 elseif (MSVC)

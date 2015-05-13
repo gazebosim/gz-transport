@@ -27,11 +27,15 @@
   #include <Winsock2.h>
   // Type used for raw data on this platform.
   typedef char raw_type;
+
+  typedef SOCKET sock_t;
 #else
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
   typedef void raw_type;
+
+  typedef int sock_t;
 #endif
 
 #include <functional>
@@ -322,11 +326,11 @@ namespace ignition
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
                                                  const T &_pub,
-                                                 int _flags = 0)
+                                                 uint16_t _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
+        int msgLength = 0;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -344,7 +348,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.MsgLength());
             advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
+            msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -356,7 +360,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
             subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
+            msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:
@@ -378,10 +382,12 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
-          if (sendto(sock, reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
+          int res = static_cast<int>(sendto(sock,
+            reinterpret_cast<const raw_type *>(
+              reinterpret_cast<unsigned char*>(&buffer[0])),
             msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-            sizeof(*(this->MulticastAddr()))) != msgLength)
+            sizeof(*(this->MulticastAddr()))));
+          if (res != msgLength)
           {
             std::cerr << "Exception sending a message" << std::endl;
             return;
@@ -397,7 +403,7 @@ namespace ignition
 
       /// \brief Get the list of sockets used for discovery.
       /// \return The list of sockets.
-      private: std::vector<int>& Sockets() const;
+      private: std::vector<sock_t>& Sockets() const;
 
       /// \brief Get the data structure used for multicast communication.
       /// \return The data structure containing the multicast information.
@@ -417,4 +423,5 @@ namespace ignition
     };
   }
 }
+#pragma warning(disable:4503)
 #endif
