@@ -183,7 +183,7 @@ namespace ignition
                                       const std::string &_pUuid,
                                       const std::string &_nUuid)
       {
-        unsigned int counter = 0;
+        size_t counter = 0;
 
         // Iterate over all the topics.
         if (this->data.find(_topic) != this->data.end())
@@ -221,7 +221,7 @@ namespace ignition
       /// \return True when at least one address was removed or false otherwise.
       public: bool DelPublishersByProc(const std::string &_pUuid)
       {
-        unsigned int counter = 0;
+        size_t counter = 0;
 
         // Iterate over all the topics.
         for (auto it = this->data.begin(); it != this->data.end();)
