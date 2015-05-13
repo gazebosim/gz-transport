@@ -330,7 +330,7 @@ namespace ignition
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        ssize_t msgLength = 0;
+        int msgLength = 0;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -348,7 +348,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.MsgLength());
             advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
+            msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -360,7 +360,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
             subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
+            msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:
@@ -382,10 +382,12 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
-          if (sendto(sock, reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
+          int res = static_cast<int>(sendto(sock,
+            reinterpret_cast<const raw_type *>(
+              reinterpret_cast<unsigned char*>(&buffer[0])),
             msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-            sizeof(*(this->MulticastAddr()))) != msgLength)
+            sizeof(*(this->MulticastAddr()))));
+          if (res != msgLength)
           {
             std::cerr << "Exception sending a message" << std::endl;
             return;
