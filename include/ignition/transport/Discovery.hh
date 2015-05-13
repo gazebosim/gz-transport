@@ -330,7 +330,7 @@ namespace ignition
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        size_t msgLength = 0;
+        ssize_t msgLength = 0;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
