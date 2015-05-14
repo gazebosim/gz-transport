@@ -7,4 +7,4 @@ Description: A set of @IGN_PROJECT_NAME@ classes for robot applications
 Version: @PROJECT_VERSION_FULL@
 Requires:
 Libs: -L${libdir} -l@PROJECT_NAME_LOWER@
-CFlags: -I${includedir}
+CFlags: -I${includedir} -std=c++11
