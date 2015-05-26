@@ -19,8 +19,7 @@ macro (ign_build_tests)
     add_dependencies(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}
       gtest gtest_main
-      protobuf_compilation
-      )
+    )
 
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
@@ -34,6 +33,7 @@ macro (ign_build_tests)
         ${PROJECT_NAME_LOWER}
         gtest
         gtest_main
+        ${PROJECT_MSGS_NAME}
       )
     endif()
 
