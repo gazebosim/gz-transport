@@ -65,7 +65,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 5.0);
+  EXPECT_NEAR(elapsed, timeout, 20.0);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
