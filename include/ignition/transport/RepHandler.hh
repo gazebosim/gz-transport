@@ -29,7 +29,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Helpers.h"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 

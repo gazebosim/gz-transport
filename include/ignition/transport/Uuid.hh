@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <string>
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Helpers.h"
 
 #ifdef _WIN32
   #include <Rpc.h>

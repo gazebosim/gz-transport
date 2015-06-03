@@ -34,10 +34,8 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
-#include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Helpers.h"
 #include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
@@ -49,6 +47,7 @@ namespace ignition
 {
   namespace transport
   {
+    class NodeShared;
     class NodePrivate;
 
     /// \class Node Node.hh ignition/transport/Node.hh

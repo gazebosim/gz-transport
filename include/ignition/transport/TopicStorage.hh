@@ -22,7 +22,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Helpers.h"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 

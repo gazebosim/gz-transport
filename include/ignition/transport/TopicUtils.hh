@@ -19,7 +19,7 @@
 #define __IGN_TRANSPORT_TOPICUTILS_HH_INCLUDED__
 
 #include <string>
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Helpers.h"
 
 namespace ignition
 {
