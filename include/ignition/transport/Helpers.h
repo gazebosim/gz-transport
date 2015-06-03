@@ -15,24 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
-#define __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
-
-#include <cstdio>
-#include <string>
-#include <vector>
-
-namespace ignition
-{
-  namespace transport
-  {
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
+#ifndef INCLUDE_IGNITION_TRANSPORT_HELPERS_H_
+#define INCLUDE_IGNITION_TRANSPORT_HELPERS_H_
 
 #if defined __WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
@@ -58,7 +42,5 @@ namespace ignition
     #define IGNITION_HIDDEN
   #endif
 #endif
-  }
-}
 
-#endif
+#endif  // INCLUDE_IGNITION_TRANSPORT_HELPERS_H_
