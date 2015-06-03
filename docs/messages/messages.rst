@@ -7,7 +7,7 @@ via messages. One node will be a publisher that generates the information,
 whereas the other node will be the subscriber consuming the information. Our
 nodes will be running on different processes within the same machine.
 
-::
+.. code-block:: bash
 
     mkdir ~/ign_transport_tutorial
     cd ~/ign_transport_tutorial
@@ -19,7 +19,7 @@ Creating the publisher
 Create the *src/publisher.cc* file within the *ign_transport_tutorial* and paste
 the following code inside it:
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -54,7 +54,7 @@ the following code inside it:
 Walkthrough
 ===========
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -66,7 +66,7 @@ defined in *hello.pb.h*.
 The line *#include <ignition/transport/Node.hh>* contains the ignition transport
 headers for using the transport library.
 
-::
+.. code-block:: cpp
 
     // Create a transport node.
     transport::Node publisher;
@@ -78,7 +78,7 @@ functionality. In our case, we are interested on publishing topic updates, so
 the first step is to announce our topic name. Once a topic name is advertised,
 we can start publishing periodic messages.
 
-::
+.. code-block:: cpp
 
     // Prepare the message.
     tutorial::Hello msg;
@@ -101,7 +101,7 @@ Creating the subscriber
 Create the *src/subscriber.cc* file within the *ign_transport_tutorial* and
 paste the following code inside it:
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -136,7 +136,7 @@ paste the following code inside it:
 Walkthrough
 ===========
 
-::
+.. code-block:: cpp
 
     //////////////////////////////////////////////////
     /// \brief Function called each time a topic update is received.
@@ -152,7 +152,7 @@ message type. You should create a function callback with the appropriate
 protobuf type depending on the type advertised in your topic of interest. In our
 case, we know that topic */topicA* will contain a protobuf *Hello* type.
 
-::
+.. code-block:: cpp
 
     // Create a transport node.
     transport::Node publisher;
@@ -180,14 +180,14 @@ create the *publisher* and *subscriber* executables.
 Once you have all your files, go ahead and create a *build/* directory within
 the *ign_transport_tutorial* directory.
 
-::
+.. code-block:: bash
 
     mkdir build
     cd build
 
 Run *cmake* and build the code.
 
-::
+.. code-block:: bash
 
     cmake ..
     make
@@ -198,11 +198,15 @@ Running the examples
 
 Open two new terminals and from your *build/* directory run the executables:
 
-From terminal 1::
+From terminal 1
+
+.. code-block:: bash
 
     ./publisher
 
-From terminal 2::
+From terminal 2
+
+.. code-block:: bash
 
     ./subscriber
 
@@ -210,7 +214,7 @@ From terminal 2::
 In your subscriber terminal, you should expect an output similar to this one,
 showing that your subscribing is receiving the topic updates:
 
-::
+.. code-block:: bash
 
     caguero@turtlebot:~/ign_transport_tutorial/build$ ./subscriber
     Data: [helloWorld]

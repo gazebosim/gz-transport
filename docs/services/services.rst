@@ -6,7 +6,7 @@ In this tutorial, we are going to create two nodes that are going to communicate
 via services. One node will be a service provider that offers an *echo* service,
 whereas the other node will be the service consumer requesting an *echo* call.
 
-::
+.. code-block:: bash
 
     mkdir ~/ign_transport_tutorial
     cd ~/ign_transport_tutorial
@@ -18,7 +18,7 @@ Creating the responser
 Create the *src/responser.cc* file within the *ign_transport_tutorial* and paste
 the following code inside it:
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -57,7 +57,7 @@ the following code inside it:
 Walkthrough
 ===========
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -69,7 +69,7 @@ defined in *hello.pb.h* for our services.
 The line *#include <ignition/transport/Node.hh>* contains the ignition transport
 headers for using the transport library.
 
-::
+.. code-block:: cpp
 
     void srvEcho(const std::string &_topic, const tutorial::Hello &_req,
       tutorial::Hello &_rep, bool &_result)
@@ -89,7 +89,7 @@ The request parameter contains the input parameters of the request. The response
 example, as a simple *echo* service, we just fill the response with the same
 data contained in the request.
 
-::
+.. code-block:: cpp
 
     // Create a transport node.
     transport::Node publisher;
@@ -109,7 +109,7 @@ Creating the requester
 Create the *src/requester.cc* file within the *ign_transport_tutorial* and
 paste the following code inside it:
 
-::
+.. code-block:: cpp
 
     #include "../build/src/hello.pb.h"
     #include <ignition/transport/Node.hh>
@@ -150,7 +150,7 @@ paste the following code inside it:
 Walkthrough
 ===========
 
-::
+.. code-block:: cpp
 
     //////////////////////////////////////////////////
     /// \brief Service call response callback.
@@ -170,7 +170,7 @@ message type. You should create a function callback with the appropriate
 protobuf type depending on the type advertised in your topic of interest. In our
 case, we know that topic */topicA* will contain a protobuf *Hello* type.
 
-::
+.. code-block:: cpp
 
     // Prepare the service call input parameter.
     tutorial::Hello req;
@@ -204,14 +204,14 @@ create the *responser* and *requester* executables.
 Once you have all your files, go ahead and create a *build/* directory within
 the *ign_transport_tutorial* directory.
 
-::
+.. code-block:: bash
 
     mkdir build
     cd build
 
 Run *cmake* and build the code.
 
-::
+.. code-block:: bash
 
     cmake ..
     make
@@ -222,11 +222,15 @@ Running the examples
 
 Open two new terminals and from your *build/* directory run the executables:
 
-From terminal 1::
+From terminal 1
+
+.. code-block:: bash
 
     ./responser
 
-From terminal 2::
+From terminal 2
+
+.. code-block:: bash
 
     ./requester
 
@@ -234,7 +238,7 @@ From terminal 2::
 In your requester terminal, you should expect an output similar to this one,
 showing that your requester has received the data:
 
-::
+.. code-block:: bash
 
     caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester
     Response: [Hello World!]
