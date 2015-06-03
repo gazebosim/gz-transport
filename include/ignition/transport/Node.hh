@@ -34,7 +34,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
-#include "ignition/transport/Helpers.h"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"

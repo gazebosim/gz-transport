@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <string>
-#include "ignition/transport/Helpers.h"
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {

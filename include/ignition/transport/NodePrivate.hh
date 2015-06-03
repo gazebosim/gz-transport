@@ -20,7 +20,7 @@
 
 #include <string>
 #include <unordered_set>
-#include "ignition/transport/Helpers.h"
+#include "ignition/transport/Helpers.hh"
 
 using namespace ignition;
 using namespace transport;

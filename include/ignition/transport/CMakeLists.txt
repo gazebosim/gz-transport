@@ -3,7 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   Discovery.hh
   HandlerStorage.hh
-  Helpers.h
+  Helpers.hh
   ign.hh
   NetUtils.hh
   Node.hh

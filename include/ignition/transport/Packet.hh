@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 #include "ignition/transport/Publisher.hh"
-#include "ignition/transport/Helpers.h"
+#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {

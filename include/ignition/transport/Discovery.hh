@@ -42,7 +42,7 @@
 # pragma warning(pop)
 #endif
 
-#include "ignition/transport/Helpers.h"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/TransportTypes.hh"
 
