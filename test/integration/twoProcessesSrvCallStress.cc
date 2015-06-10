@@ -21,7 +21,7 @@
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 
 using namespace ignition;
 

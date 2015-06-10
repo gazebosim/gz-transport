@@ -25,7 +25,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 
 using namespace ignition;
 
