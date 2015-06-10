@@ -21,19 +21,21 @@ macro (ign_build_tests)
       gtest gtest_main
     )
 
+    target_link_libraries(${BINARY_NAME}
+      ${PROJECT_NAME_LOWER}
+      ${PROJECT_MSGS_NAME}
+    )
+
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         libgtest.a
         libgtest_main.a
         pthread
       )
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         gtest
         gtest_main
-        ${PROJECT_MSGS_NAME}
       )
     endif()
 
