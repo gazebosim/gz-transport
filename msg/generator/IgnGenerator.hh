@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGN_TRANSPORT_GENERATOR_H_
-#define _IGN_TRANSPORT_GENERATOR_H_
+#ifndef _IGN_TRANSPORT_GENERATOR_HH_
+#define _IGN_TRANSPORT_GENERATOR_HH_
 
 #include <google/protobuf/compiler/code_generator.h>
 #include <string>
