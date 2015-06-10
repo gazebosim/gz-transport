@@ -47,5 +47,6 @@ ign_install_library(${PROJECT_MSGS_NAME})
 add_dependencies(${PROJECT_MSGS_NAME} ignmsgs_out)
 
 # Install the generated protobuf messages.
-install(FILES ${PROTO_HDRS} ${PROTO_SRCS} DESTINATION ${INCLUDE_INSTALL_DIR}/comm/msg)
+install(FILES ${PROTO_HDRS} ${PROTO_SRCS} DESTINATION
+  ${INCLUDE_INSTALL_DIR}/${IGN_PROJECT_NAME}/msg)
 
