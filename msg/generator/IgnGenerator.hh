@@ -33,10 +33,23 @@ namespace google
         /// \brief Google protobuf message generator for Ign::msgs
         class IgnGenerator : public CodeGenerator
         {
-          public: IgnGenerator(const std::string &_name);
+          /// \brief Class constructor.
+          public: IgnGenerator() = default;
 
-          public: virtual ~IgnGenerator();
+          /// \brief Class destructor.
+          public: virtual ~IgnGenerator() = default;
 
+          /// \brief Generates code for the given proto file, generating one or
+          /// more files in the given output directory. This method also ignores
+          /// some warnings and creates extra typedef definitions.
+          /// \param[in] _file File descriptor (.proto)
+          /// \param[in] _parameter Extra optional parameter for the generator.
+          /// \param[out] _generatorContext Represents the directory to which
+          /// the CodeGenerator is to write and other information about the
+          /// context in which the Generator runs.
+          /// \param[out] _error Description of the problem if the function
+          /// failed.
+          /// \return True if successful, false otherwise
           public: virtual bool Generate(const FileDescriptor *_file,
                                         const string &_parameter,
                                         OutputDirectory *_generatorContext,
