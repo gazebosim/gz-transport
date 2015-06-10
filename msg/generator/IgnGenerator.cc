@@ -14,18 +14,17 @@
  * limitations under the License.
  *
 */
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/descriptor.pb.h>
-
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
 
 #include "IgnGenerator.hh"
 
@@ -37,7 +36,7 @@ namespace google
     {
       namespace cpp
       {
-
+        /////////////////////////////////////////
         void replaceAll(std::string &_src, const std::string &_oldValue,
           const std::string &_newValue)
         {
@@ -49,8 +48,13 @@ namespace google
           }
         }
 
+        /////////////////////////////////////////
         IgnGenerator::IgnGenerator(const std::string &/*_name*/) {}
+
+        /////////////////////////////////////////
         IgnGenerator::~IgnGenerator() {}
+
+        /////////////////////////////////////////
         bool IgnGenerator::Generate(const FileDescriptor *_file,
             const string &/*_parameter*/,
             OutputDirectory *_generatorContext,
