@@ -4,6 +4,6 @@ package ignition.transport.msgs;
 
 message Int
 {
-  /// Integer data
+  /// \brief 32 bit integer data
   required int32 data = 1;
 }
