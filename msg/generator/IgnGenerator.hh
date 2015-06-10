@@ -54,8 +54,6 @@ namespace google
                                         const string &_parameter,
                                         OutputDirectory *_generatorContext,
                                         string *_error) const;
-
-          // private: GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(IgnGenerator);
         };
         // namespace cpp
       }
