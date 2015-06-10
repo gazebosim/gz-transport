@@ -53,7 +53,7 @@ namespace google
           public: virtual bool Generate(const FileDescriptor *_file,
                                         const string &_parameter,
                                         OutputDirectory *_generatorContext,
-                                        string *_error) const;
+                                        std::string *_error) const;
         };
         // namespace cpp
       }

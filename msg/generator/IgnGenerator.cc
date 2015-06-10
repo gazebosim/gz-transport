@@ -50,7 +50,7 @@ namespace google
 
         //////////////////////////////////////////////////
         bool IgnGenerator::Generate(const FileDescriptor *_file,
-            const string &/*_parameter*/,
+            const std::string &/*_parameter*/,
             OutputDirectory *_generatorContext,
             std::string * /*_error*/) const
         {
