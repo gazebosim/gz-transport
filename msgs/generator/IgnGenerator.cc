@@ -100,6 +100,7 @@ namespace google
             io::Printer printer(output.get(), '$');
 
             printer.Print("#include <memory>\n", "name", "includes");
+            printer.Print("#include <ignition/transport/Helpers.hh>\n", "name", "includes");
           }
 
           // Add std::shared_ptr typedef

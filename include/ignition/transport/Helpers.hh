@@ -58,6 +58,32 @@ namespace ignition
     #define IGNITION_HIDDEN
   #endif
 #endif
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef BUILDING_DLL_IGNITION_MSGS
+    #ifdef __GNUC__
+     #define IGNITION_MSGS_VISIBLE __attribute__ ((dllexport))
+    #else
+     #define IGNITION_MSGS_VISIBLE __declspec(dllexport)
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define IGNITION_MSGS_VISIBLE __attribute__ ((dllimport))
+    #else
+      #define IGNITION_MSGS_VISIBLE __declspec(dllimport)
+    #endif
+  #endif
+  #define IGNITION_MSGS_HIDDEN
+#else
+  #if __GNUC__ >= 4
+    #define IGNITION_MSGS_VISIBLE __attribute__ ((visibility ("default")))
+    #define IGNITION_MSGS_HIDDEN  __attribute__ ((visibility ("hidden")))
+  #else
+    #define IGNITION_MSGS_VISIBLE
+    #define IGNITION_MSGS_HIDDEN
+  #endif
+#endif
+
   }
 }
 
