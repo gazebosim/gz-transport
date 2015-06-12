@@ -51,7 +51,8 @@ endmacro (BUILD_WARNING)
 
 #################################################
 macro (ign_add_library _name)
-  add_library(${_name} SHARED ${ARGN})
+  # Not defining STATIC or SHARED will use BUILD_SHARED_LIBS variable
+  add_library(${_name} ${ARGN})
   target_link_libraries (${_name} ${general_libraries})
 endmacro ()
 
@@ -88,6 +89,8 @@ endmacro ()
 
 #################################################
 macro (ign_setup_unix)
+  # Using dynamic linking in UNIX by default
+  set(BUILD_SHARED_LIBS TRUE)
 endmacro()
 
 #################################################
