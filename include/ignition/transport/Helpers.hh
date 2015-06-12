@@ -25,23 +25,9 @@
 /// Use to represent "symbol hidden" if supported
 
 #if defined BUILDING_STATIC_LIBS
-  #define GAZEBO_VISIBLE
-  #define GZ_COMMON_VISIBLE
-  #define GZ_MATH_VISIBLE
-  #define GZ_TRANSPORT_VISIBLE
-  #define GZ_MSGS_VISIBLE
-  #define GZ_SELECTION_BUFF_VISIBLE
-  #define GZ_RENDERING_VISIBLE
-  #define GZ_UTIL_VISIBLE
-  #define GZ_RENDERING_DEFERRED_VISIBLE
-  #define GZ_PHYSICS_VISIBLE
-  #define GZ_PHYSICS_ODE_VISIBLE
-  #define GZ_GUI_VISIBLE
-  #define GZ_GUI_BUILDING_VISIBLE
-  #define GZ_GUI_MODEL_VISIBLE
-  #define GZ_GUI_TERRAIN_VISIBLE
-  #define GZ_GUI_VIEWERS_VISIBLE
-  #define GAZEBO_HIDDEN
+  #define IGNITION_VISIBLE
+  #define IGNITION_MSGS_VISIBLE
+  #define IGNITION_HIDDEN
 #else
   #if defined __WIN32 || defined __CYGWIN__
     #ifdef BUILDING_DLL
