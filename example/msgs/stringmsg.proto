@@ -4,5 +4,6 @@ package example.msgs;
 
 message StringMsg
 {
+  /// \brief String data
   required string data = 1;
 }
