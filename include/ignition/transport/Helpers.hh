@@ -18,73 +18,82 @@
 #ifndef __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #define __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 
-#include <cstdio>
-#include <string>
-#include <vector>
+/// \def IGNITION_VISIBLE
+/// Use to represent "symbol visible" if supported
 
-namespace ignition
-{
-  namespace transport
-  {
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
+/// \def IGNITION_HIDDEN
+/// Use to represent "symbol hidden" if supported
 
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined __WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
+#if defined BUILDING_STATIC_LIBS
+  #define GAZEBO_VISIBLE
+  #define GZ_COMMON_VISIBLE
+  #define GZ_MATH_VISIBLE
+  #define GZ_TRANSPORT_VISIBLE
+  #define GZ_MSGS_VISIBLE
+  #define GZ_SELECTION_BUFF_VISIBLE
+  #define GZ_RENDERING_VISIBLE
+  #define GZ_UTIL_VISIBLE
+  #define GZ_RENDERING_DEFERRED_VISIBLE
+  #define GZ_PHYSICS_VISIBLE
+  #define GZ_PHYSICS_ODE_VISIBLE
+  #define GZ_GUI_VISIBLE
+  #define GZ_GUI_BUILDING_VISIBLE
+  #define GZ_GUI_MODEL_VISIBLE
+  #define GZ_GUI_TERRAIN_VISIBLE
+  #define GZ_GUI_VIEWERS_VISIBLE
+  #define GAZEBO_HIDDEN
 #else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
+  #if defined __WIN32 || defined __CYGWIN__
+    #ifdef BUILDING_DLL
+      #ifdef __GNUC__
+        #define IGNITION_VISIBLE __attribute__ ((dllexport))
+      #else
+        #define IGNITION_VISIBLE __declspec(dllexport)
+      #endif
+    #else
+      #ifdef __GNUC__
+        #define IGNITION_VISIBLE __attribute__ ((dllimport))
+      #else
+        #define IGNITION_VISIBLE __declspec(dllimport)
+      #endif
+    #endif
     #define IGNITION_HIDDEN
+  #else
+    #if __GNUC__ >= 4
+      #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
+      #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
+    #else
+      #define IGNITION_VISIBLE
+      #define IGNITION_HIDDEN
+    #endif
   #endif
-#endif
 
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL_IGNITION_MSGS
-    #ifdef __GNUC__
-     #define IGNITION_MSGS_VISIBLE __attribute__ ((dllexport))
+  #if defined _WIN32 || defined __CYGWIN__
+    #ifdef BUILDING_DLL_IGNITION_MSGS
+      #ifdef __GNUC__
+       #define IGNITION_MSGS_VISIBLE __attribute__ ((dllexport))
+      #else
+       #define IGNITION_MSGS_VISIBLE __declspec(dllexport)
+      #endif
     #else
-     #define IGNITION_MSGS_VISIBLE __declspec(dllexport)
+      #ifdef __GNUC__
+        #define IGNITION_MSGS_VISIBLE __attribute__ ((dllimport))
+      #else
+        #define IGNITION_MSGS_VISIBLE __declspec(dllimport)
+      #endif
     #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_MSGS_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_MSGS_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_MSGS_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_MSGS_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_MSGS_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_MSGS_VISIBLE
     #define IGNITION_MSGS_HIDDEN
+  #else
+    #if __GNUC__ >= 4
+      #define IGNITION_MSGS_VISIBLE __attribute__ ((visibility ("default")))
+      #define IGNITION_MSGS_HIDDEN  __attribute__ ((visibility ("hidden")))
+    #else
+      #define IGNITION_MSGS_VISIBLE
+      #define IGNITION_MSGS_HIDDEN
+    #endif
   #endif
+// BUILDING_STATIC_LIBS
 #endif
 
-  }
-}
-
+// __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #endif

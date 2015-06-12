@@ -39,10 +39,10 @@ foreach(FIL ${msgs})
     VERBATIM )
 endforeach()
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_DLL_GZ_MSGS")
+
 set_source_files_properties(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
-
 ign_add_library(${PROJECT_MSGS_NAME} ${PROTO_SRCS})
-
 if (UNIX)
   # Need to add default visibility to ignition-transport-msgs
   get_target_property(current_property ${PROJECT_MSGS_NAME} COMPILE_FLAGS)
@@ -54,6 +54,7 @@ if (UNIX)
 endif()
 
 target_link_libraries(${PROJECT_MSGS_NAME} ${PROTOBUF_LIBRARY} ${PROTOBUF_PROTOC_LIBRARY})
+
 ign_install_library(${PROJECT_MSGS_NAME})
 add_dependencies(${PROJECT_MSGS_NAME} ignmsgs_out)
 
