@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
+#include <vector>
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
