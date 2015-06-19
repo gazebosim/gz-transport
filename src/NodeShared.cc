@@ -307,11 +307,16 @@ void NodeShared::RecvMsgUpdate()
   if (this->localSubscriptions.GetHandlers(topic, handlers))
   {
     // Get the first handler.
-    ISubscriptionHandlerPtr firstSubscriptionHandlerPtr;
-    this->localSubscriptions.GetHandler(topic, firstSubscriptionHandlerPtr);
+    ISubscriptionHandlerPtr firstSubscriberPtr;
+    if (!this->localSubscriptions.GetHandler(topic, firstSubscriberPtr))
+    {
+      std::cerr << "I couldn't find a subscriber. This should never happen."
+                << std::endl;
+      return;
+    }
 
     // Create the message.
-    auto recvMsg = firstSubscriptionHandlerPtr->CreateMsg(data);
+    auto recvMsg = firstSubscriberPtr->CreateMsg(data);
 
     for (auto &node : handlers)
     {
