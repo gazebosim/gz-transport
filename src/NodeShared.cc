@@ -318,9 +318,9 @@ void NodeShared::RecvMsgUpdate()
     // Create the message.
     auto recvMsg = firstSubscriberPtr->CreateMsg(data);
 
-    for (auto &node : handlers)
+    for (const auto &node : handlers)
     {
-      for (auto &handler : node.second)
+      for (const auto &handler : node.second)
       {
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
