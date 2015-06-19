@@ -484,18 +484,22 @@ TEST(NodeTest, ServiceCallAsync)
   transport::Node node;
 
   // Advertise an invalid service name.
-  EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
+  EXPECT_FALSE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>("invalid service", srvEcho)));
 
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>(topic, srvEcho)));
 
   auto advertisedServices = node.AdvertisedServices();
   ASSERT_EQ(advertisedServices.size(), 1u);
   EXPECT_EQ(advertisedServices.at(0), topic);
 
   // Request an invalid service name.
-  EXPECT_FALSE(node.Request("invalid service", req, response));
+  EXPECT_FALSE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>("invalid service", req, response)));
 
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
 
   int i = 0;
   while (i < 100 && !srvExecuted)
@@ -513,7 +517,8 @@ TEST(NodeTest, ServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
 
   i = 0;
   while (i < 100 && !responseExecuted)
@@ -548,14 +553,18 @@ TEST(NodeTest, MultipleServiceCallAsync)
   transport::Node node;
 
   // Advertise an invalid service name.
-  EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
+  EXPECT_FALSE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>("invalid service", srvEcho)));
 
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>(topic, srvEcho)));
 
   // Request an invalid service name.
-  EXPECT_FALSE(node.Request("invalid service", req, response));
+  EXPECT_FALSE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>("invalid service", req, response)));
 
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
 
   int i = 0;
   while (i < 100 && !srvExecuted)
@@ -573,9 +582,12 @@ TEST(NodeTest, MultipleServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
-  EXPECT_TRUE(node.Request(topic, req, response));
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
+  EXPECT_TRUE((node.Request<transport::msgs::Int,
+    transport::msgs::Int>(topic, req, response)));
 
   i = 0;
   while (i < 100 && counter < 3)
@@ -607,7 +619,8 @@ TEST(NodeTest, ServiceCallSync)
   req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>(topic, srvEcho)));
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, timeout, rep, result));
