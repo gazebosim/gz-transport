@@ -268,7 +268,6 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
      return false;
   }
 
-
   return true;
 }
 
@@ -307,16 +306,20 @@ void NodeShared::RecvMsgUpdate()
   std::map<std::string, ISubscriptionHandler_M> handlers;
   if (this->localSubscriptions.GetHandlers(topic, handlers))
   {
+    // Get the first handler.
+    ISubscriptionHandlerPtr firstSubscriptionHandlerPtr;
+    this->localSubscriptions.GetHandler(topic, firstSubscriptionHandlerPtr);
+
+    // Create the message.
+    auto recvMsg = firstSubscriptionHandlerPtr->CreateMsg(data);
+
     for (auto &node : handlers)
     {
       for (auto &handler : node.second)
       {
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
-        {
-          // ToDo(caguero): Unserialize only once.
-          subscriptionHandlerPtr->RunCallback(topic, data);
-        }
+          subscriptionHandlerPtr->RunLocalCallback(topic, *recvMsg);
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
       }
