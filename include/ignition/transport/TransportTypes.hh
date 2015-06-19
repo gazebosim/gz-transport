@@ -63,16 +63,23 @@ namespace ignition
     /// \brief Shared pointer to any protobuf message.
     typedef std::shared_ptr<ProtoMsg> ProtoMsgPtr;
 
+    /// \def Subscription message callback.
+    /// \param[in] _topic Topic name received.
+    /// \param[in] _msg A protobuf message containing the data.
+    template<typename T> using MsgCallback =
+      std::function<void(const std::string &_topic, const T &_msg)>;
+
     /// \def ReqCallback
     /// \brief Callback used for receiving a service call request with the
     /// following parameters:
     /// \param[in] _topic Service name.
     /// \param[in] _req Protobuf message containing the service request.
     /// \param[out] _rep Protobuf message containing the service response.
-    /// \return True when the service response is considered successful or
-    /// false otherwise.
-    typedef std::function<bool (const std::string &_topic,
-        const ProtoMsgPtr _req, ProtoMsgPtr _rep)> ReqCallback;
+    /// \param[out] _result True when the service response is considered
+    /// successful or false otherwise.
+    template<typename T1, typename T2> using ReqCallback =
+      std::function<void(const std::string &_topic, const T1 &_req, T2 &_rep,
+        bool &_result)>;
 
     /// \def RepCallback
     /// \brief Callback used for receiving a service call response with the
@@ -81,8 +88,9 @@ namespace ignition
     /// \param[in] _rep Protobuf message containing the service response.
     /// \param[in] _result True when the service call was successful or false
     /// otherwise.
-    typedef std::function<void (const std::string &_topic,
-      const ProtoMsgPtr _rep, bool _result)> RepCallback;
+    template<typename T> using RepCallback =
+      std::function<void (const std::string &_topic, const T &_rep,
+        bool _result)>;
 
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
@@ -131,12 +139,6 @@ namespace ignition
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     typedef std::chrono::steady_clock::time_point Timestamp;
-
-    /// \def Subscription message callback. The first parameter of the callback
-    /// is a string containing the topic name received. The second parameter is
-    /// a protobuf message with the data.
-    template<typename T> using MsgCallback =
-      std::function<void(const std::string &, const T &)>;
   }
 }
 #endif

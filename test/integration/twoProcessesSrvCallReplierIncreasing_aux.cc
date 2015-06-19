@@ -42,7 +42,8 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>(topic, srvEcho)));
 
   // Run the node forever. Should be killed by the test that uses this.
   std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
