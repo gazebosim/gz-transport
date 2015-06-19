@@ -131,6 +131,12 @@ namespace ignition
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;
+
+    /// \def Subscription message callback. The first parameter of the callback
+    /// is a string containing the topic name received. The second parameter is
+    /// a protobuf message with the data.
+    template<typename T> using MsgCallback =
+      std::function<void(const std::string &, const T &)>;
   }
 }
 #endif

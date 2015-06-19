@@ -102,8 +102,10 @@ namespace ignition
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
+          //const std::string &_topic, MsgCallback _cb)
           const std::string &_topic,
-          void(*_cb)(const std::string &_topic, const T &_msg))
+          MsgCallback<T> _cb)
+          //void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
@@ -160,46 +162,8 @@ namespace ignition
           void(C::*_cb)(const std::string &_topic, const T &_msg),
           C *_obj)
       {
-        std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
-        {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
-        }
-
-        std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-        // Create a new subscription handler.
-        std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-          new SubscriptionHandler<T>(this->NodeUuid()));
-
-        // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->Callback(
+        return this->Subscribe<T>(_topic,
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
-
-        // Store the subscription handler. Each subscription handler is
-        // associated with a topic. When the receiving thread gets new data,
-        // it will recover the subscription handler associated to the topic and
-        // will invoke the callback.
-        this->Shared()->localSubscriptions.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
-
-        // Add the topic to the list of subscribed topics (if it was not before)
-        this->TopicsSubscribed().insert(fullyQualifiedTopic);
-
-        // Discover the list of nodes that publish on the topic.
-        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
-        {
-          std::cerr << "Node::Subscribe(): Error discovering a topic. "
-                    << "Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
       }
 
       /// \brief Get the list of topics subscribed by this node. Note that

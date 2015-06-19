@@ -43,7 +43,7 @@ void subscriber()
   cbExecuted = false;
   transport::Node node;
 
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe<transport::msgs::Int>(topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
