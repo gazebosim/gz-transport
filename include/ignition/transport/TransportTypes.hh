@@ -83,7 +83,7 @@ namespace ignition
     /// \param[in] _result True when the service call was successful or false
     /// otherwise.
     template<typename T> using RepCallback =
-      std::function<void (const std::string &_topic, const T &_rep,
+      std::function<void(const std::string &_topic, const T &_rep,
         bool _result)>;
 
     /// \def ISubscriptionHandlerPtr
