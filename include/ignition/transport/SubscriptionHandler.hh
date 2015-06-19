@@ -108,7 +108,7 @@ namespace ignition
         const std::string &_data) const
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T> msgPtr(new T());
+        auto msgPtr = std::make_shared<T>();
 
         // Create the message using some serialized data
         msgPtr->ParseFromString(_data);
