@@ -64,8 +64,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE((node.Request<transport::msgs::Int,
-    transport::msgs::Int>(topic, req, response)));
+  EXPECT_TRUE((node.Request(topic, req, response)));
 
   int i = 0;
   while (i < 300 && !responseExecuted)
@@ -81,8 +80,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   // Make another request.
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE((node.Request<transport::msgs::Int,
-    transport::msgs::Int>(topic, req, response)));
+  EXPECT_TRUE((node.Request(topic, req, response)));
 
   i = 0;
   while (i < 300 && !responseExecuted)

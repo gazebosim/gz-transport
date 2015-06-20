@@ -133,7 +133,8 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
-          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+          const transport::ProtoMsg *msg = &_msg;
+          auto msgPtr = google::protobuf::down_cast<const T*>(msg);
 
           // Remove the partition part from the topic.
           std::string topicName = _topic;

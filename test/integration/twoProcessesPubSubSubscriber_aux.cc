@@ -64,8 +64,8 @@ void runSubscriber()
   transport::Node node;
   transport::Node node2;
 
-  EXPECT_TRUE(node.Subscribe<transport::msgs::Vector3d>(topic, cb));
-  EXPECT_TRUE(node2.Subscribe<transport::msgs::Vector3d>(topic, cb2));
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node2.Subscribe(topic, cb2));
 
   int interval = 100;
 

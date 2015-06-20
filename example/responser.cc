@@ -45,8 +45,7 @@ int main(int argc, char **argv)
   std::string service = "/echo";
 
   // Advertise a service call.
-  if (!node.Advertise<example::msgs::StringMsg,
-          example::msgs::StringMsg>(service, srvEcho))
+  if (!node.Advertise(service, srvEcho))
   {
     std::cerr << "Error advertising service [" << service << "]" << std::endl;
     return -1;

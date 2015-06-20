@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  if (!node.Subscribe<example::msgs::StringMsg>(topic, cb))
+  if (!node.Subscribe(topic, cb))
   {
     std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return -1;

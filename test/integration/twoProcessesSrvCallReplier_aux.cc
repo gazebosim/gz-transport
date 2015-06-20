@@ -39,8 +39,7 @@ void srvEcho(const std::string &/*_topic*/, const transport::msgs::Int &_req,
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
-    transport::msgs::Int>(topic, srvEcho)));
+  EXPECT_TRUE((node.Advertise(topic, srvEcho)));
   std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 
