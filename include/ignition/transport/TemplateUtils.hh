@@ -43,6 +43,7 @@ namespace ignition
     /// \brief Template for getting some function information:
     ///   * arity: Number of function parameters.
     ///   * argument_type<N>: Data type of argument N.
+    /// Reference: https://github.com/ros2/rclcpp/blob/master/rclcpp/include/rclcpp/node.hpp
     template<typename FunctionT>
     struct function_traits
     {
