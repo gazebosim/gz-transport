@@ -13,6 +13,7 @@ set (headers
   RepHandler.hh
   ReqHandler.hh
   SubscriptionHandler.hh
+  TemplateUtils.hh
   TopicStorage.hh
   TopicUtils.hh
   TransportTypes.hh
