@@ -127,8 +127,7 @@ TEST(ignTest, TopicListSameProc)
 TEST(ignTest, ServiceListSameProc)
 {
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
-    transport::msgs::Int>("/foo", srvEcho)));
+  EXPECT_TRUE((node.Advertise("/foo", srvEcho)));
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";

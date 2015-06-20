@@ -42,8 +42,7 @@ int main(int argc, char **argv)
   req.set_data("HELLO");
 
   // Request the "/echo" service.
-  node.Request<example::msgs::StringMsg,
-    example::msgs::StringMsg>("/echo", req, responseCb);
+  node.Request("/echo", req, responseCb);
 
   // Wait for the response.
   std::cout << "Press <ENTER> to exit" << std::endl;
