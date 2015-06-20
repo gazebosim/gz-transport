@@ -42,6 +42,7 @@
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TemplateUtils.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -93,53 +94,6 @@ namespace ignition
       public: bool Publish(const std::string &_topic,
                            const ProtoMsg &_msg);
 
-      template <class U> struct UnConst
-      {
-          typedef U Result;
-          enum { isConst = 0 };
-      };
-
-      template <class U> struct UnConst<const U&>
-      {
-          typedef U Result;
-          enum { isConst = 1 };
-      };
-
-      template <class U> struct UnConst<U&>
-      {
-          typedef U Result;
-          enum { isConst = 1 };
-      };
-
-      template<typename FunctionT>
-      struct function_traits
-      {
-        static constexpr std::size_t arity =
-          function_traits<decltype( & FunctionT::operator())>::arity - 1;
-
-        template<std::size_t N>
-        using argument_type =
-            typename function_traits<decltype( & FunctionT::operator())>::template argument_type<N + 1>;
-      };
-
-      template<typename ReturnTypeT, typename ... Args>
-      struct function_traits<ReturnTypeT(Args ...)>
-      {
-        static constexpr std::size_t arity = sizeof ... (Args);
-
-        template<std::size_t N>
-        using argument_type = typename std::tuple_element<N, std::tuple<Args ...>>::type;
-      };
-
-      template<typename ReturnTypeT, typename ... Args>
-      struct function_traits<ReturnTypeT (*)(Args ...)>: public function_traits<ReturnTypeT(Args ...)>
-      {};
-
-      template<typename ClassT, typename ReturnTypeT, typename ... Args>
-      struct function_traits<ReturnTypeT (ClassT::*)(Args ...) const>
-        : public function_traits<ReturnTypeT(ClassT &, Args ...)>
-      {};
-
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
@@ -148,9 +102,9 @@ namespace ignition
       ///   \param[in] _topic Topic name.
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename FunctorT>
+      public: template<typename FntrT>
       bool Subscribe(const std::string &_topic,
-                     FunctorT _cb)
+                     FntrT _cb)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
@@ -161,19 +115,18 @@ namespace ignition
         }
 
         // Get the type of the message.
-        using T = typename function_traits<FunctorT>::template argument_type<1>;
+        using T = typename function_traits<FntrT>::template argument_type<1>;
 
         std::lock_guard<std::recursive_mutex> discLk(
           this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Create a new subscription handler.
-        std::shared_ptr<SubscriptionHandler<typename UnConst<T>::Result>> subscrHandlerPtr(
-            new SubscriptionHandler<typename UnConst<T>::Result>(this->NodeUuid()));
+        auto subscrHandlerPtr = std::make_shared<SubscriptionHandler<
+          typename UnConst<T>::Result>>(this->NodeUuid());
 
         // Insert the callback into the handler.
-        std::function<void(const std::string &_topic, T &_msg)> cb = _cb;
-        subscrHandlerPtr->Callback(cb);
+        subscrHandlerPtr->Callback(_cb);
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -211,7 +164,7 @@ namespace ignition
           void(C::*_cb)(const std::string &_topic, const T &_msg),
           C *_obj)
       {
-        std::function<void(const std::string &_topic, const T &_msg)> cb =
+        MsgCallback<T> cb =
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2);
         return this->Subscribe(_topic, cb);
       }
@@ -240,9 +193,9 @@ namespace ignition
       /// \param[in] _scope Topic scope.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
-      public: template<typename FunctorT>
+      public: template<typename FntrT>
       bool Advertise(const std::string &_topic,
-                     FunctorT _cb,
+                     FntrT _cb,
                      const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
@@ -261,20 +214,15 @@ namespace ignition
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
 
         // Get the message types.
-        using ReqT =
-          typename function_traits<FunctorT>::template argument_type<1>;
-        using RepT =
-          typename function_traits<FunctorT>::template argument_type<2>;
+        using ReqT = typename function_traits<FntrT>::template argument_type<1>;
+        using RepT = typename function_traits<FntrT>::template argument_type<2>;
 
         // Create a new service reply handler.
-        std::shared_ptr<RepHandler<typename UnConst<ReqT>::Result,
-          typename UnConst<RepT>::Result>> repHandlerPtr(new RepHandler<
-            typename UnConst<ReqT>::Result, typename UnConst<RepT>::Result>());
+        auto repHandlerPtr = std::make_shared<RepHandler<
+          typename UnConst<ReqT>::Result, typename UnConst<RepT>::Result>>();
 
         // Insert the callback into the handler.
-        std::function<void(const std::string &_topic, ReqT &_req,
-          RepT &_rep, bool &_result)> cb = _cb;
-        repHandlerPtr->Callback(cb);
+        repHandlerPtr->Callback(_cb);
 
         // Store the replier handler. Each replier handler is
         // associated with a topic. When the receiving thread gets new requests,
@@ -321,10 +269,8 @@ namespace ignition
         C *_obj,
         const Scope_t &_scope = Scope_t::All)
       {
-        std::function<void(const std::string &_topic, const ReqT &_req,
-          RepT &_rep, bool &_result)> cb =
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4);
+        ReqCallback<ReqT, RepT> cb = std::bind(_cb, _obj, std::placeholders::_1,
+          std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
         return this->Advertise(_topic, cb);
       }
 
@@ -343,10 +289,10 @@ namespace ignition
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
-      public: template<typename ReqT, typename FunctorT>
+      public: template<typename ReqT, typename FntrT>
       bool Request(const std::string &_topic,
                    const ReqT &_req,
-                   FunctorT _cb)
+                   FntrT _cb)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
@@ -360,9 +306,8 @@ namespace ignition
           this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
-        // Get the response message type.
-        using RepT =
-          typename function_traits<FunctorT>::template argument_type<1>;
+        // Get the response message type (1st argument of the callback).
+        using RepT = typename function_traits<FntrT>::template argument_type<1>;
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -384,16 +329,13 @@ namespace ignition
         }
 
         // Create a new request handler.
-        std::shared_ptr<ReqHandler<ReqT, typename UnConst<RepT>::Result>>
-          reqHandlerPtr(new ReqHandler<ReqT, typename UnConst<RepT>::Result>
-            (this->NodeUuid()));
+        auto reqHandlerPtr = std::make_shared<ReqHandler<ReqT,
+          typename UnConst<RepT>::Result>>(this->NodeUuid());
 
         // Insert the request's parameters.
         reqHandlerPtr->Message(_req);
 
         // Insert the callback into the handler.
-        std::function<void(const std::string &_topic, RepT &_req,
-          bool &_result)> cb = _cb;
         reqHandlerPtr->Callback(_cb);
 
         // Store the request handler.
