@@ -25,7 +25,7 @@
   #include <Ws2ipdef.h>
   #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
-  typedef char raw_type;
+  using raw_type = char;
 #else
   // For data types
   #include <sys/types.h>
@@ -40,7 +40,7 @@
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  typedef void raw_type;
+  using raw_type = void;
 #endif
 
 #include <zmq.hpp>

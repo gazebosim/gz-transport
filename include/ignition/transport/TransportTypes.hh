@@ -46,22 +46,22 @@ namespace ignition
     /// The keys are the process uuid of the nodes. For each uuid key, the
     /// value contains the list of publishers advertising the topic within the
     // same process uuid.
-    typedef std::map<std::string, std::vector<MessagePublisher>> MsgAddresses_M;
+    using MsgAddresses_M = std::map<std::string, std::vector<MessagePublisher>>;
 
     /// \def SrvAddresses_M
     /// \brief The map stores all the publishers advertising this service.
     /// The keys are the process uuid of the nodes. For each uuid key, the
     /// value contains the list of publishers advertising the service within the
     /// same process uuid.
-    typedef std::map<std::string, std::vector<ServicePublisher>> SrvAddresses_M;
+    using SrvAddresses_M = std::map<std::string, std::vector<ServicePublisher>>;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
-    typedef google::protobuf::Message ProtoMsg;
+    using ProtoMsg =  google::protobuf::Message;
 
     /// \def ProtoMsgPtr
     /// \brief Shared pointer to any protobuf message.
-    typedef std::shared_ptr<ProtoMsg> ProtoMsgPtr;
+    using ProtoMsgPtr = std::shared_ptr<ProtoMsg>;
 
     /// \def ReqCallback
     /// \brief Callback used for receiving a service call request with the
@@ -71,8 +71,8 @@ namespace ignition
     /// \param[out] _rep Protobuf message containing the service response.
     /// \return True when the service response is considered successful or
     /// false otherwise.
-    typedef std::function<bool (const std::string &_topic,
-        const ProtoMsgPtr _req, ProtoMsgPtr _rep)> ReqCallback;
+    using ReqCallback = std::function<bool (const std::string &_topic,
+        const ProtoMsgPtr _req, ProtoMsgPtr _rep)>;
 
     /// \def RepCallback
     /// \brief Callback used for receiving a service call response with the
@@ -81,56 +81,56 @@ namespace ignition
     /// \param[in] _rep Protobuf message containing the service response.
     /// \param[in] _result True when the service call was successful or false
     /// otherwise.
-    typedef std::function<void (const std::string &_topic,
-      const ProtoMsgPtr _rep, bool _result)> RepCallback;
+    using RepCallback = std::function<void (const std::string &_topic,
+      const ProtoMsgPtr _rep, bool _result)>;
 
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
-    typedef std::shared_ptr<ISubscriptionHandler> ISubscriptionHandlerPtr;
+    using ISubscriptionHandlerPtr = std::shared_ptr<ISubscriptionHandler>;
 
     /// \def ISubscriptionHandler_M
     /// \brief Map to store the different subscription handlers for a topic.
     /// Each node can have its own subscription handler. The node id
     /// is used as key and a pointer to a generic subscription handler is the
     /// value.
-    typedef std::map<std::string, ISubscriptionHandlerPtr>
-      ISubscriptionHandler_M;
+    using ISubscriptionHandler_M =
+      std::map<std::string, ISubscriptionHandlerPtr>;
 
     /// \def IRepHandlerPtr
     /// \brief Shared pointer to IRepHandler.
-    typedef std::shared_ptr<IRepHandler> IRepHandlerPtr;
+    using IRepHandlerPtr = std::shared_ptr<IRepHandler>;
 
     /// \def IReqHandlerPtr
     /// \brief Shared pointer to IReqHandler.
-    typedef std::shared_ptr<IReqHandler> IReqHandlerPtr;
+    using IReqHandlerPtr =  std::shared_ptr<IReqHandler>;
 
     /// \def IReqHandler_M
     /// \brief Map to store the different service request handlers for a
     /// topic. Each node can have its own request handler. The node id
     /// is used as key. The value is another map, where the key is the request
     /// UUID and the value is pointer to a generic request handler.
-    typedef std::map<std::string, std::map<std::string, IReqHandlerPtr>>
-      IReqHandler_M;
+    using IReqHandler_M =
+      std::map<std::string, std::map<std::string, IReqHandlerPtr>>;
 
     /// \def MsgDiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a topic.
     /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
-    typedef std::function<void(const MessagePublisher&_publisher)>
-      MsgDiscoveryCallback;
+    using MsgDiscoveryCallback =
+      std::function<void(const MessagePublisher&_publisher)>;
 
     /// \def SrvDiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a service.
     /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
-    typedef std::function<void(const ServicePublisher&_publisher)>
-      SrvDiscoveryCallback;
+    using SrvDiscoveryCallback =
+      std::function<void(const ServicePublisher&_publisher)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
-    typedef std::chrono::steady_clock::time_point Timestamp;
+    using Timestamp = std::chrono::steady_clock::time_point;
   }
 }
 #endif
