@@ -26,12 +26,12 @@
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   // Type used for raw data on this platform.
-  using raw_type =  char;
+  using raw_type = char;
 #else
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  using raw_type =  void;
+  using raw_type = void;
 #endif
 
 #include <functional>

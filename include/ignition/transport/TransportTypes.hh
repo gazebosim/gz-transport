@@ -57,7 +57,7 @@ namespace ignition
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
-    using ProtoMsg =  google::protobuf::Message;
+    using ProtoMsg = google::protobuf::Message;
 
     /// \def ProtoMsgPtr
     /// \brief Shared pointer to any protobuf message.
@@ -102,7 +102,7 @@ namespace ignition
 
     /// \def IReqHandlerPtr
     /// \brief Shared pointer to IReqHandler.
-    using IReqHandlerPtr =  std::shared_ptr<IReqHandler>;
+    using IReqHandlerPtr = std::shared_ptr<IReqHandler>;
 
     /// \def IReqHandler_M
     /// \brief Map to store the different service request handlers for a
