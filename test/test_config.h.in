@@ -81,9 +81,9 @@ namespace testing
   }
 
 #ifdef _WIN32
-  typedef PROCESS_INFORMATION forkHandlerType;
+  using forkHandlerType = PROCESS_INFORMATION;
 #else
-  typedef pid_t forkHandlerType;
+  using forkHandlerType = pid_t;
 #endif
 
   /// \brief create a new process and run command on it. This function is
