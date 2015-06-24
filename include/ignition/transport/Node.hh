@@ -271,7 +271,7 @@ namespace ignition
       {
         ReqCallback<ReqT, RepT> cb = std::bind(_cb, _obj, std::placeholders::_1,
           std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-        return this->Advertise(_topic, cb);
+        return this->Advertise(_topic, cb, _scope);
       }
 
       /// \brief Get the list of services advertised by this node.
