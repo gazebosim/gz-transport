@@ -7,22 +7,22 @@ package ignition.transport.msgs;
 message PublisherData
 {
 	/// \brief topic name.
-	required string topic = 1;
+	required string topic       = 1;
 
 	/// \brief address of publisher.
-	required string addr = 2;
+	required string addr        = 2;
 
 	/// \brief process uuid.
-	required string pUuid = 3;
+	required string pUuid       = 3;
 
 	/// \brief node uuid.
-	required string nUuid = 4;
+	required string nUuid       = 4;
 
 	/// \brief scope of topic.
-	required uint32 scope = 5;
+	required uint32 scope       = 5;
 
 	/// \brief control address (messages)/socket id (services).
-	optional string ctrl = 6;
+	optional string ctrl        = 6;
 
 	/// \brief message type (messages)/request message type (services).
 	optional string msgTypeName = 7;

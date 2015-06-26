@@ -1,8 +1,8 @@
 set(msgs
   int.proto
-  vector3d.proto
-  publisher.proto
   packet.proto
+  publisher.proto
+  vector3d.proto
 )
 
 add_executable(ignmsgs_out generator/IgnGenerator.cc generator/ign_generator.cc)

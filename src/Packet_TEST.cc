@@ -63,6 +63,36 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(output.str(), expectedOutput);
 }
 
+/// \brief Check the serialization and unserialization of a header.
+TEST(PacketTest, HeaderIO)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  // Try to pack an empty header.
+  Header emptyHeader;
+  std::vector<char> buffer;
+  EXPECT_FALSE(emptyHeader.Pack(buffer));
+
+  // Pack a Header.
+  Header header(version, pUuid, AdvSrvType, 2);
+
+  EXPECT_TRUE(header.Pack(buffer));
+
+  // Unpack the Header.
+  Header otherHeader;
+  EXPECT_TRUE(otherHeader.Unpack(buffer));
+
+  // Check that after Pack() and Unpack() the Header remains the same.
+  EXPECT_EQ(header.Version(), otherHeader.Version());
+  EXPECT_EQ(header.PUuid(), otherHeader.PUuid());
+  EXPECT_EQ(header.Type(), otherHeader.Type());
+  EXPECT_EQ(header.Flags(), otherHeader.Flags());
+
+  // Try to unpack a header passing an empty buffer.
+  EXPECT_FALSE(otherHeader.Unpack(std::vector<char>()));
+}
+
 //////////////////////////////////////////////////
 /// \brief Check the basic API for creating/reading an ADV message.
 TEST(PacketTest, BasicSubscriptionAPI)
