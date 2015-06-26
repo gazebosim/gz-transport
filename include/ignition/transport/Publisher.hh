@@ -20,7 +20,9 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include "ignition/transport/Helpers.hh"
+#include "msgs/publisher.pb.h"
 
 namespace ignition
 {
@@ -34,6 +36,43 @@ namespace ignition
     ///            machine as the publisher.
     /// * All:     Topic/service available to any subscriber (default scope).
     enum class Scope_t {Process, Host, All};
+
+    /// \brief Helper function for serializing a protobuf message into a vector.
+    /// \param[in] _msg Protobuf message to be serialized.
+    /// \param[out] _buffer Buffer containing the serialized message.
+    /// \return True if the serializetion succeed or false otherwise.
+    template <typename ProtoMsg>
+    bool serialize(const ProtoMsg &_msg, std::vector<char> &_buffer)
+    {
+      uint sz = _msg.ByteSize();
+      _buffer.resize(sz + sizeof(uint));
+      memcpy(&_buffer[0], &sz, sizeof(sz));
+
+      if (!_msg.SerializeToArray(&_buffer[sizeof(sz)], static_cast<size_t>(sz)))
+      {
+        std::cerr << "serialize() error serializing!" << std::endl;
+        return false;
+      }
+      return true;
+    }
+
+    /// \brief Helper function for unserializing bytes into a protobuf message.
+    /// \param[in] _buffer Serialized bytes.
+    /// \param[out] _msg Protobuf message.
+    /// \return True if the unserializetion succeed or false otherwise.
+    template <typename ProtoMsg>
+    bool unserialize(const std::vector<char> &_buffer, ProtoMsg &_msg)
+    {
+       uint sz;
+       memcpy(&sz, &_buffer[0], sizeof(sz));
+
+       if (!_msg.ParseFromArray(&_buffer[sizeof(sz)], sz))
+       {
+         std::cerr << "unserialize error parsing" << std::endl;
+         return false;
+       }
+       return true;
+    }
 
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
@@ -99,15 +138,11 @@ namespace ignition
       /// \param[out] _buffer Destination buffer in which the publisher
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      public: virtual bool Pack(std::vector<char> &_buffer) const;
 
       /// \brief Unserialize the publisher.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(char *_buffer);
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      public: virtual bool Unpack(const std::vector<char> &_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -174,15 +209,6 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~MessagePublisher() = default;
 
-      // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
-
-      // Documentation inherited.
-      public: size_t MsgLength() const;
-
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
       /// \return ZeroMQ control address of the publisher.
@@ -197,6 +223,12 @@ namespace ignition
 
       /// \brief Set the message type advertised by this publisher.
       public: void MsgTypeName(const std::string &_msgTypeName);
+
+      /// Documentation inherited.
+      public: bool Pack(std::vector<char> &_buffer) const override;
+
+      // Documentation inherited.
+      public: bool Unpack(const std::vector<char> &_buffer) override;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -246,15 +278,6 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
 
-      // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
-
-      // Documentation inherited.
-      public: size_t MsgLength() const;
-
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
       public: std::string SocketId() const;
@@ -278,6 +301,12 @@ namespace ignition
       /// \param[in] The protobuf message type.
       public: void RepTypeName(const std::string &_repTypeName);
 
+       /// Documentation inherited.
+      public: bool Pack(std::vector<char> &_buffer) const override;
+
+      // Documentation inherited.
+      public: bool Unpack(const std::vector<char> &_buffer) override;
+
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
       /// \param[in] _msg ServicePublisher to write to the stream.
@@ -296,10 +325,10 @@ namespace ignition
       protected: std::string socketId;
 
        /// \brief The name of the request's protobuf message advertised.
-      private: std::string reqTypeName;
+      protected: std::string reqTypeName;
 
       /// \brief The name of the response's protobuf message advertised.
-      private: std::string repTypeName;
+      protected: std::string repTypeName;
     };
   }
 }

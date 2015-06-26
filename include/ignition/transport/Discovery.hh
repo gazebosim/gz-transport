@@ -312,7 +312,7 @@ namespace ignition
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                         char *_msg);
+                                         const std::vector<char> &_msg);
 
       /// \brief Broadcast a discovery message.
       /// \param[in] _type Message type.
@@ -342,9 +342,8 @@ namespace ignition
             transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(advMsg.MsgLength());
-            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
+            if (advMsg.Pack(buffer))
+              msgLength = buffer.size();
             break;
           }
           case SubType:
@@ -354,18 +353,19 @@ namespace ignition
             SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(subMsg.MsgLength());
-            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
+            if (subMsg.Pack(buffer))
+              msgLength = buffer.size();
             break;
           }
           case HeartbeatType:
           case ByeType:
           {
+            // Create header message
+            SubscriptionMsg subMsg(header, "ignore");
+
             // Allocate a buffer and serialize the message.
-            buffer.resize(header.HeaderLength());
-            header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = header.HeaderLength();
+            if (subMsg.Pack(buffer))
+              msgLength = buffer.size();
             break;
           }
           default:

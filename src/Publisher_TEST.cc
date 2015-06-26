@@ -76,19 +76,17 @@ TEST(PublisherTest, PublisherIO)
 {
   // Try to pack an empty publisher.
   Publisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
+  std::vector<char> buffer;
+  EXPECT_EQ(emptyPublisher.Pack(buffer), false);
 
   // Pack a Publisher.
   Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
 
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  EXPECT_EQ(publisher.Pack(buffer), true);
 
   // Unpack the Publisher.
   Publisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  EXPECT_EQ(otherPublisher.Unpack(buffer), true);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(), otherPublisher.Topic());
@@ -96,12 +94,6 @@ TEST(PublisherTest, PublisherIO)
   EXPECT_EQ(publisher.PUuid(), otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
-
-  // Try to pack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -142,20 +134,18 @@ TEST(PublisherTest, MessagePublisherIO)
 {
   // Try to pack an empty publisher.
   MessagePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
+  std::vector<char> buffer;
+  EXPECT_EQ(emptyPublisher.Pack(buffer), false);
 
   // Pack a Publisher.
   MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
     MsgTypeName);
 
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  EXPECT_EQ(publisher.Pack(buffer), true);
 
   // Unpack the Publisher.
   MessagePublisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  EXPECT_EQ(otherPublisher.Unpack(buffer), true);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(), otherPublisher.Topic());
@@ -165,12 +155,6 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
   EXPECT_EQ(publisher.MsgTypeName(), otherPublisher.MsgTypeName());
-
-  // Try to pack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -214,20 +198,18 @@ TEST(PublisherTest, ServicePublisherIO)
 {
   // Try to pack an empty publisher.
   ServicePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
+  std::vector<char> buffer;
+  EXPECT_EQ(emptyPublisher.Pack(buffer), 0u);
 
   // Pack a Publisher.
   ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
     ReqTypeName, RepTypeName);
 
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  EXPECT_EQ(publisher.Pack(buffer), true);
 
   // Unpack the Publisher.
   ServicePublisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  EXPECT_EQ(otherPublisher.Unpack(buffer), true);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(), otherPublisher.Topic());
@@ -238,10 +220,4 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
   EXPECT_EQ(publisher.ReqTypeName(), otherPublisher.ReqTypeName());
   EXPECT_EQ(publisher.RepTypeName(), otherPublisher.RepTypeName());
-
-  // Try to pack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }

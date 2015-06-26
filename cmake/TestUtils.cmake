@@ -21,6 +21,8 @@ macro (ign_build_tests)
       gtest gtest_main
     )
 
+    include_directories(${CMAKE_BINARY_DIR}/)
+
     target_link_libraries(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}
     )

@@ -24,6 +24,7 @@
 #include <vector>
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/Helpers.hh"
+#include "msgs/packet.pb.h"
 
 namespace ignition
 {
@@ -105,20 +106,15 @@ namespace ignition
       /// \param[in] _flags Used for enable optional features.
       public: void Flags(const uint16_t _flags);
 
-      /// \brief Get the header length.
-      /// \return The header length in bytes.
-      public: int HeaderLength();
+      /// \brief Serialize the header.
+      /// \param[out] _buffer Buffer where the message will be serialized.
+      /// \return Bool whether everything went ok.
+      public: virtual bool Pack(std::vector<char> &_buffer) const;
 
-      /// \brief Serialize the header. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the header
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer);
-
-      /// \brief Unserialize the header.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(const char *_buffer);
+      /// \brief Unserialize a stream of bytes into a header.
+      /// \param[in] _buffer Unpack the body from the buffer.
+      /// \return Bool whether everything went ok.
+      public: virtual bool Unpack(const std::vector<char> &_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -148,10 +144,54 @@ namespace ignition
       private: uint16_t flags = 0;
     };
 
+    /// \class Message Packet.hh ignition/transport/Packet.hh
+    /// \brief Message base class.
+    class IGNITION_VISIBLE Message
+    {
+      /// \brief Constructor.
+      public: Message() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _header Message header.
+      public: Message(const Header &_header);
+
+      /// \brief Get the message header.
+      /// \return Copy of the message header.
+      public: Header GetHeader() const;
+
+      /// \brief Set the header of the message.
+      /// \param[in] _header Message header.
+      public: void SetHeader(const Header &_header);
+
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _msg Message to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const Message &_msg)
+      {
+        _out << _msg.GetHeader() << std::endl;
+
+        return _out;
+      }
+
+      /// \brief Serialize the subscription message.
+      /// \param[out] _buffer Buffer where the message will be serialized.
+      /// \return Bool whether everything went ok.
+      public: virtual bool Pack(std::vector<char> &_buffer) const;
+
+      /// \brief Unserialize a stream of bytes into a Sub.
+      /// \param[in] _buffer Unpack the body from the buffer.
+      /// \return Bool whether everything went ok.
+      public: virtual bool Unpack(const std::vector<char> &_buffer);
+
+      /// \brief Message header.
+      protected: Header header;
+    };
+
     /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
-    class IGNITION_VISIBLE SubscriptionMsg
+    class IGNITION_VISIBLE SubscriptionMsg : public Message
     {
       /// \brief Constructor.
       public: SubscriptionMsg() = default;
@@ -162,25 +202,19 @@ namespace ignition
       public: SubscriptionMsg(const Header &_header,
                               const std::string &_topic);
 
-      /// \brief Get the message header.
-      /// \return Reference to the message header.
-      public: Header GetHeader() const;
-
       /// \brief Get the topic.
       /// \return Topic name.
       public: std::string Topic() const;
-
-      /// \brief Set the header of the message.
-      /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
       public: void Topic(const std::string &_topic);
 
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t MsgLength();
+      // Documentation inherited.
+      public: bool Pack(std::vector<char> &_buffer) const override;
+
+      // Documentation inherited.
+      public: bool Unpack(const std::vector<char> &_buffer) override;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -195,19 +229,6 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the subscription message.
-      /// \param[out] _buffer Buffer where the message will be serialized.
-      /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer);
-
-      /// \brief Unserialize a stream of bytes into a Sub.
-      /// \param[out] _buffer Unpack the body from the buffer.
-      /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer);
-
-      /// \brief Message header.
-      private: Header header;
-
       /// \brief Topic.
       private: std::string topic = "";
     };
@@ -219,7 +240,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
 
-    template <class T> class IGNITION_VISIBLE AdvertiseMessage
+    template <class T> class IGNITION_VISIBLE AdvertiseMessage : public Message
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
@@ -229,16 +250,9 @@ namespace ignition
       /// \param[in] _publisher Contains the topic name, UUIDs, addresses.
       public: AdvertiseMessage(const Header &_header,
                                const T &_publisher)
-        : header(_header),
+        : Message(_header),
           publisher(_publisher)
       {
-      }
-
-      /// \brief Get the message header.
-      /// \return Reference to the message header.
-      public: Header GetHeader() const
-      {
-        return this->header;
       }
 
       /// \brief Get the publisher of this message.
@@ -248,13 +262,6 @@ namespace ignition
         return this->publisher;
       }
 
-      /// \brief Set the header of the message.
-      /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header)
-      {
-        this->header = _header;
-      }
-
       /// \brief Set the publisher of this message.
       /// \param[in] _publisher New publisher.
       public: void SetPublisher(const T &_publisher)
@@ -262,42 +269,55 @@ namespace ignition
         this->publisher = _publisher;
       }
 
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t MsgLength()
+      // Documentation inherited.
+      public: bool Pack(std::vector<char> &_buffer) const override
       {
-        return this->header.HeaderLength() + this->publisher.MsgLength();
+        if (!Message::Pack(_buffer))
+          return false;
+
+        msgs::MessageData message;
+        if (!unserialize(_buffer, message))
+          return false;
+
+        std::vector<char> v;
+        if (!this->publisher.Pack(v))
+        {
+          std::cerr << "AdvertiseMessage::Pack() error "
+                    << "packing publisher" << std::endl;
+          return false;
+        }
+
+        msgs::PublisherData pubMsg;
+        if (!unserialize(v, pubMsg))
+          return false;
+        message.mutable_publisher()->CopyFrom(pubMsg);
+
+        return serialize(message, _buffer);
       }
 
-      /// \brief Serialize the advertise message.
-      /// \param[out] _buffer Buffer where the message will be serialized.
-      /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer)
+      // Documentation inherited.
+      public: bool Unpack(const std::vector<char> &_buffer) override
       {
-        // Pack the common part of any advertise message.
-        size_t len = this->header.Pack(_buffer);
-        if (len == 0)
-          return 0;
+        // Empty buffer.
+        if (_buffer.empty())
+        {
+          std::cerr << "AdvertiseMessage::Unpack() error: Empty input buffer"
+                    << std::endl;
+          return false;
+        }
 
-        _buffer += len;
+        if (!Message::Unpack(_buffer))
+          return false;
 
-        // Pack the part of the publisher.
-        if (this->publisher.Pack(_buffer) == 0)
-          return 0;
+        msgs::MessageData message;
+        if (!unserialize(_buffer, message))
+          return false;
 
-        return this->MsgLength();
-      }
+        std::vector<char> publisherBuffer;
+        if (!serialize(message.publisher(), publisherBuffer))
+          return false;
 
-      /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
-      /// \param[out] _buffer Unpack the body from the buffer.
-      /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer)
-      {
-        // Unpack the message publisher.
-        if (this->publisher.Unpack(_buffer) == 0)
-          return 0;
-
-        return this->publisher.MsgLength();
+        return this->publisher.Unpack(publisherBuffer);
       }
 
       /// \brief Stream insertion operator.
@@ -309,9 +329,6 @@ namespace ignition
         _out << _msg.header << _msg.publisher;
         return _out;
       }
-
-      /// \brief The name of the protobuf message advertised.
-      private: Header header;
 
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
       private: T publisher;

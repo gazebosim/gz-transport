@@ -1,0 +1,32 @@
+package ignition.transport.msgs;
+
+/// \ingroup ignition_transport_msgs
+/// \interface PublisherData
+/// \brief A message storing information about Publishers. Used in Discovery.
+
+message PublisherData
+{
+	/// \brief topic name.
+	required string topic = 1;
+
+	/// \brief address of publisher.
+	required string addr = 2;
+
+	/// \brief process uuid.
+	required string pUuid = 3;
+
+	/// \brief node uuid.
+	required string nUuid = 4;
+
+	/// \brief scope of topic.
+	required uint32 scope = 5;
+
+	/// \brief control address (messages)/socket id (services).
+	optional string ctrl = 6;
+
+	/// \brief message type (messages)/request message type (services).
+	optional string msgTypeName = 7;
+
+	/// \brief reply message type (services only).
+	optional string repTypeName = 8;
+}

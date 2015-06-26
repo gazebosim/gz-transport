@@ -728,11 +728,13 @@ void Discovery::RecvDiscoveryUpdate()
   uint16_t srcPort;
   sockaddr_in clntAddr;
   socklen_t addrLen = sizeof(clntAddr);
+  ssize_t len;
 
-  if ((recvfrom(this->dataPtr->sockets.at(0),
+  len = recvfrom(this->dataPtr->sockets.at(0),
         reinterpret_cast<raw_type *>(rcvStr),
         DiscoveryPrivate::MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
-        reinterpret_cast<socklen_t *>(&addrLen))) < 0)
+        reinterpret_cast<socklen_t *>(&addrLen));
+  if (len < 0)
   {
     std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error" << std::endl;
     return;
@@ -746,23 +748,29 @@ void Discovery::RecvDiscoveryUpdate()
               << srcPort << std::endl;
   }
 
-  this->DispatchDiscoveryMsg(srcAddr, rcvStr);
+  this->DispatchDiscoveryMsg(srcAddr, std::vector<char>(rcvStr, rcvStr + len));
 }
 
 //////////////////////////////////////////////////
-void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
+void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp,
+  const std::vector<char> &_msg)
 {
+  transport::Message tmp;
   Header header;
-  char *pBody = _msg;
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   // Create the header from the raw bytes.
-  header.Unpack(_msg);
-  pBody += header.HeaderLength();
+  if (!tmp.Unpack(_msg))
+  {
+    std::cerr << "DispatchDiscoveryMsg: Unknown error when unpacking!\n";
+    return;
+  }
+
+  header = tmp.GetHeader();
 
   // Discard the message if the wire protocol is different than mine.
-  if (this->dataPtr->Version != header.Version())
+  if ((static_cast<int>(this->dataPtr->Version)) != header.Version())
     return;
 
   auto recvPUuid = header.PUuid();
@@ -780,7 +788,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the rest of the fields.
       transport::AdvertiseMessage<MessagePublisher> advMsg;
-      advMsg.Unpack(pBody);
+      advMsg.Unpack(_msg);
 
       // Check scope of the topic.
       if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
@@ -805,7 +813,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the rest of the fields.
       transport::AdvertiseMessage<ServicePublisher> advSrv;
-      advSrv.Unpack(pBody);
+      advSrv.Unpack(_msg);
 
       // Check scope of the topic.
       if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
@@ -830,7 +838,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
-      subMsg.Unpack(pBody);
+      subMsg.Unpack(_msg);
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
@@ -862,7 +870,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
-      subMsg.Unpack(pBody);
+      subMsg.Unpack(_msg);
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
@@ -928,7 +936,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the address.
       transport::AdvertiseMessage<MessagePublisher> advMsg;
-      advMsg.Unpack(pBody);
+      advMsg.Unpack(_msg);
 
       // Check scope of the topic.
       if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
@@ -956,7 +964,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     {
       // Read the address.
       transport::AdvertiseMessage<ServicePublisher> advSrv;
-      advSrv.Unpack(pBody);
+      advSrv.Unpack(_msg);
 
       // Check scope of the topic.
       if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||

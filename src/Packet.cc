@@ -84,101 +84,121 @@ void Header::Flags(const uint16_t _flags)
 }
 
 //////////////////////////////////////////////////
-int Header::HeaderLength()
+bool Header::Pack(std::vector<char> &_buffer) const
 {
-  return sizeof(this->version) +
-         sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(this->type) + sizeof(this->flags);
-}
-
-//////////////////////////////////////////////////
-size_t Header::Pack(char *_buffer)
-{
-  // Uninitialized.
   if ((this->version == 0) || (this->pUuid == "") ||
-      (this->type  == Uninitialized))
+      (this->type == Uninitialized))
   {
-    std::cerr << "Header::Pack() error: You're trying to pack an incomplete "
-              << "header:" << std::endl << *this;
-    return 0;
+    std::cerr << "Header::Pack() error: You're trying to pack an "
+              << "incomplete header" << std::endl;
+    return false;
   }
 
-  // null buffer.
-  if (!_buffer)
-  {
-    std::cerr << "Header::Pack() error: NULL output buffer" << std::endl;
-    return 0;
-  }
+  msgs::HeaderData message;
+  message.set_version(this->version);
+  message.set_puuid(this->pUuid);
+  message.set_type(static_cast<int>(this->type));
+  message.set_flags(this->flags);
 
-  // Pack the discovery protocol version, which is a uint16_t
-  memcpy(_buffer, &this->version, sizeof(this->version));
-  _buffer += sizeof(this->version);
-
-  // Pack the process UUID length.
-  uint64_t pUuidLength = this->pUuid.size();
-  memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
-  _buffer += sizeof(pUuidLength);
-
-  // Pack the process UUID.
-  memcpy(_buffer, this->pUuid.data(), static_cast<size_t>(pUuidLength));
-  _buffer += pUuidLength;
-
-  // Pack the message type (ADVERTISE, SUBSCRIPTION, ...), which is uint8_t
-  memcpy(_buffer, &this->type, sizeof(this->type));
-  _buffer += sizeof(this->type);
-
-  // Pack the flags, which is uint16_t
-  memcpy(_buffer, &this->flags, sizeof(this->flags));
-
-  return this->HeaderLength();
+  // Pack Header data.
+  return serialize(message, _buffer);
 }
 
 //////////////////////////////////////////////////
-size_t Header::Unpack(const char *_buffer)
+bool Header::Unpack(const std::vector<char> &_buffer)
 {
-  // null buffer.
-  if (!_buffer)
+  // Empty buffer.
+  if (_buffer.empty())
   {
-    std::cerr << "Header::Unpack() error: NULL input buffer" << std::endl;
-    return 0;
+    std::cerr << "Header::Unpack() error: Empty input buffer"
+              << std::endl;
+    return false;
   }
 
-  // Unpack the version.
-  memcpy(&this->version, _buffer, sizeof(this->version));
-  _buffer += sizeof(this->version);
+  msgs::HeaderData message;
 
-  // Unpack the process UUID length.
-  uint64_t pUuidLength;
-  memcpy(&pUuidLength, _buffer, sizeof(pUuidLength));
-  _buffer += sizeof(pUuidLength);
+  // Unpack Header data
+  if (!unserialize(_buffer, message))
+    return false;
 
-  // Unpack the process UUID.
-  this->pUuid = std::string(_buffer, _buffer + pUuidLength);
-  _buffer += pUuidLength;
+  this->version = message.version();
+  this->pUuid = message.puuid();
+  this->type = message.type();
+  this->flags = message.flags();
 
-  // Unpack the message type.
-  memcpy(&this->type, _buffer, sizeof(this->type));
-  _buffer += sizeof(this->type);
+  return true;
+}
 
-  // Unpack the flags.
-  memcpy(&this->flags, _buffer, sizeof(this->flags));
-  _buffer += sizeof(this->flags);
+//////////////////////////////////////////////////
+Message::Message(const Header &_header)
+{
+  this->SetHeader(_header);
+}
 
-  return this->HeaderLength();
+//////////////////////////////////////////////////
+Header Message::GetHeader() const
+{
+  return this->header;
+}
+
+//////////////////////////////////////////////////
+void Message::SetHeader(const Header &_header)
+{
+  this->header = _header;
+}
+
+//////////////////////////////////////////////////
+bool Message::Pack(std::vector<char> &_buffer) const
+{
+  std::vector<char> v;
+  if (!this->header.Pack(v))
+  {
+    std::cerr << "Message::Pack() error packing header" << std::endl;
+    return false;
+  }
+
+  msgs::HeaderData head;
+  if (!unserialize(v, head))
+    return false;
+
+  msgs::MessageData message;
+  message.mutable_header()->CopyFrom(head);
+
+  // Pack Message data
+  return serialize(message, _buffer);
+}
+
+//////////////////////////////////////////////////
+bool Message::Unpack(const std::vector<char> &_buffer)
+{
+  // Empty buffer.
+  if (_buffer.empty())
+  {
+    std::cerr << "Message::Unpack() error: Empty input buffer"
+              << std::endl;
+    return false;
+  }
+
+  msgs::MessageData message;
+
+  // Unpack Message data.
+  if (!unserialize(_buffer, message))
+    return false;
+
+  // Unpack the header.
+  std::vector<char> headerBuffer;
+  if (!serialize(message.header(), headerBuffer))
+    return false;
+
+  return this->header.Unpack(headerBuffer);
 }
 
 //////////////////////////////////////////////////
 SubscriptionMsg::SubscriptionMsg(const Header &_header,
                                  const std::string &_topic)
+  : Message(_header)
 {
-  this->SetHeader(_header);
   this->Topic(_topic);
-}
-
-//////////////////////////////////////////////////
-Header SubscriptionMsg::GetHeader() const
-{
-  return this->header;
 }
 
 //////////////////////////////////////////////////
@@ -188,69 +208,53 @@ std::string SubscriptionMsg::Topic() const
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetHeader(const Header &_header)
-{
-  this->header = _header;
-}
-
-//////////////////////////////////////////////////
 void SubscriptionMsg::Topic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::MsgLength()
+bool SubscriptionMsg::Pack(std::vector<char> &_buffer) const
 {
-  return this->header.HeaderLength() + sizeof(uint64_t) + this->topic.size();
-}
-
-//////////////////////////////////////////////////
-size_t SubscriptionMsg::Pack(char *_buffer)
-{
-  // Pack the header.
-  size_t headerLen = this->GetHeader().Pack(_buffer);
-  if (headerLen == 0)
-    return 0;
-
   if (this->topic == "")
   {
-    std::cerr << "SubscriptionMsg::Pack() error: You're trying to pack a "
-              << "message with an empty topic" << std::endl;
-    return 0;
+    std::cerr << "SubscriptionMsg::Pack() error: You're trying to pack an "
+              << "incomplete message" << std::endl;
+    return false;
   }
 
-  _buffer += headerLen;
+  if (!Message::Pack(_buffer))
+    return false;
 
-  // Pack the topic length.
-  uint64_t topicLength = this->topic.size();
-  memcpy(_buffer, &topicLength, sizeof(topicLength));
-  _buffer += sizeof(topicLength);
+  msgs::MessageData message;
+  if (!unserialize(_buffer, message))
+    return false;
 
-  // Pack the topic.
-  memcpy(_buffer, this->topic.data(), static_cast<size_t>(topicLength));
+  // Add the topic.
+  message.set_topic(this->topic);
 
-  return this->MsgLength();
+  return serialize(message, _buffer);
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::Unpack(char *_buffer)
+bool SubscriptionMsg::Unpack(const std::vector<char> &_buffer)
 {
-  // null buffer.
-  if (!_buffer)
+  // Empty buffer.
+  if (_buffer.empty())
   {
-    std::cerr << "SubscriptionMsg::UnpackBody() error: NULL input buffer"
+    std::cerr << "SubscriptionMsg::Unpack() error: Empty input buffer"
               << std::endl;
-    return 0;
+    return false;
   }
 
-  // Unpack the topic length.
-  uint64_t topicLength;
-  memcpy(&topicLength, _buffer, sizeof(topicLength));
-  _buffer += sizeof(topicLength);
+  if (!Message::Unpack(_buffer))
+    return false;
 
-  // Unpack the topic.
-  this->topic = std::string(_buffer, _buffer + topicLength);
+  msgs::MessageData message;
+  if (!unserialize(_buffer, message))
+    return false;
 
-  return sizeof(topicLength) + static_cast<size_t>(topicLength);
+  this->topic = message.topic();
+
+  return true;
 }
