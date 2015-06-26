@@ -44,8 +44,8 @@ namespace ignition
     template <typename ProtoMsg>
     bool serialize(const ProtoMsg &_msg, std::vector<char> &_buffer)
     {
-      uint sz = _msg.ByteSize();
-      _buffer.resize(sz + sizeof(uint));
+      int sz = _msg.ByteSize();
+      _buffer.resize(sz + sizeof(sz));
       memcpy(&_buffer[0], &sz, sizeof(sz));
 
       if (!_msg.SerializeToArray(&_buffer[sizeof(sz)], static_cast<size_t>(sz)))
@@ -63,7 +63,7 @@ namespace ignition
     template <typename ProtoMsg>
     bool unserialize(const std::vector<char> &_buffer, ProtoMsg &_msg)
     {
-       uint sz;
+       int sz;
        memcpy(&sz, &_buffer[0], sizeof(sz));
 
        if (!_msg.ParseFromArray(&_buffer[sizeof(sz)], sz))

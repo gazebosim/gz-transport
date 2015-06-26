@@ -111,7 +111,7 @@ bool Publisher::Pack(std::vector<char> &_buffer) const
   publisher.set_addr(this->addr);
   publisher.set_puuid(this->pUuid);
   publisher.set_nuuid(this->nUuid);
-  publisher.set_scope(static_cast<uint>(this->scope));
+  publisher.set_scope(static_cast<uint32_t>(this->scope));
 
   // Pack using protobuf messages.
   return serialize(publisher, _buffer);
@@ -123,8 +123,7 @@ bool Publisher::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "Publisher::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "Publisher::Unpack() error: Empty input buffer" << std::endl;
     return false;
   }
 
@@ -135,7 +134,7 @@ bool Publisher::Unpack(const std::vector<char> &_buffer)
     return false;
 
   this->topic = message.topic();
-  this->addr = message.addr();
+  this->addr  = message.addr();
   this->pUuid = message.puuid();
   this->nUuid = message.nuuid();
   this->scope = static_cast<Scope_t>(message.scope());
@@ -208,8 +207,7 @@ bool MessagePublisher::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "MessagePublisher::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "MessagePublisher::Unpack() error: Empty buffer" << std::endl;
     return false;
   }
 
@@ -305,8 +303,7 @@ bool ServicePublisher::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "ServicePublisher::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "ServicePublisher::Unpack() error: Empty buffer" << std::endl;
     return false;
   }
 

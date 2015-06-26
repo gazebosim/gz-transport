@@ -90,7 +90,7 @@ namespace ignition
       public: static const int MaxRcvStr = 65536;
 
       /// \brief Discovery protocol version.
-      static const uint8_t Version = 2;
+      static const uint8_t Version = 3;
 
       /// \brief Host IP address.
       public: std::string hostAddr;

@@ -97,7 +97,7 @@ bool Header::Pack(std::vector<char> &_buffer) const
   msgs::HeaderData message;
   message.set_version(this->version);
   message.set_puuid(this->pUuid);
-  message.set_type(static_cast<int>(this->type));
+  message.set_type(this->type);
   message.set_flags(this->flags);
 
   // Pack Header data.
@@ -110,8 +110,7 @@ bool Header::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "Header::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "Header::Unpack() error: Empty input buffer" << std::endl;
     return false;
   }
 
@@ -174,8 +173,7 @@ bool Message::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "Message::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "Message::Unpack() error: Empty input buffer" << std::endl;
     return false;
   }
 
@@ -242,8 +240,7 @@ bool SubscriptionMsg::Unpack(const std::vector<char> &_buffer)
   // Empty buffer.
   if (_buffer.empty())
   {
-    std::cerr << "SubscriptionMsg::Unpack() error: Empty input buffer"
-              << std::endl;
+    std::cerr << "SubscriptionMsg::Unpack() error: Empty buffer" << std::endl;
     return false;
   }
 
