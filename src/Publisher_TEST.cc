@@ -94,6 +94,9 @@ TEST(PublisherTest, PublisherIO)
   EXPECT_EQ(publisher.PUuid(), otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
+
+  // Try to unpack a Publisher passing an empty buffer.
+  EXPECT_FALSE(otherPublisher.Unpack(std::vector<char>()));
 }
 
 //////////////////////////////////////////////////
@@ -155,6 +158,9 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
   EXPECT_EQ(publisher.MsgTypeName(), otherPublisher.MsgTypeName());
+
+  // Try to unpack a MessagePublisher passing an empty buffer.
+  EXPECT_FALSE(otherPublisher.Unpack(std::vector<char>()));
 }
 
 //////////////////////////////////////////////////
@@ -220,4 +226,7 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
   EXPECT_EQ(publisher.ReqTypeName(), otherPublisher.ReqTypeName());
   EXPECT_EQ(publisher.RepTypeName(), otherPublisher.RepTypeName());
+
+  // Try to unpack a ServicePublisher passing an empty buffer.
+  EXPECT_FALSE(otherPublisher.Unpack(std::vector<char>()));
 }

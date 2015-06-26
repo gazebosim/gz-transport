@@ -8,18 +8,18 @@ import "publisher.proto";
 
 message HeaderData
 {
-	/// \brief type of message.
+	/// \brief Type of message.
 	required uint32 type    = 1;
 
-	/// \brief version of discovery.
+	/// \brief Version of discovery.
 	///        protobuf does not support uint16, but if the numbers stay
 	///        in uint16 range they are stored as efficiently as a uint16
 	required uint32 version = 2;
 
-	/// \brief process uuid.
+	/// \brief Process uuid.
 	required string pUuid   = 3;
 
-	/// \brief optional flags.
+	/// \brief Pptional flags.
 	///        protobuf does not support uint16, but if the numbers stay
 	///        in uint16 range they are stored as efficiently as a uint16
 	optional uint32 flags   = 4;
@@ -31,12 +31,12 @@ message HeaderData
 
 message MessageData
 {
-	/// \brief header of message.
+	/// \brief Header of message.
 	required HeaderData header       = 1;
 
-	/// \brief topic name.
+	/// \brief Topic name.
 	optional string topic            = 2;
 
-	/// \brief publisher data.
+	/// \brief Publisher data.
 	optional PublisherData publisher = 3;
 }

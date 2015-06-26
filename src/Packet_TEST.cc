@@ -157,6 +157,9 @@ TEST(PacketTest, SubscriptionIO)
 
   // Check that after Pack() and Unpack() the data does not change.
   EXPECT_EQ(otherSubMsg.Topic(), subMsg.Topic());
+
+  // Try to unpack a SubscriptionMsg passing an empty buffer.
+  EXPECT_FALSE(otherSubMsg.Unpack(std::vector<char>()));
 }
 
 //////////////////////////////////////////////////
@@ -355,6 +358,9 @@ TEST(PacketTest, AdvertiseMsgIO)
   EXPECT_EQ(otherAdvMsg.GetPublisher().Scope(), advMsg.GetPublisher().Scope());
   EXPECT_EQ(otherAdvMsg.GetPublisher().MsgTypeName(),
     advMsg.GetPublisher().MsgTypeName());
+
+  // Try to unpack an AdvertiseMsg passing an empty buffer.
+  EXPECT_FALSE(otherAdvMsg.Unpack(std::vector<char>()));
 }
 
 //////////////////////////////////////////////////
@@ -507,4 +513,7 @@ TEST(PacketTest, AdvertiseSrvIO)
     advSrv.GetPublisher().ReqTypeName());
   EXPECT_EQ(otherAdvSrv.GetPublisher().RepTypeName(),
     advSrv.GetPublisher().RepTypeName());
+
+  // Try to unpack an AdvertiseSrv passing an empty buffer buffer.
+  EXPECT_FALSE(otherAdvSrv.Unpack(std::vector<char>()));
 }

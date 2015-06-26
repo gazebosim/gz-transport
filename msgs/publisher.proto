@@ -6,27 +6,27 @@ package ignition.transport.msgs;
 
 message PublisherData
 {
-	/// \brief topic name.
+	/// \brief Topic name.
 	required string topic       = 1;
 
-	/// \brief address of publisher.
+	/// \brief Address of publisher.
 	required string addr        = 2;
 
-	/// \brief process uuid.
+	/// \brief Process uuid.
 	required string pUuid       = 3;
 
-	/// \brief node uuid.
+	/// \brief Node uuid.
 	required string nUuid       = 4;
 
-	/// \brief scope of topic.
+	/// \brief Scope of topic.
 	required uint32 scope       = 5;
 
-	/// \brief control address (messages)/socket id (services).
+	/// \brief Control address (messages)/socket id (services).
 	optional string ctrl        = 6;
 
-	/// \brief message type (messages)/request message type (services).
+	/// \brief Message type (messages)/request message type (services).
 	optional string msgTypeName = 7;
 
-	/// \brief reply message type (services only).
+	/// \brief Reply message type (services only).
 	optional string repTypeName = 8;
 }
