@@ -68,7 +68,7 @@ namespace ignition
 
        if (!_msg.ParseFromArray(&_buffer[sizeof(sz)], sz))
        {
-         std::cerr << "unserialize error parsing" << std::endl;
+         std::cerr << "unserialize() error parsing!" << std::endl;
          return false;
        }
        return true;
