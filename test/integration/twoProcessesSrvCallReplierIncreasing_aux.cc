@@ -19,7 +19,7 @@
 #include <climits>
 #include <string>
 #include "ignition/transport/Node.hh"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 

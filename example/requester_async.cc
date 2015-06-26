@@ -18,12 +18,12 @@
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
-#include "msg/stringmsg.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.
-void responseCb(const std::string &_topic,
-  const example::mymsgs::StringMsg &_rep, bool _result)
+void responseCb(const std::string &_topic, const example::msgs::StringMsg &_rep,
+  bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  example::mymsgs::StringMsg req;
+  example::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/echo" service.

@@ -18,7 +18,7 @@
 #include <chrono>
 #include <csignal>
 #include <ignition/transport.hh>
-#include "msg/stringmsg.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 bool terminatePub = false;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  example::mymsgs::StringMsg msg;
+  example::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
