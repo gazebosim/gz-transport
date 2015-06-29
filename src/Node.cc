@@ -118,7 +118,7 @@ Node::~Node()
   auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)
   {
-    if (!this->UnadvertiseSrv(service))
+    if (!this->Unadvertise(service))
     {
       std::cerr << "Node::~Node(): Error unadvertising service ["
                 << service << "]" << std::endl;
@@ -148,11 +148,12 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  MessagePublisher publisher(fullyQualifiedTopic,
+  std::shared_ptr<Publisher> publisher =
+    std::make_shared<MessagePublisher>(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
 
-  if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher))
+  if (!this->dataPtr->shared->discovery->Advertise(publisher))
   {
     std::cerr << "Node::Advertise(): Error advertising a topic. "
               << "Did you forget to start the discovery service?" << std::endl;
@@ -182,26 +183,51 @@ std::vector<std::string> Node::AdvertisedTopics() const
 //////////////////////////////////////////////////
 bool Node::Unadvertise(const std::string &_topic)
 {
-  std::string fullyQualifiedTopic = _topic;
+  std::string fullyQualifiedMsg = _topic;
   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+    this->dataPtr->ns, _topic, fullyQualifiedMsg))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::string fullyQualifiedSrv = fullyQualifiedMsg;
 
-  // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
+  auto found = fullyQualifiedSrv.find_first_of("msg");
+  fullyQualifiedSrv.replace(found, 3, "srv");
 
-  // Notify the discovery service to unregister and unadvertise my topic.
-  if (!this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
+  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg) != this->dataPtr->topicsAdvertised.end())
   {
-    return false;
+    std::lock_guard<std::recursive_mutex> discLk(
+            this->dataPtr->shared->discovery->Mutex());
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    // Remove the topic from the list of advertised topics in this node.
+    this->dataPtr->topicsAdvertised.erase(fullyQualifiedMsg);
+
+    // Notify the discovery service to unregister and unadvertise my topic.
+    if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedMsg,
+      this->dataPtr->nUuid))
+    {
+      return false;
+    }
+  }
+
+  if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv) != this->dataPtr->srvsAdvertised.end())
+  {
+    std::lock_guard<std::recursive_mutex> discLk(
+            this->dataPtr->shared->discovery->Mutex());
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    // Remove the topic from the list of advertised topics in this node.
+    this->dataPtr->srvsAdvertised.erase(fullyQualifiedSrv);
+
+    // Notify the discovery service to unregister and unadvertise my topic.
+    if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedSrv,
+      this->dataPtr->nUuid))
+    {
+      return false;
+    }
   }
 
   return true;
@@ -375,37 +401,37 @@ std::vector<std::string> Node::AdvertisedServices() const
   return v;
 }
 
-//////////////////////////////////////////////////
-bool Node::UnadvertiseSrv(const std::string &_topic)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
+// //////////////////////////////////////////////////
+// bool Node::Unadvertise(const std::string &_topic)
+// {
+//   std::string fullyQualifiedTopic;
+//   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+//     this->dataPtr->ns, _topic, fullyQualifiedTopic, true))
+//   {
+//     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+//     return false;
+//   }
 
-  std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+//   std::lock_guard<std::recursive_mutex> discLk(
+//           this->dataPtr->shared->discovery->Mutex());
+//   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
+//   // Remove the topic from the list of advertised topics in this node.
+//   this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
 
-  // Remove all the REP handlers for this node.
-  this->dataPtr->shared->repliers.RemoveHandlersForNode(
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+//   // Remove all the REP handlers for this node.
+//   this->dataPtr->shared->repliers.RemoveHandlersForNode(
+//     fullyQualifiedTopic, this->dataPtr->nUuid);
 
-  // Notify the discovery service to unregister and unadvertise my services.
-  if (!this->dataPtr->shared->discovery->UnadvertiseSrv(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
-  {
-    return false;
-  }
+//   // Notify the discovery service to unregister and unadvertise my services.
+//   if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedTopic,
+//     this->dataPtr->nUuid))
+//   {
+//     return false;
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 //////////////////////////////////////////////////
 void Node::TopicList(std::vector<std::string> &_topics) const

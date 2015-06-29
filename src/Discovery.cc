@@ -286,43 +286,55 @@ void Discovery::Start()
 }
 
 //////////////////////////////////////////////////
-bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
+bool Discovery::Advertise(std::shared_ptr<Publisher> _publisher)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   if (!this->dataPtr->enabled)
     return false;
 
-  // Add the addressing information (local publisher).
-  this->dataPtr->infoMsg.AddPublisher(_publisher);
+  // auto first = (topic.find_first_of("@") != std::string::npos)? topic.find_first_of("@") : -1;
 
-  // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
-    this->SendMsg(AdvType, _publisher);
+  auto topic = _publisher->Topic();
+  topic.erase(0, topic.find_first_of("@")+1);
 
-  return true;
-}
+  auto first = topic.find_first_of("@");
+  auto last = topic.find_first_of("@", first+1);
+  if (last == std::string::npos)
+  {
+    last = first;
+    first = -1;
+  }
+  auto type = topic.substr(first+1, last-first-1);
 
-//////////////////////////////////////////////////
-bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
-{
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  if (type == "msg")
+  {
+    std::shared_ptr<MessagePublisher> pub = std::dynamic_pointer_cast<MessagePublisher>(_publisher);
+    // Add the addressing information (local publisher).
+    this->dataPtr->infoMsg.AddPublisher(*pub);
 
-  if (!this->dataPtr->enabled)
+    // Only advertise a message outside this process if the scope is not 'Process'
+    if (_publisher->Scope() != Scope_t::Process)
+      this->SendMsg(AdvType, *pub);
+  }
+  else if (type == "srv")
+  {
+    std::shared_ptr<ServicePublisher> pub = std::dynamic_pointer_cast<ServicePublisher>(_publisher);
+    // Add the addressing information (local publisher).
+    this->dataPtr->infoSrv.AddPublisher(*pub);
+
+    // Only advertise a message outside this process if the scope is not 'Process'
+    if (_publisher->Scope() != Scope_t::Process)
+      this->SendMsg(AdvType, *pub);
+  }
+  else
     return false;
 
-  // Add the addressing information (local publisher).
-  this->dataPtr->infoSrv.AddPublisher(_publisher);
-
-  // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
-    this->SendMsg(AdvSrvType, _publisher);
-
   return true;
 }
 
 //////////////////////////////////////////////////
-bool Discovery::UnadvertiseMsg(const std::string &_topic,
+bool Discovery::Unadvertise(const std::string &_topic,
   const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
@@ -330,137 +342,152 @@ bool Discovery::UnadvertiseMsg(const std::string &_topic,
   if (!this->dataPtr->enabled)
     return false;
 
-  MessagePublisher inf;
-  // Don't do anything if the topic is not advertised by any of my nodes.
-  if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
-    inf))
+  auto topic = _topic;
+  topic.erase(0, topic.find_first_of("@")+1);
+
+  auto first = topic.find_first_of("@");
+  auto last = topic.find_first_of("@", first+1);
+  if (last == std::string::npos)
   {
-    return true;
+    last = first;
+    first = -1;
   }
+  auto type = topic.substr(first+1, last-first-1);
 
-  // Remove the topic information.
-  this->dataPtr->infoMsg.DelPublisherByNode(_topic, this->dataPtr->pUuid,
-    _nUuid);
-
-  // Only unadvertise a message outside this process if the scope
-  // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
-    this->SendMsg(UnadvType, inf);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Discovery::UnadvertiseSrv(const std::string &_topic,
-  const std::string &_nUuid)
-{
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
-  if (!this->dataPtr->enabled)
-    return false;
-
-  ServicePublisher inf;
-  // Don't do anything if the topic is not advertised by any of my nodes.
-  if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
-    inf))
+  if (type == "msg")
   {
-    return true;
-  }
-
-  // Remove the topic information.
-  this->dataPtr->infoSrv.DelPublisherByNode(_topic, this->dataPtr->pUuid,
-    _nUuid);
-
-  // Only unadvertise a message outside this process if the scope
-  // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
-    this->SendMsg(UnadvSrvType, inf);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Discovery::DiscoverMsg(const std::string &_topic)
-{
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
-  if (!this->dataPtr->enabled)
-    return false;
-
-  MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
-  MessagePublisher pub;
-
-  pub.Topic(_topic);
-  pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
-
-  // Broadcast a discovery request for this service call.
-  this->SendMsg(SubType, pub);
-
-  // I already have information about this topic.
-  if (this->dataPtr->infoMsg.HasTopic(_topic))
-  {
-    MsgAddresses_M addresses;
-    if (this->dataPtr->infoMsg.GetPublishers(_topic, addresses))
+    MessagePublisher inf;
+    // Don't do anything if the topic is not advertised by any of my nodes.
+    if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
+      inf))
     {
-      for (auto &proc : addresses)
+      return true;
+    }
+
+    // Remove the topic information.
+    this->dataPtr->infoMsg.DelPublisherByNode(_topic, this->dataPtr->pUuid,
+      _nUuid);
+
+    // Only unadvertise a message outside this process if the scope
+    // is not 'Process'.
+    if (inf.Scope() != Scope_t::Process)
+      this->SendMsg(UnadvType, inf);
+  }
+  else if (type == "srv")
+  {
+    ServicePublisher inf;
+    // Don't do anything if the topic is not advertised by any of my nodes.
+    if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
+      inf))
+    {
+      return true;
+    }
+
+    // Remove the topic information.
+    this->dataPtr->infoSrv.DelPublisherByNode(_topic, this->dataPtr->pUuid,
+      _nUuid);
+
+    // Only unadvertise a message outside this process if the scope
+    // is not 'Process'.
+    if (inf.Scope() != Scope_t::Process)
+      this->SendMsg(UnadvType, inf);
+  }
+  else
+    return false;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Discovery::Discover(const std::string &_topic)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
+  if (!this->dataPtr->enabled)
+    return false;
+
+  auto topic = _topic;
+  topic.erase(0, topic.find_first_of("@")+1);
+
+  auto first = topic.find_first_of("@");
+  auto last = topic.find_first_of("@", first+1);
+  if (last == std::string::npos)
+  {
+    last = first;
+    first = -1;
+  }
+  auto type = topic.substr(first+1, last-first-1);
+
+  if (type == "msg")
+  {
+    MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
+    MessagePublisher pub;
+
+    pub.Topic(_topic);
+    pub.PUuid(this->dataPtr->pUuid);
+    pub.Scope(Scope_t::All);
+
+    // Broadcast a discovery request for this service call.
+    this->SendMsg(SubType, pub);
+
+    // I already have information about this topic.
+    if (this->dataPtr->infoMsg.HasTopic(_topic))
+    {
+      MsgAddresses_M addresses;
+      if (this->dataPtr->infoMsg.GetPublishers(_topic, addresses))
       {
-        for (auto &node : proc.second)
+        for (auto &proc : addresses)
         {
-          if (cb)
+          for (auto &node : proc.second)
           {
-            // Execute the user's callback for a service request. Notice
-            // that we only execute one callback for preventing receive multiple
-            // service responses for a single request.
-            cb(node);
+            if (cb)
+            {
+              // Execute the user's callback for a service request. Notice
+              // that we only execute one callback for preventing receive multiple
+              // service responses for a single request.
+              cb(node);
+            }
           }
         }
       }
     }
   }
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Discovery::DiscoverSrv(const std::string &_topic)
-{
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
-  if (!this->dataPtr->enabled)
-    return false;
-
-  SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
-  ServicePublisher pub;
-
-  pub.Topic(_topic);
-  pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
-
-  // Broadcast a discovery request for this service call.
-  this->SendMsg(SubSrvType, pub);
-
-  // I already have information about this topic.
-  if (this->dataPtr->infoSrv.HasTopic(_topic))
+  else if (type == "srv")
   {
-    SrvAddresses_M addresses;
-    if (this->dataPtr->infoSrv.GetPublishers(_topic, addresses))
+    SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
+    ServicePublisher pub;
+
+    pub.Topic(_topic);
+    pub.PUuid(this->dataPtr->pUuid);
+    pub.Scope(Scope_t::All);
+
+    // Broadcast a discovery request for this service call.
+    this->SendMsg(SubType, pub);
+
+    // I already have information about this topic.
+    if (this->dataPtr->infoSrv.HasTopic(_topic))
     {
-      for (auto &proc : addresses)
+      SrvAddresses_M addresses;
+      if (this->dataPtr->infoSrv.GetPublishers(_topic, addresses))
       {
-        for (auto &node : proc.second)
+        for (auto &proc : addresses)
         {
-          if (cb)
+          for (auto &node : proc.second)
           {
-            // Execute the user's callback for a service request. Notice
-            // that we only execute one callback for preventing receive multiple
-            // service responses for a single request.
-            cb(node);
+            if (cb)
+            {
+              // Execute the user's callback for a service request. Notice
+              // that we only execute one callback for preventing receive multiple
+              // service responses for a single request.
+              cb(node);
+            }
           }
         }
       }
     }
   }
+  else
+    return false;
 
   return true;
 }

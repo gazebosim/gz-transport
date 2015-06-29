@@ -78,17 +78,11 @@ namespace ignition
       /// service.
       public: void Start();
 
-      /// \brief Advertise a new message.
+      /// \brief Advertise a new message/service.
       /// \param[in] _publisher Publisher's information to advertise.
       /// \return True if the method succeed or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool AdvertiseMsg(const MessagePublisher &_publisher);
-
-      /// \brief Advertise a new service.
-      /// \param[in] _publisher Publisher's information to advertise.
-      /// \return True if the method succeeded or false otherwise
-      /// (e.g. if the discovery has not been started).
-      public: bool AdvertiseSrv(const ServicePublisher &_publisher);
+      public: bool Advertise(std::shared_ptr<Publisher> _publisher);
 
       /// \brief Request discovery information about a topic.
       /// When using this method, the user might want to use
@@ -100,19 +94,7 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool DiscoverMsg(const std::string &_topic);
-
-      /// \brief Request discovery information about a service.
-      /// The user might want to use SetConnectionsSrvCb() and
-      /// SetDisconnectionSrvCb(), that registers callbacks that will be
-      /// executed when the service address is discovered or when the node
-      /// providing the service is disconnected.
-      /// \sa SetConnectionsSrvCb.
-      /// \sa SetDisconnectionsSrvCb.
-      /// \param[in] _topic Topic name requested.
-      /// \return True if the method succeeded or false otherwise
-      /// (e.g. if the discovery has not been started).
-      public: bool DiscoverSrv(const std::string &_topic);
+      public: bool Discover(const std::string &_topic);
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
@@ -128,24 +110,14 @@ namespace ignition
       public: bool SrvPublishers(const std::string &_topic,
                                  SrvAddresses_M &_publishers);
 
-      /// \brief Unadvertise a new message. Broadcast a discovery
+      /// \brief Unadvertise a new message/service. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
       /// advertised by a specific node.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool UnadvertiseMsg(const std::string &_topic,
-                                  const std::string &_nUuid);
-
-      /// \brief Unadvertise a new message service. Broadcast a discovery
-      /// message that will cancel all the discovery information for the service
-      /// advertised by a specific node.
-      /// \param[in] _topic Service name to be unadvertised.
-      /// \param[in] _nUuid Node UUID.
-      /// \return True if the method succeed or false otherwise
-      /// (e.g. if the discovery has not been started).
-      public: bool UnadvertiseSrv(const std::string &_topic,
+      public: bool Unadvertise(const std::string &_topic,
                                   const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.

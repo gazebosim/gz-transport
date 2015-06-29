@@ -57,7 +57,8 @@ namespace ignition
       public: static bool GetFullyQualifiedName(const std::string &_partition,
                                                 const std::string &_ns,
                                                 const std::string &_topic,
-                                                std::string &_name);
+                                                std::string &_name,
+                                                const bool isService = false);
     };
   }
 }

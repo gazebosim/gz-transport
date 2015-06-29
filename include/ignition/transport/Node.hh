@@ -135,7 +135,7 @@ namespace ignition
         this->TopicsSubscribed().insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
+        if (!this->Shared()->discovery->Discover(fullyQualifiedTopic))
         {
           std::cerr << "Node::Subscribe(): Error discovering a topic. "
                     << "Did you forget to start the discovery service?"
@@ -191,7 +191,7 @@ namespace ignition
         this->TopicsSubscribed().insert(fullyQualifiedTopic);
 
         // Discover the list of nodes that publish on the topic.
-        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
+        if (!this->Shared()->discovery->Discover(fullyQualifiedTopic))
         {
           std::cerr << "Node::Subscribe(): Error discovering a topic. "
                     << "Did you forget to start the discovery service?"
@@ -234,7 +234,7 @@ namespace ignition
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+          this->NameSpace(), _topic, fullyQualifiedTopic, true))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -262,13 +262,13 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        ServicePublisher publisher(fullyQualifiedTopic,
+        std::shared_ptr<Publisher> publisher =
+        std::make_shared<ServicePublisher>(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
           "unused");
-
-        if (!this->Shared()->discovery->AdvertiseSrv(publisher))
+        if (!this->Shared()->discovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a service. "
                     << "Did you forget to start the discovery service?"
@@ -301,7 +301,7 @@ namespace ignition
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+          this->NameSpace(), _topic, fullyQualifiedTopic, true))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -331,13 +331,14 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        ServicePublisher publisher(fullyQualifiedTopic,
+        std::shared_ptr<Publisher> publisher =
+        std::make_shared<ServicePublisher>(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
           "unused");
 
-        if (!this->Shared()->discovery->AdvertiseSrv(publisher))
+        if (!this->Shared()->discovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a service. "
                     << "Did you forget to start the discovery service?"
@@ -370,7 +371,7 @@ namespace ignition
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+          this->NameSpace(), _topic, fullyQualifiedTopic, true))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -423,7 +424,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->DiscoverSrv(
+          if (!this->Shared()->discovery->Discover(
             fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
@@ -456,7 +457,7 @@ namespace ignition
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+          this->NameSpace(), _topic, fullyQualifiedTopic, true))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -511,7 +512,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->DiscoverSrv(
+          if (!this->Shared()->discovery->Discover(
             fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
@@ -541,7 +542,7 @@ namespace ignition
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+          this->NameSpace(), _topic, fullyQualifiedTopic, true))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -583,7 +584,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->DiscoverSrv(
+          if (!this->Shared()->discovery->Discover(
             fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
@@ -613,7 +614,7 @@ namespace ignition
       /// \brief Unadvertise a service.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \return true if the service was successfully unadvertised.
-      public: bool UnadvertiseSrv(const std::string &_topic);
+      // public: bool UnadvertiseSrv(const std::string &_topic);
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.

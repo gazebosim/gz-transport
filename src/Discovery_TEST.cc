@@ -34,8 +34,8 @@ static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-std::string topic   = testing::getRandomNumber();
-std::string service = testing::getRandomNumber();
+std::string topic   = std::string("@msg@"+testing::getRandomNumber());
+std::string service = std::string("@srv@"+testing::getRandomNumber());
 std::string addr1   = "tcp://127.0.0.1:12345";
 std::string ctrl1   = "tcp://127.0.0.1:12346";
 std::string id1     = "identity1";
@@ -285,18 +285,20 @@ TEST(DiscoveryTest, TestBasicAPI)
 TEST(DiscoveryTest, WithoutCallingStart)
 {
   transport::Discovery discovery(pUuid1);
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
 
-  transport::ServicePublisher srvPublisher(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> srvPublisher =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
 
-  EXPECT_FALSE(discovery.AdvertiseMsg(publisher));
-  EXPECT_FALSE(discovery.AdvertiseSrv(srvPublisher));
-  EXPECT_FALSE(discovery.DiscoverMsg(topic));
-  EXPECT_FALSE(discovery.DiscoverSrv(service));
-  EXPECT_FALSE(discovery.UnadvertiseMsg(topic, nUuid1));
-  EXPECT_FALSE(discovery.UnadvertiseSrv(service, nUuid1));
+  EXPECT_FALSE(discovery.Advertise(publisher));
+  EXPECT_FALSE(discovery.Advertise(srvPublisher));
+  EXPECT_FALSE(discovery.Discover(topic));
+  EXPECT_FALSE(discovery.Discover(service));
+  EXPECT_FALSE(discovery.Unadvertise(topic, nUuid1));
+  EXPECT_FALSE(discovery.Unadvertise(service, nUuid1));
 }
 
 //////////////////////////////////////////////////
@@ -314,9 +316,10 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -340,9 +343,10 @@ TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
 
   // This should generate discovery traffic but no response on object because
   // there is no callback registered.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecutedMF);
 
@@ -367,9 +371,10 @@ TEST(DiscoveryTest, TestAdvertise)
   discovery2.Start();
 
   // This should trigger a discovery response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -380,9 +385,10 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
-  transport::MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1,
+  std::shared_ptr<transport::Publisher> publisher2 =
+    std::make_shared<transport::MessagePublisher>("@msg@topic2", addr1, ctrl1, pUuid1,
     nUuid1, transport::Scope_t::Process, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher2));
+  EXPECT_TRUE(discovery1.Advertise(publisher2));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -392,9 +398,10 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should trigger a discovery response on discovery2.
-  transport::MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1,
+  std::shared_ptr<transport::Publisher> publisher3 =
+    std::make_shared<transport::MessagePublisher>("@msg@topic3", addr1, ctrl1, pUuid1,
     nUuid1, transport::Scope_t::Host, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher3));
+  EXPECT_TRUE(discovery1.Advertise(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -420,9 +427,10 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
 
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -446,9 +454,10 @@ TEST(DiscoveryTest, TestAdvertiseMF)
   object.Start();
 
   // This should trigger a discovery response on object.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecutedMF);
 
@@ -467,9 +476,10 @@ TEST(DiscoveryTest, TestDiscover)
   transport::Discovery discovery1(pUuid1);
   discovery1.Start();
 
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   // Create a second discovery node that did not see the previous ADV message.
   transport::Discovery discovery2(pUuid2);
@@ -484,7 +494,7 @@ TEST(DiscoveryTest, TestDiscover)
   discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(topic));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -497,7 +507,7 @@ TEST(DiscoveryTest, TestDiscover)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -522,9 +532,10 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -535,7 +546,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(topic, nUuid1));
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -544,7 +555,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   EXPECT_TRUE(disconnectionExecuted);
 
   // Unadvertise a topic not advertised.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(topic, nUuid1));
 
   transport::MsgAddresses_M addresses;
   EXPECT_FALSE(discovery2.MsgPublishers(topic, addresses));
@@ -568,9 +579,10 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   object.Start();
 
   // This should not trigger a disconnect response on object.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
 
@@ -581,7 +593,7 @@ TEST(DiscoveryTest, TestUnadvertiseMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(topic, nUuid1));
 
   waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
 
@@ -609,9 +621,10 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  EXPECT_TRUE(discovery1->AdvertiseMsg(publisher));
+  EXPECT_TRUE(discovery1->Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -642,16 +655,18 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   transport::Discovery discovery1(pUuid1);
   transport::Discovery discovery2(pUuid2);
 
-  transport::MessagePublisher publisher1(topic, addr1, ctrl1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher1 =
+    std::make_shared<transport::MessagePublisher>(topic, addr1, ctrl1, pUuid1, nUuid1,
     scope, "type");
-  transport::MessagePublisher publisher2(topic, addr2, ctrl2, pUuid2, nUuid2,
+  std::shared_ptr<transport::Publisher> publisher2 =
+    std::make_shared<transport::MessagePublisher>(topic, addr2, ctrl2, pUuid2, nUuid2,
     scope, "type");
 
   discovery1.Start();
   discovery2.Start();
 
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher1));
-  EXPECT_TRUE(discovery2.AdvertiseMsg(publisher2));
+  EXPECT_TRUE(discovery1.Advertise(publisher1));
+  EXPECT_TRUE(discovery2.Advertise(publisher2));
 
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
@@ -665,7 +680,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   discovery2.ConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(topic));
 
   int i = 0;
   while (i < MaxIters && counter < 2)
@@ -684,7 +699,7 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -710,10 +725,11 @@ TEST(DiscoveryTest, TestAdvertiseSrv)
   discovery2.Start();
 
   // This should trigger a discovery srv call response on discovery2.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
 
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -740,9 +756,10 @@ TEST(DiscoveryTest, TestAdvertiseSrvMF)
   object.Start();
 
   // This should trigger a discovery response on object.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
 
@@ -768,9 +785,10 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  transport::ServicePublisher publisher1(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher1 =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher1));
+  EXPECT_TRUE(discovery1.Advertise(publisher1));
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -781,7 +799,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(service, nUuid1));
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
 
@@ -790,7 +808,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   EXPECT_TRUE(disconnectionSrvExecuted);
 
   // Unadvertise a topic not advertised.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(service, nUuid1));
   transport::SrvAddresses_M addresses;
   EXPECT_FALSE(discovery2.SrvPublishers(topic, addresses));
 }
@@ -813,9 +831,10 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   object.Start();
 
   // This should not trigger a disconnect response on object.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -826,7 +845,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrvMF)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(service, nUuid1));
 
   waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
 
@@ -845,9 +864,10 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Create one discovery node and advertise a service.
   transport::Discovery discovery1(pUuid1);
   discovery1.Start();
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
+  std::shared_ptr<transport::Publisher> publisher =
+    std::make_shared<transport::ServicePublisher>(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   // Create a second discovery node that did not see the previous ADVSRV message
   transport::Discovery discovery2(pUuid2);
@@ -862,7 +882,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
 
   // Request the discovery of a service.
-  EXPECT_TRUE(discovery2.DiscoverSrv(service));
+  EXPECT_TRUE(discovery2.Discover(service));
 
   waitForCallback(MaxIters, Nap, connectionSrvExecuted);
 
@@ -875,7 +895,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Request again the discovery of a service. The callback should be executed
   // from the Discover method this time because the service information should
   // be known.
-  EXPECT_TRUE(discovery2.DiscoverSrv(service));
+  EXPECT_TRUE(discovery2.Discover(service));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);
