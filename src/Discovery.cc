@@ -325,7 +325,7 @@ bool Discovery::Advertise(std::shared_ptr<Publisher> _publisher)
 
     // Only advertise a message outside this process if the scope is not 'Process'
     if (_publisher->Scope() != Scope_t::Process)
-      this->SendMsg(AdvType, *pub);
+      this->SendMsg(AdvSrvType, *pub);
   }
   else
     return false;
@@ -390,7 +390,7 @@ bool Discovery::Unadvertise(const std::string &_topic,
     // Only unadvertise a message outside this process if the scope
     // is not 'Process'.
     if (inf.Scope() != Scope_t::Process)
-      this->SendMsg(UnadvType, inf);
+      this->SendMsg(UnadvSrvType, inf);
   }
   else
     return false;
@@ -462,7 +462,7 @@ bool Discovery::Discover(const std::string &_topic)
     pub.Scope(Scope_t::All);
 
     // Broadcast a discovery request for this service call.
-    this->SendMsg(SubType, pub);
+    this->SendMsg(SubSrvType, pub);
 
     // I already have information about this topic.
     if (this->dataPtr->infoSrv.HasTopic(_topic))
