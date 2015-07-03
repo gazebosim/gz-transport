@@ -293,8 +293,6 @@ bool Discovery::Advertise(std::shared_ptr<Publisher> _publisher)
   if (!this->dataPtr->enabled)
     return false;
 
-  // auto first = (topic.find_first_of("@") != std::string::npos)? topic.find_first_of("@") : -1;
-
   auto topic = _publisher->Topic();
   topic.erase(0, topic.find_first_of("@")+1);
 
@@ -309,21 +307,25 @@ bool Discovery::Advertise(std::shared_ptr<Publisher> _publisher)
 
   if (type == "msg")
   {
-    std::shared_ptr<MessagePublisher> pub = std::dynamic_pointer_cast<MessagePublisher>(_publisher);
+    std::shared_ptr<MessagePublisher> pub =
+                    std::dynamic_pointer_cast<MessagePublisher>(_publisher);
     // Add the addressing information (local publisher).
     this->dataPtr->infoMsg.AddPublisher(*pub);
 
-    // Only advertise a message outside this process if the scope is not 'Process'
+    // Only advertise a message outside this process
+    // if the scope is not 'Process'
     if (_publisher->Scope() != Scope_t::Process)
       this->SendMsg(AdvType, *pub);
   }
   else if (type == "srv")
   {
-    std::shared_ptr<ServicePublisher> pub = std::dynamic_pointer_cast<ServicePublisher>(_publisher);
+    std::shared_ptr<ServicePublisher> pub =
+                    std::dynamic_pointer_cast<ServicePublisher>(_publisher);
     // Add the addressing information (local publisher).
     this->dataPtr->infoSrv.AddPublisher(*pub);
 
-    // Only advertise a message outside this process if the scope is not 'Process'
+    // Only advertise a message outside this process
+    // if the scope is not 'Process'
     if (_publisher->Scope() != Scope_t::Process)
       this->SendMsg(AdvSrvType, *pub);
   }
@@ -358,8 +360,8 @@ bool Discovery::Unadvertise(const std::string &_topic,
   {
     MessagePublisher inf;
     // Don't do anything if the topic is not advertised by any of my nodes.
-    if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
-      inf))
+    if (!this->dataPtr->infoMsg.GetPublisher(_topic, this->dataPtr->pUuid,
+      _nUuid, inf))
     {
       return true;
     }
@@ -377,8 +379,8 @@ bool Discovery::Unadvertise(const std::string &_topic,
   {
     ServicePublisher inf;
     // Don't do anything if the topic is not advertised by any of my nodes.
-    if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid, _nUuid,
-      inf))
+    if (!this->dataPtr->infoSrv.GetPublisher(_topic, this->dataPtr->pUuid,
+      _nUuid, inf))
     {
       return true;
     }
@@ -443,8 +445,8 @@ bool Discovery::Discover(const std::string &_topic)
             if (cb)
             {
               // Execute the user's callback for a service request. Notice
-              // that we only execute one callback for preventing receive multiple
-              // service responses for a single request.
+              // that we only execute one callback for preventing receive
+              // multiple service responses for a single request.
               cb(node);
             }
           }
@@ -477,8 +479,8 @@ bool Discovery::Discover(const std::string &_topic)
             if (cb)
             {
               // Execute the user's callback for a service request. Notice
-              // that we only execute one callback for preventing receive multiple
-              // service responses for a single request.
+              // that we only execute one callback for preventing receive
+              // multiple service responses for a single request.
               cb(node);
             }
           }

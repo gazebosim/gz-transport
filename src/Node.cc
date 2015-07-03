@@ -196,12 +196,13 @@ bool Node::Unadvertise(const std::string &_topic)
   auto found = fullyQualifiedSrv.find_first_of("msg");
   fullyQualifiedSrv.replace(found, 3, "srv");
 
-  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg) != this->dataPtr->topicsAdvertised.end())
-  {
-    std::lock_guard<std::recursive_mutex> discLk(
-            this->dataPtr->shared->discovery->Mutex());
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->Mutex());
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
+  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg)
+                                != this->dataPtr->topicsAdvertised.end())
+  {
     // Remove the topic from the list of advertised topics in this node.
     this->dataPtr->topicsAdvertised.erase(fullyQualifiedMsg);
 
@@ -213,14 +214,15 @@ bool Node::Unadvertise(const std::string &_topic)
     }
   }
 
-  if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv) != this->dataPtr->srvsAdvertised.end())
+  if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv)
+                                != this->dataPtr->srvsAdvertised.end())
   {
-    std::lock_guard<std::recursive_mutex> discLk(
-            this->dataPtr->shared->discovery->Mutex());
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-    // Remove the topic from the list of advertised topics in this node.
+    // Remove the topic from the list of advertised services in this node.
     this->dataPtr->srvsAdvertised.erase(fullyQualifiedSrv);
+
+    // Remove all the REP handlers for this node.
+    this->dataPtr->shared->repliers.RemoveHandlersForNode(
+      fullyQualifiedSrv, this->dataPtr->nUuid);
 
     // Notify the discovery service to unregister and unadvertise my topic.
     if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedSrv,
@@ -400,38 +402,6 @@ std::vector<std::string> Node::AdvertisedServices() const
 
   return v;
 }
-
-// //////////////////////////////////////////////////
-// bool Node::Unadvertise(const std::string &_topic)
-// {
-//   std::string fullyQualifiedTopic;
-//   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-//     this->dataPtr->ns, _topic, fullyQualifiedTopic, true))
-//   {
-//     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
-//     return false;
-//   }
-
-//   std::lock_guard<std::recursive_mutex> discLk(
-//           this->dataPtr->shared->discovery->Mutex());
-//   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-//   // Remove the topic from the list of advertised topics in this node.
-//   this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
-
-//   // Remove all the REP handlers for this node.
-//   this->dataPtr->shared->repliers.RemoveHandlersForNode(
-//     fullyQualifiedTopic, this->dataPtr->nUuid);
-
-//   // Notify the discovery service to unregister and unadvertise my services.
-//   if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedTopic,
-//     this->dataPtr->nUuid))
-//   {
-//     return false;
-//   }
-
-//   return true;
-// }
 
 //////////////////////////////////////////////////
 void Node::TopicList(std::vector<std::string> &_topics) const

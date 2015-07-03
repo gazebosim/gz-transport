@@ -337,7 +337,6 @@ namespace ignition
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
           "unused");
-
         if (!this->Shared()->discovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a service. "
