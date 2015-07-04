@@ -82,7 +82,7 @@ namespace ignition
       /// \param[in] _publisher Publisher's information to advertise.
       /// \return True if the method succeed or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Advertise(std::shared_ptr<Publisher> _publisher);
+      public: bool Advertise(const Publisher& _publisher);
 
       /// \brief Request discovery information about a topic.
       /// When using this method, the user might want to use
@@ -101,14 +101,14 @@ namespace ignition
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool MsgPublishers(const std::string &_topic,
-                                 MsgAddresses_M &_publishers);
+                                 Addresses_M &_publishers);
 
       /// \brief Get all the publishers' information known for a given service.
       /// \param[in] _topic Service name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool SrvPublishers(const std::string &_topic,
-                                 SrvAddresses_M &_publishers);
+                                 Addresses_M &_publishers);
 
       /// \brief Unadvertise a new message/service. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
@@ -173,7 +173,7 @@ namespace ignition
       /// Each time a new topic is connected, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void ConnectionsCb(const MsgDiscoveryCallback &_cb);
+      public: void ConnectionsCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is discovered, the callback will be executed.
@@ -182,7 +182,7 @@ namespace ignition
       ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void ConnectionsCb(
-        void(C::*_cb)(const MessagePublisher &_pub),
+        void(C::*_cb)(const Publisher &_pub),
         C *_obj)
       {
         this->ConnectionsCb(std::bind(_cb, _obj, std::placeholders::_1));
@@ -193,7 +193,7 @@ namespace ignition
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void DisconnectionsCb(
-        const transport::MsgDiscoveryCallback &_cb);
+        const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.
@@ -202,7 +202,7 @@ namespace ignition
       ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void DisconnectionsCb(
-        void(C::*_cb)(const MessagePublisher &_pub),
+        void(C::*_cb)(const Publisher &_pub),
         C *_obj)
       {
         this->DisconnectionsCb(std::bind(_cb, _obj, std::placeholders::_1));
@@ -213,7 +213,7 @@ namespace ignition
       /// Each time a new service is available, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void ConnectionsSrvCb(const SrvDiscoveryCallback &_cb);
+      public: void ConnectionsSrvCb(const DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery connection events for
       /// services.
@@ -223,7 +223,7 @@ namespace ignition
       ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void ConnectionsSrvCb(
-        void(C::*_cb)(const ServicePublisher &_pub),
+        void(C::*_cb)(const Publisher &_pub),
         C *_obj)
       {
         this->ConnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
@@ -236,7 +236,7 @@ namespace ignition
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
       public: void DisconnectionsSrvCb(
-        const transport::SrvDiscoveryCallback &_cb);
+        const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a service is no longer available, the callback will be
@@ -246,7 +246,7 @@ namespace ignition
       ///                _pub Publisher's information.
       /// \param[in] _obj Object instance where the member function belongs.
       public: template<typename C> void DisconnectionsSrvCb(
-        void(C::*_cb)(const ServicePublisher &_pub), C *_obj)
+        void(C::*_cb)(const Publisher &_pub), C *_obj)
       {
         this->DisconnectionsSrvCb(std::bind(_cb, _obj, std::placeholders::_1));
       }
@@ -292,9 +292,9 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      private: template<typename T> void SendMsg(uint8_t _type,
-                                                 const T &_pub,
-                                                 int _flags = 0)
+      private: void SendMsg(uint8_t _type,
+                            const Publisher &_pub,
+                            int _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -311,7 +311,7 @@ namespace ignition
           case UnadvSrvType:
           {
             // Create the [UN]ADVERTISE message.
-            transport::AdvertiseMessage<T> advMsg(header, _pub);
+            transport::AdvertiseMessage advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.MsgLength());

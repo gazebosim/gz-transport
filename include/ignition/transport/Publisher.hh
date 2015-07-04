@@ -56,6 +56,41 @@ namespace ignition
                         const std::string &_nUuid,
                         const Scope_t &_scope);
 
+      /// \brief MessagePublisher Constructor.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr ZeroMQ address.
+      /// \param[in] _ctrl ZeroMQ control address.
+      /// \param[in] _pUuid Process UUID.
+      /// \param[in] _nUUID node UUID.
+      /// \param[in] _scope Scope.
+      /// \param[in] _msgTypeName Message type advertised by this publisher.
+      public: Publisher(const std::string &_topic,
+                        const std::string &_addr,
+                        const std::string &_ctrl,
+                        const std::string &_pUuid,
+                        const std::string &_nUuid,
+                        const Scope_t &_scope,
+                        const std::string &_msgTypeName);
+
+      /// \brief Service Constructor.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _addr ZeroMQ address.
+      /// \param[in] _id ZeroMQ socket ID.
+      /// \param[in] _pUuid Process UUID.
+      /// \param[in] _nUUID node UUID.
+      /// \param[in] _scope Scope.
+      /// \param[in] _reqType Message type used in the service request.
+      /// \param[in] _repType Message type used in the service response.
+      public: Publisher(const std::string &_topic,
+                        const std::string &_addr,
+                        const std::string &_id,
+                        const std::string &_pUuid,
+                        const std::string &_nUuid,
+                        const Scope_t &_scope,
+                        const std::string &_reqType,
+                        const std::string &_repType);
+
+
       /// \brief Destructor.
       public: virtual ~Publisher() = default;
 
@@ -109,80 +144,6 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
-      /// \brief Stream insertion operator.
-      /// \param[out] _out The output stream.
-      /// \param[in] _msg Publisher to write to the stream.
-      public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const Publisher &_msg)
-      {
-        _out << "Publisher:" << std::endl
-             << "\tTopic: [" << _msg.Topic() << "]" << std::endl
-             << "\tAddress: " << _msg.Addr() << std::endl
-             << "\tProcess UUID: " << _msg.PUuid() << std::endl
-             << "\tNode UUID: " << _msg.NUuid() << std::endl
-             << "\tTopic Scope: ";
-        if (_msg.Scope() == Scope_t::Process)
-          _out << "Process" << std::endl;
-        else if (_msg.Scope() == Scope_t::Host)
-          _out << "Host" << std::endl;
-        else
-          _out << "All" << std::endl;
-
-        return _out;
-      }
-
-      /// \brief Topic name.
-      protected: std::string topic;
-
-      /// \brief ZeroMQ address of the publisher.
-      protected: std::string addr;
-
-      /// \brief Process UUID of the publisher.
-      protected: std::string pUuid;
-
-      /// \brief Node UUID of the publisher.
-      protected: std::string nUuid;
-
-      /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope = Scope_t::All;
-    };
-
-    /// \class MessagePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
-    /// \brief This class stores all the information about a message publisher.
-    class IGNITION_VISIBLE MessagePublisher : public Publisher
-    {
-      /// \brief Default constructor.
-      public: MessagePublisher() = default;
-
-      /// \brief Constructor.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr ZeroMQ address.
-      /// \param[in] _ctrl ZeroMQ control address.
-      /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUUID node UUID.
-      /// \param[in] _scope Scope.
-      /// \param[in] _msgTypeName Message type advertised by this publisher.
-      public: MessagePublisher(const std::string &_topic,
-                               const std::string &_addr,
-                               const std::string &_ctrl,
-                               const std::string &_pUuid,
-                               const std::string &_nUuid,
-                               const Scope_t &_scope,
-                               const std::string &_msgTypeName);
-
-      /// \brief Destructor.
-      public: virtual ~MessagePublisher() = default;
-
-      // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
-
-      // Documentation inherited.
-      public: size_t MsgLength() const;
-
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
       /// \return ZeroMQ control address of the publisher.
@@ -197,63 +158,6 @@ namespace ignition
 
       /// \brief Set the message type advertised by this publisher.
       public: void MsgTypeName(const std::string &_msgTypeName);
-
-      /// \brief Stream insertion operator.
-      /// \param[out] _out The output stream.
-      /// \param[in] _msg MessagePublisher to write to the stream.
-      public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const MessagePublisher &_msg)
-      {
-        _out << static_cast<Publisher>(_msg)
-             << "\tControl address: " << _msg.Ctrl()        << std::endl
-             << "\tMessage type: "    << _msg.MsgTypeName() << std::endl;
-        return _out;
-      }
-
-      /// \brief ZeroMQ control address of the publisher.
-      protected: std::string ctrl;
-
-      /// \brief Message type advertised by this publisher.
-      protected: std::string msgTypeName;
-    };
-
-    /// \class ServicePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
-    /// \brief This class stores all the information about a service publisher.
-    class IGNITION_VISIBLE ServicePublisher : public Publisher
-    {
-      /// \brief Default constructor.
-      public: ServicePublisher() = default;
-
-      /// \brief Constructor.
-      /// \param[in] _topic Topic name.
-      /// \param[in] _addr ZeroMQ address.
-      /// \param[in] _id ZeroMQ socket ID.
-      /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUUID node UUID.
-      /// \param[in] _scope Scope.
-      /// \param[in] _reqType Message type used in the service request.
-      /// \param[in] _repType Message type used in the service response.
-      public: ServicePublisher(const std::string &_topic,
-                               const std::string &_addr,
-                               const std::string &_id,
-                               const std::string &_pUuid,
-                               const std::string &_nUuid,
-                               const Scope_t &_scope,
-                               const std::string &_reqType,
-                               const std::string &_repType);
-
-      /// \brief Destructor.
-      public: virtual ~ServicePublisher() = default;
-
-      // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
-
-      // Documentation inherited.
-      public: size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
@@ -278,28 +182,69 @@ namespace ignition
       /// \param[in] The protobuf message type.
       public: void RepTypeName(const std::string &_repTypeName);
 
+      /// \brief whether the publisher is Service publisher
+      /// \return bool
+      public: bool isServicePublisher() const;
+
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg ServicePublisher to write to the stream.
+      /// \param[in] _msg Publisher to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ServicePublisher &_msg)
+                                              const Publisher &_msg)
       {
-        _out << static_cast<Publisher>(_msg)
-             << "\tSocket ID: "     << _msg.SocketId()       << std::endl
+        _out << "Publisher:" << std::endl
+             << "\tTopic: [" << _msg.Topic() << "]" << std::endl
+             << "\tAddress: " << _msg.Addr() << std::endl
+             << "\tProcess UUID: " << _msg.PUuid() << std::endl
+             << "\tNode UUID: " << _msg.NUuid() << std::endl
+             << "\tTopic Scope: ";
+        if (_msg.Scope() == Scope_t::Process)
+          _out << "Process" << std::endl;
+        else if (_msg.Scope() == Scope_t::Host)
+          _out << "Host" << std::endl;
+        else
+          _out << "All" << std::endl;
+
+        if (_msg.isServicePublisher())
+          _out << "\tSocket ID: "     << _msg.SocketId()  << std::endl
              << "\tRequest type: "  << _msg.ReqTypeName() << std::endl
              << "\tResponse type: " << _msg.RepTypeName() << std::endl;
+        else
+          _out << "\tControl address: " << _msg.Ctrl()      << std::endl
+             << "\tMessage type: "    << _msg.MsgTypeName() << std::endl;
 
         return _out;
       }
 
-      /// ZeroMQ socket ID used by this publisher.
-      protected: std::string socketId;
+      /// \brief Topic name.
+      protected: std::string topic;
 
-       /// \brief The name of the request's protobuf message advertised.
-      private: std::string reqTypeName;
+      /// \brief ZeroMQ address of the publisher.
+      protected: std::string addr;
+
+      /// \brief Process UUID of the publisher.
+      protected: std::string pUuid;
+
+      /// \brief Node UUID of the publisher.
+      protected: std::string nUuid;
+
+      /// \brief Scope of the topic advertised by this publisher.
+      protected: Scope_t scope = Scope_t::All;
+
+      /// \brief ZeroMQ control address/socket ID of the publisher.
+      protected: std::string ctrl;
+
+      /// \brief Message/Service type advertised by this publisher.
+      protected: std::string msgTypeName;
 
       /// \brief The name of the response's protobuf message advertised.
-      private: std::string repTypeName;
+      protected: std::string repTypeName;
+
+      /// \brief Bool whether this publisher is a Message or Service publisher.
+      protected: bool isService;
+
+      /// \brief Bool whether this publisher is real publisher.
+      protected: bool isReal;
     };
   }
 }

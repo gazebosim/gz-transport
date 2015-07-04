@@ -148,8 +148,7 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
 
   // Notify the discovery service to register and advertise my topic.
-  std::shared_ptr<Publisher> publisher =
-    std::make_shared<MessagePublisher>(fullyQualifiedTopic,
+  Publisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
     this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
 
@@ -339,7 +338,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
-  MsgAddresses_M addresses;
+  Addresses_M addresses;
   if (!this->dataPtr->shared->discovery->MsgPublishers(fullyQualifiedTopic,
     addresses))
   {

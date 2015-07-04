@@ -33,7 +33,7 @@ namespace ignition
     /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, removing them, etc.
-    template<typename T> class IGNITION_VISIBLE TopicStorage
+    class IGNITION_VISIBLE TopicStorage
     {
       /// \brief Constructor.
       public: TopicStorage() = default;
@@ -45,14 +45,14 @@ namespace ignition
       /// \param[in] _publisher New publisher.
       /// \return true if the new entry is added or false if not (because it
       /// was already stored).
-      public: bool AddPublisher(const T &_publisher)
+      public: bool AddPublisher(const Publisher &_publisher)
       {
         // The topic does not exist.
         if (this->data.find(_publisher.Topic()) == this->data.end())
         {
           // VS2013 is buggy with initializer list here {}
           this->data[_publisher.Topic()] =
-            std::map<std::string, std::vector<T>>();
+            std::map<std::string, std::vector<Publisher>>();
         }
 
         // Check if the process uuid exists.
@@ -62,7 +62,7 @@ namespace ignition
           // Check that the Publisher does not exist.
           auto &v = m[_publisher.PUuid()];
           auto found = std::find_if(v.begin(), v.end(),
-            [&](const T &_pub)
+            [&](const Publisher &_pub)
             {
               return _pub.Addr()  == _publisher.Addr() &&
                      _pub.NUuid() == _publisher.NUuid();
@@ -74,7 +74,7 @@ namespace ignition
         }
 
         // Add a new Publisher entry.
-        m[_publisher.PUuid()].push_back(T(_publisher));
+        m[_publisher.PUuid()].push_back(_publisher);
         return true;
       }
 
@@ -129,7 +129,7 @@ namespace ignition
       public: bool GetPublisher(const std::string &_topic,
                                 const std::string &_pUuid,
                                 const std::string &_nUuid,
-                                T &_publisher)
+                                Publisher &_publisher)
       {
         // Topic not found.
         if (this->data.find(_topic) == this->data.end())
@@ -145,7 +145,7 @@ namespace ignition
         // Vector of 0MQ known addresses for a given topic and pUuid.
         auto &v = m[_pUuid];
         auto found = std::find_if(v.begin(), v.end(),
-          [&](const T &_pub)
+          [&](const Publisher &_pub)
           {
             return _pub.NUuid() == _nUuid;
           });
@@ -165,7 +165,7 @@ namespace ignition
       /// \param[out] _info Map of publishers requested.
       /// \return true if at least there is one publisher stored.
       public: bool GetPublishers(const std::string &_topic,
-                                 std::map<std::string, std::vector<T>> &_info)
+                                 std::map<std::string, std::vector<Publisher>> &_info)
       {
         if (!this->HasTopic(_topic))
           return false;
@@ -198,7 +198,7 @@ namespace ignition
             auto &v = m[_pUuid];
             auto priorSize = v.size();
             v.erase(std::remove_if(v.begin(), v.end(),
-              [&](const T &_pub)
+              [&](const Publisher &_pub)
               {
                 return _pub.NUuid() == _nUuid;
               }),
@@ -244,7 +244,7 @@ namespace ignition
       /// \param _pubs Map of publishers where the keys are the node UUIDs and
       /// the value is its address information.
       public: void GetPublishersByProc(const std::string &_pUuid,
-                                   std::map<std::string, std::vector<T>> &_pubs)
+                                   std::map<std::string, std::vector<Publisher>> &_pubs)
       {
         _pubs.clear();
 
@@ -258,7 +258,7 @@ namespace ignition
             auto &v = m[_pUuid];
             for (auto &pub : v)
             {
-              _pubs[topic.first].push_back(T(pub));
+              _pubs[topic.first].push_back(pub);
             }
           }
         }
@@ -295,7 +295,7 @@ namespace ignition
       // The keys are topics. The values are another map, where the key is
       // the process UUID and the value a vector of publishers.
       private: std::map<std::string,
-                        std::map<std::string, std::vector<T>>> data;
+                        std::map<std::string, std::vector<Publisher>>> data;
     };
   }
 }

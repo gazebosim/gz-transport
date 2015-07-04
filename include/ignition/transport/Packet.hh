@@ -219,7 +219,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
 
-    template <class T> class IGNITION_VISIBLE AdvertiseMessage
+    class IGNITION_VISIBLE AdvertiseMessage
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
@@ -228,7 +228,7 @@ namespace ignition
       /// \param[in] _header Message header.
       /// \param[in] _publisher Contains the topic name, UUIDs, addresses.
       public: AdvertiseMessage(const Header &_header,
-                               const T &_publisher)
+                               const Publisher &_publisher)
         : header(_header),
           publisher(_publisher)
       {
@@ -243,7 +243,7 @@ namespace ignition
 
       /// \brief Get the publisher of this message.
       /// \return Publisher.
-      public: T& GetPublisher()
+      public: Publisher& GetPublisher()
       {
         return this->publisher;
       }
@@ -257,7 +257,7 @@ namespace ignition
 
       /// \brief Set the publisher of this message.
       /// \param[in] _publisher New publisher.
-      public: void SetPublisher(const T &_publisher)
+      public: void SetPublisher(const Publisher &_publisher)
       {
         this->publisher = _publisher;
       }
@@ -314,7 +314,7 @@ namespace ignition
       private: Header header;
 
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
-      private: T publisher;
+      private: Publisher publisher;
     };
   }
 }

@@ -262,8 +262,7 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        std::shared_ptr<Publisher> publisher =
-        std::make_shared<ServicePublisher>(fullyQualifiedTopic,
+        Publisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
@@ -331,8 +330,7 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
         // Notify the discovery service to register and advertise my responser.
-        std::shared_ptr<Publisher> publisher =
-        std::make_shared<ServicePublisher>(fullyQualifiedTopic,
+        Publisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
@@ -414,7 +412,7 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
+        Addresses_M addresses;
         if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
@@ -502,7 +500,7 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
+        Addresses_M addresses;
         if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
@@ -574,7 +572,7 @@ namespace ignition
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
+        Addresses_M addresses;
         if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {

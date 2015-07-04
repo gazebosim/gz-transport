@@ -108,7 +108,7 @@ TEST(PublisherTest, PublisherIO)
 /// \brief Check the MessagePublisher accessors.
 TEST(PublisherTest, MessagePublisher)
 {
-  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
+  Publisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
     MsgTypeName);
   EXPECT_EQ(publisher.Topic(), Topic);
   EXPECT_EQ(publisher.Addr(),  Addr);
@@ -141,12 +141,12 @@ TEST(PublisherTest, MessagePublisher)
 TEST(PublisherTest, MessagePublisherIO)
 {
   // Try to pack an empty publisher.
-  MessagePublisher emptyPublisher;
+  Publisher emptyPublisher;
   std::vector<char> buffer(emptyPublisher.MsgLength());
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
+  Publisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
     MsgTypeName);
 
   buffer.resize(publisher.MsgLength());
@@ -154,7 +154,7 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(bytes, publisher.MsgLength());
 
   // Unpack the Publisher.
-  MessagePublisher otherPublisher;
+  Publisher otherPublisher;
   otherPublisher.Unpack(&buffer[0]);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
@@ -177,7 +177,7 @@ TEST(PublisherTest, MessagePublisherIO)
 /// \brief Check the ServicePublisher accessors.
 TEST(PublisherTest, ServicePublisher)
 {
-  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
+  Publisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
     ReqTypeName, RepTypeName);
   EXPECT_EQ(publisher.Topic(), Topic);
   EXPECT_EQ(publisher.Addr(),  Addr);
@@ -213,12 +213,12 @@ TEST(PublisherTest, ServicePublisher)
 TEST(PublisherTest, ServicePublisherIO)
 {
   // Try to pack an empty publisher.
-  ServicePublisher emptyPublisher;
+  Publisher emptyPublisher;
   std::vector<char> buffer(emptyPublisher.MsgLength());
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
+  Publisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
     ReqTypeName, RepTypeName);
 
   buffer.resize(publisher.MsgLength());
@@ -226,7 +226,7 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(bytes, publisher.MsgLength());
 
   // Unpack the Publisher.
-  ServicePublisher otherPublisher;
+  Publisher otherPublisher;
   otherPublisher.Unpack(&buffer[0]);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.

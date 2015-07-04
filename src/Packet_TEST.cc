@@ -213,8 +213,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   std::string nodeUuid = "nodeUUID";
   Scope_t scope = Scope_t::All;
   std::string typeName = "StringMsg";
-  MessagePublisher pub(topic, addr, ctrl, procUuid, nodeUuid, scope, typeName);
-  AdvertiseMessage<MessagePublisher> advMsg(otherHeader, pub);
+  Publisher pub(topic, addr, ctrl, procUuid, nodeUuid, scope, typeName);
+  AdvertiseMessage advMsg(otherHeader, pub);
 
   // Check AdvertiseMsg getters.
   Header header = advMsg.GetHeader();
@@ -360,51 +360,51 @@ TEST(PacketTest, AdvertiseMsgIO)
   std::string typeName = "StringMsg";
 
   // Try to pack an empty AdvMsg.
-  AdvertiseMessage<MessagePublisher> emptyMsg;
+  AdvertiseMessage emptyMsg;
   std::vector<char> buffer(emptyMsg.MsgLength());
   EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0u);
 
   // Try to pack an incomplete AdvMsg (empty topic).
   Header otherHeader(version, pUuid, AdvType, 3);
-  MessagePublisher publisherNoTopic("", addr, ctrl, procUuid, nodeUuid, scope,
+  Publisher publisherNoTopic("", addr, ctrl, procUuid, nodeUuid, scope,
     typeName);
-  AdvertiseMessage<MessagePublisher> noTopicMsg(otherHeader, publisherNoTopic);
+  AdvertiseMessage noTopicMsg(otherHeader, publisherNoTopic);
   buffer.resize(noTopicMsg.MsgLength());
   EXPECT_EQ(0u, noTopicMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty address).
-  MessagePublisher publisherNoAddr(topic, "", ctrl, procUuid, nodeUuid, scope,
+  Publisher publisherNoAddr(topic, "", ctrl, procUuid, nodeUuid, scope,
     typeName);
-  AdvertiseMessage<MessagePublisher> noAddrMsg(otherHeader, publisherNoAddr);
+  AdvertiseMessage noAddrMsg(otherHeader, publisherNoAddr);
   buffer.resize(noAddrMsg.MsgLength());
   EXPECT_EQ(0u, noAddrMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty node UUID).
-  MessagePublisher publisherNoNUuid(topic, addr, ctrl, procUuid, "", scope,
+  Publisher publisherNoNUuid(topic, addr, ctrl, procUuid, "", scope,
     typeName);
-  AdvertiseMessage<MessagePublisher> noNodeUuidMsg(otherHeader,
+  AdvertiseMessage noNodeUuidMsg(otherHeader,
     publisherNoNUuid);
   buffer.resize(noNodeUuidMsg.MsgLength());
   EXPECT_EQ(0u, noNodeUuidMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvMsg (empty message type name).
-  MessagePublisher publisherNoMsgType(topic, addr, ctrl, procUuid, nodeUuid,
+  Publisher publisherNoMsgType(topic, addr, ctrl, procUuid, nodeUuid,
     scope, "");
-  AdvertiseMessage<MessagePublisher> noTypeMsg(otherHeader, publisherNoMsgType);
+  AdvertiseMessage noTypeMsg(otherHeader, publisherNoMsgType);
   buffer.resize(noTypeMsg.MsgLength());
   EXPECT_EQ(0u, noTypeMsg.Pack(&buffer[0]));
 
   // Pack an AdvertiseMsg.
-  MessagePublisher publisher(topic, addr, ctrl, procUuid, nodeUuid, scope,
+  Publisher publisher(topic, addr, ctrl, procUuid, nodeUuid, scope,
     typeName);
-  AdvertiseMessage<MessagePublisher> advMsg(otherHeader, publisher);
+  AdvertiseMessage advMsg(otherHeader, publisher);
   buffer.resize(advMsg.MsgLength());
   size_t bytes = advMsg.Pack(&buffer[0]);
   EXPECT_EQ(bytes, advMsg.MsgLength());
 
   // Unpack an AdvertiseMsg.
   Header header;
-  AdvertiseMessage<MessagePublisher> otherAdvMsg;
+  AdvertiseMessage otherAdvMsg;
   int headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.HeaderLength());
   otherAdvMsg.SetHeader(header);
@@ -450,9 +450,9 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   std::string reqType = "StringMsg";
   std::string repType = "Int";
 
-  ServicePublisher publisher(topic, addr, id, pUuid, nodeUuid, scope, reqType,
+  Publisher publisher(topic, addr, id, pUuid, nodeUuid, scope, reqType,
     repType);
-  AdvertiseMessage<ServicePublisher> advSrv(otherHeader, publisher);
+  AdvertiseMessage advSrv(otherHeader, publisher);
 
   // Check AdvertiseSrv getters.
   Header header = advSrv.GetHeader();
@@ -561,36 +561,36 @@ TEST(PacketTest, AdvertiseSrvIO)
   std::string repType = "Int";
 
   // Try to pack an empty AdvertiseSrv.
-  AdvertiseMessage<ServicePublisher> emptyMsg;
+  AdvertiseMessage emptyMsg;
   std::vector<char> buffer(emptyMsg.MsgLength());
   EXPECT_EQ(emptyMsg.Pack(&buffer[0]), 0u);
 
   // Try to pack an incomplete AdvertiseSrv (empty request type).
   Header otherHeader(version, pUuid, AdvType, 3);
-  ServicePublisher publisherNoReqType(topic, addr, id, procUuid, nodeUuid,
+  Publisher publisherNoReqType(topic, addr, id, procUuid, nodeUuid,
     scope, "", repType);
-  AdvertiseMessage<ServicePublisher> noReqMsg(otherHeader, publisherNoReqType);
+  AdvertiseMessage noReqMsg(otherHeader, publisherNoReqType);
   buffer.resize(noReqMsg.MsgLength());
   EXPECT_EQ(0u, noReqMsg.Pack(&buffer[0]));
 
   // Try to pack an incomplete AdvertiseSrv (empty response type).
-  ServicePublisher publisherNoRepType(topic, addr, id, procUuid, nodeUuid,
+  Publisher publisherNoRepType(topic, addr, id, procUuid, nodeUuid,
     scope, repType, "");
-  AdvertiseMessage<ServicePublisher> noRepMsg(otherHeader, publisherNoRepType);
+  AdvertiseMessage noRepMsg(otherHeader, publisherNoRepType);
   buffer.resize(noRepMsg.MsgLength());
   EXPECT_EQ(0u, noRepMsg.Pack(&buffer[0]));
 
   // Pack an AdvertiseSrv.
-  ServicePublisher publisher(topic, addr, id, procUuid, nodeUuid, scope,
+  Publisher publisher(topic, addr, id, procUuid, nodeUuid, scope,
     reqType, repType);
-  AdvertiseMessage<ServicePublisher> advSrv(otherHeader, publisher);
+  AdvertiseMessage advSrv(otherHeader, publisher);
   buffer.resize(advSrv.MsgLength());
   size_t bytes = advSrv.Pack(&buffer[0]);
   EXPECT_EQ(bytes, advSrv.MsgLength());
 
   // Unpack an AdvertiseSrv.
   Header header;
-  AdvertiseMessage<ServicePublisher> otherAdvSrv;
+  AdvertiseMessage otherAdvSrv;
   int headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.HeaderLength());
   otherAdvSrv.SetHeader(header);

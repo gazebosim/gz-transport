@@ -46,14 +46,7 @@ namespace ignition
     /// The keys are the process uuid of the nodes. For each uuid key, the
     /// value contains the list of publishers advertising the topic within the
     // same process uuid.
-    using MsgAddresses_M = std::map<std::string, std::vector<MessagePublisher>>;
-
-    /// \def SrvAddresses_M
-    /// \brief The map stores all the publishers advertising this service.
-    /// The keys are the process uuid of the nodes. For each uuid key, the
-    /// value contains the list of publishers advertising the service within the
-    /// same process uuid.
-    using SrvAddresses_M = std::map<std::string, std::vector<ServicePublisher>>;
+    using Addresses_M = std::map<std::string, std::vector<Publisher>>;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
@@ -117,16 +110,8 @@ namespace ignition
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a topic.
     /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
-    using MsgDiscoveryCallback =
-      std::function<void(const MessagePublisher&_publisher)>;
-
-    /// \def SrvDiscoveryCallback
-    /// \brief The user can register callbacks of this type when new connections
-    /// or disconnections are detected by the discovery. The prototype of the
-    /// callback contains the publisher's information advertising a service.
-    /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
-    using SrvDiscoveryCallback =
-      std::function<void(const ServicePublisher&_publisher)>;
+    using DiscoveryCallback =
+      std::function<void(const Publisher&_publisher)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

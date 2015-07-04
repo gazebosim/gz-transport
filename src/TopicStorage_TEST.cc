@@ -44,7 +44,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   std::map<std::string, std::vector<transport::Publisher>> m;
   transport::Publisher info;
-  transport::TopicStorage<transport::Publisher> test;
+  transport::TopicStorage test;
 
   // Check HasTopic.
   EXPECT_FALSE(test.HasTopic(topic));

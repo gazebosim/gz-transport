@@ -372,7 +372,7 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Register that we have another remote subscriber.
-    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::All,
+    Publisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::All,
       "");
     this->remoteSubscribers.AddPublisher(remoteNode);
   }
@@ -583,7 +583,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 {
   std::string responserAddr;
   std::string responserId;
-  SrvAddresses_M addresses;
+  Addresses_M addresses;
   this->discovery->SrvPublishers(_topic, addresses);
   if (addresses.empty())
     return;
@@ -663,7 +663,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewConnection(const MessagePublisher &_pub)
+void NodeShared::OnNewConnection(const Publisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -748,7 +748,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
+void NodeShared::OnNewDisconnection(const Publisher &_pub)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -767,7 +767,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   {
     this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nUuid);
 
-    MessagePublisher connection;
+    Publisher connection;
     if (!this->connections.GetPublisher(topic, procUuid, nUuid, connection))
       return;
 
@@ -783,7 +783,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   {
     this->remoteSubscribers.DelPublishersByProc(procUuid);
 
-    MsgAddresses_M info;
+    Addresses_M info;
     if (!this->connections.GetPublishers(topic, info))
       return;
 
@@ -797,7 +797,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
+void NodeShared::OnNewSrvConnection(const Publisher &_pub)
 {
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
@@ -829,7 +829,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
+void NodeShared::OnNewSrvDisconnection(const Publisher &_pub)
 {
   std::string addr = _pub.Addr();
 

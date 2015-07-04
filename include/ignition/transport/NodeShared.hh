@@ -84,19 +84,19 @@ namespace ignition
 
       /// \brief Callback executed when the discovery detects new topics.
       /// \param[in] _pub Information of the publisher in charge of the topic.
-      public: void OnNewConnection(const MessagePublisher &_pub);
+      public: void OnNewConnection(const Publisher &_pub);
 
       /// \brief Callback executed when the discovery detects disconnections.
       /// \param[in] _pub Information of the publisher in charge of the topic.
-      public: void OnNewDisconnection(const MessagePublisher &_pub);
+      public: void OnNewDisconnection(const Publisher &_pub);
 
       /// \brief Callback executed when the discovery detects a new service call
       /// \param[in] _pub Information of the publisher in charge of the service.
-      public: void OnNewSrvConnection(const ServicePublisher &_pub);
+      public: void OnNewSrvConnection(const Publisher &_pub);
 
       /// \brief Callback executed when a service call is no longer available.
       /// \param[in] _pub Information of the publisher in charge of the service.
-      public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
+      public: void OnNewSrvDisconnection(const Publisher &_pub);
 
       /// \brief Constructor.
       protected: NodeShared();
@@ -179,13 +179,13 @@ namespace ignition
       private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
-      private: TopicStorage<MessagePublisher> connections;
+      private: TopicStorage connections;
 
       /// \brief List of connected zmq end points for request/response.
       private: std::vector<std::string> srvConnections;
 
       /// \brief Remote subscribers.
-      public: TopicStorage<MessagePublisher> remoteSubscribers;
+      public: TopicStorage remoteSubscribers;
 
       /// \brief Subscriptions.
       public: HandlerStorage<ISubscriptionHandler> localSubscriptions;

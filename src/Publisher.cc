@@ -31,7 +31,43 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     addr(_addr),
     pUuid(_pUuid),
     nUuid(_nUuid),
-    scope(_scope)
+    scope(_scope),
+    isReal(false)
+{
+}
+
+//////////////////////////////////////////////////
+Publisher::Publisher(const std::string &_topic, const std::string &_addr,
+  const std::string &_ctrl, const std::string &_pUuid,
+  const std::string &_nUuid, const Scope_t &_scope,
+  const std::string &_msgTypeName)
+  : topic(_topic),
+    addr(_addr),
+    pUuid(_pUuid),
+    nUuid(_nUuid),
+    scope(_scope),
+    ctrl(_ctrl),
+    msgTypeName(_msgTypeName),
+    isService(false),
+    isReal(true)
+{
+}
+
+//////////////////////////////////////////////////
+Publisher::Publisher(const std::string &_topic,
+  const std::string &_addr, const std::string &_socketId,
+  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope,
+  const std::string &_reqType, const std::string &_repType)
+  : topic(_topic),
+    addr(_addr),
+    pUuid(_pUuid),
+    nUuid(_nUuid),
+    scope(_scope),
+    ctrl(_socketId),
+    msgTypeName(_reqType),
+    repTypeName(_repType),
+    isService(true),
+    isReal(true)
 {
 }
 
@@ -106,12 +142,27 @@ size_t Publisher::Pack(char *_buffer) const
     return 0;
   }
 
+  if (this->isReal && (this->ctrl.empty() || this->msgTypeName.empty() ||
+          (this->isService && this->repTypeName.empty())))
+  {
+    std::cerr << "Publisher::Pack() error: You're trying to pack an "
+              << "incomplete Publisher:" << std::endl << *this;
+    return 0;
+  }
+
   // null buffer.
   if (!_buffer)
   {
     std::cerr << "Publisher::Pack() error: NULL output buffer" << std::endl;
     return 0;
   }
+
+  // Pack type of publisher
+  memcpy(_buffer, &this->isReal, sizeof(this->isReal));
+  _buffer += sizeof(this->isReal);
+
+  memcpy(_buffer, &this->isService, sizeof(this->isService));
+  _buffer += sizeof(this->isService);
 
   // Pack the topic length.
   uint64_t topicLength = this->topic.size();
@@ -152,6 +203,40 @@ size_t Publisher::Pack(char *_buffer) const
   // Pack the topic scope.
   uint8_t intscope = static_cast<uint8_t>(this->scope);
   memcpy(_buffer, &intscope, sizeof(intscope));
+  _buffer += sizeof(intscope);
+
+  if (this->isReal)
+  {
+    // Pack the zeromq control address length.
+    uint64_t ctrlLength = this->ctrl.size();
+    memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
+    _buffer += sizeof(ctrlLength);
+
+    // Pack the zeromq control address.
+    memcpy(_buffer, this->ctrl.data(), static_cast<size_t>(ctrlLength));
+    _buffer += ctrlLength;
+
+    // Pack the type name length.
+    uint64_t typeNameLength = this->msgTypeName.size();
+    memcpy(_buffer, &typeNameLength, sizeof(typeNameLength));
+    _buffer += sizeof(typeNameLength);
+
+    // Pack the type name.
+    memcpy(_buffer, this->msgTypeName.data(),
+      static_cast<size_t>(typeNameLength));
+    _buffer += static_cast<size_t>(typeNameLength);
+
+    if (this->isService)
+    {
+      // Pack the response type length.
+      uint64_t repTypeLength = this->repTypeName.size();
+      memcpy(_buffer, &repTypeLength, sizeof(repTypeLength));
+      _buffer += sizeof(repTypeLength);
+
+      // Pack the response.
+      memcpy(_buffer, this->repTypeName.data(), static_cast<size_t>(repTypeLength));
+    }
+  }
 
   return this->MsgLength();
 }
@@ -166,6 +251,13 @@ size_t Publisher::Unpack(char *_buffer)
               << std::endl;
     return 0;
   }
+
+  // Unpack type of publisher
+  memcpy(&this->isReal, _buffer, sizeof(this->isReal));
+  _buffer += sizeof(this->isReal);
+
+  memcpy(&this->isService, _buffer, sizeof(this->isService));
+  _buffer += sizeof(this->isService);
 
   // Unpack the topic length.
   uint64_t topicLength;
@@ -207,6 +299,40 @@ size_t Publisher::Unpack(char *_buffer)
   uint8_t intscope;
   memcpy(&intscope, _buffer, sizeof(intscope));
   this->scope = static_cast<Scope_t>(intscope);
+  _buffer += sizeof(intscope);
+
+  if (this->isReal)
+  {
+    // Unpack the zeromq control address length.
+    uint64_t ctrlLength;
+    memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
+    _buffer += sizeof(ctrlLength);
+
+    // Unpack the zeromq control address.
+    this->ctrl = std::string(_buffer, _buffer + ctrlLength);
+    _buffer += ctrlLength;
+
+    // Unpack the type name length.
+    uint64_t typeNameLength;
+    memcpy(&typeNameLength, _buffer, sizeof(typeNameLength));
+    _buffer += sizeof(typeNameLength);
+
+    // Unpack the type name.
+    this->msgTypeName = std::string(_buffer, _buffer + typeNameLength);
+    _buffer += static_cast<size_t>(typeNameLength);
+
+    if (this->isService)
+    {
+      // Unpack the response type length.
+      uint64_t repTypeLength;
+      memcpy(&repTypeLength, _buffer, sizeof(repTypeLength));
+      _buffer += sizeof(repTypeLength);
+
+      // Unpack the response type.
+      this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
+      _buffer += repTypeLength;
+    }
+  }
 
   return this->MsgLength();
 }
@@ -214,280 +340,92 @@ size_t Publisher::Unpack(char *_buffer)
 //////////////////////////////////////////////////
 size_t Publisher::MsgLength() const
 {
-  return sizeof(uint64_t) + this->topic.size() +
-         sizeof(uint64_t) + this->addr.size() +
-         sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(uint64_t) + this->nUuid.size() +
-         sizeof(uint8_t);
-}
-
-//////////////////////////////////////////////////
-MessagePublisher::MessagePublisher(const std::string &_topic,
-  const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_msgTypeName)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
-    ctrl(_ctrl),
-    msgTypeName(_msgTypeName)
-{
-}
-
-//////////////////////////////////////////////////
-size_t MessagePublisher::Pack(char *_buffer) const
-{
-  if (this->ctrl.empty() || this->msgTypeName.empty())
+  auto size = sizeof(uint64_t) + this->topic.size() +
+              sizeof(uint64_t) + this->addr.size() +
+              sizeof(uint64_t) + this->pUuid.size() +
+              sizeof(uint64_t) + this->nUuid.size() +
+              sizeof(uint8_t);
+  if (this->isReal)
   {
-    std::cerr << "MessagePublisher::Pack() error: You're trying to pack an "
-              << "incomplete MessagePublisher:" << std::endl << *this;
-    return 0;
+    if (this->isService)
+      size += sizeof(uint64_t) + this->ctrl.size() +
+              sizeof(uint64_t) + this->msgTypeName.size() +
+              sizeof(uint64_t) + this->repTypeName.size();
+    else
+      size += sizeof(uint64_t) + this->ctrl.size() +
+              sizeof(uint64_t) + this->msgTypeName.size();
   }
 
-  // Pack the common part of any Publisher message.
-  size_t len = Publisher::Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  // Pack the zeromq control address length.
-  uint64_t ctrlLength = this->ctrl.size();
-  memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
-  _buffer += sizeof(ctrlLength);
-
-  // Pack the zeromq control address.
-  memcpy(_buffer, this->ctrl.data(), static_cast<size_t>(ctrlLength));
-  _buffer += ctrlLength;
-
-  // Pack the type name length.
-  uint64_t typeNameLength = this->msgTypeName.size();
-  memcpy(_buffer, &typeNameLength, sizeof(typeNameLength));
-  _buffer += sizeof(typeNameLength);
-
-  // Pack the type name.
-  memcpy(_buffer, this->msgTypeName.data(),
-    static_cast<size_t>(typeNameLength));
-
-  return this->MsgLength();
+  return size;
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::Unpack(char *_buffer)
-{
-  // null buffer.
-  if (!_buffer)
-  {
-    std::cerr << "MessagePublisher::UnpackBody() error: NULL input buffer"
-              << std::endl;
-    return 0;
-  }
-
-  // Unpack the common part of any Publisher message.
-  size_t len = Publisher::Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  // Unpack the zeromq control address length.
-  uint64_t ctrlLength;
-  memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
-  _buffer += sizeof(ctrlLength);
-
-  // Unpack the zeromq control address.
-  this->ctrl = std::string(_buffer, _buffer + ctrlLength);
-  _buffer += ctrlLength;
-
-  // Unpack the type name length.
-  uint64_t typeNameLength;
-  memcpy(&typeNameLength, _buffer, sizeof(typeNameLength));
-  _buffer += sizeof(typeNameLength);
-
-  // Unpack the type name.
-  this->msgTypeName = std::string(_buffer, _buffer + typeNameLength);
-
-  return this->MsgLength();
-}
-
-//////////////////////////////////////////////////
-size_t MessagePublisher::MsgLength() const
-{
-  return Publisher::MsgLength() +
-         sizeof(uint64_t) + this->ctrl.size() +
-         sizeof(uint64_t) + this->msgTypeName.size();
-}
-
-//////////////////////////////////////////////////
-std::string MessagePublisher::Ctrl() const
+std::string Publisher::Ctrl() const
 {
   return this->ctrl;
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::Ctrl(const std::string &_ctrl)
+void Publisher::Ctrl(const std::string &_ctrl)
 {
+  this->isReal = true;
   this->ctrl = _ctrl;
 }
 
 //////////////////////////////////////////////////
-std::string MessagePublisher::MsgTypeName() const
+std::string Publisher::MsgTypeName() const
 {
   return this->msgTypeName;
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::MsgTypeName(const std::string &_msgTypeName)
+void Publisher::MsgTypeName(const std::string &_msgTypeName)
 {
+  this->isReal = true;
   this->msgTypeName = _msgTypeName;
 }
 
 //////////////////////////////////////////////////
-ServicePublisher::ServicePublisher(const std::string &_topic,
-  const std::string &_addr, const std::string &_socketId,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_reqType, const std::string &_repType)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
-    socketId(_socketId),
-    reqTypeName(_reqType),
-    repTypeName(_repType)
+std::string Publisher::SocketId() const
 {
+  return this->ctrl;
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::Pack(char *_buffer) const
+void Publisher::SocketId(const std::string &_socketId)
 {
-  if (this->socketId.empty() || this->reqTypeName.empty() ||
-      this->repTypeName.empty())
-  {
-    std::cerr << "ServicePublisher::Pack() error: You're trying to pack an "
-              << "incomplete ServicePublisher:" << std::endl << *this;
-    return 0;
-  }
-
-  // Pack the common part of any Publisher message.
-  size_t len = Publisher::Pack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  // Pack the socket ID length.
-  uint64_t socketIdLength = this->socketId.size();
-  memcpy(_buffer, &socketIdLength, sizeof(socketIdLength));
-  _buffer += sizeof(socketIdLength);
-
-  // Pack the socket ID.
-  memcpy(_buffer, this->socketId.data(), static_cast<size_t>(socketIdLength));
-  _buffer += socketIdLength;
-
-  // Pack the request type length.
-  uint64_t reqTypeLength = this->reqTypeName.size();
-  memcpy(_buffer, &reqTypeLength, sizeof(reqTypeLength));
-  _buffer += sizeof(reqTypeLength);
-
-  // Pack the request type.
-  memcpy(_buffer, this->reqTypeName.data(), static_cast<size_t>(reqTypeLength));
-  _buffer += reqTypeLength;
-
-  // Pack the response type length.
-  uint64_t repTypeLength = this->repTypeName.size();
-  memcpy(_buffer, &repTypeLength, sizeof(repTypeLength));
-  _buffer += sizeof(repTypeLength);
-
-  // Pack the response.
-  memcpy(_buffer, this->repTypeName.data(), static_cast<size_t>(repTypeLength));
-
-  return this->MsgLength();
+  this->isReal = true;
+  this->ctrl = _socketId;
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::Unpack(char *_buffer)
+std::string Publisher::ReqTypeName() const
 {
-  // null buffer.
-  if (!_buffer)
-  {
-    std::cerr << "MessagePublisher::Unpack() error: NULL input buffer"
-              << std::endl;
-    return 0;
-  }
-
-  // Unpack the common part of any Publisher message.
-  size_t len = Publisher::Unpack(_buffer);
-  if (len == 0)
-    return 0;
-
-  _buffer += len;
-
-  // Unpack the socket ID length.
-  uint64_t socketIdLength;
-  memcpy(&socketIdLength, _buffer, sizeof(socketIdLength));
-  _buffer += sizeof(socketIdLength);
-
-  // Unpack the socket ID.
-  this->socketId = std::string(_buffer, _buffer + socketIdLength);
-  _buffer += socketIdLength;
-
-  // Unpack the request type length.
-  uint64_t reqTypeLength;
-  memcpy(&reqTypeLength, _buffer, sizeof(reqTypeLength));
-  _buffer += sizeof(reqTypeLength);
-
-  // Unpack the request type.
-  this->reqTypeName = std::string(_buffer, _buffer + reqTypeLength);
-  _buffer += reqTypeLength;
-
-  // Unpack the response type length.
-  uint64_t repTypeLength;
-  memcpy(&repTypeLength, _buffer, sizeof(repTypeLength));
-  _buffer += sizeof(repTypeLength);
-
-  // Unpack the response type.
-  this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
-  _buffer += repTypeLength;
-
-  return this->MsgLength();
+  return this->msgTypeName;
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::MsgLength() const
-{
-  return Publisher::MsgLength() +
-         sizeof(uint64_t) + this->socketId.size() +
-         sizeof(uint64_t) + this->reqTypeName.size() +
-         sizeof(uint64_t) + this->repTypeName.size();
-}
-
-//////////////////////////////////////////////////
-std::string ServicePublisher::SocketId() const
-{
-  return this->socketId;
-}
-
-//////////////////////////////////////////////////
-void ServicePublisher::SocketId(const std::string &_socketId)
-{
-  this->socketId = _socketId;
-}
-
-//////////////////////////////////////////////////
-std::string ServicePublisher::ReqTypeName() const
-{
-  return this->reqTypeName;
-}
-
-//////////////////////////////////////////////////
-std::string ServicePublisher::RepTypeName() const
+std::string Publisher::RepTypeName() const
 {
   return this->repTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::ReqTypeName(const std::string &_reqTypeName)
+void Publisher::ReqTypeName(const std::string &_reqTypeName)
 {
-  this->reqTypeName = _reqTypeName;
+  this->isReal = true;
+  this->msgTypeName = _reqTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::RepTypeName(const std::string &_repTypeName)
+void Publisher::RepTypeName(const std::string &_repTypeName)
 {
+  this->isReal = true;
   this->repTypeName = _repTypeName;
+}
+
+//////////////////////////////////////////////////
+bool Publisher::isServicePublisher() const
+{
+  return this->isService;
 }

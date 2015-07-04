@@ -122,22 +122,19 @@ namespace ignition
       public: unsigned int heartbeatInterval;
 
       /// \brief Callback executed when new topics are discovered.
-      public: MsgDiscoveryCallback connectionCb;
+      public: DiscoveryCallback connectionCb;
 
       /// \brief Callback executed when new topics are invalid.
-      public: MsgDiscoveryCallback disconnectionCb;
+      public: DiscoveryCallback disconnectionCb;
 
       /// \brief Callback executed when new services are discovered.
-      public: SrvDiscoveryCallback connectionSrvCb;
+      public: DiscoveryCallback connectionSrvCb;
 
       /// \brief Callback executed when a service is no longer available.
-      public: SrvDiscoveryCallback disconnectionSrvCb;
+      public: DiscoveryCallback disconnectionSrvCb;
 
       /// \brief Message addressing information.
-      public: TopicStorage<MessagePublisher> infoMsg;
-
-      /// \brief Service addressing information.
-      public: TopicStorage<ServicePublisher> infoSrv;
+      public: TopicStorage infoTopics;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear
