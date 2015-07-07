@@ -341,15 +341,23 @@ bool Discovery::Discover(const std::string &_topic)
   if (!this->dataPtr->enabled)
     return false;
 
-  DiscoveryCallback cb = this->dataPtr->connectionCb;
-  Publisher pub;
+  DiscoveryCallback cb;
+  Publisher pub(_topic, "", this->dataPtr->pUuid, "", Scope_t::All);
 
-  pub.Topic(_topic);
-  pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
+  if (pub.isServicePublisher())
+  {
+    cb = this->dataPtr->connectionSrvCb;
 
-  // Broadcast a discovery request for this service call.
-  this->SendMsg(SubType, pub);
+    // Broadcast a discovery request for this service call.
+    this->SendMsg(SubSrvType, pub);
+  }
+  else
+  {
+    cb = this->dataPtr->connectionCb;
+
+    // Broadcast a discovery request for this service call.
+    this->SendMsg(SubType, pub);
+  }
 
   // I already have information about this topic.
   if (this->dataPtr->infoTopics.HasTopic(_topic))
@@ -507,9 +515,8 @@ void Discovery::RunActivityTask()
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
         // topics.
-        Publisher publisher;
-        publisher.PUuid(it->first);
-        publisher.Scope(Scope_t::All);
+        Publisher publisher("", "", it->first, "", Scope_t::All);
+
         this->dataPtr->disconnectionCb(publisher);
 
         // Remove the activity entry.
@@ -751,9 +758,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Remove the activity entry for this publisher.
       this->dataPtr->activity.erase(recvPUuid);
 
-      Publisher pub;
-      pub.PUuid(recvPUuid);
-      pub.Scope(Scope_t::All);
+      Publisher pub("", "", recvPUuid, "", Scope_t::All);
 
       if (this->dataPtr->disconnectionCb)
       {

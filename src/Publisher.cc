@@ -32,8 +32,25 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     pUuid(_pUuid),
     nUuid(_nUuid),
     scope(_scope),
+    isService(false),
     isReal(false)
 {
+  auto topic_name = this->topic;
+  topic_name.erase(0, topic_name.find_first_of("@")+1);
+
+  auto first = topic_name.find_first_of("@");
+  auto last = topic_name.find_first_of("@", first+1);
+  if (last == std::string::npos)
+  {
+    last = first;
+    first = -1;
+  }
+  auto type = topic_name.substr(first+1, last-first-1);
+
+  if (type == "msg")
+    this->isService = false;
+  else if (type == "srv")
+    this->isService = true;
 }
 
 //////////////////////////////////////////////////
@@ -203,10 +220,10 @@ size_t Publisher::Pack(char *_buffer) const
   // Pack the topic scope.
   uint8_t intscope = static_cast<uint8_t>(this->scope);
   memcpy(_buffer, &intscope, sizeof(intscope));
-  _buffer += sizeof(intscope);
 
   if (this->isReal)
   {
+    _buffer += sizeof(intscope);
     // Pack the zeromq control address length.
     uint64_t ctrlLength = this->ctrl.size();
     memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
@@ -224,10 +241,10 @@ size_t Publisher::Pack(char *_buffer) const
     // Pack the type name.
     memcpy(_buffer, this->msgTypeName.data(),
       static_cast<size_t>(typeNameLength));
-    _buffer += static_cast<size_t>(typeNameLength);
 
     if (this->isService)
     {
+      _buffer += typeNameLength;
       // Pack the response type length.
       uint64_t repTypeLength = this->repTypeName.size();
       memcpy(_buffer, &repTypeLength, sizeof(repTypeLength));
@@ -299,10 +316,10 @@ size_t Publisher::Unpack(char *_buffer)
   uint8_t intscope;
   memcpy(&intscope, _buffer, sizeof(intscope));
   this->scope = static_cast<Scope_t>(intscope);
-  _buffer += sizeof(intscope);
 
   if (this->isReal)
   {
+    _buffer += sizeof(intscope);
     // Unpack the zeromq control address length.
     uint64_t ctrlLength;
     memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
@@ -319,10 +336,10 @@ size_t Publisher::Unpack(char *_buffer)
 
     // Unpack the type name.
     this->msgTypeName = std::string(_buffer, _buffer + typeNameLength);
-    _buffer += static_cast<size_t>(typeNameLength);
 
     if (this->isService)
     {
+      _buffer += typeNameLength;
       // Unpack the response type length.
       uint64_t repTypeLength;
       memcpy(&repTypeLength, _buffer, sizeof(repTypeLength));
@@ -330,7 +347,7 @@ size_t Publisher::Unpack(char *_buffer)
 
       // Unpack the response type.
       this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
-      _buffer += repTypeLength;
+      // _buffer += repTypeLength;
     }
   }
 
