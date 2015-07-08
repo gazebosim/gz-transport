@@ -8,6 +8,7 @@ set (sources
   NodeShared.cc
   Packet.cc
   Publisher.cc
+  TopicStorage.cc
   TopicUtils.cc
   Uuid.cc
 )

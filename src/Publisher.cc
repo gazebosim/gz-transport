@@ -251,7 +251,8 @@ size_t Publisher::Pack(char *_buffer) const
       _buffer += sizeof(repTypeLength);
 
       // Pack the response.
-      memcpy(_buffer, this->repTypeName.data(), static_cast<size_t>(repTypeLength));
+      memcpy(_buffer, this->repTypeName.data(),
+             static_cast<size_t>(repTypeLength));
     }
   }
 

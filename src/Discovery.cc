@@ -389,6 +389,7 @@ bool Discovery::MsgPublishers(const std::string &_topic,
                               Addresses_M &_publishers)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  // TO-DO: Get only message publishers
   return this->dataPtr->infoTopics.GetPublishers(_topic, _publishers);
 }
 
@@ -397,6 +398,7 @@ bool Discovery::SrvPublishers(const std::string &_topic,
                               Addresses_M &_publishers)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  // TO-DO: Get only service publishers
   return this->dataPtr->infoTopics.GetPublishers(_topic, _publishers);
 }
 
@@ -567,7 +569,12 @@ void Discovery::RunHeartbeatTask()
       for (auto &topic : msgNodes)
       {
         for (auto &node : topic.second)
-          this->SendMsg(AdvType, node);
+        {
+          if (!node.isServicePublisher())
+            this->SendMsg(AdvType, node);
+          else
+            this->SendMsg(AdvSrvType, node);
+        }
       }
     }
 
@@ -700,14 +707,17 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       }
 
       // Register an advertised address for the topic.
-      bool added = this->dataPtr->infoTopics.AddPublisher(advMsg.GetPublisher());
+      bool added =
+            this->dataPtr->infoTopics.AddPublisher(advMsg.GetPublisher());
 
-      if (!advMsg.GetPublisher().isServicePublisher() && added && this->dataPtr->connectionCb)
+      if (!advMsg.GetPublisher().isServicePublisher() &&
+          added && this->dataPtr->connectionCb)
       {
         // Execute the client's callback.
         this->dataPtr->connectionCb(advMsg.GetPublisher());
       }
-      else if (advMsg.GetPublisher().isServicePublisher() && added && this->dataPtr->connectionSrvCb)
+      else if (advMsg.GetPublisher().isServicePublisher() && added &&
+               this->dataPtr->connectionSrvCb)
       {
         // Execute the client's callback.
         this->dataPtr->connectionSrvCb(advMsg.GetPublisher());
@@ -806,8 +816,10 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       }
 
       // Remove the address entry for this topic.
-      this->dataPtr->infoTopics.DelPublisherByNode(advMsg.GetPublisher().Topic(),
-        advMsg.GetPublisher().PUuid(), advMsg.GetPublisher().NUuid());
+      this->dataPtr->infoTopics.DelPublisherByNode(
+        advMsg.GetPublisher().Topic(),
+        advMsg.GetPublisher().PUuid(),
+        advMsg.GetPublisher().NUuid());
 
       break;
     }

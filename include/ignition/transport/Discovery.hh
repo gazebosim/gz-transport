@@ -192,8 +192,7 @@ namespace ignition
       /// Each time a topic is no longer active, the callback will be executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void DisconnectionsCb(
-        const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a topic is no longer active, the callback will be executed.

@@ -45,46 +45,12 @@ namespace ignition
       /// \param[in] _publisher New publisher.
       /// \return true if the new entry is added or false if not (because it
       /// was already stored).
-      public: bool AddPublisher(const Publisher &_publisher)
-      {
-        // The topic does not exist.
-        if (this->data.find(_publisher.Topic()) == this->data.end())
-        {
-          // VS2013 is buggy with initializer list here {}
-          this->data[_publisher.Topic()] =
-            std::map<std::string, std::vector<Publisher>>();
-        }
-
-        // Check if the process uuid exists.
-        auto &m = this->data[_publisher.Topic()];
-        if (m.find(_publisher.PUuid()) != m.end())
-        {
-          // Check that the Publisher does not exist.
-          auto &v = m[_publisher.PUuid()];
-          auto found = std::find_if(v.begin(), v.end(),
-            [&](const Publisher &_pub)
-            {
-              return _pub.Addr()  == _publisher.Addr() &&
-                     _pub.NUuid() == _publisher.NUuid();
-            });
-
-          // The publisher was already existing, just exit.
-          if (found != v.end())
-            return false;
-        }
-
-        // Add a new Publisher entry.
-        m[_publisher.PUuid()].push_back(_publisher);
-        return true;
-      }
+      public: bool AddPublisher(const Publisher &_publisher);
 
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
       /// \return True if there is at least one entry stored for the topic.
-      public: bool HasTopic(const std::string &_topic)
-      {
-        return this->data.find(_topic) != this->data.end();
-      }
+      public: bool HasTopic(const std::string &_topic);
 
       /// \brief Return if there is any publisher stored for the given topic and
       /// process UUID.
@@ -93,32 +59,12 @@ namespace ignition
       /// \return True if there is at least one address stored for the topic and
       /// process UUID.
       public: bool HasAnyPublishers(const std::string &_topic,
-                                    const std::string &_pUuid)
-      {
-        if (!this->HasTopic(_topic))
-          return false;
-
-        return this->data[_topic].find(_pUuid) != this->data[_topic].end();
-      }
+                                    const std::string &_pUuid);
 
       /// \brief Return if the requested publisher's address is stored.
       /// \param[in] _addr Publisher's address requested
       /// \return true if the publisher's address is stored.
-      public: bool HasPublisher(const std::string &_addr)
-      {
-        for (auto &topic : this->data)
-        {
-          for (auto &proc : topic.second)
-          {
-            for (auto &pub : proc.second)
-            {
-              if (pub.Addr() == _addr)
-                return true;
-            }
-          }
-        }
-        return false;
-      }
+      public: bool HasPublisher(const std::string &_addr);
 
       /// \brief Get the address information for a given topic and node UUID.
       /// \param[in] _topic Topic name.
@@ -129,50 +75,15 @@ namespace ignition
       public: bool GetPublisher(const std::string &_topic,
                                 const std::string &_pUuid,
                                 const std::string &_nUuid,
-                                Publisher &_publisher)
-      {
-        // Topic not found.
-        if (this->data.find(_topic) == this->data.end())
-          return false;
-
-        // m is {pUUID=>Publisher}.
-        auto &m = this->data[_topic];
-
-        // pUuid not found.
-        if (m.find(_pUuid) == m.end())
-          return false;
-
-        // Vector of 0MQ known addresses for a given topic and pUuid.
-        auto &v = m[_pUuid];
-        auto found = std::find_if(v.begin(), v.end(),
-          [&](const Publisher &_pub)
-          {
-            return _pub.NUuid() == _nUuid;
-          });
-        // Address found!
-        if (found != v.end())
-        {
-          _publisher = *found;
-          return true;
-        }
-
-        // nUuid not found.
-        return false;
-      }
+                                Publisher &_publisher);
 
       /// \brief Get the map of publishers stored for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _info Map of publishers requested.
       /// \return true if at least there is one publisher stored.
       public: bool GetPublishers(const std::string &_topic,
-                                 std::map<std::string, std::vector<Publisher>> &_info)
-      {
-        if (!this->HasTopic(_topic))
-          return false;
-
-        _info = this->data[_topic];
-        return true;
-      }
+                                 std::map<std::string,
+                                    std::vector<Publisher>> &_info);
 
       /// \brief Remove a publisher associated to a given topic and UUID pair.
       /// \param[in] _topic Topic name
@@ -181,62 +92,12 @@ namespace ignition
       /// \return True when the publisher was removed or false otherwise.
       public: bool DelPublisherByNode(const std::string &_topic,
                                       const std::string &_pUuid,
-                                      const std::string &_nUuid)
-      {
-        unsigned int counter = 0;
-
-        // Iterate over all the topics.
-        if (this->data.find(_topic) != this->data.end())
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = this->data[_topic];
-
-          // The pUuid exists.
-          if (m.find(_pUuid) != m.end())
-          {
-            // Vector of 0MQ known addresses for a given topic and pUuid.
-            auto &v = m[_pUuid];
-            auto priorSize = v.size();
-            v.erase(std::remove_if(v.begin(), v.end(),
-              [&](const Publisher &_pub)
-              {
-                return _pub.NUuid() == _nUuid;
-              }),
-              v.end());
-            counter = priorSize - v.size();
-
-            if (v.empty())
-              m.erase(_pUuid);
-
-            if (m.empty())
-              this->data.erase(_topic);
-          }
-        }
-
-        return counter > 0;
-      }
+                                      const std::string &_nUuid);
 
       /// \brief Remove all the publishers associated to a given process.
       /// \param[in] _pUuid Process' UUID of the publisher.
       /// \return True when at least one address was removed or false otherwise.
-      public: bool DelPublishersByProc(const std::string &_pUuid)
-      {
-        unsigned int counter = 0;
-
-        // Iterate over all the topics.
-        for (auto it = this->data.begin(); it != this->data.end();)
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = it->second;
-          counter = m.erase(_pUuid);
-          if (m.empty())
-            this->data.erase(it++);
-          else
-            ++it;
-        }
-
-        return counter > 0;
-      }
+      public: bool DelPublishersByProc(const std::string &_pUuid);
 
       /// \brief Given a process UUID, the function returns the list of
       /// publishers contained in this process UUID with its address information
@@ -244,53 +105,15 @@ namespace ignition
       /// \param _pubs Map of publishers where the keys are the node UUIDs and
       /// the value is its address information.
       public: void GetPublishersByProc(const std::string &_pUuid,
-                                   std::map<std::string, std::vector<Publisher>> &_pubs)
-      {
-        _pubs.clear();
-
-        // Iterate over all the topics.
-        for (auto &topic : this->data)
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = topic.second;
-          if (m.find(_pUuid) != m.end())
-          {
-            auto &v = m[_pUuid];
-            for (auto &pub : v)
-            {
-              _pubs[topic.first].push_back(pub);
-            }
-          }
-        }
-      }
+                                   std::map<std::string,
+                                      std::vector<Publisher>> &_pubs);
 
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const
-      {
-        for (auto &topic : this->data)
-          _topics.push_back(topic.first);
-      }
+      public: void GetTopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Print all the information for debugging purposes.
-      public: void Print()
-      {
-        std::cout << "---" << std::endl;
-        for (auto &topic : this->data)
-        {
-          std::cout << "[" << topic.first << "]" << std::endl;
-          auto &m = topic.second;
-          for (auto &proc : m)
-          {
-            std::cout << "\tProc. UUID: " << proc.first << std::endl;
-            auto &v = proc.second;
-            for (auto &publisher : v)
-            {
-              std::cout << publisher;
-            }
-          }
-        }
-      }
+      public: void Print();
 
       // The keys are topics. The values are another map, where the key is
       // the process UUID and the value a vector of publishers.
