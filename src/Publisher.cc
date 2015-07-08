@@ -47,9 +47,9 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
   }
   auto type = topic_name.substr(first+1, last-first-1);
 
-  if (type == "msg")
-    this->isService = false;
-  else if (type == "srv")
+  this->isService = false;
+
+  if (type == "srv")
     this->isService = true;
 }
 
@@ -347,7 +347,6 @@ size_t Publisher::Unpack(char *_buffer)
 
       // Unpack the response type.
       this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
-      // _buffer += repTypeLength;
     }
   }
 
