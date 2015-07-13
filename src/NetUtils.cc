@@ -87,7 +87,7 @@ std::string transport::determineHost()
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
-      return ip_env;
+      return std::string(ip_env);
     else
       std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
   }

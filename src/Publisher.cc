@@ -32,7 +32,9 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     pUuid(_pUuid),
     nUuid(_nUuid),
     scope(_scope),
-    isService(false),
+    ctrl(""),
+    msgTypeName(""),
+    repTypeName(""),
     isReal(false)
 {
   auto topic_name = this->topic;
@@ -65,6 +67,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     scope(_scope),
     ctrl(_ctrl),
     msgTypeName(_msgTypeName),
+    repTypeName(""),
     isService(false),
     isReal(true)
 {

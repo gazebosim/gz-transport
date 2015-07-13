@@ -50,7 +50,7 @@ bool TopicStorage::AddPublisher(const Publisher &_publisher)
   }
 
   // Add a new Publisher entry.
-  m[_publisher.PUuid()].push_back(_publisher);
+  m[_publisher.PUuid()].push_back(Publisher(_publisher));
   return true;
 }
 
@@ -209,7 +209,7 @@ void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
       auto &v = m[_pUuid];
       for (auto &pub : v)
       {
-        _pubs[topic.first].push_back(pub);
+        _pubs[topic.first].push_back(Publisher(pub));
       }
     }
   }

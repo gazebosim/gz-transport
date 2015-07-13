@@ -90,9 +90,8 @@ namespace ignition
                         const std::string &_reqType,
                         const std::string &_repType);
 
-
       /// \brief Destructor.
-      public: virtual ~Publisher() = default;
+      public: ~Publisher() = default;
 
       /// \brief Get the topic published by this publisher.
       /// \return Topic name.
