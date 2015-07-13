@@ -212,10 +212,10 @@ void NodeShared::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {*this->subscriber, 0, ZMQ_POLLIN, 0},
-      {*this->control, 0, ZMQ_POLLIN, 0},
-      {*this->replier, 0, ZMQ_POLLIN, 0},
-      {*this->responseReceiver, 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->subscriber), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->control), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->replier), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
 

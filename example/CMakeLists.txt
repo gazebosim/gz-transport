@@ -15,8 +15,7 @@ find_path(cppzmq_INCLUDE_DIRS
           ${CPPZMQ_HEADER_PATH})
 
 if (NOT cppzmq_INCLUDE_DIRS)
-  message(STATUS "cppzmq header file was not found")
-  BUILD_ERROR("cppzmq header file was not found")
+  message(send_error "cppzmq header file was not found")
 else()
   message(STATUS "cppzmq file - found")
   include_directories(${cppzmq_INCLUDE_DIRS})
