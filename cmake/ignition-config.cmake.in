@@ -17,6 +17,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
 endif ()
 
+#################################################
+# Find ZeroMQ.
+include (@CMAKE_INSTALL_PREFIX@/share/cmake-@CMAKE_MAJOR_VERSION@.@CMAKE_MINOR_VERSION@/Modules/FindZeroMQ.cmake)
+
 foreach(lib @PKG_LIBRARIES@)
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}

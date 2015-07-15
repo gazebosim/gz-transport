@@ -286,6 +286,7 @@ else (build_errors)
     add_subdirectory(conf)
     add_subdirectory(tools)
     add_subdirectory(test)
+    add_subdirectory(cmake)
   endif (BUILD_IGNITION)
 
   ########################################
@@ -301,7 +302,7 @@ else (build_errors)
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER} ${PROJECT_MSGS_NAME})
-  set(PKG_DEPENDS Protobuf)
+  set(PKG_DEPENDS Protobuf ZeroMQ)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
