@@ -47,8 +47,8 @@ namespace ignition
 {
   namespace transport
   {
-    class NodeShared;
     class NodePrivate;
+    class NodeShared;
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
