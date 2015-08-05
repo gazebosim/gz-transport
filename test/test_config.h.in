@@ -81,9 +81,9 @@ namespace testing
   }
 
 #ifdef _WIN32
-  typedef PROCESS_INFORMATION forkHandlerType;
+  using forkHandlerType = PROCESS_INFORMATION;
 #else
-  typedef pid_t forkHandlerType;
+  using forkHandlerType = pid_t;
 #endif
 
   /// \brief create a new process and run command on it. This function is
@@ -100,8 +100,12 @@ namespace testing
     STARTUPINFO info= {sizeof(info)};
     PROCESS_INFORMATION processInfo;
 
-    if (!CreateProcess(NULL, const_cast<LPSTR>(_command), NULL, NULL, TRUE,
-          0, NULL, NULL, &info, &processInfo))
+    char cmd[500];
+    strcpy(cmd, _command);
+    strcat(cmd, " ");
+    strcat(cmd, _partition);
+
+    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
     {
       std::cerr << "CreateProcess call failed" << std::endl;
     }
@@ -155,15 +159,15 @@ namespace testing
 #endif
   }
 
-  /// \brief Get a random partition name based on an integer converted to string
-  /// \return A random partition name
-  std::string getRandomPartition()
+  /// \brief Get a random number based on an integer converted to string.
+  /// \return A random integer converted to string.
+  std::string getRandomNumber()
   {
     // Initialize random number generator.
     uint32_t seed = std::random_device {}();
     std::mt19937 randGenerator(seed);
 
-    // Create a random partition name based on an integer converted to string.
+    // Create a random number based on an integer converted to string.
     std::uniform_int_distribution<int32_t> d(0, INT_MAX);
 
     return std::to_string(d(randGenerator));

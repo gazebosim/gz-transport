@@ -95,6 +95,9 @@ namespace ignition
       /// \brief Host IP address.
       public: std::string hostAddr;
 
+      /// \brief List of host network interfaces.
+      public: std::vector<std::string> hostInterfaces;
+
       /// \brief Process UUID.
       public: std::string pUuid;
 
@@ -146,7 +149,7 @@ namespace ignition
       public: bool verbose;
 
       /// \brief UDP socket used for sending/receiving discovery messages.
-      public: int sock;
+      public: std::vector<int> sockets;
 
       /// \brief Internet socket address for sending to the multicast group.
       public: sockaddr_in mcastAddr;
@@ -168,6 +171,15 @@ namespace ignition
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
+
+#ifdef _WIN32
+      /// \brief True when the reception thread is finishing.
+      public: bool threadReceptionExiting = true;
+      /// \brief True when the hearbeat thread is finishing.
+      public: bool threadHeartbeatExiting = true;
+      /// \brief True when the activity thread is finishing.
+      public: bool threadActivityExiting = true;
+#endif
 
       /// \brief When true, the service is enabled.
       public: bool enabled;

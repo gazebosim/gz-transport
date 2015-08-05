@@ -32,7 +32,7 @@ else ()
   link_directories(${ZeroMQ_LIBRARY_DIRS})
 endif ()
 
-add_subdirectory(msg)
+add_subdirectory(msgs)
 
 set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
                             GENERATED TRUE)
@@ -67,3 +67,16 @@ add_dependencies(requester protobuf_compilation)
 add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${EXAMPLES_LIBS})
 add_dependencies(requester_async protobuf_compilation)
+
+if (MSVC)
+# Copy the ZMQ DLLs.
+  add_custom_command(TARGET publisher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-3_2_4.dll"
+      $<TARGET_FILE_DIR:publisher> VERBATIM)
+
+  add_custom_command(TARGET publisher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "../../../ZeroMQ 3.2.4/bin/libzmq-v120-mt-gd-3_2_4.dll"
+      $<TARGET_FILE_DIR:publisher> VERBATIM)
+endif()

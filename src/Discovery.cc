@@ -25,7 +25,7 @@
   #include <Ws2ipdef.h>
   #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
-  typedef char raw_type;
+  using raw_type = char;
 #else
   // For data types
   #include <sys/types.h>
@@ -40,7 +40,7 @@
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  typedef void raw_type;
+  using raw_type = void;
 #endif
 
 #include <zmq.hpp>
@@ -86,6 +86,9 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
 
+  // Get the list of network interfaces in this host.
+  this->dataPtr->hostInterfaces = determineInterfaces();
+
 #ifdef _WIN32
   if (!initialized)
   {
@@ -105,16 +108,52 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   }
 #endif
 
-  // Make a new socket for sending/receiving discovery information.
-  if ((this->dataPtr->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+  for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
-    std::cerr << "Socket creation failed." << std::endl;
-    return;
+    // Make a new socket for sending discovery information.
+    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0)
+    {
+      std::cerr << "Socket creation failed." << std::endl;
+      return;
+    }
+
+    // Socket option: IP_MULTICAST_IF.
+    // This socket option needs to be applied to each socket used to send data.
+    // This option selects the source interface for outgoing messages.
+    struct in_addr ifAddr;
+    ifAddr.s_addr = inet_addr(netIface.c_str());
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
+      reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+    {
+      std::cerr << "Error setting socket option (IP_MULTICAST_IF)."
+                << std::endl;
+      return;
+    }
+
+    this->dataPtr->sockets.push_back(sock);
+
+    // Join the multicast group. We have to do it for each network interface but
+    // we can do it on the same socket. We will use the socket at position 0 for
+    // receiving multicast information.
+    struct ip_mreq group;
+    group.imr_multiaddr.s_addr =
+      inet_addr(this->dataPtr->MulticastGroup.c_str());
+    group.imr_interface.s_addr = inet_addr(netIface.c_str());
+    if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
+      reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
+    {
+      std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+                << std::endl;
+      return;
+    }
   }
 
-  // Socket option: SO_REUSEADDR.
+  // Socket option: SO_REUSEADDR. This options is used only for receiving data.
+  // We can reuse the same socket for receiving multicast data from multiple
+  // interfaces. We will use the socket at position 0 for receiving data.
   int reuseAddr = 1;
-  if (setsockopt(this->dataPtr->sock, SOL_SOCKET, SO_REUSEADDR,
+  if (setsockopt(this->dataPtr->sockets.at(0), SOL_SOCKET, SO_REUSEADDR,
         reinterpret_cast<const char *>(&reuseAddr), sizeof(reuseAddr)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEADDR)." << std::endl;
@@ -122,9 +161,11 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   }
 
 #ifdef SO_REUSEPORT
-  // Socket option: SO_REUSEPORT.
+  // Socket option: SO_REUSEPORT. This options is used only for receiving data.
+  // We can reuse the same socket for receiving multicast data from multiple
+  // interfaces. We will use the socket at position 0 for receiving data.
   int reusePort = 1;
-  if (setsockopt(this->dataPtr->sock, SOL_SOCKET, SO_REUSEPORT,
+  if (setsockopt(this->dataPtr->sockets.at(0), SOL_SOCKET, SO_REUSEPORT,
         reinterpret_cast<const char *>(&reusePort), sizeof(reusePort)) != 0)
   {
     std::cerr << "Error setting socket option (SO_REUSEPORT)." << std::endl;
@@ -132,38 +173,15 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   }
 #endif
 
-  // Socket option: IP_MULTICAST_IF.
-  // This option selects the source interface for outgoing messages.
-  struct in_addr ifAddr;
-  ifAddr.s_addr = inet_addr(this->dataPtr->hostAddr.c_str());
-  if (setsockopt(this->dataPtr->sock, IPPROTO_IP, IP_MULTICAST_IF,
-    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
-  {
-    std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
-    return;
-  }
-
-  // Join the multicast group
-  struct ip_mreq group;
-  group.imr_multiaddr.s_addr = inet_addr(this->dataPtr->MulticastGroup.c_str());
-  group.imr_interface.s_addr = inet_addr(this->dataPtr->hostAddr.c_str());
-  if (setsockopt(this->dataPtr->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-    reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
-  {
-    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
-              << std::endl;
-    return;
-  }
-
-  // Bind the socket to the discovery port.
+  // Bind the first socket to the discovery port.
   sockaddr_in localAddr;
   memset(&localAddr, 0, sizeof(localAddr));
   localAddr.sin_family = AF_INET;
   localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
   localAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
 
-  if (bind(this->dataPtr->sock, reinterpret_cast<sockaddr *>(&localAddr),
-        sizeof(sockaddr_in)) < 0)
+  if (bind(this->dataPtr->sockets.at(0),
+    reinterpret_cast<sockaddr *>(&localAddr), sizeof(sockaddr_in)) < 0)
   {
     std::cerr << "Binding to a local port failed." << std::endl;
     return;
@@ -202,6 +220,20 @@ Discovery::~Discovery()
 
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
+#else
+  while (true)
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+    {
+      if (this->dataPtr->threadReceptionExiting &&
+          this->dataPtr->threadHeartbeatExiting &&
+          this->dataPtr->threadActivityExiting)
+      {
+        break;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
 #endif
 
   // Broadcast a BYE message to trigger the remote cancellation of
@@ -211,11 +243,14 @@ Discovery::~Discovery()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
+  for (const auto &sock : this->dataPtr->sockets)
+  {
 #ifdef _WIN32
-  closesocket(this->dataPtr->sock);
+    closesocket(sock);
 #else
-  close(this->dataPtr->sock);
+    close(sock);
 #endif
+  }
 }
 
 //////////////////////////////////////////////////
@@ -240,6 +275,15 @@ void Discovery::Start()
   // Start the thread that checks the topic information validity.
   this->dataPtr->threadActivity =
     std::thread(&Discovery::RunActivityTask, this);
+
+#ifdef _WIN32
+  this->dataPtr->threadReceptionExiting = false;
+  this->dataPtr->threadHeartbeatExiting = false;
+  this->dataPtr->threadActivityExiting = false;
+  this->dataPtr->threadReception.detach();
+  this->dataPtr->threadHeartbeat.detach();
+  this->dataPtr->threadActivity.detach();
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -581,8 +625,14 @@ void Discovery::RunActivityTask()
     }
     this->dataPtr->mutex.unlock();
 
+#ifdef _WIN32
+    // We don't know why, but on Windows, during shutdown, when compiled
+    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+    Sleep(this->dataPtr->activityInterval);
+#else
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->dataPtr->activityInterval));
+#endif
 
     // Is it time to exit?
     {
@@ -591,6 +641,10 @@ void Discovery::RunActivityTask()
         break;
     }
   }
+#ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+  this->dataPtr->threadActivityExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -624,8 +678,14 @@ void Discovery::RunHeartbeatTask()
       }
     }
 
+#ifdef _WIN32
+    // We don't know why, but on Windows, during shutdown, when compiled
+    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+    Sleep(this->dataPtr->heartbeatInterval);
+#else
     std::this_thread::sleep_for(
       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
+#endif
 
     // Is it time to exit?
     {
@@ -634,6 +694,10 @@ void Discovery::RunHeartbeatTask()
         break;
     }
   }
+#ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+  this->dataPtr->threadHeartbeatExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -644,7 +708,7 @@ void Discovery::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {0, this->dataPtr->sock, ZMQ_POLLIN, 0},
+      {0, this->dataPtr->sockets.at(0), ZMQ_POLLIN, 0},
     };
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
       this->dataPtr->Timeout);
@@ -665,6 +729,10 @@ void Discovery::RunReceptionTask()
         break;
     }
   }
+#ifdef _WIN32
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+  this->dataPtr->threadReceptionExiting = true;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -676,7 +744,8 @@ void Discovery::RecvDiscoveryUpdate()
   sockaddr_in clntAddr;
   socklen_t addrLen = sizeof(clntAddr);
 
-  if ((recvfrom(this->dataPtr->sock, reinterpret_cast<raw_type *>(rcvStr),
+  if ((recvfrom(this->dataPtr->sockets.at(0),
+        reinterpret_cast<raw_type *>(rcvStr),
         DiscoveryPrivate::MaxRcvStr, 0, reinterpret_cast<sockaddr *>(&clntAddr),
         reinterpret_cast<socklen_t *>(&addrLen))) < 0)
   {
@@ -935,9 +1004,9 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 }
 
 //////////////////////////////////////////////////
-int Discovery::DiscoverySocket() const
+std::vector<int>& Discovery::Sockets() const
 {
-  return this->dataPtr->sock;
+  return this->dataPtr->sockets;
 }
 
 //////////////////////////////////////////////////

@@ -284,6 +284,8 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> discLk(
+    this->Shared()->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(

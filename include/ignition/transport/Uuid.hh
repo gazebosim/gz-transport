@@ -25,10 +25,10 @@
 #ifdef _WIN32
   #include <Rpc.h>
   #pragma comment(lib, "Rpcrt4.lib")
-  typedef UUID portable_uuid_t;
+  using portable_uuid_t = UUID;
 #else /* UNIX */
   #include <uuid/uuid.h>
-  typedef uuid_t portable_uuid_t;
+  using portable_uuid_t = uuid_t;
 #endif
 
 namespace ignition

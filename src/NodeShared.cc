@@ -140,6 +140,11 @@ NodeShared::NodeShared()
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
+#ifdef _WIN32
+  this->threadReceptionExiting = false;
+  this->threadReception.detach();
+#endif
+
   // Set the callback to notify discovery updates (new topics).
   discovery->ConnectionsCb(&NodeShared::OnNewConnection, this);
 
@@ -172,10 +177,30 @@ NodeShared::~NodeShared()
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
+
+  // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
+  publisher.reset();
+  subscriber.reset();
+  control.reset();
+  requester.reset();
+  responseReceiver.reset();
+  replier.reset();
+  delete this->context;
 #else
-  // Give some time to the receiving thread to terminate. The receiving thread
-  // is blocking in zmq::poll for a maximum of Timeout milliseconds.
-  std::this_thread::sleep_for(std::chrono::milliseconds(this->Timeout * 2));
+  while (true)
+  {
+    std::lock_guard<std::mutex> lock(this->exitMutex);
+    {
+      if (this->threadReceptionExiting)
+        break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  // We intentionally don't destroy the context in Windows.
+  // For some reason, when MATLAB deallocates the MEX file makes the context
+  // destructor to hang (probably waiting for ZMQ sockets to terminate).
+  // ToDo: Fix it.
 #endif
 }
 
@@ -211,6 +236,12 @@ void NodeShared::RunReceptionTask()
         break;
     }
   }
+#ifdef _WIN32
+  std::lock_guard<std::mutex> lock(this->exitMutex);
+  {
+    this->threadReceptionExiting = true;
+  }
+#endif
 }
 
 //////////////////////////////////////////////////

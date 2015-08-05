@@ -20,6 +20,7 @@
   #include <iphlpapi.h>
 #else
   #include <arpa/inet.h>
+  #include <net/if.h>
   #include <netdb.h>
   #include <unistd.h>
 #endif
@@ -140,6 +141,12 @@ std::string transport::determineHost()
     // prefer non-private IPs over private IPs
     if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
       continue;  // ignore loopback unless we have no other choice
+    // Does not support multicast.
+    if (!(ifa->ifa_flags & IFF_MULTICAST))
+      continue;
+    // Is not running.
+    if (!(ifa->ifa_flags & IFF_UP))
+      continue;
     if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
       strcpy(preferred_ip, ip_);
     else if (isPrivateIP(ip_) && !preferred_ip[0])
@@ -184,6 +191,14 @@ std::string transport::determineHost()
     // last non-loopback one that we find.
     for (PIP_ADAPTER_ADDRESSES curr = addrs; curr; curr = curr->Next)
     {
+      // This adapter does not support multicast.
+      if (curr->Flags & IP_ADAPTER_NO_MULTICAST)
+        continue;
+
+      // The interface is not running.
+      if (curr->OperStatus != IfOperStatusUp)
+        continue;
+
       // Iterate over all unicast addresses for this adapter
       for (PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
            unicast; unicast = unicast->Next)
@@ -244,7 +259,10 @@ std::vector<std::string> transport::determineInterfaces()
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
+    {
       result.push_back(std::string(ip_env));
+      return result;
+    }
     else
       std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
   }
@@ -284,6 +302,12 @@ std::vector<std::string> transport::determineInterfaces()
     // prefer non-loopback IPs
     if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
       continue;  // ignore loopback unless we have no other choice
+    // Does not support multicast.
+    if (!(ifa->ifa_flags & IFF_MULTICAST))
+      continue;
+    // Is not running.
+    if (!(ifa->ifa_flags & IFF_UP))
+      continue;
     // IPv6 interface.
     if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
       interface = std::string(ip_);
@@ -339,6 +363,14 @@ std::vector<std::string> transport::determineInterfaces()
     // last non-loopback one that we find.
     for (PIP_ADAPTER_ADDRESSES curr = addrs; curr; curr = curr->Next)
     {
+      // This adapter does not support multicast.
+      if (curr->Flags & IP_ADAPTER_NO_MULTICAST)
+        continue;
+
+      // The interface is not running.
+      if (curr->OperStatus != IfOperStatusUp)
+        continue;
+
       // Iterate over all unicast addresses for this adapter
       for (PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
            unicast; unicast = unicast->Next)

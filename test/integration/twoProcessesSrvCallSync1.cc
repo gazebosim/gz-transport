@@ -20,7 +20,7 @@
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 
 using namespace ignition;
 
@@ -65,7 +65,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 5.0);
+  EXPECT_NEAR(elapsed, timeout, 20.0);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -75,7 +75,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);

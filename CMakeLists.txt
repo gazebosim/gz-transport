@@ -6,9 +6,11 @@ project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
+set (PROJECT_MSGS_NAME ignition-transport-msgs)
+
 set (PROJECT_MAJOR_VERSION 0)
-set (PROJECT_MINOR_VERSION 7)
-set (PROJECT_PATCH_VERSION 0)
+set (PROJECT_MINOR_VERSION 8)
+set (PROJECT_PATCH_VERSION 1)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
 set (PROJECT_VERSION_FULL ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
@@ -22,6 +24,13 @@ include (${project_cmake_dir}/Utils.cmake)
 
 ##########
 # Package Creation:
+
+# If on windows, generate a file called version which host the current
+# version to be used by releasing scripts
+if (MSVC)
+  file(WRITE ${PROJECT_BINARY_DIR}/VERSION ${PROJECT_VERSION_FULL})
+endif()
+
 include (${project_cmake_dir}/cpack.cmake)
 set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
 set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
@@ -48,6 +57,10 @@ endif()
 #################################################
 # Documentation:
 add_subdirectory(doc)
+
+# Configure documentation uploader
+configure_file("${project_cmake_dir}/upload_doc.sh.in"
+  ${CMAKE_BINARY_DIR}/upload_doc.sh @ONLY)
 
 # If we're configuring only to build docs, stop here
 if (DOC_ONLY)
@@ -267,7 +280,7 @@ else (build_errors)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
-    add_subdirectory(test/msg)
+    add_subdirectory(msgs)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(conf)
@@ -287,7 +300,7 @@ else (build_errors)
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER} ${PROJECT_MSGS_NAME})
   set(PKG_DEPENDS Protobuf)
 
   configure_file(

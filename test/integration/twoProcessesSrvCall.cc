@@ -21,8 +21,8 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/int.pb.h"
+#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -245,7 +245,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
