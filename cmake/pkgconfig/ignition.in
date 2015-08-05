@@ -6,5 +6,5 @@ Name: Ignition @IGN_PROJECT_NAME@
 Description: A set of @IGN_PROJECT_NAME@ classes for robot applications
 Version: @PROJECT_VERSION_FULL@
 Requires:
-Libs: -L${libdir} -l@PROJECT_NAME_LOWER@
+Libs: -L${libdir} -l@PROJECT_NAME_LOWER@ -l@PROJECT_MSGS_NAME@
 CFlags: -I${includedir} -std=c++11

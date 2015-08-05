@@ -35,12 +35,12 @@ namespace ignition
       /// _data is the topic name. The value is another map, where the key is
       /// the node UUID and the value is a smart pointer to the handler.
       /// \TODO: Carlos, review this names and fix them
-      typedef std::map<std::string, std::shared_ptr<T>> UUIDHandler_M;
-      typedef std::map<std::string, UUIDHandler_M> UUIDHandler_Collection_M;
+      using UUIDHandler_M = std::map<std::string, std::shared_ptr<T>>;
+      using UUIDHandler_Collection_M = std::map<std::string, UUIDHandler_M>;
 
       /// \brief key is a topic name and value is UUIDHandler_M
-      typedef std::map<std::string, UUIDHandler_Collection_M>
-              TopicServiceCalls_M;
+      using TopicServiceCalls_M =
+        std::map<std::string, UUIDHandler_Collection_M>;
 
       /// \brief Constructor.
       public: HandlerStorage() = default;
