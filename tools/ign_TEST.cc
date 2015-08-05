@@ -21,8 +21,10 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/int.pb.h"
+#include "msgs/vector3d.pb.h"
+
+using namespace ignition;
 
 std::string partition;
 
@@ -111,8 +113,8 @@ TEST(ignTest, TopicListSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  node.Advertise<ignition::transport::msgs::Vector3d>("/foo");
-  node.Publish("/foo", msg);
+  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::Vector3d>("/foo"));
+  EXPECT_TRUE(node.Publish("/foo", msg));
 
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -125,7 +127,7 @@ TEST(ignTest, TopicListSameProc)
 TEST(ignTest, ServiceListSameProc)
 {
   transport::Node node;
-  node.Advertise("/foo", srvEcho);
+  EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -138,7 +140,7 @@ TEST(ignTest, ServiceListSameProc)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);

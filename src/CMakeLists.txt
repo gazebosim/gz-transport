@@ -18,6 +18,7 @@ set (gtest_sources
   HandlerStorage_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
+  Publisher_TEST.cc
   ServiceResult_TEST.cc
   TopicStorage_TEST.cc
   TopicUtils_TEST.cc
@@ -26,6 +27,7 @@ set (gtest_sources
 
 set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
                             GENERATED TRUE)
+include_directories(${CMAKE_BINARY_DIR}/)
 include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
@@ -43,7 +45,8 @@ endif()
 message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME_LOWER}
                       ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES})
+                      ${uuid_LIBRARIES}
+                      ${PROJECT_MSGS_NAME})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER} ws2_32 Iphlpapi)
@@ -57,7 +60,5 @@ else()
 endif()
 
 ign_install_library(${PROJECT_NAME_LOWER})
-
-add_dependencies(${PROJECT_NAME_LOWER} protobuf_compilation)
 
 add_subdirectory(cmd)

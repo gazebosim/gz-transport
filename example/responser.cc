@@ -18,12 +18,12 @@
 #include <cstdio>
 #include <string>
 #include <ignition/transport.hh>
-#include "msg/stringmsg.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-void srvEcho(const std::string &_topic, const example::mymsgs::StringMsg &_req,
-  example::mymsgs::StringMsg &_rep, bool &_result)
+void srvEcho(const std::string &_topic, const example::msgs::StringMsg &_req,
+  example::msgs::StringMsg &_rep, bool &_result)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -35,11 +35,21 @@ void srvEcho(const std::string &_topic, const example::mymsgs::StringMsg &_req,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Let's print the list of our network interfaces.
+  std::cout << "List of network interfaces in this machine:" << std::endl;
+  for (const auto &netIface : ignition::transport::determineInterfaces())
+    std::cout << "\t" << netIface << std::endl;
+
   // Create a transport node.
   ignition::transport::Node node;
+  std::string service = "/echo";
 
   // Advertise a service call.
-  node.Advertise("/echo", srvEcho);
+  if (!node.Advertise(service, srvEcho))
+  {
+    std::cerr << "Error advertising service [" << service << "]" << std::endl;
+    return -1;
+  }
 
   // Wait for requests.
   getchar();

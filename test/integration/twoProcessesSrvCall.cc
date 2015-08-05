@@ -22,10 +22,11 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/int.pb.h"
+#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
+using namespace transport;
 
 bool srvExecuted;
 bool responseExecuted;
@@ -313,13 +314,13 @@ TEST(twoProcSrvCall, SrvTwoProcsException)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
 
   // Enable verbose mode.
-  setenv("IGN_VERBOSE", "1", 1);
+  // setenv("IGN_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

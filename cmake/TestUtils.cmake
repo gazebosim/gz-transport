@@ -19,19 +19,20 @@ macro (ign_build_tests)
     add_dependencies(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}
       gtest gtest_main
-      protobuf_compilation
-      )
+    )
+
+    target_link_libraries(${BINARY_NAME}
+      ${PROJECT_NAME_LOWER}
+    )
 
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         libgtest.a
         libgtest_main.a
         pthread
       )
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         gtest
         gtest_main
       )
@@ -49,7 +50,7 @@ macro (ign_build_tests)
 
       # Check that the test produced a result and create a failure if it didn't.
       # Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
+      add_test(check_${BINARY_NAME} python ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
         ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
     endif()
   endforeach()

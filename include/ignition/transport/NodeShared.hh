@@ -131,7 +131,7 @@ namespace ignition
       public: std::unique_ptr<Discovery> discovery;
 
       /// \brief 0MQ context.
-      public: std::unique_ptr<zmq::context_t> context;
+      public: zmq::context_t *context;
 
       /// \brief ZMQ socket to send topic updates.
       public: std::unique_ptr<zmq::socket_t> publisher;
@@ -164,13 +164,18 @@ namespace ignition
       public: int timeout;
 
       /// \brief thread in charge of receiving and handling incoming messages.
-      public: std::thread *threadReception;
+      public: std::thread threadReception;
 
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: std::recursive_mutex mutex;
 
       /// \brief When true, the reception thread will finish.
       public: bool exit;
+
+#ifdef _WIN32
+      /// \brief True when the reception thread is finishing.
+      public: bool threadReceptionExiting;
+#endif
 
       /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       private: std::mutex exitMutex;

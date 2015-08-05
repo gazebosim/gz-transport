@@ -81,7 +81,7 @@ NodeShared::NodeShared()
   try
   {
     // Set the hostname's ip address.
-    this->hostAddr = this->discovery->GetHostAddr();
+    this->hostAddr = this->discovery->HostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -139,19 +139,27 @@ NodeShared::NodeShared()
   }
 
   // Start the service thread.
-  this->threadReception = new std::thread(&NodeShared::RunReceptionTask, this);
+  this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
+
+#ifdef _WIN32
+  this->threadReceptionExiting = false;
+  this->threadReception.detach();
+#endif
 
   // Set the callback to notify discovery updates (new topics).
-  discovery->SetConnectionsCb(&NodeShared::OnNewConnection, this);
+  discovery->ConnectionsCb(&NodeShared::OnNewConnection, this);
 
   // Set the callback to notify discovery updates (invalid topics).
-  discovery->SetDisconnectionsCb(&NodeShared::OnNewDisconnection, this);
+  discovery->DisconnectionsCb(&NodeShared::OnNewDisconnection, this);
 
-  // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
+  // Set the callback to notify svc discovery updates (new services).
+  discovery->ConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
 
-  // Set the callback to notify svc discovery updates (new service calls).
-  discovery->SetDisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+  // Set the callback to notify svc discovery updates (invalid services).
+  discovery->DisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+
+  // Start the discovery service.
+  discovery->Start();
 }
 
 //////////////////////////////////////////////////
@@ -168,11 +176,32 @@ NodeShared::~NodeShared()
   // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
 #ifndef _WIN32
   // Wait for the service thread before exit.
-  this->threadReception->join();
+  if (this->threadReception.joinable())
+    this->threadReception.join();
+
+  // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
+  publisher.reset();
+  subscriber.reset();
+  control.reset();
+  requester.reset();
+  responseReceiver.reset();
+  replier.reset();
+  delete this->context;
 #else
-  // Give some time to the receiving thread to terminate. The receiving thread
-  // is blocking in zmq::poll for a maximum of Timeout milliseconds.
-  std::this_thread::sleep_for(std::chrono::milliseconds(this->Timeout * 2));
+  while (true)
+  {
+    std::lock_guard<std::mutex> lock(this->exitMutex);
+    {
+      if (this->threadReceptionExiting)
+        break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  // We intentionally don't destroy the context in Windows.
+  // For some reason, when MATLAB deallocates the MEX file makes the context
+  // destructor to hang (probably waiting for ZMQ sockets to terminate).
+  // ToDo: Fix it.
 #endif
 }
 
@@ -208,6 +237,12 @@ void NodeShared::RunReceptionTask()
         break;
     }
   }
+#ifdef _WIN32
+  std::lock_guard<std::mutex> lock(this->exitMutex);
+  {
+    this->threadReceptionExiting = true;
+  }
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -492,9 +527,9 @@ void NodeShared::RecvSrvRequest()
       return;
     }
   }
-  else
-    std::cerr << "I do not have a service call registered for topic ["
-              << topic << "]\n";
+  // else
+  //  std::cerr << "I do not have a service call registered for topic ["
+  //            << topic << "]\n";
 }
 
 //////////////////////////////////////////////////
@@ -567,7 +602,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->discovery->GetSrvPublishers(_topic, addresses);
+  this->discovery->SrvPublishers(_topic, addresses);
   if (addresses.empty())
     return;
 
@@ -579,7 +614,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
     auto &v = proc.second;
     for (auto &pub : v)
     {
-      if (pub.GetReqTypeName() == _reqType && pub.GetRepTypeName() == _repType)
+      if (pub.ReqTypeName() == _reqType && pub.RepTypeName() == _repType)
       {
         found = true;
         responserAddr = pub.Addr();
@@ -621,11 +656,11 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       }
 
       // Mark the handler as requested.
-      req.second->SetRequested(true);
+      req.second->Requested(true);
 
       auto data = req.second->Serialize();
-      auto nodeUuid = req.second->GetNodeUuid();
-      auto reqUuid = req.second->GetHandlerUuid();
+      auto nodeUuid = req.second->NodeUuid();
+      auto reqUuid = req.second->HandlerUuid();
 
       try
       {
@@ -736,7 +771,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
             if (handler.second->GetTypeName() != _pub.MsgTypeName())
               continue;
 
-            std::string nodeUuid = handler.second->GetNodeUuid();
+            std::string nodeUuid = handler.second->NodeUuid();
 
             zmq::message_t msg;
             msg.rebuild(topic.size());
@@ -820,8 +855,8 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 {
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
-  std::string reqType = _pub.GetReqTypeName();
-  std::string repType = _pub.GetRepTypeName();
+  std::string reqType = _pub.ReqTypeName();
+  std::string repType = _pub.RepTypeName();
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 

@@ -26,13 +26,15 @@
 #include "ignition/transport/ServiceResult.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/int.pb.h"
+#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
+using namespace transport;
 
 std::string partition;
 std::string topic = "/foo";
+std::mutex exitMutex;
 static const std::string kExceptionMsg = "Exception message";
 
 int data = 5;
@@ -92,7 +94,7 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 }
 
 //////////////////////////////////////////////////
-/// \brief Provide a ervice call that raises an exception.
+/// \brief Provide a service call that raises an exception.
 void srvEchoException(const std::string &/*_topic*/,
   const transport::msgs::Int &/*_req*/, transport::msgs::Int &/*_rep*/,
   bool &/*_result*/)
@@ -309,7 +311,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
   transport::Node node1(partition, "invalid namespace");
-  transport::Node node2;
+  transport::Node node2(partition, "");
 
   // Check the advertised/subscribed topics and advertised services.
   EXPECT_TRUE(node1.AdvertisedTopics().empty());
@@ -733,7 +735,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 5.0);
+  EXPECT_NEAR(elapsed, timeout, 10.0);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -753,18 +755,27 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
 
   auto i = 0;
-  while (!terminatePub)
+  while (true)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    {
+      std::lock_guard<std::mutex> lock(exitMutex);
+      if (terminatePub)
+        break;
+    }
   }
 
   EXPECT_LT(i, 200);
 }
 
+//////////////////////////////////////////////////
+/// \brief Capture SIGINT and SIGTERM and flag that we want to exit.
 void signal_handler(int _signal)
 {
+  std::lock_guard<std::mutex> lock(exitMutex);
   if (_signal == SIGINT || _signal == SIGTERM)
     terminatePub = true;
 }
@@ -780,9 +791,20 @@ TEST(NodeTest, SigIntTermination)
   std::signal(SIGINT, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
-  thread.join();
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -792,13 +814,24 @@ TEST(NodeTest, SigTermTermination)
 {
   reset();
 
-  // Install a signal handler for SIGINT.
+  // Install a signal handler for SIGTERM.
   std::signal(SIGTERM, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
+#ifdef _WIN32
+  thread.detach();
+#endif
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  std::raise(SIGINT);
-  thread.join();
+  std::raise(SIGTERM);
+
+#ifndef _WIN32
+  if (thread.joinable())
+    thread.join();
+#else
+  WaitForSingleObject(thread.native_handle(), INFINITE);
+  CloseHandle(thread.native_handle());
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -1035,7 +1068,7 @@ TEST(NodeTest, SrvException)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomPartition();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);

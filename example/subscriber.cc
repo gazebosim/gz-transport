@@ -19,11 +19,11 @@
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
-#include "msg/stringmsg.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
+void cb(const std::string &_topic, const example::msgs::StringMsg &_msg)
 {
   std::cout << "Topic:" << _topic << "\n"
             << "Msg:  " << _msg.data() << "\n\n";
@@ -33,9 +33,14 @@ void cb(const std::string &_topic, const example::mymsgs::StringMsg &_msg)
 int main(int argc, char **argv)
 {
   ignition::transport::Node node;
+  std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  node.Subscribe("/foo", cb);
+  if (!node.Subscribe(topic, cb))
+  {
+    std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    return -1;
+  }
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;
