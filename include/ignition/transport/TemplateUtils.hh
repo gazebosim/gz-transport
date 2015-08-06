@@ -47,8 +47,8 @@ namespace ignition
     template<typename FunctionT>
     struct function_traits
     {
-      static constexpr std::size_t arity =
-        function_traits<decltype(& FunctionT::operator())>::arity - 1;
+      //static constexpr std::size_t arity =
+      //  function_traits<decltype(& FunctionT::operator())>::arity - 1;
 
       template<std::size_t N>
       using argument_type = typename function_traits<decltype(
@@ -59,7 +59,7 @@ namespace ignition
     template<typename ReturnTypeT, typename ... Args>
     struct function_traits<ReturnTypeT(Args ...)>
     {
-      static constexpr std::size_t arity = sizeof ... (Args);
+      //static constexpr std::size_t arity = sizeof ... (Args);
 
       template<std::size_t N>
       using argument_type =
