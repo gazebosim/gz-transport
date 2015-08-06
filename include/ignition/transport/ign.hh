@@ -19,8 +19,6 @@
 #define __IGN_TRANSPORT_IGN_HH_INCLUDED__
 
 #include <cstring>
-#include <string>
-#include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
 
 /// \brief External hook to execute 'ign topic list' command from the command

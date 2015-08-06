@@ -34,7 +34,6 @@
   using raw_type = void;
 #endif
 
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -45,7 +44,6 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -53,6 +51,7 @@ namespace ignition
   namespace transport
   {
     class DiscoveryPrivate;
+    class Publisher;
 
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
