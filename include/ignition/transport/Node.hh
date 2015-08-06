@@ -121,11 +121,9 @@ namespace ignition
           this->Shared()->discovery->Mutex());
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
-        using Tunconst = typename UnConst<T>::Result;
-
         // Create a new subscription handler.
         auto subscrHandlerPtr = std::make_shared<SubscriptionHandler<
-          Tunconst>>(this->NodeUuid());
+          typename UnConst<T>::Result>>(this->NodeUuid());
 
         // Insert the callback into the handler.
         subscrHandlerPtr->Callback(_cb);
