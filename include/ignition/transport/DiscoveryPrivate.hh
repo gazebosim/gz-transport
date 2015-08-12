@@ -26,7 +26,6 @@
 #else
   #include <arpa/inet.h>
 #endif
-#include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -37,7 +36,6 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"

@@ -18,6 +18,7 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
 

@@ -21,7 +21,6 @@
 #include <google/protobuf/message.h>
 #include <condition_variable>
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
