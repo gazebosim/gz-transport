@@ -182,7 +182,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 //////////////////////////////////////////////////
 bool Node::Unadvertise(const std::string &_topic)
 {
-  std::string fullyQualifiedMsg = _topic;
+  std::string fullyQualifiedMsg;
   if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedMsg))
   {

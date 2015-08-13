@@ -238,7 +238,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     sizeof(uint64_t) + procUuid.size() +
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
-    sizeof(uint64_t) + typeName.size();
+    sizeof(uint64_t) + typeName.size() +
+    sizeof(bool) + sizeof(bool);
   EXPECT_EQ(advMsg.MsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -479,7 +480,8 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     sizeof(uint64_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
     sizeof(uint64_t) + advSrv.GetPublisher().ReqTypeName().size() +
-    sizeof(uint64_t) + advSrv.GetPublisher().RepTypeName().size();
+    sizeof(uint64_t) + advSrv.GetPublisher().RepTypeName().size() +
+    sizeof(bool) + sizeof(bool);
   EXPECT_EQ(advSrv.MsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";

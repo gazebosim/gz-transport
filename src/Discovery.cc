@@ -389,7 +389,6 @@ bool Discovery::MsgPublishers(const std::string &_topic,
                               Addresses_M &_publishers)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-  // TO-DO: Get only message publishers
   return this->dataPtr->infoTopics.GetPublishers(_topic, _publishers);
 }
 
@@ -398,7 +397,6 @@ bool Discovery::SrvPublishers(const std::string &_topic,
                               Addresses_M &_publishers)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-  // TO-DO: Get only service publishers
   return this->dataPtr->infoTopics.GetPublishers(_topic, _publishers);
 }
 

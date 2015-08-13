@@ -228,77 +228,37 @@ namespace ignition
       /// \param[in] _header Message header.
       /// \param[in] _publisher Contains the topic name, UUIDs, addresses.
       public: AdvertiseMessage(const Header &_header,
-                               const Publisher &_publisher)
-        : header(_header),
-          publisher(_publisher)
-      {
-      }
+                               const Publisher &_publisher);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const
-      {
-        return this->header;
-      }
+      public: Header GetHeader() const;
 
       /// \brief Get the publisher of this message.
       /// \return Publisher.
-      public: Publisher& GetPublisher()
-      {
-        return this->publisher;
-      }
+      public: Publisher& GetPublisher();
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header)
-      {
-        this->header = _header;
-      }
+      public: void SetHeader(const Header &_header);
 
       /// \brief Set the publisher of this message.
       /// \param[in] _publisher New publisher.
-      public: void SetPublisher(const Publisher &_publisher)
-      {
-        this->publisher = _publisher;
-      }
+      public: void SetPublisher(const Publisher &_publisher);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength()
-      {
-        return this->header.HeaderLength() + this->publisher.MsgLength();
-      }
+      public: size_t MsgLength();
 
       /// \brief Serialize the advertise message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer)
-      {
-        // Pack the common part of any advertise message.
-        size_t len = this->header.Pack(_buffer);
-        if (len == 0)
-          return 0;
-
-        _buffer += len;
-
-        // Pack the part of the publisher.
-        if (this->publisher.Pack(_buffer) == 0)
-          return 0;
-
-        return this->MsgLength();
-      }
+      public: size_t Pack(char *_buffer);
 
       /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
       /// \param[out] _buffer Unpack the body from the buffer.
       /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer)
-      {
-        // Unpack the message publisher.
-        if (this->publisher.Unpack(_buffer) == 0)
-          return 0;
-
-        return this->publisher.MsgLength();
-      }
+      public: size_t Unpack(char *_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.

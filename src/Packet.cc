@@ -254,3 +254,68 @@ size_t SubscriptionMsg::Unpack(char *_buffer)
 
   return sizeof(topicLength) + static_cast<size_t>(topicLength);
 }
+
+//////////////////////////////////////////////////
+AdvertiseMessage::AdvertiseMessage(const Header &_header,
+                               const Publisher &_publisher)
+  : header(_header),
+    publisher(_publisher)
+{
+}
+
+//////////////////////////////////////////////////
+Header AdvertiseMessage::GetHeader() const
+{
+  return this->header;
+}
+
+//////////////////////////////////////////////////
+Publisher& AdvertiseMessage::GetPublisher()
+{
+  return this->publisher;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseMessage::SetHeader(const Header &_header)
+{
+  this->header = _header;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseMessage::SetPublisher(const Publisher &_publisher)
+{
+  this->publisher = _publisher;
+}
+
+//////////////////////////////////////////////////
+size_t AdvertiseMessage::MsgLength()
+{
+  return this->header.HeaderLength() + this->publisher.MsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t AdvertiseMessage::Pack(char *_buffer)
+{
+  // Pack the common part of any advertise message.
+  size_t len = this->header.Pack(_buffer);
+  if (len == 0)
+    return 0;
+
+  _buffer += len;
+
+  // Pack the part of the publisher.
+  if (this->publisher.Pack(_buffer) == 0)
+    return 0;
+
+  return this->MsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t AdvertiseMessage::Unpack(char *_buffer)
+{
+  // Unpack the message publisher.
+  if (this->publisher.Unpack(_buffer) == 0)
+    return 0;
+
+  return this->publisher.MsgLength();
+}

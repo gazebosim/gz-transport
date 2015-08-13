@@ -49,10 +49,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
   }
   auto type = topic_name.substr(first+1, last-first-1);
 
-  this->isService = false;
-
-  if (type == "srv")
-    this->isService = true;
+  this->isService = (type == "srv")? true : false;
 }
 
 //////////////////////////////////////////////////
@@ -376,6 +373,7 @@ size_t Publisher::MsgLength() const
               sizeof(uint64_t) + this->msgTypeName.size();
   }
 
+  size += sizeof(this->isReal) + sizeof(this->isService);
   return size;
 }
 
