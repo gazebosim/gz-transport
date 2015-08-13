@@ -58,12 +58,12 @@ namespace ignition
       /// \return true if the topic contains at least one request.
       public: bool GetHandlers(const std::string &_topic,
         std::map<std::string,
-          std::map<std::string, std::shared_ptr<T> >> &_handlers)
+          std::map<std::string, std::shared_ptr<T> >> &_handlers) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        _handlers = this->data[_topic];
+        _handlers = this->data.at(_topic);
         return true;
       }
 
@@ -72,12 +72,12 @@ namespace ignition
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
       public: bool GetHandler(const std::string &_topic,
-        std::shared_ptr<T> &_handler)
+        std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        _handler = this->data[_topic].begin()->second.begin()->second;
+        _handler = this->data.at(_topic).begin()->second.begin()->second;
         return true;
       }
 
@@ -90,19 +90,19 @@ namespace ignition
       public: bool GetHandler(const std::string &_topic,
                               const std::string &_nUuid,
                               const std::string &_hUuid,
-                              std::shared_ptr<T> &_handler)
+                              std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data[_topic];
+        auto &m = this->data.at(_topic);
         if (m.find(_nUuid) == m.end())
           return false;
 
-        if (m[_nUuid].find(_hUuid) == m[_nUuid].end())
+        if (m.at(_nUuid).find(_hUuid) == m.at(_nUuid).end())
           return false;
 
-        _handler = m[_nUuid][_hUuid];
+        _handler = m.at(_nUuid).at(_hUuid);
         return true;
       }
 
@@ -132,12 +132,12 @@ namespace ignition
       /// topic.
       /// \param[in] _topic Topic name.
       /// \return true if we have stored at least one request for the topic.
-      public: bool HasHandlersForTopic(const std::string &_topic)
+      public: bool HasHandlersForTopic(const std::string &_topic) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        return !this->data[_topic].empty();
+        return !this->data.at(_topic).empty();
       }
 
       /// \brief Check if a node has at least one handler.
@@ -145,12 +145,13 @@ namespace ignition
       /// \param[in] _nUuid Node's unique identifier.
       /// \return true if the node has at least one handler registered.
       public: bool HasHandlersForNode(const std::string &_topic,
-                                      const std::string &_nUuid)
+                                      const std::string &_nUuid) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        return this->data[_topic].find(_nUuid) != this->data[_topic].end();
+        return this->data.at(_topic).find(_nUuid) !=
+               this->data.at(_topic).end();
       }
 
       /// \brief Remove a request handler. The node's uuid is used as a key to
