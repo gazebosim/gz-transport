@@ -41,11 +41,11 @@ namespace ignition
     class IReqHandler;
     class ISubscriptionHandler;
 
-    /// \def MsgAddresses_M
-    /// \brief The map stores all the publishers advertising this topic.
+    /// \def Addresses_M
+    /// \brief The map stores all publishers advertising this topic/service.
     /// The keys are the process uuid of the nodes. For each uuid key, the
-    /// value contains the list of publishers advertising the topic within the
-    // same process uuid.
+    /// value contains the list of publishers advertising the topic/service
+    //  within the same process uuid.
     using Addresses_M = std::map<std::string, std::vector<Publisher>>;
 
     /// \def ProtoMsg
@@ -105,11 +105,11 @@ namespace ignition
     using IReqHandler_M =
       std::map<std::string, std::map<std::string, IReqHandlerPtr>>;
 
-    /// \def MsgDiscoveryCallback
+    /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a topic.
-    /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
+    /// E.g.: void onDiscoveryResponse(const Publisher &_publisher).
     using DiscoveryCallback =
       std::function<void(const Publisher&_publisher)>;
 

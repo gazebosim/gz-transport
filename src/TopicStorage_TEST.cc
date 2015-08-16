@@ -357,4 +357,30 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.AddPublisher(publisher7));
   EXPECT_TRUE(test.AddPublisher(publisher8));
   EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
+
+  // Check retrieving topics/services lists.
+  transport::Publisher
+          publisher9("@msg@test_topic", addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher
+          publisher10("@msg@new_topic", addr1, pUuid1, nUuid1, scope1);
+
+  transport::Publisher
+          publisher11("@srv@test_service", addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher
+          publisher12("@srv@new_service", addr1, pUuid1, nUuid1, scope1);
+
+  test.AddPublisher(publisher9);
+  test.AddPublisher(publisher10);
+  test.AddPublisher(publisher11);
+  test.AddPublisher(publisher12);
+
+  std::vector<std::string> msgs, srvs;
+
+  test.GetTopicList(msgs);
+  EXPECT_EQ("@msg@new_topic", msgs[0]);
+  EXPECT_EQ("@msg@test_topic", msgs[1]);
+
+  test.GetTopicList(srvs, true);
+  EXPECT_EQ("@srv@new_service", srvs[0]);
+  EXPECT_EQ("@srv@test_service", srvs[1]);
 }

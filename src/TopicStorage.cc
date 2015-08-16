@@ -125,7 +125,7 @@ bool TopicStorage::GetPublisher(const std::string &_topic,
 //////////////////////////////////////////////////
 bool TopicStorage::GetPublishers(const std::string &_topic,
                                  std::map<std::string,
-                                    std::vector<Publisher>> &_info)
+                                 std::vector<Publisher>> &_info)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -194,7 +194,7 @@ bool TopicStorage::DelPublishersByProc(const std::string &_pUuid)
 
 //////////////////////////////////////////////////
 void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
-                                   std::map<std::string,
+                                      std::map<std::string,
                                       std::vector<Publisher>> &_pubs)
 {
   _pubs.clear();
@@ -216,10 +216,28 @@ void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
 }
 
 //////////////////////////////////////////////////
-void TopicStorage::GetTopicList(std::vector<std::string> &_topics) const
+void TopicStorage::GetTopicList(std::vector<std::string> &_topics,
+                                const bool& _is_service) const
 {
+  _topics.clear();
+
   for (auto &topic : this->data)
-    _topics.push_back(topic.first);
+  {
+    auto topic_name = topic.first;
+    topic_name.erase(0, topic_name.find_first_of("@")+1);
+
+    auto first = topic_name.find_first_of("@");
+    auto last = topic_name.find_first_of("@", first+1);
+    if (last == std::string::npos)
+    {
+      last = first;
+      first = -1;
+    }
+    auto type = topic_name.substr(first+1, last-first-1);
+
+    if ((_is_service && type == "srv") || (!_is_service && type == "msg"))
+      _topics.push_back(topic.first);
+  }
 }
 
 //////////////////////////////////////////////////

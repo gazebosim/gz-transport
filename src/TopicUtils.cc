@@ -56,7 +56,7 @@ bool TopicUtils::IsValidTopic(const std::string &_topic)
 //////////////////////////////////////////////////
 bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   const std::string &_ns, const std::string &_topic, std::string &_name,
-  const bool isService)
+  const bool& _is_service)
 {
   // Sanity check, first things first.
   if (!IsValidNamespace(_partition) || !IsValidNamespace(_ns) ||
@@ -99,7 +99,7 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   // Add the partition prefix.
   _name.insert(0, "@" + partition + "@");
 
-  if (isService)
+  if (_is_service)
     _name.insert(_name.find_last_of("@")+1, "srv@");
   else
     _name.insert(_name.find_last_of("@")+1, "msg@");

@@ -290,80 +290,8 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      private: void SendMsg(uint8_t _type,
-                            const Publisher &_pub,
-                            int _flags = 0)
-      {
-        // Create the header.
-        Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
-        std::vector<char> buffer;
-
-        std::string topic = _pub.Topic();
-
-        switch (_type)
-        {
-          case AdvType:
-          case UnadvType:
-          case AdvSrvType:
-          case UnadvSrvType:
-          {
-            // Create the [UN]ADVERTISE message.
-            transport::AdvertiseMessage advMsg(header, _pub);
-
-            // Allocate a buffer and serialize the message.
-            buffer.resize(advMsg.MsgLength());
-            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
-            break;
-          }
-          case SubType:
-          case SubSrvType:
-          {
-            // Create the [UN]SUBSCRIBE message.
-            SubscriptionMsg subMsg(header, topic);
-
-            // Allocate a buffer and serialize the message.
-            buffer.resize(subMsg.MsgLength());
-            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
-            break;
-          }
-          case HeartbeatType:
-          case ByeType:
-          {
-            // Allocate a buffer and serialize the message.
-            buffer.resize(header.HeaderLength());
-            header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = header.HeaderLength();
-            break;
-          }
-          default:
-            std::cerr << "Discovery::SendMsg() error: Unrecognized message"
-                      << " type [" << _type << "]" << std::endl;
-            return;
-        }
-
-        // Send the discovery message to the multicast group through all the
-        // sockets.
-        for (const auto &sock : this->Sockets())
-        {
-          if (sendto(sock, reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
-            msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-            sizeof(*(this->MulticastAddr()))) != msgLength)
-          {
-            std::cerr << "Exception sending a message" << std::endl;
-            return;
-          }
-        }
-
-        if (this->Verbose())
-        {
-          std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << topic << "]" << std::endl;
-        }
-      }
+      private: void SendMsg(uint8_t _type, const Publisher &_pub,
+                            int _flags = 0);
 
       /// \brief Get the list of sockets used for discovery.
       /// \return The list of sockets.

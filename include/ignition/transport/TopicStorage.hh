@@ -83,7 +83,7 @@ namespace ignition
       /// \return true if at least there is one publisher stored.
       public: bool GetPublishers(const std::string &_topic,
                                  std::map<std::string,
-                                    std::vector<Publisher>> &_info);
+                                 std::vector<Publisher>> &_info);
 
       /// \brief Remove a publisher associated to a given topic and UUID pair.
       /// \param[in] _topic Topic name
@@ -105,12 +105,13 @@ namespace ignition
       /// \param _pubs Map of publishers where the keys are the node UUIDs and
       /// the value is its address information.
       public: void GetPublishersByProc(const std::string &_pUuid,
-                                   std::map<std::string,
-                                      std::vector<Publisher>> &_pubs);
+                                       std::map<std::string,
+                                       std::vector<Publisher>> &_pubs);
 
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const;
+      public: void GetTopicList(std::vector<std::string> &_topics,
+                                const bool& _is_service = false) const;
 
       /// \brief Print all the information for debugging purposes.
       public: void Print();

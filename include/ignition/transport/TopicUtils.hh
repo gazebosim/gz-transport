@@ -58,7 +58,7 @@ namespace ignition
                                                 const std::string &_ns,
                                                 const std::string &_topic,
                                                 std::string &_name,
-                                                const bool isService = false);
+                                              const bool& _is_service = false);
     };
   }
 }

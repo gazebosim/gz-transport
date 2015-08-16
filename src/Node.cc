@@ -190,6 +190,8 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
+  // TO-CHECK: Here the assumption that a message and a service
+  // cannot have the same name is taken
   std::string fullyQualifiedSrv = fullyQualifiedMsg;
 
   auto found = fullyQualifiedSrv.find_first_of("msg");
