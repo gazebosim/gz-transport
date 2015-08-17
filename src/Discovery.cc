@@ -344,7 +344,7 @@ bool Discovery::Discover(const std::string &_topic)
   DiscoveryCallback cb;
   Publisher pub(_topic, "", this->dataPtr->pUuid, "", Scope_t::All);
 
-  if (pub.isServicePublisher())
+  if (pub.ServicePublisher())
   {
     cb = this->dataPtr->connectionSrvCb;
 
@@ -568,7 +568,7 @@ void Discovery::RunHeartbeatTask()
       {
         for (auto &node : topic.second)
         {
-          if (!node.isServicePublisher())
+          if (!node.ServicePublisher())
             this->SendMsg(AdvType, node);
           else
             this->SendMsg(AdvSrvType, node);
@@ -708,13 +708,13 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       bool added =
             this->dataPtr->infoTopics.AddPublisher(advMsg.GetPublisher());
 
-      if (!advMsg.GetPublisher().isServicePublisher() &&
+      if (!advMsg.GetPublisher().ServicePublisher() &&
           added && this->dataPtr->connectionCb)
       {
         // Execute the client's callback.
         this->dataPtr->connectionCb(advMsg.GetPublisher());
       }
-      else if (advMsg.GetPublisher().isServicePublisher() && added &&
+      else if (advMsg.GetPublisher().ServicePublisher() && added &&
                this->dataPtr->connectionSrvCb)
       {
         // Execute the client's callback.
@@ -802,7 +802,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
       DiscoveryCallback cb;
 
-      if (!advMsg.GetPublisher().isServicePublisher())
+      if (!advMsg.GetPublisher().ServicePublisher())
         cb = this->dataPtr->disconnectionCb;
       else
         cb = this->dataPtr->disconnectionSrvCb;

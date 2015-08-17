@@ -68,7 +68,7 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new topic.
+      /// \brief Advertise a new topic/service.
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
       /// \return true if the topic was succesfully advertised.
@@ -79,7 +79,7 @@ namespace ignition
       /// \return A vector containing all the topics advertised by this node.
       public: std::vector<std::string> AdvertisedTopics() const;
 
-      /// \brief Unadvertise a topic.
+      /// \brief Unadvertise a topic/service.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \return true if the topic was unadvertised.
       public: bool Unadvertise(const std::string &_topic);

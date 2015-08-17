@@ -443,7 +443,7 @@ void Publisher::RepTypeName(const std::string &_repTypeName)
 }
 
 //////////////////////////////////////////////////
-bool Publisher::isServicePublisher() const
+bool Publisher::ServicePublisher() const
 {
   return this->isService;
 }

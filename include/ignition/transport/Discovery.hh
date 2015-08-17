@@ -83,13 +83,17 @@ namespace ignition
       /// (e.g. if the discovery has not been started).
       public: bool Advertise(const Publisher& _publisher);
 
-      /// \brief Request discovery information about a topic.
+      /// \brief Request discovery information about a topic/service.
       /// When using this method, the user might want to use
-      /// SetConnectionsCb() and SetDisconnectionCb(), that registers callbacks
-      /// that will be executed when the topic address is discovered or when the
-      /// node providing the topic is disconnected.
+      /// ConnectionsCb() and DisconnectionCb()
+      /// or ConnectionsSrvCb() and DisconnectionSrvCb(),
+      /// that registers callbacks
+      /// that will be executed when the topic/service address is discovered
+      /// or when the node providing the topic/service is disconnected.
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
+      /// \sa SetConnectionsSrvCb.
+      /// \sa SetDisconnectionsSrvCb.
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
@@ -110,9 +114,9 @@ namespace ignition
                                  Addresses_M &_publishers);
 
       /// \brief Unadvertise a new message/service. Broadcast a discovery
-      /// message that will cancel all the discovery information for the topic
-      /// advertised by a specific node.
-      /// \param[in] _topic Topic name to be unadvertised.
+      /// message that will cancel all the discovery information for
+      /// the topic/service advertised by a specific node.
+      /// \param[in] _topic Topic/Service name to be unadvertised.
       /// \param[in] _nUuid Node UUID.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).

@@ -183,7 +183,7 @@ namespace ignition
 
       /// \brief whether the publisher is Service publisher
       /// \return bool
-      public: bool isServicePublisher() const;
+      public: bool ServicePublisher() const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -204,7 +204,7 @@ namespace ignition
         else
           _out << "All" << std::endl;
 
-        if (_msg.isServicePublisher())
+        if (_msg.ServicePublisher())
           _out << "\tSocket ID: "     << _msg.SocketId()  << std::endl
              << "\tRequest type: "  << _msg.ReqTypeName() << std::endl
              << "\tResponse type: " << _msg.RepTypeName() << std::endl;
