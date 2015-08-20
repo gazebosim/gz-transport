@@ -68,7 +68,7 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new topic/service.
+      /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _scope Topic scope.
       /// \return true if the topic was succesfully advertised.

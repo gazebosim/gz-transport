@@ -213,6 +213,8 @@ bool Node::Unadvertise(const std::string &_topic)
     {
       return false;
     }
+
+    return true;
   }
 
   if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv)
@@ -231,6 +233,8 @@ bool Node::Unadvertise(const std::string &_topic)
     {
       return false;
     }
+
+    return true;
   }
 
   return true;
