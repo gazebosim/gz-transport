@@ -38,16 +38,16 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     isReal(false)
 {
   auto topic_name = this->topic;
-  topic_name.erase(0, topic_name.find_first_of("@")+1);
+  topic_name.erase(0, topic_name.find_first_of("@") + 1);
 
   auto first = topic_name.find_first_of("@");
-  auto last = topic_name.find_first_of("@", first+1);
+  auto last = topic_name.find_first_of("@", first + 1);
   if (last == std::string::npos)
   {
     last = first;
     first = -1;
   }
-  auto type = topic_name.substr(first+1, last-first-1);
+  auto type = topic_name.substr(first + 1, last - first - 1);
 
   this->isService = (type == "srv")? true : false;
 }
@@ -160,7 +160,7 @@ size_t Publisher::Pack(char *_buffer) const
   }
 
   if (this->isReal && (this->ctrl.empty() || this->msgTypeName.empty() ||
-          (this->isService && this->repTypeName.empty())))
+      (this->isService && this->repTypeName.empty())))
   {
     std::cerr << "Publisher::Pack() error: You're trying to pack an "
               << "incomplete Publisher:" << std::endl << *this;
@@ -252,7 +252,7 @@ size_t Publisher::Pack(char *_buffer) const
 
       // Pack the response.
       memcpy(_buffer, this->repTypeName.data(),
-             static_cast<size_t>(repTypeLength));
+        static_cast<size_t>(repTypeLength));
     }
   }
 

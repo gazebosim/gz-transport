@@ -371,8 +371,8 @@ bool Discovery::Discover(const std::string &_topic)
         {
           if (cb)
           {
-            // Execute the user's callback for a service request. Notice
-            // that we only execute one callback for preventing receive
+            // Execute the user's callback for a message/service request.
+            // Notice that we only execute one callback for preventing receive
             // multiple service responses for a single request.
             cb(node);
           }

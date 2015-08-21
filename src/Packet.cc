@@ -84,7 +84,7 @@ void Header::Flags(const uint16_t _flags)
 }
 
 //////////////////////////////////////////////////
-int Header::HeaderLength()
+int Header::HeaderLength() const
 {
   return sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
@@ -92,7 +92,7 @@ int Header::HeaderLength()
 }
 
 //////////////////////////////////////////////////
-size_t Header::Pack(char *_buffer)
+size_t Header::Pack(char *_buffer) const
 {
   // Uninitialized.
   if ((this->version == 0) || (this->pUuid == "") ||
@@ -200,13 +200,13 @@ void SubscriptionMsg::Topic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::MsgLength()
+size_t SubscriptionMsg::MsgLength() const
 {
   return this->header.HeaderLength() + sizeof(uint64_t) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::Pack(char *_buffer)
+size_t SubscriptionMsg::Pack(char *_buffer) const
 {
   // Pack the header.
   size_t headerLen = this->GetHeader().Pack(_buffer);
@@ -288,13 +288,13 @@ void AdvertiseMessage::SetPublisher(const Publisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-size_t AdvertiseMessage::MsgLength()
+size_t AdvertiseMessage::MsgLength() const
 {
   return this->header.HeaderLength() + this->publisher.MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t AdvertiseMessage::Pack(char *_buffer)
+size_t AdvertiseMessage::Pack(char *_buffer) const
 {
   // Pack the common part of any advertise message.
   size_t len = this->header.Pack(_buffer);

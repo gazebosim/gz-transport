@@ -121,7 +121,7 @@ namespace ignition
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
       public: bool Unadvertise(const std::string &_topic,
-                                  const std::string &_nUuid);
+                               const std::string &_nUuid);
 
       /// \brief Get the IP address of this host.
       /// \return A string with this host's IP address.
@@ -237,8 +237,7 @@ namespace ignition
       /// executed.
       /// This version uses a free function as callback.
       /// \param[in] _cb Function callback.
-      public: void DisconnectionsSrvCb(
-        const transport::DiscoveryCallback &_cb);
+      public: void DisconnectionsSrvCb(const transport::DiscoveryCallback &_cb);
 
       /// \brief Register a callback to receive discovery disconnection events.
       /// Each time a service is no longer available, the callback will be
@@ -294,7 +293,8 @@ namespace ignition
       /// \param[in] _flags Optional flags. Currently, the flags are not used
       /// but they will in the future for specifying things like compression,
       /// or encryption.
-      private: void SendMsg(uint8_t _type, const Publisher &_pub,
+      private: void SendMsg(uint8_t _type,
+                            const Publisher &_pub,
                             int _flags = 0);
 
       /// \brief Get the list of sockets used for discovery.
