@@ -37,6 +37,7 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+#include "msgs/stringmsg.pb.h"
 
 using namespace ignition;
 using namespace transport;
@@ -140,12 +141,15 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
     return false;
   }
 
+  std::string topicNew = fullyQualifiedTopic+"_info";
+
   std::lock_guard<std::recursive_mutex> discLk(
           this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Add the topic to the list of advertised topics (if it was not before).
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
+  this->dataPtr->topicsAdvertised.insert(topicNew);
 
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
@@ -156,6 +160,21 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   {
     std::cerr << "Node::Advertise(): Error advertising a topic. "
               << "Did you forget to start the discovery service?" << std::endl;
+    return false;
+  }
+
+  // Notify the discovery service to register and advertise my topic.
+  MessagePublisher publisher2(topicNew,
+    this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
+    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
+
+  if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher2))
+  {
+    std::cerr << "Node::Advertise(): Error advertising a topic. "
+              << "Did you forget to start the discovery service?" << std::endl;
+    // Unadvertise actual topic
+    this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+      this->dataPtr->nUuid);
     return false;
   }
 
@@ -190,15 +209,25 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
+  std::string topicNew = fullyQualifiedTopic+"_info";
+
   std::lock_guard<std::recursive_mutex> discLk(
           this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
+  this->dataPtr->topicsAdvertised.erase(topicNew);
 
   // Notify the discovery service to unregister and unadvertise my topic.
   if (!this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+    this->dataPtr->nUuid))
+  {
+    return false;
+  }
+
+  // Notify the discovery service to unregister and unadvertise my topic.
+  if (!this->dataPtr->shared->discovery->UnadvertiseMsg(topicNew,
     this->dataPtr->nUuid))
   {
     return false;
@@ -217,6 +246,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
   }
+
+  std::string topicNew = fullyQualifiedTopic+"_info";
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -249,12 +280,47 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     }
   }
 
+  handlers.clear();
+  if (this->dataPtr->shared->localSubscriptions.GetHandlers(topicNew,
+        handlers))
+  {
+    for (auto &node : handlers)
+    {
+      for (auto &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+        if (subscriptionHandlerPtr)
+        {
+          msgs::String stringmsg;
+          stringmsg.set_data(_msg.DebugString());
+          subscriptionHandlerPtr->RunLocalCallback(topicNew, stringmsg);
+        }
+        else
+        {
+          std::cerr << "Node::Publish(): Subscription handler is NULL"
+                    << std::endl;
+        }
+      }
+    }
+  }
+
   // Remote subscribers.
   if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
   {
     std::string data;
     _msg.SerializeToString(&data);
     this->dataPtr->shared->Publish(fullyQualifiedTopic, data);
+  }
+
+  // Remote subscribers.
+  if (this->dataPtr->shared->remoteSubscribers.HasTopic(topicNew))
+  {
+    msgs::String stringmsg;
+    stringmsg.set_data(_msg.DebugString());
+    std::string data;
+    stringmsg.SerializeToString(&data);
+    this->dataPtr->shared->Publish(topicNew, data);
   }
   // Debug output.
   // else

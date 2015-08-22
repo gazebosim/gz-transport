@@ -26,16 +26,19 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/int.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 using namespace ignition;
 
 std::string partition;
 std::string topic = "/foo";
+std::string info_suffix = "_info";
 std::mutex exitMutex;
 
 int data = 5;
 bool cbExecuted;
 bool cb2Executed;
+bool cbInfoExecuted;
 bool srvExecuted;
 bool responseExecuted;
 int counter = 0;
@@ -47,6 +50,7 @@ void reset()
 {
   cbExecuted = false;
   cb2Executed = false;
+  cbInfoExecuted = false;
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
@@ -61,6 +65,15 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cb_info(const std::string &_topic, const transport::msgs::String &_msg)
+{
+  EXPECT_EQ(_topic, topic+info_suffix);
+  EXPECT_EQ(_msg.data(), "data: 5\n");
+  cbInfoExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -246,13 +259,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.Advertise(topic));
 
   auto advertisedTopics = node1.AdvertisedTopics();
-  ASSERT_EQ(advertisedTopics.size(), 1u);
-  EXPECT_EQ(advertisedTopics.at(0), topic);
+  ASSERT_EQ(advertisedTopics.size(), 2u);
+  EXPECT_EQ(advertisedTopics.at(0), topic+info_suffix);
+  EXPECT_EQ(advertisedTopics.at(1), topic);
 
   EXPECT_TRUE(node2.Advertise(topic));
   advertisedTopics = node2.AdvertisedTopics();
-  ASSERT_EQ(advertisedTopics.size(), 1u);
-  EXPECT_EQ(advertisedTopics.at(0), topic);
+  ASSERT_EQ(advertisedTopics.size(), 2u);
+  EXPECT_EQ(advertisedTopics.at(0), topic+info_suffix);
+  EXPECT_EQ(advertisedTopics.at(1), topic);
 
   EXPECT_TRUE(node2.Subscribe(topic, cb));
   auto subscribedTopics = node2.SubscribedTopics();
@@ -335,6 +350,33 @@ TEST(NodeTest, PubSubSameThread)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   EXPECT_FALSE(cbExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
+TEST(NodeTest, PubSubSameThreadInfo)
+{
+  reset();
+
+  transport::msgs::Int msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise(topic));
+
+  EXPECT_TRUE(node.Subscribe(topic+info_suffix, cb_info));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(node.Publish(topic, msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  EXPECT_TRUE(cbInfoExecuted);
 }
 
 //////////////////////////////////////////////////
