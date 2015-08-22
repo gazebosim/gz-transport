@@ -37,19 +37,11 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     repTypeName(""),
     isReal(false)
 {
-  auto topic_name = this->topic;
-  topic_name.erase(0, topic_name.find_first_of("@") + 1);
+  // Get publisher type from name
+  std::string type;
+  TopicUtils::GetTypeFromName(_topic, type);
 
-  auto first = topic_name.find_first_of("@");
-  auto last = topic_name.find_first_of("@", first + 1);
-  if (last == std::string::npos)
-  {
-    last = first;
-    first = -1;
-  }
-  auto type = topic_name.substr(first + 1, last - first - 1);
-
-  this->isService = (type == "srv")? true : false;
+  this->isService = (type == "srv");
 }
 
 //////////////////////////////////////////////////
@@ -68,6 +60,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
     isService(false),
     isReal(true)
 {
+  // TO-DO: Probably add check whether topic's type in name is message
 }
 
 //////////////////////////////////////////////////
@@ -86,6 +79,7 @@ Publisher::Publisher(const std::string &_topic,
     isService(true),
     isReal(true)
 {
+  // TO-DO: Probably add check whether topic's type in name is service
 }
 
 //////////////////////////////////////////////////
@@ -174,10 +168,11 @@ size_t Publisher::Pack(char *_buffer) const
     return 0;
   }
 
-  // Pack type of publisher
+  // Pack type of publisher (real or fake)
   memcpy(_buffer, &this->isReal, sizeof(this->isReal));
   _buffer += sizeof(this->isReal);
 
+  // Pack type of publisher (service or message)
   memcpy(_buffer, &this->isService, sizeof(this->isService));
   _buffer += sizeof(this->isService);
 
@@ -357,23 +352,20 @@ size_t Publisher::Unpack(char *_buffer)
 //////////////////////////////////////////////////
 size_t Publisher::MsgLength() const
 {
-  auto size = sizeof(uint64_t) + this->topic.size() +
+  auto size = sizeof(bool) + sizeof(bool) +
+              sizeof(uint64_t) + this->topic.size() +
               sizeof(uint64_t) + this->addr.size() +
               sizeof(uint64_t) + this->pUuid.size() +
               sizeof(uint64_t) + this->nUuid.size() +
               sizeof(uint8_t);
   if (this->isReal)
   {
+    size += sizeof(uint64_t) + this->ctrl.size() +
+            sizeof(uint64_t) + this->msgTypeName.size();
     if (this->isService)
-      size += sizeof(uint64_t) + this->ctrl.size() +
-              sizeof(uint64_t) + this->msgTypeName.size() +
-              sizeof(uint64_t) + this->repTypeName.size();
-    else
-      size += sizeof(uint64_t) + this->ctrl.size() +
-              sizeof(uint64_t) + this->msgTypeName.size();
+      size += sizeof(uint64_t) + this->repTypeName.size();
   }
 
-  size += sizeof(this->isReal) + sizeof(this->isService);
   return size;
 }
 

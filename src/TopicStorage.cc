@@ -217,7 +217,7 @@ void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
 
 //////////////////////////////////////////////////
 void TopicStorage::GetTopicList(std::vector<std::string> &_topics,
-                                const bool& _is_service) const
+                                const bool& _isService) const
 {
   _topics.clear();
 
@@ -235,7 +235,7 @@ void TopicStorage::GetTopicList(std::vector<std::string> &_topics,
     }
     auto type = topic_name.substr(first+1, last-first-1);
 
-    if ((_is_service && type == "srv") || (!_is_service && type == "msg"))
+    if ((_isService && type == "srv") || (!_isService && type == "msg"))
       _topics.push_back(topic.first);
   }
 }

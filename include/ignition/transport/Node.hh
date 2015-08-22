@@ -52,7 +52,9 @@ namespace ignition
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
-    /// calls.
+    /// calls. Each topic is composed by 3 parts: @partition@type@name
+    /// The partition and type parts are automatically appended by the class.
+    /// type can be: @msg@ for pub/sub messages and @srv@ for service calls.
     class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
@@ -104,7 +106,7 @@ namespace ignition
           void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
+        if (!TopicUtils::GetFullyQualifiedMsgName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -159,7 +161,7 @@ namespace ignition
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
+        if (!TopicUtils::GetFullyQualifiedMsgName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -231,8 +233,8 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic, true))
+        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+          this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -297,8 +299,8 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic, true))
+        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+          this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -365,8 +367,8 @@ namespace ignition
         void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic, true))
+        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+          this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -451,8 +453,8 @@ namespace ignition
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic, true))
+        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+          this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -536,8 +538,8 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic, true))
+        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+          this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;

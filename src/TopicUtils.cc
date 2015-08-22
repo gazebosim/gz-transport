@@ -56,7 +56,7 @@ bool TopicUtils::IsValidTopic(const std::string &_topic)
 //////////////////////////////////////////////////
 bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   const std::string &_ns, const std::string &_topic, std::string &_name,
-  const bool& _is_service)
+  const bool& _isService)
 {
   // Sanity check, first things first.
   if (!IsValidNamespace(_partition) || !IsValidNamespace(_ns) ||
@@ -99,10 +99,88 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   // Add the partition prefix.
   _name.insert(0, "@" + partition + "@");
 
-  if (_is_service)
+  if (_isService)
     _name.insert(_name.find_last_of("@")+1, "srv@");
   else
     _name.insert(_name.find_last_of("@")+1, "msg@");
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::GetFullyQualifiedMsgName(const std::string &_partition,
+  const std::string &_ns, const std::string &_topic, std::string &_name)
+{
+  return TopicUtils::GetFullyQualifiedName(_partition, _ns, _topic, _name);
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::GetFullyQualifiedSrvName(const std::string &_partition,
+  const std::string &_ns, const std::string &_topic, std::string &_name)
+{
+  return TopicUtils::GetFullyQualifiedName(_partition, _ns,
+    _topic, _name, true);
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::GetPartitionFromName(const std::string &_name,
+  std::string &_partition)
+{
+  // Get partition from fully qualified name
+  auto topic_name = _name;
+
+  auto first = topic_name.find_first_of("@");
+  // ERROR - no special part (requires at least 2 '@')
+  if (first == std::string::npos)
+  {
+    return false;
+  }
+  // remove first '@'
+  topic_name.erase(0, first + 1);
+  // find where partition part ends
+  first = topic_name.find_first_of("@");
+  // ERROR - no special part (requires at least 2 '@')
+  if (first == std::string::npos)
+  {
+    return false;
+  }
+  // get partition
+  _partition = topic_name.substr(0, first);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::GetTypeFromName(const std::string &_name, std::string &_type)
+{
+  // Get publisher type from fully qualified name
+  auto topic_name = _name;
+
+  auto first = topic_name.find_first_of("@");
+  // ERROR - no special part (requires at least 2 '@')
+  if (first == std::string::npos)
+  {
+    return false;
+  }
+  // remove first '@'
+  topic_name.erase(0, first + 1);
+  // find where partition part ends
+  first = topic_name.find_first_of("@");
+  // ERROR - no special part (requires at least 2 '@')
+  if (first == std::string::npos)
+  {
+    return false;
+  }
+  // find where type part ends
+  auto last = topic_name.find_first_of("@", first + 1);
+  // special case when there's no partition
+  if (last == std::string::npos)
+  {
+    last = first;
+    first = -1;
+  }
+  // get type
+  _type = topic_name.substr(first + 1, last - first - 1);
+
+  return (_type == "msg" || _type == "srv");
 }

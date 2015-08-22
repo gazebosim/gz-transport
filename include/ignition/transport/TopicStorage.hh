@@ -111,7 +111,7 @@ namespace ignition
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.
       public: void GetTopicList(std::vector<std::string> &_topics,
-                                const bool& _is_service = false) const;
+                                const bool& _isService = false) const;
 
       /// \brief Print all the information for debugging purposes.
       public: void Print();

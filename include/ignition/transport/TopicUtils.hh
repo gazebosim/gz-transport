@@ -51,14 +51,55 @@ namespace ignition
       /// \param[in] _partition Partition name.
       /// \param[in] _ns Namespace.
       /// \param[in] _topic Topic name.
+      /// \param[in] _isService Is a service or a message?
       /// \param[out] _name Fully qualified topic name.
       /// \return True if the fully qualified name is valid
       /// (if partition, namespace and topic are correct).
-      public: static bool GetFullyQualifiedName(const std::string &_partition,
+      private: static bool GetFullyQualifiedName(const std::string &_partition,
                                                 const std::string &_ns,
                                                 const std::string &_topic,
                                                 std::string &_name,
-                                              const bool& _is_service = false);
+                                              const bool& _isService = false);
+
+      /// \brief Get the full topic path given a namespace and a topic name.
+      /// \param[in] _partition Partition name.
+      /// \param[in] _ns Namespace.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _name Fully qualified topic name.
+      /// \return True if the fully qualified name is valid
+      /// (if partition, namespace and topic are correct).
+      public: static bool GetFullyQualifiedMsgName(
+                                                const std::string &_partition,
+                                                const std::string &_ns,
+                                                const std::string &_topic,
+                                                std::string &_name);
+
+      /// \brief Get the full topic path given a namespace and a service name.
+      /// \param[in] _partition Partition name.
+      /// \param[in] _ns Namespace.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _name Fully qualified topic name.
+      /// \return True if the fully qualified name is valid
+      /// (if partition, namespace and topic are correct).
+      public: static bool GetFullyQualifiedSrvName(
+                                                const std::string &_partition,
+                                                const std::string &_ns,
+                                                const std::string &_topic,
+                                                std::string &_name);
+
+      /// \brief Get partition name given the fully qualifed topic name.
+      /// \param[in] _name Fully qualified topic name.
+      /// \param[out] _partition Partition name.
+      /// \return True if the partition could be extracted and is valid.
+      public: static bool GetPartitionFromName(const std::string &_name,
+                                              std::string &_partition);
+
+      /// \brief Get type given the fully qualifed topic name.
+      /// \param[in] _name Fully qualified topic name.
+      /// \param[out] _type Type of the topic (msg/srv).
+      /// \return True if the name could be extracted and is valid.
+      public: static bool GetTypeFromName(const std::string &_name,
+                                              std::string &_type);
     };
   }
 }

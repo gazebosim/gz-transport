@@ -21,6 +21,7 @@
 #include <iostream>
 #include <string>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/TopicUtils.hh"
 
 namespace ignition
 {
@@ -242,7 +243,8 @@ namespace ignition
       /// \brief Bool whether this publisher is a Message or Service publisher.
       protected: bool isService;
 
-      /// \brief Bool whether this publisher is real publisher.
+      /// \brief Bool whether this publisher is used just for advertising
+      /// the existence of a topic or is a real publisher.
       protected: bool isReal;
     };
   }

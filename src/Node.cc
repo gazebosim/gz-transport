@@ -133,7 +133,7 @@ Node::~Node()
 bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -183,7 +183,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string fullyQualifiedMsg;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedMsg))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -244,7 +244,7 @@ bool Node::Unadvertise(const std::string &_topic)
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -318,7 +318,7 @@ std::vector<std::string> Node::SubscribedTopics() const
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
+  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -420,7 +420,8 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   for (auto &topic : allTopics)
   {
     // Get the partition name.
-    std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
+    std::string partition;
+    TopicUtils::GetPartitionFromName(topic, partition);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
@@ -448,7 +449,8 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   for (auto &service : allServices)
   {
     // Get the partition name.
-    std::string partition = service.substr(1, service.find_last_of("@") - 1);
+    std::string partition;
+    TopicUtils::GetPartitionFromName(service, partition);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
