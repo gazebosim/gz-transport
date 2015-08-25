@@ -141,7 +141,7 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
     return false;
   }
 
-  std::string topicNew = fullyQualifiedTopic+"_info";
+  std::string topicNew = fullyQualifiedTopic+this->specialTopic;
 
   std::lock_guard<std::recursive_mutex> discLk(
           this->dataPtr->shared->discovery->Mutex());
@@ -209,7 +209,7 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
-  std::string topicNew = fullyQualifiedTopic+"_info";
+  std::string topicNew = fullyQualifiedTopic+this->specialTopic;
 
   std::lock_guard<std::recursive_mutex> discLk(
           this->dataPtr->shared->discovery->Mutex());
@@ -247,7 +247,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  std::string topicNew = fullyQualifiedTopic+"_info";
+  std::string topicNew = fullyQualifiedTopic+this->specialTopic;
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 

@@ -649,6 +649,10 @@ namespace ignition
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::NodePrivate> dataPtr;
+
+      /// \internal
+      /// \brief Auxiliary variable to hold special topic suffix
+      protected: const std::string specialTopic = "_info";
     };
   }
 }
