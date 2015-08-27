@@ -421,8 +421,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->Discover(
-            fullyQualifiedTopic))
+          if (!this->Shared()->discovery->Discover(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
                       << "Did you forget to start the discovery service?"
@@ -509,8 +508,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->Discover(
-            fullyQualifiedTopic))
+          if (!this->Shared()->discovery->Discover(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
                       << "Did you forget to start the discovery service?"
@@ -581,8 +579,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->discovery->Discover(
-            fullyQualifiedTopic))
+          if (!this->Shared()->discovery->Discover(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
                       << "Did you forget to start the discovery service?"

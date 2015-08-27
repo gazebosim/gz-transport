@@ -345,19 +345,12 @@ bool Discovery::Discover(const std::string &_topic)
   Publisher pub(_topic, "", this->dataPtr->pUuid, "", Scope_t::All);
 
   if (pub.ServicePublisher())
-  {
     cb = this->dataPtr->connectionSrvCb;
-
-    // Broadcast a discovery request for this service call.
-    this->SendMsg(SubSrvType, pub);
-  }
   else
-  {
     cb = this->dataPtr->connectionCb;
 
-    // Broadcast a discovery request for this service call.
-    this->SendMsg(SubType, pub);
-  }
+  // Broadcast a discovery request for this topic.
+  this->SendMsg(SubType, pub);
 
   // I already have information about this topic.
   if (this->dataPtr->infoTopics.HasTopic(_topic))
@@ -567,12 +560,7 @@ void Discovery::RunHeartbeatTask()
       for (auto &topic : msgNodes)
       {
         for (auto &node : topic.second)
-        {
-          if (!node.ServicePublisher())
-            this->SendMsg(AdvType, node);
-          else
-            this->SendMsg(AdvSrvType, node);
-        }
+          this->SendMsg(AdvType, node);
       }
     }
 
@@ -690,7 +678,6 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   switch (header.Type())
   {
     case AdvType:
-    case AdvSrvType:
     {
       // Read the rest of the fields.
       transport::AdvertiseMessage advMsg;
@@ -724,7 +711,6 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       break;
     }
     case SubType:
-    case SubSrvType:
     {
       // Read the rest of the fields.
       SubscriptionMsg subMsg;
@@ -786,7 +772,6 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       break;
     }
     case UnadvType:
-    case UnadvSrvType:
     {
       // Read the address.
       transport::AdvertiseMessage advMsg;
@@ -802,10 +787,10 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
       DiscoveryCallback cb;
 
-      if (!advMsg.GetPublisher().ServicePublisher())
-        cb = this->dataPtr->disconnectionCb;
-      else
+      if (advMsg.GetPublisher().ServicePublisher())
         cb = this->dataPtr->disconnectionSrvCb;
+      else
+        cb = this->dataPtr->disconnectionCb;
 
       if (cb)
       {
@@ -843,8 +828,6 @@ void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
   {
     case AdvType:
     case UnadvType:
-    case AdvSrvType:
-    case UnadvSrvType:
     {
       // Create the [UN]ADVERTISE message.
       transport::AdvertiseMessage advMsg(header, _pub);
@@ -856,7 +839,6 @@ void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
       break;
     }
     case SubType:
-    case SubSrvType:
     {
       // Create the [UN]SUBSCRIBE message.
       SubscriptionMsg subMsg(header, topic);

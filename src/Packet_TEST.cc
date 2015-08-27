@@ -84,7 +84,7 @@ TEST(PacketTest, HeaderIO)
   EXPECT_EQ(emptyHeader.Pack(&buffer[0]), 0u);
 
   // Pack a Header.
-  Header header(version, pUuid, AdvSrvType, 2);
+  Header header(version, pUuid, AdvType, 2);
 
   buffer.resize(header.HeaderLength());
   int bytes = header.Pack(&buffer[0]);
@@ -245,14 +245,14 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   pUuid = "Different-process-UUID-1";
 
   // Check AdvertiseMsg setters.
-  Header anotherHeader(version + 1, pUuid, AdvSrvType, 3);
+  Header anotherHeader(version + 1, pUuid, AdvType, 3);
   EXPECT_EQ(anotherHeader.Version(), version + 1);
   advMsg.SetHeader(anotherHeader);
   EXPECT_EQ(advMsg.GetHeader().Version(), version + 1);
   header = advMsg.GetHeader();
   EXPECT_EQ(header.Version(), version + 1);
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
-  EXPECT_EQ(header.Type(), AdvSrvType);
+  EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 3);
   int headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
@@ -289,7 +289,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "Header:\n"
     "\tVersion: 2\n"
     "\tProcess UUID: Different-process-UUID-1\n"
-    "\tType: ADV_SRV\n"
+    "\tType: ADVERTISE\n"
     "\tFlags: 3\n"
     "Publisher:\n"
     "\tTopic: [a_new_topic_test]\n"
@@ -310,7 +310,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "Header:\n"
     "\tVersion: 2\n"
     "\tProcess UUID: Different-process-UUID-1\n"
-    "\tType: ADV_SRV\n"
+    "\tType: ADVERTISE\n"
     "\tFlags: 3\n"
     "Publisher:\n"
     "\tTopic: [a_new_topic_test]\n"
@@ -332,7 +332,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "Header:\n"
     "\tVersion: 2\n"
     "\tProcess UUID: Different-process-UUID-1\n"
-    "\tType: ADV_SRV\n"
+    "\tType: ADVERTISE\n"
     "\tFlags: 3\n"
     "Publisher:\n"
     "\tTopic: [a_new_topic_test]\n"
@@ -487,12 +487,12 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   pUuid = "Different-process-UUID-1";
 
   // Check AdvertiseSrv setters.
-  Header anotherHeader(version + 1, pUuid, AdvSrvType, 3);
+  Header anotherHeader(version + 1, pUuid, AdvType, 3);
   advSrv.SetHeader(anotherHeader);
   header = advSrv.GetHeader();
   EXPECT_EQ(header.Version(), version + 1);
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
-  EXPECT_EQ(header.Type(), AdvSrvType);
+  EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 3);
   int headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
@@ -532,7 +532,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     "Header:\n"
     "\tVersion: 2\n"
     "\tProcess UUID: Different-process-UUID-1\n"
-    "\tType: ADV_SRV\n"
+    "\tType: ADVERTISE\n"
     "\tFlags: 3\n"
     "Publisher:\n"
     "\tTopic: [a_new_topic_test]\n"

@@ -67,7 +67,8 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Discovery(const std::string &_pUuid, bool _verbose = false);
+      public: Discovery(const std::string &_pUuid,
+                        bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Discovery();
