@@ -138,7 +138,7 @@ namespace ignition
 
       /// \brief Unserialize the publisher.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(char *_buffer);
+      public: size_t Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.

@@ -46,11 +46,29 @@ namespace ignition
       "BYE", "NEW_CONNECTION", "END_CONNECTION"
     };
 
+    /// \class Interface for any message that can to be [un]serialized.
+    class IGNITION_VISIBLE MessageI
+    {
+      /// \brief Get the total length of the message.
+      /// \return Return the length of the message in bytes.
+      public: virtual size_t MsgLength() const = 0;
+
+      /// \brief Serialize the subscription message.
+      /// \param[out] _buffer Buffer where the message will be serialized.
+      /// \return The length of the serialized message in bytes.
+      public: virtual size_t Pack(char *_buffer) const = 0;
+
+      /// \brief Unserialize a stream of bytes into a Sub.
+      /// \param[out] _buffer Unpack the body from the buffer.
+      /// \return The number of bytes from the body.
+      public: virtual size_t Unpack(const char *_buffer) = 0;
+    };
+
     /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the process UUID of the sender node, the type
     // of message (ADV, SUB, ... ) and optional flags.
-    class IGNITION_VISIBLE Header
+    class IGNITION_VISIBLE Header : public MessageI
     {
       /// \brief Constructor.
       public: Header() = default;
@@ -101,20 +119,14 @@ namespace ignition
       /// \param[in] _flags Used for enable optional features.
       public: void Flags(const uint16_t _flags);
 
-      /// \brief Get the header length.
-      /// \return The header length in bytes.
-      public: int HeaderLength() const;
+      /// \brief Documentation inherited.
+      public: virtual size_t MsgLength() const;
 
-      /// \brief Serialize the header. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the header
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      /// \brief Documentation inherited.
+      public: virtual size_t Pack(char *_buffer) const;
 
-      /// \brief Unserialize the header.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(const char *_buffer);
+      /// \brief Documentation inherited.
+      public: virtual size_t Unpack(const char *_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -147,7 +159,7 @@ namespace ignition
     /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
-    class IGNITION_VISIBLE SubscriptionMsg
+    class IGNITION_VISIBLE SubscriptionMsg : public MessageI
     {
       /// \brief Constructor.
       public: SubscriptionMsg() = default;
@@ -160,7 +172,7 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const;
+      public: const Header& GetHeader() const;
 
       /// \brief Get the topic.
       /// \return Topic name.
@@ -174,9 +186,14 @@ namespace ignition
       /// \param[in] _topic Topic name.
       public: void Topic(const std::string &_topic);
 
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      /// \brief Documentation inherited.
+      public: virtual size_t MsgLength() const;
+
+      /// \brief Documentation inherited.
+      public: virtual size_t Pack(char *_buffer) const;
+
+      /// \brief Documentation inherited.
+      public: virtual size_t Unpack(const char *_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -191,16 +208,6 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Serialize the subscription message.
-      /// \param[out] _buffer Buffer where the message will be serialized.
-      /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer) const;
-
-      /// \brief Unserialize a stream of bytes into a Sub.
-      /// \param[out] _buffer Unpack the body from the buffer.
-      /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer);
-
       /// \brief Message header.
       private: Header header;
 
@@ -213,7 +220,7 @@ namespace ignition
     /// information about the node advertising a topic. The information sent
     /// contains the name of the protobuf message type advertised. This message
     /// is used for advertising messages and services.
-    class IGNITION_VISIBLE AdvertiseMessage
+    class IGNITION_VISIBLE AdvertiseMessage : public MessageI
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
@@ -226,11 +233,11 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const;
+      public: const Header& GetHeader() const;
 
       /// \brief Get the publisher of this message.
       /// \return Publisher.
-      public: Publisher& GetPublisher();
+      public: const Publisher& GetPublisher();
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
@@ -240,19 +247,14 @@ namespace ignition
       /// \param[in] _publisher New publisher.
       public: void SetPublisher(const Publisher &_publisher);
 
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      /// \brief Documentation inherited.
+      public: virtual size_t MsgLength() const;
 
-      /// \brief Serialize the advertise message.
-      /// \param[out] _buffer Buffer where the message will be serialized.
-      /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer) const;
+      /// \brief Documentation inherited.
+      public: virtual size_t Pack(char *_buffer) const;
 
-      /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
-      /// \param[out] _buffer Unpack the body from the buffer.
-      /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer);
+      /// \brief Documentation inherited.
+      public: virtual size_t Unpack(const char *_buffer);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.

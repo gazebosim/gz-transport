@@ -255,7 +255,7 @@ size_t Publisher::Pack(char *_buffer) const
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::Unpack(char *_buffer)
+size_t Publisher::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)

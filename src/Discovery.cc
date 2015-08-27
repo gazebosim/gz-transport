@@ -46,6 +46,7 @@
 #include <zmq.hpp>
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -296,8 +297,7 @@ bool Discovery::Advertise(const Publisher& _publisher)
   // Add the addressing information (local publisher).
   this->dataPtr->infoTopics.AddPublisher(_publisher);
 
-  // Only advertise a message outside this process
-  // if the scope is not 'Process'
+  // Only advertise a message outside this process if the scope is not 'Process'
   if (_publisher.Scope() != Scope_t::Process)
     this->SendMsg(AdvType, _publisher);
 
@@ -557,9 +557,9 @@ void Discovery::RunHeartbeatTask()
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<Publisher>> msgNodes;
       this->dataPtr->infoTopics.GetPublishersByProc(pUuid, msgNodes);
-      for (auto &topic : msgNodes)
+      for (const auto &topic : msgNodes)
       {
-        for (auto &node : topic.second)
+        for (const auto &node : topic.second)
           this->SendMsg(AdvType, node);
       }
     }
@@ -660,7 +660,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
   // Create the header from the raw bytes.
   header.Unpack(_msg);
-  pBody += header.HeaderLength();
+  pBody += header.MsgLength();
 
   // Discard the message if the wire protocol is different than mine.
   if (this->dataPtr->Version != header.Version())
@@ -680,7 +680,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case AdvType:
     {
       // Read the rest of the fields.
-      transport::AdvertiseMessage advMsg;
+      AdvertiseMessage advMsg;
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
@@ -774,7 +774,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     case UnadvType:
     {
       // Read the address.
-      transport::AdvertiseMessage advMsg;
+      AdvertiseMessage advMsg;
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
@@ -818,11 +818,11 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
 {
   // Create the header.
-  Header header(this->Version(), _pub.PUuid(), _type, _flags);
-  auto msgLength = 0;
-  std::vector<char> buffer;
+  auto header = std::make_shared<Header>(
+    this->Version(), _pub.PUuid(), _type, _flags);
 
   std::string topic = _pub.Topic();
+  std::shared_ptr<MessageI> msg;
 
   switch (_type)
   {
@@ -830,32 +830,19 @@ void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
     case UnadvType:
     {
       // Create the [UN]ADVERTISE message.
-      transport::AdvertiseMessage advMsg(header, _pub);
-
-      // Allocate a buffer and serialize the message.
-      buffer.resize(advMsg.MsgLength());
-      advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-      msgLength = advMsg.MsgLength();
+      msg = std::make_shared<AdvertiseMessage>(*header, _pub);
       break;
     }
     case SubType:
     {
-      // Create the [UN]SUBSCRIBE message.
-      SubscriptionMsg subMsg(header, topic);
-
-      // Allocate a buffer and serialize the message.
-      buffer.resize(subMsg.MsgLength());
-      subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-      msgLength = subMsg.MsgLength();
+      // Create the SUBSCRIBE message.
+      msg = std::make_shared<SubscriptionMsg>(*header, topic);
       break;
     }
     case HeartbeatType:
     case ByeType:
     {
-      // Allocate a buffer and serialize the message.
-      buffer.resize(header.HeaderLength());
-      header.Pack(reinterpret_cast<char*>(&buffer[0]));
-      msgLength = header.HeaderLength();
+      msg = header;
       break;
     }
     default:
@@ -864,14 +851,19 @@ void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
       return;
   }
 
-  // Send the discovery message to the multicast group through all the
-  // sockets.
+  // Allocate a buffer and serialize the message.
+  std::vector<char> buffer;
+  auto msgLength = msg->MsgLength();
+  buffer.resize(msgLength);
+  msg->Pack(reinterpret_cast<char*>(&buffer[0]));
+
+  // Send the discovery message to the multicast group through all the sockets.
   for (const auto &sock : this->Sockets())
   {
     if (sendto(sock, reinterpret_cast<const raw_type *>(
       reinterpret_cast<unsigned char*>(&buffer[0])),
       msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
-      sizeof(*(this->MulticastAddr()))) != msgLength)
+      sizeof(*(this->MulticastAddr()))) != static_cast<ssize_t>(msgLength))
     {
       std::cerr << "Exception sending a message" << std::endl;
       return;
