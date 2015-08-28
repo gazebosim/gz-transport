@@ -791,7 +791,7 @@ void NodeShared::OnNewDisconnection(const Publisher &_pub)
     for (auto &connection : info[procUuid])
       this->subscriber->disconnect(connection.Addr().c_str());
 
-    // Remove all the connections from the process disonnected.
+    // Remove all the connections from the process disconnected.
     this->connections.DelPublishersByProc(procUuid);
   }
 }

@@ -39,8 +39,12 @@ TEST(TopicStorageTest, TopicStorageAPI)
 
   std::string pUuid1 = "process-UUID-1";
   std::string addr1  = "tcp://10.0.0.1:6001";
-  std::string pUuid2  = "process-UUID-2";
+  std::string ctrl1  = "ctrl1";
+  std::string type1  = "type1";
+  std::string pUuid2 = "process-UUID-2";
   std::string addr2  = "tcp://10.0.0.1:6002";
+  std::string ctrl2  = "ctrl2";
+  std::string type2  = "type2";
 
   std::map<std::string, std::vector<transport::Publisher>> m;
   transport::Publisher info;
@@ -63,7 +67,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(test.DelPublishersByProc(pUuid1), 0);
 
   // Insert one node address.
-  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher publisher1(topic, addr1, ctrl1, pUuid1, nUuid1,
+    scope1, type1);
   EXPECT_TRUE(test.AddPublisher(publisher1));
 
   // Insert an existing publisher.
@@ -97,7 +102,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid1].at(0).Scope(), scope1);
 
   // Insert one node address on the same process.
-  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, scope2);
+  transport::Publisher publisher2(topic, addr1, ctrl1, pUuid1, nUuid2,
+    scope2, type1);
   EXPECT_TRUE(test.AddPublisher(publisher2));
   EXPECT_FALSE(test.AddPublisher(publisher2));
   // Check HasTopic.
@@ -136,7 +142,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
 
   // Insert a node address on a second process.
-  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, scope3);
+  transport::Publisher publisher3(topic, addr2, ctrl2, pUuid2, nUuid3,
+    scope3, type2);
   EXPECT_TRUE(test.AddPublisher(publisher3));
   EXPECT_FALSE(test.AddPublisher(publisher3));
   // Check HasTopic.
@@ -185,7 +192,8 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid2].at(0).Scope(), scope3);
 
   // Insert another node on process2.
-  transport::Publisher publisher4(topic, addr2, pUuid2, nUuid4, scope4);
+  transport::Publisher publisher4(topic, addr2, ctrl2, pUuid2, nUuid4,
+    scope4, type2);
   EXPECT_TRUE(test.AddPublisher(publisher4));
   EXPECT_FALSE(test.AddPublisher(publisher4));
   // Check HasTopic.
@@ -343,31 +351,34 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.GetPublishers(topic, m));
 
   // Insert a topic, remove it, and check that the map is empty.
-  transport::Publisher publisher5(topic, addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher publisher5(topic, addr1, ctrl1, pUuid1, nUuid1,
+    scope1, type1);
   EXPECT_TRUE(test.AddPublisher(publisher5));
   EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid1, nUuid1));
   EXPECT_FALSE(test.HasTopic(topic));
 
   // Insert some topics, and remove all the topics from a process but keeping
   // the same topics from other proccesses.
-  transport::Publisher publisher6(topic, addr1, pUuid1, nUuid1, scope1);
-  transport::Publisher publisher7(topic, addr1, pUuid1, nUuid2, scope2);
-  transport::Publisher publisher8(topic, addr2, pUuid2, nUuid3, scope3);
+  transport::Publisher publisher6(topic, addr1, ctrl1, pUuid1, nUuid1,
+    scope1, type1);
+  transport::Publisher publisher7(topic, addr1, ctrl1, pUuid1, nUuid2,
+    scope2, type1);
+  transport::Publisher publisher8(topic, addr2, ctrl2, pUuid2, nUuid3,
+    scope3, type2);
   EXPECT_TRUE(test.AddPublisher(publisher6));
   EXPECT_TRUE(test.AddPublisher(publisher7));
   EXPECT_TRUE(test.AddPublisher(publisher8));
   EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
 
   // Check retrieving topics/services lists.
-  transport::Publisher
-          publisher9("@msg@test_topic", addr1, pUuid1, nUuid1, scope1);
-  transport::Publisher
-          publisher10("@msg@new_topic", addr1, pUuid1, nUuid1, scope1);
-
-  transport::Publisher
-          publisher11("@srv@test_service", addr1, pUuid1, nUuid1, scope1);
-  transport::Publisher
-          publisher12("@srv@new_service", addr1, pUuid1, nUuid1, scope1);
+  transport::Publisher publisher9("@partition@msg@test_topic", addr1, ctrl1,
+    pUuid1, nUuid1, scope1, type1);
+  transport::Publisher publisher10("@partition@msg@new_topic", addr1, ctrl1,
+    pUuid1, nUuid1, scope1, type1);
+  transport::Publisher publisher11("@partition@srv@test_service", addr1, ctrl1,
+    pUuid1, nUuid1, scope1, type1);
+  transport::Publisher publisher12("@partition@srv@new_service", addr1, ctrl1,
+    pUuid1, nUuid1, scope1, type1);
 
   test.AddPublisher(publisher9);
   test.AddPublisher(publisher10);
@@ -377,10 +388,10 @@ TEST(TopicStorageTest, TopicStorageAPI)
   std::vector<std::string> msgs, srvs;
 
   test.GetTopicList(msgs);
-  EXPECT_EQ("@msg@new_topic", msgs[0]);
-  EXPECT_EQ("@msg@test_topic", msgs[1]);
+  EXPECT_EQ("@partition@msg@new_topic", msgs[0]);
+  EXPECT_EQ("@partition@msg@test_topic", msgs[1]);
 
   test.GetTopicList(srvs, true);
-  EXPECT_EQ("@srv@new_service", srvs[0]);
-  EXPECT_EQ("@srv@test_service", srvs[1]);
+  EXPECT_EQ("@partition@srv@new_service", srvs[0]);
+  EXPECT_EQ("@partition@srv@test_service", srvs[1]);
 }

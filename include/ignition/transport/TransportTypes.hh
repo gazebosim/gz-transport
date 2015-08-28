@@ -110,8 +110,7 @@ namespace ignition
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a topic.
     /// E.g.: void onDiscoveryResponse(const Publisher &_publisher).
-    using DiscoveryCallback =
-      std::function<void(const Publisher&_publisher)>;
+    using DiscoveryCallback = std::function<void(const Publisher&_publisher)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

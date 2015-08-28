@@ -47,7 +47,7 @@ static const std::string NewRepTypeName = "ResponseType2";
 
 //////////////////////////////////////////////////
 /// \brief Check the Publisher accessors.
-TEST(PublisherTest, Publisher)
+/*TEST(PublisherTest, Publisher)
 {
   Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
   EXPECT_EQ(publisher.Topic(), Topic);
@@ -102,7 +102,7 @@ TEST(PublisherTest, PublisherIO)
 
   // Try to unpack a header passing a NULL buffer.
   EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
-}
+}*/
 
 //////////////////////////////////////////////////
 /// \brief Check the MessagePublisher accessors.

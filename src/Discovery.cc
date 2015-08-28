@@ -58,6 +58,7 @@
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
@@ -239,7 +240,7 @@ Discovery::~Discovery()
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   this->SendMsg(ByeType,
-    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::All));
+    Publisher("", "", "", this->dataPtr->pUuid, "", Scope_t::All, ""));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -294,6 +295,8 @@ bool Discovery::Advertise(const Publisher& _publisher)
   if (!this->dataPtr->enabled)
     return false;
 
+  std::cout << _publisher << std::endl;
+
   // Add the addressing information (local publisher).
   this->dataPtr->infoTopics.AddPublisher(_publisher);
 
@@ -342,15 +345,28 @@ bool Discovery::Discover(const std::string &_topic)
     return false;
 
   DiscoveryCallback cb;
-  Publisher pub(_topic, "", this->dataPtr->pUuid, "", Scope_t::All);
+  std::string type;
 
-  if (pub.ServicePublisher())
+  if (!TopicUtils::TypeFromName(_topic, type))
+    return false;
+
+  if (type == "msg")
+  {
+    auto pub = Publisher(_topic, "", "", this->dataPtr->pUuid, "",
+      Scope_t::All, "");
     cb = this->dataPtr->connectionSrvCb;
+    // Broadcast a discovery request for this topic.
+    this->SendMsg(SubType, pub);
+    std::cout << "Discover:" << std::endl << pub << std::endl;
+  }
   else
+  {
+    auto pub = Publisher(_topic, "", "", this->dataPtr->pUuid, "",
+      Scope_t::All, "", "");
     cb = this->dataPtr->connectionCb;
-
-  // Broadcast a discovery request for this topic.
-  this->SendMsg(SubType, pub);
+    // Broadcast a discovery request for this topic.
+    this->SendMsg(SubType, pub);
+  }
 
   // I already have information about this topic.
   if (this->dataPtr->infoTopics.HasTopic(_topic))
@@ -508,7 +524,7 @@ void Discovery::RunActivityTask()
         // Notify without topic information. This is useful to inform the client
         // that a remote node is gone, even if we were not interested in its
         // topics.
-        Publisher publisher("", "", it->first, "", Scope_t::All);
+        Publisher publisher("", "", "", it->first, "", Scope_t::All, "");
 
         this->dataPtr->disconnectionCb(publisher);
 
@@ -551,7 +567,7 @@ void Discovery::RunHeartbeatTask()
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
       std::string pUuid = this->dataPtr->pUuid;
-      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
+      Publisher pub("", "", "", this->dataPtr->pUuid, "", Scope_t::All, "");
       this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
@@ -752,17 +768,17 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Remove the activity entry for this publisher.
       this->dataPtr->activity.erase(recvPUuid);
 
-      Publisher pub("", "", recvPUuid, "", Scope_t::All);
-
       if (this->dataPtr->disconnectionCb)
       {
         // Notify the new disconnection.
+        Publisher pub("", "", "", recvPUuid, "", Scope_t::All, "");
         this->dataPtr->disconnectionCb(pub);
       }
 
       if (this->dataPtr->disconnectionSrvCb)
       {
         // Notify the new disconnection.
+        Publisher pub("", "", "", recvPUuid, "", Scope_t::All, "", "");
         this->dataPtr->disconnectionSrvCb(pub);
       }
 

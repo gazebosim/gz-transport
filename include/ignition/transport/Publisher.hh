@@ -51,11 +51,11 @@ namespace ignition
       /// \param[in] _pUuid Process UUID.
       /// \param[in] _nUUID node UUID.
       /// \param[in] _scope Scope.
-      public: Publisher(const std::string &_topic,
-                        const std::string &_addr,
-                        const std::string &_pUuid,
-                        const std::string &_nUuid,
-                        const Scope_t &_scope);
+      // public: Publisher(const std::string &_topic,
+      //                  const std::string &_addr,
+      //                  const std::string &_pUuid,
+      //                  const std::string &_nUuid,
+      //                  const Scope_t &_scope);
 
       /// \brief MessagePublisher Constructor.
       /// \param[in] _topic Topic name.
@@ -242,10 +242,6 @@ namespace ignition
 
       /// \brief Bool whether this publisher is a Message or Service publisher.
       protected: bool isService;
-
-      /// \brief Bool whether this publisher is used just for advertising
-      /// the existence of a topic or is a real publisher.
-      protected: bool isReal;
     };
   }
 }
