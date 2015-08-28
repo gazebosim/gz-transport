@@ -286,17 +286,17 @@ TEST(TopicUtilsTest, testPartitionFromName)
   EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n1, partition));
   EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n2, partition));
   EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n3, partition));
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n4, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n4, partition));
   EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n5, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n5, partition));
   EXPECT_EQ(partition, "");
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n6, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n6, partition));
   EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n7, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n7, partition));
   EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n8, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n8, partition));
   EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n9, partition));
+  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n9, partition));
   EXPECT_EQ(partition, "msg");
 }
 
@@ -322,11 +322,11 @@ TEST(TopicUtilsTest, testTypeFromName)
   EXPECT_FALSE(transport::TopicUtils::TypeFromName(n3, type));
   EXPECT_FALSE(transport::TopicUtils::TypeFromName(n4, type));
   EXPECT_FALSE(transport::TopicUtils::TypeFromName(n5, type));
-  EXPECT_TRUE (transport::TopicUtils::TypeFromName(n6, type));
+  EXPECT_TRUE(transport::TopicUtils::TypeFromName(n6, type));
   EXPECT_EQ(type, "msg");
-  EXPECT_TRUE (transport::TopicUtils::TypeFromName(n7, type));
+  EXPECT_TRUE(transport::TopicUtils::TypeFromName(n7, type));
   EXPECT_EQ(type, "srv");
-  EXPECT_FALSE (transport::TopicUtils::TypeFromName(n8, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n8, type));
 }
 
 //////////////////////////////////////////////////

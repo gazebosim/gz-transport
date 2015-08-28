@@ -15,7 +15,14 @@
  *
 */
 
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -124,8 +131,7 @@ bool TopicStorage::GetPublisher(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool TopicStorage::GetPublishers(const std::string &_topic,
-                                 std::map<std::string,
-                                 std::vector<Publisher>> &_info)
+                                 Addresses_M &_info)
 {
   if (!this->HasTopic(_topic))
     return false;
@@ -194,8 +200,7 @@ bool TopicStorage::DelPublishersByProc(const std::string &_pUuid)
 
 //////////////////////////////////////////////////
 void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
-                                      std::map<std::string,
-                                      std::vector<Publisher>> &_pubs)
+                                       Addresses_M &_pubs)
 {
   _pubs.clear();
 

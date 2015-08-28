@@ -34,18 +34,21 @@ static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-std::string topic   = std::string("@msg@"+testing::getRandomNumber());
-std::string service = std::string("@srv@"+testing::getRandomNumber());
-std::string addr1   = "tcp://127.0.0.1:12345";
-std::string ctrl1   = "tcp://127.0.0.1:12346";
-std::string id1     = "identity1";
-std::string pUuid1  = transport::Uuid().ToString();
-std::string nUuid1  = transport::Uuid().ToString();
-std::string addr2   = "tcp://127.0.0.1:12347";
-std::string ctrl2   = "tcp://127.0.0.1:12348";
-std::string id2     = "identity2";
-std::string pUuid2  = transport::Uuid().ToString();
-std::string nUuid2  = transport::Uuid().ToString();
+std::string partition = "@" + testing::getRandomNumber() + "@";
+std::string topic     = partition + "msg@" + testing::getRandomNumber();
+std::string topic2    = partition + "msg@" + testing::getRandomNumber();
+std::string topic3    = partition + "msg@" + testing::getRandomNumber();
+std::string service   = partition + "srv@" + testing::getRandomNumber();
+std::string addr1     = "tcp://127.0.0.1:12345";
+std::string ctrl1     = "tcp://127.0.0.1:12346";
+std::string id1       = "identity1";
+std::string pUuid1    = transport::Uuid().ToString();
+std::string nUuid1    = transport::Uuid().ToString();
+std::string addr2     = "tcp://127.0.0.1:12347";
+std::string ctrl2     = "tcp://127.0.0.1:12348";
+std::string id2       = "identity2";
+std::string pUuid2    = transport::Uuid().ToString();
+std::string nUuid2    = transport::Uuid().ToString();
 transport::Scope_t scope = transport::Scope_t::All;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
@@ -380,7 +383,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
-  transport::Publisher publisher2("@msg@topic2", addr1, ctrl1,
+  transport::Publisher publisher2(topic2, addr1, ctrl1,
       pUuid1, nUuid1, transport::Scope_t::Process, "type");
   EXPECT_TRUE(discovery1.Advertise(publisher2));
 
@@ -392,7 +395,7 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should trigger a discovery response on discovery2.
-  transport::Publisher publisher3("@msg@topic3", addr1, ctrl1,
+  transport::Publisher publisher3(topic3, addr1, ctrl1,
       pUuid1, nUuid1, transport::Scope_t::Host, "type");
   EXPECT_TRUE(discovery1.Advertise(publisher3));
 
@@ -849,7 +852,7 @@ TEST(DiscoveryTest, TestDiscoverSrv)
       nUuid1, scope, "reqType", "repType");
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
-  // Create a second discovery node that did not see the previous ADVSRV message
+  // Create a second discovery node that did not see the previous ADV message.
   transport::Discovery discovery2(pUuid2);
   discovery2.Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));

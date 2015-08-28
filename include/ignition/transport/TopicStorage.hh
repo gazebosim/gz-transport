@@ -18,7 +18,6 @@
 #ifndef __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
 #define __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
 
-#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -118,8 +117,7 @@ namespace ignition
 
       // The keys are topics. The values are another map, where the key is
       // the process UUID and the value a vector of publishers.
-      private: std::map<std::string,
-                        std::map<std::string, std::vector<Publisher>>> data;
+      private: std::map<std::string, Addresses_M> data;
     };
   }
 }
