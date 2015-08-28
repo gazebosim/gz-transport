@@ -118,7 +118,7 @@ Node::~Node()
   auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)
   {
-    if (!this->Unadvertise(service))
+    if (!this->UnadvertiseSrv(service))
     {
       std::cerr << "Node::~Node(): Error unadvertising service ["
                 << service << "]" << std::endl;
@@ -190,51 +190,26 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
-  // TO-CHECK: Here the assumption that a message and a service
-  // cannot have the same name is taken
-  std::string fullyQualifiedSrv = fullyQualifiedMsg;
-
-  auto found = fullyQualifiedSrv.find_first_of("msg");
-  fullyQualifiedSrv.replace(found, 3, "srv");
-
   std::lock_guard<std::recursive_mutex> discLk(
           this->dataPtr->shared->discovery->Mutex());
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg)
-                                != this->dataPtr->topicsAdvertised.end())
+  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg) ==
+        this->dataPtr->topicsAdvertised.end())
   {
-    // Remove the topic from the list of advertised topics in this node.
-    this->dataPtr->topicsAdvertised.erase(fullyQualifiedMsg);
-
-    // Notify the discovery service to unregister and unadvertise my topic.
-    if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedMsg,
-      this->dataPtr->nUuid))
-    {
-      return false;
-    }
-
     return true;
   }
 
-  if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv)
-                                != this->dataPtr->srvsAdvertised.end())
+  // Remove the topic from the list of advertised topics in this node.
+  this->dataPtr->topicsAdvertised.erase(fullyQualifiedMsg);
+
+  // Notify the discovery service to unregister and unadvertise my topic.
+  if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedMsg,
+    this->dataPtr->nUuid))
   {
-    // Remove the topic from the list of advertised services in this node.
-    this->dataPtr->srvsAdvertised.erase(fullyQualifiedSrv);
-
-    // Remove all the REP handlers for this node.
-    this->dataPtr->shared->repliers.RemoveHandlersForNode(
-      fullyQualifiedSrv, this->dataPtr->nUuid);
-
-    // Notify the discovery service to unregister and unadvertise my topic.
-    if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedSrv,
-      this->dataPtr->nUuid))
-    {
-      return false;
-    }
-
-    return true;
+    std::cerr << "Node::Unadvertise(): Error unadvertising a topic. "
+              << "Did you forget to start the discovery service?" << std::endl;
+    return false;
   }
 
   return true;
@@ -406,6 +381,46 @@ std::vector<std::string> Node::AdvertisedServices() const
   }
 
   return v;
+}
+
+//////////////////////////////////////////////////
+bool Node::UnadvertiseSrv(const std::string &_topic)
+{
+  std::string fullyQualifiedSrv;
+  if (!TopicUtils::GetFullyQualifiedSrvName(this->dataPtr->partition,
+    this->dataPtr->ns, _topic, fullyQualifiedSrv))
+  {
+    std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
+
+  std::lock_guard<std::recursive_mutex> discLk(
+          this->dataPtr->shared->discovery->Mutex());
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv) ==
+        this->dataPtr->srvsAdvertised.end())
+  {
+    return true;
+  }
+
+  // Remove the topic from the list of advertised services in this node.
+  this->dataPtr->srvsAdvertised.erase(fullyQualifiedSrv);
+
+  // Remove all the REP handlers for this node.
+  this->dataPtr->shared->repliers.RemoveHandlersForNode(
+    fullyQualifiedSrv, this->dataPtr->nUuid);
+
+  // Notify the discovery service to unregister and unadvertise my service.
+  if (!this->dataPtr->shared->discovery->Unadvertise(fullyQualifiedSrv,
+    this->dataPtr->nUuid))
+  {
+    std::cerr << "Node::UnadvertiseSrv(): Error unadvertising a service. "
+              << "Did you forget to start the discovery service?" << std::endl;
+    return false;
+  }
+
+  return true;
 }
 
 //////////////////////////////////////////////////

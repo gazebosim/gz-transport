@@ -605,6 +605,11 @@ namespace ignition
         return executed;
       }
 
+      /// \brief Unadvertise a service.
+      /// \param[in] _topic Service name to be unadvertised.
+      /// \return true if the service was successfully unadvertised.
+      public: bool UnadvertiseSrv(const std::string &_topic);
+
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics) const;

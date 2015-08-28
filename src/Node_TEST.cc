@@ -528,11 +528,11 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_EQ(counter, 1);
 
   // Try to unadvertise an invalid service.
-  EXPECT_FALSE(node.Unadvertise("invalid service"));
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
-  EXPECT_TRUE(node.Unadvertise(topic));
+  EXPECT_TRUE(node.UnadvertiseSrv(topic));
 
-  ASSERT_TRUE(node.AdvertisedServices().empty());
+  EXPECT_TRUE(node.AdvertisedServices().empty());
 }
 
 //////////////////////////////////////////////////
@@ -590,9 +590,9 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_EQ(counter, 3);
 
   // Try to unadvertise an invalid service.
-  EXPECT_FALSE(node.Unadvertise("invalid service"));
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
-  EXPECT_TRUE(node.Unadvertise(topic));
+  EXPECT_TRUE(node.UnadvertiseSrv(topic));
 }
 
 //////////////////////////////////////////////////

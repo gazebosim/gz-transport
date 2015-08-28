@@ -93,6 +93,9 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   EXPECT_TRUE(responseExecuted);
   EXPECT_EQ(counter, 1);
 
+  EXPECT_TRUE(node.UnadvertiseSrv(topic));
+  EXPECT_TRUE(node.AdvertisedServices().empty());
+
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
 }
