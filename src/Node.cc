@@ -320,7 +320,7 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   // Notify to the publishers that I am no longer interested in the topic.
   Addresses_M addresses;
-  if (!this->dataPtr->shared->discovery->MsgPublishers(fullyQualifiedTopic,
+  if (!this->dataPtr->shared->discovery->TopicPublishers(fullyQualifiedTopic,
     addresses))
   {
     return false;

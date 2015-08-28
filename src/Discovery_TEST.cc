@@ -550,7 +550,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   EXPECT_TRUE(discovery1.Unadvertise(topic, nUuid1));
 
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.MsgPublishers(topic, addresses));
+  EXPECT_FALSE(discovery2.TopicPublishers(topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -795,7 +795,7 @@ TEST(DiscoveryTest, TestUnadvertiseSrv)
   // Unadvertise a topic not advertised.
   EXPECT_TRUE(discovery1.Unadvertise(service, nUuid1));
   transport::Addresses_M addresses;
-  EXPECT_FALSE(discovery2.SrvPublishers(topic, addresses));
+  EXPECT_FALSE(discovery2.TopicPublishers(topic, addresses));
 }
 
 //////////////////////////////////////////////////

@@ -413,7 +413,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->Shared()->discovery->SrvPublishers(
+        if (this->Shared()->discovery->TopicPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -500,7 +500,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->Shared()->discovery->SrvPublishers(
+        if (this->Shared()->discovery->TopicPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
@@ -571,7 +571,7 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         Addresses_M addresses;
-        if (this->Shared()->discovery->SrvPublishers(
+        if (this->Shared()->discovery->TopicPublishers(
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);

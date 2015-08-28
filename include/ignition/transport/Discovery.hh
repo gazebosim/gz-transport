@@ -104,14 +104,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
-      public: bool MsgPublishers(const std::string &_topic,
-                                 Addresses_M &_publishers);
-
-      /// \brief Get all the publishers' information known for a given service.
-      /// \param[in] _topic Service name.
-      /// \param[out] _publishers Publishers requested.
-      /// \return True if the topic is found and there is at least one publisher
-      public: bool SrvPublishers(const std::string &_topic,
+      public: bool TopicPublishers(const std::string &_topic,
                                  Addresses_M &_publishers);
 
       /// \brief Unadvertise a new message/service. Broadcast a discovery
