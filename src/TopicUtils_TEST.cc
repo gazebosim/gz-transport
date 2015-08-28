@@ -72,12 +72,22 @@ TEST(TopicUtilsTest, testNamespaces)
 /// \brief Check GetFullyQualifiedName.
 TEST(TopicUtilsTest, testGetFullyQualifiedName)
 {
+  // Validation type. The key is the text under test. The value is a pair,
+  // where the first element specifies if it's a valid text.
+  // The second element contains the expected result in which the original
+  // text will be transformed. This value only makes sense if the text is valid.
+  // E.g.: {"partition/",   {true,  "@/partition@"}}
+  // "partition/" is valid text for a partition name and will be transformed
+  // into "@/partition@" after calling to GetFullyQualifiedName().
+  using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
+
   // Partitions to test.
   ValidationT partitions =
     {
       {"@partition",   {false, ""}},
       {"@partition/@", {false, ""}},
       {"@@",           {false, ""}},
+      {"partition",    {true,  "@/partition@"}},
       {"",             {true,  "@@"}},
       {"partition/",   {true,  "@/partition@"}},
     };
