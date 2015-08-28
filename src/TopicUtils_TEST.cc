@@ -69,48 +69,39 @@ TEST(TopicUtilsTest, testNamespaces)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check GetScopeName.
+/// \brief Check GetFullyQualifiedName.
 TEST(TopicUtilsTest, testGetFullyQualifiedName)
 {
-  // Validation type. The key is the text under test. The value is a pair,
-  // where the first element specifies if it's a valid text.
-  // The second element contains the expected result in which the original
-  // text will be transformed. This value only makes sense if the text is valid.
-  // E.g.: {"partition/",   {true,  "@/partition@"}}
-  // "partition/" is valid text for a partition name and will be transformed
-  // into "@/partition@" after calling to GetFullyQualifiedName().
-  using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
-
   // Partitions to test.
   ValidationT partitions =
-  {
-    {"@partition",   {false, ""}},
-    {"@partition/@", {false, ""}},
-    {"@@",           {false, ""}},
-    {"",             {true,  "@@"}},
-    {"partition/",   {true,  "@/partition@"}},
-  };
+    {
+      {"@partition",   {false, ""}},
+      {"@partition/@", {false, ""}},
+      {"@@",           {false, ""}},
+      {"",             {true,  "@@"}},
+      {"partition/",   {true,  "@/partition@"}},
+    };
 
   // Namespaces to test.
   ValidationT namespaces =
-  {
-    {"~ns", {false, ""}},
-    {"",    {true,  "/"}},
-    {"abc", {true,  "/abc/"}}
-  };
+    {
+      {"~ns", {false, ""}},
+      {"",    {true,  "/"}},
+      {"abc", {true,  "/abc/"}}
+    };
 
   // Topics to test.
   ValidationT topics =
-  {
-    {"~/def",    {false, ""}},
-    {"~def",     {false, ""}},
-    {"/def",     {true,  "/def"}},
-    {"def/",     {true,  "def"}},
-    {"def/ghi",  {true,  "def/ghi"}},
-    {"def/ghi/", {true,  "def/ghi"}},
-    {"~/def/",   {false, ""}},
-    {"~def/",    {false, ""}}
-  };
+    {
+      {"~/def",    {false, ""}},
+      {"~def",     {false, ""}},
+      {"/def",     {true,  "/def"}},
+      {"def/",     {true,  "def"}},
+      {"def/ghi",  {true,  "def/ghi"}},
+      {"def/ghi/", {true,  "def/ghi"}},
+      {"~/def/",   {false, ""}},
+      {"~def/",    {false, ""}}
+    };
 
   // We try all the partition, namespaces and topics combinations.
   for (auto p : partitions)
