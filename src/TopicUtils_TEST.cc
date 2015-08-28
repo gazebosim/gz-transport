@@ -15,6 +15,7 @@
  *
 */
 
+#include <map>
 #include <string>
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
@@ -71,15 +72,47 @@ TEST(TopicUtilsTest, testNamespaces)
 /// \brief Check GetScopeName.
 TEST(TopicUtilsTest, testGetFullyQualifiedName)
 {
+  // {String to try, result, string result}
+  using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
+  ValidationT partitions =
+  {
+    {"@partition",   {false, ""}},
+    {"@partition/@", {false, ""}},
+    {"@@",           {false, ""}},
+    {"",             {true,  "@@"}},
+    {"partition/",   {true,  "@/partition@"}},
+  };
+
+  ValidationT namespaces =
+  {
+    {"~ns", {false, ""}},
+    {"",    {true,  "/"}},
+    {"abc", {true, "/abc/"}}
+  };
+
+  ValidationT topics =
+  {
+    {"~/def",    {false, ""}},
+    {"~def",     {false, ""}},
+    {"/def",     {true,  "def"}},
+    {"def/",     {true,  "def"}},
+    {"def/ghi",  {true,  "def/ghi"}},
+    {"def/ghi/", {true,  "def/ghi"}},
+    {"~/def/",   {false, ""}},
+    {"~def/",    {false, ""}}
+  };
+
   std::string p0 = "@partition";
   std::string p1 = "@partition/@";
   std::string p2 = "@@";
   std::string p3 = "partition";
   std::string p4 = "";
+  std::string p5 = "partition/";
 
   std::string ns0 = "~ns";
   std::string ns1 = "";
   std::string ns2 = "abc";
+
   std::string t1 = "~/def";
   std::string t2 = "~def";
   std::string t3 = "/def";
@@ -89,6 +122,27 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
   std::string t7 = "~/def/";
   std::string t8 = "~def/";
   std::string name;
+
+  for (auto p : partitions)
+    for (auto ns : namespaces)
+      for (auto t : topics)
+      {
+        auto expectedRes = p.second.first && ns.second.first && t.second.first;
+        auto res = transport::TopicUtils::GetFullyQualifiedName(p.first,
+          ns.first, t.first, name);
+        std::cout << "Partition: " << p.first << std::endl;
+        std::cout << "Namespace: " << ns.first << std::endl;
+        std::cout << "Topic: " << t.first << std::endl;
+        if (res)
+        {
+          auto expected = p.second.second + ns.second.second + t.second.second;
+          EXPECT_TRUE(expectedRes);
+          EXPECT_EQ(name, expected);
+        }
+        else
+          EXPECT_FALSE(expectedRes);
+      }
+
 
   EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p0, ns0, t1, name));
   EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p0, ns0, t2, name));
@@ -230,6 +284,39 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
   EXPECT_EQ(name, "@@/abc/def/ghi");
   EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p4, ns2, t7, name));
   EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p4, ns2, t8, name));
+
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t1, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t2, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t3, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t4, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t5, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t6, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t7, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns0, t8, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t1, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t2, name));
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t3, name));
+  EXPECT_EQ(name, "@/partition@/def");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t4, name));
+  EXPECT_EQ(name, "@/partition@/def");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t5, name));
+  EXPECT_EQ(name, "@/partition@/def/ghi");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t6, name));
+  EXPECT_EQ(name, "@/partition@/def/ghi");
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t7, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns1, t8, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t1, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t2, name));
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t3, name));
+  EXPECT_EQ(name, "@/partition@/def");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t4, name));
+  EXPECT_EQ(name, "@/partition@/abc/def");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t5, name));
+  EXPECT_EQ(name, "@/partition@/abc/def/ghi");
+  EXPECT_TRUE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t6, name));
+  EXPECT_EQ(name, "@/partition@/abc/def/ghi");
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t7, name));
+  EXPECT_FALSE(transport::TopicUtils::GetFullyQualifiedName(p5, ns2, t8, name));
 }
 
 //////////////////////////////////////////////////
