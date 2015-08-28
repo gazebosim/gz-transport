@@ -39,7 +39,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
 {
   // Get publisher type from name
   std::string type;
-  TopicUtils::GetTypeFromName(_topic, type);
+  TopicUtils::TypeFromName(_topic, type);
 
   this->isService = (type == "srv");
 }

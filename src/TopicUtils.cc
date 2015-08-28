@@ -54,7 +54,78 @@ bool TopicUtils::IsValidTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
+bool TopicUtils::FullyQualifiedMsgName(const std::string &_partition,
+  const std::string &_ns, const std::string &_topic, std::string &_name)
+{
+  return TopicUtils::FullyQualifiedName(_partition, _ns, _topic, _name);
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::FullyQualifiedSrvName(const std::string &_partition,
+  const std::string &_ns, const std::string &_topic, std::string &_name)
+{
+  return TopicUtils::FullyQualifiedName(_partition, _ns,
+    _topic, _name, true);
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::PartitionFromName(const std::string &_name,
+  std::string &_partition)
+{
+  // Get partition from fully qualified name.
+  auto topicName = _name;
+
+  auto delimiter = topicName.find_first_of("@");
+  // Error - no special part (requires at least two '@').
+  if (delimiter == std::string::npos)
+    return false;
+
+  // Remove first '@'.
+  topicName.erase(0, delimiter + 1);
+  // Find where partition part ends.
+  delimiter = topicName.find_first_of("@");
+  // Error - no special part (requires at least two '@').
+  if (delimiter == std::string::npos)
+    return false;
+
+  // Get partition.
+  _partition = topicName.substr(0, delimiter);
+
+  return TopicUtils::IsValidNamespace(_partition);
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::TypeFromName(const std::string &_name, std::string &_type)
+{
+  // Get publisher type from fully qualified name.
+  auto topicName = _name;
+  size_t delimiter;
+
+  for (auto i = 0; i < 2; ++i)
+  {
+    delimiter = topicName.find_first_of("@");
+    // Error - no special part (requires at least three '@').
+    if (delimiter == std::string::npos)
+      return false;
+
+    // Remove until '@'.
+    topicName.erase(0, delimiter + 1);
+  }
+
+  // Find where type part ends.
+  delimiter = topicName.find_first_of("@");
+  // Error - no special part (requires at least three '@').
+  if (delimiter == std::string::npos)
+    return false;
+
+  // Get type.
+  _type = topicName.substr(0, delimiter);
+
+  return (_type == "msg" || _type == "srv");
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::FullyQualifiedName(const std::string &_partition,
   const std::string &_ns, const std::string &_topic, std::string &_name,
   const bool& _isService)
 {
@@ -100,87 +171,9 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   _name.insert(0, "@" + partition + "@");
 
   if (_isService)
-    _name.insert(_name.find_last_of("@")+1, "srv@");
+    _name.insert(_name.find_last_of("@") + 1, "srv@");
   else
-    _name.insert(_name.find_last_of("@")+1, "msg@");
+    _name.insert(_name.find_last_of("@") + 1, "msg@");
 
   return true;
-}
-
-//////////////////////////////////////////////////
-bool TopicUtils::GetFullyQualifiedMsgName(const std::string &_partition,
-  const std::string &_ns, const std::string &_topic, std::string &_name)
-{
-  return TopicUtils::GetFullyQualifiedName(_partition, _ns, _topic, _name);
-}
-
-//////////////////////////////////////////////////
-bool TopicUtils::GetFullyQualifiedSrvName(const std::string &_partition,
-  const std::string &_ns, const std::string &_topic, std::string &_name)
-{
-  return TopicUtils::GetFullyQualifiedName(_partition, _ns,
-    _topic, _name, true);
-}
-
-//////////////////////////////////////////////////
-bool TopicUtils::GetPartitionFromName(const std::string &_name,
-  std::string &_partition)
-{
-  // Get partition from fully qualified name
-  auto topic_name = _name;
-
-  auto first = topic_name.find_first_of("@");
-  // ERROR - no special part (requires at least 2 '@')
-  if (first == std::string::npos)
-  {
-    return false;
-  }
-  // remove first '@'
-  topic_name.erase(0, first + 1);
-  // find where partition part ends
-  first = topic_name.find_first_of("@");
-  // ERROR - no special part (requires at least 2 '@')
-  if (first == std::string::npos)
-  {
-    return false;
-  }
-  // get partition
-  _partition = topic_name.substr(0, first);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool TopicUtils::GetTypeFromName(const std::string &_name, std::string &_type)
-{
-  // Get publisher type from fully qualified name
-  auto topic_name = _name;
-
-  auto first = topic_name.find_first_of("@");
-  // ERROR - no special part (requires at least 2 '@')
-  if (first == std::string::npos)
-  {
-    return false;
-  }
-  // remove first '@'
-  topic_name.erase(0, first + 1);
-  // find where partition part ends
-  first = topic_name.find_first_of("@");
-  // ERROR - no special part (requires at least 2 '@')
-  if (first == std::string::npos)
-  {
-    return false;
-  }
-  // find where type part ends
-  auto last = topic_name.find_first_of("@", first + 1);
-  // special case when there's no partition
-  if (last == std::string::npos)
-  {
-    last = first;
-    first = -1;
-  }
-  // get type
-  _type = topic_name.substr(first + 1, last - first - 1);
-
-  return (_type == "msg" || _type == "srv");
 }

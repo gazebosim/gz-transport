@@ -68,8 +68,8 @@ TEST(TopicUtilsTest, testNamespaces)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check GetScopeName.
-TEST(TopicUtilsTest, testGetFullyQualifiedMsgName)
+/// \brief Check FullyQualifiedMsgName.
+TEST(TopicUtilsTest, testFullyQualifiedMsgName)
 {
   using namespace transport;
   std::string p0 = "@partition";
@@ -91,183 +91,220 @@ TEST(TopicUtilsTest, testGetFullyQualifiedMsgName)
   std::string t8 = "~def/";
   std::string name;
 
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p0, ns2, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t8, name));
 
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p1, ns2, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t8, name));
 
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p2, ns2, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t8, name));
 
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t2, name));
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t2, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t3, name));
   EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns1, t3, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t3, name));
   EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t4, name));
   EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns1, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t4, name));
   EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t5, name));
   EXPECT_EQ(name, "@/partition@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns1, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t5, name));
   EXPECT_EQ(name, "@/partition@srv@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t6, name));
   EXPECT_EQ(name, "@/partition@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns1, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t6, name));
   EXPECT_EQ(name, "@/partition@srv@/def/ghi");
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t2, name));
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t2, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t3, name));
   EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns2, t3, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t3, name));
   EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t4, name));
   EXPECT_EQ(name, "@/partition@msg@/abc/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns2, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t4, name));
   EXPECT_EQ(name, "@/partition@srv@/abc/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t5, name));
   EXPECT_EQ(name, "@/partition@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns2, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t5, name));
   EXPECT_EQ(name, "@/partition@srv@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t6, name));
   EXPECT_EQ(name, "@/partition@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p3, ns2, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t6, name));
   EXPECT_EQ(name, "@/partition@srv@/abc/def/ghi");
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p3, ns2, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t8, name));
 
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t2, name));
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t2, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t4, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t5, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t6, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t2, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t3, name));
   EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns1, t3, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t3, name));
   EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t4, name));
   EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns1, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t4, name));
   EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t5, name));
   EXPECT_EQ(name, "@@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns1, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t5, name));
   EXPECT_EQ(name, "@@srv@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t6, name));
   EXPECT_EQ(name, "@@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns1, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t6, name));
   EXPECT_EQ(name, "@@srv@/def/ghi");
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t2, name));
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t3, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t1, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t2, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t3, name));
   EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns2, t3, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t3, name));
   EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t4, name));
   EXPECT_EQ(name, "@@msg@/abc/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns2, t4, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t4, name));
   EXPECT_EQ(name, "@@srv@/abc/def");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t5, name));
   EXPECT_EQ(name, "@@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns2, t5, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t5, name));
   EXPECT_EQ(name, "@@srv@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t6, name));
   EXPECT_EQ(name, "@@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::GetFullyQualifiedSrvName(p4, ns2, t6, name));
+  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t6, name));
   EXPECT_EQ(name, "@@srv@/abc/def/ghi");
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::GetFullyQualifiedMsgName(p4, ns2, t8, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t7, name));
+  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t8, name));
 }
 
 //////////////////////////////////////////////////
-/// \brief Check Auxiliary Functions.
-TEST(TopicUtilsTest, testAuxiliary)
+/// \brief Check PartitionFromName.
+/// Some of the strings are not valid fully qualified names but
+/// PartitionFromName() just checks for the first two '@'.
+TEST(TopicUtilsTest, testPartitionFromName)
+{
+  std::string n1 = "@bad";
+  std::string n2 = "bad2";
+  std::string n3 = "@~@";
+  std::string n4 = "@partition@good";
+  std::string n5 = "@@good";
+  std::string n6 = "@partition@type@demi";
+  std::string n7 = "@partition@msg@good";
+  std::string n8 = "@partition@srv@good";
+  std::string n9 = "@msg@good";
+
+  std::string partition;
+
+  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n1, partition));
+  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n2, partition));
+  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n3, partition));
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n4, partition));
+  EXPECT_EQ(partition, "partition");
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n5, partition));
+  EXPECT_EQ(partition, "");
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n6, partition));
+  EXPECT_EQ(partition, "partition");
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n7, partition));
+  EXPECT_EQ(partition, "partition");
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n8, partition));
+  EXPECT_EQ(partition, "partition");
+  EXPECT_TRUE (transport::TopicUtils::PartitionFromName(n9, partition));
+  EXPECT_EQ(partition, "msg");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check TypeFromName.
+/// Some of the strings are not valid fully qualified names but
+/// TypeFromName() just checks for the three '@'.
+TEST(TopicUtilsTest, testTypeFromName)
 {
   std::string n1 = "@bad";
   std::string n2 = "bad2";
@@ -278,34 +315,18 @@ TEST(TopicUtilsTest, testAuxiliary)
   std::string n7 = "@partition@srv@good";
   std::string n8 = "@msg@good";
 
-  std::string partition, type;
+  std::string type;
 
-  EXPECT_FALSE(transport::TopicUtils::GetPartitionFromName(n1, partition));
-  EXPECT_FALSE(transport::TopicUtils::GetPartitionFromName(n2, partition));
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n3, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n4, partition));
-  EXPECT_EQ(partition, "");
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n5, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n6, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n7, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::GetPartitionFromName(n8, partition));
-  EXPECT_EQ(partition, "msg");
-
-  EXPECT_FALSE(transport::TopicUtils::GetTypeFromName(n1, type));
-  EXPECT_FALSE(transport::TopicUtils::GetTypeFromName(n2, type));
-  EXPECT_FALSE(transport::TopicUtils::GetTypeFromName(n3, type));
-  EXPECT_FALSE(transport::TopicUtils::GetTypeFromName(n4, type));
-  EXPECT_FALSE(transport::TopicUtils::GetTypeFromName(n5, type));
-  EXPECT_TRUE(transport::TopicUtils::GetTypeFromName(n6, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n1, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n2, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n3, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n4, type));
+  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n5, type));
+  EXPECT_TRUE (transport::TopicUtils::TypeFromName(n6, type));
   EXPECT_EQ(type, "msg");
-  EXPECT_TRUE(transport::TopicUtils::GetTypeFromName(n7, type));
+  EXPECT_TRUE (transport::TopicUtils::TypeFromName(n7, type));
   EXPECT_EQ(type, "srv");
-  EXPECT_TRUE(transport::TopicUtils::GetTypeFromName(n8, type));
-  EXPECT_EQ(type, "msg");
+  EXPECT_FALSE (transport::TopicUtils::TypeFromName(n8, type));
 }
 
 //////////////////////////////////////////////////

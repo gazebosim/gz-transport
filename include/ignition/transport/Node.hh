@@ -106,7 +106,7 @@ namespace ignition
           void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedMsgName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedMsgName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -161,7 +161,7 @@ namespace ignition
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedMsgName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedMsgName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -233,7 +233,7 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedSrvName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -299,7 +299,7 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedSrvName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -367,7 +367,7 @@ namespace ignition
         void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedSrvName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -452,7 +452,7 @@ namespace ignition
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedSrvName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -536,7 +536,7 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedSrvName(this->Partition(),
+        if (!TopicUtils::FullyQualifiedSrvName(this->Partition(),
           this->NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;

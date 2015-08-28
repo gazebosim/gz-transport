@@ -133,7 +133,7 @@ Node::~Node()
 bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
+  if (!TopicUtils::FullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -183,7 +183,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string fullyQualifiedMsg;
-  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
+  if (!TopicUtils::FullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedMsg))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -219,7 +219,7 @@ bool Node::Unadvertise(const std::string &_topic)
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
+  if (!TopicUtils::FullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -293,7 +293,7 @@ std::vector<std::string> Node::SubscribedTopics() const
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedMsgName(this->dataPtr->partition,
+  if (!TopicUtils::FullyQualifiedMsgName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -387,7 +387,7 @@ std::vector<std::string> Node::AdvertisedServices() const
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
   std::string fullyQualifiedSrv;
-  if (!TopicUtils::GetFullyQualifiedSrvName(this->dataPtr->partition,
+  if (!TopicUtils::FullyQualifiedSrvName(this->dataPtr->partition,
     this->dataPtr->ns, _topic, fullyQualifiedSrv))
   {
     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
@@ -436,7 +436,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   {
     // Get the partition name.
     std::string partition;
-    TopicUtils::GetPartitionFromName(topic, partition);
+    TopicUtils::PartitionFromName(topic, partition);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
@@ -465,7 +465,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   {
     // Get the partition name.
     std::string partition;
-    TopicUtils::GetPartitionFromName(service, partition);
+    TopicUtils::PartitionFromName(service, partition);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
