@@ -81,7 +81,7 @@ namespace ignition
       /// \brief Return if there is any address stored for the given topic.
       /// \param[in] _topic Topic name.
       /// \return True if there is at least one entry stored for the topic.
-      public: bool HasTopic(const std::string &_topic)
+      public: bool HasTopic(const std::string &_topic) const
       {
         return this->data.find(_topic) != this->data.end();
       }
@@ -93,18 +93,19 @@ namespace ignition
       /// \return True if there is at least one address stored for the topic and
       /// process UUID.
       public: bool HasAnyPublishers(const std::string &_topic,
-                                    const std::string &_pUuid)
+                                    const std::string &_pUuid) const
       {
         if (!this->HasTopic(_topic))
           return false;
 
-        return this->data[_topic].find(_pUuid) != this->data[_topic].end();
+        return this->data.at(_topic).find(_pUuid) !=
+               this->data.at(_topic).end();
       }
 
       /// \brief Return if the requested publisher's address is stored.
       /// \param[in] _addr Publisher's address requested
       /// \return true if the publisher's address is stored.
-      public: bool HasPublisher(const std::string &_addr)
+      public: bool HasPublisher(const std::string &_addr) const
       {
         for (auto &topic : this->data)
         {
@@ -129,21 +130,21 @@ namespace ignition
       public: bool GetPublisher(const std::string &_topic,
                                 const std::string &_pUuid,
                                 const std::string &_nUuid,
-                                T &_publisher)
+                                T &_publisher) const
       {
         // Topic not found.
         if (this->data.find(_topic) == this->data.end())
           return false;
 
         // m is {pUUID=>Publisher}.
-        auto &m = this->data[_topic];
+        auto &m = this->data.at(_topic);
 
         // pUuid not found.
         if (m.find(_pUuid) == m.end())
           return false;
 
         // Vector of 0MQ known addresses for a given topic and pUuid.
-        auto &v = m[_pUuid];
+        auto &v = m.at(_pUuid);
         auto found = std::find_if(v.begin(), v.end(),
           [&](const T &_pub)
           {
@@ -165,12 +166,12 @@ namespace ignition
       /// \param[out] _info Map of publishers requested.
       /// \return true if at least there is one publisher stored.
       public: bool GetPublishers(const std::string &_topic,
-                                 std::map<std::string, std::vector<T>> &_info)
+                             std::map<std::string, std::vector<T>> &_info) const
       {
         if (!this->HasTopic(_topic))
           return false;
 
-        _info = this->data[_topic];
+        _info = this->data.at(_topic);
         return true;
       }
 
@@ -244,7 +245,7 @@ namespace ignition
       /// \param _pubs Map of publishers where the keys are the node UUIDs and
       /// the value is its address information.
       public: void GetPublishersByProc(const std::string &_pUuid,
-                                   std::map<std::string, std::vector<T>> &_pubs)
+                             std::map<std::string, std::vector<T>> &_pubs) const
       {
         _pubs.clear();
 
@@ -255,7 +256,7 @@ namespace ignition
           auto &m = topic.second;
           if (m.find(_pUuid) != m.end())
           {
-            auto &v = m[_pUuid];
+            auto &v = m.at(_pUuid);
             for (auto &pub : v)
             {
               _pubs[topic.first].push_back(T(pub));
@@ -273,7 +274,7 @@ namespace ignition
       }
 
       /// \brief Print all the information for debugging purposes.
-      public: void Print()
+      public: void Print() const
       {
         std::cout << "---" << std::endl;
         for (auto &topic : this->data)

@@ -73,7 +73,7 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid()
+      public: std::string NodeUuid() const
       {
         return this->nUuid;
       }
@@ -108,7 +108,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T> CreateMsg(const std::string &_data)
+      public: std::shared_ptr<T> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<T> msgPtr(new T());
