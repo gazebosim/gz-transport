@@ -111,9 +111,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          Shared()->mutex, std::adopt_lock);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -166,9 +168,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -238,9 +242,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Add the topic to the list of advertised services.
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
@@ -305,9 +311,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Add the topic to the list of advertised services.
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
@@ -374,9 +382,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -460,9 +470,11 @@ namespace ignition
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
@@ -545,52 +557,55 @@ namespace ignition
           return false;
         }
 
-        this->Shared()->discovery->Mutex().lock();
-        std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
-
-        // If the responser is within my process.
-        IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
-        {
-          // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
-            _result);
-          this->Shared()->discovery->Mutex().unlock();
-          return true;
-        }
-
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
-        // Insert the request's parameters.
-        reqHandlerPtr->Message(_req);
-
-        // Store the request handler.
-        this->Shared()->requests.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
-
-        // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
-        if (this->Shared()->discovery->SrvPublishers(
-          fullyQualifiedTopic, addresses))
+        std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex,
+          std::defer_lock);
+        std::lock(this->Shared()->discovery->Mutex(), lk);
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
-        }
-        else
-        {
-          // Discover the service responser.
-          if (!this->Shared()->discovery->DiscoverSrv(
-            fullyQualifiedTopic))
+          std::lock_guard<std::recursive_mutex> discLk(
+            this->Shared()->discovery->Mutex(), std::adopt_lock);
+
+          // If the responser is within my process.
+          IRepHandlerPtr repHandler;
+          if (this->Shared()->repliers.GetHandler(fullyQualifiedTopic,
+            repHandler))
           {
-            std::cerr << "Node::Request(): Error discovering a service. "
-                      << "Did you forget to start the discovery service?"
-                      << std::endl;
-            return false;
+            // There is a responser in my process, let's use it.
+            repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
+              _result);
+            return true;
+          }
+
+          // Insert the request's parameters.
+          reqHandlerPtr->Message(_req);
+
+          // Store the request handler.
+          this->Shared()->requests.AddHandler(
+            fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
+
+          // If the responser's address is known, make the request.
+          SrvAddresses_M addresses;
+          if (this->Shared()->discovery->SrvPublishers(
+            fullyQualifiedTopic, addresses))
+          {
+            this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
+          }
+          else
+          {
+            // Discover the service responser.
+            if (!this->Shared()->discovery->DiscoverSrv(
+              fullyQualifiedTopic))
+            {
+              std::cerr << "Node::Request(): Error discovering a service. "
+                        << "Did you forget to start the discovery service?"
+                        << std::endl;
+              return false;
+            }
           }
         }
-        this->Shared()->discovery->Mutex().unlock();
 
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
@@ -602,8 +617,6 @@ namespace ignition
 
           _result = reqHandlerPtr->Result();
         }
-
-        lk.unlock();
 
         return executed;
       }
