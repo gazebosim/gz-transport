@@ -176,7 +176,11 @@ namespace ignition
         std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
 
         return msgPtr;
       }
