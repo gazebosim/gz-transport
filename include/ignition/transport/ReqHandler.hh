@@ -21,7 +21,6 @@
 #include <google/protobuf/message.h>
 #include <condition_variable>
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
@@ -64,21 +63,21 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid()
+      public: std::string NodeUuid() const
       {
         return this->nUuid;
       }
 
       /// \brief Get the service response as raw bytes.
       /// \return The string containing the service response.
-      public: std::string & Response()
+      public: std::string Response() const
       {
         return this->rep;
       }
 
       /// \brief Get the result of the service response.
       /// \return The boolean result.
-      public: bool Result()
+      public: bool Result() const
       {
         return this->result;
       }
@@ -99,7 +98,7 @@ namespace ignition
 
       /// \brief Serialize the Req protobuf message stored.
       /// \return The serialized data.
-      public: virtual std::string Serialize() = 0;
+      public: virtual std::string Serialize() const = 0;
 
       /// \brief Returns the unique handler UUID.
       /// \return The handler's UUID.
@@ -170,7 +169,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data)
+      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Rep> msgPtr(new Rep());
@@ -202,7 +201,7 @@ namespace ignition
       }
 
       // Documentation inherited
-      public: std::string Serialize()
+      public: std::string Serialize() const
       {
         std::string buffer;
         this->reqMsg.SerializeToString(&buffer);

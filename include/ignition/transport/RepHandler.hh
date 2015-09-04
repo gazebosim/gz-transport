@@ -166,7 +166,7 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<Req> CreateMsg(const std::string &_data)
+      private: std::shared_ptr<Req> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Req> msgPtr(new Req());

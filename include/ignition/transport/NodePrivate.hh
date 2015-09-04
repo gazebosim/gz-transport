@@ -20,9 +20,7 @@
 
 #include <string>
 #include <unordered_set>
-#include <vector>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeShared.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -31,6 +29,8 @@ namespace ignition
 {
   namespace transport
   {
+    class NodeShared;
+
     /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
     /// \brief Private data for Private Node class.
     class IGNITION_VISIBLE NodePrivate

@@ -34,7 +34,6 @@
   using raw_type = void;
 #endif
 
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -45,7 +44,6 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -53,6 +51,7 @@ namespace ignition
   namespace transport
   {
     class DiscoveryPrivate;
+    class Publisher;
 
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
@@ -280,7 +279,7 @@ namespace ignition
       }
 
       /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
+      public: void PrintCurrentState() const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
@@ -292,7 +291,7 @@ namespace ignition
 
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex();
+      public: std::recursive_mutex& Mutex() const;
 
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
@@ -322,7 +321,7 @@ namespace ignition
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
                                                  const T &_pub,
-                                                 int _flags = 0)
+                                                 int _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);

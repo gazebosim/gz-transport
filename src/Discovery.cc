@@ -1013,8 +1013,10 @@ uint8_t Discovery::Version() const
 }
 
 //////////////////////////////////////////////////
-void Discovery::PrintCurrentState()
+void Discovery::PrintCurrentState() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
   std::cout << "---------------" << std::endl;
   std::cout << std::boolalpha << "Enabled: "
             << this->dataPtr->enabled << std::endl;
@@ -1071,7 +1073,7 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::Mutex()
+std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
 }
