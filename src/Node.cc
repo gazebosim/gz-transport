@@ -257,7 +257,12 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
   {
     std::string data;
-    _msg.SerializeToString(&data);
+    if (!_msg.SerializeToString(&data))
+    {
+      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
+      return false;
+    }
+
     this->dataPtr->shared->Publish(fullyQualifiedTopic, data);
   }
   // Debug output.

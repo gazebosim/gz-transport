@@ -115,11 +115,11 @@ TEST(RepStorageTest, RepStorageAPI)
 
   std::string reqSerialized;
   std::string repSerialized;
-  reqMsg.SerializeToString(&reqSerialized);
+  EXPECT_TRUE(reqMsg.SerializeToString(&reqSerialized));
   handler->RunCallback(topic, reqSerialized, repSerialized, result);
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
-  rep1Msg.ParseFromString(repSerialized);
+  EXPECT_TRUE(rep1Msg.ParseFromString(repSerialized));
   EXPECT_EQ(rep1Msg.data(), intResult);
 
   // Create another REP handler without a callback for node1.

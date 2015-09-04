@@ -114,7 +114,11 @@ namespace ignition
         std::shared_ptr<T> msgPtr(new T());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "SubscriptionHandler::CreateMsg() error: ParseFromString"
+                    << " failed" << std::endl;
+        }
 
         return msgPtr;
       }
@@ -159,23 +163,24 @@ namespace ignition
       {
         // Instantiate the specific protobuf message associated to this topic.
         auto msg = this->CreateMsg(_data);
+        if (!msg)
+          return false;
 
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msg);
-          return true;
-        }
-        else
+        // Check if we have a callback registered.
+        if (!this->cb)
         {
           std::cerr << "SubscriptionHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
           return false;
         }
+
+        // Remove the partition part from the topic.
+        std::string topicName = _topic;
+        topicName.erase(0, topicName.find_last_of("@") + 1);
+
+        // Execute the callback.
+        this->cb(topicName, *msg);
+        return true;
       }
 
       /// \brief Callback to the function registered for this handler with the
