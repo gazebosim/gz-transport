@@ -15,7 +15,10 @@
  *
 */
 
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 
@@ -68,265 +71,93 @@ TEST(TopicUtilsTest, testNamespaces)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check FullyQualifiedMsgName.
-TEST(TopicUtilsTest, testFullyQualifiedMsgName)
+/// \brief Check FullyQualifiedName.
+TEST(TopicUtilsTest, testFullyQualifiedName)
 {
-  using namespace transport;
-  std::string p0 = "@partition";
-  std::string p1 = "@partition/@";
-  std::string p2 = "@@";
-  std::string p3 = "partition";
-  std::string p4 = "";
+  // Validation type. The key is the text under test. The value is a pair,
+  // where the first element specifies if it's a valid text.
+  // The second element contains the expected result in which the original
+  // text will be transformed. This value only makes sense if the text is valid.
+  // E.g.: {"partition/",   {true,  "@/partition@"}}
+  // "partition/" is valid text for a partition name and will be transformed
+  // into "@/partition@" after calling to GetFullyQualifiedName().
+  using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
 
-  std::string ns0 = "~ns";
-  std::string ns1 = "";
-  std::string ns2 = "abc";
-  std::string t1 = "~/def";
-  std::string t2 = "~def";
-  std::string t3 = "/def";
-  std::string t4 = "def/";
-  std::string t5 = "def/ghi";
-  std::string t6 = "def/ghi/";
-  std::string t7 = "~/def/";
-  std::string t8 = "~def/";
-  std::string name;
+  // Partitions to test.
+  ValidationT partitions =
+    {
+      {"@partition",   {false, ""}},
+      {"@partition/@", {false, ""}},
+      {"@@",           {false, ""}},
+      {"partition",    {true,  "@/partition@"}},
+      {"",             {true,  "@@"}},
+      {"partition/",   {true,  "@/partition@"}},
+    };
 
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p0, ns2, t8, name));
+  // Namespaces to test.
+  ValidationT namespaces =
+    {
+      {"~ns", {false, ""}},
+      {"",    {true,  "/"}},
+      {"abc", {true,  "/abc/"}}
+    };
 
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p1, ns2, t8, name));
+  // Topics to test.
+  ValidationT topics =
+    {
+      {"~/def",    {false, ""}},
+      {"~def",     {false, ""}},
+      {"/def",     {true,  "/def"}},
+      {"def/",     {true,  "def"}},
+      {"def/ghi",  {true,  "def/ghi"}},
+      {"def/ghi/", {true,  "def/ghi"}},
+      {"~/def/",   {false, ""}},
+      {"~def/",    {false, ""}}
+    };
 
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p2, ns2, t8, name));
+  // Types to test.
+  std::vector<std::string> types;
+  types.push_back("msg");
+  types.push_back("srv");
 
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t2, name));
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t3, name));
-  EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t3, name));
-  EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t4, name));
-  EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t4, name));
-  EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t5, name));
-  EXPECT_EQ(name, "@/partition@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t5, name));
-  EXPECT_EQ(name, "@/partition@srv@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t6, name));
-  EXPECT_EQ(name, "@/partition@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns1, t6, name));
-  EXPECT_EQ(name, "@/partition@srv@/def/ghi");
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t2, name));
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t3, name));
-  EXPECT_EQ(name, "@/partition@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t3, name));
-  EXPECT_EQ(name, "@/partition@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t4, name));
-  EXPECT_EQ(name, "@/partition@msg@/abc/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t4, name));
-  EXPECT_EQ(name, "@/partition@srv@/abc/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t5, name));
-  EXPECT_EQ(name, "@/partition@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t5, name));
-  EXPECT_EQ(name, "@/partition@srv@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t6, name));
-  EXPECT_EQ(name, "@/partition@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p3, ns2, t6, name));
-  EXPECT_EQ(name, "@/partition@srv@/abc/def/ghi");
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p3, ns2, t8, name));
+  // We try all the partition, namespaces and topics combinations.
+  for (auto p : partitions)
+    for (auto ns : namespaces)
+      for (auto t : topics)
+      {
+        for (auto type : types)
+        {
+          std::string actualTopic;
+          auto pUnderTest  = p.first;
+          auto nsUnderTest = ns.first;
+          auto tUnderTest  = t.first;
+          auto expectedRes = p.second.first && ns.second.first &&
+                            t.second.first;
+          auto actualRes   = false;
+          if (type == "msg")
+            actualRes = transport::TopicUtils::FullyQualifiedMsgName(
+              pUnderTest, nsUnderTest, tUnderTest, actualTopic);
+          else if (type == "srv")
+            actualRes = transport::TopicUtils::FullyQualifiedSrvName(
+              pUnderTest, nsUnderTest, tUnderTest, actualTopic);
+          ASSERT_TRUE(expectedRes == actualRes);
 
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t2, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t3, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t4, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t5, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t6, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns0, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t2, name));
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t3, name));
-  EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t3, name));
-  EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t4, name));
-  EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t4, name));
-  EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t5, name));
-  EXPECT_EQ(name, "@@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t5, name));
-  EXPECT_EQ(name, "@@srv@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t6, name));
-  EXPECT_EQ(name, "@@msg@/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns1, t6, name));
-  EXPECT_EQ(name, "@@srv@/def/ghi");
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns1, t8, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t1, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t2, name));
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t3, name));
-  EXPECT_EQ(name, "@@msg@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t3, name));
-  EXPECT_EQ(name, "@@srv@/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t4, name));
-  EXPECT_EQ(name, "@@msg@/abc/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t4, name));
-  EXPECT_EQ(name, "@@srv@/abc/def");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t5, name));
-  EXPECT_EQ(name, "@@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t5, name));
-  EXPECT_EQ(name, "@@srv@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t6, name));
-  EXPECT_EQ(name, "@@msg@/abc/def/ghi");
-  EXPECT_TRUE(TopicUtils::FullyQualifiedSrvName(p4, ns2, t6, name));
-  EXPECT_EQ(name, "@@srv@/abc/def/ghi");
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t7, name));
-  EXPECT_FALSE(TopicUtils::FullyQualifiedMsgName(p4, ns2, t8, name));
-}
+          if (expectedRes)
+          {
+            auto expectedP  = p.second.second;
+            auto expectedNs = ns.second.second;
+            auto expectedT  = t.second.second;
+            std::string expectedTopic;
+            // If the topic starts with "/", we should ignore the namespace.
+            if (tUnderTest.front() == '/')
+              expectedTopic = expectedP + type + "@" + expectedT;
+            else
+              expectedTopic += expectedP + type + "@" +expectedNs + expectedT;
 
-//////////////////////////////////////////////////
-/// \brief Check PartitionFromName.
-/// Some of the strings are not valid fully qualified names but
-/// PartitionFromName() just checks for the first two '@'.
-TEST(TopicUtilsTest, testPartitionFromName)
-{
-  std::string n1 = "@bad";
-  std::string n2 = "bad2";
-  std::string n3 = "@~@";
-  std::string n4 = "@partition@good";
-  std::string n5 = "@@good";
-  std::string n6 = "@partition@type@demi";
-  std::string n7 = "@partition@msg@good";
-  std::string n8 = "@partition@srv@good";
-  std::string n9 = "@msg@good";
-
-  std::string partition;
-
-  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n1, partition));
-  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n2, partition));
-  EXPECT_FALSE(transport::TopicUtils::PartitionFromName(n3, partition));
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n4, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n5, partition));
-  EXPECT_EQ(partition, "");
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n6, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n7, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n8, partition));
-  EXPECT_EQ(partition, "partition");
-  EXPECT_TRUE(transport::TopicUtils::PartitionFromName(n9, partition));
-  EXPECT_EQ(partition, "msg");
-}
-
-//////////////////////////////////////////////////
-/// \brief Check TypeFromName.
-/// Some of the strings are not valid fully qualified names but
-/// TypeFromName() just checks for the three '@'.
-TEST(TopicUtilsTest, testTypeFromName)
-{
-  std::string n1 = "@bad";
-  std::string n2 = "bad2";
-  std::string n3 = "@partition@good";
-  std::string n4 = "@@good";
-  std::string n5 = "@partition@type@demi";
-  std::string n6 = "@partition@msg@good";
-  std::string n7 = "@partition@srv@good";
-  std::string n8 = "@msg@good";
-
-  std::string type;
-
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n1, type));
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n2, type));
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n3, type));
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n4, type));
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n5, type));
-  EXPECT_TRUE(transport::TopicUtils::TypeFromName(n6, type));
-  EXPECT_EQ(type, "msg");
-  EXPECT_TRUE(transport::TopicUtils::TypeFromName(n7, type));
-  EXPECT_EQ(type, "srv");
-  EXPECT_FALSE(transport::TopicUtils::TypeFromName(n8, type));
+            EXPECT_EQ(actualTopic, expectedTopic);
+          }
+        }
+      }
 }
 
 //////////////////////////////////////////////////

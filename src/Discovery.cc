@@ -807,7 +807,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 }
 
 //////////////////////////////////////////////////
-void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags)
+void Discovery::SendMsg(uint8_t _type, const Publisher &_pub, int _flags) const
 {
   // Create the header.
   auto header = std::make_shared<Header>(
@@ -894,8 +894,10 @@ uint8_t Discovery::Version() const
 }
 
 //////////////////////////////////////////////////
-void Discovery::PrintCurrentState()
+void Discovery::PrintCurrentState() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
   std::cout << "---------------" << std::endl;
   std::cout << std::boolalpha << "Enabled: "
             << this->dataPtr->enabled << std::endl;
@@ -950,7 +952,7 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::Mutex()
+std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
 }

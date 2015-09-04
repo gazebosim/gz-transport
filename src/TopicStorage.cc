@@ -23,6 +23,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "ignition/transport/TopicUtils.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -62,23 +63,23 @@ bool TopicStorage::AddPublisher(const Publisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-bool TopicStorage::HasTopic(const std::string &_topic)
+bool TopicStorage::HasTopic(const std::string &_topic) const
 {
   return this->data.find(_topic) != this->data.end();
 }
 
 //////////////////////////////////////////////////
 bool TopicStorage::HasAnyPublishers(const std::string &_topic,
-                                    const std::string &_pUuid)
+                                    const std::string &_pUuid) const
 {
   if (!this->HasTopic(_topic))
     return false;
 
-  return this->data[_topic].find(_pUuid) != this->data[_topic].end();
+  return this->data.at(_topic).find(_pUuid) != this->data.at(_topic).end();
 }
 
 //////////////////////////////////////////////////
-bool TopicStorage::HasPublisher(const std::string &_addr)
+bool TopicStorage::HasPublisher(const std::string &_addr) const
 {
   for (auto &topic : this->data)
   {
@@ -98,21 +99,21 @@ bool TopicStorage::HasPublisher(const std::string &_addr)
 bool TopicStorage::GetPublisher(const std::string &_topic,
                                 const std::string &_pUuid,
                                 const std::string &_nUuid,
-                                Publisher &_publisher)
+                                Publisher &_publisher) const
 {
   // Topic not found.
   if (this->data.find(_topic) == this->data.end())
     return false;
 
   // m is {pUUID=>Publisher}.
-  auto &m = this->data[_topic];
+  auto &m = this->data.at(_topic);
 
   // pUuid not found.
   if (m.find(_pUuid) == m.end())
     return false;
 
   // Vector of 0MQ known addresses for a given topic and pUuid.
-  auto &v = m[_pUuid];
+  auto &v = m.at(_pUuid);
   auto found = std::find_if(v.begin(), v.end(),
     [&](const Publisher &_pub)
     {
@@ -131,12 +132,12 @@ bool TopicStorage::GetPublisher(const std::string &_topic,
 
 //////////////////////////////////////////////////
 bool TopicStorage::GetPublishers(const std::string &_topic,
-                                 Addresses_M &_info)
+                                 Addresses_M &_info) const
 {
   if (!this->HasTopic(_topic))
     return false;
 
-  _info = this->data[_topic];
+  _info = this->data.at(_topic);
   return true;
 }
 
@@ -151,13 +152,13 @@ bool TopicStorage::DelPublisherByNode(const std::string &_topic,
   if (this->data.find(_topic) != this->data.end())
   {
     // m is {pUUID=>Publisher}.
-    auto &m = this->data[_topic];
+    auto &m = this->data.at(_topic);
 
     // The pUuid exists.
     if (m.find(_pUuid) != m.end())
     {
       // Vector of 0MQ known addresses for a given topic and pUuid.
-      auto &v = m[_pUuid];
+      auto &v = m.at(_pUuid);
       auto priorSize = v.size();
       v.erase(std::remove_if(v.begin(), v.end(),
         [&](const Publisher &_pub)
@@ -200,7 +201,7 @@ bool TopicStorage::DelPublishersByProc(const std::string &_pUuid)
 
 //////////////////////////////////////////////////
 void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
-                                       Addresses_M &_pubs)
+                                       Addresses_M &_pubs) const
 {
   _pubs.clear();
 
@@ -211,7 +212,7 @@ void TopicStorage::GetPublishersByProc(const std::string &_pUuid,
     auto &m = topic.second;
     if (m.find(_pUuid) != m.end())
     {
-      auto &v = m[_pUuid];
+      auto &v = m.at(_pUuid);
       for (auto &pub : v)
       {
         _pubs[topic.first].push_back(Publisher(pub));
@@ -228,17 +229,8 @@ void TopicStorage::GetTopicList(std::vector<std::string> &_topics,
 
   for (auto &topic : this->data)
   {
-    auto topic_name = topic.first;
-    topic_name.erase(0, topic_name.find_first_of("@")+1);
-
-    auto first = topic_name.find_first_of("@");
-    auto last = topic_name.find_first_of("@", first+1);
-    if (last == std::string::npos)
-    {
-      last = first;
-      first = -1;
-    }
-    auto type = topic_name.substr(first+1, last-first-1);
+    std::string type;
+    TopicUtils::TypeFromName(topic.first, type);
 
     if ((_isService && type == "srv") || (!_isService && type == "msg"))
       _topics.push_back(topic.first);
@@ -246,7 +238,7 @@ void TopicStorage::GetTopicList(std::vector<std::string> &_topics,
 }
 
 //////////////////////////////////////////////////
-void TopicStorage::Print()
+void TopicStorage::Print() const
 {
   std::cout << "---" << std::endl;
   for (auto &topic : this->data)

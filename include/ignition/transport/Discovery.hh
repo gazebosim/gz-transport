@@ -247,7 +247,7 @@ namespace ignition
       }
 
       /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
+      public: void PrintCurrentState() const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
@@ -259,7 +259,7 @@ namespace ignition
 
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex();
+      public: std::recursive_mutex& Mutex() const;
 
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
@@ -289,7 +289,7 @@ namespace ignition
       /// or encryption.
       private: void SendMsg(uint8_t _type,
                             const Publisher &_pub,
-                            int _flags = 0);
+                            int _flags = 0) const;
 
       /// \brief Get the list of sockets used for discovery.
       /// \return The list of sockets.

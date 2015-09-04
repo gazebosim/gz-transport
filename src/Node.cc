@@ -140,9 +140,11 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
     return false;
   }
 
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
 
   // Add the topic to the list of advertised topics (if it was not before).
   this->dataPtr->topicsAdvertised.insert(fullyQualifiedTopic);
@@ -165,9 +167,9 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 //////////////////////////////////////////////////
 std::vector<std::string> Node::AdvertisedTopics() const
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   std::vector<std::string> v;
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   for (auto topic : this->dataPtr->topicsAdvertised)
   {
@@ -190,9 +192,11 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
 
   if (this->dataPtr->topicsAdvertised.find(fullyQualifiedMsg) ==
         this->dataPtr->topicsAdvertised.end())
@@ -274,9 +278,9 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 //////////////////////////////////////////////////
 std::vector<std::string> Node::SubscribedTopics() const
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   std::vector<std::string> v;
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // I'm a real subscriber if I have interest in a topic and I know a publisher.
   for (auto topic : this->dataPtr->topicsSubscribed)
@@ -300,9 +304,11 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
   std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
 
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
     fullyQualifiedTopic, this->dataPtr->nUuid);
@@ -369,9 +375,9 @@ bool Node::Unsubscribe(const std::string &_topic)
 //////////////////////////////////////////////////
 std::vector<std::string> Node::AdvertisedServices() const
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   std::vector<std::string> v;
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   for (auto service : this->dataPtr->srvsAdvertised)
   {
@@ -394,9 +400,11 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
   std::lock_guard<std::recursive_mutex> discLk(
-          this->dataPtr->shared->discovery->Mutex());
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
 
   if (this->dataPtr->srvsAdvertised.find(fullyQualifiedSrv) ==
         this->dataPtr->srvsAdvertised.end())
@@ -426,12 +434,17 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
 //////////////////////////////////////////////////
 void Node::TopicList(std::vector<std::string> &_topics) const
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   std::vector<std::string> allTopics;
+  _topics.clear();
+
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> discLk(
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
+
   this->dataPtr->shared->discovery->TopicList(allTopics);
 
-  _topics.clear();
   for (auto &topic : allTopics)
   {
     // Get the partition name.
@@ -455,12 +468,17 @@ void Node::TopicList(std::vector<std::string> &_topics) const
 //////////////////////////////////////////////////
 void Node::ServiceList(std::vector<std::string> &_services) const
 {
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   std::vector<std::string> allServices;
+  _services.clear();
+
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> discLk(
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
+
   this->dataPtr->shared->discovery->ServiceList(allServices);
 
-  _services.clear();
   for (auto &service : allServices)
   {
     // Get the partition name.
