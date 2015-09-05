@@ -53,14 +53,14 @@ foreach(dep @PKG_DEPENDS@)
     endif()
   endif()
 
-  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep}_INCLUDE_DIRS})
-
   # Protobuf needs to be capitalized to match PROTOBUF_LIBRARIES
   if (${dep} STREQUAL "Protobuf")
     string (TOUPPER ${dep} dep_lib)
   else()
     set (dep_lib ${dep})
   endif()
+
+  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep_lib}_INCLUDE_DIRS})
 
   list(APPEND @PKG_NAME@_LIBRARIES ${${dep_lib}_LIBRARIES})
 

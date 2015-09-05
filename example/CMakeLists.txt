@@ -6,7 +6,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-TRANSPORT_CXX_FLAGS}")
 include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
-message (STATUS "LIBRARIES to link: ${IGNITION-TRANSPORT_LIBRARIES}")
+message (STATUS "Header dirs: ${IGNITION-TRANSPORT_INCLUDE_DIRS}")
 
 # Message generation
 add_subdirectory(msgs)
