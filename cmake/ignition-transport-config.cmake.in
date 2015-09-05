@@ -1,3 +1,5 @@
+include (FindPkgConfig REQUIRED)
+
 if (@PKG_NAME@_CONFIG_INCLUDED)
   return()
 endif()
@@ -34,11 +36,39 @@ endforeach()
 
 foreach(dep @PKG_DEPENDS@)
   if(NOT ${dep}_FOUND)
-    find_package(${dep} REQUIRED)
+    if (${dep} MATCHES "ZeroMQ")
+      include (@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake)
+    elseif(${dep} MATCHES "cppzmq")
+      find_path(cppzmq_INCLUDE_DIRS
+          zmq.hpp
+          PATHS
+          ${zmq_INCLUDE_DIRS}
+          ${CPPZMQ_HEADER_PATH})
+    elseif(${dep} MATCHES "uuid")
+      if (UNIX)
+        pkg_check_modules(uuid uuid)
+      endif()
+    else()
+      find_package(${dep} REQUIRED)
+    endif()
   endif()
-  string(TOUPPER ${dep} dep_upper)
-  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep_upper}_INCLUDE_DIRS})
-  list(APPEND @PKG_NAME@_LIBRARIES ${${dep_upper}_LIBRARIES})
+
+  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep}_INCLUDE_DIRS})
+
+  # Protobuf needs to be capitalized to match PROTOBUF_LIBRARIES
+  if (${dep} STREQUAL "Protobuf")
+    string (TOUPPER ${dep} dep_lib)
+  else()
+    set (dep_lib ${dep})
+  endif()
+
+  list(APPEND @PKG_NAME@_LIBRARIES ${${dep_lib}_LIBRARIES})
+
+  list(APPEND @PKG_NAME@_LIBRARY_DIRS ${${dep_lib}_LIBRARY_DIRS})
 endforeach()
+
+if (MSVC)
+  list(APPEND @PKG_NAME@_LIBRARIES Ws2_32.lib Iphlpapi.lib)
+endif()
 
 list(APPEND @PKG_NAME@_LDFLAGS -L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@)
