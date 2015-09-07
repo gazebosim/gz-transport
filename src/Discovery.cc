@@ -334,7 +334,7 @@ bool Discovery::Unadvertise(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool Discovery::Discover(const std::string &_topic)
+bool Discovery::Discover(const std::string &_topic) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
@@ -358,9 +358,9 @@ bool Discovery::Discover(const std::string &_topic)
     Addresses_M addresses;
     if (this->dataPtr->infoTopics.GetPublishers(_topic, addresses))
     {
-      for (auto &proc : addresses)
+      for (const auto &proc : addresses)
       {
-        for (auto &node : proc.second)
+        for (const auto &node : proc.second)
         {
           if (cb)
           {
@@ -379,7 +379,7 @@ bool Discovery::Discover(const std::string &_topic)
 
 //////////////////////////////////////////////////
 bool Discovery::TopicPublishers(const std::string &_topic,
-                              Addresses_M &_publishers)
+                              Addresses_M &_publishers) const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoTopics.GetPublishers(_topic, _publishers);
@@ -716,7 +716,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
         Addresses_M addresses;
         if (this->dataPtr->infoTopics.GetPublishers(recvTopic, addresses))
         {
-          for (auto nodeInfo : addresses[this->dataPtr->pUuid])
+          for (const auto &nodeInfo : addresses[this->dataPtr->pUuid])
           {
             // Check scope of the topic.
             if ((nodeInfo.Scope() == Scope_t::Process) ||
@@ -923,7 +923,7 @@ void Discovery::PrintCurrentState() const
     std::cout << "\t<empty>" << std::endl;
   else
   {
-    for (auto &proc : this->dataPtr->activity)
+    for (const auto &proc : this->dataPtr->activity)
     {
       // Elapsed time since the last update from this publisher.
       std::chrono::duration<double> elapsed = now - proc.second;

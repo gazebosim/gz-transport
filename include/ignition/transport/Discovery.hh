@@ -98,14 +98,14 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Discover(const std::string &_topic);
+      public: bool Discover(const std::string &_topic) const;
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool TopicPublishers(const std::string &_topic,
-                                 Addresses_M &_publishers);
+                                   Addresses_M &_publishers) const;
 
       /// \brief Unadvertise a new message/service. Broadcast a discovery
       /// message that will cancel all the discovery information for

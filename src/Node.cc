@@ -332,9 +332,9 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  for (auto &proc : addresses)
+  for (const auto &proc : addresses)
   {
-    for (auto &node : proc.second)
+    for (const auto &node : proc.second)
     {
       zmq::socket_t socket(*this->dataPtr->shared->context, ZMQ_DEALER);
 
