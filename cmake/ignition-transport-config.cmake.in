@@ -1,3 +1,19 @@
+# - Config file for the @PKG_NAME@ package.
+#
+# For finding and loading @PKG_NAME@ from your project, type:
+#
+# find_package(@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@)
+#
+# It defines the following variables:
+#
+#  @PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@_FOUND       - System has @PKG_NAME@.
+#  @PKG_NAME@_INCLUDE_DIRS - include directories for @PKG_NAME@ and its dependencies.
+#  @PKG_NAME@_LIBRARY_DIRS - Paths in which the linker should search for libraries.
+#  @PKG_NAME@_LIBRARIES    - Libraries to link against.
+#  @PKG_NAME@_C_FLAGS      - Compiler flags for compiling C sources.
+#  @PKG_NAME@_CXX_FLAGS    - Compiler flags for compiling C++ sources.
+#  @PKG_NAME@_LDFLAGS      - Linker flags.
+
 include (FindPkgConfig REQUIRED)
 
 if (@PKG_NAME@_CONFIG_INCLUDED)
