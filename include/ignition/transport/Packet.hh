@@ -53,14 +53,14 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: virtual size_t MsgLength() const = 0;
 
-      /// \brief Serialize the subscription message.
+      /// \brief Serialize the message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
       public: virtual size_t Pack(char *_buffer) const = 0;
 
-      /// \brief Unserialize a stream of bytes into a Sub.
-      /// \param[out] _buffer Unpack the body from the buffer.
-      /// \return The number of bytes from the body.
+      /// \brief Unserialize a stream of bytes into a message.
+      /// \param[in] _buffer Stream of bytes.
+      /// \return Length of the message in bytes.
       public: virtual size_t Unpack(const char *_buffer) = 0;
     };
 
@@ -72,6 +72,10 @@ namespace ignition
     {
       /// \brief Constructor.
       public: Header() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _buffer Stream of bytes containing a serialized header.
+      public: Header(const char *_buffer);
 
       /// \brief Constructor.
       /// \param[in] _version Version of the discovery protocol.
@@ -165,6 +169,11 @@ namespace ignition
       public: SubscriptionMsg() = default;
 
       /// \brief Constructor.
+      /// \param[in] _buffer Stream of bytes containing a
+      /// serialized SubscriptionMsg.
+      public: SubscriptionMsg(const char *_buffer);
+
+      /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _topic Topic name.
       public: SubscriptionMsg(const Header &_header,
@@ -224,6 +233,11 @@ namespace ignition
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
+
+      /// \brief Constructor.
+      /// \param[in] _buffer Stream of bytes containing a
+      /// serialized AdvertiseMessage.
+      public: AdvertiseMessage(const char *_buffer);
 
       /// \brief Constructor.
       /// \param[in] _header Message header.

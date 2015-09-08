@@ -645,13 +645,12 @@ void Discovery::RecvDiscoveryUpdate()
 //////////////////////////////////////////////////
 void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 {
-  Header header;
   char *pBody = _msg;
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   // Create the header from the raw bytes.
-  header.Unpack(_msg);
+  Header header(_msg);
   pBody += header.MsgLength();
 
   // Discard the message if the wire protocol is different than mine.
@@ -671,9 +670,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   {
     case AdvType:
     {
-      // Read the rest of the fields.
-      AdvertiseMessage advMsg;
-      advMsg.Unpack(pBody);
+      AdvertiseMessage advMsg(_msg);
 
       // Check scope of the topic.
       if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
@@ -704,9 +701,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     }
     case SubType:
     {
-      // Read the rest of the fields.
-      SubscriptionMsg subMsg;
-      subMsg.Unpack(pBody);
+      SubscriptionMsg subMsg(_msg);
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
@@ -765,9 +760,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
     }
     case UnadvType:
     {
-      // Read the address.
-      AdvertiseMessage advMsg;
-      advMsg.Unpack(pBody);
+      AdvertiseMessage advMsg(_msg);
 
       // Check scope of the topic.
       if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||

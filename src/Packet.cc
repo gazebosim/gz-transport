@@ -24,6 +24,12 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
+Header::Header(const char *_buffer)
+{
+  this->Unpack(_buffer);
+}
+
+//////////////////////////////////////////////////
 Header::Header(const uint16_t _version,
                const std::string &_pUuid,
                const uint8_t _type,
@@ -168,6 +174,12 @@ size_t Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
+SubscriptionMsg::SubscriptionMsg(const char *_buffer)
+{
+  this->Unpack(_buffer);
+}
+
+//////////////////////////////////////////////////
 SubscriptionMsg::SubscriptionMsg(const Header &_header,
                                  const std::string &_topic)
 {
@@ -236,13 +248,11 @@ size_t SubscriptionMsg::Pack(char *_buffer) const
 //////////////////////////////////////////////////
 size_t SubscriptionMsg::Unpack(const char *_buffer)
 {
-  // null buffer.
-  if (!_buffer)
-  {
-    std::cerr << "SubscriptionMsg::UnpackBody() error: NULL input buffer"
-              << std::endl;
+  // Unpack the header.
+  if (!this->header.Unpack(_buffer))
     return 0;
-  }
+
+  _buffer += this->header.MsgLength();
 
   // Unpack the topic length.
   uint64_t topicLength;
@@ -252,7 +262,13 @@ size_t SubscriptionMsg::Unpack(const char *_buffer)
   // Unpack the topic.
   this->topic = std::string(_buffer, _buffer + topicLength);
 
-  return sizeof(topicLength) + static_cast<size_t>(topicLength);
+  return this->MsgLength();
+}
+
+//////////////////////////////////////////////////
+AdvertiseMessage::AdvertiseMessage(const char *_buffer)
+{
+  this->Unpack(_buffer);
 }
 
 //////////////////////////////////////////////////
@@ -313,9 +329,15 @@ size_t AdvertiseMessage::Pack(char *_buffer) const
 //////////////////////////////////////////////////
 size_t AdvertiseMessage::Unpack(const char *_buffer)
 {
+  // Unpack the header.
+  if (!this->header.Unpack(_buffer))
+    return 0;
+
+  _buffer += this->header.MsgLength();
+
   // Unpack the message publisher.
   if (this->publisher.Unpack(_buffer) == 0)
     return 0;
 
-  return this->publisher.MsgLength();
+  return this->MsgLength();
 }

@@ -101,6 +101,14 @@ TEST(PacketTest, HeaderIO)
   EXPECT_EQ(header.Flags(), otherHeader.Flags());
   EXPECT_EQ(header.MsgLength(), otherHeader.MsgLength());
 
+  // Check the constructor containing the serialized data.
+  Header anotherHeader(&buffer[0]);
+  EXPECT_EQ(header.Version(), anotherHeader.Version());
+  EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
+  EXPECT_EQ(header.Type(), anotherHeader.Type());
+  EXPECT_EQ(header.Flags(), anotherHeader.Flags());
+  EXPECT_EQ(header.MsgLength(), anotherHeader.MsgLength());
+
   // Try to pack a header passing a NULL buffer.
   EXPECT_EQ(otherHeader.Pack(nullptr), 0u);
 
@@ -175,20 +183,45 @@ TEST(PacketTest, SubscriptionIO)
 
   // Unpack a SubscriptionMsg.
   Header header;
-  SubscriptionMsg otherSubMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.MsgLength());
-  otherSubMsg.SetHeader(header);
-  char *pBody = &buffer[0] + header.MsgLength();
-  size_t bodyBytes = otherSubMsg.Unpack(pBody);
+  SubscriptionMsg otherSubMsg(&buffer[0]);
+
+  // Check that data does not change.
+  EXPECT_EQ(otherSubMsg.GetHeader().MsgLength(),
+            subMsg.GetHeader().MsgLength());
+  EXPECT_EQ(otherSubMsg.GetHeader().Version(),
+            subMsg.GetHeader().Version());
+  EXPECT_EQ(otherSubMsg.GetHeader().PUuid(),
+            subMsg.GetHeader().PUuid());
+  EXPECT_EQ(otherSubMsg.GetHeader().Type(),
+            subMsg.GetHeader().Type());
+  EXPECT_EQ(otherSubMsg.GetHeader().Flags(),
+            subMsg.GetHeader().Flags());
+  EXPECT_EQ(otherSubMsg.Topic(),
+            subMsg.Topic());
+  EXPECT_EQ(otherSubMsg.MsgLength(),
+            subMsg.MsgLength());
+
+  // Check Unpack.
+  SubscriptionMsg anotherSubMsg;
+  anotherSubMsg.Unpack(&buffer[0]);
 
   // Check that after Pack() and Unpack() the data does not change.
-  EXPECT_EQ(otherSubMsg.Topic(), subMsg.Topic());
-  EXPECT_EQ(otherSubMsg.MsgLength() -
-            otherSubMsg.GetHeader().MsgLength(), subMsg.MsgLength() -
+  EXPECT_EQ(anotherSubMsg.GetHeader().MsgLength(),
             subMsg.GetHeader().MsgLength());
-  EXPECT_EQ(bodyBytes, otherSubMsg.MsgLength() -
-            otherSubMsg.GetHeader().MsgLength());
+  EXPECT_EQ(anotherSubMsg.GetHeader().Version(),
+            subMsg.GetHeader().Version());
+  EXPECT_EQ(anotherSubMsg.GetHeader().PUuid(),
+            subMsg.GetHeader().PUuid());
+  EXPECT_EQ(anotherSubMsg.GetHeader().Type(),
+            subMsg.GetHeader().Type());
+  EXPECT_EQ(anotherSubMsg.GetHeader().Flags(),
+            subMsg.GetHeader().Flags());
+  EXPECT_EQ(anotherSubMsg.Topic(),
+            subMsg.Topic());
+  EXPECT_EQ(anotherSubMsg.MsgLength(),
+            subMsg.MsgLength());
 
   // Try to pack a SubscriptionMsg passing a NULL buffer.
   EXPECT_EQ(otherSubMsg.Pack(nullptr), 0u);
@@ -403,28 +436,40 @@ TEST(PacketTest, AdvertiseMsgIO)
   EXPECT_EQ(bytes, advMsg.MsgLength());
 
   // Unpack an AdvertiseMsg.
-  Header header;
   AdvertiseMessage otherAdvMsg;
-  size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.MsgLength());
-  otherAdvMsg.SetHeader(header);
-  char *pBody = &buffer[0] + header.MsgLength();
-  size_t bodyBytes = otherAdvMsg.Unpack(pBody);
+  EXPECT_NE(otherAdvMsg.Unpack(&buffer[0]), 0u);
 
   // Check that after Pack() and Unpack() the data does not change.
-  EXPECT_EQ(otherAdvMsg.GetPublisher().Topic(), advMsg.GetPublisher().Topic());
-  EXPECT_EQ(otherAdvMsg.GetPublisher().Addr(), advMsg.GetPublisher().Addr());
-  EXPECT_EQ(otherAdvMsg.GetPublisher().Ctrl(), advMsg.GetPublisher().Ctrl());
-  EXPECT_EQ(otherAdvMsg.GetPublisher().NUuid(), advMsg.GetPublisher().NUuid());
-  EXPECT_EQ(otherAdvMsg.GetPublisher().Scope(), advMsg.GetPublisher().Scope());
+  EXPECT_EQ(otherAdvMsg.GetPublisher().Topic(),
+            advMsg.GetPublisher().Topic());
+  EXPECT_EQ(otherAdvMsg.GetPublisher().Addr(),
+            advMsg.GetPublisher().Addr());
+  EXPECT_EQ(otherAdvMsg.GetPublisher().Ctrl(),
+            advMsg.GetPublisher().Ctrl());
+  EXPECT_EQ(otherAdvMsg.GetPublisher().NUuid(),
+            advMsg.GetPublisher().NUuid());
+  EXPECT_EQ(otherAdvMsg.GetPublisher().Scope(),
+            advMsg.GetPublisher().Scope());
   EXPECT_EQ(otherAdvMsg.GetPublisher().MsgTypeName(),
-    advMsg.GetPublisher().MsgTypeName());
-  EXPECT_EQ(otherAdvMsg.MsgLength(), advMsg.MsgLength());
-  EXPECT_EQ(otherAdvMsg.MsgLength() -
-            otherAdvMsg.GetHeader().MsgLength(), advMsg.MsgLength() -
-            advMsg.GetHeader().MsgLength());
-  EXPECT_EQ(bodyBytes, otherAdvMsg.MsgLength() -
-            otherAdvMsg.GetHeader().MsgLength());
+            advMsg.GetPublisher().MsgTypeName());
+  EXPECT_EQ(otherAdvMsg.MsgLength(),
+            advMsg.MsgLength());
+
+  AdvertiseMessage anotherAdvMsg(&buffer[0]);
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().Topic(),
+            advMsg.GetPublisher().Topic());
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().Addr(),
+            advMsg.GetPublisher().Addr());
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().Ctrl(),
+            advMsg.GetPublisher().Ctrl());
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().NUuid(),
+            advMsg.GetPublisher().NUuid());
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().Scope(),
+            advMsg.GetPublisher().Scope());
+  EXPECT_EQ(anotherAdvMsg.GetPublisher().MsgTypeName(),
+            advMsg.GetPublisher().MsgTypeName());
+  EXPECT_EQ(anotherAdvMsg.MsgLength(),
+            advMsg.MsgLength());
 
   // Try to pack an AdvertiseMsg passing a NULL buffer.
   EXPECT_EQ(otherAdvMsg.Pack(nullptr), 0u);
@@ -583,31 +628,45 @@ TEST(PacketTest, AdvertiseSrvIO)
   EXPECT_EQ(bytes, advSrv.MsgLength());
 
   // Unpack an AdvertiseSrv.
-  Header header;
   AdvertiseMessage otherAdvSrv;
-  size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.MsgLength());
-  otherAdvSrv.SetHeader(header);
-  char *pBody = &buffer[0] + header.MsgLength();
-  size_t bodyBytes = otherAdvSrv.Unpack(pBody);
+  EXPECT_NE(otherAdvSrv.Unpack(&buffer[0]), 0u);
 
   // Check that after Pack() and Unpack() the data does not change.
-  EXPECT_EQ(otherAdvSrv.GetPublisher().Topic(), advSrv.GetPublisher().Topic());
-  EXPECT_EQ(otherAdvSrv.GetPublisher().Addr(), advSrv.GetPublisher().Addr());
+  EXPECT_EQ(otherAdvSrv.GetPublisher().Topic(),
+            advSrv.GetPublisher().Topic());
+  EXPECT_EQ(otherAdvSrv.GetPublisher().Addr(),
+            advSrv.GetPublisher().Addr());
   EXPECT_EQ(otherAdvSrv.GetPublisher().SocketId(),
-    advSrv.GetPublisher().SocketId());
-  EXPECT_EQ(otherAdvSrv.GetPublisher().NUuid(), advSrv.GetPublisher().NUuid());
-  EXPECT_EQ(otherAdvSrv.GetPublisher().Scope(), advSrv.GetPublisher().Scope());
+            advSrv.GetPublisher().SocketId());
+  EXPECT_EQ(otherAdvSrv.GetPublisher().NUuid(),
+            advSrv.GetPublisher().NUuid());
+  EXPECT_EQ(otherAdvSrv.GetPublisher().Scope(),
+            advSrv.GetPublisher().Scope());
   EXPECT_EQ(otherAdvSrv.GetPublisher().ReqTypeName(),
-    advSrv.GetPublisher().ReqTypeName());
+            advSrv.GetPublisher().ReqTypeName());
   EXPECT_EQ(otherAdvSrv.GetPublisher().RepTypeName(),
-    advSrv.GetPublisher().RepTypeName());
-  EXPECT_EQ(otherAdvSrv.MsgLength(), advSrv.MsgLength());
-  EXPECT_EQ(otherAdvSrv.MsgLength() -
-            otherAdvSrv.GetHeader().MsgLength(), advSrv.MsgLength() -
-            advSrv.GetHeader().MsgLength());
-  EXPECT_EQ(bodyBytes, otherAdvSrv.MsgLength() -
-            otherAdvSrv.GetHeader().MsgLength());
+            advSrv.GetPublisher().RepTypeName());
+  EXPECT_EQ(otherAdvSrv.MsgLength(),
+            advSrv.MsgLength());
+
+  // Check the constructor with the serialized data.
+  AdvertiseMessage anotherAdvSrv(&buffer[0]);
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().Topic(),
+            advSrv.GetPublisher().Topic());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().Addr(),
+            advSrv.GetPublisher().Addr());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().SocketId(),
+            advSrv.GetPublisher().SocketId());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().NUuid(),
+            advSrv.GetPublisher().NUuid());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().Scope(),
+            advSrv.GetPublisher().Scope());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().ReqTypeName(),
+            advSrv.GetPublisher().ReqTypeName());
+  EXPECT_EQ(anotherAdvSrv.GetPublisher().RepTypeName(),
+            advSrv.GetPublisher().RepTypeName());
+  EXPECT_EQ(anotherAdvSrv.MsgLength(),
+            advSrv.MsgLength());
 
   // Try to pack an AdvertiseSrv passing a NULL buffer.
   EXPECT_EQ(otherAdvSrv.Pack(nullptr), 0u);
