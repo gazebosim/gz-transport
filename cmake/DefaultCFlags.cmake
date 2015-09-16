@@ -26,7 +26,16 @@ if (NOT MSVC)
     set (CMAKE_CXX_FLAGS_PROFILE ${CMAKE_C_FLAGS_PROFILE})
 
     set (CMAKE_C_FLAGS_COVERAGE " -g -O0 -Wformat=2 --coverage -fno-inline ${CMAKE_C_FLAGS_ALL}" CACHE INTERNAL "C Flags for static code checking" FORCE)
-    set (CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_C_FLAGS_COVERAGE} -fno-elide-constructors -fno-default-inline -fno-implicit-inline-templates")
+    set (CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_C_FLAGS_COVERAGE}")
+    foreach(flag
+            -fno-default-inline
+            -fno-elide-constructors
+            -fno-implicit-inline-templates)
+      CHECK_CXX_COMPILER_FLAG(${flag} R${flag})
+      if (R${flag})
+        set (CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_COVERAGE} ${flag}")
+      endif()
+    endforeach()
 endif()
 
 #####################################
