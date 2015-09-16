@@ -140,14 +140,6 @@ namespace ignition
                                std::string &_rep,
                                bool &_result)
       {
-        // Instantiate the specific protobuf message associated to this topic.
-        auto msgReq = this->CreateMsg(_req);
-        if (!msgReq)
-        {
-          _result = false;
-          return;
-        }
-
         // Check if we have a callback registered.
         if (!this->cb)
         {
@@ -157,12 +149,19 @@ namespace ignition
           return;
         }
 
-        Rep msgRep;
+        // Instantiate the specific protobuf message associated to this topic.
+        auto msgReq = this->CreateMsg(_req);
+        if (!msgReq)
+        {
+          _result = false;
+          return;
+        }
 
         // Remove the partition part from the topic.
         std::string topicName = _topic;
         topicName.erase(0, topicName.find_last_of("@") + 1);
 
+        Rep msgRep;
         this->cb(topicName, *msgReq, msgRep, _result);
 
         if (!msgRep.SerializeToString(&_rep))
