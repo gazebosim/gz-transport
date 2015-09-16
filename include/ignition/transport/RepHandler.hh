@@ -140,20 +140,22 @@ namespace ignition
                                std::string &_rep,
                                bool &_result)
       {
-        _result = false;
-
         // Check if we have a callback registered.
         if (!this->cb)
         {
           std::cerr << "RepHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
+          _result = false;
           return;
         }
 
         // Instantiate the specific protobuf message associated to this topic.
         auto msgReq = this->CreateMsg(_req);
         if (!msgReq)
+        {
+          _result = false;
           return;
+        }
 
         // Remove the partition part from the topic.
         std::string topicName = _topic;
@@ -166,10 +168,9 @@ namespace ignition
         {
           std::cerr << "RepHandler::RunCallback(): Error serializing the "
                     << "response" << std::endl;
+          _result = false;
           return;
         }
-
-        _result = true;
       }
 
       /// \brief Create a specific protobuf message given its serialized data.
