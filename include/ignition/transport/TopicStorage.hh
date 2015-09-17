@@ -175,6 +175,7 @@ namespace ignition
         return true;
       }
 
+      /// ToDO: Directly do counter = remove(...)
       /// \brief Remove a publisher associated to a given topic and UUID pair.
       /// \param[in] _topic Topic name
       /// \param[in] _pUuid Process UUID of the publisher.
@@ -217,6 +218,7 @@ namespace ignition
         return counter > 0;
       }
 
+      /// ToDo: Replace counter = with counter +=?
       /// \brief Remove all the publishers associated to a given process.
       /// \param[in] _pUuid Process' UUID of the publisher.
       /// \return True when at least one address was removed or false otherwise.
