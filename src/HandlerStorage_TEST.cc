@@ -130,6 +130,15 @@ TEST(RepStorageTest, RepStorageAPI)
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
 
+  // Create another REP handler without a callback for node1.
+  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
+    transport::msgs::Int>> rep5HandlerPtr(new transport::RepHandler
+      <transport::msgs::Int, transport::msgs::Int>());
+
+  // Insert the handler.
+  reps.AddHandler(topic, nUuid1, rep5HandlerPtr);
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, rep5HandlerPtr->HandlerUuid()));
+
   // Create a REP handler without a callback for node2.
   std::shared_ptr<transport::RepHandler<transport::msgs::Int,
     transport::msgs::Int>> rep3HandlerPtr(new transport::RepHandler
