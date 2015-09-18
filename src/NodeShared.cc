@@ -569,7 +569,11 @@ void NodeShared::RecvSrvResponse()
     reqHandlerPtr->NotifyResult(topic, rep, result);
 
     // Remove the handler.
-    this->requests.RemoveHandler(topic, nodeUuid, reqUuid);
+    if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))
+    {
+      std::cerr << "NodeShare::RecvSrvResponse(): "
+                << "Error removing request handler" << std::endl;
+    }
   }
   else
   {
