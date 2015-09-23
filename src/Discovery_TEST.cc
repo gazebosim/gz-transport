@@ -21,6 +21,7 @@
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -56,6 +57,26 @@ bool connectionSrvExecutedMF = false;
 bool disconnectionSrvExecuted = false;
 bool disconnectionSrvExecutedMF = false;
 int counter = 0;
+
+/// \brief Helper class to access the protected member variables of Discovery
+/// within the tests.
+class DiscoveryDerived : public transport::Discovery
+{
+  // Get all the base class constructors.
+  public: using transport::Discovery::Discovery;
+
+  /// \brief Check if this discovery node has some activity information about
+  /// a given process.
+  /// \param[in] _pUuid Process UUID that we want to check.
+  /// \param[in] _expectedActivity If true, we expect activity on the process
+  /// specified as a parameter. If false, we shouldn't have any activity stored.
+  public: void TestActivity(const std::string &_pUuid,
+                            const bool _expectedActivity) const
+  {
+    EXPECT_EQ(this->dataPtr->activity.find(_pUuid) !=
+              this->dataPtr->activity.end(), _expectedActivity);
+  };
+};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -880,4 +901,64 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);
   EXPECT_FALSE(disconnectionSrvExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a discovery service does not send messages if there are no
+/// topics or services advertised in its process.
+TEST(DiscoveryTest, TestNoActivity)
+{
+  auto proc1Uuid = testing::getRandomNumber();
+  auto proc2Uuid = testing::getRandomNumber();
+  DiscoveryDerived discovery1(proc1Uuid);
+  DiscoveryDerived discovery2(proc2Uuid);
+
+  discovery1.Start();
+  discovery2.Start();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(
+    discovery1.HeartbeatInterval() * 2));
+
+  // We shouldn't observe activity from pUuid1 or pUuid2 because they don't
+  // advertise any topics or services.
+  discovery1.TestActivity(proc2Uuid, false);
+  discovery2.TestActivity(proc1Uuid, false);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a discovery service sends messages if there are
+/// topics or services advertised in its process.
+TEST(DiscoveryTest, TestActivity)
+{
+  auto proc1Uuid = testing::getRandomNumber();
+  auto proc2Uuid = testing::getRandomNumber();
+  transport::MessagePublisher publisher(topic, addr1, ctrl1, proc1Uuid,
+    nUuid1, scope, "type");
+  transport::ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
+    nUuid2, scope, "reqType", "repType");
+  DiscoveryDerived discovery1(proc1Uuid);
+  DiscoveryDerived discovery2(proc2Uuid);
+
+  discovery1.Start();
+  discovery2.Start();
+
+  discovery1.AdvertiseMsg(publisher);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(
+    discovery1.HeartbeatInterval() * 2));
+
+  // We shouldn't observe activity from pUuid1 or pUuid2 because they don't
+  // advertise any topics or services.
+  discovery1.TestActivity(proc2Uuid, false);
+  discovery2.TestActivity(proc1Uuid, true);
+
+  discovery2.AdvertiseSrv(srvPublisher);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(
+    discovery1.HeartbeatInterval() * 2));
+
+  // We should observe activity from pUuid1 and pUuid2 because they both are
+  // advertising a topic or a service.
+  discovery1.TestActivity(proc2Uuid, true);
+  discovery2.TestActivity(proc1Uuid, true);
 }

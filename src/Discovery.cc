@@ -640,18 +640,24 @@ void Discovery::RunHeartbeatTask()
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
+      std::string pUuid = this->dataPtr->pUuid;
+
+      // Get the list of topics advertised by this process.
+      std::map<std::string, std::vector<MessagePublisher>> msgNodes;
+        this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
+
+      // Get the list of services advertised by this process.
+      std::map<std::string, std::vector<ServicePublisher>> srvNodes;
+        this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
+
       // Only send data over the network if there are topics/services to
       // advertise in this process.
-      if ((!this->dataPtr->infoMsg.Empty()) ||
-          (!this->dataPtr->infoSrv.Empty()))
+      if ((!msgNodes.empty()) || (!srvNodes.empty()))
       {
-        std::string pUuid = this->dataPtr->pUuid;
         Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
         this->SendMsg(HeartbeatType, pub);
 
         // Re-advertise topics that are advertised inside this process.
-        std::map<std::string, std::vector<MessagePublisher>> msgNodes;
-        this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
         for (const auto &topic : msgNodes)
         {
           for (const auto &node : topic.second)
@@ -659,8 +665,6 @@ void Discovery::RunHeartbeatTask()
         }
 
         // Re-advertise services that are advertised inside this process.
-        std::map<std::string, std::vector<ServicePublisher>> srvNodes;
-        this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
         for (const auto &topic : srvNodes)
         {
           for (const auto &node : topic.second)
