@@ -922,8 +922,8 @@ TEST(DiscoveryTest, TestNoActivity)
   std::this_thread::sleep_for(std::chrono::milliseconds(
     discovery1.HeartbeatInterval() * 2));
 
-  // We shouldn't observe activity from pUuid1 or pUuid2 because they don't
-  // advertise any topics or services.
+  // We shouldn't observe activity from proc1Uuid or proc2Uuid because they
+  // don't advertise any topics or services.
   discovery1.TestActivity(proc2Uuid, false);
   discovery2.TestActivity(proc1Uuid, false);
 }
@@ -950,8 +950,8 @@ TEST(DiscoveryTest, TestActivity)
   std::this_thread::sleep_for(std::chrono::milliseconds(
     discovery1.HeartbeatInterval() * 2));
 
-  // We shouldn't observe activity from pUuid1 or pUuid2 because they don't
-  // advertise any topics or services.
+  // We should only observe activity from proc1Uuid since discovery2 hasn't
+  // advertised any topics or services.
   discovery1.TestActivity(proc2Uuid, false);
   discovery2.TestActivity(proc1Uuid, true);
 
@@ -960,8 +960,8 @@ TEST(DiscoveryTest, TestActivity)
   std::this_thread::sleep_for(std::chrono::milliseconds(
     discovery1.HeartbeatInterval() * 2));
 
-  // We should observe activity from pUuid1 and pUuid2 because they both are
-  // advertising a topic or a service.
+  // We should observe activity from proc1Uuid1 and proc1Uuid2 because they both
+  // are advertising a topic or a service.
   discovery1.TestActivity(proc2Uuid, true);
   discovery2.TestActivity(proc1Uuid, true);
 }
