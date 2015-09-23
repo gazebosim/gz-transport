@@ -640,8 +640,8 @@ void Discovery::RunHeartbeatTask()
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-      // Only send data over the network if I have a topics/service to
-      // advertised in this process.
+      // Only send data over the network if there are topics/services to
+      // advertise in this process.
       if ((!this->dataPtr->infoMsg.Empty()) ||
           (!this->dataPtr->infoSrv.Empty()))
       {
