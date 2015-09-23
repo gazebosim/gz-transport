@@ -294,6 +294,7 @@ namespace ignition
       }
 
       /// \brief Return if the storage is empty.
+      /// \return True when there are no topics stored or false otherwise.
       public: bool Empty() const
       {
         return this->data.empty();
