@@ -293,13 +293,6 @@ namespace ignition
         }
       }
 
-      /// \brief Return if the storage is empty.
-      /// \return True when there are no topics stored or false otherwise.
-      public: bool Empty() const
-      {
-        return this->data.empty();
-      }
-
       // The keys are topics. The values are another map, where the key is
       // the process UUID and the value a vector of publishers.
       private: std::map<std::string,
