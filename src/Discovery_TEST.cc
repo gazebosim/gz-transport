@@ -65,6 +65,9 @@ class DiscoveryDerived : public transport::Discovery
   // Get all the base class constructors.
   public: using transport::Discovery::Discovery;
 
+  /// \brief Constructor.
+  public: DiscoveryDerived() = default;
+
   /// \brief Check if this discovery node has some activity information about
   /// a given process.
   /// \param[in] _pUuid Process UUID that we want to check.
