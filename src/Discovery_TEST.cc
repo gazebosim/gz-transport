@@ -62,11 +62,11 @@ int counter = 0;
 /// within the tests.
 class DiscoveryDerived : public transport::Discovery
 {
-  // Get all the base class constructors.
-  public: using transport::Discovery::Discovery;
-
-  /// \brief Constructor.
-  public: DiscoveryDerived() = default;
+  // Documentation inherited.
+  public: DiscoveryDerived(const std::string &_pUuid, bool _verbose = false)
+    : transport::Discovery(_pUuid, _verbose)
+  {
+  }
 
   /// \brief Check if this discovery node has some activity information about
   /// a given process.
