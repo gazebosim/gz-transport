@@ -644,11 +644,11 @@ void Discovery::RunHeartbeatTask()
 
       // Get the list of topics advertised by this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
-        this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
+      this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
 
       // Get the list of services advertised by this process.
       std::map<std::string, std::vector<ServicePublisher>> srvNodes;
-        this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
+      this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
 
       // Only send data over the network if there are topics/services to
       // advertise in this process.
