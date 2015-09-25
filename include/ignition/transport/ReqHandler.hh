@@ -97,8 +97,9 @@ namespace ignition
       }
 
       /// \brief Serialize the Req protobuf message stored.
-      /// \return The serialized data.
-      public: virtual std::string Serialize() const = 0;
+      /// \param[out] The serialized data.
+      /// \return True if the serialization succeed or false otherwise.
+      public: virtual bool Serialize(std::string &_buffer) const = 0;
 
       /// \brief Returns the unique handler UUID.
       /// \return The handler's UUID.
@@ -175,7 +176,11 @@ namespace ignition
         std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
 
         return msgPtr;
       }
@@ -201,11 +206,16 @@ namespace ignition
       }
 
       // Documentation inherited
-      public: std::string Serialize() const
+      public: bool Serialize(std::string &_buffer) const
       {
-        std::string buffer;
-        this->reqMsg.SerializeToString(&buffer);
-        return buffer;
+        if (!this->reqMsg.SerializeToString(&_buffer))
+        {
+          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
+                    << std::endl;
+          return false;
+        }
+
+        return true;
       }
 
       // Documentation inherited.

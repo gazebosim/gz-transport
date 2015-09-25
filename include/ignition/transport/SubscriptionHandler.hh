@@ -111,7 +111,11 @@ namespace ignition
         auto msgPtr = std::make_shared<T>();
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "SubscriptionHandler::CreateMsg() error: ParseFromString"
+                    << " failed" << std::endl;
+        }
 
         return msgPtr;
       }
@@ -137,7 +141,7 @@ namespace ignition
 
           // Remove the partition part from the topic.
           std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
+          topicName.erase(0, topicName.rfind("@") + 1);
 
           this->cb(topicName, *msgPtr);
           return true;

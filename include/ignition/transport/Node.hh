@@ -610,15 +610,28 @@ namespace ignition
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
-        if (executed)
-        {
-          if (reqHandlerPtr->Result())
-            _rep.ParseFromString(reqHandlerPtr->Response());
+        // The request was not executed.
+        if (!executed)
+          return false;
 
-          _result = reqHandlerPtr->Result();
+        // The request was executed but did not succeed.
+        if (!reqHandlerPtr->Result())
+        {
+          _result = false;
+          return true;
         }
 
-        return executed;
+        // Parse the response.
+        if (!_rep.ParseFromString(reqHandlerPtr->Response()))
+        {
+          std::cerr << "Node::Request(): Error Parsing the response"
+                    << std::endl;
+          _result = false;
+          return true;
+        }
+
+        _result = true;
+        return true;
       }
 
       /// \brief Unadvertise a service.
