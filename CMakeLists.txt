@@ -310,7 +310,7 @@ else (build_errors)
   set(PKG_DEPENDS Protobuf)
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}" @ONLY)
 
   # Use write_basic_package_version_file to generate a ConfigVersion file that
