@@ -95,7 +95,7 @@ namespace ignition
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data.at(_topic);
+        auto const &m = this->data.at(_topic);
         if (m.find(_nUuid) == m.end())
           return false;
 
@@ -169,9 +169,9 @@ namespace ignition
         {
           if (this->data[_topic].find(_nUuid) != this->data[_topic].end())
           {
-            this->data[_topic][_nUuid].erase(_reqUuid);
+            counter = this->data[_topic][_nUuid].erase(_reqUuid);
             if (this->data[_topic][_nUuid].empty())
-              counter = this->data[_topic].erase(_nUuid);
+              this->data[_topic].erase(_nUuid);
             if (this->data[_topic].empty())
               this->data.erase(_topic);
           }

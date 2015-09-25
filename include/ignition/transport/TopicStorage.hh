@@ -229,7 +229,7 @@ namespace ignition
         {
           // m is {pUUID=>Publisher}.
           auto &m = it->second;
-          counter = m.erase(_pUuid);
+          counter += m.erase(_pUuid);
           if (m.empty())
             this->data.erase(it++);
           else
