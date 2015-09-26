@@ -261,7 +261,8 @@ else (build_errors)
   # Write the config.hh file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
-  ign_install_includes(${IGN_PROJECT_NAME}
+  ign_install_includes(
+    ${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
   include_directories(
@@ -290,25 +291,42 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
-    DESTINATION ${LIB_INSTALL_DIR}/pkgconfig
-    COMPONENT pkgconfig)
+  set (pkgconfig_files ${PROJECT_NAME_LOWER})
+
+  foreach (pkgconfig ${pkgconfig_files})
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc
+      DESTINATION ${LIB_INSTALL_DIR}/pkgconfig COMPONENT pkgconfig)
+  endforeach()
 
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER} ${PROJECT_MSGS_NAME})
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION})
+  set(cmake_conf_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake")
+  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config-version.cmake")
+
   set(PKG_DEPENDS Protobuf)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
-    COMPONENT cmake)
+    "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}" @ONLY)
+
+  # Use write_basic_package_version_file to generate a ConfigVersion file that
+  # allow users of gazebo to specify the API or version to depend on
+  # TODO: keep this instruction until deprecate Ubuntu/Precise and update with
+  # https://github.com/Kitware/CMake/blob/v2.8.8/Modules/CMakePackageConfigHelpers.cmake
+  include(WriteBasicConfigVersionFile)
+  write_basic_config_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
+    VERSION "${PROJECT_VERSION_FULL}"
+    COMPATIBILITY SameMajorVersion)
+
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
+    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}/ COMPONENT cmake)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
