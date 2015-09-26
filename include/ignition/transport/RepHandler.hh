@@ -140,26 +140,36 @@ namespace ignition
                                std::string &_rep,
                                bool &_result)
       {
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Instantiate the specific protobuf message associated to this topic.
-          Rep msgRep;
-
-          auto msgReq = this->CreateMsg(_req);
-
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msgReq, msgRep, _result);
-          msgRep.SerializeToString(&_rep);
-        }
-        else
+        // Check if we have a callback registered.
+        if (!this->cb)
         {
           std::cerr << "RepHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
           _result = false;
+          return;
+        }
+
+        // Instantiate the specific protobuf message associated to this topic.
+        auto msgReq = this->CreateMsg(_req);
+        if (!msgReq)
+        {
+          _result = false;
+          return;
+        }
+
+        // Remove the partition part from the topic.
+        std::string topicName = _topic;
+        topicName.erase(0, topicName.find_last_of("@") + 1);
+
+        Rep msgRep;
+        this->cb(topicName, *msgReq, msgRep, _result);
+
+        if (!msgRep.SerializeToString(&_rep))
+        {
+          std::cerr << "RepHandler::RunCallback(): Error serializing the "
+                    << "response" << std::endl;
+          _result = false;
+          return;
         }
       }
 
@@ -172,7 +182,11 @@ namespace ignition
         std::shared_ptr<Req> msgPtr(new Req());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "RepHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
 
         return msgPtr;
       }
