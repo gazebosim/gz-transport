@@ -35,13 +35,13 @@ add_dependencies(requester_async protobuf_compilation)
 
 if (MSVC)
   # Copy the ZMQ DLLs.
-  add_custom_command(TARGET ${EXAMPLE} POST_BUILD
+  add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "../${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-3_2_4.dll"
-    $<TARGET_FILE_DIR:${EXAMPLE}> VERBATIM)
+    $<TARGET_FILE_DIR:publisher> VERBATIM)
 
-  add_custom_command(TARGET ${EXAMPLE} POST_BUILD
+  add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "../${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
-    $<TARGET_FILE_DIR:${EXAMPLE}> VERBATIM)
+    $<TARGET_FILE_DIR:publisher> VERBATIM)
 endif()
