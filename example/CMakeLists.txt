@@ -33,15 +33,17 @@ add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
 add_dependencies(requester_async protobuf_compilation)
 
+MESSAGE(STATUS "Libraries: ${IGNITION-TRANSPORT_LIBRARIES}")
+
 if (MSVC)
   # Copy the ZMQ DLLs.
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "../${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-3_2_4.dll"
+    "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-3_2_4.dll"
     $<TARGET_FILE_DIR:publisher> VERBATIM)
 
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "../${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
+    "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
     $<TARGET_FILE_DIR:publisher> VERBATIM)
 endif()

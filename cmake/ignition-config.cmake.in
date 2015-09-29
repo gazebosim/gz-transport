@@ -34,14 +34,20 @@ list(APPEND @PKG_NAME@_C_FLAGS
 if (NOT MSVC)
   list(APPEND @PKG_NAME@_CXX_FLAGS -std=c++11)
 endif()
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
 endif ()
+
+# On Windows we produce .dll libraries with no prefix.
+if (WIN32)
+  SET(CMAKE_FIND_LIBRARY_PREFIXES "")
+  SET(CMAKE_FIND_SUFFIXES ".lib" ".dll")
+endif()
 
 foreach(lib @PKG_LIBRARIES@)
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@;@PKG_LIBRARY_DIRS@
+    PATHS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
     NO_DEFAULT_PATH
     )
   if(NOT onelib)
@@ -53,7 +59,7 @@ endforeach()
 foreach(dep @PKG_DEPENDS@)
   if(NOT ${dep}_FOUND)
     if (${dep} MATCHES "ZeroMQ")
-      include (@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake)
+      include ("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake")
     elseif(${dep} MATCHES "cppzmq")
       find_path(cppzmq_INCLUDE_DIRS
           zmq.hpp
@@ -86,4 +92,4 @@ if (MSVC)
   list(APPEND @PKG_NAME@_LIBRARIES Ws2_32.lib Iphlpapi.lib)
 endif()
 
-list(APPEND @PKG_NAME@_LDFLAGS -L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@)
+list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")

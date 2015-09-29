@@ -41,7 +41,7 @@ endif ()
 foreach(lib @PKG_LIBRARIES@)
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@;@PKG_LIBRARY_DIRS@
+    PATHS @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
     NO_DEFAULT_PATH
     )
   if(NOT onelib)
