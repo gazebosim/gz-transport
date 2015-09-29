@@ -33,8 +33,6 @@ add_executable(requester_async requester_async.cc ${PROTO_SRC})
 target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
 add_dependencies(requester_async protobuf_compilation)
 
-MESSAGE(STATUS "Libraries: ${IGNITION-TRANSPORT_LIBRARIES}")
-
 if (MSVC)
   # Copy the ZMQ DLLs.
   add_custom_command(TARGET publisher POST_BUILD
