@@ -26,6 +26,45 @@
 using namespace ignition;
 using namespace transport;
 
+bool HostName(std::string &_hostname)
+{
+  size_t hostname_len=128;
+  char* hostname=0;
+  while (true)
+  {
+    // (Re)allocate buffer of length hostname_len.
+    char* realloc_hostname = (char*)realloc(hostname, hostname_len);
+    if (realloc_hostname == 0)
+    {
+      free(hostname);
+      std::cerr << "failed to get hostname (out of memory)";
+      return false;
+    }
+      hostname = realloc_hostname;
+
+      // Terminate the buffer.
+      hostname[hostname_len-1] = 0;
+
+      // Offer all but the last byte of the buffer to gethostname.
+      if (gethostname(hostname,hostname_len-1) == 0)
+      {
+        size_t count=strlen(hostname);
+        if (count<hostname_len-2)
+        {
+          // Break from loop if hostname definitely not truncated
+          break;
+        }
+      }
+
+      // Double size of buffer and try again.
+      hostname_len *= 2;
+  }
+
+  _hostname = hostname;
+
+  return true;
+}
+
 //////////////////////////////////////////////////
 /// \brief Check the getters and setters.
 TEST(PacketTest, BasicHeaderAPI)
@@ -69,6 +108,10 @@ TEST(PacketTest, BasicHeaderAPI)
     "\tFlags: 1\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
+
+  std::string hostname;
+  auto res = HostName(hostname);
+  std::cout << hostname << std::endl;
 }
 
 //////////////////////////////////////////////////

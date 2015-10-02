@@ -26,6 +26,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unistd.h>
 #include <unordered_set>
 #include <vector>
 #ifdef _MSC_VER
