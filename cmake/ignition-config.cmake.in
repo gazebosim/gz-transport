@@ -10,7 +10,6 @@
 #  @PKG_NAME@_INCLUDE_DIRS - include directories for @PKG_NAME@ and its dependencies.
 #  @PKG_NAME@_LIBRARY_DIRS - Paths in which the linker should search for libraries.
 #  @PKG_NAME@_LIBRARIES    - Libraries to link against.
-#  @PKG_NAME@_C_FLAGS      - Compiler flags for compiling C sources.
 #  @PKG_NAME@_CXX_FLAGS    - Compiler flags for compiling C++ sources.
 #  @PKG_NAME@_LDFLAGS      - Linker flags.
 
@@ -27,21 +26,24 @@ list(APPEND @PKG_NAME@_INCLUDE_DIRS
 list(APPEND @PKG_NAME@_LIBRARY_DIRS
 "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
 
-list(APPEND @PKG_NAME@_C_FLAGS
-"-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@/ignition/@IGN_PROJECT_NAME@@PROJECT_MAJOR_VERSION@")
-
 # Visual Studio enables c++11 support by default
 if (NOT MSVC)
   list(APPEND @PKG_NAME@_CXX_FLAGS -std=c++11)
 endif()
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
 endif ()
+
+# On Windows we produce .dll libraries with no prefix.
+if (WIN32)
+  SET(CMAKE_FIND_LIBRARY_PREFIXES "")
+  SET(CMAKE_FIND_SUFFIXES ".lib" ".dll")
+endif()
 
 foreach(lib @PKG_LIBRARIES@)
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@;@PKG_LIBRARY_DIRS@
+    PATHS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
     NO_DEFAULT_PATH
     )
   if(NOT onelib)
@@ -50,40 +52,46 @@ foreach(lib @PKG_LIBRARIES@)
   list(APPEND @PKG_NAME@_LIBRARIES ${onelib})
 endforeach()
 
-foreach(dep @PKG_DEPENDS@)
-  if(NOT ${dep}_FOUND)
-    if (${dep} MATCHES "ZeroMQ")
-      include (@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake)
-    elseif(${dep} MATCHES "cppzmq")
-      find_path(cppzmq_INCLUDE_DIRS
-          zmq.hpp
-          PATHS
-          ${zmq_INCLUDE_DIRS}
-          ${CPPZMQ_HEADER_PATH})
-    elseif(${dep} MATCHES "uuid")
-      if (UNIX)
-        pkg_check_modules(uuid uuid)
-      endif()
-    else()
-      find_package(${dep} REQUIRED)
-    endif()
-  endif()
+# Protobuf dependency.
+if (NOT Protobuf_FOUND)
+  find_package(Protobuf REQUIRED)
+endif()
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIR})
+list(APPEND @PKG_NAME@_LIBRARIES ${PROTOBUF_LIBRARIES})
+list(APPEND @PKG_NAME@_LIBRARY_DIRS ${PROTOBUF_LIBRARY_DIR})
 
-  # Protobuf needs to be capitalized to match PROTOBUF_LIBRARIES
-  if (${dep} STREQUAL "Protobuf")
-    string (TOUPPER ${dep} dep_lib)
-  else()
-    set (dep_lib ${dep})
-  endif()
+# ZeroMQ dependency.
+if (NOT ZeroMQ_FOUND)
+  include ("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake")
+endif()
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDEDIR})
+list(APPEND @PKG_NAME@_LIBRARIES ${ZeroMQ_LIBRARIES})
+list(APPEND @PKG_NAME@_LIBRARY_DIRS ${ZeroMQ_LIBDIR})
 
-  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep_lib}_INCLUDE_DIR})
-  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${${dep_lib}_INCLUDE_DIRS})
-  list(APPEND @PKG_NAME@_LIBRARIES ${${dep_lib}_LIBRARIES})
-  list(APPEND @PKG_NAME@_LIBRARY_DIRS ${${dep_lib}_LIBRARY_DIRS})
-endforeach()
+# cppzmq dependency.
+if (NOT cppzmq_FOUND)
+  find_path(cppzmq_INCLUDE_DIRS
+            zmq.hpp
+            PATHS
+              ${ZeroMQ_INCLUDE_DIR}
+              ${ZeroMQ_INCLUDEDIR}
+              ${CPPZMQ_HEADER_PATH})
+endif()
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${cppzmq_INCLUDE_DIRS})
+
+# uuid dependency.
+if (UNIX)
+  if (NOT uuid_FOUND)
+    pkg_check_modules(uuid uuid)
+  endif()
+  list(APPEND @PKG_NAME@_INCLUDE_DIRS ${uuid_INCLUDE_DIRS})
+  list(APPEND @PKG_NAME@_LIBRARIES ${uuid_LIBRARIES})
+  list(APPEND @PKG_NAME@_LIBRARY_DIRS ${uuid_LIBDIR})
+endif()
 
 if (MSVC)
   list(APPEND @PKG_NAME@_LIBRARIES Ws2_32.lib Iphlpapi.lib)
 endif()
 
-list(APPEND @PKG_NAME@_LDFLAGS -L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@)
+list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
