@@ -10,7 +10,7 @@ where there is no central process, broker or similar. All the nodes in the
 network can act as publishers, subscribers, provide services and request
 services.
 
-A publisher is a node that generates information and a subscriber is a node that
+A publisher is a node that produces information and a subscriber is a node that
 consumes information. There are two categories or ways to communicate in
 Ignition transport. First, we could use a publish/subscribe approach, where a
 node advertises a topic, and then, publishes periodic updates. On the other

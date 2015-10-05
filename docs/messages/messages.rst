@@ -1,5 +1,5 @@
 ================================
-Node communication via messages.
+Node communication via messages
 ================================
 
 In this tutorial, we are going to create two nodes that are going to communicate

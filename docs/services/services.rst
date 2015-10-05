@@ -1,5 +1,5 @@
 ================================
-Node communication via services.
+Node communication via services
 ================================
 
 In this tutorial, we are going to create two nodes that are going to communicate
