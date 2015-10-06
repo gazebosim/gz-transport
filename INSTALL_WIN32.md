@@ -36,7 +36,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Load your compiler setup, e.g.:
 
-        "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
+        "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 1. Configure and build:
 
