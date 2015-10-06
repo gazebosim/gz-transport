@@ -907,28 +907,6 @@ TEST(DiscoveryTest, TestDiscoverSrv)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that a discovery service does not send messages if there are no
-/// topics or services advertised in its process.
-TEST(DiscoveryTest, TestNoActivity)
-{
-  auto proc1Uuid = testing::getRandomNumber();
-  auto proc2Uuid = testing::getRandomNumber();
-  DiscoveryDerived discovery1(proc1Uuid);
-  DiscoveryDerived discovery2(proc2Uuid);
-
-  discovery1.Start();
-  discovery2.Start();
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(
-    discovery1.HeartbeatInterval() * 2));
-
-  // We shouldn't observe activity from proc1Uuid or proc2Uuid because they
-  // don't advertise any topics or services.
-  discovery1.TestActivity(proc2Uuid, false);
-  discovery2.TestActivity(proc1Uuid, false);
-}
-
-//////////////////////////////////////////////////
 /// \brief Check that a discovery service sends messages if there are
 /// topics or services advertised in its process.
 TEST(DiscoveryTest, TestActivity)
@@ -940,28 +918,26 @@ TEST(DiscoveryTest, TestActivity)
   transport::ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
     nUuid2, scope, "reqType", "repType");
   DiscoveryDerived discovery1(proc1Uuid);
-  DiscoveryDerived discovery2(proc2Uuid);
 
-  discovery1.Start();
-  discovery2.Start();
+  {
+    DiscoveryDerived discovery2(proc2Uuid);
 
-  discovery1.AdvertiseMsg(publisher);
+    discovery1.Start();
+    discovery2.Start();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(
-    discovery1.HeartbeatInterval() * 2));
+    discovery1.AdvertiseMsg(publisher);
 
-  // We should only observe activity from proc1Uuid since discovery2 hasn't
-  // advertised any topics or services.
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      discovery1.HeartbeatInterval() * 2));
+
+    // We should observe activity from both processes.
+    discovery1.TestActivity(proc2Uuid, true);
+    discovery2.TestActivity(proc1Uuid, true);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      discovery1.HeartbeatInterval() * 2));
+  }
+
+  // We shouldn't observe activity from proc1Uuid2 anymore.
   discovery1.TestActivity(proc2Uuid, false);
-  discovery2.TestActivity(proc1Uuid, true);
-
-  discovery2.AdvertiseSrv(srvPublisher);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(
-    discovery1.HeartbeatInterval() * 2));
-
-  // We should observe activity from proc1Uuid1 and proc1Uuid2 because they both
-  // are advertising a topic or a service.
-  discovery1.TestActivity(proc2Uuid, true);
-  discovery2.TestActivity(proc1Uuid, true);
 }
