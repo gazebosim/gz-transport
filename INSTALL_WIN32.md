@@ -25,7 +25,8 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
     - [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq-noarch.zip)
     - [ZeroMQ 3.2.4](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-x86.zip)
-    - [Protobuf 2.6.0](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
+    - [Protobuf 2.6.0 (32-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
+    - [Protobuf 2.6.0 (64-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win64-vc12.zip)
 
 1. Unzip each of them.
 
