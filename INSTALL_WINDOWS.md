@@ -2,14 +2,8 @@
 
 ## Supported compilers
 
-At this moment, compilation has been testewd on Windows 7 and is supported 
+At this moment, compilation has been testewd on Windows 7 and is supported
 when using Visual Studio 2013. Patches for other versions are welcome.
-
-## Note for 64bits installations
-
-Currently, FindProtobuf.cmake is not support 64bits compilations since the
-binaries are placed under vsprojects\x64\Release and that PATH is not being
-used by the cmake module.
 
 ## Installation
 
@@ -52,7 +46,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 1. Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
 
         set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
-        
+
 1. Now build the examples:
 
         cd ign-ws\ign-transport\example
@@ -60,11 +54,11 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
         cd build
         ..\configure
         nmake
-        
+
 1. Now try an example:
 
         requester
-      
+
 ## Alternative installation: dependencies from upstream and installed on the system
 
 ### Dependencies
@@ -75,15 +69,15 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
  - cppzmq header file
     - [Download it](https://github.com/zeromq/cppzmq) and place at any folder in your system
- 
+
  - Protobuf compiled from source (there are no binaries)
     - [Download protobuf 2.6.0 code](https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.zip)
     - Open protobuf.sln in Microsoft Visual Studio
     - Choose "Release" configuration in the menu of the VS GUI
     - To work around an apparent parallel build problem: From the "Solution Explorer" window, shift-select all 9 projects, then Alt-F7 to modify properties, then "Configuration Properties"->"C/C++"->"Command Line" and in the "Additional Options" box, add "/FS" [docs](http://msdn.microsoft.com/en-us/library/dn502518.aspx)
-    - From the Build menu, choose "Build Solution". 
+    - From the Build menu, choose "Build Solution".
     - Wait for compiling to finish.
-    - Add protoc.exe to your PATH. (Control Panel > System > Advanced > Enviroment variable)    
+    - Add protoc.exe to your PATH. (Control Panel > System > Advanced > Enviroment variable)
       <path_to_protobuf-2.6.0\vsprojects\Release
 
 ### Configuration (cmake)
@@ -92,7 +86,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
     cmake .. -G"Visual Studio 12" -DZeroMQ_ROOT_DIR="C:\Program Files (x86)\ZeroMQ 4.0.4" -DPROTOBUF_SRC_ROOT_FOLDER="C:\<path_to_protobuf-2.6.0>" -DCPPZMQ_HEADER_PATH="C:\<path_to_cppzmq>"
 
 ### Compilation
- 
+
     msbuild /p:Configuration=Release ALL_BUILD.vcxproj
 
 ### Run tests
