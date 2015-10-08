@@ -35,11 +35,13 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Configure and build:
 
-	mkdir build
-	cd build
+
+        mkdir build
+	    cd build
         ..\configure
-	nmake
-	nmake install
+        nmake
+        nmake install
+
 
     You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
 
