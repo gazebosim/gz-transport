@@ -22,7 +22,15 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
     - [Protobuf 2.6.0 (32-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
     - [Protobuf 2.6.0 (64-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win64-vc12.zip)
 
-1. Unzip each of them.
+1. Unzip each of them. The Windows unzip utility will likely create an incorrect directory structure, where a directory with the name of the zip contains the directory that has the source files. Here is an example:
+
+        ign-ws/cppzmq-noarch/cppzmq
+        
+    The correct structure is 
+    
+        ign-ws/cppzmq
+        
+    To fix this problem, manually move the nested directories up one level.
 
 1. Clone ign-transport:
 
