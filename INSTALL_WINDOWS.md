@@ -2,7 +2,7 @@
 
 ## Supported compilers
 
-At this moment, compilation has been testewd on Windows 7 and is supported
+At this moment, compilation has been tested on Windows 7 and is supported
 when using Visual Studio 2013. Patches for other versions are welcome.
 
 ## Installation
