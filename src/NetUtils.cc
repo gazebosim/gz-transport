@@ -427,3 +427,16 @@ std::vector<std::string> transport::determineInterfaces()
   return {"127.0.0.1"};
 #endif
 }
+
+#include <sys/utsname.h>
+//////////////////////////////////////////////////
+std::string transport::hostName()
+{
+  char hostname[128];
+  gethostname(hostname, sizeof hostname);
+  return hostname;
+
+  struct utsname unameData;
+  uname(&unameData);
+  return unameData.nodename;
+}
