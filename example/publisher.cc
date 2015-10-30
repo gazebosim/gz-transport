@@ -36,9 +36,6 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::TopicUtils utils;
-  std::cout << "Username: [" << utils.UserName() << "]" << std::endl;
-
   // Install a signal handler for SIGINT.
   std::signal(SIGINT, signal_handler);
 

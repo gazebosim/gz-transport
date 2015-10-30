@@ -115,9 +115,9 @@ std::string TopicUtils::UserName() const
   char buffer[200 + 1];
   size_t bufferLen = sizeof(buffer);
 #ifdef _WIN32
-  // DWORD username_len = UNLEN+1;
-  GetUserName(buffer, &bufferLen);
-  return username
+  DWORD usernameLen = static_cast<DWORD>(bufferLen);
+  GetUserName(buffer, &usernameLen);
+  return buffer;
 #else
   struct passwd pd;
   struct passwd *result;
