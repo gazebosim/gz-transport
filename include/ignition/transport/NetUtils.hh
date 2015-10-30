@@ -53,6 +53,8 @@ namespace ignition
     IGNITION_VISIBLE
     std::vector<std::string> determineInterfaces();
 
+    /// \brief Determine your user name.
+    /// \return Name of the user associated with the current thread.
     IGNITION_VISIBLE
     std::string UserName();
   }
