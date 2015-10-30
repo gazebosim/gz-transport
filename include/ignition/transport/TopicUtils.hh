@@ -58,6 +58,8 @@ namespace ignition
                                                 const std::string &_ns,
                                                 const std::string &_topic,
                                                 std::string &_name);
+
+      public: std::string UserName() const;
     };
   }
 }
