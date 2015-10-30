@@ -19,11 +19,11 @@
 #include "ignition/transport/TopicUtils.hh"
 
 #ifdef _WIN32
- #include <windows.h>
- #include <Lmcons.h>
+  #include <windows.h>
+  #include <Lmcons.h>
 #else
- #include <pwd.h>
- #include <unistd.h>
+  #include <pwd.h>
+  #include <unistd.h>
 #endif
 
 using namespace ignition;
@@ -112,14 +112,17 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
 //////////////////////////////////////////////////
 std::string TopicUtils::UserName() const
 {
+  char buffer[200 + 1];
+  size_t bufferLen = sizeof(buffer);
 #ifdef _WIN32
-  char username[UNLEN+1];
-  DWORD username_len = UNLEN+1;
-  GetUserName(username, &username_len);
+  // DWORD username_len = UNLEN+1;
+  GetUserName(buffer, &bufferLen);
   return username
 #else
-  struct passwd *passwd;
-  passwd = getpwuid ( getuid());
-  return passwd->pw_name;
+  struct passwd pd;
+  struct passwd *result;
+
+  getpwuid_r(getuid(), &pd, buffer, bufferLen, &result);
+  return pd.pw_name;
 #endif
 }
