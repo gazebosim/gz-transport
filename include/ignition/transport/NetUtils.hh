@@ -53,6 +53,8 @@ namespace ignition
     IGNITION_VISIBLE
     std::vector<std::string> determineInterfaces();
 
+    /// \brief Determine your hostname.
+    /// \return Your hostname.
     IGNITION_VISIBLE
     std::string hostName();
   }
