@@ -436,7 +436,7 @@ std::string transport::hostName()
   WSAStartup(MAKEWORD(2,2), &wsaData);
 #endif
 
-  char hostname[128];
+  char hostname[200 + 1];
   gethostname(hostname, sizeof hostname);
   return hostname;
 }
