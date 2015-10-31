@@ -17,7 +17,6 @@
 
 #include <chrono>
 #include <csignal>
-#include <ignition/transport/NetUtils.hh>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
