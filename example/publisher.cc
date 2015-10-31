@@ -36,9 +36,6 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  std::cout << "Host: [" << ignition::transport::hostName() << "]" << std::endl;
-   std::cout << "Host: [" << ignition::transport::hostName() << "]" << std::endl;
-
   // Install a signal handler for SIGINT.
   std::signal(SIGINT, signal_handler);
 
