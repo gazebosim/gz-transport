@@ -428,15 +428,18 @@ std::vector<std::string> transport::determineInterfaces()
 #endif
 }
 
-#include <sys/utsname.h>
+//#include <sys/utsname.h>
 //////////////////////////////////////////////////
 std::string transport::hostName()
 {
+  WSADATA wsaData;
+  WSAStartup(MAKEWORD(2,2), &wsaData);  
+
   char hostname[128];
   gethostname(hostname, sizeof hostname);
   return hostname;
 
-  struct utsname unameData;
-  uname(&unameData);
-  return unameData.nodename;
+  //struct utsname unameData;
+  //uname(&unameData);
+  //return unameData.nodename;
 }
