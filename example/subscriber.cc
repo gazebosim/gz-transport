@@ -18,7 +18,6 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
@@ -42,12 +41,6 @@ int main(int argc, char **argv)
     std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return -1;
   }
-
-  std::vector<std::string> topics;
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(350));
-  node.TopicList(topics);
-  std::cout << "Number: " << topics.size() << std::endl;
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;
