@@ -432,7 +432,7 @@ std::vector<std::string> transport::determineInterfaces()
 }
 
 //////////////////////////////////////////////////
-std::string UserName()
+std::string username()
 {
   char buffer[200 + 1];
   size_t bufferLen = sizeof(buffer);
