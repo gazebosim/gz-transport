@@ -56,7 +56,7 @@ namespace ignition
     /// \brief Determine your hostname.
     /// \return Your hostname.
     IGNITION_VISIBLE
-    std::string hostName();
+    std::string hostname();
   }
 }
 

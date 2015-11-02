@@ -429,7 +429,7 @@ std::vector<std::string> transport::determineInterfaces()
 }
 
 //////////////////////////////////////////////////
-std::string transport::hostName()
+std::string transport::hostname()
 {
 #ifdef _WIN32
   WSADATA wsaData;
