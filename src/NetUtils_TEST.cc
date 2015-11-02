@@ -25,9 +25,9 @@ using namespace ignition;
 TEST(NetUtilsTest, username)
 {
 #ifdef _WIN32
-  char *envUsername = std::getenv("USER");
-#else
   char *envUsername = std::getenv("USERNAME");
+#else
+  char *envUsername = std::getenv("USER");
 #endif
 
   ASSERT_TRUE(envUsername != NULL);
