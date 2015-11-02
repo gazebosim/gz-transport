@@ -53,6 +53,11 @@ namespace ignition
     IGNITION_VISIBLE
     std::vector<std::string> determineInterfaces();
 
+    /// \brief Determine your hostname.
+    /// \return Your hostname.
+    IGNITION_VISIBLE
+    std::string hostname();
+
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
     IGNITION_VISIBLE
