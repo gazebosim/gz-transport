@@ -5,12 +5,17 @@ set(msgs
 
 add_executable(ignmsgs_out generator/IgnGenerator.cc generator/ign_generator.cc)
 
-target_link_libraries(ignmsgs_out ${PROTOBUF_LIBRARY} ${PROTOBUF_PROTOC_LIBRARY})
+target_link_libraries(ignmsgs_out
+                      optimized
+                        ${PROTOBUF_LIBRARY}
+                        ${PROTOBUF_PROTOC_LIBRARY}
+                      debug
+                        ${PROTOBUF_LIBRARY_DEBUG}
+                        ${PROTOBUF_PROTOC_LIBRARY_DEBUG})
 
 if (UNIX)
   target_link_libraries(ignmsgs_out pthread)
 endif()
-
 
 # Need to add .exe to executable in windows
 if (WIN32)
@@ -53,7 +58,13 @@ if (UNIX)
   endif()
 endif()
 
-target_link_libraries(${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION} ${PROTOBUF_LIBRARY} ${PROTOBUF_PROTOC_LIBRARY})
+target_link_libraries(${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION}
+                      optimized
+                        ${PROTOBUF_LIBRARY}
+                        ${PROTOBUF_PROTOC_LIBRARY}
+                      debug
+                        ${PROTOBUF_LIBRARY_DEBUG}
+                        ${PROTOBUF_PROTOC_LIBRARY_DEBUG})
 
 ign_install_library(${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION})
 add_dependencies(${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION} ignmsgs_out)
