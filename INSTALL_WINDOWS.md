@@ -10,6 +10,10 @@ when using Visual Studio 2013. Patches for other versions are welcome.
 Totally experimental, using pre-compiled binaries in a local workspace.  To make things easier, use a MinGW shell for your editing work, and only use the
 Windows `cmd` for configuring and building.  You might also need to [disable the Windows firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).  Not sure about that.
 
+1. Install cmake, make sure to select the "Add CMake to system path for all users" option in the install dialog box.
+
+    [CMake](https://cmake.org/download)
+
 1. Make a directory to work in, e.g.:
 
         mkdir ign-ws
@@ -71,7 +75,14 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Now try an example:
 
+    1. In one Windows terminal run:
+    
+        responser
+        
+    1. In another Windows terminal run:
+    
         requester
+        
 
 ## Alternative installation: dependencies from upstream and installed on the system
 
