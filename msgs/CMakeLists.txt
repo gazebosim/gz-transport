@@ -5,7 +5,7 @@ set(msgs
 
 add_executable(ignmsgs_out generator/IgnGenerator.cc generator/ign_generator.cc)
 
-if (${CMAKE_BUILD_TYPE} == "Release")
+if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 target_link_libraries(ignmsgs_out
                         ${PROTOBUF_LIBRARY}
                         ${PROTOBUF_PROTOC_LIBRARY})
