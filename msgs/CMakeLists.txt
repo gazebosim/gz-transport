@@ -5,13 +5,15 @@ set(msgs
 
 add_executable(ignmsgs_out generator/IgnGenerator.cc generator/ign_generator.cc)
 
+if ($CMAKE_BUILD_TYPE == "Release")
 target_link_libraries(ignmsgs_out
-                      optimized
                         ${PROTOBUF_LIBRARY}
-                        ${PROTOBUF_PROTOC_LIBRARY}
-                      debug
+                        ${PROTOBUF_PROTOC_LIBRARY})
+else()
+target_link_libraries(ignmsgs_out
                         ${PROTOBUF_LIBRARY_DEBUG}
                         ${PROTOBUF_PROTOC_LIBRARY_DEBUG})
+endif()
 
 if (UNIX)
   target_link_libraries(ignmsgs_out pthread)
