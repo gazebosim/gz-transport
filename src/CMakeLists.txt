@@ -15,6 +15,7 @@ set (sources
 set (gtest_sources
   Discovery_TEST.cc
   HandlerStorage_TEST.cc
+  NetUtils_TEST.cc
   Node_TEST.cc
   Packet_TEST.cc
   Publisher_TEST.cc
