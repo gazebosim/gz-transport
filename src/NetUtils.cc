@@ -438,5 +438,10 @@ std::string transport::hostname()
 
   char hostname[200 + 1];
   gethostname(hostname, sizeof hostname);
+
+#ifdef _WIN32
+  WSACleanup();
+#endif
+
   return hostname;
 }
