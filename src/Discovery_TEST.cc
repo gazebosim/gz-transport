@@ -941,3 +941,24 @@ TEST(DiscoveryTest, TestActivity)
   // We shouldn't observe activity from proc1Uuid2 anymore.
   discovery1.TestActivity(proc2Uuid, false);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check that a wrong IGN_IP value makes HostAddr() to return 127.0.0.1
+TEST(DiscoveryTest, WrongIgnIp)
+{
+  // Save the current value of IGN_IP environment variable.
+  char *ipEnv = std::getenv("IGN_IP");
+
+  // Incorrect value for IGN_IP
+  setenv("IGN_IP", "wrongIP", 1);
+
+  transport::Discovery discovery1(pUuid1);
+  EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
+
+  // Unset IGN_IP.
+  unsetenv("IGN_IP");
+
+  // Restore IGN_IP.
+  if (ipEnv)
+    setenv("IGN_IP", ipEnv, 1);
+}

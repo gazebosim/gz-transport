@@ -109,42 +109,20 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 
   for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
-    // Make a new socket for sending discovery information.
-    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0)
-    {
-      std::cerr << "Socket creation failed." << std::endl;
-      return;
-    }
+    auto succeed = this->RegisterNetIface(netIface);
 
-    // Socket option: IP_MULTICAST_IF.
-    // This socket option needs to be applied to each socket used to send data.
-    // This option selects the source interface for outgoing messages.
-    struct in_addr ifAddr;
-    ifAddr.s_addr = inet_addr(netIface.c_str());
-    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
-      reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+    // If the IP address that we're selecting as the main IP address of the host
+    // is invalid, we change it to 127.0.0.1 . This is probably because IGN_IP
+    // is set to a wrong value.
+    if (netIface == this->dataPtr->hostAddr && !succeed)
     {
-      std::cerr << "Error setting socket option (IP_MULTICAST_IF)."
-                << std::endl;
-      return;
-    }
-
-    this->dataPtr->sockets.push_back(sock);
-
-    // Join the multicast group. We have to do it for each network interface but
-    // we can do it on the same socket. We will use the socket at position 0 for
-    // receiving multicast information.
-    struct ip_mreq group;
-    group.imr_multiaddr.s_addr =
-      inet_addr(this->dataPtr->MulticastGroup.c_str());
-    group.imr_interface.s_addr = inet_addr(netIface.c_str());
-    if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
-      reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
-    {
-      std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
-                << std::endl;
-      return;
+      this->RegisterNetIface("127.0.0.1");
+      std::cerr << "Did you set the environment variable IGN_IP with a correct "
+                << "IP address? " << std::endl
+                << "  [" << netIface << "] seems an invalid local IP address."
+                << std::endl
+                << "  Using 127.0.0.1 as hostname." << std::endl;
+      this->dataPtr->hostAddr = "127.0.0.1";
     }
   }
 
@@ -1076,4 +1054,47 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
+}
+
+//////////////////////////////////////////////////
+bool Discovery::RegisterNetIface(const std::string &_ip)
+{
+  // Make a new socket for sending discovery information.
+  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (sock < 0)
+  {
+    std::cerr << "Socket creation failed." << std::endl;
+    return false;
+  }
+
+  // Socket option: IP_MULTICAST_IF.
+  // This socket option needs to be applied to each socket used to send data.
+  // This option selects the source interface for outgoing messages.
+  struct in_addr ifAddr;
+  ifAddr.s_addr = inet_addr(_ip.c_str());
+  if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
+    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
+    return false;
+  }
+
+  this->dataPtr->sockets.push_back(sock);
+
+  // Join the multicast group. We have to do it for each network interface but
+  // we can do it on the same socket. We will use the socket at position 0 for
+  // receiving multicast information.
+  struct ip_mreq group;
+  group.imr_multiaddr.s_addr =
+    inet_addr(this->dataPtr->MulticastGroup.c_str());
+  group.imr_interface.s_addr = inet_addr(_ip.c_str());
+  if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
+    reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+              << std::endl;
+    return false;
+  }
+
+  return true;
 }
