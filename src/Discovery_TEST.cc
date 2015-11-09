@@ -950,7 +950,7 @@ TEST(DiscoveryTest, WrongIgnIp)
   char *ipEnv = std::getenv("IGN_IP");
 
   // Incorrect value for IGN_IP
-  setenv("IGN_IP", "wrongIP", 1);
+  setenv("IGN_IP", "127.0.0.0", 1);
 
   transport::Discovery discovery1(pUuid1);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
