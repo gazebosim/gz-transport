@@ -40,9 +40,9 @@
 
   /// \brief setenv/unstenv are not present in Windows. Define them to make
   /// the code portable.
-  /// \param[in] name Variable name.
-  /// \param[in] value Value.
-  /// \param[in] rewrite If 'name' does exist in the environment, then its
+  /// \param[in] _name Variable name.
+  /// \param[in] _value Value.
+  /// \param[in] _rewrite If 'name' does exist in the environment, then its
   /// value is changed to 'value' if 'rewrite' is nonzero. If overwrite is
   /// zero, then the value of 'name' is not changed.
   /// /return 0 on success or -1 on error.
@@ -56,7 +56,7 @@
   }
 
   /// \brief Deletes an environment variable.
-  /// \param[in] name Variable name.
+  /// \param[in] _name Variable name.
   void unsetenv(const char *_name)
   {
     std::stringstream sstr;
