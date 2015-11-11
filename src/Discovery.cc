@@ -662,18 +662,18 @@ void Discovery::RunHeartbeatTask()
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
       this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
-      for (auto &topic : msgNodes)
+      for (const auto &topic : msgNodes)
       {
-        for (auto &node : topic.second)
+        for (const auto &node : topic.second)
           this->SendMsg(AdvType, node);
       }
 
       // Re-advertise services that are advertised inside this process.
       std::map<std::string, std::vector<ServicePublisher>> srvNodes;
       this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
-      for (auto &topic : srvNodes)
+      for (const auto &topic : srvNodes)
       {
-        for (auto &node : topic.second)
+        for (const auto &node : topic.second)
           this->SendMsg(AdvSrvType, node);
       }
     }
@@ -1028,8 +1028,10 @@ uint8_t Discovery::Version() const
 }
 
 //////////////////////////////////////////////////
-void Discovery::PrintCurrentState()
+void Discovery::PrintCurrentState() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
   std::cout << "---------------" << std::endl;
   std::cout << std::boolalpha << "Enabled: "
             << this->dataPtr->enabled << std::endl;
@@ -1086,7 +1088,7 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::Mutex()
+std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
 }

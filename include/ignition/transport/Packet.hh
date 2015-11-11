@@ -107,14 +107,14 @@ namespace ignition
 
       /// \brief Get the header length.
       /// \return The header length in bytes.
-      public: int HeaderLength();
+      public: int HeaderLength() const;
 
       /// \brief Serialize the header. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
       /// \param[out] _buffer Destination buffer in which the header
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer);
+      public: size_t Pack(char *_buffer) const;
 
       /// \brief Unserialize the header.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
@@ -180,7 +180,7 @@ namespace ignition
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength();
+      public: size_t MsgLength() const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -198,7 +198,7 @@ namespace ignition
       /// \brief Serialize the subscription message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer);
+      public: size_t Pack(char *_buffer) const;
 
       /// \brief Unserialize a stream of bytes into a Sub.
       /// \param[out] _buffer Unpack the body from the buffer.
@@ -264,7 +264,7 @@ namespace ignition
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength()
+      public: size_t MsgLength() const
       {
         return this->header.HeaderLength() + this->publisher.MsgLength();
       }
@@ -272,7 +272,7 @@ namespace ignition
       /// \brief Serialize the advertise message.
       /// \param[out] _buffer Buffer where the message will be serialized.
       /// \return The length of the serialized message in bytes.
-      public: size_t Pack(char *_buffer)
+      public: size_t Pack(char *_buffer) const
       {
         // Pack the common part of any advertise message.
         size_t len = this->header.Pack(_buffer);
