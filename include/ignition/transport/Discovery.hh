@@ -411,6 +411,12 @@ namespace ignition
       /// \return The discovery version.
       private: uint8_t Version() const;
 
+      /// \brief Register a new network interface in the discovery system.
+      /// \param[in] _ip IP address to register.
+      /// \return True when the interface was successfully registered or false
+      /// otherwise (e.g.: invalid IP address).
+      private: bool RegisterNetIface(const std::string &_ip);
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
