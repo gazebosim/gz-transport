@@ -427,3 +427,21 @@ std::vector<std::string> transport::determineInterfaces()
   return {"127.0.0.1"};
 #endif
 }
+
+//////////////////////////////////////////////////
+std::string transport::hostname()
+{
+#ifdef _WIN32
+  WSADATA wsaData;
+  WSAStartup(MAKEWORD(2,2), &wsaData);
+#endif
+
+  char hostname[200 + 1];
+  gethostname(hostname, sizeof hostname);
+
+#ifdef _WIN32
+  WSACleanup();
+#endif
+
+  return hostname;
+}

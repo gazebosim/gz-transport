@@ -52,6 +52,11 @@ namespace ignition
     /// \return The list of network interfaces.
     IGNITION_VISIBLE
     std::vector<std::string> determineInterfaces();
+
+    /// \brief Determine the computer's hostname.
+    /// \return The computer's hostname.
+    IGNITION_VISIBLE
+    std::string hostname();
   }
 }
 
