@@ -24,14 +24,7 @@ using namespace ignition;
 /// \brief Check the username() function.
 TEST(NetUtilsTest, username)
 {
-#ifdef _WIN32
-  char *envUsername = std::getenv("USERNAME");
-#else
-  char *envUsername = std::getenv("USER");
-#endif
-
-  ASSERT_TRUE(envUsername != NULL);
-  EXPECT_EQ(std::string(envUsername), transport::username());
+  EXPECT_TRUE(!transport::username().empty());
 }
 
 //////////////////////////////////////////////////
