@@ -48,16 +48,13 @@ target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION})
 
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                        ws2_32
-                        Iphlpapi)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                          ${PROTOBUF_LIBRARY_DEBUG})
-  else()
-    target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                          ${PROTOBUF_LIBRARY})
-  endif()
+  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ws2_32 Iphlpapi
+			optimized
+			    ${PROTOBUF_LIBRARY}
+			    ${PROTOBUF_PROTOC_LIBRARY}
+			debug
+			    ${PROTOBUF_LIBRARY_DEBUG}
+			    ${PROTOBUF_PROTOC_LIBRARY_DEBUG})
 else()
   target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                         ${PROTOBUF_LIBRARY})
