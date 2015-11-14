@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include <cstdlib>
+
 #include "ignition/transport/NetUtils.hh"
 #include "gtest/gtest.h"
 
@@ -25,6 +25,13 @@ using namespace ignition;
 TEST(NetUtilsTest, hostname)
 {
   EXPECT_FALSE(transport::hostname().empty());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the username() function.
+TEST(NetUtilsTest, username)
+{
+  EXPECT_TRUE(!transport::username().empty());
 }
 
 //////////////////////////////////////////////////

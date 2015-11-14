@@ -57,6 +57,11 @@ namespace ignition
     /// \return The computer's hostname.
     IGNITION_VISIBLE
     std::string hostname();
+
+    /// \brief Determine your login name.
+    /// \return Name used to gain access to the computer.
+    IGNITION_VISIBLE
+    std::string username();
   }
 }
 
