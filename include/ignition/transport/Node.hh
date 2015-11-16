@@ -101,7 +101,7 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &_topic, const T &_msg))
+          void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
@@ -157,7 +157,7 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const std::string &_topic, const T &_msg),
+          void(C::*_cb)(const T &_msg),
           C *_obj)
       {
         std::string fullyQualifiedTopic;
@@ -180,7 +180,7 @@ namespace ignition
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->Callback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+          std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,

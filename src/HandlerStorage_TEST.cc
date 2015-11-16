@@ -223,7 +223,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   transport::ISubscriptionHandlerPtr h;
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
-  EXPECT_FALSE(h->RunLocalCallback(topic, msg));
+  EXPECT_FALSE(h->RunLocalCallback(msg));
 }
 
 //////////////////////////////////////////////////

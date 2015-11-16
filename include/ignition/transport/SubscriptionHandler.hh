@@ -56,10 +56,9 @@ namespace ignition
       }
 
       /// \brief Executes the local callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msg Protobuf message received.
       /// \return True when success, false otherwise.
-      public: virtual bool RunLocalCallback(const std::string &_topic,
+      public: virtual bool RunLocalCallback(
                                      const transport::ProtoMsg &_msg) const = 0;
 
 
@@ -122,28 +121,21 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void Callback(const std::function <void(
-        const std::string &_topic, const T &_msg)> &_cb)
+      public: void Callback(const std::function <void(const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: bool RunLocalCallback(const std::string &_topic,
-                                    const transport::ProtoMsg &_msg) const
+      public: bool RunLocalCallback(const transport::ProtoMsg &_msg) const
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.rfind("@") + 1);
-
-          this->cb(topicName, *msgPtr);
+          this->cb(*msgPtr);
           return true;
         }
         else
@@ -156,9 +148,8 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
-      /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      private: std::function<void(const std::string &_topic, const T &_msg)> cb;
+      private: std::function<void(const T &_msg)> cb;
     };
   }
 }

@@ -35,9 +35,8 @@ std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
+void cb(const transport::msgs::Vector3d &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
   EXPECT_FLOAT_EQ(_msg.y(), 2.0);
   EXPECT_FLOAT_EQ(_msg.z(), 3.0);
@@ -46,9 +45,8 @@ void cb(const std::string &_topic, const transport::msgs::Vector3d &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::Vector3d &_msg)
+void cb2(const transport::msgs::Vector3d &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_msg.x(), 1.0);
   EXPECT_FLOAT_EQ(_msg.y(), 2.0);
   EXPECT_FLOAT_EQ(_msg.z(), 3.0);

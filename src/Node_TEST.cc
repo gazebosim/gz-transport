@@ -55,9 +55,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -65,9 +64,8 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb2(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
@@ -127,10 +125,8 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const std::string &_topic,
-    const transport::msgs::Int &_msg)
+  public: void Cb(const transport::msgs::Int &_msg)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
