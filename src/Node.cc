@@ -68,7 +68,7 @@ Node::Node(const NodeOptions &_options)
 //////////////////////////////////////////////////
 Node::Node(const std::string &_partition, const std::string &_ns,
   const NodeOptions &_options)
-  : Node()
+  : Node(_options)
 {
   if (TopicUtils::IsValidNamespace(_ns))
     this->dataPtr->ns = _ns;
@@ -85,10 +85,6 @@ Node::Node(const std::string &_partition, const std::string &_ns,
     std::cerr << "Partition [" << _partition << "] is not valid." << std::endl;
     std::cerr << "Using default partition." << std::endl;
   }
-
-  // Generate the node UUID.
-  Uuid uuid;
-  this->dataPtr->nUuid = uuid.ToString();
 }
 
 //////////////////////////////////////////////////

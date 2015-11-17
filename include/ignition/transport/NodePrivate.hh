@@ -65,7 +65,7 @@ namespace ignition
       public: std::string ns = "";
 
       /// \beief Custom options for this node.
-      //public: NodeOptions options;
+      public: NodeOptions options;
     };
   }
 }
