@@ -35,6 +35,7 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
@@ -56,14 +57,15 @@ namespace ignition
     class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
-      public: Node();
+      public: Node(const NodeOptions &_options = NodeOptions());
 
       /// \brief Constructor.
       /// \param[in] _partition Partition name used by this node.
       /// \param[in] _ns Default namespace used by this node. This might
       /// be a prefix that can be added to each advertise message if required.
       public: Node(const std::string &_partition,
-                   const std::string &_ns);
+                   const std::string &_ns,
+                   const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor.
       public: virtual ~Node();

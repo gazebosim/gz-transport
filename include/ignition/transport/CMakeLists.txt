@@ -7,6 +7,7 @@ set (headers
   ign.hh
   NetUtils.hh
   Node.hh
+  NodeOptions.hh
   NodeShared.hh
   Packet.hh
   Publisher.hh

@@ -5,6 +5,7 @@ set (sources
   ign.cc
   NetUtils.cc
   Node.cc
+  NodeOptions.cc
   NodeShared.cc
   Packet.cc
   Publisher.cc

@@ -32,6 +32,7 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -42,7 +43,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node()
+Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())
 {
   // Check if the environment variable IGN_PARTITION is present.
@@ -65,7 +66,8 @@ Node::Node()
 }
 
 //////////////////////////////////////////////////
-Node::Node(const std::string &_partition, const std::string &_ns)
+Node::Node(const std::string &_partition, const std::string &_ns,
+  const NodeOptions &_options)
   : Node()
 {
   if (TopicUtils::IsValidNamespace(_ns))

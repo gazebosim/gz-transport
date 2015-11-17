@@ -20,6 +20,7 @@
 
 #include <string>
 #include <unordered_set>
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
 using namespace ignition;
@@ -62,6 +63,9 @@ namespace ignition
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";
+
+      /// \beief Custom options for this node.
+      //public: NodeOptions options;
     };
   }
 }
