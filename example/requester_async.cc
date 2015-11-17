@@ -22,8 +22,7 @@
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.
-void responseCb(const std::string &_topic, const example::msgs::StringMsg &_rep,
-  bool _result)
+void responseCb(const example::msgs::StringMsg &_rep, bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;

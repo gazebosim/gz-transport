@@ -192,7 +192,7 @@ namespace ignition
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       public: void Callback(const std::function <void(
-        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
+        const Rep &_rep, bool _result)> &_cb)
       {
         this->cb = _cb;
       }
@@ -229,11 +229,7 @@ namespace ignition
           // Instantiate the specific protobuf message associated to this topic.
           auto msg = this->CreateMsg(_rep);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msg, _result);
+          this->cb(*msg, _result);
         }
         else
         {
@@ -250,12 +246,10 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      private: std::function<void(const std::string &_topic, const Rep &_rep,
-        bool _result)> cb;
+      private: std::function<void(const Rep &_rep, bool _result)> cb;
     };
   }
 }

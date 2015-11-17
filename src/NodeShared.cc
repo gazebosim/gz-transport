@@ -458,7 +458,7 @@ void NodeShared::RecvSrvRequest()
   {
     bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(topic, req, rep, result);
+    repHandler->RunCallback(req, rep, result);
 
     if (result)
       resultStr = "1";

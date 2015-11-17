@@ -51,24 +51,20 @@ namespace ignition
       public: virtual ~IRepHandler() = default;
 
       /// \brief Executes the local callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msgReq Input parameter (Protobuf message).
       /// \param[out] _msgRep Output parameter (Protobuf message).
       /// \param[out] _result Service call result.
-      public: virtual void RunLocalCallback(const std::string &_topic,
-                                            const transport::ProtoMsg &_msgReq,
+      public: virtual void RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                             transport::ProtoMsg &_msgRep,
                                             bool &_result) = 0;
 
       /// \brief Executes the callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _req Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
       /// \param[out] _rep Out parameter with the data serialized.
       /// \param[out] _result Service call result.
-      public: virtual void RunCallback(const std::string &_topic,
-                                       const std::string &_req,
+      public: virtual void RunCallback(const std::string &_req,
                                        std::string &_rep,
                                        bool &_result) = 0;
 
@@ -97,20 +93,18 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _req Protobuf message containing the service request params
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
       public: void Callback(const std::function
-        <void(const std::string &_topic, const Req &, Rep &, bool &)> &_cb)
+        <void(const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: void RunLocalCallback(const std::string &_topic,
-                                    const transport::ProtoMsg &_msgReq,
+      public: void RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                     transport::ProtoMsg &_msgRep,
                                     bool &_result)
       {
@@ -120,11 +114,7 @@ namespace ignition
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msgReq, *msgRep, _result);
+          this->cb(*msgReq, *msgRep, _result);
         }
         else
         {
@@ -135,8 +125,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void RunCallback(const std::string &_topic,
-                               const std::string &_req,
+      public: void RunCallback(const std::string &_req,
                                std::string &_rep,
                                bool &_result)
       {
@@ -157,12 +146,8 @@ namespace ignition
           return;
         }
 
-        // Remove the partition part from the topic.
-        std::string topicName = _topic;
-        topicName.erase(0, topicName.find_last_of("@") + 1);
-
         Rep msgRep;
-        this->cb(topicName, *msgReq, msgRep, _result);
+        this->cb(*msgReq, msgRep, _result);
 
         if (!msgRep.SerializeToString(&_rep))
         {
@@ -193,7 +178,7 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler.
       private: std::function
-        <void(const std::string &, const Req &, Rep &, bool &)> cb;
+        <void(const Req &, Rep &, bool &)> cb;
     };
   }
 }
