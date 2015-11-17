@@ -574,7 +574,7 @@ void NodeShared::RecvSrvResponse()
   if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
   {
     // Notify the result.
-    reqHandlerPtr->NotifyResult(topic, rep, result);
+    reqHandlerPtr->NotifyResult(rep, result);
 
     // Remove the handler.
     if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))

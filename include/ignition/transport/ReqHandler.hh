@@ -52,13 +52,11 @@ namespace ignition
 
       /// \brief Executes the callback registered for this handler and notify
       /// a potential requester waiting on a blocking call.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _rep Serialized data containing the response coming from
       /// the service call responser.
       /// \param[in] _result Contains the result of the service call coming from
       /// the service call responser.
-      public: virtual void NotifyResult(const std::string &_topic,
-                                        const std::string &_rep,
+      public: virtual void NotifyResult(const std::string &_rep,
                                         const bool _result) = 0;
 
       /// \brief Get the node UUID.
@@ -97,7 +95,7 @@ namespace ignition
       }
 
       /// \brief Serialize the Req protobuf message stored.
-      /// \param[out] The serialized data.
+      /// \param[out] _buffer The serialized data.
       /// \return True if the serialization succeed or false otherwise.
       public: virtual bool Serialize(std::string &_buffer) const = 0;
 
@@ -187,7 +185,6 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
@@ -219,9 +216,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void NotifyResult(const std::string &_topic,
-                                const std::string &_rep,
-                                const bool _result)
+      public: void NotifyResult(const std::string &_rep, const bool _result)
       {
         // Execute the callback (if existing).
         if (this->cb)

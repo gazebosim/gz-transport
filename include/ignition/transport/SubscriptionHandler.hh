@@ -76,7 +76,7 @@ namespace ignition
       }
 
       /// \brief Get the unique UUID of this handler.
-      /// \return a string representation of the handler UUID.
+      /// \return A string representation of the handler UUID.
       public: std::string HandlerUuid() const
       {
         return this->hUuid;
