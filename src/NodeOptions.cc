@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeOptionsPrivate.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -39,15 +40,14 @@ NodeOptions::NodeOptions()
 }
 
 //////////////////////////////////////////////////
-NodeOptions::~NodeOptions()
+NodeOptions::NodeOptions(const NodeOptions &_other)
 {
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
-NodeOptions::NodeOptions(const NodeOptions &_other)
+NodeOptions::~NodeOptions()
 {
-  this->SetNameSpace(_other.NameSpace());
-  this->SetPartition(_other.Partition());
 }
 
 //////////////////////////////////////////////////
