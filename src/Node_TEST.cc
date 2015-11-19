@@ -23,6 +23,7 @@
 #include <thread>
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/int.pb.h"
@@ -232,8 +233,13 @@ TEST(NodeTest, PubWithoutAdvertise)
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
   // empty namespace.
-  transport::Node node1(partition, "invalid namespace");
-  transport::Node node2(partition, "");
+  transport::NodeOptions optionsNode1;
+  transport::NodeOptions optionsNode2;
+  optionsNode1.SetPartition(partition);
+  optionsNode1.SetNameSpace("invalid namespace");
+  optionsNode2.SetPartition(partition);
+  transport::Node node1(optionsNode1);
+  transport::Node node2(optionsNode2);
 
   // Check the advertised/subscribed topics and advertised services.
   EXPECT_TRUE(node1.AdvertisedTopics().empty());

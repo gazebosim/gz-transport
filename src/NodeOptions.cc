@@ -15,8 +15,11 @@
  *
 */
 
+#include <cstdlib>
+#include <iostream>
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeOptionsPrivate.hh"
+#include "ignition/transport/TopicUtils.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -25,6 +28,14 @@ using namespace transport;
 NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
 {
+  // Check if the environment variable IGN_PARTITION is present.
+  char *envPartition = std::getenv("IGN_PARTITION");
+
+  if (envPartition)
+  {
+    std::string partitionStr = std::string(envPartition);
+    this->SetPartition(partitionStr);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -35,17 +46,50 @@ NodeOptions::~NodeOptions()
 //////////////////////////////////////////////////
 NodeOptions::NodeOptions(const NodeOptions &_other)
 {
-  this->SetMaxRate(_other.MaxRate());
+  this->SetNameSpace(_other.NameSpace());
+  this->SetPartition(_other.Partition());
 }
 
 //////////////////////////////////////////////////
-void NodeOptions::SetMaxRate(const unsigned int _hzRate)
+NodeOptions& NodeOptions::operator=(const NodeOptions &_other)
 {
-  this->dataPtr->hzRate = _hzRate;
+  this->SetNameSpace(_other.NameSpace());
+  this->SetPartition(_other.Partition());
+  return *this;
 }
 
 //////////////////////////////////////////////////
-unsigned int NodeOptions::MaxRate() const
+const std::string& NodeOptions::NameSpace() const
 {
-  return this->dataPtr->hzRate;
+  return this->dataPtr->ns;
+}
+
+//////////////////////////////////////////////////
+bool NodeOptions::SetNameSpace(const std::string &_ns)
+{
+  if (!TopicUtils::IsValidNamespace(_ns))
+  {
+    std::cerr << "Invalid namespace [" << _ns << "]" << std::endl;
+    return false;
+  }
+  this->dataPtr->ns = _ns;
+  return true;
+}
+
+//////////////////////////////////////////////////
+const std::string& NodeOptions::Partition() const
+{
+  return this->dataPtr->partition;
+}
+
+//////////////////////////////////////////////////
+bool NodeOptions::SetPartition(const std::string &_partition)
+{
+  if (!TopicUtils::IsValidNamespace(_partition))
+  {
+    std::cerr << "Invalid partition name [" << _partition << "]" << std::endl;
+    return false;
+  }
+  this->dataPtr->partition = _partition;
+  return true;
 }

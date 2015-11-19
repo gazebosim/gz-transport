@@ -18,7 +18,9 @@
 #ifndef __IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_INCLUDED__
 
+#include <string>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NetUtils.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -33,13 +35,16 @@ namespace ignition
     class IGNITION_VISIBLE NodeOptionsPrivate
     {
       /// \brief Constructor.
-      public: NodeOptionsPrivate(){};
+      public: NodeOptionsPrivate() = default;
 
       /// \brief Destructor.
-      public: virtual ~NodeOptionsPrivate(){};
+      public: virtual ~NodeOptionsPrivate() = default;
 
-      /// \brief Maximum rate of message publication per topic/service.
-      public: unsigned int hzRate = 0;
+      /// \brief Namespace for this node.
+      public: std::string ns = "";
+
+      /// \brief Partition for this node.
+      public: std::string partition = hostname() + ":" + username();
     };
   }
 }

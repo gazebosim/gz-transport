@@ -18,6 +18,7 @@ set (gtest_sources
   HandlerStorage_TEST.cc
   NetUtils_TEST.cc
   Node_TEST.cc
+  NodeOptions_TEST.cc
   Packet_TEST.cc
   Publisher_TEST.cc
   TopicStorage_TEST.cc

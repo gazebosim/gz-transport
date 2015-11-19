@@ -60,15 +60,6 @@ namespace ignition
       /// \param[in] _options Node options.
       public: Node(const NodeOptions &_options = NodeOptions());
 
-      /// \brief Constructor.
-      /// \param[in] _partition Partition name used by this node.
-      /// \param[in] _ns Default namespace used by this node. This might
-      /// be a prefix that can be added to each advertise message if required.
-      /// \param[in] _options Node options.
-      public: Node(const std::string &_partition,
-                   const std::string &_ns,
-                   const NodeOptions &_options = NodeOptions());
-
       /// \brief Destructor.
       public: virtual ~Node();
 
@@ -108,8 +99,8 @@ namespace ignition
           void(*_cb)(const std::string &_topic, const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -165,8 +156,8 @@ namespace ignition
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -239,8 +230,8 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -308,8 +299,8 @@ namespace ignition
         const Scope_t &_scope = Scope_t::All)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -379,8 +370,8 @@ namespace ignition
         void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -467,8 +458,8 @@ namespace ignition
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -554,8 +545,8 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
@@ -651,14 +642,6 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
-      /// \brief Get the partition name used by this node.
-      /// \return The partition name.
-      private: const std::string& Partition() const;
-
-      /// \brief Get the namespace used in this node.
-      /// \return The namespace
-      private: const std::string& NameSpace() const;
-
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
@@ -675,6 +658,10 @@ namespace ignition
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
       private: std::unordered_set<std::string>& SrvsAdvertised() const;
+
+      /// \brief Get the reference to the current node options.
+      /// \return Reference to the current node options.
+      private: NodeOptions& Options() const;
 
       /// \internal
       /// \brief Smart pointer to private data.

@@ -58,12 +58,6 @@ namespace ignition
       /// same process.
       public: NodeShared *shared = NodeShared::GetInstance();
 
-      /// \brief Partition for this node.
-      public: std::string partition = "";
-
-      /// \brief Default namespace for this node.
-      public: std::string ns = "";
-
       /// \beief Custom options for this node.
       public: NodeOptions options;
     };

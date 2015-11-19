@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NODEOPTIONS_HH_INCLUDED__
 
 #include <memory>
+#include <string>
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
@@ -35,19 +36,37 @@ namespace ignition
       /// \brief Constructor.
       public: NodeOptions();
 
+      /// \brief Copy constructor.
+      /// \param[in] _other NodeOptions to copy.
+      public: NodeOptions(const NodeOptions &_other);
+
       /// \brief Destructor.
       public: virtual ~NodeOptions();
 
-      /// \brief Copy constructor.
-      public: NodeOptions(const NodeOptions &_other);
+      /// \brief Assignment operator.
+      /// \param[in] _other The new NodeOptions.
+      /// \return A reference to this instance.
+      public: NodeOptions& operator=(const NodeOptions &_other);
 
-      /// \brief Set the maximum rate of message or service publication.
-      /// \param[in] _hzRate Maximum rate of publication (Hz).
-      public: void SetMaxRate(const unsigned int _hzRate);
+      /// \brief Get the namespace used in this node.
+      /// \return The namespace
+      public: const std::string& NameSpace() const;
 
-      /// \brief Get the maximum rate of message or service publication.
-      /// \return Maximum rate of publication (Hz).
-      public: unsigned int MaxRate() const;
+      /// \brief Set the node's namespace.
+      /// \param[in] _ns The namespace.
+      /// \return True when operation succeed or false if the namespace was
+      /// invalid.
+      public: bool SetNameSpace(const std::string &_ns);
+
+      /// \brief Get the partition used in this node.
+      /// \return The partition name.
+      public: const std::string& Partition() const;
+
+      /// \brief Set the node's partition name.
+      /// \param[in] _ns The partition's name.
+      /// \return True when operation succeed or false if the partition name was
+      /// invalid.
+      public: bool SetPartition(const std::string &_partition);
 
       /// \internal
       /// \brief Smart pointer to private data.
