@@ -58,7 +58,7 @@ namespace ignition
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
-      public: static const unsigned int DefActivityInterval = 100;
+      public: static const unsigned int DefActivityInterval = 500;
 
       /// \brief Default heartbeat interval value (ms.).
       /// \sa GetHeartbeatInterval.
@@ -159,10 +159,10 @@ namespace ignition
       public: std::thread threadReception;
 
       /// \brief Thread in charge of sending heartbeats.
-      public: std::thread threadHeartbeat;
+      // public: std::thread threadHeartbeat;
 
       /// \brief Thread in charge of update the activity.
-      public: std::thread threadActivity;
+      // public: std::thread threadActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::recursive_mutex exitMutex;
@@ -170,13 +170,19 @@ namespace ignition
       /// \brief When true, the service threads will finish.
       public: bool exit;
 
+      /// \brief ToDo
+      public: Timestamp lastHeartbeatUpdate;
+
+      /// \brief ToDo
+      public: Timestamp lastActivityUpdate;
+
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.
       public: bool threadReceptionExiting = true;
       /// \brief True when the hearbeat thread is finishing.
-      public: bool threadHeartbeatExiting = true;
+      // public: bool threadHeartbeatExiting = true;
       /// \brief True when the activity thread is finishing.
-      public: bool threadActivityExiting = true;
+      // public: bool threadActivityExiting = true;
 #endif
 
       /// \brief When true, the service is enabled.

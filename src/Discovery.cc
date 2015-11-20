@@ -88,6 +88,11 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Get the list of network interfaces in this host.
   this->dataPtr->hostInterfaces = determineInterfaces();
 
+  this->dataPtr->lastHeartbeatUpdate =
+    std::chrono::steady_clock::now() -
+    std::chrono::milliseconds(this->dataPtr->heartbeatInterval);
+  this->dataPtr->lastActivityUpdate = std::chrono::steady_clock::now();
+
 #ifdef _WIN32
   if (!initialized)
   {
@@ -192,19 +197,19 @@ Discovery::~Discovery()
   if (this->dataPtr->threadReception.joinable())
     this->dataPtr->threadReception.join();
 
-  if (this->dataPtr->threadHeartbeat.joinable())
-    this->dataPtr->threadHeartbeat.join();
+  // if (this->dataPtr->threadHeartbeat.joinable())
+  //   this->dataPtr->threadHeartbeat.join();
 
-  if (this->dataPtr->threadActivity.joinable())
-    this->dataPtr->threadActivity.join();
+  // if (this->dataPtr->threadActivity.joinable())
+  //   this->dataPtr->threadActivity.join();
 #else
   while (true)
   {
     std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
     {
-      if (this->dataPtr->threadReceptionExiting &&
-          this->dataPtr->threadHeartbeatExiting &&
-          this->dataPtr->threadActivityExiting)
+      if (this->dataPtr->threadReceptionExiting)// &&
+          //this->dataPtr->threadHeartbeatExiting &&
+          //this->dataPtr->threadActivityExiting)
       {
         break;
       }
@@ -246,20 +251,20 @@ void Discovery::Start()
     std::thread(&Discovery::RunReceptionTask, this);
 
   // Start the thread that sends heartbeats.
-  this->dataPtr->threadHeartbeat =
-    std::thread(&Discovery::RunHeartbeatTask, this);
+  // this->dataPtr->threadHeartbeat =
+  //   std::thread(&Discovery::RunHeartbeatTask, this);
 
   // Start the thread that checks the topic information validity.
-  this->dataPtr->threadActivity =
-    std::thread(&Discovery::RunActivityTask, this);
+  // this->dataPtr->threadActivity =
+  //   std::thread(&Discovery::RunActivityTask, this);
 
 #ifdef _WIN32
   this->dataPtr->threadReceptionExiting = false;
-  this->dataPtr->threadHeartbeatExiting = false;
-  this->dataPtr->threadActivityExiting = false;
+  // this->dataPtr->threadHeartbeatExiting = false;
+  // this->dataPtr->threadActivityExiting = false;
   this->dataPtr->threadReception.detach();
-  this->dataPtr->threadHeartbeat.detach();
-  this->dataPtr->threadActivity.detach();
+  // this->dataPtr->threadHeartbeat.detach();
+  // this->dataPtr->threadActivity.detach();
 #endif
 }
 
@@ -553,8 +558,10 @@ void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 //////////////////////////////////////////////////
 void Discovery::RunActivityTask()
 {
-  while (true)
-  {
+  // while (true)
+  // {
+    this->dataPtr->lastActivityUpdate = std::chrono::steady_clock::now();
+
     this->dataPtr->mutex.lock();
 
     Timestamp now = std::chrono::steady_clock::now();
@@ -588,33 +595,35 @@ void Discovery::RunActivityTask()
     }
     this->dataPtr->mutex.unlock();
 
-#ifdef _WIN32
-    // We don't know why, but on Windows, during shutdown, when compiled
-    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-    Sleep(this->dataPtr->activityInterval);
-#else
-    std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->dataPtr->activityInterval));
-#endif
+// #ifdef _WIN32
+//     // We don't know why, but on Windows, during shutdown, when compiled
+//     // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+//     Sleep(this->dataPtr->activityInterval);
+// #else
+//     std::this_thread::sleep_for(
+//       std::chrono::milliseconds(this->dataPtr->activityInterval));
+// #endif
 
     // Is it time to exit?
-    {
-      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-      if (this->dataPtr->exit)
-        break;
-    }
-  }
-#ifdef _WIN32
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-  this->dataPtr->threadActivityExiting = true;
-#endif
+    // {
+    //   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+    //   if (this->dataPtr->exit)
+    //     break;
+    // }
+  // }
+// #ifdef _WIN32
+//   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+//   this->dataPtr->threadActivityExiting = true;
+// #endif
 }
 
 //////////////////////////////////////////////////
 void Discovery::RunHeartbeatTask()
 {
-  while (true)
-  {
+  // while (true)
+  // {
+    this->dataPtr->lastHeartbeatUpdate = std::chrono::steady_clock::now();
+
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
@@ -641,26 +650,26 @@ void Discovery::RunHeartbeatTask()
       }
     }
 
-#ifdef _WIN32
-    // We don't know why, but on Windows, during shutdown, when compiled
-    // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-    Sleep(this->dataPtr->heartbeatInterval);
-#else
-    std::this_thread::sleep_for(
-      std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
-#endif
-
-    // Is it time to exit?
-    {
-      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-      if (this->dataPtr->exit)
-        break;
-    }
-  }
-#ifdef _WIN32
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-  this->dataPtr->threadHeartbeatExiting = true;
-#endif
+// #ifdef _WIN32
+//     // We don't know why, but on Windows, during shutdown, when compiled
+//     // in Release, when loaded into MATLAB, the sleep_for() call hangs.
+//     Sleep(this->dataPtr->heartbeatInterval);
+// #else
+//     std::this_thread::sleep_for(
+//       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
+// #endif
+//
+//     // Is it time to exit?
+//     {
+//       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+//       if (this->dataPtr->exit)
+//         break;
+//     }
+//   }
+// #ifdef _WIN32
+//   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
+//   this->dataPtr->threadHeartbeatExiting = true;
+// #endif
 }
 
 //////////////////////////////////////////////////
@@ -673,16 +682,62 @@ void Discovery::RunReceptionTask()
     {
       {0, this->dataPtr->sockets.at(0), ZMQ_POLLIN, 0},
     };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-      this->dataPtr->Timeout);
+
+    // Calculate the timeout for the next event.
+    auto now = std::chrono::steady_clock::now();
+
+    auto elapsedHearbeatUpdateMs = std::chrono::duration_cast<
+      std::chrono::milliseconds>(now - this->dataPtr->lastHeartbeatUpdate).count();
+    auto elapsedActivityUpdateMs = std::chrono::duration_cast<
+      std::chrono::milliseconds>(now - this->dataPtr->lastActivityUpdate).count();
+
+    // std::cout << "Elapsed hb (ms): " << elapsedHearbeatUpdateMs << std::endl;
+    // std::cout << "Elapsed ac (ms): " << elapsedActivityUpdateMs << std::endl;
+
+    auto remainingHbUpdateMs =
+      this->dataPtr->heartbeatInterval - elapsedHearbeatUpdateMs;
+
+    auto remainingAcUpdateMs =
+      this->dataPtr->activityInterval - elapsedActivityUpdateMs;
+
+    // std::cout << "Remaining hb (ms): " << remainingHbUpdateMs << std::endl;
+    // std::cout << "Remaining ac (ms): " << remainingAcUpdateMs << std::endl;
+
+    auto timeout = std::min(remainingHbUpdateMs, remainingAcUpdateMs);
+
+    // std::cout << "Timeout: " << timeout << std::endl;
+
+    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), timeout);
+
+    // std::cout << "waking up" << std::endl;
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
     {
+      // std::cout << "Recv data" << std::endl;
       this->RecvDiscoveryUpdate();
 
       if (this->dataPtr->verbose)
         this->PrintCurrentState();
+    }
+
+    now = std::chrono::steady_clock::now();
+
+    elapsedHearbeatUpdateMs = std::chrono::duration_cast<
+      std::chrono::milliseconds>(now - this->dataPtr->lastHeartbeatUpdate).count();
+    elapsedActivityUpdateMs = std::chrono::duration_cast<
+      std::chrono::milliseconds>(now - this->dataPtr->lastActivityUpdate).count();
+
+    if (elapsedHearbeatUpdateMs >= this->dataPtr->heartbeatInterval)
+    {
+      // std::cout << "Updating hb" << std::endl;
+      this->RunHeartbeatTask();
+    }
+
+    if (elapsedActivityUpdateMs >= this->dataPtr->activityInterval)
+    {
+      // std::cout << "Updating ac" << std::endl;
+      this->RunActivityTask();
     }
 
     // Is it time to exit?
