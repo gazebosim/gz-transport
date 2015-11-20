@@ -196,23 +196,13 @@ Discovery::~Discovery()
   // Wait for the service threads to finish before exit.
   if (this->dataPtr->threadReception.joinable())
     this->dataPtr->threadReception.join();
-
-  // if (this->dataPtr->threadHeartbeat.joinable())
-  //   this->dataPtr->threadHeartbeat.join();
-
-  // if (this->dataPtr->threadActivity.joinable())
-  //   this->dataPtr->threadActivity.join();
 #else
   while (true)
   {
     std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
     {
-      if (this->dataPtr->threadReceptionExiting)// &&
-          //this->dataPtr->threadHeartbeatExiting &&
-          //this->dataPtr->threadActivityExiting)
-      {
+      if (this->dataPtr->threadReceptionExiting)
         break;
-      }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -246,25 +236,13 @@ void Discovery::Start()
 
   this->dataPtr->enabled = true;
 
-  // Start the thread that receives discovery information.
+  // Start the thread that run the discovery service.
   this->dataPtr->threadReception =
     std::thread(&Discovery::RunReceptionTask, this);
 
-  // Start the thread that sends heartbeats.
-  // this->dataPtr->threadHeartbeat =
-  //   std::thread(&Discovery::RunHeartbeatTask, this);
-
-  // Start the thread that checks the topic information validity.
-  // this->dataPtr->threadActivity =
-  //   std::thread(&Discovery::RunActivityTask, this);
-
 #ifdef _WIN32
   this->dataPtr->threadReceptionExiting = false;
-  // this->dataPtr->threadHeartbeatExiting = false;
-  // this->dataPtr->threadActivityExiting = false;
   this->dataPtr->threadReception.detach();
-  // this->dataPtr->threadHeartbeat.detach();
-  // this->dataPtr->threadActivity.detach();
 #endif
 }
 
@@ -556,120 +534,71 @@ void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 }
 
 //////////////////////////////////////////////////
-void Discovery::RunActivityTask()
+void Discovery::UpdateActivity()
 {
-  // while (true)
-  // {
-    this->dataPtr->lastActivityUpdate = std::chrono::steady_clock::now();
+  Timestamp now = std::chrono::steady_clock::now();
+  this->dataPtr->lastActivityUpdate = now;
 
-    this->dataPtr->mutex.lock();
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-    Timestamp now = std::chrono::steady_clock::now();
-    for (auto it = this->dataPtr->activity.cbegin();
-           it != this->dataPtr->activity.cend();)
+  for (auto it = this->dataPtr->activity.cbegin();
+         it != this->dataPtr->activity.cend();)
+  {
+    // Elapsed time since the last update from this publisher.
+    std::chrono::duration<double> elapsed = now - it->second;
+
+    // This publisher has expired.
+    if (std::chrono::duration_cast<std::chrono::milliseconds>
+         (elapsed).count() > this->dataPtr->silenceInterval)
     {
-      // Elapsed time since the last update from this publisher.
-      std::chrono::duration<double> elapsed = now - it->second;
+      // Remove all the info entries for this process UUID.
+      this->dataPtr->infoMsg.DelPublishersByProc(it->first);
+      this->dataPtr->infoSrv.DelPublishersByProc(it->first);
 
-      // This publisher has expired.
-      if (std::chrono::duration_cast<std::chrono::milliseconds>
-           (elapsed).count() > this->dataPtr->silenceInterval)
-      {
-        // Remove all the info entries for this process UUID.
-        this->dataPtr->infoMsg.DelPublishersByProc(it->first);
-        this->dataPtr->infoSrv.DelPublishersByProc(it->first);
+      // Notify without topic information. This is useful to inform the client
+      // that a remote node is gone, even if we were not interested in its
+      // topics.
+      MessagePublisher publisher;
+      publisher.PUuid(it->first);
+      publisher.Scope(Scope_t::All);
+      this->dataPtr->disconnectionCb(publisher);
 
-        // Notify without topic information. This is useful to inform the client
-        // that a remote node is gone, even if we were not interested in its
-        // topics.
-        MessagePublisher publisher;
-        publisher.PUuid(it->first);
-        publisher.Scope(Scope_t::All);
-        this->dataPtr->disconnectionCb(publisher);
-
-        // Remove the activity entry.
-        this->dataPtr->activity.erase(it++);
-      }
-      else
-        ++it;
+      // Remove the activity entry.
+      this->dataPtr->activity.erase(it++);
     }
-    this->dataPtr->mutex.unlock();
-
-// #ifdef _WIN32
-//     // We don't know why, but on Windows, during shutdown, when compiled
-//     // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-//     Sleep(this->dataPtr->activityInterval);
-// #else
-//     std::this_thread::sleep_for(
-//       std::chrono::milliseconds(this->dataPtr->activityInterval));
-// #endif
-
-    // Is it time to exit?
-    // {
-    //   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-    //   if (this->dataPtr->exit)
-    //     break;
-    // }
-  // }
-// #ifdef _WIN32
-//   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-//   this->dataPtr->threadActivityExiting = true;
-// #endif
+    else
+      ++it;
+  }
 }
 
 //////////////////////////////////////////////////
-void Discovery::RunHeartbeatTask()
+void Discovery::SendHeartbeat()
 {
-  // while (true)
-  // {
-    this->dataPtr->lastHeartbeatUpdate = std::chrono::steady_clock::now();
+  this->dataPtr->lastHeartbeatUpdate = std::chrono::steady_clock::now();
 
-    {
-      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
-      std::string pUuid = this->dataPtr->pUuid;
-      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
-      this->SendMsg(HeartbeatType, pub);
+  std::string pUuid = this->dataPtr->pUuid;
+  Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
+  this->SendMsg(HeartbeatType, pub);
 
-      // Re-advertise topics that are advertised inside this process.
-      std::map<std::string, std::vector<MessagePublisher>> msgNodes;
-      this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
-      for (const auto &topic : msgNodes)
-      {
-        for (const auto &node : topic.second)
-          this->SendMsg(AdvType, node);
-      }
+  // Re-advertise topics that are advertised inside this process.
+  std::map<std::string, std::vector<MessagePublisher>> msgNodes;
+  this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
+  for (const auto &topic : msgNodes)
+  {
+    for (const auto &node : topic.second)
+      this->SendMsg(AdvType, node);
+  }
 
-      // Re-advertise services that are advertised inside this process.
-      std::map<std::string, std::vector<ServicePublisher>> srvNodes;
-      this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
-      for (const auto &topic : srvNodes)
-      {
-        for (const auto &node : topic.second)
-          this->SendMsg(AdvSrvType, node);
-      }
-    }
-
-// #ifdef _WIN32
-//     // We don't know why, but on Windows, during shutdown, when compiled
-//     // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-//     Sleep(this->dataPtr->heartbeatInterval);
-// #else
-//     std::this_thread::sleep_for(
-//       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
-// #endif
-//
-//     // Is it time to exit?
-//     {
-//       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-//       if (this->dataPtr->exit)
-//         break;
-//     }
-//   }
-// #ifdef _WIN32
-//   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
-//   this->dataPtr->threadHeartbeatExiting = true;
-// #endif
+  // Re-advertise services that are advertised inside this process.
+  std::map<std::string, std::vector<ServicePublisher>> srvNodes;
+  this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
+  for (const auto &topic : srvNodes)
+  {
+    for (const auto &node : topic.second)
+      this->SendMsg(AdvSrvType, node);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -731,13 +660,13 @@ void Discovery::RunReceptionTask()
     if (elapsedHearbeatUpdateMs >= this->dataPtr->heartbeatInterval)
     {
       // std::cout << "Updating hb" << std::endl;
-      this->RunHeartbeatTask();
+      this->SendHeartbeat();
     }
 
     if (elapsedActivityUpdateMs >= this->dataPtr->activityInterval)
     {
       // std::cout << "Updating ac" << std::endl;
-      this->RunActivityTask();
+      this->UpdateActivity();
     }
 
     // Is it time to exit?

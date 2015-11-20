@@ -297,10 +297,10 @@ namespace ignition
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalids the old topics.
-      private: void RunActivityTask();
+      private: void UpdateActivity();
 
-      /// \brief Broadcast periodic heartbeats.
-      private: void RunHeartbeatTask();
+      /// \brief Broadcast a heartbeat.
+      private: void SendHeartbeat();
 
       /// \brief Receive discovery messages.
       private: void RunReceptionTask();

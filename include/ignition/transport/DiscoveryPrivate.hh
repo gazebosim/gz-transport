@@ -158,31 +158,21 @@ namespace ignition
       /// \brief Thread in charge of receiving and handling incoming messages.
       public: std::thread threadReception;
 
-      /// \brief Thread in charge of sending heartbeats.
-      // public: std::thread threadHeartbeat;
-
-      /// \brief Thread in charge of update the activity.
-      // public: std::thread threadActivity;
-
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::recursive_mutex exitMutex;
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
 
-      /// \brief ToDo
+      /// \brief Last time that a heartbeat was sent.
       public: Timestamp lastHeartbeatUpdate;
 
-      /// \brief ToDo
+      /// \brief Last time the activity information was checked.
       public: Timestamp lastActivityUpdate;
 
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.
       public: bool threadReceptionExiting = true;
-      /// \brief True when the hearbeat thread is finishing.
-      // public: bool threadHeartbeatExiting = true;
-      /// \brief True when the activity thread is finishing.
-      // public: bool threadActivityExiting = true;
 #endif
 
       /// \brief When true, the service is enabled.
