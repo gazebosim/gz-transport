@@ -536,7 +536,15 @@ void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 //////////////////////////////////////////////////
 void Discovery::UpdateActivity()
 {
-  Timestamp now = std::chrono::steady_clock::now();
+  auto now = std::chrono::steady_clock::now();
+  auto elapsedActivityUpdateMs = std::chrono::duration_cast<
+    std::chrono::milliseconds>(
+      now - this->dataPtr->lastActivityUpdate).count();
+
+  // It's not time to update activity yet.
+  if (elapsedActivityUpdateMs < this->dataPtr->activityInterval)
+    return;
+
   this->dataPtr->lastActivityUpdate = now;
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
@@ -574,6 +582,15 @@ void Discovery::UpdateActivity()
 //////////////////////////////////////////////////
 void Discovery::SendHeartbeat()
 {
+  auto now = std::chrono::steady_clock::now();
+  auto elapsedHearbeatUpdateMs = std::chrono::duration_cast<
+    std::chrono::milliseconds>(
+      now - this->dataPtr->lastHeartbeatUpdate).count();
+
+  // It's not time to send a heartbeat yet.
+  if (elapsedHearbeatUpdateMs < this->dataPtr->heartbeatInterval)
+    return;
+
   this->dataPtr->lastHeartbeatUpdate = std::chrono::steady_clock::now();
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
@@ -612,29 +629,7 @@ void Discovery::RunReceptionTask()
       {0, this->dataPtr->sockets.at(0), ZMQ_POLLIN, 0},
     };
 
-    // Calculate the timeout for the next event.
-    auto now = std::chrono::steady_clock::now();
-
-    auto elapsedHearbeatUpdateMs = std::chrono::duration_cast<
-      std::chrono::milliseconds>(now - this->dataPtr->lastHeartbeatUpdate).count();
-    auto elapsedActivityUpdateMs = std::chrono::duration_cast<
-      std::chrono::milliseconds>(now - this->dataPtr->lastActivityUpdate).count();
-
-    // std::cout << "Elapsed hb (ms): " << elapsedHearbeatUpdateMs << std::endl;
-    // std::cout << "Elapsed ac (ms): " << elapsedActivityUpdateMs << std::endl;
-
-    auto remainingHbUpdateMs =
-      this->dataPtr->heartbeatInterval - elapsedHearbeatUpdateMs;
-
-    auto remainingAcUpdateMs =
-      this->dataPtr->activityInterval - elapsedActivityUpdateMs;
-
-    // std::cout << "Remaining hb (ms): " << remainingHbUpdateMs << std::endl;
-    // std::cout << "Remaining ac (ms): " << remainingAcUpdateMs << std::endl;
-
-    auto timeout = std::min(remainingHbUpdateMs, remainingAcUpdateMs);
-
-    // std::cout << "Timeout: " << timeout << std::endl;
+    auto timeout = this->NextTimeout();
 
     zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), timeout);
 
@@ -650,24 +645,8 @@ void Discovery::RunReceptionTask()
         this->PrintCurrentState();
     }
 
-    now = std::chrono::steady_clock::now();
-
-    elapsedHearbeatUpdateMs = std::chrono::duration_cast<
-      std::chrono::milliseconds>(now - this->dataPtr->lastHeartbeatUpdate).count();
-    elapsedActivityUpdateMs = std::chrono::duration_cast<
-      std::chrono::milliseconds>(now - this->dataPtr->lastActivityUpdate).count();
-
-    if (elapsedHearbeatUpdateMs >= this->dataPtr->heartbeatInterval)
-    {
-      // std::cout << "Updating hb" << std::endl;
-      this->SendHeartbeat();
-    }
-
-    if (elapsedActivityUpdateMs >= this->dataPtr->activityInterval)
-    {
-      // std::cout << "Updating ac" << std::endl;
-      this->UpdateActivity();
-    }
+    this->SendHeartbeat();
+    this->UpdateActivity();
 
     // Is it time to exit?
     {
@@ -1081,4 +1060,34 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+unsigned int Discovery::NextTimeout() const
+{
+  // Calculate the timeout for the next event.
+  auto now = std::chrono::steady_clock::now();
+
+  auto elapsedHearbeatUpdateMs = std::chrono::duration_cast<
+    std::chrono::milliseconds>(
+      now - this->dataPtr->lastHeartbeatUpdate).count();
+  auto elapsedActivityUpdateMs = std::chrono::duration_cast<
+    std::chrono::milliseconds>(
+      now - this->dataPtr->lastActivityUpdate).count();
+
+  // std::cout << "Elapsed hb (ms): " << elapsedHearbeatUpdateMs << std::endl;
+  // std::cout << "Elapsed ac (ms): " << elapsedActivityUpdateMs << std::endl;
+
+  auto remainingHbUpdateMs =
+    this->dataPtr->heartbeatInterval - elapsedHearbeatUpdateMs;
+
+  auto remainingAcUpdateMs =
+    this->dataPtr->activityInterval - elapsedActivityUpdateMs;
+
+  // std::cout << "Remaining hb (ms): " << remainingHbUpdateMs << std::endl;
+  // std::cout << "Remaining ac (ms): " << remainingAcUpdateMs << std::endl;
+
+  auto timeout = std::min(remainingHbUpdateMs, remainingAcUpdateMs);
+  // std::cout << "Timeout: " << timeout << std::endl;
+  return timeout;
 }

@@ -417,6 +417,11 @@ namespace ignition
       /// otherwise (e.g.: invalid IP address).
       private: bool RegisterNetIface(const std::string &_ip);
 
+      /// \brief Calculate the value of the next timeout to be used in poll
+      /// based on the current time and the following deadlines
+      /// (send heartbeats, update activity).
+      private: unsigned int NextTimeout() const;
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<DiscoveryPrivate> dataPtr;
