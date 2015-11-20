@@ -1065,7 +1065,6 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
 //////////////////////////////////////////////////
 unsigned int Discovery::NextTimeout() const
 {
-  // Calculate the timeout for the next event.
   auto now = std::chrono::steady_clock::now();
 
   auto elapsedHearbeatUpdateMs = std::chrono::duration_cast<
