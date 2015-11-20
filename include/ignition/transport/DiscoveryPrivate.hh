@@ -58,7 +58,7 @@ namespace ignition
       /// \brief Default activity interval value (ms.).
       /// \sa GetActivityInterval.
       /// \sa SetActivityInterval.
-      public: static const unsigned int DefActivityInterval = 500;
+      public: static const unsigned int DefActivityInterval = 100;
 
       /// \brief Default heartbeat interval value (ms.).
       /// \sa GetHeartbeatInterval.
