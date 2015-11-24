@@ -50,7 +50,7 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidPartition(const std::string &_partition)
 {
-  return IsValidNamespace(_topic);
+  return IsValidNamespace(_partition);
 }
 
 //////////////////////////////////////////////////
