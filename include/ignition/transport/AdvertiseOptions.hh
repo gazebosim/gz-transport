@@ -20,13 +20,21 @@
 
 #include <memory>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Publisher.hh"
 
 namespace ignition
 {
   namespace transport
   {
     class AdvertiseOptionsPrivate;
+
+    /// \def Scope This strongly typed enum defines the different options for
+    /// the scope of a topic/service:
+    /// * Process: Topic/service only available to subscribers in the same
+    ///            process as the publisher.
+    /// * Host:    Topic/service only available to subscribers in the same
+    ///            machine as the publisher.
+    /// * All:     Topic/service available to any subscriber (default scope).
+    enum class Scope_t {Process, Host, All};
 
     /// \class AdvertiseOptions AdvertiseOptions.hh
     /// ignition/transport/AdvertiseOptions.hh
@@ -53,13 +61,14 @@ namespace ignition
       /// \brief Get the scope used in this topic/service.
       /// \return The scope.
       /// \sa SetScope.
+      /// \sa Scope_t.
       public: const Scope_t &Scope() const;
 
       /// \brief Set the scope of the topic or service.
       /// \param[in] _scope The new scope.
-      /// \return True when operation succeed or false if the scope was invalid.
       /// \sa Scope.
-      public: bool SetScope(const Scope_t &_scope);
+      /// \sa Scope_t.
+      public: void SetScope(const Scope_t &_scope);
 
       /// \internal
       /// \brief Smart pointer to private data.

@@ -18,8 +18,8 @@
 #ifndef __IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_INCLUDED__
 
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Publisher.hh"
 
 namespace ignition
 {

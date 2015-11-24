@@ -20,6 +20,7 @@
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Packet.hh"

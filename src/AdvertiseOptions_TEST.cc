@@ -16,7 +16,6 @@
 */
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Publisher.hh"
 #include "ignition/transport/test_config.h"
 #include "gtest/gtest.h"
 
@@ -27,7 +26,7 @@ using namespace ignition;
 TEST(AdvertiseOptionsTest, copyConstructor)
 {
   transport::AdvertiseOptions opts1;
-  EXPECT_TRUE(opts1.SetScope(transport::Scope_t::Host));
+  opts1.SetScope(transport::Scope_t::Host);
   transport::AdvertiseOptions opts2(opts1);
   EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
@@ -38,7 +37,7 @@ TEST(AdvertiseOptionsTest, assignmentOp)
 {
   transport::AdvertiseOptions opts1;
   transport::AdvertiseOptions opts2;
-  EXPECT_TRUE(opts1.SetScope(transport::Scope_t::Process));
+  opts1.SetScope(transport::Scope_t::Process);
   opts2 = opts1;
   EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
@@ -50,7 +49,7 @@ TEST(AdvertiseOptionsTest, accessors)
   // Scope.
   transport::AdvertiseOptions opts;
   EXPECT_EQ(opts.Scope(), transport::Scope_t::All);
-  EXPECT_TRUE(opts.SetScope(transport::Scope_t::Host));
+  opts.SetScope(transport::Scope_t::Host);
   EXPECT_EQ(opts.Scope(), transport::Scope_t::Host);
 }
 

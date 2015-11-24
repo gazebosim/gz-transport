@@ -52,6 +52,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/NetUtils.hh"

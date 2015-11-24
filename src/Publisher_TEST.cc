@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
 #include "gtest/gtest.h"
 

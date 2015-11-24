@@ -20,21 +20,13 @@
 
 #include <iostream>
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \def Scope This strongly typed enum defines the different options for
-    /// the scope of a topic/service:
-    /// * Process: Topic/service only available to subscribers in the same
-    ///            process as the publisher.
-    /// * Host:    Topic/service only available to subscribers in the same
-    ///            machine as the publisher.
-    /// * All:     Topic/service available to any subscriber (default scope).
-    enum class Scope_t {Process, Host, All};
-
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.

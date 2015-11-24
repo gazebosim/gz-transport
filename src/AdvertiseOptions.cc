@@ -15,12 +15,8 @@
  *
 */
 
-#include <cstdlib>
-#include <iostream>
-#include <string>
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/AdvertiseOptionsPrivate.hh"
-#include "ignition/transport/Publisher.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -57,8 +53,7 @@ const Scope_t& AdvertiseOptions::Scope() const
 }
 
 //////////////////////////////////////////////////
-bool AdvertiseOptions::SetScope(const Scope_t &_scope)
+void AdvertiseOptions::SetScope(const Scope_t &_scope)
 {
   this->dataPtr->scope = _scope;
-  return true;
 }
