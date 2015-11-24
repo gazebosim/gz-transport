@@ -38,6 +38,13 @@ TEST(NodeOptionsTest, ignPartition)
   std::string userPartition = "userPartition";
   opts.SetPartition(userPartition);
   EXPECT_EQ(opts.Partition(), userPartition);
+
+  // Copy constructor
+  transport::NodeOptions opts2(opts);
+  EXPECT_EQ(opts.Partition(), opts2.Partition());
+  EXPECT_EQ(opts.NameSpace(), opts2.NameSpace());
+
+  EXPECT_FALSE(opts2.SetPartition("/"));
 }
 
 //////////////////////////////////////////////////

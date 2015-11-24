@@ -41,6 +41,7 @@ NodeOptions::NodeOptions()
 
 //////////////////////////////////////////////////
 NodeOptions::NodeOptions(const NodeOptions &_other)
+  : dataPtr(new NodeOptionsPrivate())
 {
   (*this) = _other;
 }
