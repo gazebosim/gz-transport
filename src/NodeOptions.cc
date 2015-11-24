@@ -86,7 +86,7 @@ const std::string& NodeOptions::Partition() const
 //////////////////////////////////////////////////
 bool NodeOptions::SetPartition(const std::string &_partition)
 {
-  if (!TopicUtils::IsValidNamespace(_partition))
+  if (!TopicUtils::IsValidPartition(_partition))
   {
     std::cerr << "Invalid partition name [" << _partition << "]" << std::endl;
     return false;

@@ -49,7 +49,7 @@ TEST(TopicUtilsTest, testTopics)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the topic namespace.
+/// \brief Check the namespace.
 TEST(TopicUtilsTest, testNamespaces)
 {
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde"));
@@ -67,6 +67,27 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~/abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("@namespace"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the partition.
+TEST(TopicUtilsTest, tesPartitions)
+{
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("abcde"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("abcde/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/fg"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/fg/"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition(""));
+
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition(" "));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("ns "));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("abc//def"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("ab~cd"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~/abcde"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~abcde"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("@namespace"));
 }
 
 //////////////////////////////////////////////////

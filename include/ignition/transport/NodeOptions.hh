@@ -49,23 +49,51 @@ namespace ignition
       public: NodeOptions& operator=(const NodeOptions &_other);
 
       /// \brief Get the namespace used in this node.
-      /// \return The namespace
+      /// \return The namespace.
+      /// \sa SetNameSpace.
       public: const std::string &NameSpace() const;
 
-      /// \brief Set the node's namespace.
+      /// \brief Set the node's namespace. A namespace is considered a prefix
+      /// that might be potentially applied to some of the topic/services
+      /// advertised in a node.
+      /// E.g.: Node1 sets a namespace 'ns1' and advertises the topics
+      /// 't1', 't2' and '/t3'. '/t3' is considered an absolute topic (starts
+      /// with '/') and it won't be affected by a namespace. However, 't1' and
+      /// 't2' will be advertised as '/ns1/t1' and '/ns1/t2'.
+      /// A namespace is any alphanumeric string with a few exceptions.
+      /// The symbol '/' is allowed as part of a namespace but just '/' is not
+      /// allowed. The symbols '@', '~' and ' ' are not allowed as part of a
+      /// namespace. Two or more consecutive slashes ('//') are not allowed.
       /// \param[in] _ns The namespace.
       /// \return True when operation succeed or false if the namespace was
       /// invalid.
+      /// \sa NameSpace.
       public: bool SetNameSpace(const std::string &_ns);
 
       /// \brief Get the partition used in this node.
       /// \return The partition name.
+      /// \sa SetPartition.
       public: const std::string &Partition() const;
 
-      /// \brief Set the node's partition name.
+      /// \brief Set the node's partition name. A partition is used to
+      /// isolate a set of topics or services from other nodes that use the same
+      /// names. E.g.: Node1 advertises topics '/foo' and Node2 advertises
+      /// '/foo' too. If we don't use a partition, a node subscribed to '/foo'
+      /// will receive the messages published from Node1 and Node2.
+      /// Alternatively, we could specify 'p1' as a partition for Node1 and 'p2'
+      /// as a partition for Node2. When we create the node for our subscriber,
+      /// if we specify 'p1' as a partition name, we'll receive the messages
+      /// published only by Node1. If we use 'p2', we'll only receive the
+      /// messages published by Node2. If we don't set a partition name, we
+      /// won't receive any messages from Node1 or Node2.
+      /// A partition name is any alphanumeric string with a few exceptions.
+      /// The symbol '/' is allowed as part of a partition name but just '/' is
+      /// not allowed. The symbols '@', '~' and ' ' are not allowed as part of a
+      /// partition name. Two or more consecutive slashes ('//') are not allowed
       /// \param[in] _ns The partition's name.
       /// \return True when operation succeed or false if the partition name was
       /// invalid.
+      /// \sa Partition
       public: bool SetPartition(const std::string &_partition);
 
       /// \internal
