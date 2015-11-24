@@ -22,6 +22,7 @@
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
@@ -198,11 +199,14 @@ void CreatePubSubTwoThreads(
 {
   reset();
 
+  transport::AdvertiseOptions opts;
+  opts.SetScope(_sc);
+
   transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, _sc));
+  EXPECT_TRUE(node.Advertise(topic, opts));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
