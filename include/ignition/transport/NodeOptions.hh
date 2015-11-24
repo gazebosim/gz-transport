@@ -50,7 +50,7 @@ namespace ignition
 
       /// \brief Get the namespace used in this node.
       /// \return The namespace
-      public: const std::string& NameSpace() const;
+      public: const std::string &NameSpace() const;
 
       /// \brief Set the node's namespace.
       /// \param[in] _ns The namespace.
@@ -60,7 +60,7 @@ namespace ignition
 
       /// \brief Get the partition used in this node.
       /// \return The partition name.
-      public: const std::string& Partition() const;
+      public: const std::string &Partition() const;
 
       /// \brief Set the node's partition name.
       /// \param[in] _ns The partition's name.
