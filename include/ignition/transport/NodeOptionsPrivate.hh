@@ -22,9 +22,6 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 
-using namespace ignition;
-using namespace transport;
-
 namespace ignition
 {
   namespace transport
