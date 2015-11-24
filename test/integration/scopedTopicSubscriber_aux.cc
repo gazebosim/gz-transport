@@ -56,6 +56,7 @@ void subscriber()
   cbExecuted = false;
 }
 
+//////////////////////////////////////////////////
 TEST(ScopedTopicTest, SubscriberTest)
 {
   subscriber();

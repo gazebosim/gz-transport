@@ -365,7 +365,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(*_cb)(const T2 &_rep, bool _result))
+        void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
@@ -446,7 +446,7 @@ namespace ignition
       public: template<typename C, typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(C::*_cb)(const T2 &_rep, bool _result),
+        void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
         std::string fullyQualifiedTopic;

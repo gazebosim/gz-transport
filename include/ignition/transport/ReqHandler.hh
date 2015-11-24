@@ -89,7 +89,7 @@ namespace ignition
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void Requested(bool _value)
+      public: void Requested(const bool _value)
       {
         this->requested = _value;
       }
@@ -114,7 +114,7 @@ namespace ignition
       /// \param[in] _timeout Maximum waiting time in milliseconds.
       /// \return True if the service call was executed or false otherwise.
       public: template<typename Lock> bool WaitUntil(Lock &_lock,
-                                                     unsigned int _timeout)
+                                                    const unsigned int _timeout)
       {
         auto now = std::chrono::system_clock::now();
         return this->condition.wait_until(_lock,
@@ -189,7 +189,7 @@ namespace ignition
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       public: void Callback(const std::function <void(
-        const Rep &_rep, bool _result)> &_cb)
+        const Rep &_rep, const bool _result)> &_cb)
       {
         this->cb = _cb;
       }
@@ -244,7 +244,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      private: std::function<void(const Rep &_rep, bool _result)> cb;
+      private: std::function<void(const Rep &_rep, const bool _result)> cb;
     };
   }
 }
