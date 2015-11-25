@@ -19,7 +19,6 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/vector3d.pb.h"
-#include "gtest/gtest.h"
 
 using namespace ignition;
 
@@ -45,12 +44,6 @@ void advertiseAndPublish()
 }
 
 //////////////////////////////////////////////////
-TEST(twoProcPubAux, advertiseAndPublish)
-{
-  advertiseAndPublish();
-}
-
-//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   if (argc != 2)
@@ -62,6 +55,5 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
 
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  advertiseAndPublish();
 }

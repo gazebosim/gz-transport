@@ -133,6 +133,8 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 
   reset();
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
   transport::Node node1;
   transport::Node node2;
   EXPECT_TRUE(node1.Subscribe(topic, cb));
