@@ -69,8 +69,6 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::msgs::Vector3d reqMsg;
   std::string reqType = reqMsg.GetTypeName();
   std::string rep1Type = rep1Msg.GetTypeName();
-  std::string rep2Type = transport::msgs::Int().GetTypeName();
-  std::string rep3Type = transport::msgs::Int().GetTypeName();
 
   reqMsg.set_x(1.0);
   reqMsg.set_y(2.0);
@@ -212,7 +210,6 @@ TEST(RepStorageTest, RepStorageAPI)
 /// registering a callback, and then, we try to execute the callback.
 TEST(RepStorageTest, SubStorageNoCallbacks)
 {
-  transport::ISubscriptionHandlerPtr handler;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
   transport::msgs::Int msg;
   msg.set_data(5);
@@ -229,6 +226,18 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
   EXPECT_FALSE(h->RunLocalCallback(topic, msg));
+
+  // Try to retrieve the first callback with an incorrect type.
+  transport::ISubscriptionHandlerPtr handler;
+  EXPECT_FALSE(subs.GetFirstHandler(topic, "incorrect type", handler));
+
+  // Now try to retrieve the first callback with the correct type.
+  EXPECT_TRUE(subs.GetFirstHandler(topic, msg.GetTypeName(), handler));
+
+  // Verify the handler.
+  EXPECT_EQ(handler->GetTypeName(), sub1HandlerPtr->GetTypeName());
+  EXPECT_EQ(handler->NodeUuid(), sub1HandlerPtr->NodeUuid());
+  EXPECT_EQ(handler->HandlerUuid(), sub1HandlerPtr->HandlerUuid());
 }
 
 //////////////////////////////////////////////////
