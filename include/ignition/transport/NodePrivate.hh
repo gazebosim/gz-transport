@@ -23,9 +23,6 @@
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
-using namespace ignition;
-using namespace transport;
-
 namespace ignition
 {
   namespace transport
