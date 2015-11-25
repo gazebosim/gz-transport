@@ -18,10 +18,13 @@
 #ifdef _WIN32
   #include <Winsock2.h>
   #include <iphlpapi.h>
+  #include <windows.h>
+  #include <Lmcons.h>
 #else
   #include <arpa/inet.h>
   #include <net/if.h>
   #include <netdb.h>
+  #include <pwd.h>
   #include <unistd.h>
 #endif
 
@@ -425,5 +428,41 @@ std::vector<std::string> transport::determineInterfaces()
     "but will almost certainly not work if you have remote processes."
     "Report to the disc-zmq development team to seek a fix." << std::endl;
   return {"127.0.0.1"};
+#endif
+}
+
+//////////////////////////////////////////////////
+std::string transport::hostname()
+{
+#ifdef _WIN32
+  WSADATA wsaData;
+  WSAStartup(MAKEWORD(2,2), &wsaData);
+#endif
+
+  char hostname[200 + 1];
+  gethostname(hostname, sizeof hostname);
+
+#ifdef _WIN32
+  WSACleanup();
+#endif
+
+  return hostname;
+}
+
+//////////////////////////////////////////////////
+std::string transport::username()
+{
+  char buffer[200 + 1];
+  size_t bufferLen = sizeof(buffer);
+#ifdef _WIN32
+  DWORD usernameLen = static_cast<DWORD>(bufferLen);
+  GetUserName(buffer, &usernameLen);
+  return buffer;
+#else
+  struct passwd pd;
+  struct passwd *result;
+
+  getpwuid_r(getuid(), &pd, buffer, bufferLen, &result);
+  return pd.pw_name;
 #endif
 }
