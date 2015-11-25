@@ -25,7 +25,7 @@
 /// \brief Function called each time a topic update is received.
 void cb(const std::string &_topic, const example::msgs::StringMsg &_msg)
 {
-  std::cout << "Topic:" << _topic << std::endl;
+  std::cout << "Topic:" << _topic << std::endl
             << "Msg:  " << _msg.data() << std::endl << std::endl;
 }
 
