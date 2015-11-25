@@ -687,32 +687,32 @@ namespace ignition
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
-      private: const std::string& Partition() const;
+      private: const std::string &Partition() const;
 
       /// \brief Get the namespace used in this node.
       /// \return The namespace
-      private: const std::string& NameSpace() const;
+      private: const std::string &NameSpace() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
-      private: NodeShared* Shared() const;
+      private: NodeShared *Shared() const;
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
-      private: const std::string& NodeUuid() const;
+      private: const std::string &NodeUuid() const;
 
       /// \brief Get the set of topics advertised by this node.
       /// \return The set of advertised topics.
-      private: std::unordered_set<std::string>& TopicsAdvertised() const;
+      private: std::unordered_set<std::string> &TopicsAdvertised() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string>& TopicsSubscribed() const;
+      private: std::unordered_set<std::string> &TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
-      private: std::unordered_set<std::string>& SrvsAdvertised() const;
+      private: std::unordered_set<std::string> &SrvsAdvertised() const;
 
       /// \internal
       /// \brief Smart pointer to private data.

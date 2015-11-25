@@ -245,7 +245,8 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
+bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
+  const std::string &_msgType)
 {
   try
   {
@@ -260,6 +261,10 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data)
 
     msg.rebuild(_data.size());
     memcpy(msg.data(), _data.data(), _data.size());
+    this->publisher->send(msg, ZMQ_SNDMORE);
+
+    msg.rebuild(_msgType.size());
+    memcpy(msg.data(), _msgType.data(), _msgType.size());
     this->publisher->send(msg, 0);
   }
   catch(const zmq::error_t& ze)
@@ -280,6 +285,7 @@ void NodeShared::RecvMsgUpdate()
   std::string topic;
   // std::string sender;
   std::string data;
+  std::string msgType;
 
   try
   {
@@ -295,6 +301,10 @@ void NodeShared::RecvMsgUpdate()
     if (!this->subscriber->recv(&msg, 0))
       return;
     data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->subscriber->recv(&msg, 0))
+      return;
+    msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
   catch(const zmq::error_t &_error)
   {
@@ -308,7 +318,8 @@ void NodeShared::RecvMsgUpdate()
   {
     // Get the first handler.
     ISubscriptionHandlerPtr firstSubscriberPtr;
-    if (!this->localSubscriptions.GetHandler(topic, firstSubscriberPtr))
+    if (!this->localSubscriptions.GetFirstHandler(topic, msgType,
+          firstSubscriberPtr))
     {
       std::cerr << "I couldn't find a subscriber. This should never happen."
                 << std::endl;
@@ -331,7 +342,7 @@ void NodeShared::RecvMsgUpdate()
     }
   }
   else
-    std::cerr << "I am not subscribed to topic [" << topic << "]\n";
+    std::cerr << "I am not subscribed to topic [" << topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////

@@ -82,13 +82,41 @@ namespace ignition
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data[_topic];
+        auto &m = this->data.at(_topic);
         for (auto& node : m)
         {
           for (auto& handler : node.second)
           {
             if (_reqTypeName == handler.second->GetReqTypeName() &&
                 _repTypeName == handler.second->GetRepTypeName())
+            {
+              _handler = handler.second;
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      /// \brief Get the first handler for a topic that matches a specific pair
+      /// of request/response types.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msgTypeName Type of the msg in string format.
+      /// \param[out] _handler handler.
+      /// \return true if a handler was found.
+      public: bool GetFirstHandler(const std::string &_topic,
+                                   const std::string &_msgTypeName,
+                                   std::shared_ptr<T> &_handler) const
+      {
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        auto &m = this->data.at(_topic);
+        for (auto& node : m)
+        {
+          for (auto& handler : node.second)
+          {
+            if (_msgTypeName == handler.second->GetTypeName())
             {
               _handler = handler.second;
               return true;

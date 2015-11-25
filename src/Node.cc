@@ -196,7 +196,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  // Check that the msg type matches the type previously advertised '_topic'.
+  // Check that the msg type matches the type previously advertised
+  // for topic '_topic'.
   MessagePublisher pub;
   auto &info = this->dataPtr->shared->discovery->DiscoveryMsgInfo();
   std::string procUuid = this->dataPtr->shared->pUuid;
@@ -253,7 +254,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
       return false;
     }
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data);
+    this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
+      _msg.GetTypeName());
   }
   // Debug output.
   // else

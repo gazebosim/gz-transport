@@ -121,6 +121,7 @@ namespace ignition
         return msgPtr;
       }
 
+      /// \brief ToDo.
       public: std::string GetTypeName()
       {
         return T().GetTypeName();

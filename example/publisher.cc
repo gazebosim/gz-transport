@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  if (!node.Advertise<example::mymsgs::StringMsg>(topic))
+  if (!node.Advertise<example::msgs::StringMsg>(topic))
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
     return -1;
