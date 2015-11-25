@@ -19,6 +19,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/vector3d.pb.h"
+#include "gtest/gtest.h"
 
 using namespace ignition;
 
