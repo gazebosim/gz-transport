@@ -68,6 +68,8 @@ namespace ignition
       public: virtual const std::shared_ptr<transport::ProtoMsg> CreateMsg(
         const std::string &_data) const = 0;
 
+      /// \brief Get the type of the messages from which this subscriber
+      /// handler is subscribed.
       public: virtual std::string GetTypeName() = 0;
 
       /// \brief Get the node UUID.
@@ -121,7 +123,7 @@ namespace ignition
         return msgPtr;
       }
 
-      /// \brief ToDo.
+      // Documentation inherited.
       public: std::string GetTypeName()
       {
         return T().GetTypeName();

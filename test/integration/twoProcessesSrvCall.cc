@@ -59,8 +59,8 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const std::string &_topic,
-  const transport::msgs::Vector3d &_rep, bool _result)
+void wrongResponse(const std::string &/*_topic*/,
+  const transport::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }

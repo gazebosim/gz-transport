@@ -117,11 +117,11 @@ namespace ignition
 
       /// \brief Get the discovery information object (messages).
       /// \return Reference to the discovery information object.
-      public: TopicStorage<MessagePublisher>& DiscoveryMsgInfo() const;
+      public: const TopicStorage<MessagePublisher> &DiscoveryMsgInfo() const;
 
       /// \brief Get the discovery information object (services).
       /// \return Reference to the discovery information object.
-      public: TopicStorage<ServicePublisher>& DiscoverySrvInfo() const;
+      public: const TopicStorage<ServicePublisher> &DiscoverySrvInfo() const;
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.

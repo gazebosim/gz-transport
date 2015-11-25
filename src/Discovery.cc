@@ -445,14 +445,14 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-TopicStorage<MessagePublisher>& Discovery::DiscoveryMsgInfo() const
+const TopicStorage<MessagePublisher> &Discovery::DiscoveryMsgInfo() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoMsg;
 }
 
 //////////////////////////////////////////////////
-TopicStorage<ServicePublisher>& Discovery::DiscoverySrvInfo() const
+const TopicStorage<ServicePublisher> &Discovery::DiscoverySrvInfo() const
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->infoSrv;

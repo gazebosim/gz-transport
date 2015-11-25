@@ -105,15 +105,16 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const std::string &_topic,
-  const transport::msgs::Vector3d &_rep, bool _result)
+void wrongResponse(const std::string &/*_topic*/,
+  const transport::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const std::string &_topic, const transport::msgs::Vector3d &_msg)
+void cbVector(const std::string &_topic,
+  const transport::msgs::Vector3d &/*_msg*/)
 {
   EXPECT_EQ(_topic, topic);
   cbVectorExecuted = true;
@@ -147,8 +148,8 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call.
-  public: void WrongEcho(const std::string &_topic,
-    const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
+  public: void WrongEcho(const std::string &/*_topic*/,
+    const transport::msgs::Vector3d &/*_req*/, transport::msgs::Int &/*_rep*/,
     bool &_result)
   {
     _result = true;
