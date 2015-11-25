@@ -82,10 +82,10 @@ namespace ignition
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data.at(_topic);
-        for (auto& node : m)
+        const auto &m = this->data.at(_topic);
+        for (const auto& node : m)
         {
-          for (auto& handler : node.second)
+          for (const auto& handler : node.second)
           {
             if (_reqTypeName == handler.second->GetReqTypeName() &&
                 _repTypeName == handler.second->GetRepTypeName())
@@ -98,8 +98,8 @@ namespace ignition
         return false;
       }
 
-      /// \brief Get the first handler for a topic that matches a specific pair
-      /// of request/response types.
+      /// \brief Get the first handler for a topic that matches a specific
+      /// message type.
       /// \param[in] _topic Topic name.
       /// \param[in] _msgTypeName Type of the msg in string format.
       /// \param[out] _handler handler.
@@ -111,10 +111,10 @@ namespace ignition
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data.at(_topic);
-        for (auto& node : m)
+        const auto &m = this->data.at(_topic);
+        for (const auto& node : m)
         {
-          for (auto& handler : node.second)
+          for (const auto& handler : node.second)
           {
             if (_msgTypeName == handler.second->GetTypeName())
             {

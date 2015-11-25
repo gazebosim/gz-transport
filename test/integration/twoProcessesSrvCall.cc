@@ -122,7 +122,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 /// that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongReq)
 {
-  transport::msgs::Vector3d req;
+  transport::msgs::Vector3d wrongReq;
   transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
@@ -131,25 +131,24 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
-
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
-  req.set_x(1);
-  req.set_y(2);
-  req.set_z(3);
+  wrongReq.set_x(1);
+  wrongReq.set_y(2);
+  wrongReq.set_z(3);
 
   reset();
 
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(topic, wrongReq, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(responseExecuted);
 
   // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_FALSE(node.Request(topic, wrongReq, timeout, rep, result));
 
   reset();
 
@@ -164,7 +163,7 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 TEST(twoProcSrvCall, SrvRequestWrongRep)
 {
   transport::msgs::Int req;
-  transport::msgs::Vector3d rep;
+  transport::msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -188,7 +187,7 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_FALSE(node.Request(topic, req, timeout, wrongRep, result));
 
   reset();
 
