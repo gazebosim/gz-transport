@@ -218,6 +218,8 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 
   reset();
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
   transport::Node node;
 
   // Request service calls with wrong types in the response.
