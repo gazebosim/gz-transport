@@ -137,8 +137,7 @@ class MyTestClass
 
   // Member function used as a callback for responding to a service call.
   public: void Echo(const std::string &_topic,
-    const transport::msgs::Int &_req, transport::msgs::Int &_rep,
-    bool &_result)
+    const transport::msgs::Int &_req, transport::msgs::Int &_rep, bool &_result)
   {
     EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_req.data(), data);
@@ -157,8 +156,7 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const std::string &_topic,
-    const transport::msgs::Int &_msg)
+  public: void Cb(const std::string &_topic, const transport::msgs::Int &_msg)
   {
     EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
@@ -203,6 +201,7 @@ class MyTestClass
     this->Reset();
 
     // Service requests with wrong types.
+    EXPECT_FALSE(this->node.Request(topic, wrongReq, timeout, rep, result));
     EXPECT_FALSE(this->node.Request(topic, req, timeout, wrongRep, result));
     EXPECT_TRUE(this->node.Request(topic, wrongReq, response));
     EXPECT_TRUE(this->node.Request(topic, req, wrongResponse));
@@ -925,14 +924,14 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 /// that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongReq)
 {
-  transport::msgs::Vector3d req;
+  transport::msgs::Vector3d wrongReq;
   transport::msgs::Int rep;
   bool result;
   unsigned int timeout = 1000;
 
-  req.set_x(1);
-  req.set_y(2);
-  req.set_z(3);
+  wrongReq.set_x(1);
+  wrongReq.set_y(2);
+  wrongReq.set_z(3);
 
   reset();
 
@@ -940,12 +939,12 @@ TEST(NodeTest, SrvRequestWrongReq)
   EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(topic, wrongReq, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(responseExecuted);
 
   // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_FALSE(node.Request(topic, wrongReq, timeout, rep, result));
 
   reset();
 }
@@ -957,7 +956,7 @@ TEST(NodeTest, SrvRequestWrongReq)
 TEST(NodeTest, SrvRequestWrongRep)
 {
   transport::msgs::Int req;
-  transport::msgs::Vector3d rep;
+  transport::msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -974,7 +973,7 @@ TEST(NodeTest, SrvRequestWrongRep)
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_FALSE(node.Request(topic, req, timeout, wrongRep, result));
 
   reset();
 }

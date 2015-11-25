@@ -335,7 +335,10 @@ void NodeShared::RecvMsgUpdate()
       {
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
-          subscriptionHandlerPtr->RunLocalCallback(topic, *recvMsg);
+        {
+          if (subscriptionHandlerPtr->GetTypeName() == msgType)
+            subscriptionHandlerPtr->RunLocalCallback(topic, *recvMsg);
+        }
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
       }
