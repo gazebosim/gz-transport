@@ -25,10 +25,9 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class AdvertiseOptionsPrivate AdvertiseOptionsPrivate.hh
-    ///     ignition/transport/AdvertiseOptionsPrivate.hh
+    /// \internal
     /// \brief Private data for Private NodeOption class.
-    class IGNITION_VISIBLE AdvertiseOptionsPrivate
+    class AdvertiseOptionsPrivate
     {
       /// \brief Constructor.
       public: AdvertiseOptionsPrivate() = default;
