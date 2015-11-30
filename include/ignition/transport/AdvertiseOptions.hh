@@ -56,7 +56,7 @@ namespace ignition
       /// \brief Assignment operator.
       /// \param[in] _other The new AdvertiseOptions.
       /// \return A reference to this instance.
-      public: AdvertiseOptions& operator=(const AdvertiseOptions &_other);
+      public: AdvertiseOptions &operator=(const AdvertiseOptions &_other);
 
       /// \brief Get the scope used in this topic/service.
       /// \return The scope.
