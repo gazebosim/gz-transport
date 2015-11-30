@@ -26,7 +26,7 @@ using namespace ignition;
 TEST(AdvertiseOptionsTest, copyConstructor)
 {
   transport::AdvertiseOptions opts1;
-  opts1.SetScope(transport::Scope_t::Host);
+  opts1.SetScope(transport::Scope_t::HOST);
   transport::AdvertiseOptions opts2(opts1);
   EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
@@ -37,7 +37,7 @@ TEST(AdvertiseOptionsTest, assignmentOp)
 {
   transport::AdvertiseOptions opts1;
   transport::AdvertiseOptions opts2;
-  opts1.SetScope(transport::Scope_t::Process);
+  opts1.SetScope(transport::Scope_t::PROCESS);
   opts2 = opts1;
   EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
@@ -48,9 +48,9 @@ TEST(AdvertiseOptionsTest, accessors)
 {
   // Scope.
   transport::AdvertiseOptions opts;
-  EXPECT_EQ(opts.Scope(), transport::Scope_t::All);
-  opts.SetScope(transport::Scope_t::Host);
-  EXPECT_EQ(opts.Scope(), transport::Scope_t::Host);
+  EXPECT_EQ(opts.Scope(), transport::Scope_t::ALL);
+  opts.SetScope(transport::Scope_t::HOST);
+  EXPECT_EQ(opts.Scope(), transport::Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////

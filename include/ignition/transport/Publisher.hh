@@ -113,9 +113,9 @@ namespace ignition
              << "\tProcess UUID: " << _msg.PUuid() << std::endl
              << "\tNode UUID: " << _msg.NUuid() << std::endl
              << "\tTopic Scope: ";
-        if (_msg.Scope() == Scope_t::Process)
+        if (_msg.Scope() == Scope_t::PROCESS)
           _out << "Process" << std::endl;
-        else if (_msg.Scope() == Scope_t::Host)
+        else if (_msg.Scope() == Scope_t::HOST)
           _out << "Host" << std::endl;
         else
           _out << "All" << std::endl;
@@ -136,7 +136,7 @@ namespace ignition
       protected: std::string nUuid;
 
       /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope = Scope_t::All;
+      protected: Scope_t scope = Scope_t::ALL;
     };
 
     /// \class MessagePublisher Publisher.hh

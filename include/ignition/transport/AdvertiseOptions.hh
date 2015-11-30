@@ -28,13 +28,18 @@ namespace ignition
     class AdvertiseOptionsPrivate;
 
     /// \def Scope This strongly typed enum defines the different options for
-    /// the scope of a topic/service:
-    /// * Process: Topic/service only available to subscribers in the same
-    ///            process as the publisher.
-    /// * Host:    Topic/service only available to subscribers in the same
-    ///            machine as the publisher.
-    /// * All:     Topic/service available to any subscriber (default scope).
-    enum class Scope_t {Process, Host, All};
+    /// the scope of a topic/service.
+    enum class Scope_t
+    {
+      /// \brief Topic/service only available to subscribers in the same
+      /// process as the publisher.
+      PROCESS,
+      /// \brief Topic/service only available to subscribers in the same
+      /// machine as the publisher.
+      HOST,
+      /// \brief Topic/service available to any subscriber (default scope).
+      ALL
+    };
 
     /// \class AdvertiseOptions AdvertiseOptions.hh
     /// ignition/transport/AdvertiseOptions.hh

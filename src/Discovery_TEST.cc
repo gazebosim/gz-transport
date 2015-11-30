@@ -48,7 +48,7 @@ std::string ctrl2   = "tcp://127.0.0.1:12348";
 std::string id2     = "identity2";
 std::string pUuid2  = transport::Uuid().ToString();
 std::string nUuid2  = transport::Uuid().ToString();
-transport::Scope_t scope = transport::Scope_t::All;
+transport::Scope_t scope = transport::Scope_t::ALL;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
 bool disconnectionExecuted = false;
@@ -406,7 +406,7 @@ TEST(DiscoveryTest, TestAdvertise)
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
   transport::MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::Process, "type");
+    nUuid1, transport::Scope_t::PROCESS, "type");
   EXPECT_TRUE(discovery1.AdvertiseMsg(publisher2));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -418,7 +418,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should trigger a discovery response on discovery2.
   transport::MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::Host, "type");
+    nUuid1, transport::Scope_t::HOST, "type");
   EXPECT_TRUE(discovery1.AdvertiseMsg(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);

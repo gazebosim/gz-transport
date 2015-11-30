@@ -36,7 +36,7 @@ namespace ignition
       public: virtual ~AdvertiseOptionsPrivate() = default;
 
       /// \brief Scope of the topic/service..
-      public: Scope_t scope = Scope_t::All;
+      public: Scope_t scope = Scope_t::ALL;
     };
   }
 }
