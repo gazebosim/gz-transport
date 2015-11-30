@@ -40,14 +40,14 @@ AdvertiseOptions::~AdvertiseOptions()
 }
 
 //////////////////////////////////////////////////
-AdvertiseOptions& AdvertiseOptions::operator=(const AdvertiseOptions &_other)
+AdvertiseOptions &AdvertiseOptions::operator=(const AdvertiseOptions &_other)
 {
   this->SetScope(_other.Scope());
   return *this;
 }
 
 //////////////////////////////////////////////////
-const Scope_t& AdvertiseOptions::Scope() const
+const Scope_t &AdvertiseOptions::Scope() const
 {
   return this->dataPtr->scope;
 }
