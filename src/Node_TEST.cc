@@ -60,9 +60,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -70,19 +69,17 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb2(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+void srvEcho(const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -92,10 +89,8 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+void response(const transport::msgs::Int &_rep, const bool _result)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -105,18 +100,15 @@ void response(const std::string &_topic, const transport::msgs::Int &_rep,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const std::string &/*_topic*/,
-  const transport::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const transport::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const std::string &_topic,
-  const transport::msgs::Vector3d &/*_msg*/)
+void cbVector(const transport::msgs::Vector3d &/*_msg*/)
 {
-  EXPECT_EQ(_topic, topic);
   cbVectorExecuted = true;
 }
 
@@ -128,7 +120,8 @@ class MyTestClass
   /// \brief Class constructor.
   public: MyTestClass()
     : callbackExecuted(false),
-      callbackSrvExecuted(false)
+      callbackSrvExecuted(false),
+      wrongCallbackSrvExecuted(false)
   {
     // Subscribe to an illegal topic.
     EXPECT_FALSE(this->node.Subscribe("Bad Topic", &MyTestClass::Cb, this));
@@ -137,10 +130,9 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call.
-  public: void Echo(const std::string &_topic,
-    const transport::msgs::Int &_req, transport::msgs::Int &_rep, bool &_result)
+  public: void Echo(const transport::msgs::Int &_req,
+    transport::msgs::Int &_rep, bool &_result)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
     _result = true;
@@ -148,18 +140,16 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call.
-  public: void WrongEcho(const std::string &/*_topic*/,
-    const transport::msgs::Vector3d &/*_req*/, transport::msgs::Int &/*_rep*/,
-    bool &_result)
+  public: void WrongEcho(const transport::msgs::Vector3d &/*_req*/,
+    transport::msgs::Int &/*_rep*/, bool &_result)
   {
     _result = true;
     this->wrongCallbackSrvExecuted = true;
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const std::string &_topic, const transport::msgs::Int &_msg)
+  public: void Cb(const transport::msgs::Int &_msg)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
@@ -198,6 +188,7 @@ class MyTestClass
     EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
+    EXPECT_TRUE(this->callbackSrvExecuted);
 
     this->Reset();
 

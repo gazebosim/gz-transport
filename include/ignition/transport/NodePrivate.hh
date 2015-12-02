@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_set>
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NetUtils.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -58,7 +59,7 @@ namespace ignition
       public: NodeShared *shared = NodeShared::GetInstance();
 
       /// \brief Partition for this node.
-      public: std::string partition = "";
+      public: std::string partition = hostname() + ":" + username();
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";

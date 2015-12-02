@@ -233,7 +233,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
           if (subscriptionHandlerPtr->GetTypeName() != _msg.GetTypeName())
             continue;
 
-          subscriptionHandlerPtr->RunLocalCallback(fullyQualifiedTopic, _msg);
+          subscriptionHandlerPtr->RunLocalCallback(_msg);
         }
         else
         {

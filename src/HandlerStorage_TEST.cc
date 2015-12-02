@@ -44,10 +44,9 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Callback providing a service call.
-void cb1(const std::string &_topic, const transport::msgs::Vector3d &_req,
-  transport::msgs::Int &_rep, bool &_result)
+void cb1(const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
+  bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_FLOAT_EQ(_req.x(), 1.0);
   EXPECT_FLOAT_EQ(_req.y(), 2.0);
   EXPECT_FLOAT_EQ(_req.z(), 3.0);
@@ -109,7 +108,7 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Check the handler operations.
   handler = m[nUuid1].begin()->second;
-  handler->RunLocalCallback(topic, reqMsg, rep1Msg, result);
+  handler->RunLocalCallback(reqMsg, rep1Msg, result);
   EXPECT_TRUE(cbExecuted);
   EXPECT_EQ(rep1Msg.data(), intResult);
   EXPECT_TRUE(result);
@@ -119,7 +118,7 @@ TEST(RepStorageTest, RepStorageAPI)
   std::string reqSerialized;
   std::string repSerialized;
   EXPECT_TRUE(reqMsg.SerializeToString(&reqSerialized));
-  handler->RunCallback(topic, reqSerialized, repSerialized, result);
+  handler->RunCallback(reqSerialized, repSerialized, result);
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
   EXPECT_TRUE(rep1Msg.ParseFromString(repSerialized));
@@ -163,13 +162,13 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Check the handler operations.
   handler = m[nUuid2].begin()->second;
-  handler->RunLocalCallback(topic, reqMsg, rep1Msg, result);
+  handler->RunLocalCallback(reqMsg, rep1Msg, result);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
   reset();
 
-  handler->RunCallback(topic, reqSerialized, repSerialized, result);
+  handler->RunCallback(reqSerialized, repSerialized, result);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
@@ -225,7 +224,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   transport::ISubscriptionHandlerPtr h;
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
-  EXPECT_FALSE(h->RunLocalCallback(topic, msg));
+  EXPECT_FALSE(h->RunLocalCallback(msg));
 
   // Try to retrieve the first callback with an incorrect type.
   transport::ISubscriptionHandlerPtr handler;

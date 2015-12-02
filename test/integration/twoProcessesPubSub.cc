@@ -41,9 +41,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &/*_msg*/)
+void cb(const transport::msgs::Int &/*_msg*/)
 {
-  EXPECT_EQ(_topic, topic);
   cbExecuted = true;
   counter++;
 }
@@ -51,10 +50,8 @@ void cb(const std::string &_topic, const transport::msgs::Int &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const std::string &_topic,
-  const transport::msgs::Vector3d &/*_msg*/)
+void cbVector(const transport::msgs::Vector3d &/*_msg*/)
 {
-  EXPECT_EQ(_topic, topic);
   cbVectorExecuted = true;
 }
 
