@@ -46,7 +46,7 @@ namespace ignition
       /// \brief Assignment operator.
       /// \param[in] _other The new NodeOptions.
       /// \return A reference to this instance.
-      public: NodeOptions& operator=(const NodeOptions &_other);
+      public: NodeOptions &operator=(const NodeOptions &_other);
 
       /// \brief Get the namespace used in this node.
       /// \return The namespace
