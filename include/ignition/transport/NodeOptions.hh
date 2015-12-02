@@ -93,6 +93,8 @@ namespace ignition
       /// \param[in] _ns The partition's name.
       /// The default partition value is created using a combination of your
       /// hostname, followed by ':' and your username. E.g.: "bb9:caguero" .
+      /// It's also possible to use the environment variable IGN_PARTITION for
+      /// setting a partition name.
       /// \return True when operation succeed or false if the partition name was
       /// invalid.
       /// \sa Partition
