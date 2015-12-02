@@ -324,7 +324,7 @@ void NodeShared::RecvMsgUpdate()
       {
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
-          subscriptionHandlerPtr->RunLocalCallback(topic, *recvMsg);
+          subscriptionHandlerPtr->RunLocalCallback(*recvMsg);
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
       }
@@ -458,7 +458,7 @@ void NodeShared::RecvSrvRequest()
   {
     bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(topic, req, rep, result);
+    repHandler->RunCallback(req, rep, result);
 
     if (result)
       resultStr = "1";
@@ -574,7 +574,7 @@ void NodeShared::RecvSrvResponse()
   if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
   {
     // Notify the result.
-    reqHandlerPtr->NotifyResult(topic, rep, result);
+    reqHandlerPtr->NotifyResult(rep, result);
 
     // Remove the handler.
     if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))

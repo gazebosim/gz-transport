@@ -20,8 +20,9 @@
 
 #include <string>
 #include <unordered_set>
-#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NetUtils.hh"
+#include "ignition/transport/NodeOptions.hh"
 
 namespace ignition
 {
@@ -55,7 +56,13 @@ namespace ignition
       /// same process.
       public: NodeShared *shared = NodeShared::GetInstance();
 
-      /// \beief Custom options for this node.
+      /// \brief Partition for this node.
+      public: std::string partition = hostname() + ":" + username();
+
+      /// \brief Default namespace for this node.
+      public: std::string ns = "";
+
+      /// \brief Custom options for this node.
       public: NodeOptions options;
     };
   }
