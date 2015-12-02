@@ -52,8 +52,8 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
+void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+  bool &_result)
 {
   _rep.set_data(_req.data());
   _result = true;

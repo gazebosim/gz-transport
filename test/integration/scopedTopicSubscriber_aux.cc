@@ -30,9 +30,8 @@ int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }
@@ -57,6 +56,7 @@ void subscriber()
   cbExecuted = false;
 }
 
+//////////////////////////////////////////////////
 TEST(ScopedTopicTest, SubscriberTest)
 {
   subscriber();

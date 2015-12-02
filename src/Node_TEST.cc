@@ -55,9 +55,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -65,19 +64,17 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb2(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+void srvEcho(const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -87,10 +84,8 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+void response(const transport::msgs::Int &_rep, const bool _result)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -115,11 +110,9 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call.
-  public: void Echo(const std::string &_topic,
-    const transport::msgs::Int &_req, transport::msgs::Int &_rep,
-    bool &_result)
+  public: void Echo(const transport::msgs::Int &_req,
+    transport::msgs::Int &_rep, bool &_result)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
     _result = true;
@@ -127,10 +120,8 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const std::string &_topic,
-    const transport::msgs::Int &_msg)
+  public: void Cb(const transport::msgs::Int &_msg)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };

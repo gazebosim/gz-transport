@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-void srvEcho(const std::string &_topic, const example::msgs::StringMsg &_req,
+void srvEcho(const example::msgs::StringMsg &_req,
   example::msgs::StringMsg &_rep, bool &_result)
 {
   // Set the response's content.
