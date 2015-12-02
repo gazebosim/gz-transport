@@ -645,23 +645,23 @@ namespace ignition
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
-      private: NodeShared* Shared() const;
+      private: NodeShared *Shared() const;
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
-      private: const std::string& NodeUuid() const;
+      private: const std::string &NodeUuid() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string>& TopicsSubscribed() const;
+      private: std::unordered_set<std::string> &TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
-      private: std::unordered_set<std::string>& SrvsAdvertised() const;
+      private: std::unordered_set<std::string> &SrvsAdvertised() const;
 
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
-      private: NodeOptions& Options() const;
+      private: NodeOptions &Options() const;
 
       /// \internal
       /// \brief Smart pointer to private data.
