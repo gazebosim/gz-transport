@@ -451,31 +451,31 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-NodeShared* Node::Shared() const
+NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;
 }
 
 //////////////////////////////////////////////////
-const std::string& Node::NodeUuid() const
+const std::string &Node::NodeUuid() const
 {
   return this->dataPtr->nUuid;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::TopicsSubscribed() const
+std::unordered_set<std::string> &Node::TopicsSubscribed() const
 {
   return this->dataPtr->topicsSubscribed;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::SrvsAdvertised() const
+std::unordered_set<std::string> &Node::SrvsAdvertised() const
 {
   return this->dataPtr->srvsAdvertised;
 }
 
 //////////////////////////////////////////////////
-NodeOptions& Node::Options() const
+NodeOptions &Node::Options() const
 {
   return this->dataPtr->options;
 }
