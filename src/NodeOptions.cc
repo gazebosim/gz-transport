@@ -52,7 +52,7 @@ NodeOptions::~NodeOptions()
 }
 
 //////////////////////////////////////////////////
-NodeOptions& NodeOptions::operator=(const NodeOptions &_other)
+NodeOptions &NodeOptions::operator=(const NodeOptions &_other)
 {
   this->SetNameSpace(_other.NameSpace());
   this->SetPartition(_other.Partition());
@@ -60,7 +60,7 @@ NodeOptions& NodeOptions::operator=(const NodeOptions &_other)
 }
 
 //////////////////////////////////////////////////
-const std::string& NodeOptions::NameSpace() const
+const std::string &NodeOptions::NameSpace() const
 {
   return this->dataPtr->ns;
 }
@@ -78,7 +78,7 @@ bool NodeOptions::SetNameSpace(const std::string &_ns)
 }
 
 //////////////////////////////////////////////////
-const std::string& NodeOptions::Partition() const
+const std::string &NodeOptions::Partition() const
 {
   return this->dataPtr->partition;
 }
