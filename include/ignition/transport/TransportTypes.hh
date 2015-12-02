@@ -63,27 +63,6 @@ namespace ignition
     /// \brief Shared pointer to any protobuf message.
     using ProtoMsgPtr = std::shared_ptr<ProtoMsg>;
 
-    /// \def ReqCallback
-    /// \brief Callback used for receiving a service call request with the
-    /// following parameters:
-    /// \param[in] _topic Service name.
-    /// \param[in] _req Protobuf message containing the service request.
-    /// \param[out] _rep Protobuf message containing the service response.
-    /// \return True when the service response is considered successful or
-    /// false otherwise.
-    using ReqCallback = std::function<bool (const std::string &_topic,
-        const ProtoMsgPtr _req, ProtoMsgPtr _rep)>;
-
-    /// \def RepCallback
-    /// \brief Callback used for receiving a service call response with the
-    /// following parameters:
-    /// \param[in] _topic Service name.
-    /// \param[in] _rep Protobuf message containing the service response.
-    /// \param[in] _result True when the service call was successful or false
-    /// otherwise.
-    using RepCallback = std::function<void (const std::string &_topic,
-      const ProtoMsgPtr _rep, bool _result)>;
-
     /// \def ISubscriptionHandlerPtr
     /// \brief Shared pointer to ISubscriptionHandler.
     using ISubscriptionHandlerPtr = std::shared_ptr<ISubscriptionHandler>;

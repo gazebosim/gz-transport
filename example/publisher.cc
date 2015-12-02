@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
-  while(!terminatePub)
+  while (!terminatePub)
   {
     node.Publish(topic, msg);
 
