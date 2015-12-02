@@ -91,6 +91,8 @@ namespace ignition
       /// not allowed. The symbols '@', '~' and ' ' are not allowed as part of a
       /// partition name. Two or more consecutive slashes ('//') are not allowed
       /// \param[in] _ns The partition's name.
+      /// The default partition value is created using a combination of your
+      /// hostname, followed by ':' and your username. E.g.: "bb9:caguero" .
       /// \return True when operation succeed or false if the partition name was
       /// invalid.
       /// \sa Partition
