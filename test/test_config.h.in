@@ -28,6 +28,7 @@
 
 #ifdef _WIN32
   #include <filesystem>
+  #include <windows.h>
 #else
   #include <signal.h>
   #include <sys/types.h>

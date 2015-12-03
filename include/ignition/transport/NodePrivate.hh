@@ -22,9 +22,7 @@
 #include <unordered_set>
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
-
-using namespace ignition;
-using namespace transport;
+#include "ignition/transport/NodeOptions.hh"
 
 namespace ignition
 {
@@ -63,6 +61,9 @@ namespace ignition
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";
+
+      /// \brief Custom options for this node.
+      public: NodeOptions options;
     };
   }
 }

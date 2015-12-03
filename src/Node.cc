@@ -20,7 +20,6 @@
 #endif
 #include <google/protobuf/message.h>
 #include <cassert>
-#include <cstdlib>
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -32,6 +31,7 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodePrivate.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -42,51 +42,15 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-Node::Node()
+Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())
 {
-  // Check if the environment variable IGN_PARTITION is present.
-  std::string partitionStr;
-  char *envPartition = std::getenv("IGN_PARTITION");
-
-  if (envPartition)
-  {
-    partitionStr = std::string(envPartition);
-    if (TopicUtils::IsValidNamespace(partitionStr))
-      this->dataPtr->partition = partitionStr;
-    else
-      std::cerr << "Invalid IGN_PARTITION value [" << partitionStr << "]"
-                << std::endl;
-  }
-
   // Generate the node UUID.
   Uuid uuid;
   this->dataPtr->nUuid = uuid.ToString();
-}
 
-//////////////////////////////////////////////////
-Node::Node(const std::string &_partition, const std::string &_ns)
-  : Node()
-{
-  if (TopicUtils::IsValidNamespace(_ns))
-    this->dataPtr->ns = _ns;
-  else
-  {
-    std::cerr << "Namespace [" << _ns << "] is not valid." << std::endl;
-    std::cerr << "Using default namespace." << std::endl;
-  }
-
-  if (TopicUtils::IsValidNamespace(_partition))
-    this->dataPtr->partition = _partition;
-  else
-  {
-    std::cerr << "Partition [" << _partition << "] is not valid." << std::endl;
-    std::cerr << "Using default partition." << std::endl;
-  }
-
-  // Generate the node UUID.
-  Uuid uuid;
-  this->dataPtr->nUuid = uuid.ToString();
+  // Save the options.
+  this->dataPtr->options = _options;
 }
 
 //////////////////////////////////////////////////
@@ -133,8 +97,8 @@ Node::~Node()
 bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -185,8 +149,8 @@ std::vector<std::string> Node::AdvertisedTopics() const
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string fullyQualifiedTopic = _topic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -215,8 +179,8 @@ bool Node::Unadvertise(const std::string &_topic)
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -294,8 +258,8 @@ std::vector<std::string> Node::SubscribedTopics() const
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -390,8 +354,8 @@ std::vector<std::string> Node::AdvertisedServices() const
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->dataPtr->partition,
-    this->dataPtr->ns, _topic, fullyQualifiedTopic))
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -443,7 +407,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
       partition.erase(partition.begin());
 
     // Discard if the partition name does not match this node's partition.
-    if (partition != this->Partition())
+    if (partition != this->Options().Partition())
       continue;
 
     // Remove the partition part from the topic.
@@ -476,7 +440,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
       partition.erase(partition.begin());
 
     // Discard if the partition name does not match this node's partition.
-    if (partition != this->Partition())
+    if (partition != this->Options().Partition())
       continue;
 
     // Remove the partition part from the service.
@@ -487,37 +451,31 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-const std::string& Node::Partition() const
-{
-  return this->dataPtr->partition;
-}
-
-//////////////////////////////////////////////////
-const std::string& Node::NameSpace() const
-{
-  return this->dataPtr->ns;
-}
-
-//////////////////////////////////////////////////
-NodeShared* Node::Shared() const
+NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;
 }
 
 //////////////////////////////////////////////////
-const std::string& Node::NodeUuid() const
+const std::string &Node::NodeUuid() const
 {
   return this->dataPtr->nUuid;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::TopicsSubscribed() const
+std::unordered_set<std::string> &Node::TopicsSubscribed() const
 {
   return this->dataPtr->topicsSubscribed;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::SrvsAdvertised() const
+std::unordered_set<std::string> &Node::SrvsAdvertised() const
 {
   return this->dataPtr->srvsAdvertised;
+}
+
+//////////////////////////////////////////////////
+NodeOptions &Node::Options() const
+{
+  return this->dataPtr->options;
 }
