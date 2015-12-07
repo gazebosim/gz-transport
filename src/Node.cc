@@ -451,6 +451,21 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
+void Node::WaitForConnections(const std::string &_topic,
+  const double &_timeout) const
+{
+  const auto &advTopics = this->AdvertisedTopics();
+  if (std::find(advTopics.begin(), advTopics.end(), _topic) == advTopics.end())
+  {
+    std::cerr << "Topic [" << _topic << "] not advertised." << std::endl;
+    return;
+  }
+
+  // Wait until there's a subscriber interested on this topic.
+  // ToDo: Use a condition variable.
+}
+
+//////////////////////////////////////////////////
 NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;

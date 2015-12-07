@@ -622,6 +622,14 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
+      /// \brief Block until a subscriber has been connected with this node.
+      /// \param[in] _topic Subscriber's topic.
+      /// \param[in] _timeout _timeout The call will timeout after '_timeout'
+      /// seconds (optional). If the value is negative, the function will never
+      /// timeout.
+      public: void WaitForConnections(const std::string &_topic,
+                                      const double &_timeout = -1.0) const;
+
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
