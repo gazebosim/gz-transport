@@ -26,6 +26,7 @@
 # pragma warning(pop)
 #endif
 #include <zmq.hpp>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -37,6 +38,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/TopicBlocker.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -195,6 +197,9 @@ namespace ignition
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
+
+      /// \brief ToDo.
+      public: std::map<std::string, TopicBlocker> topicBlockers;
     };
   }
 }

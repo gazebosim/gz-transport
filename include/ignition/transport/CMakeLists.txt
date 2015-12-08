@@ -14,6 +14,7 @@ set (headers
   RepHandler.hh
   ReqHandler.hh
   SubscriptionHandler.hh
+  TopicBlocker.hh
   TopicStorage.hh
   TopicUtils.hh
   TransportTypes.hh

@@ -383,6 +383,10 @@ void NodeShared::RecvControlUpdate()
     MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::All,
       "");
     this->remoteSubscribers.AddPublisher(remoteNode);
+
+    // Remove the partition information.
+    topic.erase(0, topic.rfind("@") + 1);
+    this->topicBlockers[topic].Release();
   }
   else if (std::stoi(data) == EndConnection)
   {

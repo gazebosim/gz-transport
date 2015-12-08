@@ -19,8 +19,8 @@
 # pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -200,9 +200,9 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (this->dataPtr->shared->localSubscriptions.GetHandlers(fullyQualifiedTopic,
         handlers))
   {
-    for (auto &node : handlers)
+    for (const auto &node : handlers)
     {
-      for (auto &handler : node.second)
+      for (const auto &handler : node.second)
       {
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
@@ -451,18 +451,18 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-void Node::WaitForConnections(const std::string &_topic,
-  const double &_timeout) const
+bool Node::WaitForConnections(const std::string &_topic, const int &_timeout)
 {
   const auto &advTopics = this->AdvertisedTopics();
   if (std::find(advTopics.begin(), advTopics.end(), _topic) == advTopics.end())
   {
     std::cerr << "Topic [" << _topic << "] not advertised." << std::endl;
-    return;
+    return false;
   }
 
   // Wait until there's a subscriber interested on this topic.
   // ToDo: Use a condition variable.
+  return this->Shared()->topicBlockers[_topic].Wait(_timeout);
 }
 
 //////////////////////////////////////////////////

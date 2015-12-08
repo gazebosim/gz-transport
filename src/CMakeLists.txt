@@ -9,6 +9,7 @@ set (sources
   NodeShared.cc
   Packet.cc
   Publisher.cc
+  TopicBlocker.cc
   TopicUtils.cc
   Uuid.cc
 )
@@ -21,6 +22,7 @@ set (gtest_sources
   NodeOptions_TEST.cc
   Packet_TEST.cc
   Publisher_TEST.cc
+  TopicBlocker_TEST.cc
   TopicStorage_TEST.cc
   TopicUtils_TEST.cc
   Uuid_TEST.cc

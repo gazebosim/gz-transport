@@ -172,8 +172,7 @@ namespace ignition
           new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->Callback(
-          std::bind(_cb, _obj, std::placeholders::_1));
+        subscrHandlerPtr->Callback(std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -571,8 +570,7 @@ namespace ignition
           else
           {
             // Discover the service responser.
-            if (!this->Shared()->discovery->DiscoverSrv(
-              fullyQualifiedTopic))
+            if (!this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic))
             {
               std::cerr << "Node::Request(): Error discovering a service. "
                         << "Did you forget to start the discovery service?"
@@ -627,8 +625,9 @@ namespace ignition
       /// \param[in] _timeout _timeout The call will timeout after '_timeout'
       /// seconds (optional). If the value is negative, the function will never
       /// timeout.
-      public: void WaitForConnections(const std::string &_topic,
-                                      const double &_timeout = -1.0) const;
+      /// \return ToDo.
+      public: bool WaitForConnections(const std::string &_topic,
+                                     const int &_timeout = -1.0);
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
