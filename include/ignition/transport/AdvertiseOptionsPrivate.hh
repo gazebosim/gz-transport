@@ -26,7 +26,7 @@ namespace ignition
   namespace transport
   {
     /// \internal
-    /// \brief Private data for Private NodeOption class.
+    /// \brief Private data for Private AdvertiseOptions class.
     class AdvertiseOptionsPrivate
     {
       /// \brief Constructor.
