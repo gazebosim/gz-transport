@@ -34,6 +34,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -65,10 +66,11 @@ namespace ignition
 
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true if the topic was succesfully advertised.
+      /// \sa AdvertiseOptions.
       public: bool Advertise(const std::string &_topic,
-                             const Scope_t &_scope = Scope_t::All);
+                         const AdvertiseOptions &_options = AdvertiseOptions());
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -217,13 +219,14 @@ namespace ignition
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
-        const Scope_t &_scope = Scope_t::All)
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -260,7 +263,7 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(), "unused",
           "unused");
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))
@@ -283,14 +286,15 @@ namespace ignition
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
       /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
         C *_obj,
-        const Scope_t &_scope = Scope_t::All)
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -329,7 +333,7 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(), "unused",
           "unused");
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))

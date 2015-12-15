@@ -20,21 +20,13 @@
 
 #include <iostream>
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \def Scope This strongly typed enum defines the different options for
-    /// the scope of a topic/service:
-    /// * Process: Topic/service only available to subscribers in the same
-    ///            process as the publisher.
-    /// * Host:    Topic/service only available to subscribers in the same
-    ///            machine as the publisher.
-    /// * All:     Topic/service available to any subscriber (default scope).
-    enum class Scope_t {Process, Host, All};
-
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
@@ -121,9 +113,9 @@ namespace ignition
              << "\tProcess UUID: " << _msg.PUuid() << std::endl
              << "\tNode UUID: " << _msg.NUuid() << std::endl
              << "\tTopic Scope: ";
-        if (_msg.Scope() == Scope_t::Process)
+        if (_msg.Scope() == Scope_t::PROCESS)
           _out << "Process" << std::endl;
-        else if (_msg.Scope() == Scope_t::Host)
+        else if (_msg.Scope() == Scope_t::HOST)
           _out << "Host" << std::endl;
         else
           _out << "All" << std::endl;
@@ -144,7 +136,7 @@ namespace ignition
       protected: std::string nUuid;
 
       /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope = Scope_t::All;
+      protected: Scope_t scope = Scope_t::ALL;
     };
 
     /// \class MessagePublisher Publisher.hh

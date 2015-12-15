@@ -22,6 +22,7 @@
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -186,15 +187,18 @@ void CreateSubscriber()
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// \param[in] _scope Scope used to advertise the topic.
 void CreatePubSubTwoThreads(
-  const transport::Scope_t &_sc = transport::Scope_t::All)
+  const transport::Scope_t &_sc = transport::Scope_t::ALL)
 {
   reset();
+
+  transport::AdvertiseOptions opts;
+  opts.SetScope(_sc);
 
   transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, _sc));
+  EXPECT_TRUE(node.Advertise(topic, opts));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -449,7 +453,7 @@ TEST(NodeTest, ClassMemberCallback)
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::Process);
+  CreatePubSubTwoThreads(transport::Scope_t::PROCESS);
 }
 
 //////////////////////////////////////////////////
@@ -457,7 +461,7 @@ TEST(NodeTest, ScopeProcess)
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::Host);
+  CreatePubSubTwoThreads(transport::Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
@@ -465,7 +469,7 @@ TEST(NodeTest, ScopeHost)
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::All);
+  CreatePubSubTwoThreads(transport::Scope_t::ALL);
 }
 
 //////////////////////////////////////////////////
