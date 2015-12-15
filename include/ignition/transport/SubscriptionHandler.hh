@@ -69,6 +69,7 @@ namespace ignition
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
+      /// \return String representation of the message type.
       public: virtual std::string GetTypeName() = 0;
 
       /// \brief Get the node UUID.
