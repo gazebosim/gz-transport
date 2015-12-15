@@ -94,7 +94,8 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
+bool Node::Advertise(const std::string &_topic,
+  const AdvertiseOptions &_options)
 {
   std::string fullyQualifiedTopic;
   if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -116,7 +117,8 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
+    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _options.Scope(),
+    "unused");
 
   if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher))
   {

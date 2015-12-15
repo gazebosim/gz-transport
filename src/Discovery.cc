@@ -52,6 +52,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/NetUtils.hh"
@@ -216,7 +217,7 @@ Discovery::~Discovery()
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   this->SendMsg(ByeType,
-    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::All));
+    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::ALL));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -275,7 +276,7 @@ bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
   this->dataPtr->infoMsg.AddPublisher(_publisher);
 
   // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
+  if (_publisher.Scope() != Scope_t::PROCESS)
     this->SendMsg(AdvType, _publisher);
 
   return true;
@@ -293,7 +294,7 @@ bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
   this->dataPtr->infoSrv.AddPublisher(_publisher);
 
   // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
+  if (_publisher.Scope() != Scope_t::PROCESS)
     this->SendMsg(AdvSrvType, _publisher);
 
   return true;
@@ -322,7 +323,7 @@ bool Discovery::UnadvertiseMsg(const std::string &_topic,
 
   // Only unadvertise a message outside this process if the scope
   // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
+  if (inf.Scope() != Scope_t::PROCESS)
     this->SendMsg(UnadvType, inf);
 
   return true;
@@ -351,7 +352,7 @@ bool Discovery::UnadvertiseSrv(const std::string &_topic,
 
   // Only unadvertise a message outside this process if the scope
   // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
+  if (inf.Scope() != Scope_t::PROCESS)
     this->SendMsg(UnadvSrvType, inf);
 
   return true;
@@ -370,7 +371,7 @@ bool Discovery::DiscoverMsg(const std::string &_topic)
 
   pub.Topic(_topic);
   pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
+  pub.Scope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubType, pub);
@@ -413,7 +414,7 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
 
   pub.Topic(_topic);
   pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
+  pub.Scope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubSrvType, pub);
@@ -577,7 +578,7 @@ void Discovery::RunActivityTask()
         // topics.
         MessagePublisher publisher;
         publisher.PUuid(it->first);
-        publisher.Scope(Scope_t::All);
+        publisher.Scope(Scope_t::ALL);
         this->dataPtr->disconnectionCb(publisher);
 
         // Remove the activity entry.
@@ -619,7 +620,7 @@ void Discovery::RunHeartbeatTask()
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
       std::string pUuid = this->dataPtr->pUuid;
-      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
+      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::ALL);
       this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
@@ -761,8 +762,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
-          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -786,8 +787,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
-          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -821,8 +822,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
           for (auto nodeInfo : addresses[this->dataPtr->pUuid])
           {
             // Check scope of the topic.
-            if ((nodeInfo.Scope() == Scope_t::Process) ||
-                (nodeInfo.Scope() == Scope_t::Host &&
+            if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+                (nodeInfo.Scope() == Scope_t::HOST &&
                  _fromIp != this->dataPtr->hostAddr))
             {
               continue;
@@ -853,8 +854,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
           for (auto nodeInfo : addresses[this->dataPtr->pUuid])
           {
             // Check scope of the topic.
-            if ((nodeInfo.Scope() == Scope_t::Process) ||
-                (nodeInfo.Scope() == Scope_t::Host &&
+            if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+                (nodeInfo.Scope() == Scope_t::HOST &&
                  _fromIp != this->dataPtr->hostAddr))
             {
               continue;
@@ -882,7 +883,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       {
         MessagePublisher msgPub;
         msgPub.PUuid(recvPUuid);
-        msgPub.Scope(Scope_t::All);
+        msgPub.Scope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionCb(msgPub);
       }
@@ -891,7 +892,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       {
         ServicePublisher srvPub;
         srvPub.PUuid(recvPUuid);
-        srvPub.Scope(Scope_t::All);
+        srvPub.Scope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionSrvCb(srvPub);
       }
@@ -909,8 +910,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
-          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -937,8 +938,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
-          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
