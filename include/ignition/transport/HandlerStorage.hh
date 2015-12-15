@@ -83,9 +83,9 @@ namespace ignition
           return false;
 
         const auto &m = this->data.at(_topic);
-        for (const auto& node : m)
+        for (const auto &node : m)
         {
-          for (const auto& handler : node.second)
+          for (const auto &handler : node.second)
           {
             if (_reqTypeName == handler.second->GetReqTypeName() &&
                 _repTypeName == handler.second->GetRepTypeName())
@@ -112,9 +112,9 @@ namespace ignition
           return false;
 
         const auto &m = this->data.at(_topic);
-        for (const auto& node : m)
+        for (const auto &node : m)
         {
-          for (const auto& handler : node.second)
+          for (const auto &handler : node.second)
           {
             if (_msgTypeName == handler.second->GetTypeName())
             {
