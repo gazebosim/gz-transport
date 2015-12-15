@@ -394,7 +394,7 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Register that we have another remote subscriber.
-    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::All,
+    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::ALL,
       "");
     this->remoteSubscribers.AddPublisher(remoteNode);
   }

@@ -1,6 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
+  AdvertiseOptions.cc
   Discovery.cc
   ign.cc
   NetUtils.cc
@@ -14,6 +15,7 @@ set (sources
 )
 
 set (gtest_sources
+  AdvertiseOptions_TEST.cc
   Discovery_TEST.cc
   HandlerStorage_TEST.cc
   NetUtils_TEST.cc

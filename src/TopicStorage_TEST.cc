@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
@@ -30,13 +31,13 @@ TEST(TopicStorageTest, TopicStorageAPI)
   std::string topic2 = "foo2";
 
   std::string nUuid1 = "node-UUID-1";
-  transport::Scope_t scope1 = transport::Scope_t::All;
+  transport::Scope_t scope1 = transport::Scope_t::ALL;
   std::string nUuid2  = "node-UUID-2";
-  transport::Scope_t scope2 = transport::Scope_t::Process;
+  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
   std::string nUuid3  = "node-UUID-3";
-  transport::Scope_t scope3 = transport::Scope_t::Host;
+  transport::Scope_t scope3 = transport::Scope_t::HOST;
   std::string nUuid4  = "node-UUID-4";
-  transport::Scope_t scope4 = transport::Scope_t::All;
+  transport::Scope_t scope4 = transport::Scope_t::ALL;
 
   std::string pUuid1 = "process-UUID-1";
   std::string addr1  = "tcp://10.0.0.1:6001";
