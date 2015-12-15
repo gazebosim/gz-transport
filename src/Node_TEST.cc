@@ -140,7 +140,7 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
-  // Member function used as a callback for responding to a service call.
+  /// \brief Member function used as a callback for responding to a service call.
   public: void WrongEcho(const transport::msgs::Vector3d &/*_req*/,
     transport::msgs::Int &/*_rep*/, bool &_result)
   {
@@ -210,7 +210,7 @@ class MyTestClass
     this->wrongCallbackSrvExecuted = false;
   }
 
-  /// \brief Member variable that flags when the callback is executed.
+  /// \brief Member variables that flag when the callbacks are executed.
   public: bool callbackExecuted;
   public: bool callbackSrvExecuted;
   public: bool wrongCallbackSrvExecuted;
