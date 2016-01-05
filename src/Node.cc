@@ -222,8 +222,8 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
       _msg.GetTypeName());
   }
   // Debug output.
-  // else
-  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
+  else
+    std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return true;
 }

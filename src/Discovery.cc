@@ -274,7 +274,10 @@ bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
     return false;
 
   // Add the addressing information (local publisher).
-  this->dataPtr->infoMsg.AddPublisher(_publisher);
+  if (!this->dataPtr->infoMsg.AddPublisher(_publisher))
+    return false;
+
+  std::cout << _publisher << std::endl;
 
   // Only advertise a message outside this process if the scope is not 'Process'
   if (_publisher.Scope() != Scope_t::PROCESS)
@@ -846,6 +849,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
 
             // Answer an ADVERTISE message.
             this->SendMsg(AdvType, nodeInfo);
+
+            std::cout << "Sending ADV" << std::endl;
           }
         }
       }

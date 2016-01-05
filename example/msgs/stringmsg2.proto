@@ -1,0 +1,9 @@
+package example.msgs;
+
+/// \brief String message
+
+message StringMsg2
+{
+  /// \brief String data
+  required string data = 1;
+}

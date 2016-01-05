@@ -1,5 +1,6 @@
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER
   stringmsg.proto
+  stringmsg2.proto
 )
 
 # Variables needed to propagate through modules
