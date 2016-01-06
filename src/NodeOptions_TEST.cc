@@ -61,14 +61,16 @@ TEST(NodeOptionsTest, accessors)
   // NameSpace.
   std::string aNamespace = "validNamespace";
   EXPECT_FALSE(opts.SetNameSpace("invalid namespace"));
+  EXPECT_EQ(opts.NameSpace(), "");
   EXPECT_TRUE(opts.SetNameSpace(aNamespace));
   EXPECT_EQ(opts.NameSpace(), aNamespace);
 
   // Partition.
   std::string aPartition = "validPartition";
-  EXPECT_FALSE(opts.SetNameSpace("invalid partition"));
-  EXPECT_TRUE(opts.SetNameSpace(aPartition));
-  EXPECT_EQ(opts.NameSpace(), aPartition);
+  EXPECT_FALSE(opts.SetPartition("invalid partition"));
+  EXPECT_EQ(opts.Partition(), defaultPartition);
+  EXPECT_TRUE(opts.SetPartition(aPartition));
+  EXPECT_EQ(opts.Partition(), aPartition);
 }
 
 //////////////////////////////////////////////////

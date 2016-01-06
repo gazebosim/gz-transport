@@ -22,6 +22,7 @@
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -56,9 +57,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   counter++;
@@ -66,19 +66,17 @@ void cb(const std::string &_topic, const transport::msgs::Int &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb2(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
+void srvEcho(const transport::msgs::Int &_req,
   transport::msgs::Int &_rep, bool &_result)
 {
-  EXPECT_EQ(_topic, topic);
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
@@ -88,10 +86,8 @@ void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+void response(const transport::msgs::Int &_rep, const bool _result)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 
@@ -116,11 +112,9 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call.
-  public: void Echo(const std::string &_topic,
-    const transport::msgs::Int &_req, transport::msgs::Int &_rep,
-    bool &_result)
+  public: void Echo(const transport::msgs::Int &_req,
+    transport::msgs::Int &_rep, bool &_result)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
     _result = true;
@@ -128,10 +122,8 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const std::string &_topic,
-    const transport::msgs::Int &_msg)
+  public: void Cb(const transport::msgs::Int &_msg)
   {
-    EXPECT_EQ(_topic, topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
@@ -195,15 +187,18 @@ void CreateSubscriber()
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// \param[in] _scope Scope used to advertise the topic.
 void CreatePubSubTwoThreads(
-  const transport::Scope_t &_sc = transport::Scope_t::All)
+  const transport::Scope_t &_sc = transport::Scope_t::ALL)
 {
   reset();
+
+  transport::AdvertiseOptions opts;
+  opts.SetScope(_sc);
 
   transport::msgs::Int msg;
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, _sc));
+  EXPECT_TRUE(node.Advertise(topic, opts));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -458,7 +453,7 @@ TEST(NodeTest, ClassMemberCallback)
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::Process);
+  CreatePubSubTwoThreads(transport::Scope_t::PROCESS);
 }
 
 //////////////////////////////////////////////////
@@ -466,7 +461,7 @@ TEST(NodeTest, ScopeProcess)
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::Host);
+  CreatePubSubTwoThreads(transport::Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
@@ -474,7 +469,7 @@ TEST(NodeTest, ScopeHost)
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::All);
+  CreatePubSubTwoThreads(transport::Scope_t::ALL);
 }
 
 //////////////////////////////////////////////////

@@ -35,10 +35,8 @@ int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const std::string &_topic, const transport::msgs::Int &_rep,
-  bool _result)
+void response(const transport::msgs::Int &_rep, const bool _result)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
 

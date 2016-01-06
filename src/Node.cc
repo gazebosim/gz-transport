@@ -94,7 +94,8 @@ Node::~Node()
 }
 
 //////////////////////////////////////////////////
-bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
+bool Node::Advertise(const std::string &_topic,
+  const AdvertiseOptions &_options)
 {
   std::string fullyQualifiedTopic;
   if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -116,7 +117,8 @@ bool Node::Advertise(const std::string &_topic, const Scope_t &_scope)
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
     this->dataPtr->shared->myAddress, this->dataPtr->shared->myControlAddress,
-    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _scope, "unused");
+    this->dataPtr->shared->pUuid, this->dataPtr->nUuid, _options.Scope(),
+    "unused");
 
   if (!this->dataPtr->shared->discovery->AdvertiseMsg(publisher))
   {
@@ -207,7 +209,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
 
         if (subscriptionHandlerPtr)
-          subscriptionHandlerPtr->RunLocalCallback(fullyQualifiedTopic, _msg);
+          subscriptionHandlerPtr->RunLocalCallback(_msg);
         else
         {
           std::cerr << "Node::Publish(): Subscription handler is NULL"
@@ -451,31 +453,31 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-NodeShared* Node::Shared() const
+NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;
 }
 
 //////////////////////////////////////////////////
-const std::string& Node::NodeUuid() const
+const std::string &Node::NodeUuid() const
 {
   return this->dataPtr->nUuid;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::TopicsSubscribed() const
+std::unordered_set<std::string> &Node::TopicsSubscribed() const
 {
   return this->dataPtr->topicsSubscribed;
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string>& Node::SrvsAdvertised() const
+std::unordered_set<std::string> &Node::SrvsAdvertised() const
 {
   return this->dataPtr->srvsAdvertised;
 }
 
 //////////////////////////////////////////////////
-NodeOptions& Node::Options() const
+NodeOptions &Node::Options() const
 {
   return this->dataPtr->options;
 }

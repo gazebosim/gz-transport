@@ -52,13 +52,11 @@ namespace ignition
 
       /// \brief Executes the callback registered for this handler and notify
       /// a potential requester waiting on a blocking call.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _rep Serialized data containing the response coming from
       /// the service call responser.
       /// \param[in] _result Contains the result of the service call coming from
       /// the service call responser.
-      public: virtual void NotifyResult(const std::string &_topic,
-                                        const std::string &_rep,
+      public: virtual void NotifyResult(const std::string &_rep,
                                         const bool _result) = 0;
 
       /// \brief Get the node UUID.
@@ -91,13 +89,13 @@ namespace ignition
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void Requested(bool _value)
+      public: void Requested(const bool _value)
       {
         this->requested = _value;
       }
 
       /// \brief Serialize the Req protobuf message stored.
-      /// \param[out] The serialized data.
+      /// \param[out] _buffer The serialized data.
       /// \return True if the serialization succeed or false otherwise.
       public: virtual bool Serialize(std::string &_buffer) const = 0;
 
@@ -116,7 +114,7 @@ namespace ignition
       /// \param[in] _timeout Maximum waiting time in milliseconds.
       /// \return True if the service call was executed or false otherwise.
       public: template<typename Lock> bool WaitUntil(Lock &_lock,
-                                                     unsigned int _timeout)
+                                                    const unsigned int _timeout)
       {
         auto now = std::chrono::system_clock::now();
         return this->condition.wait_until(_lock,
@@ -187,12 +185,11 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       public: void Callback(const std::function <void(
-        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
+        const Rep &_rep, const bool _result)> &_cb)
       {
         this->cb = _cb;
       }
@@ -219,9 +216,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void NotifyResult(const std::string &_topic,
-                                const std::string &_rep,
-                                const bool _result)
+      public: void NotifyResult(const std::string &_rep, const bool _result)
       {
         // Execute the callback (if existing).
         if (this->cb)
@@ -229,11 +224,7 @@ namespace ignition
           // Instantiate the specific protobuf message associated to this topic.
           auto msg = this->CreateMsg(_rep);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msg, _result);
+          this->cb(*msg, _result);
         }
         else
         {
@@ -250,12 +241,10 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      private: std::function<void(const std::string &_topic, const Rep &_rep,
-        bool _result)> cb;
+      private: std::function<void(const Rep &_rep, const bool _result)> cb;
     };
   }
 }

@@ -34,6 +34,7 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -65,10 +66,11 @@ namespace ignition
 
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true if the topic was succesfully advertised.
+      /// \sa AdvertiseOptions.
       public: bool Advertise(const std::string &_topic,
-                             const Scope_t &_scope = Scope_t::All);
+                         const AdvertiseOptions &_options = AdvertiseOptions());
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -91,12 +93,11 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
-      ///   \param[in] _topic Topic name.
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &_topic, const T &_msg))
+          void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -146,13 +147,12 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
-      ///   \param[in] _topic Topic name.
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const std::string &_topic, const T &_msg),
+          void(C::*_cb)(const T &_msg),
           C *_obj)
       {
         std::string fullyQualifiedTopic;
@@ -175,7 +175,7 @@ namespace ignition
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->Callback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+          std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -216,18 +216,17 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _topic Service name to be advertised.
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const std::string &_topic, const T1 &_req,
-                   T2 &_rep, bool &_result),
-        const Scope_t &_scope = Scope_t::All)
+        void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -264,7 +263,7 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(), "unused",
           "unused");
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))
@@ -283,20 +282,19 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _topic Service name to be advertised.
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
       /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const std::string &_topic, const T1 &_req,
-                      T2 &_rep, bool &_result),
+        void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
         C *_obj,
-        const Scope_t &_scope = Scope_t::All)
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -322,7 +320,7 @@ namespace ignition
         // Insert the callback into the handler.
         repHandlerPtr->Callback(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4));
+            std::placeholders::_3));
 
         // Store the replier handler. Each replier handler is
         // associated with a topic. When the receiving thread gets new requests,
@@ -335,7 +333,7 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(), "unused",
           "unused");
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))
@@ -359,7 +357,6 @@ namespace ignition
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
       /// response arrives. The callback has the following parameters:
-      ///   \param[in] _topic Service name to be requested.
       ///   \param[in] _rep Protobuf message containing the response.
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
@@ -367,7 +364,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
+        void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -391,14 +388,9 @@ namespace ignition
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          repHandler->RunLocalCallback(_req, rep, result);
 
-          // Notify the requester with the response and remove the partition
-          // part from the topic name.
-          std::string topicName = fullyQualifiedTopic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          _cb(topicName, rep, result);
+          _cb(rep, result);
           return true;
         }
 
@@ -445,7 +437,6 @@ namespace ignition
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
       /// response arrives. The callback has the following parameters:
-      ///   \param[in] _topic Service name to be requested.
       ///   \param[in] _rep Protobuf message containing the response.
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
@@ -454,7 +445,7 @@ namespace ignition
       public: template<typename C, typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(C::*_cb)(const std::string &_topic, const T2 &_rep, bool _result),
+        void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
         std::string fullyQualifiedTopic;
@@ -479,14 +470,9 @@ namespace ignition
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          repHandler->RunLocalCallback(_req, rep, result);
 
-          // Notify the requester with the response and remove the partition
-          // part from the topic name.
-          std::string topicName = fullyQualifiedTopic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          _cb(topicName, rep, result);
+          _cb(rep, result);
           return true;
         }
 
@@ -499,8 +485,7 @@ namespace ignition
 
         // Insert the callback into the handler.
         reqHandlerPtr->SetCallback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3));
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
 
         // Store the request handler.
         this->Shared()->requests.AddHandler(
@@ -569,8 +554,7 @@ namespace ignition
             repHandler))
           {
             // There is a responser in my process, let's use it.
-            repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
-              _result);
+            repHandler->RunLocalCallback(_req, _rep, _result);
             return true;
           }
 
@@ -645,23 +629,23 @@ namespace ignition
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
-      private: NodeShared* Shared() const;
+      private: NodeShared *Shared() const;
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
-      private: const std::string& NodeUuid() const;
+      private: const std::string &NodeUuid() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string>& TopicsSubscribed() const;
+      private: std::unordered_set<std::string> &TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
-      private: std::unordered_set<std::string>& SrvsAdvertised() const;
+      private: std::unordered_set<std::string> &SrvsAdvertised() const;
 
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
-      private: NodeOptions& Options() const;
+      private: NodeOptions &Options() const;
 
       /// \internal
       /// \brief Smart pointer to private data.

@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "msgs/int.pb.h"
@@ -45,8 +46,10 @@ TEST(ScopedTopicTest, ProcessTest)
   msg.set_data(data);
 
   transport::Node node;
+  transport::AdvertiseOptions opts;
+  opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise(topic, transport::Scope_t::Process));
+  EXPECT_TRUE(node.Advertise(topic, opts));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2015 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,56 +15,47 @@
  *
 */
 
-#include <chrono>
-#include <climits>
-#include <string>
-#include "ignition/transport/Node.hh"
-#include "msgs/int.pb.h"
-#include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/test_config.h"
+#include "gtest/gtest.h"
 
 using namespace ignition;
 
-std::string topic = "/foo";
-int Forever = INT_MAX;
-
 //////////////////////////////////////////////////
-/// \brief Provide a service.
-void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
-  bool &_result)
+/// \brief Check the copy constructor.
+TEST(AdvertiseOptionsTest, copyConstructor)
 {
-  _rep.set_data(_req.data());
-  _result = true;
+  transport::AdvertiseOptions opts1;
+  opts1.SetScope(transport::Scope_t::HOST);
+  transport::AdvertiseOptions opts2(opts1);
+  EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
 
 //////////////////////////////////////////////////
-void runReplier()
+/// \brief Check the assignment operator.
+TEST(AdvertiseOptionsTest, assignmentOp)
 {
-  transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
-
-  // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
+  transport::AdvertiseOptions opts1;
+  transport::AdvertiseOptions opts2;
+  opts1.SetScope(transport::Scope_t::PROCESS);
+  opts2 = opts1;
+  EXPECT_EQ(opts2.Scope(), opts1.Scope());
 }
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallReplierAux, SrvProcReplier)
+/// \brief Check the accessors.
+TEST(AdvertiseOptionsTest, accessors)
 {
-  runReplier();
+  // Scope.
+  transport::AdvertiseOptions opts;
+  EXPECT_EQ(opts.Scope(), transport::Scope_t::ALL);
+  opts.SetScope(transport::Scope_t::HOST);
+  EXPECT_EQ(opts.Scope(), transport::Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
