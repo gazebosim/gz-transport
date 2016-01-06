@@ -60,6 +60,7 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/fg/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace(""));
 
+  EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(" "));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("ns "));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("abc//def"));
@@ -81,6 +82,7 @@ TEST(TopicUtilsTest, tesPartitions)
   EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/fg/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidPartition(""));
 
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition(" "));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("ns "));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("abc//def"));
