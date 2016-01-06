@@ -24,7 +24,7 @@ Topics
 ======
 
 A topic is just a name for grouping a specific set of messages or a particular
-service. Imagine that you have a camera and want to publish periodically its
+service. Imagine that you have a camera and want to periodically publish its
 images. Your node could advertise a topic called */image*, and then, publish a
 new message on this topic every time a new image is available. Other nodes, will
 subscribe to the same topic and will receive the messages containing the image.
@@ -62,3 +62,8 @@ nodes within the same process as the advertiser. A topic with a *Host* scope
 restricts the visibility of a topic to nodes located in the same machine as the
 advertiser. Finally, by specifying a scope with an *All* value, you're allowing
 your topic to be visible by any node.
+
+Partition
+=========
+
+A node can optionally

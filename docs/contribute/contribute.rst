@@ -11,6 +11,6 @@ Forking, Patching and Pull Requests
 ===================================
 
 Ignition Transport is hosted in Bitbucket using the Mercurial version control
-system. In order to contribute patches or new features into the main development branch in ignition transport, we recommend forking from the "default" branch.
+system. In order to contribute patches or new features into the main development branch in Ignition Transport, we recommend forking from the "default" branch.
 Please see forking and pull request help pages as provided by Bitbucket for
 details.
