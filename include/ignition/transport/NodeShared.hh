@@ -61,9 +61,11 @@ namespace ignition
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
       /// \param[in] _data Data to publish.
+      /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
-                           const std::string &_data);
+                           const std::string &_data,
+                           const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
@@ -78,9 +80,14 @@ namespace ignition
       /// \brief Method in charge of receiving the service call responses.
       public: void RecvSrvResponse();
 
-      /// \brief Try to send all the requests for a given service call.
+      /// \brief Try to send all the requests for a given service call and a
+      /// pair of request/response types.
       /// \param[in] _topic Topic name.
-      public: void SendPendingRemoteReqs(const std::string &_topic);
+      /// \param[in] _reqType Type of the request in string format.
+      /// \param[in] _repType Type of the response in string format.
+      public: void SendPendingRemoteReqs(const std::string &_topic,
+                                         const std::string &_reqType,
+                                         const std::string &_repType);
 
       /// \brief Callback executed when the discovery detects new topics.
       /// \param[in] _pub Information of the publisher in charge of the topic.

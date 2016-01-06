@@ -75,6 +75,14 @@ namespace ignition
         return this->hUuid;
       }
 
+      /// \brief Get the message type name used in the service request.
+      /// \return Message type name.
+      public: virtual std::string GetReqTypeName() const = 0;
+
+      /// \brief Get the message type name used in the service response.
+      /// \return Message type name.
+      public: virtual std::string GetRepTypeName() const = 0;
+
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
     };
@@ -156,6 +164,18 @@ namespace ignition
           _result = false;
           return;
         }
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetReqTypeName() const
+      {
+        return Req().GetTypeName();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetRepTypeName() const
+      {
+        return Rep().GetTypeName();
       }
 
       /// \brief Create a specific protobuf message given its serialized data.

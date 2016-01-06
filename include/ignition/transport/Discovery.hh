@@ -44,6 +44,7 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -113,6 +114,14 @@ namespace ignition
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
       public: bool DiscoverSrv(const std::string &_topic);
+
+      /// \brief Get the discovery information object (messages).
+      /// \return Reference to the discovery information object.
+      public: const TopicStorage<MessagePublisher> &DiscoveryMsgInfo() const;
+
+      /// \brief Get the discovery information object (services).
+      /// \return Reference to the discovery information object.
+      public: const TopicStorage<ServicePublisher> &DiscoverySrvInfo() const;
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.

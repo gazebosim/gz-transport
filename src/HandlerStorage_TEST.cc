@@ -65,15 +65,17 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::HandlerStorage<transport::IRepHandler> reps;
   transport::msgs::Int rep1Msg;
   bool result;
-
   transport::msgs::Vector3d reqMsg;
+  std::string reqType = reqMsg.GetTypeName();
+  std::string rep1Type = rep1Msg.GetTypeName();
+
   reqMsg.set_x(1.0);
   reqMsg.set_y(2.0);
   reqMsg.set_z(3.0);
 
   // Check some operations when there is no data stored.
   EXPECT_FALSE(reps.GetHandlers(topic, m));
-  EXPECT_FALSE(reps.GetHandler(topic, handler));
+  EXPECT_FALSE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
   EXPECT_FALSE(reps.GetHandler(topic, nUuid1, hUuid, handler));
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
   EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
@@ -91,7 +93,8 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
-  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
+  ASSERT_TRUE(handler != NULL);
   std::string handlerUuid = handler->HandlerUuid();
   EXPECT_EQ(handlerUuid, rep1HandlerPtr->HandlerUuid());
   EXPECT_TRUE(reps.GetHandler(topic, nUuid1, handlerUuid, handler));
@@ -148,7 +151,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.HasHandlersForTopic(topic));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
   EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid2));
-  EXPECT_TRUE(reps.GetHandler(topic, handler));
+  EXPECT_TRUE(reps.GetFirstHandler(topic, reqType, rep1Type, handler));
   handlerUuid = rep3HandlerPtr->HandlerUuid();
   EXPECT_TRUE(reps.GetHandler(topic, nUuid2, handlerUuid, handler));
   EXPECT_EQ(handler->HandlerUuid(), handlerUuid);
@@ -206,7 +209,6 @@ TEST(RepStorageTest, RepStorageAPI)
 /// registering a callback, and then, we try to execute the callback.
 TEST(RepStorageTest, SubStorageNoCallbacks)
 {
-  transport::ISubscriptionHandlerPtr handler;
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
   transport::msgs::Int msg;
   msg.set_data(5);
@@ -223,6 +225,18 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.GetHandler(topic, nUuid1, handlerUuid, h));
   EXPECT_FALSE(h->RunLocalCallback(msg));
+
+  // Try to retrieve the first callback with an incorrect type.
+  transport::ISubscriptionHandlerPtr handler;
+  EXPECT_FALSE(subs.GetFirstHandler(topic, "incorrect type", handler));
+
+  // Now try to retrieve the first callback with the correct type.
+  EXPECT_TRUE(subs.GetFirstHandler(topic, msg.GetTypeName(), handler));
+
+  // Verify the handler.
+  EXPECT_EQ(handler->GetTypeName(), sub1HandlerPtr->GetTypeName());
+  EXPECT_EQ(handler->NodeUuid(), sub1HandlerPtr->NodeUuid());
+  EXPECT_EQ(handler->HandlerUuid(), sub1HandlerPtr->HandlerUuid());
 }
 
 //////////////////////////////////////////////////

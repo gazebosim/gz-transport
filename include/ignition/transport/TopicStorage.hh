@@ -78,7 +78,7 @@ namespace ignition
         return true;
       }
 
-      /// \brief Return if there is any address stored for the given topic.
+      /// \brief Return if there is any publisher stored for the given topic.
       /// \param[in] _topic Topic name.
       /// \return True if there is at least one entry stored for the topic.
       public: bool HasTopic(const std::string &_topic) const

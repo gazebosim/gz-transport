@@ -67,18 +67,63 @@ namespace ignition
         return true;
       }
 
-      /// \brief Get the first handler for a topic.
+      /// \brief Get the first handler for a topic that matches a specific pair
+      /// of request/response types.
       /// \param[in] _topic Topic name.
+      /// \param[in] _reqTypeName Type of the service request.
+      /// \param[in] _repTypeName Type of the service response.
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
-      public: bool GetHandler(const std::string &_topic,
-        std::shared_ptr<T> &_handler) const
+      public: bool GetFirstHandler(const std::string &_topic,
+                                   const std::string &_reqTypeName,
+                                   const std::string &_repTypeName,
+                                   std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        _handler = this->data.at(_topic).begin()->second.begin()->second;
-        return true;
+        const auto &m = this->data.at(_topic);
+        for (const auto &node : m)
+        {
+          for (const auto &handler : node.second)
+          {
+            if (_reqTypeName == handler.second->GetReqTypeName() &&
+                _repTypeName == handler.second->GetRepTypeName())
+            {
+              _handler = handler.second;
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      /// \brief Get the first handler for a topic that matches a specific
+      /// message type.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msgTypeName Type of the msg in string format.
+      /// \param[out] _handler handler.
+      /// \return true if a handler was found.
+      public: bool GetFirstHandler(const std::string &_topic,
+                                   const std::string &_msgTypeName,
+                                   std::shared_ptr<T> &_handler) const
+      {
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        const auto &m = this->data.at(_topic);
+        for (const auto &node : m)
+        {
+          for (const auto &handler : node.second)
+          {
+            if (_msgTypeName == handler.second->GetTypeName())
+            {
+              _handler = handler.second;
+              return true;
+            }
+          }
+        }
+        return false;
       }
 
       /// \brief Get a specific handler.

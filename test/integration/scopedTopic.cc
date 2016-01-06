@@ -49,7 +49,7 @@ TEST(ScopedTopicTest, ProcessTest)
   transport::AdvertiseOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise(topic, opts));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic, opts));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

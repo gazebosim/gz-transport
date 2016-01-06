@@ -87,8 +87,9 @@ namespace ignition
       /// \brief Longest string to receive.
       public: static const int MaxRcvStr = 65536;
 
-      /// \brief Discovery protocol version.
-      static const uint8_t Version = 2;
+      /// \brief Wire protocol version. Bump up the version number if you modify
+      /// the wire protocol (for discovery or message/service exchange).
+      static const uint8_t Version = 3;
 
       /// \brief Host IP address.
       public: std::string hostAddr;
