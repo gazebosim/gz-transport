@@ -20,17 +20,16 @@
 
 #include <string>
 #include <unordered_set>
-#include <vector>
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeShared.hh"
-
-using namespace ignition;
-using namespace transport;
+#include "ignition/transport/NetUtils.hh"
+#include "ignition/transport/NodeOptions.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    class NodeShared;
+
     /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
     /// \brief Private data for Private Node class.
     class IGNITION_VISIBLE NodePrivate
@@ -58,10 +57,13 @@ namespace ignition
       public: NodeShared *shared = NodeShared::GetInstance();
 
       /// \brief Partition for this node.
-      public: std::string partition = "";
+      public: std::string partition = hostname() + ":" + username();
 
       /// \brief Default namespace for this node.
       public: std::string ns = "";
+
+      /// \brief Custom options for this node.
+      public: NodeOptions options;
     };
   }
 }

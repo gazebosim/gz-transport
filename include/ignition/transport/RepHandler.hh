@@ -51,24 +51,20 @@ namespace ignition
       public: virtual ~IRepHandler() = default;
 
       /// \brief Executes the local callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msgReq Input parameter (Protobuf message).
       /// \param[out] _msgRep Output parameter (Protobuf message).
       /// \param[out] _result Service call result.
-      public: virtual void RunLocalCallback(const std::string &_topic,
-                                            const transport::ProtoMsg &_msgReq,
+      public: virtual void RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                             transport::ProtoMsg &_msgRep,
                                             bool &_result) = 0;
 
       /// \brief Executes the callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _req Serialized data received. The data will be used
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
       /// \param[out] _rep Out parameter with the data serialized.
       /// \param[out] _result Service call result.
-      public: virtual void RunCallback(const std::string &_topic,
-                                       const std::string &_req,
+      public: virtual void RunCallback(const std::string &_req,
                                        std::string &_rep,
                                        bool &_result) = 0;
 
@@ -78,6 +74,14 @@ namespace ignition
       {
         return this->hUuid;
       }
+
+      /// \brief Get the message type name used in the service request.
+      /// \return Message type name.
+      public: virtual std::string GetReqTypeName() const = 0;
+
+      /// \brief Get the message type name used in the service response.
+      /// \return Message type name.
+      public: virtual std::string GetRepTypeName() const = 0;
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
@@ -97,20 +101,18 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _req Protobuf message containing the service request params
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
       public: void Callback(const std::function
-        <void(const std::string &_topic, const Req &, Rep &, bool &)> &_cb)
+        <void(const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: void RunLocalCallback(const std::string &_topic,
-                                    const transport::ProtoMsg &_msgReq,
+      public: void RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                     transport::ProtoMsg &_msgRep,
                                     bool &_result)
       {
@@ -120,11 +122,7 @@ namespace ignition
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msgReq, *msgRep, _result);
+          this->cb(*msgReq, *msgRep, _result);
         }
         else
         {
@@ -135,51 +133,72 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void RunCallback(const std::string &_topic,
-                               const std::string &_req,
+      public: void RunCallback(const std::string &_req,
                                std::string &_rep,
                                bool &_result)
       {
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Instantiate the specific protobuf message associated to this topic.
-          Rep msgRep;
-
-          auto msgReq = this->CreateMsg(_req);
-
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msgReq, msgRep, _result);
-          msgRep.SerializeToString(&_rep);
-        }
-        else
+        // Check if we have a callback registered.
+        if (!this->cb)
         {
           std::cerr << "RepHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
           _result = false;
+          return;
         }
+
+        // Instantiate the specific protobuf message associated to this topic.
+        auto msgReq = this->CreateMsg(_req);
+        if (!msgReq)
+        {
+          _result = false;
+          return;
+        }
+
+        Rep msgRep;
+        this->cb(*msgReq, msgRep, _result);
+
+        if (!msgRep.SerializeToString(&_rep))
+        {
+          std::cerr << "RepHandler::RunCallback(): Error serializing the "
+                    << "response" << std::endl;
+          _result = false;
+          return;
+        }
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetReqTypeName() const
+      {
+        return Req().GetTypeName();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetRepTypeName() const
+      {
+        return Rep().GetTypeName();
       }
 
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<Req> CreateMsg(const std::string &_data)
+      private: std::shared_ptr<Req> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Req> msgPtr(new Req());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "RepHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
 
         return msgPtr;
       }
 
       /// \brief Callback to the function registered for this handler.
       private: std::function
-        <void(const std::string &, const Req &, Rep &, bool &)> cb;
+        <void(const Req &, Rep &, bool &)> cb;
     };
   }
 }

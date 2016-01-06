@@ -56,30 +56,31 @@ namespace ignition
       }
 
       /// \brief Executes the local callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _msg Protobuf message received.
       /// \return True when success, false otherwise.
-      public: virtual bool RunLocalCallback(const std::string &_topic,
-                                           const transport::ProtoMsg &_msg) = 0;
+      public: virtual bool RunLocalCallback(
+                                     const transport::ProtoMsg &_msg) const = 0;
 
-      /// \brief Executes the callback registered for this handler.
-      /// \param[in] _topic Topic to be passed to the callback.
-      /// \param[in] _data Serialized data received. The data will be used
-      /// to compose a specific protobuf message and will be passed to the
-      /// callback function.
-      /// \return True when success, false otherwise.
-      public: virtual bool RunCallback(const std::string &_topic,
-                                       const std::string &_data) = 0;
+      /// \brief Create a specific protobuf message given its serialized data.
+      /// \param[in] _data The serialized data.
+      /// \return Pointer to the specific protobuf message.
+      public: virtual const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+        const std::string &_data) const = 0;
+
+      /// \brief Get the type of the messages from which this subscriber
+      /// handler is subscribed.
+      /// \return String representation of the message type.
+      public: virtual std::string GetTypeName() = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid()
+      public: std::string NodeUuid() const
       {
         return this->nUuid;
       }
 
       /// \brief Get the unique UUID of this handler.
-      /// \return a string representation of the handler UUID.
+      /// \return A string representation of the handler UUID.
       public: std::string HandlerUuid() const
       {
         return this->hUuid;
@@ -105,44 +106,46 @@ namespace ignition
       {
       }
 
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<T> CreateMsg(const std::string &_data)
+      // Documentation inherited.
+      public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+        const std::string &_data) const
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<T> msgPtr(new T());
+        auto msgPtr = std::make_shared<T>();
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "SubscriptionHandler::CreateMsg() error: ParseFromString"
+                    << " failed" << std::endl;
+        }
 
         return msgPtr;
       }
 
+      // Documentation inherited.
+      public: std::string GetTypeName()
+      {
+        return T().GetTypeName();
+      }
+
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void Callback(const std::function <void(
-        const std::string &_topic, const T &_msg)> &_cb)
+      public: void Callback(const std::function <void(const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: bool RunLocalCallback(const std::string &_topic,
-                                    const transport::ProtoMsg &_msg)
+      public: bool RunLocalCallback(const transport::ProtoMsg &_msg) const
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msgPtr);
+          this->cb(*msgPtr);
           return true;
         }
         else
@@ -153,36 +156,10 @@ namespace ignition
         }
       }
 
-      // Documentation inherited.
-      public: bool RunCallback(const std::string &_topic,
-                               const std::string &_data)
-      {
-        // Instantiate the specific protobuf message associated to this topic.
-        auto msg = this->CreateMsg(_data);
-
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msg);
-          return true;
-        }
-        else
-        {
-          std::cerr << "SubscriptionHandler::RunCallback() error: "
-                    << "Callback is NULL" << std::endl;
-          return false;
-        }
-      }
-
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
-      /// \param[in] _topic Topic name.
       /// \param[in] _msg Protobuf message containing the topic update.
-      private: std::function<void(const std::string &_topic, const T &_msg)> cb;
+      private: std::function<void(const T &_msg)> cb;
     };
   }
 }

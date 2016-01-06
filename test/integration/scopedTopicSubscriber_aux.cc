@@ -20,7 +20,7 @@
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 
 using namespace ignition;
 
@@ -30,9 +30,8 @@ int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const std::string &_topic, const transport::msgs::Int &_msg)
+void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_topic, topic);
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
 }
@@ -57,6 +56,7 @@ void subscriber()
   cbExecuted = false;
 }
 
+//////////////////////////////////////////////////
 TEST(ScopedTopicTest, SubscriberTest)
 {
   subscriber();

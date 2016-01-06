@@ -18,7 +18,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -33,13 +33,14 @@ void advertiseAndPublish()
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  transport::Node node1;
+  transport::Node node;
 
-  node1.Advertise(topic);
+  node.Advertise<transport::msgs::Vector3d>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  node1.Publish(topic, msg);
+  node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-  node1.Publish(topic, msg);
+  node.Publish(topic, msg);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
 //////////////////////////////////////////////////

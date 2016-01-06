@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
@@ -27,15 +28,16 @@ using namespace ignition;
 TEST(TopicStorageTest, TopicStorageAPI)
 {
   std::string topic  = "foo";
+  std::string topic2 = "foo2";
 
   std::string nUuid1 = "node-UUID-1";
-  transport::Scope_t scope1 = transport::Scope_t::All;
+  transport::Scope_t scope1 = transport::Scope_t::ALL;
   std::string nUuid2  = "node-UUID-2";
-  transport::Scope_t scope2 = transport::Scope_t::Process;
+  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
   std::string nUuid3  = "node-UUID-3";
-  transport::Scope_t scope3 = transport::Scope_t::Host;
+  transport::Scope_t scope3 = transport::Scope_t::HOST;
   std::string nUuid4  = "node-UUID-4";
-  transport::Scope_t scope4 = transport::Scope_t::All;
+  transport::Scope_t scope4 = transport::Scope_t::ALL;
 
   std::string pUuid1 = "process-UUID-1";
   std::string addr1  = "tcp://10.0.0.1:6001";
@@ -60,7 +62,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Try to remove a entry not stored yet.
   EXPECT_EQ(test.DelPublisherByNode(topic, pUuid2, nUuid4), 0);
   // Try to remove a set of entries within a process not stored.
-  EXPECT_EQ(test.DelPublishersByProc(pUuid1), 0);
+  EXPECT_FALSE(test.DelPublishersByProc(pUuid1));
 
   // Insert one node address.
   transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, scope1);
@@ -323,8 +325,15 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
   EXPECT_EQ(m[pUuid1].at(1).Scope(), scope2);
 
+  // Insert another publisher on topic2.
+  transport::Publisher publisher9(topic2, addr2, pUuid2, nUuid2, scope2);
+  EXPECT_TRUE(test.AddPublisher(publisher9));
+
   // Remove all the addresses of process1.
   EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
+
+  EXPECT_TRUE(test.DelPublisherByNode(topic2, pUuid2, nUuid2));
+
   // Check HasTopic.
   EXPECT_FALSE(test.HasTopic(topic));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));

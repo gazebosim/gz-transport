@@ -20,7 +20,9 @@
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -46,7 +48,7 @@ std::string ctrl2   = "tcp://127.0.0.1:12348";
 std::string id2     = "identity2";
 std::string pUuid2  = transport::Uuid().ToString();
 std::string nUuid2  = transport::Uuid().ToString();
-transport::Scope_t scope = transport::Scope_t::All;
+transport::Scope_t scope = transport::Scope_t::ALL;
 bool connectionExecuted = false;
 bool connectionExecutedMF = false;
 bool disconnectionExecuted = false;
@@ -56,6 +58,29 @@ bool connectionSrvExecutedMF = false;
 bool disconnectionSrvExecuted = false;
 bool disconnectionSrvExecutedMF = false;
 int counter = 0;
+
+/// \brief Helper class to access the protected member variables of Discovery
+/// within the tests.
+class DiscoveryDerived : public transport::Discovery
+{
+  // Documentation inherited.
+  public: DiscoveryDerived(const std::string &_pUuid, bool _verbose = false)
+    : transport::Discovery(_pUuid, _verbose)
+  {
+  }
+
+  /// \brief Check if this discovery node has some activity information about
+  /// a given process.
+  /// \param[in] _pUuid Process UUID that we want to check.
+  /// \param[in] _expectedActivity If true, we expect activity on the process
+  /// specified as a parameter. If false, we shouldn't have any activity stored.
+  public: void TestActivity(const std::string &_pUuid,
+                            const bool _expectedActivity) const
+  {
+    EXPECT_EQ(this->dataPtr->activity.find(_pUuid) !=
+              this->dataPtr->activity.end(), _expectedActivity);
+  };
+};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -381,7 +406,7 @@ TEST(DiscoveryTest, TestAdvertise)
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
   transport::MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::Process, "type");
+    nUuid1, transport::Scope_t::PROCESS, "type");
   EXPECT_TRUE(discovery1.AdvertiseMsg(publisher2));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -393,7 +418,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should trigger a discovery response on discovery2.
   transport::MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::Host, "type");
+    nUuid1, transport::Scope_t::HOST, "type");
   EXPECT_TRUE(discovery1.AdvertiseMsg(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -880,4 +905,61 @@ TEST(DiscoveryTest, TestDiscoverSrv)
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionSrvExecuted);
   EXPECT_FALSE(disconnectionSrvExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a discovery service sends messages if there are
+/// topics or services advertised in its process.
+TEST(DiscoveryTest, TestActivity)
+{
+  auto proc1Uuid = testing::getRandomNumber();
+  auto proc2Uuid = testing::getRandomNumber();
+  transport::MessagePublisher publisher(topic, addr1, ctrl1, proc1Uuid,
+    nUuid1, scope, "type");
+  transport::ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
+    nUuid2, scope, "reqType", "repType");
+  DiscoveryDerived discovery1(proc1Uuid);
+
+  {
+    DiscoveryDerived discovery2(proc2Uuid);
+
+    discovery1.Start();
+    discovery2.Start();
+
+    discovery1.AdvertiseMsg(publisher);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      discovery1.HeartbeatInterval() * 2));
+
+    // We should observe activity from both processes.
+    discovery1.TestActivity(proc2Uuid, true);
+    discovery2.TestActivity(proc1Uuid, true);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      discovery1.HeartbeatInterval() * 2));
+  }
+
+  // We shouldn't observe activity from proc1Uuid2 anymore.
+  discovery1.TestActivity(proc2Uuid, false);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a wrong IGN_IP value makes HostAddr() to return 127.0.0.1
+TEST(DiscoveryTest, WrongIgnIp)
+{
+  // Save the current value of IGN_IP environment variable.
+  char *ipEnv = std::getenv("IGN_IP");
+
+  // Incorrect value for IGN_IP
+  setenv("IGN_IP", "127.0.0.0", 1);
+
+  transport::Discovery discovery1(pUuid1);
+  EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
+
+  // Unset IGN_IP.
+  unsetenv("IGN_IP");
+
+  // Restore IGN_IP.
+  if (ipEnv)
+    setenv("IGN_IP", ipEnv, 1);
 }

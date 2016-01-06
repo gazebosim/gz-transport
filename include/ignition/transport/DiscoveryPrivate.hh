@@ -26,7 +26,6 @@
 #else
   #include <arpa/inet.h>
 #endif
-#include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -37,7 +36,6 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -89,8 +87,9 @@ namespace ignition
       /// \brief Longest string to receive.
       public: static const int MaxRcvStr = 65536;
 
-      /// \brief Discovery protocol version.
-      static const uint8_t Version = 2;
+      /// \brief Wire protocol version. Bump up the version number if you modify
+      /// the wire protocol (for discovery or message/service exchange).
+      static const uint8_t Version = 3;
 
       /// \brief Host IP address.
       public: std::string hostAddr;

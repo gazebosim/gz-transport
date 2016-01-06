@@ -28,7 +28,7 @@ end
 require 'optparse'
 
 # Constants.
-LIBRARY_NAME = 'lib@PROJECT_NAME_LOWER@.so.@PROJECT_VERSION_FULL@'
+LIBRARY_NAME = 'lib@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@.so.@PROJECT_VERSION_FULL@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMON_OPTIONS =
                "  -h [ --help ]              Print this help message.\n"\

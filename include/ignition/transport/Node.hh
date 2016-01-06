@@ -34,10 +34,10 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
-#include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
@@ -58,24 +58,54 @@ namespace ignition
     class IGNITION_VISIBLE Node
     {
       /// \brief Constructor.
-      public: Node();
-
-      /// \brief Constructor.
-      /// \param[in] _partition Partition name used by this node.
-      /// \param[in] _ns Default namespace used by this node. This might
-      /// be a prefix that can be added to each advertise message if required.
-      public: Node(const std::string &_partition,
-                   const std::string &_ns);
+      /// \param[in] _options Node options.
+      public: Node(const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor.
       public: virtual ~Node();
 
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true if the topic was succesfully advertised.
-      public: bool Advertise(const std::string &_topic,
-                             const Scope_t &_scope = Scope_t::All);
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(const std::string &_topic,
+                          const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+        {
+          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          return false;
+        }
+
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
+        std::lock_guard<std::recursive_mutex> discLk(
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
+
+        // Add the topic to the list of advertised topics (if it was not before)
+        this->TopicsAdvertised().insert(fullyQualifiedTopic);
+
+        // Notify the discovery service to register and advertise my topic.
+        MessagePublisher publisher(fullyQualifiedTopic,
+          this->Shared()->myAddress,
+          this->Shared()->myControlAddress,
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
+          T().GetTypeName());
+
+        if (!this->Shared()->discovery->AdvertiseMsg(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
+
+        return true;
+      }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -98,24 +128,25 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
-      ///   \param[in] _topic Topic name.
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const std::string &_topic, const T &_msg))
+          void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          Shared()->mutex, std::adopt_lock);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -151,26 +182,27 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
-      ///   \param[in] _topic Topic name.
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const std::string &_topic, const T &_msg),
+          void(C::*_cb)(const T &_msg),
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
@@ -178,7 +210,7 @@ namespace ignition
 
         // Insert the callback into the handler by creating a free function.
         subscrHandlerPtr->Callback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+          std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -219,30 +251,31 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _topic Service name to be advertised.
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const std::string &_topic, const T1 &_req,
-                   T2 &_rep, bool &_result),
-        const Scope_t &_scope = Scope_t::All)
+        void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Add the topic to the list of advertised services.
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
@@ -265,8 +298,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
-          "unused");
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
+          T1().GetTypeName(), T2().GetTypeName());
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))
         {
@@ -284,32 +317,33 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _topic Service name to be advertised.
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
       ///   \param[out] _result Service call result.
       /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _scope Topic scope.
+      /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
+      /// \sa AdvertiseOptions.
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const std::string &_topic, const T1 &_req,
-                      T2 &_rep, bool &_result),
+        void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
         C *_obj,
-        const Scope_t &_scope = Scope_t::All)
+        const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // Add the topic to the list of advertised services.
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
@@ -321,7 +355,7 @@ namespace ignition
         // Insert the callback into the handler.
         repHandlerPtr->Callback(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4));
+            std::placeholders::_3));
 
         // Store the replier handler. Each replier handler is
         // associated with a topic. When the receiving thread gets new requests,
@@ -334,8 +368,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _scope, "unused",
-          "unused");
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
+          T1().GetTypeName(), T2().GetTypeName());
 
         if (!this->Shared()->discovery->AdvertiseSrv(publisher))
         {
@@ -358,7 +392,6 @@ namespace ignition
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
       /// response arrives. The callback has the following parameters:
-      ///   \param[in] _topic Service name to be requested.
       ///   \param[in] _rep Protobuf message containing the response.
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
@@ -366,36 +399,33 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(*_cb)(const std::string &_topic, const T2 &_rep, bool _result))
+        void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
+        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+          T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          repHandler->RunLocalCallback(_req, rep, result);
 
-          // Notify the requester with the response and remove the partition
-          // part from the topic name.
-          std::string topicName = fullyQualifiedTopic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          _cb(topicName, rep, result);
+          _cb(rep, result);
           return true;
         }
 
@@ -418,7 +448,8 @@ namespace ignition
         if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
+          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName());
         }
         else
         {
@@ -442,7 +473,6 @@ namespace ignition
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \param[in] _cb Pointer to the callback function executed when the
       /// response arrives. The callback has the following parameters:
-      ///   \param[in] _topic Service name to be requested.
       ///   \param[in] _rep Protobuf message containing the response.
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
@@ -451,37 +481,34 @@ namespace ignition
       public: template<typename C, typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        void(C::*_cb)(const std::string &_topic, const T2 &_rep, bool _result),
+        void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
+        std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
-          this->Shared()->discovery->Mutex());
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          this->Shared()->discovery->Mutex(), std::adopt_lock);
+        std::lock_guard<std::recursive_mutex> lk(
+          this->Shared()->mutex, std::adopt_lock);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
+        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+          T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           T2 rep;
           bool result;
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, rep, result);
+          repHandler->RunLocalCallback(_req, rep, result);
 
-          // Notify the requester with the response and remove the partition
-          // part from the topic name.
-          std::string topicName = fullyQualifiedTopic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          _cb(topicName, rep, result);
+          _cb(rep, result);
           return true;
         }
 
@@ -494,8 +521,7 @@ namespace ignition
 
         // Insert the callback into the handler.
         reqHandlerPtr->SetCallback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3));
+          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
 
         // Store the request handler.
         this->Shared()->requests.AddHandler(
@@ -506,7 +532,8 @@ namespace ignition
         if (this->Shared()->discovery->SrvPublishers(
           fullyQualifiedTopic, addresses))
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
+          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName());
         }
         else
         {
@@ -540,74 +567,88 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Partition(),
-          this->NameSpace(), _topic, fullyQualifiedTopic))
+        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
-        }
-
-        this->Shared()->discovery->Mutex().lock();
-        std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
-
-        // If the responser is within my process.
-        IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetHandler(fullyQualifiedTopic,
-          repHandler))
-        {
-          // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(fullyQualifiedTopic, _req, _rep,
-            _result);
-          this->Shared()->discovery->Mutex().unlock();
-          return true;
         }
 
         // Create a new request handler.
         std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
-        // Insert the request's parameters.
-        reqHandlerPtr->Message(_req);
-
-        // Store the request handler.
-        this->Shared()->requests.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
-
-        // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
-        if (this->Shared()->discovery->SrvPublishers(
-          fullyQualifiedTopic, addresses))
+        std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex,
+          std::defer_lock);
+        std::lock(this->Shared()->discovery->Mutex(), lk);
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic);
-        }
-        else
-        {
-          // Discover the service responser.
-          if (!this->Shared()->discovery->DiscoverSrv(
-            fullyQualifiedTopic))
+          std::lock_guard<std::recursive_mutex> discLk(
+            this->Shared()->discovery->Mutex(), std::adopt_lock);
+
+          // If the responser is within my process.
+          IRepHandlerPtr repHandler;
+          if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+            T1().GetTypeName(), T2().GetTypeName(), repHandler))
           {
-            std::cerr << "Node::Request(): Error discovering a service. "
-                      << "Did you forget to start the discovery service?"
-                      << std::endl;
-            return false;
+            // There is a responser in my process, let's use it.
+            repHandler->RunLocalCallback(_req, _rep, _result);
+            return true;
+          }
+
+          // Insert the request's parameters.
+          reqHandlerPtr->Message(_req);
+
+          // Store the request handler.
+          this->Shared()->requests.AddHandler(
+            fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
+
+          // If the responser's address is known, make the request.
+          SrvAddresses_M addresses;
+          if (this->Shared()->discovery->SrvPublishers(
+            fullyQualifiedTopic, addresses))
+          {
+            this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+              T1().GetTypeName(), T2().GetTypeName());
+          }
+          else
+          {
+            // Discover the service responser.
+            if (!this->Shared()->discovery->DiscoverSrv(
+              fullyQualifiedTopic))
+            {
+              std::cerr << "Node::Request(): Error discovering a service. "
+                        << "Did you forget to start the discovery service?"
+                        << std::endl;
+              return false;
+            }
           }
         }
-        this->Shared()->discovery->Mutex().unlock();
 
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
-        if (executed)
-        {
-          if (reqHandlerPtr->Result())
-            _rep.ParseFromString(reqHandlerPtr->Response());
+        // The request was not executed.
+        if (!executed)
+          return false;
 
-          _result = reqHandlerPtr->Result();
+        // The request was executed but did not succeed.
+        if (!reqHandlerPtr->Result())
+        {
+          _result = false;
+          return true;
         }
 
-        lk.unlock();
+        // Parse the response.
+        if (!_rep.ParseFromString(reqHandlerPtr->Response()))
+        {
+          std::cerr << "Node::Request(): Error Parsing the response"
+                    << std::endl;
+          _result = false;
+          return true;
+        }
 
-        return executed;
+        _result = true;
+        return true;
       }
 
       /// \brief Unadvertise a service.
@@ -625,28 +666,36 @@ namespace ignition
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
-      private: const std::string& Partition() const;
+      private: const std::string &Partition() const;
 
       /// \brief Get the namespace used in this node.
       /// \return The namespace
-      private: const std::string& NameSpace() const;
+      private: const std::string &NameSpace() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
-      private: NodeShared* Shared() const;
+      private: NodeShared *Shared() const;
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
-      private: const std::string& NodeUuid() const;
+      private: const std::string &NodeUuid() const;
+
+      /// \brief Get the set of topics advertised by this node.
+      /// \return The set of advertised topics.
+      private: std::unordered_set<std::string> &TopicsAdvertised() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string>& TopicsSubscribed() const;
+      private: std::unordered_set<std::string> &TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
-      private: std::unordered_set<std::string>& SrvsAdvertised() const;
+      private: std::unordered_set<std::string> &SrvsAdvertised() const;
+
+      /// \brief Get the reference to the current node options.
+      /// \return Reference to the current node options.
+      private: NodeOptions &Options() const;
 
       /// \internal
       /// \brief Smart pointer to private data.

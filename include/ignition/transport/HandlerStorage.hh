@@ -35,12 +35,12 @@ namespace ignition
       /// _data is the topic name. The value is another map, where the key is
       /// the node UUID and the value is a smart pointer to the handler.
       /// \TODO: Carlos, review this names and fix them
-      typedef std::map<std::string, std::shared_ptr<T>> UUIDHandler_M;
-      typedef std::map<std::string, UUIDHandler_M> UUIDHandler_Collection_M;
+      using UUIDHandler_M = std::map<std::string, std::shared_ptr<T>>;
+      using UUIDHandler_Collection_M = std::map<std::string, UUIDHandler_M>;
 
       /// \brief key is a topic name and value is UUIDHandler_M
-      typedef std::map<std::string, UUIDHandler_Collection_M>
-              TopicServiceCalls_M;
+      using TopicServiceCalls_M =
+        std::map<std::string, UUIDHandler_Collection_M>;
 
       /// \brief Constructor.
       public: HandlerStorage() = default;
@@ -58,27 +58,72 @@ namespace ignition
       /// \return true if the topic contains at least one request.
       public: bool GetHandlers(const std::string &_topic,
         std::map<std::string,
-          std::map<std::string, std::shared_ptr<T> >> &_handlers)
+          std::map<std::string, std::shared_ptr<T> >> &_handlers) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        _handlers = this->data[_topic];
+        _handlers = this->data.at(_topic);
         return true;
       }
 
-      /// \brief Get the first handler for a topic.
+      /// \brief Get the first handler for a topic that matches a specific pair
+      /// of request/response types.
       /// \param[in] _topic Topic name.
+      /// \param[in] _reqTypeName Type of the service request.
+      /// \param[in] _repTypeName Type of the service response.
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
-      public: bool GetHandler(const std::string &_topic,
-        std::shared_ptr<T> &_handler)
+      public: bool GetFirstHandler(const std::string &_topic,
+                                   const std::string &_reqTypeName,
+                                   const std::string &_repTypeName,
+                                   std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        _handler = this->data[_topic].begin()->second.begin()->second;
-        return true;
+        const auto &m = this->data.at(_topic);
+        for (const auto &node : m)
+        {
+          for (const auto &handler : node.second)
+          {
+            if (_reqTypeName == handler.second->GetReqTypeName() &&
+                _repTypeName == handler.second->GetRepTypeName())
+            {
+              _handler = handler.second;
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      /// \brief Get the first handler for a topic that matches a specific
+      /// message type.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _msgTypeName Type of the msg in string format.
+      /// \param[out] _handler handler.
+      /// \return true if a handler was found.
+      public: bool GetFirstHandler(const std::string &_topic,
+                                   const std::string &_msgTypeName,
+                                   std::shared_ptr<T> &_handler) const
+      {
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        const auto &m = this->data.at(_topic);
+        for (const auto &node : m)
+        {
+          for (const auto &handler : node.second)
+          {
+            if (_msgTypeName == handler.second->GetTypeName())
+            {
+              _handler = handler.second;
+              return true;
+            }
+          }
+        }
+        return false;
       }
 
       /// \brief Get a specific handler.
@@ -90,19 +135,19 @@ namespace ignition
       public: bool GetHandler(const std::string &_topic,
                               const std::string &_nUuid,
                               const std::string &_hUuid,
-                              std::shared_ptr<T> &_handler)
+                              std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        auto &m = this->data[_topic];
+        auto const &m = this->data.at(_topic);
         if (m.find(_nUuid) == m.end())
           return false;
 
-        if (m[_nUuid].find(_hUuid) == m[_nUuid].end())
+        if (m.at(_nUuid).find(_hUuid) == m.at(_nUuid).end())
           return false;
 
-        _handler = m[_nUuid][_hUuid];
+        _handler = m.at(_nUuid).at(_hUuid);
         return true;
       }
 
@@ -132,12 +177,12 @@ namespace ignition
       /// topic.
       /// \param[in] _topic Topic name.
       /// \return true if we have stored at least one request for the topic.
-      public: bool HasHandlersForTopic(const std::string &_topic)
+      public: bool HasHandlersForTopic(const std::string &_topic) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        return !this->data[_topic].empty();
+        return !this->data.at(_topic).empty();
       }
 
       /// \brief Check if a node has at least one handler.
@@ -145,12 +190,13 @@ namespace ignition
       /// \param[in] _nUuid Node's unique identifier.
       /// \return true if the node has at least one handler registered.
       public: bool HasHandlersForNode(const std::string &_topic,
-                                      const std::string &_nUuid)
+                                      const std::string &_nUuid) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
 
-        return this->data[_topic].find(_nUuid) != this->data[_topic].end();
+        return this->data.at(_topic).find(_nUuid) !=
+               this->data.at(_topic).end();
       }
 
       /// \brief Remove a request handler. The node's uuid is used as a key to
@@ -168,9 +214,9 @@ namespace ignition
         {
           if (this->data[_topic].find(_nUuid) != this->data[_topic].end())
           {
-            this->data[_topic][_nUuid].erase(_reqUuid);
+            counter = this->data[_topic][_nUuid].erase(_reqUuid);
             if (this->data[_topic][_nUuid].empty())
-              counter = this->data[_topic].erase(_nUuid);
+              this->data[_topic].erase(_nUuid);
             if (this->data[_topic].empty())
               this->data.erase(_topic);
           }

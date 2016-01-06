@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
+#include <vector>
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
@@ -51,6 +52,16 @@ namespace ignition
     /// \return The list of network interfaces.
     IGNITION_VISIBLE
     std::vector<std::string> determineInterfaces();
+
+    /// \brief Determine the computer's hostname.
+    /// \return The computer's hostname.
+    IGNITION_VISIBLE
+    std::string hostname();
+
+    /// \brief Determine your login name.
+    /// \return Name used to gain access to the computer.
+    IGNITION_VISIBLE
+    std::string username();
   }
 }
 

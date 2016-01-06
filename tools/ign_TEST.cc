@@ -21,8 +21,8 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msg/int.pb.h"
-#include "msg/vector3d.pb.h"
+#include "msgs/int.pb.h"
+#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -52,8 +52,8 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &_topic, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
+void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+  bool &_result)
 {
   _rep.set_data(_req.data());
   _result = true;
@@ -113,7 +113,7 @@ TEST(ignTest, TopicListSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise("/foo"));
+  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::Vector3d>("/foo"));
   EXPECT_TRUE(node.Publish("/foo", msg));
 
   // Check the 'ign topic list' command.

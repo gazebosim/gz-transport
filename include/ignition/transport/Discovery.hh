@@ -26,15 +26,14 @@
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   // Type used for raw data on this platform.
-  typedef char raw_type;
+  using raw_type = char;
 #else
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  typedef void raw_type;
+  using raw_type = void;
 #endif
 
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -45,7 +44,7 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
-#include "ignition/transport/Publisher.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
@@ -53,6 +52,7 @@ namespace ignition
   namespace transport
   {
     class DiscoveryPrivate;
+    class Publisher;
 
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
@@ -68,7 +68,8 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _verbose true for enabling verbose mode.
-      public: Discovery(const std::string &_pUuid, bool _verbose = false);
+      public: Discovery(const std::string &_pUuid,
+                        const bool _verbose = false);
 
       /// \brief Destructor.
       public: virtual ~Discovery();
@@ -113,6 +114,14 @@ namespace ignition
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
       public: bool DiscoverSrv(const std::string &_topic);
+
+      /// \brief Get the discovery information object (messages).
+      /// \return Reference to the discovery information object.
+      public: const TopicStorage<MessagePublisher> &DiscoveryMsgInfo() const;
+
+      /// \brief Get the discovery information object (services).
+      /// \return Reference to the discovery information object.
+      public: const TopicStorage<ServicePublisher> &DiscoverySrvInfo() const;
 
       /// \brief Get all the publishers' information known for a given topic.
       /// \param[in] _topic Topic name.
@@ -280,7 +289,7 @@ namespace ignition
       }
 
       /// \brief Print the current discovery state (info, activity, unknown).
-      public: void PrintCurrentState();
+      public: void PrintCurrentState() const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
@@ -292,7 +301,7 @@ namespace ignition
 
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex();
+      public: std::recursive_mutex& Mutex() const;
 
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
@@ -322,7 +331,7 @@ namespace ignition
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
                                                  const T &_pub,
-                                                 int _flags = 0)
+                                                 int _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -410,6 +419,12 @@ namespace ignition
       /// \brief Get the discovery protocol version.
       /// \return The discovery version.
       private: uint8_t Version() const;
+
+      /// \brief Register a new network interface in the discovery system.
+      /// \param[in] _ip IP address to register.
+      /// \return True when the interface was successfully registered or false
+      /// otherwise (e.g.: invalid IP address).
+      private: bool RegisterNetIface(const std::string &_ip);
 
       /// \internal
       /// \brief Smart pointer to private data.

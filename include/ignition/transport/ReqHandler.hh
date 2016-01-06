@@ -21,7 +21,6 @@
 #include <google/protobuf/message.h>
 #include <condition_variable>
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
 #include "ignition/transport/Helpers.hh"
@@ -53,32 +52,30 @@ namespace ignition
 
       /// \brief Executes the callback registered for this handler and notify
       /// a potential requester waiting on a blocking call.
-      /// \param[in] _topic Topic to be passed to the callback.
       /// \param[in] _rep Serialized data containing the response coming from
       /// the service call responser.
       /// \param[in] _result Contains the result of the service call coming from
       /// the service call responser.
-      public: virtual void NotifyResult(const std::string &_topic,
-                                        const std::string &_rep,
+      public: virtual void NotifyResult(const std::string &_rep,
                                         const bool _result) = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid()
+      public: std::string NodeUuid() const
       {
         return this->nUuid;
       }
 
       /// \brief Get the service response as raw bytes.
       /// \return The string containing the service response.
-      public: std::string & Response()
+      public: std::string Response() const
       {
         return this->rep;
       }
 
       /// \brief Get the result of the service response.
       /// \return The boolean result.
-      public: bool Result()
+      public: bool Result() const
       {
         return this->result;
       }
@@ -92,14 +89,15 @@ namespace ignition
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void Requested(bool _value)
+      public: void Requested(const bool _value)
       {
         this->requested = _value;
       }
 
       /// \brief Serialize the Req protobuf message stored.
-      /// \return The serialized data.
-      public: virtual std::string Serialize() = 0;
+      /// \param[out] _buffer The serialized data.
+      /// \return True if the serialization succeed or false otherwise.
+      public: virtual bool Serialize(std::string &_buffer) const = 0;
 
       /// \brief Returns the unique handler UUID.
       /// \return The handler's UUID.
@@ -116,7 +114,7 @@ namespace ignition
       /// \param[in] _timeout Maximum waiting time in milliseconds.
       /// \return True if the service call was executed or false otherwise.
       public: template<typename Lock> bool WaitUntil(Lock &_lock,
-                                                     unsigned int _timeout)
+                                                    const unsigned int _timeout)
       {
         auto now = std::chrono::system_clock::now();
         return this->condition.wait_until(_lock,
@@ -126,6 +124,14 @@ namespace ignition
             return this->repAvailable;
           });
       }
+
+      /// \brief Get the message type name used in the service request.
+      /// \return Message type name.
+      public: virtual std::string GetReqTypeName() const = 0;
+
+      /// \brief Get the message type name used in the service response.
+      /// \return Message type name.
+      public: virtual std::string GetRepTypeName() const = 0;
 
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
@@ -170,25 +176,28 @@ namespace ignition
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data)
+      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
         std::shared_ptr<Rep> msgPtr(new Rep());
 
         // Create the message using some serialized data
-        msgPtr->ParseFromString(_data);
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
 
         return msgPtr;
       }
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       public: void Callback(const std::function <void(
-        const std::string &_topic, const Rep &_rep, bool _result)> &_cb)
+        const Rep &_rep, const bool _result)> &_cb)
       {
         this->cb = _cb;
       }
@@ -202,17 +211,20 @@ namespace ignition
       }
 
       // Documentation inherited
-      public: std::string Serialize()
+      public: bool Serialize(std::string &_buffer) const
       {
-        std::string buffer;
-        this->reqMsg.SerializeToString(&buffer);
-        return buffer;
+        if (!this->reqMsg.SerializeToString(&_buffer))
+        {
+          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
+                    << std::endl;
+          return false;
+        }
+
+        return true;
       }
 
       // Documentation inherited.
-      public: void NotifyResult(const std::string &_topic,
-                                const std::string &_rep,
-                                const bool _result)
+      public: void NotifyResult(const std::string &_rep, const bool _result)
       {
         // Execute the callback (if existing).
         if (this->cb)
@@ -220,11 +232,7 @@ namespace ignition
           // Instantiate the specific protobuf message associated to this topic.
           auto msg = this->CreateMsg(_rep);
 
-          // Remove the partition part from the topic.
-          std::string topicName = _topic;
-          topicName.erase(0, topicName.find_last_of("@") + 1);
-
-          this->cb(topicName, *msg, _result);
+          this->cb(*msg, _result);
         }
         else
         {
@@ -236,17 +244,27 @@ namespace ignition
         this->condition.notify_one();
       }
 
+      // Documentation inherited.
+      public: virtual std::string GetReqTypeName() const
+      {
+        return Req().GetTypeName();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string GetRepTypeName() const
+      {
+        return Rep().GetTypeName();
+      }
+
       // Protobuf message containing the request's parameters.
       private: Req reqMsg;
 
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
-      /// \param[in] _topic Service name.
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      private: std::function<void(const std::string &_topic, const Rep &_rep,
-        bool _result)> cb;
+      private: std::function<void(const Rep &_rep, const bool _result)> cb;
     };
   }
 }

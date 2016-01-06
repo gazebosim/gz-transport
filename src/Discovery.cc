@@ -25,7 +25,7 @@
   #include <Ws2ipdef.h>
   #include <Ws2tcpip.h>
   // Type used for raw data on this platform.
-  typedef char raw_type;
+  using raw_type = char;
 #else
   // For data types
   #include <sys/types.h>
@@ -40,7 +40,7 @@
   // For sockaddr_in
   #include <netinet/in.h>
   // Type used for raw data on this platform
-  typedef void raw_type;
+  using raw_type = void;
 #endif
 
 #include <zmq.hpp>
@@ -52,11 +52,13 @@
 #ifdef _MSC_VER
 # pragma warning(pop)
 #endif
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
@@ -109,42 +111,20 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 
   for (const auto &netIface : this->dataPtr->hostInterfaces)
   {
-    // Make a new socket for sending discovery information.
-    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0)
-    {
-      std::cerr << "Socket creation failed." << std::endl;
-      return;
-    }
+    auto succeed = this->RegisterNetIface(netIface);
 
-    // Socket option: IP_MULTICAST_IF.
-    // This socket option needs to be applied to each socket used to send data.
-    // This option selects the source interface for outgoing messages.
-    struct in_addr ifAddr;
-    ifAddr.s_addr = inet_addr(netIface.c_str());
-    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
-      reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+    // If the IP address that we're selecting as the main IP address of the host
+    // is invalid, we change it to 127.0.0.1 . This is probably because IGN_IP
+    // is set to a wrong value.
+    if (netIface == this->dataPtr->hostAddr && !succeed)
     {
-      std::cerr << "Error setting socket option (IP_MULTICAST_IF)."
-                << std::endl;
-      return;
-    }
-
-    this->dataPtr->sockets.push_back(sock);
-
-    // Join the multicast group. We have to do it for each network interface but
-    // we can do it on the same socket. We will use the socket at position 0 for
-    // receiving multicast information.
-    struct ip_mreq group;
-    group.imr_multiaddr.s_addr =
-      inet_addr(this->dataPtr->MulticastGroup.c_str());
-    group.imr_interface.s_addr = inet_addr(netIface.c_str());
-    if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
-      reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
-    {
-      std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
-                << std::endl;
-      return;
+      this->RegisterNetIface("127.0.0.1");
+      std::cerr << "Did you set the environment variable IGN_IP with a correct "
+                << "IP address? " << std::endl
+                << "  [" << netIface << "] seems an invalid local IP address."
+                << std::endl
+                << "  Using 127.0.0.1 as hostname." << std::endl;
+      this->dataPtr->hostAddr = "127.0.0.1";
     }
   }
 
@@ -238,7 +218,7 @@ Discovery::~Discovery()
   // Broadcast a BYE message to trigger the remote cancellation of
   // all our advertised topics.
   this->SendMsg(ByeType,
-    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::All));
+    Publisher("", "", this->dataPtr->pUuid, "", Scope_t::ALL));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Close sockets.
@@ -297,7 +277,7 @@ bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
   this->dataPtr->infoMsg.AddPublisher(_publisher);
 
   // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
+  if (_publisher.Scope() != Scope_t::PROCESS)
     this->SendMsg(AdvType, _publisher);
 
   return true;
@@ -315,7 +295,7 @@ bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
   this->dataPtr->infoSrv.AddPublisher(_publisher);
 
   // Only advertise a message outside this process if the scope is not 'Process'
-  if (_publisher.Scope() != Scope_t::Process)
+  if (_publisher.Scope() != Scope_t::PROCESS)
     this->SendMsg(AdvSrvType, _publisher);
 
   return true;
@@ -344,7 +324,7 @@ bool Discovery::UnadvertiseMsg(const std::string &_topic,
 
   // Only unadvertise a message outside this process if the scope
   // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
+  if (inf.Scope() != Scope_t::PROCESS)
     this->SendMsg(UnadvType, inf);
 
   return true;
@@ -373,7 +353,7 @@ bool Discovery::UnadvertiseSrv(const std::string &_topic,
 
   // Only unadvertise a message outside this process if the scope
   // is not 'Process'.
-  if (inf.Scope() != Scope_t::Process)
+  if (inf.Scope() != Scope_t::PROCESS)
     this->SendMsg(UnadvSrvType, inf);
 
   return true;
@@ -392,7 +372,7 @@ bool Discovery::DiscoverMsg(const std::string &_topic)
 
   pub.Topic(_topic);
   pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
+  pub.Scope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubType, pub);
@@ -435,7 +415,7 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
 
   pub.Topic(_topic);
   pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::All);
+  pub.Scope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubSrvType, pub);
@@ -463,6 +443,20 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+const TopicStorage<MessagePublisher> &Discovery::DiscoveryMsgInfo() const
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->infoMsg;
+}
+
+//////////////////////////////////////////////////
+const TopicStorage<ServicePublisher> &Discovery::DiscoverySrvInfo() const
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->infoSrv;
 }
 
 //////////////////////////////////////////////////
@@ -599,7 +593,7 @@ void Discovery::RunActivityTask()
         // topics.
         MessagePublisher publisher;
         publisher.PUuid(it->first);
-        publisher.Scope(Scope_t::All);
+        publisher.Scope(Scope_t::ALL);
         this->dataPtr->disconnectionCb(publisher);
 
         // Remove the activity entry.
@@ -641,24 +635,24 @@ void Discovery::RunHeartbeatTask()
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
       std::string pUuid = this->dataPtr->pUuid;
-      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::All);
+      Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::ALL);
       this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
       this->dataPtr->infoMsg.GetPublishersByProc(pUuid, msgNodes);
-      for (auto &topic : msgNodes)
+      for (const auto &topic : msgNodes)
       {
-        for (auto &node : topic.second)
+        for (const auto &node : topic.second)
           this->SendMsg(AdvType, node);
       }
 
       // Re-advertise services that are advertised inside this process.
       std::map<std::string, std::vector<ServicePublisher>> srvNodes;
       this->dataPtr->infoSrv.GetPublishersByProc(pUuid, srvNodes);
-      for (auto &topic : srvNodes)
+      for (const auto &topic : srvNodes)
       {
-        for (auto &node : topic.second)
+        for (const auto &node : topic.second)
           this->SendMsg(AdvSrvType, node);
       }
     }
@@ -783,8 +777,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
-          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -808,8 +802,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
-          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -843,8 +837,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
           for (auto nodeInfo : addresses[this->dataPtr->pUuid])
           {
             // Check scope of the topic.
-            if ((nodeInfo.Scope() == Scope_t::Process) ||
-                (nodeInfo.Scope() == Scope_t::Host &&
+            if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+                (nodeInfo.Scope() == Scope_t::HOST &&
                  _fromIp != this->dataPtr->hostAddr))
             {
               continue;
@@ -875,8 +869,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
           for (auto nodeInfo : addresses[this->dataPtr->pUuid])
           {
             // Check scope of the topic.
-            if ((nodeInfo.Scope() == Scope_t::Process) ||
-                (nodeInfo.Scope() == Scope_t::Host &&
+            if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+                (nodeInfo.Scope() == Scope_t::HOST &&
                  _fromIp != this->dataPtr->hostAddr))
             {
               continue;
@@ -904,7 +898,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       {
         MessagePublisher msgPub;
         msgPub.PUuid(recvPUuid);
-        msgPub.Scope(Scope_t::All);
+        msgPub.Scope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionCb(msgPub);
       }
@@ -913,7 +907,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       {
         ServicePublisher srvPub;
         srvPub.PUuid(recvPUuid);
-        srvPub.Scope(Scope_t::All);
+        srvPub.Scope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionSrvCb(srvPub);
       }
@@ -931,8 +925,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advMsg.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advMsg.GetPublisher().Scope() == Scope_t::Process) ||
-          (advMsg.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advMsg.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advMsg.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -959,8 +953,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       advSrv.Unpack(pBody);
 
       // Check scope of the topic.
-      if ((advSrv.GetPublisher().Scope() == Scope_t::Process) ||
-          (advSrv.GetPublisher().Scope() == Scope_t::Host &&
+      if ((advSrv.GetPublisher().Scope() == Scope_t::PROCESS) ||
+          (advSrv.GetPublisher().Scope() == Scope_t::HOST &&
            _fromIp != this->dataPtr->hostAddr))
       {
         return;
@@ -1013,8 +1007,10 @@ uint8_t Discovery::Version() const
 }
 
 //////////////////////////////////////////////////
-void Discovery::PrintCurrentState()
+void Discovery::PrintCurrentState() const
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
   std::cout << "---------------" << std::endl;
   std::cout << std::boolalpha << "Enabled: "
             << this->dataPtr->enabled << std::endl;
@@ -1071,7 +1067,50 @@ void Discovery::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-std::recursive_mutex& Discovery::Mutex()
+std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
+}
+
+//////////////////////////////////////////////////
+bool Discovery::RegisterNetIface(const std::string &_ip)
+{
+  // Make a new socket for sending discovery information.
+  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (sock < 0)
+  {
+    std::cerr << "Socket creation failed." << std::endl;
+    return false;
+  }
+
+  // Socket option: IP_MULTICAST_IF.
+  // This socket option needs to be applied to each socket used to send data.
+  // This option selects the source interface for outgoing messages.
+  struct in_addr ifAddr;
+  ifAddr.s_addr = inet_addr(_ip.c_str());
+  if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
+    reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_MULTICAST_IF)." << std::endl;
+    return false;
+  }
+
+  this->dataPtr->sockets.push_back(sock);
+
+  // Join the multicast group. We have to do it for each network interface but
+  // we can do it on the same socket. We will use the socket at position 0 for
+  // receiving multicast information.
+  struct ip_mreq group;
+  group.imr_multiaddr.s_addr =
+    inet_addr(this->dataPtr->MulticastGroup.c_str());
+  group.imr_interface.s_addr = inet_addr(_ip.c_str());
+  if (setsockopt(this->dataPtr->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
+    reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
+  {
+    std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+              << std::endl;
+    return false;
+  }
+
+  return true;
 }

@@ -1,8 +1,9 @@
-package example.mymsgs;
+package example.msgs;
 
 /// \brief String message
 
 message StringMsg
 {
+  /// \brief String data
   required string data = 1;
 }

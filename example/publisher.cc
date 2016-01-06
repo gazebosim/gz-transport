@@ -18,7 +18,7 @@
 #include <chrono>
 #include <csignal>
 #include <ignition/transport.hh>
-#include "msg/stringmsg.pb.h"
+#include "msgs/stringmsg.pb.h"
 
 bool terminatePub = false;
 
@@ -42,20 +42,21 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  if (!node.Advertise(topic))
+  if (!node.Advertise<example::msgs::StringMsg>(topic))
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
     return -1;
   }
 
   // Prepare the message.
-  example::mymsgs::StringMsg msg;
+  example::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
-  while(!terminatePub)
+  while (!terminatePub)
   {
-    node.Publish(topic, msg);
+    if (!node.Publish(topic, msg))
+      break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

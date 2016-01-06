@@ -18,7 +18,7 @@
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
-#include "msg/int.pb.h"
+#include "msgs/int.pb.h"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
@@ -28,8 +28,8 @@ std::string topic = "/foo";
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const std::string &/*_topic*/, const transport::msgs::Int &_req,
-  transport::msgs::Int &_rep, bool &_result)
+void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+  bool &_result)
 {
   _rep.set_data(_req.data());
   _result = true;

@@ -17,21 +17,22 @@ macro (ign_build_tests)
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file} ${PROTO_SRC})
 
     add_dependencies(${BINARY_NAME}
-      ${PROJECT_NAME_LOWER}
+      ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
       gtest gtest_main
-      protobuf_compilation
-      )
+    )
+
+    target_link_libraries(${BINARY_NAME}
+      ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+    )
 
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         libgtest.a
         libgtest_main.a
         pthread
       )
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
-        ${PROJECT_NAME_LOWER}
         gtest
         gtest_main
       )

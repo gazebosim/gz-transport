@@ -211,7 +211,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   std::string ctrl = "tcp://10.0.0.1:60011";
   std::string procUuid = "procUUID";
   std::string nodeUuid = "nodeUUID";
-  Scope_t scope = Scope_t::All;
+  Scope_t scope = Scope_t::ALL;
   std::string typeName = "StringMsg";
   MessagePublisher pub(topic, addr, ctrl, procUuid, nodeUuid, scope, typeName);
   AdvertiseMessage<MessagePublisher> advMsg(otherHeader, pub);
@@ -263,7 +263,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   ctrl = "inproc://control";
   procUuid = "procUUID";
   nodeUuid = "nodeUUID2";
-  scope = Scope_t::Host;
+  scope = Scope_t::HOST;
   typeName = "Int";
   advMsg.GetPublisher().Topic(topic);
   EXPECT_EQ(advMsg.GetPublisher().Topic(), topic);
@@ -301,7 +301,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
 
   EXPECT_EQ(output.str(), expectedOutput);
 
-  advMsg.GetPublisher().Scope(Scope_t::Process);
+  advMsg.GetPublisher().Scope(Scope_t::PROCESS);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -323,7 +323,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(output.str(), expectedOutput);
 
   // Check << operator
-  advMsg.GetPublisher().Scope(Scope_t::All);
+  advMsg.GetPublisher().Scope(Scope_t::ALL);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -356,7 +356,7 @@ TEST(PacketTest, AdvertiseMsgIO)
   std::string ctrl = "tcp://10.0.0.1:60011";
   std::string procUuid = "procUUID";
   std::string nodeUuid = "nodeUUID";
-  Scope_t scope = Scope_t::Host;
+  Scope_t scope = Scope_t::HOST;
   std::string typeName = "StringMsg";
 
   // Try to pack an empty AdvMsg.
@@ -446,7 +446,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   std::string addr = "tcp://10.0.0.1:6000";
   std::string id = "socketID";
   std::string nodeUuid = "nodeUUID";
-  Scope_t scope = Scope_t::All;
+  Scope_t scope = Scope_t::ALL;
   std::string reqType = "StringMsg";
   std::string repType = "Int";
 
@@ -502,7 +502,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   id = "aSocketID";
   pUuid = "procUUID";
   nodeUuid = "nodeUUID2";
-  scope = Scope_t::Host;
+  scope = Scope_t::HOST;
   reqType = "Type1";
   repType = "Type2";
   advSrv.GetPublisher().Topic(topic);
@@ -556,7 +556,7 @@ TEST(PacketTest, AdvertiseSrvIO)
   std::string id = "socketId";
   std::string procUuid = "procUUID";
   std::string nodeUuid = "nodeUUID";
-  Scope_t scope = Scope_t::Host;
+  Scope_t scope = Scope_t::HOST;
   std::string reqType = "StringMsg";
   std::string repType = "Int";
 
