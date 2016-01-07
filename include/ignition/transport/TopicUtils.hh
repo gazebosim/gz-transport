@@ -29,14 +29,18 @@ namespace ignition
     /// \brief This class provides different utilities related with topics.
     class IGNITION_VISIBLE TopicUtils
     {
-      /// \brief Determines if a namespace is valid. A namespace is considered a
-      /// prefix that will be potentially applied to other topic names.
-      /// The same rules to validate a topic name applies to a namespace with
-      /// the addition of the empty string, which is a valid namespace (meaning
-      /// no namespace is used).
-      /// \param[in] _topic Namespace to be checked.
+      /// \brief Determines if a namespace is valid.
+      /// \param[in] _ns Namespace to be checked.
       /// \return true if the namespace is valid.
       public: static bool IsValidNamespace(const std::string &_ns);
+
+      /// \brief Determines if a partition is valid.
+      /// The same rules to validate a topic name applies to a partition with
+      /// the addition of the empty string, which is a valid partition (meaning
+      /// no partition is used).
+      /// \param[in] _partition Partition to be checked.
+      /// \return true if the partition is valid.
+      public: static bool IsValidPartition(const std::string &_partition);
 
       /// \brief Determines if a topic name is valid. A topic name is any
       /// non-empty alphanumeric string. The symbol '/' is also allowed as part
