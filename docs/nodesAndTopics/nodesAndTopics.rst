@@ -82,7 +82,7 @@ set a partition name, we won't receive any messages from Node1 or Node2.
 A partition name is any alphanumeric string with a few exceptions.
 The symbol '/' is allowed as part of a partition name but just '/' is
 not allowed. The symbols '@', '~' and ' ' are not allowed as part of a
-partition name. Two or more consecutive slashes ('//') are not allowed
+partition name. Two or more consecutive slashes ('//') are not allowed.
 
 The default partition name is created using a combination of your hostname,
 followed by ':' and your username. E.g.: "bb9:caguero" . It's also possible to

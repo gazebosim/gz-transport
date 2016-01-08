@@ -15,6 +15,7 @@ Contents:
 	 Nodes and topics <nodesAndTopics/nodesAndTopics>
 	 Messages <messages/messages>
 	 Services <services/services>
+   Environment variables <environment_variables/env_variables>
 	 Contribute <contribute/contribute>
 
 Indices and tables

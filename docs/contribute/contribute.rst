@@ -4,8 +4,8 @@ How to contribute
 
 Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
-If you would like to contribute software patches, please join the ignition
-transport project on Bitbucket.org.
+If you would like to contribute software patches, please join the project on
+Bitbucket.org.
 
 Forking, Patching and Pull Requests
 ===================================
