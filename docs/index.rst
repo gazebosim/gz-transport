@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
 	 Introduction <introduction/intro>
+   Installation <installation/installation>
 	 Nodes and topics <nodesAndTopics/nodesAndTopics>
 	 Messages <messages/messages>
 	 Services <services/services>
