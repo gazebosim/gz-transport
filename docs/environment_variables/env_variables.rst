@@ -8,7 +8,7 @@ environment variable to tweak the behavior of Ignition Transport. Next you can
 see a description of the available environment variables:
 
 +--------------------+---------------------+-----------------------------------+
-|Environment variable| Values allowed      | Description                       |
+|Environment variable| Value  allowed      | Description                       |
 +====================+=====================+===================================+
 |*IGN_PARTITION*     | Any partition value | Specifies a partition name for all|
 |                    |                     | the nodes declared inside this    |
@@ -35,4 +35,4 @@ see a description of the available environment variables:
 |                    |                     | the topic/service.                |
 +--------------------+---------------------+-----------------------------------+
 |*IGN_VERBOSE*       | 1                   | Show debug information.           |
-+------------------------------------------+-----------------------------------+
++--------------------+---------------------+-----------------------------------+
