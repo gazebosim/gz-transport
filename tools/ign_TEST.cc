@@ -18,7 +18,6 @@
 #include <iostream>
 #include <string>
 #include "gtest/gtest.h"
-#include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/int.pb.h"
