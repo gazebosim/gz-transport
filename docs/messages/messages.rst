@@ -16,8 +16,8 @@ nodes will be running on different processes within the same machine.
 Creating the publisher
 ======================
 
-Create the ``src/publisher.cc`` file within the ``ign_transport_tutorial`` and
-paste the following code inside it:
+Create the ``src/publisher.cc`` file within the ``ign_transport_tutorial``
+folder and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -113,8 +113,8 @@ The method *Publish()* sends a message to all the subscribers.
 Creating the subscriber
 =======================
 
-Create the ``src/subscriber.cc`` file within the ``ign_transport_tutorial`` and
-paste the following code inside it:
+Create the ``src/subscriber.cc`` file within the ``ign_transport_tutorial``
+folder and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -190,15 +190,16 @@ given topic name by specifying your subscription callback function.
 Building the code
 =================
 
-Copy this ``CMakeLists.txt`` file within the *ign_transport_tutorial*. This is
-the top level cmake file that will check for dependencies.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``
+folder. This is the top level cmake file that will check for dependencies.
 
-Copy this ``stringmsg.proto`` file within the ``ign_transport_tutorial/src``.
-This file contains the Protobuf message definition that we use in this example.
+Copy this ``stringmsg.proto`` file within the ``ign_transport_tutorial/src``
+folder. This file contains the Protobuf message definition that we use in this
+example.
 
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``.
-This is the cmake file that will generate the C++ code from the Protobuf file
-and will create the ``publisher`` and ``subscriber`` executables.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``
+folder. This is the cmake file that will generate the C++ code from the Protobuf
+file and will create the ``publisher`` and ``subscriber`` executables.
 
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
@@ -208,7 +209,7 @@ the ``ign_transport_tutorial`` directory.
     mkdir build
     cd build
 
-Run *cmake* and build the code.
+Run ``cmake`` and build the code.
 
 .. code-block:: bash
 
@@ -221,13 +222,13 @@ Running the examples
 
 Open two new terminals and from your ``build/`` directory run the executables:
 
-From terminal 1
+From terminal 1:
 
 .. code-block:: bash
 
     ./publisher
 
-From terminal 2
+From terminal 2:
 
 .. code-block:: bash
 

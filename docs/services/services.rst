@@ -15,8 +15,8 @@ whereas the other node will be the service consumer requesting an *echo* call.
 Creating the responser
 ======================
 
-Create the ``src/responser.cc`` file within the ``ign_transport_tutorial`` and
-paste the following code inside it:
+Create the ``src/responser.cc`` file within the ``ign_transport_tutorial``
+directory and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -116,8 +116,8 @@ requests.
 Creating a synchronous requester
 ================================
 
-Create the ``src/requester.cc`` file within the ``ign_transport_tutorial`` and
-paste the following code inside it:
+Create the ``src/requester.cc`` file within the ``ign_transport_tutorial``
+directory and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -216,7 +216,7 @@ Creating an asynchronous requester
 ================================
 
 Create the ``src/requester_async.cc`` file within the ``ign_transport_tutorial``
-and paste the following code inside it:
+directory and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -302,17 +302,17 @@ your service request is handled.
 Building the code
 =================
 
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``. This is
-the top level cmake file that will check for dependencies.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``
+directory. This is the top level cmake file that will check for dependencies.
 
-Copy this ``hello.proto`` file within the ``ign_transport_tutorial/src``. This
-is the Protobuf message definition that we use in this example.
+Copy this ``hello.proto`` file within the ``ign_transport_tutorial/src``
+directory. This is the Protobuf message definition that we use in this example.
 
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``.
-This is the cmake file that will generate the C++ code from the Protobuf file
-and will create the ``responser`` and ``requester`` executables.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``
+directory. This is the cmake file that will generate the C++ code from the
+Protobuf file and will create the ``responser`` and ``requester`` executables.
 
-Once you have all your files, go ahead and create a ``build/`` directory within
+Once you have all your files, go ahead and create a ``build/`` folder within
 the ``ign_transport_tutorial`` directory.
 
 .. code-block:: bash
@@ -331,7 +331,7 @@ Run ``cmake`` and build the code.
 Running the examples
 ====================
 
-Open two new terminals and from your *build/* directory run the executables:
+Open two new terminals and from your ``build/`` directory run the executables:
 
 From terminal 1:
 
