@@ -1,5 +1,5 @@
 ===========================
-What is ignition transport?
+What is Ignition Transport?
 ===========================
 
 Ignition transport is an open source communication library that allows sharing
@@ -14,6 +14,6 @@ communicating between nodes. Users can define its own messages using the
 Protobuf utils, and then, exchange them between the nodes. Ignition transport
 discovers, serializes and delivers messages to the destinations.
 
-* What programming language can I use to interface ignition transport?
+* What programming language can I use to interface Ignition Transport?
 C++ is our native implementation and so far the only way to use the library. We
 might offer different wrappers for the most popular languages in the future.
