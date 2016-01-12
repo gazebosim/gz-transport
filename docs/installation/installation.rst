@@ -154,7 +154,96 @@ In another Windows terminal run:
 Install from sources (Ubuntu Linux)
 =======
 
+For compiling the latest version of Ignition Transport you will need an Ubuntu
+distribution equal to 14.04.2 (Trusty) or newer.
 
+Make sure you have removed the Ubuntu pre-compiled binaries before installing
+from source:
+
+.. code-block:: bash
+
+        sudo apt-get remove libignition-transport0-dev
+
+Install prerequisites. A clean Ubuntu system will need:
+
+.. code-block:: bash
+
+        sudo apt-get install cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev
+
+Clone the repository into a directory and go into it:
+
+.. code-block:: bash
+
+        hg clone https://bitbucket.org/ignitionrobotics/ign-transport /tmp/ign-transport
+        cd /tmp/ign-transport
+
+Create a build directory and go there:
+
+.. code-block:: bash
+
+        mkdir build
+        cd build
+
+Configure Ignition Transport (choose either method a or b below):
+
+a. Release mode: This will generate optimized code, but will not have debug symbols. Use this mode if you don't need to use GDB.
+
+.. code-block:: bash
+
+        cmake ../
+
+Note: You can use a custom install path to make it easier to switch between source and debian installs:
+
+.. code-block:: bash
+
+        cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ../
+
+b. Debug mode: This will generate code with debug symbols. Ignition Transport
+will run slower, but you'll be able to use GDB.
+
+.. code-block:: bash
+
+        cmake -DCMAKE_BUILD_TYPE=Debug ../
+
+The output from ``cmake ../`` may generate a number of errors and warnings about
+missing packages. You must install the missing packages that have errors and
+re-run ``cmake ../``. Make sure all the build errors are resolved before
+continuing (they should be there from the earlier step in which you installed
+prerequisites).
+
+Make note of your install path, which is output from cmake and should look something like:
+
+.. code-block:: bash
+
+        -- Install path: /home/$USER/local
+
+Build Ignition Transport:
+
+.. code-block:: bash
+
+        make -j4
+
+Install Ignition Transport:
+
+.. code-block:: bash
+
+        sudo make install
+
+If you decide to install gazebo in a local directory you'll need to modify your
+``LD_LIBRARY_PATH``:
+
+.. code-block:: bash
+
+        echo "export LD_LIBRARY_PATH=<install_path>/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
+
+If you need to uninstall Ignition Transport or switch back to a debian-based
+install when you currently have installed the library from source, navigate to
+your source code directory's build folders and run ``make uninstall``:
+
+.. code-block:: bash
+
+        cd /tmp/ign-transport/build
+        sudo make uninstall
 
 Install from sources (MAC OS X)
 =======
