@@ -186,7 +186,7 @@ Create a build directory and go there:
 
 Configure Ignition Transport (choose either method a or b below):
 
-a. Release mode: This will generate optimized code, but will not have debug symbols. Use this mode if you don't need to use GDB.
+A. Release mode: This will generate optimized code, but will not have debug symbols. Use this mode if you don't need to use GDB.
 
 .. code-block:: bash
 
@@ -198,12 +198,14 @@ Note: You can use a custom install path to make it easier to switch between sour
 
         cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ../
 
-b. Debug mode: This will generate code with debug symbols. Ignition Transport
+B. Debug mode: This will generate code with debug symbols. Ignition Transport
 will run slower, but you'll be able to use GDB.
 
 .. code-block:: bash
 
         cmake -DCMAKE_BUILD_TYPE=Debug ../
+
+
 
 The output from ``cmake ../`` may generate a number of errors and warnings about
 missing packages. You must install the missing packages that have errors and
@@ -244,7 +246,3 @@ your source code directory's build folders and run ``make uninstall``:
 
         cd /tmp/ign-transport/build
         sudo make uninstall
-
-Install from sources (MAC OS X)
-=======
-
