@@ -15,8 +15,8 @@ whereas the other node will be the service consumer requesting an *echo* call.
 Creating the responser
 ======================
 
-Create the *src/responser.cc* file within the *ign_transport_tutorial* and paste
-the following code inside it:
+Create the ``src/responser.cc`` file within the ``ign_transport_tutorial`` and
+paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -63,12 +63,12 @@ Walkthrough
     #include <ignition/transport.hh>
     #include "msgs/stringmsg.pb.h"
 
-The line *#include <ignition/transport.hh>* contains the Ignition Transport
+The line ``#include <ignition/transport.hh>`` contains the Ignition Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
-for our messages. We are going to use *StringMsg* type Protobuf messages
-defined in *stringmsg.pb.h* for our services.
+for our messages. We are going to use ``StringMsg`` type Protobuf messages
+defined in ``stringmsg.pb.h`` for our services.
 
 
 .. code-block:: cpp
@@ -88,11 +88,11 @@ defined in *stringmsg.pb.h* for our services.
 As a service provider, our node needs to register a function callback that will
 execute every time a new service request is received. The signature of the
 callback is always similar to the one shown in this example with the exception
-of the Protobuf messages types for the *_req* (request) and *_rep* (response).
-The request parameter contains the input parameters of the request. The response message contains any resulting data from the service call. The *_result*
-parameter denotes if the overall service call was considered successful or not.
-In our example, as a simple *echo* service, we just fill the response with the
-same data contained in the request.
+of the Protobuf messages types for the ``_req`` (request) and ``_rep``
+(response). The request parameter contains the input parameters of the request.
+The response message contains any resulting data from the service call. The ``_result`` parameter denotes if the overall service call was considered
+successful or not. In our example, as a simple *echo* service, we just fill the
+response with the same data contained in the request.
 
 .. code-block:: cpp
 
@@ -116,7 +116,7 @@ requests.
 Creating a synchronous requester
 ================================
 
-Create the *src/requester.cc* file within the *ign_transport_tutorial* and
+Create the ``src/requester.cc`` file within the ``ign_transport_tutorial`` and
 paste the following code inside it:
 
 .. code-block:: cpp
@@ -194,28 +194,29 @@ in milliseconds.
       std::cerr << "Service call timed out" << std::endl;
 
 
-In this section of the code we use the method *Request()* for forwarding the
-service call to any service provider of the service */echo*.
+In this section of the code we use the method ``Request()`` for forwarding the
+service call to any service provider of the service ``/echo``.
 Ignition Transport will find a node, communicate the input data, capture the
 response and pass it to your output parameter. The return value will tell you
-if the request expired or the response was received. The *result* value will
+if the request expired or the response was received. The ``result`` value will
 tell you if the service provider considered the operation valid.
 
 Imagine for example that we are using a division service, where our input
 message contains the numerator and denominator. If there are no nodes offering
-this service, our request will timeout (return value *false*). On the other
-hand, if there's at least one node providing the service the request will
-return *true* signaling that the request was received. However, if we set our
-denominator to *0* in the input message, *result* will be *false* reporting that
-something went wrong in the request. If the input parameters are valid, we'll
-receive a result value of *true* and we can use our response message.
+this service, our request will timeout (return value ``false``). On the other
+hand, if there's at least one node providing the service, the request will
+return ``true`` signaling that the request was received. However, if we set our
+denominator to ``0`` in the input message, ``result`` will be ``false``
+reporting that something went wrong in the request. If the input parameters are
+valid, we'll receive a result value of ``true`` and we can use our response
+message.
 
 
 Creating an asynchronous requester
 ================================
 
-Create the *src/requester_async.cc* file within the *ign_transport_tutorial* and
-paste the following code inside it:
+Create the ``src/requester_async.cc`` file within the ``ign_transport_tutorial``
+and paste the following code inside it:
 
 .. code-block:: cpp
 
@@ -273,8 +274,8 @@ service response. The signature of the callback is always similar to the one
 shown in this example with the only exception of the Protobuf message type used
 in the response. You should create a function callback with the appropriate
 Protobuf type depending on the response type of the service requested. In our
-case, we know that the service */echo* will answer with a Protobuf *StringMsg*
-type.
+case, we know that the service ``/echo`` will answer with a Protobuf
+`StringMsg`` type.
 
 .. code-block:: cpp
 
@@ -290,36 +291,36 @@ type.
 
 
 In this section of the code we declare a node and a Protobuf message that is
-filled with the input parameters for our request. Next, we just use the asynchronous variant of the *Request()* method that forwards a service call to
-any service provider of the service */echo*.
+filled with the input parameters for our request. Next, we just use the asynchronous variant of the ``Request()`` method that forwards a service call to
+any service provider of the service ``/echo``.
 Ignition Transport will find a node, communicate the data, capture the response
 and pass it to your callback, in addition of the service call result. Note that
-this variant of *Request()* is asynchronous, so your code will not block while
+this variant of ``Request()`` is asynchronous, so your code will not block while
 your service request is handled.
 
 
 Building the code
 =================
 
-Copy this *CMakeLists.txt* file within the *ign_transport_tutorial*. This is the
-top level cmake file that will check for dependencies.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``. This is
+the top level cmake file that will check for dependencies.
 
-Copy this *hello.proto* file within the *ign_transport_tutorial/src*. This is
-the protobuf message definition that we use in this example.
+Copy this ``hello.proto`` file within the ``ign_transport_tutorial/src``. This
+is the Protobuf message definition that we use in this example.
 
-Copy this *CMakeLists.txt* file within the *ign_transport_tutorial/src*. This is
-the cmake file that will generate the c++ code from the protobuf file and will
-create the *responser* and *requester* executables.
+Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``.
+This is the cmake file that will generate the C++ code from the Protobuf file
+and will create the ``responser`` and ``requester`` executables.
 
-Once you have all your files, go ahead and create a *build/* directory within
-the *ign_transport_tutorial* directory.
+Once you have all your files, go ahead and create a ``build/`` directory within
+the ``ign_transport_tutorial`` directory.
 
 .. code-block:: bash
 
     mkdir build
     cd build
 
-Run *cmake* and build the code.
+Run ``cmake`` and build the code.
 
 .. code-block:: bash
 
@@ -332,13 +333,13 @@ Running the examples
 
 Open two new terminals and from your *build/* directory run the executables:
 
-From terminal 1
+From terminal 1:
 
 .. code-block:: bash
 
     ./responser
 
-From terminal 2
+From terminal 2:
 
 .. code-block:: bash
 
