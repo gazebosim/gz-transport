@@ -198,26 +198,26 @@ writing a test please ask for help in your pull request.
 
 Ignition Transport has a build target called ``make coverage`` that will produce a code coverage report. You'll need `lcov <http://ltp.sourceforge.net/coverage/lcov.php>`_  installed.
 
-1. In your ``build`` folder, compile Ignition Transport with ``-DCMAKE_BUILD_TYPE=Coverage``
+1. In your ``build`` folder, compile Ignition Transport with ``-DCMAKE_BUILD_TYPE=Coverage``:
 
 .. code-block:: bash
 
         cmake -DCMAKE_BUILD_TYPE=Coverage ..\
         make
 
-2. Run a single test, or all the tests
+2. Run a single test, or all the tests:
 
 .. code-block:: bash
 
         make test
 
-3. Make the coverage report
+3. Make the coverage report:
 
 .. code-block:: bash
 
         make coverage
 
-4. View the coverage report
+4. View the coverage report:
 
 .. code-block:: bash
 
