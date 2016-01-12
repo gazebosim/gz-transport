@@ -115,4 +115,4 @@ Namespace  Topic name    Fully qualified topic  Validity  Comment
 *//ns*     *topicA*                             Invalid   Contains two consecutive *//*
 */*        *topicA*                             Invalid   */* namespace is not allowed
 *~myns*    *topicA*                             Invalid   Symbol *~* not allowed
-=========  ============  =====================  =======   ======================
+=========  ============  =====================  =======   =======
