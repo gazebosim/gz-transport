@@ -31,7 +31,7 @@ development should take place in your fork.
 
 .. code-block:: bash
 
-        hg branch my_new_branch_name``
+        hg branch my_new_branch_name
 
 Always work out of a new branch, never off of `default`. This is a good habit to get in, and will make your life easier. If you're solving an issue, make the branch
 name ``issue_`` followed by the issue number. E.g.: ``issue_23``.
@@ -55,9 +55,9 @@ name ``issue_`` followed by the issue number. E.g.: ``issue_23``.
 
 .. code-block:: bash
 
-        sh tools/code_check.sh`
+        sh tools/code_check.sh
 
-The tool does not catch all style errors. See the Style section below for more
+The tool does not catch all style errors. See the `Style` section below for more
 information.
 
 8. Tests pass.
@@ -89,7 +89,7 @@ information.
   * `Medium, still okay <https://bitbucket.org/osrf/gazebo/pull-request/1700>`_
   * `Too large <https://bitbucket.org/osrf/gazebo/pull-request/30>`_
 
-12. `Pull request <https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/new>`_
+12. `Pull request <https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/new>`_.
 
   Submit a pull request when you ready.
 
@@ -126,7 +126,7 @@ Style
 
 In general, we follow `Google's style guide <https://google-styleguide.googlecode.com/svn/trunk/cppguide.html>`_. However, we add in some extras.
 
-**This pointer**
+**``this`` pointer**
    All class attributes and member functions must be accessed using the ``this->``  pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/ gazebo/physics/Base.cc#cl-40>`_.
 
 **Underscore function parameters**
@@ -142,16 +142,16 @@ In general, we follow `Google's style guide <https://google-styleguide.googlecod
    This occurs mostly in ``for`` loops. Prefix the ``++`` operator, which is `slightly more efficient than postfix in some cases <http://programmers.stackexchange.com/questions/59880/avoid-postfix-increment-operator>`_.
 
 **PIMPL/Opaque pointer**
-   If you are writing a new class, it must use a private data pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/World.hh?at=default#cl-479>`_), and you can read more `here <https://en.wikipedia.org/wiki/Opaque_pointer>`_.
+   If you are writing a new class, it must use a private data pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/World.hh?at=default#cl-479>`_, and you can read more `here <https://en.wikipedia.org/wiki/Opaque_pointer>`_.
 
 **const functions**
    Any class function that does not change a member variable should be marked as ``const``. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-175>`_.
 
 **const parameters**
-   All parameters that are not modified by a function should be marked as ``const``. This applies to parameters that are passed by reference, pointer, and value. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_).
+   All parameters that are not modified by a function should be marked as ``const``. This applies to parameters that are passed by reference, pointer, and value. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_.
 
 **Pointer and reference variables**
-   Place the ``*`` and ``&`` next to the varaible name, not next to the type. For example: ``int &variable`` is good, but ``int& variable`` is not. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_).
+   Place the ``*`` and ``&`` next to the varaible name, not next to the type. For example: ``int &variable`` is good, but ``int& variable`` is not. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_.
 
 **Camel case**
    In general, everything should use camel case. Exceptions include protobuf variable names.
@@ -160,14 +160,18 @@ In general, we follow `Google's style guide <https://google-styleguide.googlecod
    Class functions must start with a capital letter, and capitalize every word.
 
    ``void MyFunction();`` : Good
+
    ``void myFunction();`` : Bad
+
    ``void my_function();`` : Bad
 
 **Variable names**
    Variables must start with a lower case letter, and capitalize every word thereafter.
 
    ``int myVariable;`` : Good
+
    ``int myvariable;`` : Bad
+
    ``int my_variable;`` : Bad
 
 Reduce Code Duplication
@@ -192,7 +196,7 @@ coverage, and time constraints. Try to write as complete of a test suite as
 possible, and use the coverage analysis tools as guide. If you have trouble
 writing a test please ask for help in your pull request.
 
-Ignition Transport has a build target called `make coverage` that will produce a code coverage report. You'll need `lcov <http://ltp.sourceforge.net/coverage/lcov.php>`_  installed.
+Ignition Transport has a build target called ``make coverage`` that will produce a code coverage report. You'll need `lcov <http://ltp.sourceforge.net/coverage/lcov.php>`_  installed.
 
 1. In your ``build`` folder, compile Ignition Transport with ``-DCMAKE_BUILD_TYPE=Coverage``
 
