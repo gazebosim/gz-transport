@@ -220,7 +220,7 @@ Run ``cmake`` and build the code.
 Running the examples
 ====================
 
-Open two new terminals and from your ``build/`` directory run the executables:
+Open two new terminals and from your ``build/`` directory run the executables.
 
 From terminal 1:
 
