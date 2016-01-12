@@ -4,22 +4,7 @@ How to contribute
 
 Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
-If you would like to contribute software patches, please join the project on
-Bitbucket.org.
-
-Forking, Patching and Pull Requests
-===================================
-
-Ignition Transport is hosted in Bitbucket using the Mercurial version control
-system. In order to contribute patches or new features into the main development branch in Ignition Transport, we recommend forking from the "default" branch.
-Please see forking and pull request help pages as provided by Bitbucket for
-details.
-
-Introduction
-============
-
-Interested in developing new features, fixing bugs, or contributing code you
-have laying around? Read on to find out how.
+If you would like to contribute software patches, read on to find out how.
 
 Development process
 ===================
@@ -35,35 +20,35 @@ Steps to follow
 We will use the Gazebo repository as an example, but the step apply equally
 well to other repositories maintained by OSRF.
 
-1. Are you sure? Has your idea already been done, or maybe someone is already working on it?
+#. Are you sure? Has your idea already been done, or maybe someone is already working on it?
 
   Check the `issue tracker <https://bitbucket.org/ignitionrobotics/ign-transport>`_.
 
-1. [Fork Ignition Transport](https://bitbucket.org/ignitionrobotics/ign-transport/fork). This will create your own personal copy of the project. All of your
+#. `Fork Ignition Transport <https://bitbucket.org/ignitionrobotics/ign-transport/fork>`_. This will create your own personal copy of the project. All of your
 development should take place in your fork.
 
-1. Work out of a branch:
+#. Work out of a branch:
 
 .. code-block:: bash
 
         hg branch my_new_branch_name``
 
-Always work out of a new branch, never off of default. This is a good habit to get in, and will make your life easier. If you're solving an issue, make the branch
+Always work out of a new branch, never off of `default`. This is a good habit to get in, and will make your life easier. If you're solving an issue, make the branch
 name ``issue_`` followed by the issue number. E.g.: ``issue_23``.
 
-1. Write your code.
+#. Write your code.
 
   This is the fun part.
 
-1. Write tests.
+#. Write tests.
 
   A pull request will only be accepted if it has tests. See the `Test coverage` section below for more information.
 
-1. Compiler warnings.
+#. Compiler warnings.
 
   Code must have zero compile warnings. This currently only applies to Linux.
 
-1. Style.
+#. Style.
 
   A tool is provided to check for correct style. Your code must have no errors
   after running the following command from the root of the source tree:
@@ -72,21 +57,21 @@ name ``issue_`` followed by the issue number. E.g.: ``issue_23``.
 
         sh tools/code_check.sh`
 
-  The tool does not catch all style errors. See the Style section below for more
-  information.
+The tool does not catch all style errors. See the Style section below for more
+information.
 
-1. Tests pass.
+#. Tests pass.
 
   There must be no failing tests. You can check by running ``make test`` in your
   build directory.
 
-1. Documentation.
+#. Documentation.
 
   Document all your code. Every class, function, member variable must have
   doxygen comments. All code in source files must have documentation that
   describes the functionality. This will help reviewers, and future developers.
 
-1. Review your code.
+#. Review your code.
 
   Before submitting your code through a pull request, take some time to review
   everything line-by-line. The review process will go much faster if you make
@@ -94,27 +79,25 @@ name ``issue_`` followed by the issue number. E.g.: ``issue_23``.
   bit of the human-condition involved here. Folks are less likely to spend time
   reviewing your code if it's bad.
 
-1. Small pull requests.
+#. Small pull requests.
 
   A large pull request is hard to review, and will take a long time. It is worth
   your time to split a large pull request into multiple smaller pull requests.
   For reference, here are a few examples:
 
-  `Small, very nice <https://bitbucket.org/osrf/gazebo/pull-request/1732>`_
+  * `Small, very nice <https://bitbucket.org/osrf/gazebo/pull-request/1732>`_
+  * `Medium, still okay <https://bitbucket.org/osrf/gazebo/pull-request/1700>`_
+  * `Too large <https://bitbucket.org/osrf/gazebo/pull-request/30>`_
 
-  `Medium, still okay <https://bitbucket.org/osrf/gazebo/pull-request/1700>`_
-
-  `Too large <https://bitbucket.org/osrf/gazebo/pull-request/30>`_
-
-1. `Pull request` <https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/new>`_
+#. `Pull request <https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/new>`_
 
   Submit a pull request when you ready.
 
-1. Review.
+#. Review.
 
   At least two other people have to approve your pull request before it can be merged. Please be responsive to any questions and comments.
 
-1. Done, phew.
+#. Done, phew.
 
   Once you have met all the requirements, you're code will be merged. Thanks for improving Ignition Transport!
 
@@ -127,53 +110,53 @@ In addition to the general development process, please follow these steps
 before submitting a pull request. Each step is pass/fail, where the test or
 check must pass before continuing to the next step.
 
-1. Run the style checker on your personal computer.
-1. Run all tests on your personal computer.
-1. Run your branch through a jenkins `trusty build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-trusty-amd64/>`_.
-1. Run your branch through a jenkins `homebrew build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-homebrew-amd64/>`_.
-1. Run your branch through a jenkins `windows7 build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-windows7-amd64/>`_.
-1. Submit the pull request, and include the following:
-  1. Link to a passing `trusty build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-trusty-amd64/>`_.
-  1. Link to a passing `homebrew build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-homebrew-amd64/>`_.
-  1. Link to a passing `windows7 build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-windows7-amd64/>`_.
-1. A set of jenkins jobs will run automatically once the pull request is created. Reviewers can reference these automatic jobs and the jenkins jobs listed in your pull request.
+#. Run the style checker on your personal computer.
+#. Run all tests on your personal computer.
+#. Run your branch through a jenkins `trusty build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-trusty-amd64/>`_.
+#. Run your branch through a jenkins `homebrew build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-homebrew-amd64/>`_.
+#. Run your branch through a jenkins `windows7 build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-windows7-amd64/>`_.
+#. Submit the pull request, and include the following:
+  #. Link to a passing `trusty build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-trusty-amd64/>`_.
+  #. Link to a passing `homebrew build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-homebrew-amd64/>`_.
+  #. Link to a passing `windows7 build <http://build.osrfoundation.org/view/main/view/ignition/job/ignition_transport-ci-pr_any-windows7-amd64/>`_.
+#. A set of jenkins jobs will run automatically once the pull request is created. Reviewers can reference these automatic jobs and the jenkins jobs listed in your pull request.
 
 Style
 -----
 
 In general, we follow `Google's style guide <https://google-styleguide.googlecode.com/svn/trunk/cppguide.html>`_. However, we add in some extras.
 
-1. **This pointer**
+*. **This pointer**
   All class attributes and member functions must be accessed using the ``this->`` pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-40>`_.
 
-1. **Underscore function parameters**
+*. **Underscore function parameters**
   All function parameters must start with an underscore. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-77>`_.
 
-1. **Do not cuddle braces**
+*. **Do not cuddle braces**
   All braces must be on their own line. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-131>`_.
 
-1. **Multi-line code blocks**
+*. **Multi-line code blocks**
   If a block of code spans multiple lines and is part of a flow control statement, such as an ``if``, then it must be wrapped in braces. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-249>`_
 
-1. **++ operator**
+*. **++ operator**
   This occurs mostly in ``for`` loops. Prefix the ``++`` operator, which is `slightly more efficient than postfix in some cases <http://programmers.stackexchange.com/questions/59880/avoid-postfix-increment-operator>`_.
 
-1. **PIMPL/Opaque pointer**
+*. **PIMPL/Opaque pointer**
   If you are writing a new class, it must use a private data pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/World.hh?at=default#cl-479>`_), and you can read more `here <https://en.wikipedia.org/wiki/Opaque_pointer>`_.
 
-1. **const functions**
+*. **const functions**
   Any class function that does not change a member variable should be marked as ``const``. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-175>`_.
 
-1. **const parameters**
+*. **const parameters**
   All parameters that are not modified by a function should be marked as ``const``. This applies to parameters that are passed by reference, pointer, and value. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_).
 
-1. **Pointer and reference variables**
+*. **Pointer and reference variables**
   Place the ``*`` and ``&`` next to the varaible name, not next to the type. For example: ``int &variable`` is good, but ``int& variable`` is not. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_).
 
-1. **Camel case**
+*. **Camel case**
   In general, everything should use camel case. Exceptions include protobuf variable names.
 
-1. **Class function names**
+*. **Class function names**
   Class functions must start with a capital letter, and capitalize every word.
 
  ``void MyFunction();`` : Good
@@ -182,7 +165,7 @@ In general, we follow `Google's style guide <https://google-styleguide.googlecod
 
  ``void my_function();`` : Bad
 
-1. **Variable names**
+*. **Variable names**
   Variables must start with a lower case letter, and capitalize every word thereafter.
 
   ``int myVariable;`` : Good
@@ -204,7 +187,8 @@ Write Tests
 
 All code should have a corresponding unit test. Ignition Transport uses `GTest <http://code.google.com/p/googletest>`_ for unit testing.
 
-## Test coverage
+Test coverage
+^^^^^^^^^^^^^
 
 The goal is to achieve 100% line and branch coverage. However, this is not
 always possible due to complexity issues, analysis tools misreporting
@@ -278,5 +262,7 @@ To check your code, run the following script from the root of the Ignition Trans
         sh tools/code_check.sh
 
 It takes a few minutes to run. Fix all errors and warnings until the output looks like:
+
+.. code-block:: bash
 
         Total errors found: 0
