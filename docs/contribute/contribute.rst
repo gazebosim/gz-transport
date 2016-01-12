@@ -205,19 +205,19 @@ Ignition Transport has a build target called ``make coverage`` that will produce
         cmake -DCMAKE_BUILD_TYPE=Coverage ..\
         make
 
-1. Run a single test, or all the tests
+2. Run a single test, or all the tests
 
 .. code-block:: bash
 
         make test
 
-1. Make the coverage report
+3. Make the coverage report
 
 .. code-block:: bash
 
         make coverage
 
-1. View the coverage report
+4. View the coverage report
 
 .. code-block:: bash
 
