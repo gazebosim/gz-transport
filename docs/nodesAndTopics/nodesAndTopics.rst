@@ -81,7 +81,7 @@ don't set a partition name, we won't receive any messages from Node1 or Node2.
 
 A partition name is any alphanumeric string with a few exceptions.
 The symbol ``/`` is allowed as part of a partition name but just ``/`` is
-not allowed. The symbols ``@``, ``~`` and ``\`` (white space) are not allowed as
+not allowed. The symbols ``@``, ``~`` or white spaces are not allowed as
 part of a partition name. Two or more consecutive slashes (``//``) are not
 allowed.
 
@@ -100,5 +100,5 @@ with ``/``) and it won't be affected by a namespace. However, ``t1`` and
 
 A namespace is any alphanumeric string with a few exceptions.
 The symbol ``/`` is allowed as part of a namespace but just ``/`` is not
-allowed. The symbols ``@``, ``~`` and ``\`` (white space) are not allowed as
+allowed. The symbols ``@``, ``~`` or white spaces are not allowed as
 part of a namespace. Two or more consecutive slashes (``//``) are not allowed.
