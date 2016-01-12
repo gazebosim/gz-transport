@@ -234,7 +234,7 @@ If you decide to install gazebo in a local directory you'll need to modify your
 
 .. code-block:: bash
 
-        echo "export LD_LIBRARY_PATH=<install_path>/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
+        echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 
 If you need to uninstall Ignition Transport or switch back to a debian-based
 install when you currently have installed the library from source, navigate to
