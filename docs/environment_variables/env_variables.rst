@@ -2,7 +2,7 @@
 Configuration via environment variables
 =======================================
 
-In a similar you can programatically customize the behavior of your nodes or
+In a similar way you can programatically customize the behavior of your nodes or
 specify some options when you advertise a topic, it is possible to use an
 environment variable to tweak the behavior of Ignition Transport. Next you can
 see a description of the available environment variables:
