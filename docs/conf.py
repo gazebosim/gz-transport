@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ign_transport'
-copyright = u'2014, Open Source Robotics Foundation'
+copyright = u'2016, Open Source Robotics Foundation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
