@@ -80,7 +80,7 @@ Download the following dependencies into that directory:
     Choose one of these options:
 
     - `ZeroMQ 3.2.4 (32-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-x86.zip>`_
-    - `ZeroMQ 3.2.4 (64-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-amd64.zip`_
+    - `ZeroMQ 3.2.4 (64-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-amd64.zip>`_
 
 Unzip each of them. The Windows unzip utility will likely create an incorrect directory structure, where a directory with the name of the zip contains the directory that has the source files. Here is an example:
 
@@ -88,11 +88,13 @@ Unzip each of them. The Windows unzip utility will likely create an incorrect di
 
     ign-ws/cppzmq-noarch/cppzmq
 
-    The correct structure is
+The correct structure is
+
+.. code-block:: bash
 
         ign-ws/cppzmq
 
-    To fix this problem, manually move the nested directories up one level.
+To fix this problem, manually move the nested directories up one level.
 
 Clone ign-transport:
 
@@ -118,9 +120,9 @@ Configure and build:
         nmake
         nmake install
 
-You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
+You should now have an installation of ign-transport in ``ign-ws/ign-transport/build/install``.
 
-Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in ``C:\My Stuff\ign-ws``:
+Before running any executables, you need to modify your ``PATH`` to include the ``bin`` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to ``LD_LIBRARY_PATH`` on Linux). Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in ``C:\My Stuff\ign-ws``:
 
 .. code-block:: bash
 
@@ -147,3 +149,13 @@ In another Windows terminal run:
 .. code-block:: bash
 
         requester
+
+
+Install from sources (Ubuntu Linux)
+=======
+
+
+
+Install from sources (MAC OS X)
+=======
+
