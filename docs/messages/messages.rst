@@ -198,9 +198,6 @@ Building the code
 Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_, `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_, `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ and `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ files within the ``ign_transport_tutorial`` folder. Then, download
 `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
 
-Linux
------
-
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
 
@@ -216,64 +213,9 @@ Run ``cmake`` and build the code.
     cmake ..
     make
 
-Windows
--------
-
-Download the `configure.bat <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/configure.bat>`_ file and save it inside the ``ign_transport_tutorial`` folder. Open it with your favorite editor and replace
-the following paths with the locations where you installed the Ignition Transport
-dependencies and the library itself in your machine:
-
-.. code-block:: bash
-
-        @set PROTOBUF_PATH=%cd%\..\..\..\protobuf-2.6.0-win%build_bitness%-vc12
-        @set ZEROMQ_PATH=%cd%\..\..\..\ZeroMQ 3.2.4
-        @set CPPZMQ_PATH=%cd%\..\..\..\cppzmq
-        @set IGN_TRANSPORT_PATH=%cd%\..\..\build\install\%build_type%
-
-Here is an example of how the previous environment variables should look
-assuming that your Ignition Transport was installed in ``C:\My Stuff\ign-ws\``:
-
-.. code-block:: bash
-
-        @set PROTOBUF_PATH=%cd%C:\My Stuff\ign-ws\protobuf-2.6.0-win%build_bitness%-vc12
-        @set ZEROMQ_PATH=%cd%C:\My Stuff\ign-ws\ZeroMQ 3.2.4
-        @set CPPZMQ_PATH=%cd%C:\My Stuff\ign-ws\cppzmq
-        @set IGN_TRANSPORT_PATH=%cd%C:\My Stuff\ign-ws\ign-transport\build\install\%build_type%
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-.. code-block:: bash
-
-        "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-
-Change to your tutorial folder and create a build directory:
-
-.. code-block:: bash
-
-        cd ign_transport_tutorial
-        mkdir build
-        cd build
-
-Configure and build:
-
-.. code-block:: bash
-
-        ..\configure
-        nmake
-
 
 Running the examples
 ====================
-
-**Windows only: ** Before running any executables, you need to modify your
-``PATH`` to include the ``bin`` subdirectory of ZeroMQ to let Windows find
-dynamic libs (similar to ``LD_LIBRARY_PATH`` on Linux). Don't put quotes around
-the path, even if it contains spaces.  E.g., if you're working in
-``C:\My Stuff\ign-ws``:
-
-.. code-block:: bash
-
-        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
 
 Open two new terminals and from your ``build/`` directory run the executables.
 
