@@ -256,7 +256,7 @@ namespace ignition
         return Rep().GetTypeName();
       }
 
-      // Protobuf message containing the request's parameters.
+      /// \brief Protobuf message containing the request's parameters.
       private: Req reqMsg;
 
       /// \brief Callback to the function registered for this handler with the

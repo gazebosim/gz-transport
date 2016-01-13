@@ -287,7 +287,7 @@ namespace ignition
       /// ZeroMQ socket ID used by this publisher.
       protected: std::string socketId;
 
-       /// \brief The name of the request's protobuf message advertised.
+      /// \brief The name of the request's protobuf message advertised.
       private: std::string reqTypeName;
 
       /// \brief The name of the response's protobuf message advertised.
