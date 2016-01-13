@@ -48,9 +48,9 @@ Topic name    Validity  Comment
 */a/b*        Valid
 \             Invalid   Empty string is invalid
 *my topic*    Invalid   Contains white space
-*//image*     Invalid   Contains two consecutive *//*
+*//image*     Invalid   Contains two consecutive ``//``
 */*           Invalid   ``/`` topic is not allowed
-*~myTopic*    Invalid   Symbol *~* not allowed
+*~myTopic*    Invalid   Symbol ``~`` not allowed
 ============  ========  =======
 
 Topic scope
@@ -111,8 +111,8 @@ Namespace  Topic name    Fully qualified topic  Validity  Comment
 \          *topicA*      */topicA*              Valid
 *ns1*      *topicA*      */ns1/topicA*          Valid
 \          *topicA*      \                      Invalid   Empty string is invalid
-*my ns*    *topicA*      \                      Invalid   Contains white space.
-*//ns*     *topicA*      \                      Invalid   Contains two consecutive *//*
+*my ns*    *topicA*      \                      Invalid   Contains white space
+*//ns*     *topicA*      \                      Invalid   Contains two consecutive ``//``
 */*        *topicA*      \                      Invalid   ``/`` namespace is not allowed
-*~myns*    *topicA*      \                      Invalid   Symbol *~* not allowed
+*~myns*    *topicA*      \                      Invalid   Symbol ``~`` not allowed
 =========  ============  =====================  ========  =======
