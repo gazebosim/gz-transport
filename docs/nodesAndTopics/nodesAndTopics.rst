@@ -104,30 +104,15 @@ The symbol ``/`` is allowed as part of a namespace but just ``/`` is not
 allowed. The symbols ``@``, ``~`` or white spaces are not allowed as
 part of a namespace. Two or more consecutive slashes (``//``) are not allowed.
 
-============  ========  =======
-Topic name    Validity  Comment
-============  ========  =======
-*/topicA*     Valid
-*/topicA/*    Valid     Equivalent to */topicA*
-*topicA*      Valid
-*/a/b*        Valid
-\             Invalid   Empty string is invalid
-*my topic*    Invalid   Contains white space
-*//image*     Invalid   Contains two consecutive *//*
-*/*           Invalid   */* topic is not allowed
-*~myTopic*    Invalid   Symbol *~* not allowed
-============  ========  =======
-
-
 =========  ============  =====================  ========  =======
 Namespace  Topic name    Fully qualified topic  Validity  Comment
 =========  ============  =====================  ========  =======
 *ns1*      */topicA*     */topicA*              Valid     Absolute topic
-           *topicA*      */topicA*              Valid
+\          *topicA*      */topicA*              Valid
 *ns1*      *topicA*      */ns1/topicA*          Valid
-\          *topicA*                             Invalid   Empty string is invalid
-*my ns*    *topicA*                             Invalid   Contains white space.
-*//ns*     *topicA*                             Invalid   Contains two consecutive *//*
-*/*        *topicA*                             Invalid   */* namespace is not allowed
-*~myns*    *topicA*                             Invalid   Symbol *~* not allowed
+\          *topicA*      \                      Invalid   Empty string is invalid
+*my ns*    *topicA*      \                      Invalid   Contains white space.
+*//ns*     *topicA*      \                      Invalid   Contains two consecutive *//*
+*/*        *topicA*      \                      Invalid   */* namespace is not allowed
+*~myns*    *topicA*      \                      Invalid   Symbol *~* not allowed
 =========  ============  =====================  ========  =======
