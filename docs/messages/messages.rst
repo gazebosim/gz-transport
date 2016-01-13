@@ -15,8 +15,10 @@ nodes will be running on different processes within the same machine.
 Creating the publisher
 ======================
 
-Download the ```publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_`` file within the ``ign_transport_tutorial``
-folder and paste the following code inside it:
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_, `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_, `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_, `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_, `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ and `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ files within the ``ign_transport_tutorial``
+folder. Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
+
+Open the file ``publisher.cc`` with your favorite editor:
 
 .. code-block:: cpp
 
