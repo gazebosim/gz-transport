@@ -21,19 +21,16 @@ folder and open it with your favorite editor:
 .. code-block:: cpp
 
     #include <chrono>
-    #include <string>
-    #include <thread>
+    #include <csignal>
     #include <ignition/transport.hh>
     #include "msgs/stringmsg.pb.h"
-
-    using namespace ignition;
 
     bool terminatePub = false;
 
     //////////////////////////////////////////////////
     /// \brief Function callback executed when a SIGINT or SIGTERM signals are
-    /// captured. This is used to break the infinite loop that publishes
-    /// messages and exit the program smoothly.
+    /// captured. This is used to break the infinite loop that publishes messages
+    /// and exit the program smoothly.
     void signal_handler(int _signal)
     {
       if (_signal == SIGINT || _signal == SIGTERM)
@@ -43,25 +40,34 @@ folder and open it with your favorite editor:
     //////////////////////////////////////////////////
     int main(int argc, char **argv)
     {
-      std::string topic = "topicA";
-      std::string data = "helloWorld";
+      // Install a signal handler for SIGINT.
+      std::signal(SIGINT, signal_handler);
 
-      // Create a transport node.
-      transport::Node node;
+      // Create a transport node and advertise a topic.
+      ignition::transport::Node node;
+      std::string topic = "/foo";
 
-      // Advertise a topic.
-      publisher.Advertise<tutorial::msgs::StringMsg>(topic);
+      if (!node.Advertise<example::msgs::StringMsg>(topic))
+      {
+        std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
+        return -1;
+      }
 
       // Prepare the message.
-      tutorial::msgs::StringMsg msg;
-      msg.set_data(data);
+      example::msgs::StringMsg msg;
+      msg.set_data("HELLO");
 
       // Publish messages at 1Hz.
       while (!terminatePub)
       {
-        node.Publish(topic, msg);
+        if (!node.Publish(topic, msg))
+          break;
+
+        std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
+
+      return 0;
     }
 
 Walkthrough

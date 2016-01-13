@@ -11,13 +11,14 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-	 Introduction <introduction/intro>
+	Introduction <introduction/intro>
    Installation <installation/installation>
-	 Nodes and topics <nodesAndTopics/nodesAndTopics>
-	 Messages <messages/messages>
-	 Services <services/services>
+	Nodes and topics <nodesAndTopics/nodesAndTopics>
+	Messages <messages/messages>
+	Services <services/services>
    Environment variables <environment_variables/env_variables>
-	 Contribute <contribute/contribute>
+	Contribute <contribute/contribute>
+   API <api/api>
 
 Indices and tables
 ==================
