@@ -18,7 +18,7 @@ Creating the publisher
 Download the ``publisher.cc`` file within the ``ign_transport_tutorial``
 folder and paste the following code inside it:
 
-.. include:: example/publisher.cc
+.. include:: ../../example/publisher.cc
 
 Walkthrough
 ===========
