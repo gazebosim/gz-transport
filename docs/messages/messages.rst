@@ -19,7 +19,7 @@ Download the ``publisher.cc`` file within the ``ign_transport_tutorial``
 folder and paste the following code inside it:
 
 .. raw:: cpp
-   :url: https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc
+   :file: example/publisher.cc
 
 Walkthrough
 ===========
