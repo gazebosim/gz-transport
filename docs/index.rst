@@ -14,8 +14,8 @@ Contents:
 	Introduction <introduction/intro>
    Installation <installation/installation>
 	Nodes and topics <nodesAndTopics/nodesAndTopics>
-	Messages <messages/messages>
-	Services <services/services>
+	Using messages <messages/messages>
+	Using services <services/services>
    Environment variables <environment_variables/env_variables>
 	Contribute <contribute/contribute>
    API <api/api>
