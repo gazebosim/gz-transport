@@ -227,7 +227,7 @@ From terminal 2:
 
 
 In your subscriber terminal, you should expect an output similar to this one,
-showing that your subscribing is receiving the topic updates:
+showing that your subscriber is receiving the topic updates:
 
 .. code-block:: bash
 

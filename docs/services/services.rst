@@ -322,7 +322,7 @@ Run ``cmake`` and build the code.
 Running the examples
 ====================
 
-Open two new terminals and from your ``build/`` directory run the executables.
+Open three new terminals and from your ``build/`` directory run the executables.
 
 From terminal 1:
 
@@ -336,11 +336,22 @@ From terminal 2:
 
     ./requester
 
+From terminal 3:
 
-In your requester terminal, you should expect an output similar to this one,
-showing that your requester has received the data:
+.. code-block:: bash
+
+    ./requester_async
+
+
+In your requester terminals, you should expect an output similar to this one,
+showing that your requesters have received their responses:
 
 .. code-block:: bash
 
     caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester
+    Response: [Hello World!]
+
+.. code-block:: bash
+
+    caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester_async
     Response: [Hello World!]
