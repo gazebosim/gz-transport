@@ -168,7 +168,7 @@ size_t Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
-SubscriptionMsg::SubscriptionMsg(const Header &_header,
+SubscriptionMsg::SubscriptionMsg(const transport::Header &_header,
                                  const std::string &_topic)
 {
   this->SetHeader(_header);
@@ -176,7 +176,7 @@ SubscriptionMsg::SubscriptionMsg(const Header &_header,
 }
 
 //////////////////////////////////////////////////
-Header SubscriptionMsg::GetHeader() const
+transport::Header SubscriptionMsg::Header() const
 {
   return this->header;
 }
@@ -188,7 +188,7 @@ std::string SubscriptionMsg::Topic() const
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetHeader(const Header &_header)
+void SubscriptionMsg::SetHeader(const transport::Header &_header)
 {
   this->header = _header;
 }
@@ -209,7 +209,7 @@ size_t SubscriptionMsg::MsgLength() const
 size_t SubscriptionMsg::Pack(char *_buffer) const
 {
   // Pack the header.
-  size_t headerLen = this->GetHeader().Pack(_buffer);
+  size_t headerLen = this->Header().Pack(_buffer);
   if (headerLen == 0)
     return 0;
 

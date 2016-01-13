@@ -101,22 +101,22 @@ namespace ignition
       public: std::string pUuid;
 
       /// \brief Silence interval value (ms.).
-      /// \sa GetMaxSilenceInterval.
+      /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: unsigned int silenceInterval;
 
       /// \brief Activity interval value (ms.).
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
       public: unsigned int activityInterval;
 
       /// \brief Advertise interval value (ms.).
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \sa SetAdvertiseInterval.
       public: unsigned int advertiseInterval;
 
       /// \brief Heartbeat interval value (ms.).
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \sa SetHeartbeatInterval.
       public: unsigned int heartbeatInterval;
 

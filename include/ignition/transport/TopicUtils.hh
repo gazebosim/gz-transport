@@ -58,10 +58,10 @@ namespace ignition
       /// \param[out] _name Fully qualified topic name.
       /// \return True if the fully qualified name is valid
       /// (if partition, namespace and topic are correct).
-      public: static bool GetFullyQualifiedName(const std::string &_partition,
-                                                const std::string &_ns,
-                                                const std::string &_topic,
-                                                std::string &_name);
+      public: static bool FullyQualifiedName(const std::string &_partition,
+                                             const std::string &_ns,
+                                             const std::string &_topic,
+                                             std::string &_name);
     };
   }
 }

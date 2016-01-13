@@ -73,7 +73,7 @@ namespace ignition
                           const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -135,7 +135,7 @@ namespace ignition
           void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -191,7 +191,7 @@ namespace ignition
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -264,7 +264,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -332,7 +332,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -402,7 +402,7 @@ namespace ignition
         void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -417,7 +417,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
@@ -485,7 +485,7 @@ namespace ignition
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -500,7 +500,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
@@ -567,7 +567,7 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -587,7 +587,7 @@ namespace ignition
 
           // If the responser is within my process.
           IRepHandlerPtr repHandler;
-          if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+          if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
             T1().GetTypeName(), T2().GetTypeName(), repHandler))
           {
             // There is a responser in my process, let's use it.

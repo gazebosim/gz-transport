@@ -54,7 +54,7 @@ namespace ignition
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = NodeShared::GetInstance();
+      public: NodeShared *shared = NodeShared::Instance();
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();

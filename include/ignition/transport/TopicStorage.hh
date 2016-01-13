@@ -127,10 +127,10 @@ namespace ignition
       /// \param[in] _nUuid Node UUID of the publisher.
       /// \param[out] _publisher Publisher's information requested.
       /// \return true if a publisher is found for the given topic and UUID pair
-      public: bool GetPublisher(const std::string &_topic,
-                                const std::string &_pUuid,
-                                const std::string &_nUuid,
-                                T &_publisher) const
+      public: bool Publisher(const std::string &_topic,
+                             const std::string &_pUuid,
+                             const std::string &_nUuid,
+                             T &_publisher) const
       {
         // Topic not found.
         if (this->data.find(_topic) == this->data.end())
@@ -165,7 +165,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[out] _info Map of publishers requested.
       /// \return true if at least there is one publisher stored.
-      public: bool GetPublishers(const std::string &_topic,
+      public: bool Publishers(const std::string &_topic,
                              std::map<std::string, std::vector<T>> &_info) const
       {
         if (!this->HasTopic(_topic))
@@ -244,7 +244,7 @@ namespace ignition
       /// \param _pUuid Process UUID.
       /// \param _pubs Map of publishers where the keys are the node UUIDs and
       /// the value is its address information.
-      public: void GetPublishersByProc(const std::string &_pUuid,
+      public: void PublishersByProc(const std::string &_pUuid,
                              std::map<std::string, std::vector<T>> &_pubs) const
       {
         _pubs.clear();
@@ -267,7 +267,7 @@ namespace ignition
 
       /// \brief Get the list of topics currently stored.
       /// \param[out] _topics List of stored topics.
-      public: void GetTopicList(std::vector<std::string> &_topics) const
+      public: void TopicList(std::vector<std::string> &_topics) const
       {
         for (auto &topic : this->data)
           _topics.push_back(topic.first);

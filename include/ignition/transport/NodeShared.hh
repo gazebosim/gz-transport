@@ -53,7 +53,7 @@ namespace ignition
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
       /// \return Pointer to the current NodeShared instance.
-      public: static NodeShared *GetInstance();
+      public: static NodeShared *Instance();
 
       /// \brief Receive data and control messages.
       public: void RunReceptionTask();

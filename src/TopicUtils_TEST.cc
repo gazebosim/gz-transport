@@ -147,7 +147,7 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
         auto nsUnderTest = ns.first;
         auto tUnderTest  = t.first;
         auto expectedRes = p.second.first && ns.second.first && t.second.first;
-        auto actualRes   = transport::TopicUtils::GetFullyQualifiedName(
+        auto actualRes   = transport::TopicUtils::FullyQualifiedName(
           pUnderTest, nsUnderTest, tUnderTest, actualTopic);
         ASSERT_TRUE(expectedRes == actualRes);
 

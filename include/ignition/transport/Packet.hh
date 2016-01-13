@@ -159,12 +159,12 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _topic Topic name.
-      public: SubscriptionMsg(const Header &_header,
+      public: SubscriptionMsg(const transport::Header &_header,
                               const std::string &_topic);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const;
+      public: transport::Header Header() const;
 
       /// \brief Get the topic.
       /// \return Topic name.
@@ -172,7 +172,7 @@ namespace ignition
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header);
+      public: void SetHeader(const transport::Header &_header);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
@@ -188,7 +188,7 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const SubscriptionMsg &_msg)
       {
-        _out << _msg.GetHeader()
+        _out << _msg.Header()
              << "Body:" << std::endl
              << "\tTopic: [" << _msg.Topic() << "]" << std::endl;
 
@@ -206,7 +206,7 @@ namespace ignition
       public: size_t Unpack(char *_buffer);
 
       /// \brief Message header.
-      private: Header header;
+      private: transport::Header header;
 
       /// \brief Topic.
       private: std::string topic = "";
@@ -236,21 +236,21 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
-      public: Header GetHeader() const
+      public: transport::Header Header() const
       {
         return this->header;
       }
 
       /// \brief Get the publisher of this message.
       /// \return Publisher.
-      public: T& GetPublisher()
+      public: T& Publisher()
       {
         return this->publisher;
       }
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
-      public: void SetHeader(const Header &_header)
+      public: void SetHeader(const transport::Header &_header)
       {
         this->header = _header;
       }
@@ -311,7 +311,7 @@ namespace ignition
       }
 
       /// \brief The name of the protobuf message advertised.
-      private: Header header;
+      private: transport::Header header;
 
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
       private: T publisher;
