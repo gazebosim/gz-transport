@@ -9,61 +9,17 @@ nodes will be running on different processes within the same machine.
 
 .. code-block:: bash
 
-    mkdir ~/ign_transport_tutorial
+    mkdir -p ~/ign_transport_tutorial/msgs
     cd ~/ign_transport_tutorial
-    mkdir src
 
 Creating the publisher
 ======================
 
-Create the ``src/publisher.cc`` file within the ``ign_transport_tutorial``
+Download the ``publisher.cc`` file within the ``ign_transport_tutorial``
 folder and paste the following code inside it:
 
-.. code-block:: cpp
-
-    #include <chrono>
-    #include <string>
-    #include <thread>
-    #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
-
-    using namespace ignition;
-
-    bool terminatePub = false;
-
-    //////////////////////////////////////////////////
-    /// \brief Function callback executed when a SIGINT or SIGTERM signals are
-    /// captured. This is used to break the infinite loop that publishes
-    /// messages and exit the program smoothly.
-    void signal_handler(int _signal)
-    {
-      if (_signal == SIGINT || _signal == SIGTERM)
-        terminatePub = true;
-    }
-
-    //////////////////////////////////////////////////
-    int main(int argc, char **argv)
-    {
-      std::string topic = "topicA";
-      std::string data = "helloWorld";
-
-      // Create a transport node.
-      transport::Node node;
-
-      // Advertise a topic.
-      publisher.Advertise<tutorial::msgs::StringMsg>(topic);
-
-      // Prepare the message.
-      tutorial::msgs::StringMsg msg;
-      msg.set_data(data);
-
-      // Publish messages at 1Hz.
-      while (!terminatePub)
-      {
-        node.Publish(topic, msg);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      }
-    }
+.. raw:: cpp
+   :url: https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc
 
 Walkthrough
 ===========
