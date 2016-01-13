@@ -8,15 +8,14 @@ whereas the other node will be the service consumer requesting an *echo* call.
 
 .. code-block:: bash
 
-    mkdir ~/ign_transport_tutorial
+    mkdir -p ~/ign_transport_tutorial/msgs
     cd ~/ign_transport_tutorial
-    mkdir src
 
-Creating the responser
-======================
+Responser
+=========
 
-Create the ``src/responser.cc`` file within the ``ign_transport_tutorial``
-directory and paste the following code inside it:
+Download the `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_ file within the ``ign_transport_tutorial``
+folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -56,7 +55,7 @@ directory and paste the following code inside it:
     }
 
 Walkthrough
-===========
+-----------
 
 .. code-block:: cpp
 
@@ -113,11 +112,11 @@ our service name. Once a service name is advertised, we can accept service
 requests.
 
 
-Creating a synchronous requester
-================================
+Synchronous requester
+=====================
 
-Create the ``src/requester.cc`` file within the ``ign_transport_tutorial``
-directory and paste the following code inside it:
+Download the `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ file within the ``ign_transport_tutorial``
+folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -155,7 +154,7 @@ directory and paste the following code inside it:
 
 
 Walkthrough
-===========
+-----------
 
 .. code-block:: cpp
 
@@ -212,11 +211,10 @@ valid, we'll receive a result value of ``true`` and we can use our response
 message.
 
 
-Creating an asynchronous requester
-================================
+Asynchronous requester
+======================
 
-Create the ``src/requester_async.cc`` file within the ``ign_transport_tutorial``
-directory and paste the following code inside it:
+Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -255,7 +253,7 @@ directory and paste the following code inside it:
 
 
 Walkthrough
-===========
+-----------
 
 .. code-block:: cpp
 
@@ -302,15 +300,8 @@ your service request is handled.
 Building the code
 =================
 
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``
-directory. This is the top level cmake file that will check for dependencies.
-
-Copy this ``hello.proto`` file within the ``ign_transport_tutorial/src``
-directory. This is the Protobuf message definition that we use in this example.
-
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``
-directory. This is the cmake file that will generate the C++ code from the
-Protobuf file and will create the ``responser`` and ``requester`` executables.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_, `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_ and `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_ files within the ``ign_transport_tutorial`` folder.
+ Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
 the ``ign_transport_tutorial`` directory.

@@ -12,13 +12,11 @@ nodes will be running on different processes within the same machine.
     mkdir -p ~/ign_transport_tutorial/msgs
     cd ~/ign_transport_tutorial
 
-Creating the publisher
+Publisher
 ======================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_, `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_, `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_, `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_, `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ and `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ files within the ``ign_transport_tutorial``
-folder. Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
-
-Open the file ``publisher.cc`` with your favorite editor:
+Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
+folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -67,7 +65,7 @@ Open the file ``publisher.cc`` with your favorite editor:
     }
 
 Walkthrough
-===========
+-----------
 
 .. code-block:: cpp
 
@@ -111,11 +109,11 @@ In this section of the code we create a protobuf message and fill it with
 content. Next, we iterate in a loop that publishes one message every second.
 The method *Publish()* sends a message to all the subscribers.
 
-Creating the subscriber
-=======================
+Subscriber
+==========
 
-Create the ``src/subscriber.cc`` file within the ``ign_transport_tutorial``
-folder and paste the following code inside it:
+Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
+folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -154,7 +152,7 @@ folder and paste the following code inside it:
 
 
 Walkthrough
-===========
+-----------
 
 .. code-block:: cpp
 
@@ -191,16 +189,8 @@ given topic name by specifying your subscription callback function.
 Building the code
 =================
 
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial``
-folder. This is the top level cmake file that will check for dependencies.
-
-Copy this ``stringmsg.proto`` file within the ``ign_transport_tutorial/src``
-folder. This file contains the Protobuf message definition that we use in this
-example.
-
-Copy this ``CMakeLists.txt`` file within the ``ign_transport_tutorial/src``
-folder. This is the cmake file that will generate the C++ code from the Protobuf
-file and will create the ``publisher`` and ``subscriber`` executables.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_, `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_, `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ and `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ files within the ``ign_transport_tutorial`` folder. Then, download
+`CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
