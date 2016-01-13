@@ -87,7 +87,7 @@ part of a partition name. Two or more consecutive slashes (``//``) are not
 allowed.
 
 The default partition name is created using a combination of your hostname,
-followed by ``:`` and your username. E.g.: ``bb9:caguero`` . It's also possible
+followed by ``:`` and your username. E.g.: ``bb8:caguero`` . It's also possible
 to use the environment variable ``IGN_PARTITION`` for setting a custom partition
 name.
 
