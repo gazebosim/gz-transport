@@ -49,7 +49,7 @@ Topic name    Validity  Comment
 \             Invalid   Empty string is invalid
 *my topic*    Invalid   Contains white space
 *//image*     Invalid   Contains two consecutive *//*
-*/*           Invalid   */* \ topic is not allowed
+*/*           Invalid   ``/`` topic is not allowed
 *~myTopic*    Invalid   Symbol *~* not allowed
 ============  ========  =======
 
@@ -113,6 +113,6 @@ Namespace  Topic name    Fully qualified topic  Validity  Comment
 \          *topicA*      \                      Invalid   Empty string is invalid
 *my ns*    *topicA*      \                      Invalid   Contains white space.
 *//ns*     *topicA*      \                      Invalid   Contains two consecutive *//*
-*/*        *topicA*      \                      Invalid   */* \ namespace is not allowed
+*/*        *topicA*      \                      Invalid   ``/`` namespace is not allowed
 *~myns*    *topicA*      \                      Invalid   Symbol *~* not allowed
 =========  ============  =====================  ========  =======
