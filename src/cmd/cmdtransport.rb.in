@@ -35,17 +35,18 @@ COMMON_OPTIONS =
                "  --force-version <VERSION>  Use a specific library version.\n"\
                '  --versions                 Show the available versions.'
 COMMANDS = {  'topic' =>
-                       "Print information about topics.\n\n"\
-                       "  ign topic [options]\n\n"\
-                       "Options:\n\n"\
-                       "  -l [ --list ]              List all topics.\n" +
-                       COMMON_OPTIONS,
+                "Print information about topics.\n\n"\
+                "  ign topic [options]\n\n"\
+                "Options:\n\n"\
+                "  -e [ --echo ] arg          Output topic data to screen.\n" +
+                "  -l [ --list ]              List all topics.\n" +
+                COMMON_OPTIONS,
               'service' =>
-                       "Print information about services.\n\n"\
-                       "  ign service [options]\n\n"\
-                       "Options:\n\n"\
-                       "  -l [ --list ]              List all services.\n" +
-                       COMMON_OPTIONS
+                "Print information about services.\n\n"\
+                "  ign service [options]\n\n"\
+                "Options:\n\n"\
+                "  -l [ --list ]              List all services.\n" +
+                COMMON_OPTIONS
 
             }
 
@@ -71,6 +72,10 @@ class Cmd
       end
       opts.on('-l', '--list', 'Print information about topics') do |l|
         options['list'] = l
+      end
+
+      opts.on('-e', '--echo ARG', 'Output topic data to screen') do |e|
+        options['echo'] = e
       end
     end
 
@@ -134,6 +139,10 @@ class Cmd
         if options.key?('list')
           Importer.extern 'void cmdTopicList()'
           Importer.cmdTopicList
+        elsif options.key?('echo')
+          Importer.extern 'void cmdTopicEcho(const char*)'
+          topic = options['echo']
+          Importer.cmdTopicEcho(topic)
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
@@ -150,9 +159,11 @@ class Cmd
         puts 'Command error: I do not have an implementation for '\
              "command [ign #{options['command']}]."
       end
-    rescue
+    rescue StandardError => e
       puts "Library error: Problem running [#{options['command']}]() "\
            "from #{plugin}."
+    rescue Interrupt => i
+      # Don't do anything if a CTRL-C comes.
     end
   end
 end

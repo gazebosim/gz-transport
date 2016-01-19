@@ -44,6 +44,7 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "msgs/string.pb.h"
 
 namespace ignition
 {
@@ -97,6 +98,24 @@ namespace ignition
           T().GetTypeName());
 
         if (!this->Shared()->discovery->AdvertiseMsg(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
+
+        // For each topic, advertise an extra topic with the suffix @info.
+        // If there are subscribers, this topic will be used to forward the
+        // content of each published message in a string format.
+        msgs::StringMsg strMsg;
+        MessagePublisher publisherInfo(fullyQualifiedTopic + "@info",
+          this->Shared()->myAddress,
+          this->Shared()->myControlAddress,
+          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
+          strMsg.GetTypeName());
+
+        if (!this->Shared()->discovery->AdvertiseMsg(publisherInfo))
         {
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"

@@ -16,14 +16,23 @@
 */
 
 #include <chrono>
+#include <cstdio>
 #include <iostream>
 #include <vector>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "msgs/string.pb.h"
 
 using namespace ignition;
 using namespace transport;
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cb(const msgs::StringMsg &_msg)
+{
+  std::cout << _msg.data() << std::endl << std::endl;
+}
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdTopicList()
@@ -38,6 +47,16 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 
   for (auto const &topic : topics)
     std::cout << topic << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic)
+{
+  Node node;
+  std::string topic(_topic);
+  node.Subscribe(topic + "@info", cb);
+
+  getchar();
 }
 
 //////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 set(msgs
   int.proto
+  string.proto
   vector3d.proto
 )
 

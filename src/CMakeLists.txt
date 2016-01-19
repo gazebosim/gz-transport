@@ -10,6 +10,7 @@ set (sources
   NodeShared.cc
   Packet.cc
   Publisher.cc
+  SubscribeOptions.cc
   TopicUtils.cc
   Uuid.cc
 )

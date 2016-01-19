@@ -37,6 +37,7 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+#include "msgs/string.pb.h"
 
 using namespace ignition;
 using namespace transport;
@@ -224,6 +225,24 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   // Debug output.
   // else
   //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
+
+  // Information subscribers.
+  if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic +
+        "@info"))
+  {
+    msgs::StringMsg msgInfo;
+    msgInfo.set_data(_msg.DebugString());
+
+    std::string data;
+    if (!msgInfo.SerializeToString(&data))
+    {
+      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
+      return false;
+    }
+
+    this->dataPtr->shared->Publish(fullyQualifiedTopic + "_info", data,
+      msgInfo.GetTypeName());
+  }
 
   return true;
 }
