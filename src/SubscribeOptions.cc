@@ -20,11 +20,17 @@
 using namespace ignition;
 using namespace transport;
 
-struct SubscribeOptionsPrivate
+namespace ignition
 {
-  /// \brief Enable the text conversion for messages.
-  bool textConversionEnabled = false;
-};
+  namespace transport
+  {
+    struct SubscribeOptionsPrivate
+    {
+      /// \brief Enable the text conversion for messages.
+      bool textConversionEnabled = false;
+    };
+  }
+}
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
@@ -47,18 +53,18 @@ SubscribeOptions::~SubscribeOptions()
 //////////////////////////////////////////////////
 SubscribeOptions &SubscribeOptions::operator=(const SubscribeOptions &_other)
 {
-  this->SetScope(_other.Scope());
+  this->SetTextMode(_other.TextMode());
   return *this;
 }
 
 //////////////////////////////////////////////////
-bool SubscribeOptions::TextConversion() const
+bool SubscribeOptions::TextMode() const
 {
   return this->dataPtr->textConversionEnabled;
 }
 
 //////////////////////////////////////////////////
-void SubscribeOptions::SetTextConversion(const bool _enabled);
+void SubscribeOptions::SetTextMode(const bool _enabled)
 {
   this->dataPtr->textConversionEnabled = _enabled;
 }

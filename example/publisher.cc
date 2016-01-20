@@ -32,11 +32,45 @@ void signal_handler(int _signal)
     terminatePub = true;
 }
 
+void partition(const std::string &topic)
+{
+  // Remove the partition information.
+  auto first = topic.find("@");
+  auto t = topic.substr(0, first);
+
+  std::cout << t << std::endl;
+}
+
+void test(const std::string &topic)
+{
+  // Remove the partition information.
+  auto first = topic.find("@");
+  auto last = topic.rfind("@");
+  auto t = topic.substr(first + 1, last - first - 1);
+
+  std::cout << t << std::endl;
+}
+
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Install a signal handler for SIGINT.
   std::signal(SIGINT, signal_handler);
+
+  //for (auto const &t : {"@topic@", "p@topic@", "@topic@info", "p@topic@info",
+  //                      "@topic", "topic@"})
+  //{
+  //  std::cout << "Testing [" << t << "]" << std::endl;
+  //  test(t);
+  //}
+//
+  //for (auto const &t : {"@topic@", "partition@topic@"})
+  //{
+  //  std::cout << "Testing partition [" << t << "]" << std::endl;
+  //  partition(t);
+  //}
+//
+  //return 0;
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;

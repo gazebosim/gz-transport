@@ -104,8 +104,10 @@ std::vector<std::string> Node::AdvertisedTopics() const
   for (auto topic : this->dataPtr->topicsAdvertised)
   {
     // Remove the partition information.
-    topic.erase(0, topic.find_last_of("@") + 1);
-    v.push_back(topic);
+    auto first = topic.find("@");
+    auto last = topic.rfind("@");
+    auto t = topic.substr(first + 1, last - first - 1);
+    v.push_back(t);
   }
 
   return v;
@@ -133,6 +135,14 @@ bool Node::Unadvertise(const std::string &_topic)
 
   // Notify the discovery service to unregister and unadvertise my topic.
   if (!this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
+    this->dataPtr->nUuid))
+  {
+    return false;
+  }
+
+  // Unadvertise the text version.
+  std::string topicText = fullyQualifiedTopic + "text";
+  if (!this->dataPtr->shared->discovery->UnadvertiseMsg(topicText,
     this->dataPtr->nUuid))
   {
     return false;
@@ -226,22 +236,21 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   // else
   //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
-  // Information subscribers.
-  if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic +
-        "@info"))
+  // Text subscribers.
+  std::string topicText = fullyQualifiedTopic + "text";
+  if (this->dataPtr->shared->remoteSubscribers.HasTopic(topicText))
   {
-    msgs::StringMsg msgInfo;
-    msgInfo.set_data(_msg.DebugString());
+    msgs::StringMsg msgText;
+    msgText.set_data(_msg.DebugString());
 
     std::string data;
-    if (!msgInfo.SerializeToString(&data))
+    if (!msgText.SerializeToString(&data))
     {
       std::cerr << "Node::Publish(): Error serializing data" << std::endl;
       return false;
     }
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic + "_info", data,
-      msgInfo.GetTypeName());
+    this->dataPtr->shared->Publish(topicText, data, msgText.GetTypeName());
   }
 
   return true;
@@ -258,8 +267,10 @@ std::vector<std::string> Node::SubscribedTopics() const
   for (auto topic : this->dataPtr->topicsSubscribed)
   {
     // Remove the partition information from the topic.
-    topic.erase(0, topic.find_last_of("@") + 1);
-    v.push_back(topic);
+    auto first = topic.find("@");
+    auto last = topic.rfind("@");
+    auto t = topic.substr(first + 1, last - first - 1);
+    v.push_back(t);
   }
 
   return v;
@@ -354,8 +365,11 @@ std::vector<std::string> Node::AdvertisedServices() const
   for (auto service : this->dataPtr->srvsAdvertised)
   {
     // Remove the partition information from the service name.
-    service.erase(0, service.find_last_of("@") + 1);
-    v.push_back(service);
+    auto first = service.find("@");
+    auto last = service.rfind("@");
+    auto s = service.substr(first + 1, last - first - 1);
+
+    v.push_back(s);
   }
 
   return v;
@@ -412,7 +426,8 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   for (auto &topic : allTopics)
   {
     // Get the partition name.
-    std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
+    auto first = topic.find("@");
+    std::string partition = topic.substr(0, first);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
@@ -422,9 +437,11 @@ void Node::TopicList(std::vector<std::string> &_topics) const
       continue;
 
     // Remove the partition part from the topic.
-    topic.erase(0, topic.find_last_of("@") + 1);
+    auto last = topic.rfind("@");
+    auto t = topic.substr(first + 1, last - first - 1);
 
-    _topics.push_back(topic);
+    if (std::find(_topics.begin(), _topics.end(), t) == _topics.end())
+      _topics.push_back(t);
   }
 }
 
@@ -445,7 +462,8 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   for (auto &service : allServices)
   {
     // Get the partition name.
-    std::string partition = service.substr(1, service.find_last_of("@") - 1);
+    auto first = service.find("@");
+    std::string partition = service.substr(0, first);
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
@@ -455,9 +473,11 @@ void Node::ServiceList(std::vector<std::string> &_services) const
       continue;
 
     // Remove the partition part from the service.
-    service.erase(0, service.find_last_of("@") + 1);
+    auto last = service.rfind("@");
+    auto s = service.substr(first + 1, last - first - 1);
 
-    _services.push_back(service);
+    if (std::find(_services.begin(), _services.end(), s) == _services.end())
+      _services.push_back(s);
   }
 }
 

@@ -54,13 +54,13 @@ namespace ignition
       /// \return The scope.
       /// \sa SetScope.
       /// \sa Scope_t.
-      public: bool TextConversion() const;
+      public: bool TextMode() const;
 
       /// \brief Set the scope of the topic or service.
       /// \param[in] _scope The new scope.
       /// \sa Scope.
       /// \sa Scope_t.
-      public: void SetTextConversion(const bool _enabled);
+      public: void SetTextMode(const bool _enabled);
 
       /// \internal
       /// \brief Smart pointer to private data.

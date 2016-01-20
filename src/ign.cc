@@ -22,6 +22,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/SubscribeOptions.hh"
 #include "msgs/string.pb.h"
 
 using namespace ignition;
@@ -53,8 +54,11 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic)
 {
   Node node;
+  SubscribeOptions opts;
+  opts.SetTextMode(true);
+
   std::string topic(_topic);
-  node.Subscribe(topic + "@info", cb);
+  node.Subscribe(topic, cb, opts);
 
   getchar();
 }

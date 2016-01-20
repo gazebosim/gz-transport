@@ -41,6 +41,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -105,11 +106,11 @@ namespace ignition
           return false;
         }
 
-        // For each topic, advertise an extra topic with the suffix @info.
+        // For each topic, advertise an extra topic with the suffix @text.
         // If there are subscribers, this topic will be used to forward the
         // content of each published message in a string format.
         msgs::StringMsg strMsg;
-        MessagePublisher publisherInfo(fullyQualifiedTopic + "@info",
+        MessagePublisher publisherInfo(fullyQualifiedTopic + "text",
           this->Shared()->myAddress,
           this->Shared()->myControlAddress,
           this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
@@ -148,10 +149,12 @@ namespace ignition
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \param[in]_options Subscribe options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const T &_msg))
+          void(*_cb)(const T &_msg),
+          const SubscribeOptions &_options = SubscribeOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -160,6 +163,10 @@ namespace ignition
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
+
+        // Add to the topic name the keyword "text" after the last @.
+        if (_options.TextMode())
+          fullyQualifiedTopic += "text";
 
         std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
@@ -203,11 +210,13 @@ namespace ignition
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
+      /// \param[in]_options Subscribe options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const T &_msg),
-          C *_obj)
+          C *_obj,
+          const SubscribeOptions &_options = SubscribeOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -216,6 +225,10 @@ namespace ignition
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
+
+        // Add to the topic name the keyword "text" after the last @.
+        if (_options.TextMode())
+          fullyQualifiedTopic += "text";
 
         std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
