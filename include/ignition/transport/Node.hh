@@ -88,9 +88,6 @@ namespace ignition
         std::lock_guard<std::recursive_mutex> lk(
           this->Shared()->mutex, std::adopt_lock);
 
-        // Add the topic to the list of advertised topics (if it was not before)
-        this->TopicsAdvertised().insert(fullyQualifiedTopic);
-
         // Notify the discovery service to register and advertise my topic.
         MessagePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myAddress,
@@ -106,22 +103,16 @@ namespace ignition
           return false;
         }
 
-        // For each topic, advertise an extra topic with the suffix @text.
-        // If there are subscribers, this topic will be used to forward the
-        // content of each published message in a string format.
-        msgs::StringMsg strMsg;
-        MessagePublisher publisherInfo(fullyQualifiedTopic + "text",
-          this->Shared()->myAddress,
-          this->Shared()->myControlAddress,
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          strMsg.GetTypeName());
+        // Add the topic to the list of advertised topics (if it was not before)
+        this->TopicsAdvertised().insert(fullyQualifiedTopic);
 
-        if (!this->Shared()->discovery->AdvertiseMsg(publisherInfo))
+        // If text mode is enabled, advertise an extra topic with the suffix
+        // '_TEXT'.
+        if (_options.TextMode())
         {
-          std::cerr << "Node::Advertise(): Error advertising a topic. "
-                    << "Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
+          AdvertiseOptions opts;
+          opts.SetTextMode(false);
+          return this->Advertise<msgs::StringMsg>(_topic + "_TEXT", opts);
         }
 
         return true;
@@ -149,12 +140,10 @@ namespace ignition
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
-      /// \param[in]_options Subscribe options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const T &_msg),
-          const SubscribeOptions &_options = SubscribeOptions())
+          void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -163,10 +152,6 @@ namespace ignition
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
-
-        // Add to the topic name the keyword "text" after the last @.
-        if (_options.TextMode())
-          fullyQualifiedTopic += "text";
 
         std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
@@ -210,13 +195,11 @@ namespace ignition
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
-      /// \param[in]_options Subscribe options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const T &_msg),
-          C *_obj,
-          const SubscribeOptions &_options = SubscribeOptions())
+          C *_obj)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
@@ -225,10 +208,6 @@ namespace ignition
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
           return false;
         }
-
-        // Add to the topic name the keyword "text" after the last @.
-        if (_options.TextMode())
-          fullyQualifiedTopic += "text";
 
         std::lock(this->Shared()->discovery->Mutex(), this->Shared()->mutex);
         std::lock_guard<std::recursive_mutex> discLk(
@@ -241,8 +220,7 @@ namespace ignition
           new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->Callback(
-          std::bind(_cb, _obj, std::placeholders::_1));
+        subscrHandlerPtr->Callback(std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,

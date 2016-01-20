@@ -73,7 +73,7 @@ TEST(ignTest, TopicList)
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -l");
-  EXPECT_EQ(output, "/foo\n");
+  EXPECT_EQ(output, "/foo\n/foo_TEXT\n");
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -118,7 +118,7 @@ TEST(ignTest, TopicListSameProc)
   // Check the 'ign topic list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -l");
-  EXPECT_EQ(output, "/foo\n");
+  EXPECT_EQ(output, "/foo\n/foo_TEXT\n");
 }
 
 //////////////////////////////////////////////////

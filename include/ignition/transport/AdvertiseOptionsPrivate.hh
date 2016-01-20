@@ -37,6 +37,9 @@ namespace ignition
 
       /// \brief Scope of the topic/service..
       public: Scope_t scope = Scope_t::ALL;
+
+      /// \brief Whether the topic is also advertised as a plain text topic.
+      public: bool textConversionEnabled = true;
     };
   }
 }

@@ -50,16 +50,14 @@ namespace ignition
       /// \return A reference to this instance.
       public: SubscribeOptions &operator=(const SubscribeOptions &_other);
 
-      /// \brief Get the scope used in this topic/service.
-      /// \return The scope.
-      /// \sa SetScope.
-      /// \sa Scope_t.
+      /// \brief Get whether the plain TEXT subscription mode is enabled.
+      /// \return True if the plain TEXT mode subscription is enabled.
+      /// \sa SetTextMode.
       public: bool TextMode() const;
 
-      /// \brief Set the scope of the topic or service.
-      /// \param[in] _scope The new scope.
-      /// \sa Scope.
-      /// \sa Scope_t.
+      /// \brief Subscribe to the plain TEXT version of the topic.
+      /// \param[in] _enabled Enable the plain TEXT subscription when true.
+      /// \sa TextMode.
       public: void SetTextMode(const bool _enabled);
 
       /// \internal

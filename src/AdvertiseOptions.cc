@@ -57,3 +57,15 @@ void AdvertiseOptions::SetScope(const Scope_t &_scope)
 {
   this->dataPtr->scope = _scope;
 }
+
+//////////////////////////////////////////////////
+bool AdvertiseOptions::TextMode() const
+{
+  return this->dataPtr->textConversionEnabled;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseOptions::SetTextMode(const bool _enabled)
+{
+  this->dataPtr->textConversionEnabled = _enabled;
+}

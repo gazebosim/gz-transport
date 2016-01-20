@@ -45,8 +45,7 @@ void test(const std::string &topic)
 {
   // Remove the partition information.
   auto first = topic.find("@");
-  auto last = topic.rfind("@");
-  auto t = topic.substr(first + 1, last - first - 1);
+  auto t = topic.substr(first + 1, topic.size() - first - 1);
 
   std::cout << t << std::endl;
 }
@@ -57,8 +56,7 @@ int main(int argc, char **argv)
   // Install a signal handler for SIGINT.
   std::signal(SIGINT, signal_handler);
 
-  //for (auto const &t : {"@topic@", "p@topic@", "@topic@info", "p@topic@info",
-  //                      "@topic", "topic@"})
+  //for (auto const &t : {"@topic", "p@topic", "topic@"})
   //{
   //  std::cout << "Testing [" << t << "]" << std::endl;
   //  test(t);

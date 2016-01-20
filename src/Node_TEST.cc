@@ -297,13 +297,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(topic, msg));
 
-  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+  transport::AdvertiseOptions opts;
+  opts.SetTextMode(false);
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic, opts));
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);
 
-  EXPECT_TRUE(node2.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node2.Advertise<transport::msgs::Int>(topic, opts));
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), topic);

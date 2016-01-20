@@ -59,8 +59,14 @@ Node::~Node()
 {
   // Unsubscribe from all the topics.
   auto subsTopics = this->SubscribedTopics();
-  for (auto const &topic : subsTopics)
-    this->Unsubscribe(topic);
+  for (auto topic : subsTopics)
+  {
+    if (!this->Unsubscribe(topic))
+    {
+      std::cerr << "Node::~Node() Error unsubscribing topic ["
+                << topic << "]" << std::endl;
+    }
+  }
 
   // The list of subscribed topics should be empty.
   assert(this->SubscribedTopics().empty());
@@ -105,8 +111,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
   {
     // Remove the partition information.
     auto first = topic.find("@");
-    auto last = topic.rfind("@");
-    auto t = topic.substr(first + 1, last - first - 1);
+    auto t = topic.substr(first + 1, topic.size() - first - 1);
     v.push_back(t);
   }
 
@@ -135,14 +140,6 @@ bool Node::Unadvertise(const std::string &_topic)
 
   // Notify the discovery service to unregister and unadvertise my topic.
   if (!this->dataPtr->shared->discovery->UnadvertiseMsg(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
-  {
-    return false;
-  }
-
-  // Unadvertise the text version.
-  std::string topicText = fullyQualifiedTopic + "text";
-  if (!this->dataPtr->shared->discovery->UnadvertiseMsg(topicText,
     this->dataPtr->nUuid))
   {
     return false;
@@ -237,7 +234,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   // Text subscribers.
-  std::string topicText = fullyQualifiedTopic + "text";
+  std::string topicText = fullyQualifiedTopic + "_TEXT";
   if (this->dataPtr->shared->remoteSubscribers.HasTopic(topicText))
   {
     msgs::StringMsg msgText;
@@ -268,8 +265,7 @@ std::vector<std::string> Node::SubscribedTopics() const
   {
     // Remove the partition information from the topic.
     auto first = topic.find("@");
-    auto last = topic.rfind("@");
-    auto t = topic.substr(first + 1, last - first - 1);
+    auto t = topic.substr(first + 1, topic.size() - first - 1);
     v.push_back(t);
   }
 
@@ -366,8 +362,7 @@ std::vector<std::string> Node::AdvertisedServices() const
   {
     // Remove the partition information from the service name.
     auto first = service.find("@");
-    auto last = service.rfind("@");
-    auto s = service.substr(first + 1, last - first - 1);
+    auto s = service.substr(first + 1, service.size() - first - 1);
 
     v.push_back(s);
   }
@@ -437,11 +432,9 @@ void Node::TopicList(std::vector<std::string> &_topics) const
       continue;
 
     // Remove the partition part from the topic.
-    auto last = topic.rfind("@");
-    auto t = topic.substr(first + 1, last - first - 1);
+    std::string t = topic.substr(first + 1, topic.size() - first - 1);
 
-    if (std::find(_topics.begin(), _topics.end(), t) == _topics.end())
-      _topics.push_back(t);
+    _topics.push_back(t);
   }
 }
 
@@ -473,11 +466,9 @@ void Node::ServiceList(std::vector<std::string> &_services) const
       continue;
 
     // Remove the partition part from the service.
-    auto last = service.rfind("@");
-    auto s = service.substr(first + 1, last - first - 1);
+    auto s = service.substr(first + 1, service.size() - first - 1);
 
-    if (std::find(_services.begin(), _services.end(), s) == _services.end())
-      _services.push_back(s);
+    _services.push_back(s);
   }
 }
 

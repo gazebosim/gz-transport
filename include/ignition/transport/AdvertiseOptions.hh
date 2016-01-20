@@ -75,6 +75,17 @@ namespace ignition
       /// \sa Scope_t.
       public: void SetScope(const Scope_t &_scope);
 
+      /// \brief Get whether the plain TEXT advertise mode is enabled. By
+      /// default all the topics are also advertised in plain TEXT mode.
+      /// \return True if the plain TEXT mode advertise is enabled.
+      /// \sa SetTextMode.
+      public: bool TextMode() const;
+
+      /// \brief Advertise also the plain TEXT version of the topic.
+      /// \param[in] _enabled Advertise also the plain TEXT topic when true.
+      /// \sa TextMode.
+      public: void SetTextMode(const bool _enabled);
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::AdvertiseOptionsPrivate> dataPtr;

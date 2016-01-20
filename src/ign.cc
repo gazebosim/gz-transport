@@ -54,11 +54,14 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic)
 {
   Node node;
-  SubscribeOptions opts;
-  opts.SetTextMode(true);
 
   std::string topic(_topic);
-  node.Subscribe(topic, cb, opts);
+  if (!node.Subscribe(topic + "_TEXT", cb))
+  {
+    std::cerr << "CmdTopicEcho(): Error in Subscribe() to topic ["
+              << topic + "_TEXT]" << std::endl;
+    return;
+  }
 
   getchar();
 }
