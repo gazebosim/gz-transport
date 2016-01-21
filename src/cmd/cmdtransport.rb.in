@@ -40,7 +40,7 @@ COMMANDS = {  'topic' =>
                 "Options:\n\n"\
                 "  -e [ --echo ] arg          Output topic data to screen.\n" +
                 "  -l [ --list ]              List all topics.\n" +
-                "  -d [--duration] arg        Duration (seconds) to run. Applicable with echo" +
+                "  -d [--duration] arg        Duration (seconds) to run. Applicable with echo.\n" +
                 COMMON_OPTIONS,
               'service' =>
                 "Print information about services.\n\n"\

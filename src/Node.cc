@@ -59,7 +59,7 @@ Node::~Node()
 {
   // Unsubscribe from all the topics.
   auto subsTopics = this->SubscribedTopics();
-  for (auto topic : subsTopics)
+  for (auto const &topic : subsTopics)
   {
     if (!this->Unsubscribe(topic))
     {
