@@ -41,11 +41,10 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
-#include "msgs/string.pb.h"
+#include "msgs/ign_string.pb.h"
 
 namespace ignition
 {
@@ -112,7 +111,7 @@ namespace ignition
         {
           AdvertiseOptions opts;
           opts.SetTextMode(false);
-          return this->Advertise<msgs::StringMsg>(_topic + "_TEXT", opts);
+          return this->Advertise<msgs::IgnString>(_topic + "_TEXT", opts);
         }
 
         return true;

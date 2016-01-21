@@ -18,9 +18,9 @@
 #include <chrono>
 #include <string>
 #include "ignition/transport/Node.hh"
-#include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
+#include "gtest/gtest.h"
+#include "msgs/ign_int.pb.h"
 
 using namespace ignition;
 
@@ -30,7 +30,7 @@ int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const transport::msgs::Int &_msg)
+void cb(const transport::msgs::IgnInt &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;

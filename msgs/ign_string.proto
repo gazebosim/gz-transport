@@ -2,7 +2,7 @@ package ignition.transport.msgs;
 
 /// \brief String message
 
-message StringMsg
+message IgnString
 {
   /// \brief 32 bit integer data
   required string data = 1;

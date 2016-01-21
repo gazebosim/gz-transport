@@ -18,19 +18,19 @@
 #include <chrono>
 #include <cstdio>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "msgs/string.pb.h"
+#include "msgs/ign_string.pb.h"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const msgs::StringMsg &_msg)
+void cb(const msgs::IgnString &_msg)
 {
   std::cout << _msg.data() << std::endl << std::endl;
 }
@@ -51,7 +51,8 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic)
+extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic,
+  const double _duration)
 {
   Node node;
 
@@ -63,7 +64,11 @@ extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic)
     return;
   }
 
-  getchar();
+  if (_duration < 0)
+    getchar();
+  else
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      static_cast<int64_t>(_duration * 1000)));
 }
 
 //////////////////////////////////////////////////

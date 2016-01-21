@@ -40,6 +40,7 @@ COMMANDS = {  'topic' =>
                 "Options:\n\n"\
                 "  -e [ --echo ] arg          Output topic data to screen.\n" +
                 "  -l [ --list ]              List all topics.\n" +
+                "  -d [--duration] arg        Duration (seconds) to run. Applicable with echo" +
                 COMMON_OPTIONS,
               'service' =>
                 "Print information about services.\n\n"\
@@ -76,6 +77,10 @@ class Cmd
 
       opts.on('-e', '--echo ARG', 'Output topic data to screen') do |e|
         options['echo'] = e
+      end
+
+      opts.on('-d', '--duration ARG', 'Duration (seconds) to run') do |d|
+        options['duration'] = d
       end
     end
 
@@ -140,9 +145,13 @@ class Cmd
           Importer.extern 'void cmdTopicList()'
           Importer.cmdTopicList
         elsif options.key?('echo')
-          Importer.extern 'void cmdTopicEcho(const char*)'
+          duration = -1.0
+          if options.key?('duration')
+            duration = options['duration']
+          end
+          Importer.extern 'void cmdTopicEcho(const char*, double)'
           topic = options['echo']
-          Importer.cmdTopicEcho(topic)
+          Importer.cmdTopicEcho(topic, duration.to_f)
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
@@ -161,7 +170,7 @@ class Cmd
       end
     rescue StandardError => e
       puts "Library error: Problem running [#{options['command']}]() "\
-           "from #{plugin}."
+           "from #{plugin} :", e
     rescue Interrupt => i
       # Don't do anything if a CTRL-C comes.
     end

@@ -2,7 +2,7 @@ package ignition.transport.msgs;
 
 /// \brief Vector3D message
 
-message Vector3d
+message IgnVector3d
 {
   /// \brief X component value
   required double x = 1;

@@ -22,8 +22,8 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
-#include "msgs/int.pb.h"
-#include "msgs/vector3d.pb.h"
+#include "msgs/ign_int.pb.h"
+#include "msgs/ign_vector3d.pb.h"
 
 using namespace ignition;
 
@@ -44,8 +44,8 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Callback providing a service call.
-void cb1(const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
-  bool &_result)
+void cb1(const transport::msgs::IgnVector3d &_req,
+  transport::msgs::IgnInt &_rep, bool &_result)
 {
   EXPECT_FLOAT_EQ(_req.x(), 1.0);
   EXPECT_FLOAT_EQ(_req.y(), 2.0);
@@ -63,9 +63,9 @@ TEST(RepStorageTest, RepStorageAPI)
   transport::IRepHandlerPtr handler;
   std::map<std::string, std::map<std::string, transport::IRepHandlerPtr>> m;
   transport::HandlerStorage<transport::IRepHandler> reps;
-  transport::msgs::Int rep1Msg;
+  transport::msgs::IgnInt rep1Msg;
   bool result;
-  transport::msgs::Vector3d reqMsg;
+  transport::msgs::IgnVector3d reqMsg;
   std::string reqType = reqMsg.GetTypeName();
   std::string rep1Type = rep1Msg.GetTypeName();
 
@@ -82,9 +82,8 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
-  std::shared_ptr<transport::RepHandler<transport::msgs::Vector3d,
-    transport::msgs::Int>> rep1HandlerPtr(new transport::RepHandler<
-      transport::msgs::Vector3d, transport::msgs::Int>());
+  auto rep1HandlerPtr = std::make_shared<transport::RepHandler<
+      transport::msgs::IgnVector3d, transport::msgs::IgnInt>>();
 
   rep1HandlerPtr->Callback(cb1);
 
@@ -125,26 +124,23 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_EQ(rep1Msg.data(), intResult);
 
   // Create another REP handler without a callback for node1.
-  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
-    transport::msgs::Int>> rep2HandlerPtr(new transport::RepHandler
-      <transport::msgs::Int, transport::msgs::Int>());
+  auto rep2HandlerPtr = std::make_shared<transport::RepHandler
+      <transport::msgs::IgnInt, transport::msgs::IgnInt>>();
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
 
   // Create another REP handler without a callback for node1.
-  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
-    transport::msgs::Int>> rep5HandlerPtr(new transport::RepHandler
-      <transport::msgs::Int, transport::msgs::Int>());
+  auto rep5HandlerPtr = std::make_shared<transport::RepHandler
+      <transport::msgs::IgnInt, transport::msgs::IgnInt>>();
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep5HandlerPtr);
   EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, rep5HandlerPtr->HandlerUuid()));
 
   // Create a REP handler without a callback for node2.
-  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
-    transport::msgs::Int>> rep3HandlerPtr(new transport::RepHandler
-      <transport::msgs::Int, transport::msgs::Int>());
+  auto rep3HandlerPtr = std::make_shared<transport::RepHandler
+      <transport::msgs::IgnInt, transport::msgs::IgnInt>>();
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
@@ -191,9 +187,8 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Insert another handler, remove it, and check that the map is empty.
-  std::shared_ptr<transport::RepHandler<transport::msgs::Int,
-    transport::msgs::Int>> rep4HandlerPtr(new transport::RepHandler
-      <transport::msgs::Int, transport::msgs::Int>());
+  auto rep4HandlerPtr = std::make_shared <transport::RepHandler
+      <transport::msgs::IgnInt, transport::msgs::IgnInt>>();
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
@@ -210,13 +205,12 @@ TEST(RepStorageTest, RepStorageAPI)
 TEST(RepStorageTest, SubStorageNoCallbacks)
 {
   transport::HandlerStorage<transport::ISubscriptionHandler> subs;
-  transport::msgs::Int msg;
+  transport::msgs::IgnInt msg;
   msg.set_data(5);
 
   // Create a Subscription handler.
-  std::shared_ptr<transport::SubscriptionHandler<transport::msgs::Int>>
-    sub1HandlerPtr(new transport::SubscriptionHandler
-      <transport::msgs::Int>(nUuid1));
+  auto sub1HandlerPtr = std::make_shared<transport::SubscriptionHandler
+      <transport::msgs::IgnInt>>(nUuid1);
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);

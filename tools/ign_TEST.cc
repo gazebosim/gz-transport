@@ -20,8 +20,8 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
-#include "msgs/vector3d.pb.h"
+#include "msgs/ign_int.pb.h"
+#include "msgs/ign_vector3d.pb.h"
 
 using namespace ignition;
 
@@ -51,7 +51,7 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+void srvEcho(const transport::msgs::IgnInt &_req, transport::msgs::IgnInt &_rep,
   bool &_result)
 {
   _rep.set_data(_req.data());
@@ -59,7 +59,8 @@ void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic list' running the advertiser on a different process.
+/// \brief Check 'ign topic --list' running the advertiser on a different
+/// process.
 TEST(ignTest, TopicList)
 {
   // Launch a new publisher process that advertises a topic.
@@ -70,7 +71,7 @@ TEST(ignTest, TopicList)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     partition.c_str());
 
-  // Check the 'ign topic list' command.
+  // Check the 'ign topic --list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -l");
   EXPECT_EQ(output, "/foo\n/foo_TEXT\n");
@@ -80,7 +81,30 @@ TEST(ignTest, TopicList)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service list' running the advertiser on a different
+/// \brief Check 'ign topic --echo' running the advertiser on a different
+/// process.
+TEST(ignTest, TopicEcho)
+{
+  // Launch a new publisher process that advertises a topic.
+  std::string publisher_path = testing::portablePathUnion(
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    partition.c_str());
+
+  // Check the 'ign topic --echo' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " topic -e /foo -d 1.0");
+
+  EXPECT_NE(output.find("x: 1\ny: 2\nz: 3\n"), std::string::npos);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign service --list' running the advertiser on a different
 /// process.
 TEST(ignTest, ServiceList)
 {
@@ -92,7 +116,7 @@ TEST(ignTest, ServiceList)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     partition.c_str());
 
-  // Check the 'ign service list' command.
+  // Check the 'ign service --list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -l");
   EXPECT_EQ(output, "/foo\n");
@@ -102,33 +126,33 @@ TEST(ignTest, ServiceList)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic list' running the advertiser on the same process.
+/// \brief Check 'ign topic --list' running the advertiser on the same process.
 TEST(ignTest, TopicListSameProc)
 {
   ignition::transport::Node node;
 
-  ignition::transport::msgs::Vector3d msg;
+  ignition::transport::msgs::IgnVector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::Vector3d>("/foo"));
+  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::IgnVector3d>("/foo"));
   EXPECT_TRUE(node.Publish("/foo", msg));
 
-  // Check the 'ign topic list' command.
+  // Check the 'ign topic --list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -l");
   EXPECT_EQ(output, "/foo\n/foo_TEXT\n");
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service list' running the advertiser on the same process.
+/// \brief Check 'ign service --list' running the advertiser on the same process
 TEST(ignTest, ServiceListSameProc)
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'ign service list' command.
+  // Check the 'ign service --list' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -l");
   EXPECT_EQ(output, "/foo\n");

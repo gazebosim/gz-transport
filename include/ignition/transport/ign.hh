@@ -21,12 +21,19 @@
 #include <cstring>
 #include "ignition/transport/Helpers.hh"
 
-/// \brief External hook to execute 'ign topic list' command from the command
+/// \brief External hook to execute 'ign topic --list' command from the command
 /// line.
 extern "C" IGNITION_VISIBLE void cmdTopicList();
 
-/// \brief External hook to execute 'ign service list' command from the command
+/// \brief External hook to execute 'ign topic --echo' command from the command
 /// line.
+/// \param[in] _topic Topic of interest.
+/// \param[in] _duration Duration of the command (seconds).
+extern "C" IGNITION_VISIBLE void cmdTopicEcho(const char *_topic,
+                                              const double _duration = -1.0);
+
+/// \brief External hook to execute 'ign service --list' command from the
+/// command line.
 extern "C" IGNITION_VISIBLE void cmdServiceList();
 
 /// \brief External hook to read the library version.

@@ -18,7 +18,7 @@
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msgs/vector3d.pb.h"
+#include "msgs/ign_vector3d.pb.h"
 
 using namespace ignition;
 
@@ -28,14 +28,14 @@ std::string topic = "/foo";
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  transport::msgs::Vector3d msg;
+  transport::msgs::IgnVector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
   transport::Node node;
 
-  node.Advertise<transport::msgs::Vector3d>(topic);
+  node.Advertise<transport::msgs::IgnVector3d>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));

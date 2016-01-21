@@ -37,7 +37,7 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
-#include "msgs/string.pb.h"
+#include "msgs/ign_string.pb.h"
 
 using namespace ignition;
 using namespace transport;
@@ -237,7 +237,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   std::string topicText = fullyQualifiedTopic + "_TEXT";
   if (this->dataPtr->shared->remoteSubscribers.HasTopic(topicText))
   {
-    msgs::StringMsg msgText;
+    msgs::IgnString msgText;
     msgText.set_data(_msg.DebugString());
 
     std::string data;
