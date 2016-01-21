@@ -129,10 +129,10 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
     {
       {"~/def",    {false, ""}},
       {"~def",     {false, ""}},
-      {"/def",     {true,  "/def"}},
-      {"def/",     {true,  "def"}},
-      {"def/ghi",  {true,  "def/ghi"}},
-      {"def/ghi/", {true,  "def/ghi"}},
+      {"/def",     {true,  "/def@"}},
+      {"def/",     {true,  "def@"}},
+      {"def/ghi",  {true,  "def/ghi@"}},
+      {"def/ghi/", {true,  "def/ghi@"}},
       {"~/def/",   {false, ""}},
       {"~def/",    {false, ""}}
     };

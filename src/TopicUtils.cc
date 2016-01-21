@@ -104,5 +104,8 @@ bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
   // Add the partition prefix.
   _name.insert(0, partition + "@");
 
+  // Add the topic delimiter at the end.
+  _name.append("@");
+
   return true;
 }
