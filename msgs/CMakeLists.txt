@@ -1,4 +1,5 @@
 set(msgs
+  ign_string.proto
   int.proto
   vector3d.proto
 )

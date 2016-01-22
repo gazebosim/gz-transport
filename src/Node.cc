@@ -37,9 +37,71 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+#include "msgs/ign_string.pb.h"
 
 using namespace ignition;
 using namespace transport;
+
+//////////////////////////////////////////////////
+/// \brief Provide an "info" service.
+void Node::SrvInfo(const msgs::IgnString &_req, msgs::IgnString &_rep,
+  bool &_result)
+{
+  std::string res;
+  std::string topic = _req.data();
+  std::string endpoint = this->Shared()->myAddress;
+  std::string nodeUuid = this->dataPtr->nUuid;
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), topic, fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
+    _result = false;
+    return;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Local subscribers.
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  if (this->dataPtr->shared->localSubscriptions.GetHandlers(fullyQualifiedTopic,
+        handlers))
+  {
+    //res += "\t\tLocal subscribers:\n";
+    for (auto const &node : handlers)
+    {
+      for (auto const &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+        if (subscriptionHandlerPtr)
+        {
+          res += "\t\tNode UUID: [" + subscriptionHandlerPtr->NodeUuid() + "]\n";
+          res += "\t\tType: [" + subscriptionHandlerPtr->GetTypeName() + "]\n";
+        }
+      }
+    }
+  }
+
+  //res += "\t\tRemote subscribers:\n";
+  // Remote subscribers.
+  MsgAddresses_M addresses;
+  if (this->dataPtr->shared->remoteSubscribers.GetPublishers(fullyQualifiedTopic,
+     addresses))
+  {
+    for (auto const &proc : addresses)
+    {
+      for (auto const &nodeInfo : proc.second)
+      {
+        res += "\t\tNode UUID: [" + nodeInfo.NUuid() + "]\n";
+      }
+    }
+  }
+
+  _rep.set_data(res);
+  _result = true;
+}
 
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
@@ -51,6 +113,11 @@ Node::Node(const NodeOptions &_options)
 
   // Save the options.
   this->dataPtr->options = _options;
+
+  // Advertise an "info" service call.
+  std::string service = "_INTERNAL_" + this->dataPtr->nUuid;
+  if (!this->Advertise(service, &Node::SrvInfo, this))
+    std::cerr << "Error advertising service [" << service << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////

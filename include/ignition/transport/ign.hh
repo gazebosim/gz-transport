@@ -25,6 +25,10 @@
 /// line.
 extern "C" IGNITION_VISIBLE void cmdTopicList();
 
+/// \brief External hook to execute 'ign topic --info' command from the command
+/// line.
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic);
+
 /// \brief External hook to execute 'ign service list' command from the command
 /// line.
 extern "C" IGNITION_VISIBLE void cmdServiceList();

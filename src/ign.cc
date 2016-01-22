@@ -21,6 +21,9 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/TopicUtils.hh"
+#include "ignition/transport/TransportTypes.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -39,6 +42,54 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
   for (auto const &topic : topics)
     std::cout << topic << std::endl;
 }
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
+{
+  Node node;
+  NodeOptions opts;
+  NodeShared *shared = NodeShared::GetInstance();
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::GetFullyQualifiedName(opts.Partition(),
+    "", std::string(_topic), fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return;
+  }
+
+  // Give the node some time to receive topic updates.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  MsgAddresses_M pubs;
+  shared->discovery->MsgPublishers(fullyQualifiedTopic, pubs);
+
+  msgs::IgnString req;
+  msgs::IgnString rep;
+  bool result;
+  unsigned int timeout = 5000;
+
+  req.set_data(_topic);
+
+  for (auto const &proc : pubs)
+  {
+    std::cout << "Process UUID: [" << proc.first << "]" << std::endl;
+    for (auto const &pub : proc.second)
+    {
+      std::string service = "_INTERNAL_" + pub.NUuid();
+
+      if (!node.Request(service, req, timeout, rep, result))
+        continue;
+
+      std::cout << "\tEnd point: [" << pub.Addr() << "]" << std::endl;
+      std::cout << "\tNode UUID: [" << pub.NUuid() << "]" << std::endl;
+      std::cout << "\tType: [" << pub.MsgTypeName() << "]" << std::endl;
+      std::cout << "\tSubscribers:" << std::endl;
+      std::cout << rep.data() << std::endl;
+    }
+  }
+}
+
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdServiceList()

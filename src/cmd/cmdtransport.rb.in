@@ -38,6 +38,7 @@ COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
+                       "  -i [ --info ] arg          Get information about a topic.\n" +
                        "  -l [ --list ]              List all topics.\n" +
                        COMMON_OPTIONS,
               'service' =>
@@ -68,6 +69,9 @@ class Cmd
       opts.on('-h', '--help", "Print this help message') do
         puts usage
         exit(0)
+      end
+      opts.on('-i', '--info ARG', 'Get information about topics/services') do |i|
+        options['info'] = i
       end
       opts.on('-l', '--list', 'Print information about topics') do |l|
         options['list'] = l
@@ -134,6 +138,10 @@ class Cmd
         if options.key?('list')
           Importer.extern 'void cmdTopicList()'
           Importer.cmdTopicList
+        elsif options.key?('info')
+          Importer.extern 'void cmdTopicInfo(const char*)'
+          topic = options['info']
+          Importer.cmdTopicInfo(topic)
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
@@ -150,9 +158,11 @@ class Cmd
         puts 'Command error: I do not have an implementation for '\
              "command [ign #{options['command']}]."
       end
-    rescue
+    rescue StandardError => e
       puts "Library error: Problem running [#{options['command']}]() "\
-           "from #{plugin}."
+           "from #{plugin}.", e
+    rescue Interrupt => i
+      # Don't do anything if a CTRL-C comes.
     end
   end
 end

@@ -159,6 +159,8 @@ NodeShared::NodeShared()
 
   // Start the discovery service.
   discovery->Start();
+
+
 }
 
 //////////////////////////////////////////////////

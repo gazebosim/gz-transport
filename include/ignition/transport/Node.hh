@@ -44,6 +44,7 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
+#include "msgs/ign_string.pb.h"
 
 namespace ignition
 {
@@ -696,6 +697,11 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
+
+      /// \brief ToDo
+      private: void SrvInfo(const msgs::IgnString &_req,
+                            msgs::IgnString &_rep,
+                            bool &_result);
 
       /// \internal
       /// \brief Smart pointer to private data.
