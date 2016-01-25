@@ -81,10 +81,10 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
       if (!node.Request(service, req, timeout, rep, result))
         continue;
 
-      std::cout << "\tEnd point: [" << pub.Addr() << "]" << std::endl;
-      std::cout << "\tNode UUID: [" << pub.NUuid() << "]" << std::endl;
-      std::cout << "\tType: [" << pub.MsgTypeName() << "]" << std::endl;
-      std::cout << "\tSubscribers:" << std::endl;
+      std::cout << "  End point: [" << pub.Addr() << "]" << std::endl;
+      std::cout << "  Node UUID: [" << pub.NUuid() << "]" << std::endl;
+      std::cout << "  Type: [" << pub.MsgTypeName() << "]" << std::endl;
+      std::cout << "  Subscribers:" << std::endl;
       std::cout << rep.data() << std::endl;
     }
   }

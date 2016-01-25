@@ -77,8 +77,8 @@ void Node::SrvInfo(const msgs::IgnString &_req, msgs::IgnString &_rep,
 
         if (subscriptionHandlerPtr)
         {
-          res += "\t\tNode UUID: [" + subscriptionHandlerPtr->NodeUuid() + "]\n";
-          res += "\t\tType: [" + subscriptionHandlerPtr->GetTypeName() + "]\n";
+          res += "    Node UUID: [" + subscriptionHandlerPtr->NodeUuid() + "]\n";
+          //res += "      Type: [" + subscriptionHandlerPtr->GetTypeName() + "]\n";
         }
       }
     }
@@ -94,7 +94,8 @@ void Node::SrvInfo(const msgs::IgnString &_req, msgs::IgnString &_rep,
     {
       for (auto const &nodeInfo : proc.second)
       {
-        res += "\t\tNode UUID: [" + nodeInfo.NUuid() + "]\n";
+        res += "    Node UUID: [" + nodeInfo.NUuid() + "]\n";
+        //res += "      Type: [" + nodeInfo.MsgTypeName() + "]\n";
       }
     }
   }
