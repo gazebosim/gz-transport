@@ -187,24 +187,24 @@ namespace ignition
       public: unsigned int SilenceInterval() const;
 
       /// \brief Set the activity interval.
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void ActivityInterval(const unsigned int _ms);
+      public: void SetActivityInterval(const unsigned int _ms);
 
       /// \brief Set the heartbeat interval.
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void HeartbeatInterval(const unsigned int _ms);
+      public: void SetHeartbeatInterval(const unsigned int _ms);
 
       /// \brief Set the advertise interval.
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void AdvertiseInterval(const unsigned int _ms);
+      public: void SetAdvertiseInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
-      /// \sa GetSilenceInterval.
+      /// \sa SilenceInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SilenceInterval(const unsigned int _ms);
+      public: void SetSilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is connected, the callback will be executed.

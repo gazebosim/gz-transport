@@ -132,7 +132,7 @@ namespace ignition
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void Callback(const std::function <void(const T &_msg)> &_cb)
+      public: void SetCallback(const std::function <void(const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }

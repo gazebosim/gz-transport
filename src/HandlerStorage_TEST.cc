@@ -86,7 +86,7 @@ TEST(RepStorageTest, RepStorageAPI)
     transport::msgs::Int>> rep1HandlerPtr(new transport::RepHandler<
       transport::msgs::Vector3d, transport::msgs::Int>());
 
-  rep1HandlerPtr->Callback(cb1);
+  rep1HandlerPtr->SetCallback(cb1);
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid1, rep1HandlerPtr);

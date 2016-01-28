@@ -196,7 +196,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      public: void Callback(const std::function <void(
+      public: void SetCallback(const std::function <void(
         const Rep &_rep, const bool _result)> &_cb)
       {
         this->cb = _cb;
@@ -205,7 +205,7 @@ namespace ignition
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
-      public: void Message(const Req &_reqMsg)
+      public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }

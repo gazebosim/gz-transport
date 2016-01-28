@@ -46,11 +46,11 @@ TEST(PacketTest, BasicHeaderAPI)
 
   // Check Header setters.
   pUuid = "Different-process-UUID-1";
-  header.PUuid(pUuid);
+  header.SetPUuid(pUuid);
   EXPECT_EQ(header.PUuid(), pUuid);
-  header.Type(SubType);
+  header.SetType(SubType);
   EXPECT_EQ(header.Type(), SubType);
-  header.Flags(1);
+  header.SetFlags(1);
   EXPECT_EQ(header.Flags(), 1);
   headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
@@ -129,7 +129,7 @@ TEST(PacketTest, BasicSubscriptionAPI)
 
   // Check Sub setters.
   topic = "a_new_topic_test";
-  subMsg.Topic(topic);
+  subMsg.SetTopic(topic);
   EXPECT_EQ(subMsg.Topic(), topic);
 
   // Check << operator
@@ -265,19 +265,19 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   nodeUuid = "nodeUUID2";
   scope = Scope_t::HOST;
   typeName = "Int";
-  advMsg.Publisher().Topic(topic);
+  advMsg.Publisher().SetTopic(topic);
   EXPECT_EQ(advMsg.Publisher().Topic(), topic);
-  advMsg.Publisher().Addr(addr);
+  advMsg.Publisher().SetAddr(addr);
   EXPECT_EQ(advMsg.Publisher().Addr(), addr);
-  advMsg.Publisher().PUuid(procUuid);
+  advMsg.Publisher().SetPUuid(procUuid);
   EXPECT_EQ(advMsg.Publisher().PUuid(), procUuid);
-  advMsg.Publisher().Ctrl(ctrl);
+  advMsg.Publisher().SetCtrl(ctrl);
   EXPECT_EQ(advMsg.Publisher().Ctrl(), ctrl);
-  advMsg.Publisher().NUuid(nodeUuid);
+  advMsg.Publisher().SetNUuid(nodeUuid);
   EXPECT_EQ(advMsg.Publisher().NUuid(), nodeUuid);
-  advMsg.Publisher().Scope(scope);
+  advMsg.Publisher().SetScope(scope);
   EXPECT_EQ(advMsg.Publisher().Scope(), scope);
-  advMsg.Publisher().MsgTypeName(typeName);
+  advMsg.Publisher().SetMsgTypeName(typeName);
   EXPECT_EQ(advMsg.Publisher().MsgTypeName(), typeName);
 
   // Check << operator
@@ -301,7 +301,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
 
   EXPECT_EQ(output.str(), expectedOutput);
 
-  advMsg.Publisher().Scope(Scope_t::PROCESS);
+  advMsg.Publisher().SetScope(Scope_t::PROCESS);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -323,7 +323,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(output.str(), expectedOutput);
 
   // Check << operator
-  advMsg.Publisher().Scope(Scope_t::ALL);
+  advMsg.Publisher().SetScope(Scope_t::ALL);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -505,21 +505,21 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   scope = Scope_t::HOST;
   reqType = "Type1";
   repType = "Type2";
-  advSrv.Publisher().Topic(topic);
+  advSrv.Publisher().SetTopic(topic);
   EXPECT_EQ(advSrv.Publisher().Topic(), topic);
-  advSrv.Publisher().Addr(addr);
+  advSrv.Publisher().SetAddr(addr);
   EXPECT_EQ(advSrv.Publisher().Addr(), addr);
-  advSrv.Publisher().SocketId(id);
+  advSrv.Publisher().SetSocketId(id);
   EXPECT_EQ(advSrv.Publisher().SocketId(), id);
-  advSrv.Publisher().PUuid(pUuid);
+  advSrv.Publisher().SetPUuid(pUuid);
   EXPECT_EQ(advSrv.Publisher().PUuid(), pUuid);
-  advSrv.Publisher().NUuid(nodeUuid);
+  advSrv.Publisher().SetNUuid(nodeUuid);
   EXPECT_EQ(advSrv.Publisher().NUuid(), nodeUuid);
-  advSrv.Publisher().Scope(scope);
+  advSrv.Publisher().SetScope(scope);
   EXPECT_EQ(advSrv.Publisher().Scope(), scope);
-  advSrv.Publisher().ReqTypeName(reqType);
+  advSrv.Publisher().SetReqTypeName(reqType);
   EXPECT_EQ(advSrv.Publisher().ReqTypeName(), reqType);
-  advSrv.Publisher().RepTypeName(repType);
+  advSrv.Publisher().SetRepTypeName(repType);
   EXPECT_EQ(advSrv.Publisher().RepTypeName(), repType);
 
   // Check << operator

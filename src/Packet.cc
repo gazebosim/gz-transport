@@ -29,10 +29,10 @@ Header::Header(const uint16_t _version,
                const uint8_t _type,
                const uint16_t _flags)
 {
-  this->Version(_version);
-  this->PUuid(_pUuid);
-  this->Type(_type);
-  this->Flags(_flags);
+  this->SetVersion(_version);
+  this->SetPUuid(_pUuid);
+  this->SetType(_type);
+  this->SetFlags(_flags);
 }
 
 //////////////////////////////////////////////////
@@ -60,25 +60,25 @@ uint16_t Header::Flags() const
 }
 
 //////////////////////////////////////////////////
-void Header::Version(const uint16_t _version)
+void Header::SetVersion(const uint16_t _version)
 {
   this->version = _version;
 }
 
 //////////////////////////////////////////////////
-void Header::PUuid(const std::string &_pUuid)
+void Header::SetPUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
 }
 
 //////////////////////////////////////////////////
-void Header::Type(const uint8_t _type)
+void Header::SetType(const uint8_t _type)
 {
   this->type = _type;
 }
 
 //////////////////////////////////////////////////
-void Header::Flags(const uint16_t _flags)
+void Header::SetFlags(const uint16_t _flags)
 {
   this->flags = _flags;
 }
@@ -172,7 +172,7 @@ SubscriptionMsg::SubscriptionMsg(const transport::Header &_header,
                                  const std::string &_topic)
 {
   this->SetHeader(_header);
-  this->Topic(_topic);
+  this->SetTopic(_topic);
 }
 
 //////////////////////////////////////////////////
@@ -194,7 +194,7 @@ void SubscriptionMsg::SetHeader(const transport::Header &_header)
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::Topic(const std::string &_topic)
+void SubscriptionMsg::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
 }

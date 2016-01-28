@@ -105,7 +105,7 @@ namespace ignition
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
-      public: void Callback(const std::function
+      public: void SetCallback(const std::function
         <void(const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;

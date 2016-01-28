@@ -75,35 +75,43 @@ namespace ignition
 
       /// \brief Get the discovery protocol version.
       /// \return The discovery protocol version.
+      /// \sa SetVersion.
       public: uint16_t Version() const;
 
       /// \brief Get the process uuid.
       /// \return A unique global identifier for every process.
+      /// \sa SetPUuid.
       public: std::string PUuid() const;
 
       /// \brief Get the message type.
       /// \return Message type (ADVERTISE, SUBSCRIPTION, ...)
+      /// \sa SetType.
       public: uint8_t Type() const;
 
       /// \brief Get the message flags.
       /// \return Message flags used for compression or other optional features.
+      /// \sa SetFlags.
       public: uint16_t Flags() const;
 
       /// \brief Set the discovery protocol version.
       /// \param[in] _version Discovery protocol version.
-      public: void Version(const uint16_t _version);
+      /// \sa Version.
+      public: void SetVersion(const uint16_t _version);
 
       /// \brief Set the process uuid.
       /// \param[in] _pUuid A unique global identifier for every process.
-      public: void PUuid(const std::string &_pUuid);
+      /// \sa PUuid.
+      public: void SetPUuid(const std::string &_pUuid);
 
       /// \brief Set the message type.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...).
-      public: void Type(const uint8_t _type);
+      /// \sa Type.
+      public: void SetType(const uint8_t _type);
 
       /// \brief Set the message flags.
       /// \param[in] _flags Used for enable optional features.
-      public: void Flags(const uint16_t _flags);
+      /// \sa Flags.
+      public: void SetFlags(const uint16_t _flags);
 
       /// \brief Get the header length.
       /// \return The header length in bytes.
@@ -164,19 +172,23 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
+      /// \sa SetHeader.
       public: transport::Header Header() const;
 
       /// \brief Get the topic.
       /// \return Topic name.
+      /// \sa SetTopic.
       public: std::string Topic() const;
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
+      /// \sa Header.
       public: void SetHeader(const transport::Header &_header);
 
       /// \brief Set the topic.
       /// \param[in] _topic Topic name.
-      public: void Topic(const std::string &_topic);
+      /// \sa Topic.
+      public: void SetTopic(const std::string &_topic);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
@@ -236,6 +248,7 @@ namespace ignition
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
+      /// \sa SetHeader.
       public: transport::Header Header() const
       {
         return this->header;
@@ -243,6 +256,7 @@ namespace ignition
 
       /// \brief Get the publisher of this message.
       /// \return Publisher.
+      /// \sa SetPublisher.
       public: T& Publisher()
       {
         return this->publisher;
@@ -250,6 +264,7 @@ namespace ignition
 
       /// \brief Set the header of the message.
       /// \param[in] _header Message header.
+      /// \sa Header.
       public: void SetHeader(const transport::Header &_header)
       {
         this->header = _header;
@@ -257,6 +272,7 @@ namespace ignition
 
       /// \brief Set the publisher of this message.
       /// \param[in] _publisher New publisher.
+      /// \sa Publisher.
       public: void SetPublisher(const T &_publisher)
       {
         this->publisher = _publisher;

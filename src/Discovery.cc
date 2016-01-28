@@ -370,9 +370,9 @@ bool Discovery::DiscoverMsg(const std::string &_topic)
   MsgDiscoveryCallback cb = this->dataPtr->connectionCb;
   MessagePublisher pub;
 
-  pub.Topic(_topic);
-  pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::ALL);
+  pub.SetTopic(_topic);
+  pub.SetPUuid(this->dataPtr->pUuid);
+  pub.SetScope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubType, pub);
@@ -413,9 +413,9 @@ bool Discovery::DiscoverSrv(const std::string &_topic)
   SrvDiscoveryCallback cb = this->dataPtr->connectionSrvCb;
   ServicePublisher pub;
 
-  pub.Topic(_topic);
-  pub.PUuid(this->dataPtr->pUuid);
-  pub.Scope(Scope_t::ALL);
+  pub.SetTopic(_topic);
+  pub.SetPUuid(this->dataPtr->pUuid);
+  pub.SetScope(Scope_t::ALL);
 
   // Broadcast a discovery request for this service call.
   this->SendMsg(SubSrvType, pub);
@@ -511,28 +511,28 @@ unsigned int Discovery::SilenceInterval() const
 }
 
 //////////////////////////////////////////////////
-void Discovery::ActivityInterval(const unsigned int _ms)
+void Discovery::SetActivityInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->activityInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::HeartbeatInterval(const unsigned int _ms)
+void Discovery::SetHeartbeatInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->heartbeatInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::AdvertiseInterval(const unsigned int _ms)
+void Discovery::SetAdvertiseInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->advertiseInterval = _ms;
 }
 
 //////////////////////////////////////////////////
-void Discovery::SilenceInterval(const unsigned int _ms)
+void Discovery::SetSilenceInterval(const unsigned int _ms)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->silenceInterval = _ms;
@@ -592,8 +592,8 @@ void Discovery::RunActivityTask()
         // that a remote node is gone, even if we were not interested in its
         // topics.
         MessagePublisher publisher;
-        publisher.PUuid(it->first);
-        publisher.Scope(Scope_t::ALL);
+        publisher.SetPUuid(it->first);
+        publisher.SetScope(Scope_t::ALL);
         this->dataPtr->disconnectionCb(publisher);
 
         // Remove the activity entry.
@@ -897,8 +897,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (this->dataPtr->disconnectionCb)
       {
         MessagePublisher msgPub;
-        msgPub.PUuid(recvPUuid);
-        msgPub.Scope(Scope_t::ALL);
+        msgPub.SetPUuid(recvPUuid);
+        msgPub.SetScope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionCb(msgPub);
       }
@@ -906,8 +906,8 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       if (this->dataPtr->disconnectionSrvCb)
       {
         ServicePublisher srvPub;
-        srvPub.PUuid(recvPUuid);
-        srvPub.Scope(Scope_t::ALL);
+        srvPub.SetPUuid(recvPUuid);
+        srvPub.SetScope(Scope_t::ALL);
         // Notify the new disconnection.
         this->dataPtr->disconnectionSrvCb(srvPub);
       }

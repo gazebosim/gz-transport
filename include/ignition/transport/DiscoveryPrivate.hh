@@ -56,22 +56,22 @@ namespace ignition
       public: virtual ~DiscoveryPrivate() = default;
 
       /// \brief Default activity interval value (ms.).
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
       /// \brief Default heartbeat interval value (ms.).
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \sa SetHeartbeatInterval.
       public: static const unsigned int DefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
-      /// \sa GetMaxSilenceInterval.
+      /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: static const unsigned int DefSilenceInterval = 3000;
 
       /// \brief Default advertise interval value (ms.).
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \sa SetAdvertiseInterval.
       public: static const unsigned int DefAdvertiseInterval = 1000;
 
