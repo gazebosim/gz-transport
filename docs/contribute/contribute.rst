@@ -151,7 +151,7 @@ In general, we follow `Google's style guide <https://google-styleguide.googlecod
    All parameters that are not modified by a function should be marked as ``const``. This applies to parameters that are passed by reference, pointer, and value. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_.
 
 **Pointer and reference variables**
-   Place the ``*`` and ``&`` next to the varaible name, not next to the type. For example: ``int &variable`` is good, but ``int& variable`` is not. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_.
+   Place the ``*`` and ``&`` next to the variable name, not next to the type. For example: ``int &variable`` is good, but ``int& variable`` is not. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217>`_.
 
 **Camel case**
    In general, everything should use camel case. Exceptions include protobuf variable names.
