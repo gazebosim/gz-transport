@@ -17,7 +17,7 @@ cmake -G "NMake Makefiles"^
       -DPROTOBUF_SRC_ROOT_FOLDER="%PROTOBUF_PATH%"^
       -DCPPZMQ_HEADER_PATH="%CPPZMQ_PATH%"^
       -DCMAKE_INSTALL_PREFIX="install"^
-      -DCMAKE_PREFIX_PATH="%IGN_TRANSPORT_PATH%\lib\cmake\ignition-transport0"^
+      -DCMAKE_PREFIX_PATH="%IGN_TRANSPORT_PATH%\lib\cmake\ignition-transport1"^
       -DCMAKE_BUILD_TYPE=%build_type%^
       ..
 
