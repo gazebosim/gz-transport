@@ -114,7 +114,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 bool Node::Unadvertise(const std::string &_topic)
 {
   std::string fullyQualifiedTopic = _topic;
-  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -144,7 +144,7 @@ bool Node::Unadvertise(const std::string &_topic)
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -166,7 +166,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   auto &info = this->dataPtr->shared->discovery->DiscoveryMsgInfo();
   std::string procUuid = this->dataPtr->shared->pUuid;
   std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.GetPublisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
+  if (!info.Publisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
   {
     std::cerr << "Node::Publish() I cannot find the msgType registered for "
               << "topic [" << _topic << "]" << std::endl;
@@ -183,7 +183,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
   // Local subscribers.
   std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->dataPtr->shared->localSubscriptions.GetHandlers(fullyQualifiedTopic,
+  if (this->dataPtr->shared->localSubscriptions.Handlers(fullyQualifiedTopic,
         handlers))
   {
     for (auto &node : handlers)
@@ -194,7 +194,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 
         if (subscriptionHandlerPtr)
         {
-          if (subscriptionHandlerPtr->GetTypeName() != _msg.GetTypeName())
+          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
             continue;
 
           subscriptionHandlerPtr->RunLocalCallback(_msg);
@@ -250,7 +250,7 @@ std::vector<std::string> Node::SubscribedTopics() const
 bool Node::Unsubscribe(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -346,7 +346,7 @@ std::vector<std::string> Node::AdvertisedServices() const
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
   std::string fullyQualifiedTopic;
-  if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
     std::cerr << "Service [" << _topic << "] is not valid." << std::endl;

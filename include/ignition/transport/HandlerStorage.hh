@@ -56,7 +56,7 @@ namespace ignition
       /// topic name. The value is another map, where the key is the node
       /// UUID and the value is a smart pointer to the handler.
       /// \return true if the topic contains at least one request.
-      public: bool GetHandlers(const std::string &_topic,
+      public: bool Handlers(const std::string &_topic,
         std::map<std::string,
           std::map<std::string, std::shared_ptr<T> >> &_handlers) const
       {
@@ -74,10 +74,10 @@ namespace ignition
       /// \param[in] _repTypeName Type of the service response.
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
-      public: bool GetFirstHandler(const std::string &_topic,
-                                   const std::string &_reqTypeName,
-                                   const std::string &_repTypeName,
-                                   std::shared_ptr<T> &_handler) const
+      public: bool FirstHandler(const std::string &_topic,
+                                const std::string &_reqTypeName,
+                                const std::string &_repTypeName,
+                                std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
@@ -87,8 +87,8 @@ namespace ignition
         {
           for (const auto &handler : node.second)
           {
-            if (_reqTypeName == handler.second->GetReqTypeName() &&
-                _repTypeName == handler.second->GetRepTypeName())
+            if (_reqTypeName == handler.second->ReqTypeName() &&
+                _repTypeName == handler.second->RepTypeName())
             {
               _handler = handler.second;
               return true;
@@ -104,9 +104,9 @@ namespace ignition
       /// \param[in] _msgTypeName Type of the msg in string format.
       /// \param[out] _handler handler.
       /// \return true if a handler was found.
-      public: bool GetFirstHandler(const std::string &_topic,
-                                   const std::string &_msgTypeName,
-                                   std::shared_ptr<T> &_handler) const
+      public: bool FirstHandler(const std::string &_topic,
+                                const std::string &_msgTypeName,
+                                std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;
@@ -116,7 +116,7 @@ namespace ignition
         {
           for (const auto &handler : node.second)
           {
-            if (_msgTypeName == handler.second->GetTypeName())
+            if (_msgTypeName == handler.second->TypeName())
             {
               _handler = handler.second;
               return true;
@@ -132,10 +132,10 @@ namespace ignition
       /// \param[in] _hUuid Handler UUID.
       /// \param[out] _handlers Handler requested.
       /// \return true if the handler was found.
-      public: bool GetHandler(const std::string &_topic,
-                              const std::string &_nUuid,
-                              const std::string &_hUuid,
-                              std::shared_ptr<T> &_handler) const
+      public: bool Handler(const std::string &_topic,
+                           const std::string &_nUuid,
+                           const std::string &_hUuid,
+                           std::shared_ptr<T> &_handler) const
       {
         if (this->data.find(_topic) == this->data.end())
           return false;

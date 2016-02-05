@@ -66,31 +66,31 @@ Scope_t Publisher::Scope() const
 }
 
 //////////////////////////////////////////////////
-void Publisher::Topic(const std::string &_topic)
+void Publisher::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
 }
 
 //////////////////////////////////////////////////
-void Publisher::Addr(const std::string &_addr)
+void Publisher::SetAddr(const std::string &_addr)
 {
   this->addr = _addr;
 }
 
 //////////////////////////////////////////////////
-void Publisher::PUuid(const std::string &_pUuid)
+void Publisher::SetPUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
 }
 
 //////////////////////////////////////////////////
-void Publisher::NUuid(const std::string &_nUuid)
+void Publisher::SetNUuid(const std::string &_nUuid)
 {
   this->nUuid = _nUuid;
 }
 
 //////////////////////////////////////////////////
-void Publisher::Scope(const Scope_t &_scope)
+void Publisher::SetScope(const Scope_t &_scope)
 {
   this->scope = _scope;
 }
@@ -323,7 +323,7 @@ std::string MessagePublisher::Ctrl() const
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::Ctrl(const std::string &_ctrl)
+void MessagePublisher::SetCtrl(const std::string &_ctrl)
 {
   this->ctrl = _ctrl;
 }
@@ -335,7 +335,7 @@ std::string MessagePublisher::MsgTypeName() const
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::MsgTypeName(const std::string &_msgTypeName)
+void MessagePublisher::SetMsgTypeName(const std::string &_msgTypeName)
 {
   this->msgTypeName = _msgTypeName;
 }
@@ -463,7 +463,7 @@ std::string ServicePublisher::SocketId() const
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SocketId(const std::string &_socketId)
+void ServicePublisher::SetSocketId(const std::string &_socketId)
 {
   this->socketId = _socketId;
 }
@@ -481,13 +481,13 @@ std::string ServicePublisher::RepTypeName() const
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::ReqTypeName(const std::string &_reqTypeName)
+void ServicePublisher::SetReqTypeName(const std::string &_reqTypeName)
 {
   this->reqTypeName = _reqTypeName;
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::RepTypeName(const std::string &_repTypeName)
+void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
 {
   this->repTypeName = _repTypeName;
 }

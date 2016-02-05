@@ -58,11 +58,11 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.Scope(), Scope);
 
   // Modify the publisher's member variables.
-  publisher.Topic(NewTopic);
-  publisher.Addr(NewAddr);
-  publisher.PUuid(NewPUuid);
-  publisher.NUuid(NewNUuid);
-  publisher.Scope(NewScope);
+  publisher.SetTopic(NewTopic);
+  publisher.SetAddr(NewAddr);
+  publisher.SetPUuid(NewPUuid);
+  publisher.SetNUuid(NewNUuid);
+  publisher.SetScope(NewScope);
 
   EXPECT_EQ(publisher.Topic(), NewTopic);
   EXPECT_EQ(publisher.Addr(),  NewAddr);
@@ -120,13 +120,13 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(publisher.MsgTypeName(), MsgTypeName);
 
   // Modify the publisher's member variables.
-  publisher.Topic(NewTopic);
-  publisher.Addr(NewAddr);
-  publisher.Ctrl(NewCtrl);
-  publisher.PUuid(NewPUuid);
-  publisher.NUuid(NewNUuid);
-  publisher.Scope(NewScope);
-  publisher.MsgTypeName(NewMsgTypeName);
+  publisher.SetTopic(NewTopic);
+  publisher.SetAddr(NewAddr);
+  publisher.SetCtrl(NewCtrl);
+  publisher.SetPUuid(NewPUuid);
+  publisher.SetNUuid(NewNUuid);
+  publisher.SetScope(NewScope);
+  publisher.SetMsgTypeName(NewMsgTypeName);
 
   EXPECT_EQ(publisher.Topic(), NewTopic);
   EXPECT_EQ(publisher.Addr(),  NewAddr);
@@ -190,14 +190,14 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(publisher.RepTypeName(), RepTypeName);
 
   // Modify the publisher's member variables.
-  publisher.Topic(NewTopic);
-  publisher.Addr(NewAddr);
-  publisher.SocketId(NewSocketId);
-  publisher.PUuid(NewPUuid);
-  publisher.NUuid(NewNUuid);
-  publisher.Scope(NewScope);
-  publisher.ReqTypeName(NewReqTypeName);
-  publisher.RepTypeName(NewRepTypeName);
+  publisher.SetTopic(NewTopic);
+  publisher.SetAddr(NewAddr);
+  publisher.SetSocketId(NewSocketId);
+  publisher.SetPUuid(NewPUuid);
+  publisher.SetNUuid(NewNUuid);
+  publisher.SetScope(NewScope);
+  publisher.SetReqTypeName(NewReqTypeName);
+  publisher.SetRepTypeName(NewRepTypeName);
 
   EXPECT_EQ(publisher.Topic(), NewTopic);
   EXPECT_EQ(publisher.Addr(),  NewAddr);

@@ -293,10 +293,10 @@ TEST(DiscoveryTest, TestBasicAPI)
   // Create a discovery node.
   transport::Discovery discovery(pUuid1);
 
-  discovery.SilenceInterval(newSilenceInterval);
-  discovery.ActivityInterval(newActivityInterval);
-  discovery.AdvertiseInterval(newAdvertiseInterval);
-  discovery.HeartbeatInterval(newHeartbeatInterval);
+  discovery.SetSilenceInterval(newSilenceInterval);
+  discovery.SetActivityInterval(newActivityInterval);
+  discovery.SetAdvertiseInterval(newAdvertiseInterval);
+  discovery.SetHeartbeatInterval(newHeartbeatInterval);
   EXPECT_EQ(discovery.SilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery.ActivityInterval(), newActivityInterval);
   EXPECT_EQ(discovery.AdvertiseInterval(), newAdvertiseInterval);

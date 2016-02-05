@@ -60,7 +60,7 @@ bool TopicUtils::IsValidTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool TopicUtils::GetFullyQualifiedName(const std::string &_partition,
+bool TopicUtils::FullyQualifiedName(const std::string &_partition,
   const std::string &_ns, const std::string &_topic, std::string &_name)
 {
   // Sanity check, first things first.

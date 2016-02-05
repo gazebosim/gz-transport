@@ -73,7 +73,7 @@ namespace ignition
                           const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -135,7 +135,7 @@ namespace ignition
           void(*_cb)(const T &_msg))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -153,7 +153,7 @@ namespace ignition
             new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler.
-        subscrHandlerPtr->Callback(_cb);
+        subscrHandlerPtr->SetCallback(_cb);
 
         // Store the subscription handler. Each subscription handler is
         // associated with a topic. When the receiving thread gets new data,
@@ -191,7 +191,7 @@ namespace ignition
           C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -209,7 +209,7 @@ namespace ignition
           new SubscriptionHandler<T>(this->NodeUuid()));
 
         // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->Callback(
+        subscrHandlerPtr->SetCallback(
           std::bind(_cb, _obj, std::placeholders::_1));
 
         // Store the subscription handler. Each subscription handler is
@@ -264,7 +264,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -285,7 +285,7 @@ namespace ignition
           new RepHandler<T1, T2>());
 
         // Insert the callback into the handler.
-        repHandlerPtr->Callback(_cb);
+        repHandlerPtr->SetCallback(_cb);
 
         // Store the replier handler. Each replier handler is
         // associated with a topic. When the receiving thread gets new requests,
@@ -332,7 +332,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -353,7 +353,7 @@ namespace ignition
           new RepHandler<T1, T2>());
 
         // Insert the callback into the handler.
-        repHandlerPtr->Callback(
+        repHandlerPtr->SetCallback(
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
             std::placeholders::_3));
 
@@ -402,7 +402,7 @@ namespace ignition
         void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -417,7 +417,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
@@ -434,10 +434,10 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->Message(_req);
+        reqHandlerPtr->SetMessage(_req);
 
         // Insert the callback into the handler.
-        reqHandlerPtr->Callback(_cb);
+        reqHandlerPtr->SetCallback(_cb);
 
         // Store the request handler.
         this->Shared()->requests.AddHandler(
@@ -485,7 +485,7 @@ namespace ignition
         C *_obj)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -500,7 +500,7 @@ namespace ignition
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
           T1().GetTypeName(), T2().GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
@@ -567,7 +567,7 @@ namespace ignition
         bool &_result)
       {
         std::string fullyQualifiedTopic;
-        if (!TopicUtils::GetFullyQualifiedName(this->Options().Partition(),
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
@@ -587,7 +587,7 @@ namespace ignition
 
           // If the responser is within my process.
           IRepHandlerPtr repHandler;
-          if (this->Shared()->repliers.GetFirstHandler(fullyQualifiedTopic,
+          if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
             T1().GetTypeName(), T2().GetTypeName(), repHandler))
           {
             // There is a responser in my process, let's use it.
@@ -596,7 +596,7 @@ namespace ignition
           }
 
           // Insert the request's parameters.
-          reqHandlerPtr->Message(_req);
+          reqHandlerPtr->SetMessage(_req);
 
           // Store the request handler.
           this->Shared()->requests.AddHandler(

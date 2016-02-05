@@ -70,7 +70,7 @@ namespace ignition
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
       /// \return String representation of the message type.
-      public: virtual std::string GetTypeName() = 0;
+      public: virtual std::string TypeName() = 0;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -124,7 +124,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: std::string GetTypeName()
+      public: std::string TypeName()
       {
         return T().GetTypeName();
       }
@@ -132,7 +132,7 @@ namespace ignition
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
       /// \param[in] _msg Protobuf message containing the topic update.
-      public: void Callback(const std::function <void(const T &_msg)> &_cb)
+      public: void SetCallback(const std::function <void(const T &_msg)> &_cb)
       {
         this->cb = _cb;
       }

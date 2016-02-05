@@ -43,7 +43,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-NodeShared *NodeShared::GetInstance()
+NodeShared *NodeShared::Instance()
 {
   static NodeShared instance;
   return &instance;
@@ -314,11 +314,11 @@ void NodeShared::RecvMsgUpdate()
 
   // Execute the callbacks registered.
   std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->localSubscriptions.GetHandlers(topic, handlers))
+  if (this->localSubscriptions.Handlers(topic, handlers))
   {
     // Get the first handler.
     ISubscriptionHandlerPtr firstSubscriberPtr;
-    if (!this->localSubscriptions.GetFirstHandler(topic, msgType,
+    if (!this->localSubscriptions.FirstHandler(topic, msgType,
           firstSubscriberPtr))
     {
       std::cerr << "I couldn't find a subscriber. This should never happen."
@@ -336,7 +336,7 @@ void NodeShared::RecvMsgUpdate()
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
         {
-          if (subscriptionHandlerPtr->GetTypeName() == msgType)
+          if (subscriptionHandlerPtr->TypeName() == msgType)
             subscriptionHandlerPtr->RunLocalCallback(*recvMsg);
         }
         else
@@ -478,7 +478,7 @@ void NodeShared::RecvSrvRequest()
 
   // Get the REP handler.
   IRepHandlerPtr repHandler;
-  if (this->repliers.GetFirstHandler(topic, reqType, repType, repHandler))
+  if (this->repliers.FirstHandler(topic, reqType, repType, repHandler))
   {
     bool result;
     // Run the service call and get the results.
@@ -595,7 +595,7 @@ void NodeShared::RecvSrvResponse()
   }
 
   IReqHandlerPtr reqHandlerPtr;
-  if (this->requests.GetHandler(topic, nodeUuid, reqUuid, reqHandlerPtr))
+  if (this->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr))
   {
     // Notify the result.
     reqHandlerPtr->NotifyResult(rep, result);
@@ -656,7 +656,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
   // Send all the pending REQs.
   IReqHandler_M reqs;
-  if (!this->requests.GetHandlers(_topic, reqs))
+  if (!this->requests.Handlers(_topic, reqs))
     return;
 
   for (auto &node : reqs)
@@ -668,8 +668,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         continue;
 
       // Check that the pending service call has types that match the responser.
-      if (req.second->GetReqTypeName() != _reqType ||
-          req.second->GetRepTypeName() != _repType)
+      if (req.second->ReqTypeName() != _reqType ||
+          req.second->RepTypeName() != _repType)
       {
         continue;
       }
@@ -784,13 +784,13 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
-      if (this->localSubscriptions.GetHandlers(topic, handlers))
+      if (this->localSubscriptions.Handlers(topic, handlers))
       {
         for (auto &node : handlers)
         {
           for (auto &handler : node.second)
           {
-            if (handler.second->GetTypeName() != _pub.MsgTypeName())
+            if (handler.second->TypeName() != _pub.MsgTypeName())
               continue;
 
             std::string nodeUuid = handler.second->NodeUuid();
@@ -844,7 +844,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nUuid);
 
     MessagePublisher connection;
-    if (!this->connections.GetPublisher(topic, procUuid, nUuid, connection))
+    if (!this->connections.Publisher(topic, procUuid, nUuid, connection))
       return;
 
     // Disconnect from a publisher's socket.
@@ -860,7 +860,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     this->remoteSubscribers.DelPublishersByProc(procUuid);
 
     MsgAddresses_M info;
-    if (!this->connections.GetPublishers(topic, info))
+    if (!this->connections.Publishers(topic, info))
       return;
 
     // Disconnect from all the connections of that publisher.
@@ -905,7 +905,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   // Check if there's a pending service request with this specific combination
   // of request and response types.
   IReqHandlerPtr handler;
-  if (this->requests.GetFirstHandler(topic, reqType, repType, handler))
+  if (this->requests.FirstHandler(topic, reqType, repType, handler))
   {
     // Request all pending service calls for this topic and req/rep types.
     this->SendPendingRemoteReqs(topic, reqType, repType);
