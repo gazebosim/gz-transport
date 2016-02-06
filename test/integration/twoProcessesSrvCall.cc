@@ -240,6 +240,49 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a service and the other uses Serviceist() for getting the list of
+/// available services.
+TEST(twoProcSrvCall, ServiceList)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  std::vector<std::string> services;
+  node.ServiceList(services);
+  ASSERT_EQ(services.size(), 1u);
+  EXPECT_EQ(services.at(0), topic);
+  services.clear();
+
+  auto start = std::chrono::steady_clock::now();
+  node.ServiceList(services);
+  auto end = std::chrono::steady_clock::now();
+  EXPECT_EQ(services.size(), 1u);
+  EXPECT_EQ(services.at(0), topic);
+
+  // The first ServiceList() call might block if the discovery is still
+  // initializing (it may happen if we run this test alone).
+  // However, the second call should never block.
+  auto elapsed = end - start;
+  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
+      (elapsed).count(), 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.

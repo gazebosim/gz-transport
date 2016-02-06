@@ -119,7 +119,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief This test spawns two subscribers on the same topic. One of the
 /// subscribers has a wrong callback (types in the callback does not match the
 /// advertised type). Check that only the good callback is executed.
-TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
+TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
@@ -143,6 +143,49 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a topic and the other uses TopicList() for getting the list of
+/// available topics.
+TEST(twoProcPubSub, TopicList)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  std::vector<std::string> topics;
+  node.TopicList(topics);
+  ASSERT_EQ(topics.size(), 1u);
+  EXPECT_EQ(topics.at(0), topic);
+  topics.clear();
+
+  auto start = std::chrono::steady_clock::now();
+  node.TopicList(topics);
+  auto end = std::chrono::steady_clock::now();
+  EXPECT_EQ(topics.size(), 1u);
+  EXPECT_EQ(topics.at(0), topic);
+
+  // The first TopicList() call might block if the discovery is still
+  // initializing (it may happen if we run this test alone).
+  // However, the second call should never block.
+  auto elapsed = end - start;
+  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
+      (elapsed).count(), 2);
 
   reset();
 

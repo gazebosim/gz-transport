@@ -1031,9 +1031,9 @@ TEST(NodeTest, TopicList)
   auto end = std::chrono::steady_clock::now();
   EXPECT_EQ(topics.size(), 2u);
 
-  // The previous TopicList() call might block if the discovery is still
-  // unitializing (it may happen if we run this test alone). However, the second
-  // call should never block.
+  // The first TopicList() call might block if the discovery is still
+  // initializing (it may happen if we run this test alone).
+  // However, the second call should never block.
   auto elapsed = end - start;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed).count(), 2);
@@ -1058,9 +1058,9 @@ TEST(NodeTest, ServiceList)
   auto end = std::chrono::steady_clock::now();
   EXPECT_EQ(services.size(), 1u);
 
-  // The previous TopicList() call might block if the discovery is still
-  // unitializing (it may happen if we run this test alone). However, the second
-  // call should never block.
+  // The first TopicList() call might block if the discovery is still
+  // initializing (it may happen if we run this test alone).
+  //  However, the second call should never block.
   auto elapsed = end - start;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed).count(), 2);
