@@ -19,6 +19,7 @@ macro (ign_build_tests)
     add_dependencies(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
       gtest gtest_main
+      protobuf_compilation
     )
 
     target_link_libraries(${BINARY_NAME}
