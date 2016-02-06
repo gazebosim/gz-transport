@@ -382,12 +382,6 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   std::vector<std::string> allTopics;
   _topics.clear();
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
-
   this->dataPtr->shared->discovery->TopicList(allTopics);
 
   for (auto &topic : allTopics)
@@ -414,12 +408,6 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 {
   std::vector<std::string> allServices;
   _services.clear();
-
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
 
   this->dataPtr->shared->discovery->ServiceList(allServices);
 

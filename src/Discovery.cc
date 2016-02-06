@@ -666,6 +666,15 @@ void Discovery::RunHeartbeatTask()
       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
 #endif
 
+    {
+      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+      if (!this->dataPtr->initialized)
+      {
+        this->dataPtr->initialized = true;
+      }
+    }
+    this->dataPtr->initializedCv.notify_all();
+
     // Is it time to exit?
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
@@ -749,11 +758,11 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
   Header header;
   char *pBody = _msg;
 
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-
   // Create the header from the raw bytes.
   header.Unpack(_msg);
   pBody += header.HeaderLength();
+
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
 
   // Discard the message if the wire protocol is different than mine.
   if (this->dataPtr->Version != header.Version())
@@ -1055,15 +1064,45 @@ void Discovery::PrintCurrentState() const
 //////////////////////////////////////////////////
 void Discovery::TopicList(std::vector<std::string> &_topics) const
 {
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->infoMsg.TopicList(_topics);
+  bool ready;
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+    ready = this->dataPtr->initialized;
+  }
+
+  if (!ready)
+  {
+    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
+    this->dataPtr->initializedCv.wait(
+        lk, [this]{return this->dataPtr->initialized;});
+  }
+
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->infoMsg.TopicList(_topics);
+  }
 }
 
 //////////////////////////////////////////////////
 void Discovery::ServiceList(std::vector<std::string> &_services) const
 {
-  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->infoSrv.TopicList(_services);
+  bool ready;
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+    ready = this->dataPtr->initialized;
+  }
+
+  if (!ready)
+  {
+    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
+    this->dataPtr->initializedCv.wait(
+        lk, [this]{return this->dataPtr->initialized;});
+  }
+
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->infoSrv.TopicList(_services);
+  }
 }
 
 //////////////////////////////////////////////////

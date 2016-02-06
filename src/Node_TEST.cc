@@ -508,7 +508,7 @@ TEST(NodeTest, ScopeProcess)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that two nodes in diffetent threads are able to communicate
+/// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
@@ -516,7 +516,7 @@ TEST(NodeTest, ScopeHost)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that two nodes in diffetent threads are able to communicate
+/// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
@@ -1008,6 +1008,62 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   EXPECT_TRUE(node.Request(topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_TRUE(responseExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates two nodes and advertises some topics. The test
+/// verifies that TopicList() returns the list of all the topics advertised.
+TEST(NodeTest, TopicList)
+{
+  std::vector<std::string> topics;
+  transport::Node node1;
+  transport::Node node2;
+
+  node1.Advertise<transport::msgs::Int>("topic1");
+  node2.Advertise<transport::msgs::Int>("topic2");
+
+  node1.TopicList(topics);
+  EXPECT_EQ(topics.size(), 2u);
+  topics.clear();
+
+  auto start = std::chrono::steady_clock::now();
+  node1.TopicList(topics);
+  auto end = std::chrono::steady_clock::now();
+  EXPECT_EQ(topics.size(), 2u);
+
+  // The previous TopicList() call might block if the discovery is still
+  // unitializing (it may happen if we run this test alone). However, the second
+  // call should never block.
+  auto elapsed = end - start;
+  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
+      (elapsed).count(), 2);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates two nodes and advertises some services. The test
+/// verifies that ServiceList() returns the list of all the services advertised.
+TEST(NodeTest, ServiceList)
+{
+  std::vector<std::string> services;
+  transport::Node node;
+
+  node.Advertise(topic, srvEcho);
+
+  node.ServiceList(services);
+  EXPECT_EQ(services.size(), 1u);
+  services.clear();
+
+  auto start = std::chrono::steady_clock::now();
+  node.ServiceList(services);
+  auto end = std::chrono::steady_clock::now();
+  EXPECT_EQ(services.size(), 1u);
+
+  // The previous TopicList() call might block if the discovery is still
+  // unitializing (it may happen if we run this test alone). However, the second
+  // call should never block.
+  auto elapsed = end - start;
+  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
+      (elapsed).count(), 2);
 }
 
 
