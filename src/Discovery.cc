@@ -666,14 +666,17 @@ void Discovery::RunHeartbeatTask()
       std::chrono::milliseconds(this->dataPtr->heartbeatInterval));
 #endif
 
+    this->dataPtr->mutex.lock();
+    if (!this->dataPtr->initialized)
     {
-      std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-      if (!this->dataPtr->initialized)
-      {
-        this->dataPtr->initialized = true;
-      }
+      this->dataPtr->initialized = true;
+      this->dataPtr->mutex.unlock();
+
+      // Notify anyone waiting for the initialization phase to finish.
+      this->dataPtr->initializedCv.notify_all();
     }
-    this->dataPtr->initializedCv.notify_all();
+    else
+      this->dataPtr->mutex.unlock();
 
     // Is it time to exit?
     {

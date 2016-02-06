@@ -170,7 +170,7 @@ namespace ignition
       public: std::recursive_mutex exitMutex;
 
       /// \brief Once the discovery starts, it can take up to
-      /// HeartbeatInterval seconds to discover the existing nodes on the
+      /// HeartbeatInterval milliseconds to discover the existing nodes on the
       /// network. This variable is 'false' during the first HeartbeatInterval
       /// period and is set to 'true' after that.
       public: bool initialized;
