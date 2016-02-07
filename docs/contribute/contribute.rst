@@ -235,7 +235,7 @@ Maximum level of debugging support
    This only can be obtained compiling Ignition Transport from source and setting the ``CMAKE_BUILD_TYPE`` to ``DEBUG``. This will set up no optimizations and debugging symbols. It can be required by developers in situations specially difficult to reproduce.
 
 Medium level of debugging support
-   This can be obtained installing the ``libignition-transport0-dbg`` package or compiling Ignition Transport from source using the ``RELWITHDEBINFO`` ``CMAKE_BUILD_TYPE`` mode (which is the default if no mode is provided). This will set up ``-O2`` optimization level but provide debugging symbols. This should be the default when firing up gdb to explore errors and submit traces.
+   This can be obtained installing the ``libignition-transport1-dbg`` package or compiling Ignition Transport from source using the ``RELWITHDEBINFO`` ``CMAKE_BUILD_TYPE`` mode (which is the default if no mode is provided). This will set up ``-O2`` optimization level but provide debugging symbols. This should be the default when firing up gdb to explore errors and submit traces.
 
 Minimum level of debugging support
    This one is present in package versions (no ``-dbg`` package present) or compiling Ignition Transport from source using the ``RELEASE`` ``CMAKE_BUILD_TYPE`` option. This will set up the maximum level of optimizations and does not provide any debugging symbol information. This traces are particularly difficult to follow.

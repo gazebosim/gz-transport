@@ -25,7 +25,7 @@ Install Ignition Transport:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install libignition-transport0-dev
+    sudo apt-get install libignition-transport1-dev
 
 Mac OS X
 ========
@@ -164,7 +164,7 @@ from source:
 
 .. code-block:: bash
 
-        sudo apt-get remove libignition-transport0-dev
+        sudo apt-get remove libignition-transport1-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 
