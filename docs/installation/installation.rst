@@ -50,7 +50,7 @@ Run the following commands:
 .. code-block:: bash
 
     brew tap osrf/simulation
-    brew install ignition-transport
+    brew install ignition-transport1
 
 Windows
 =======
@@ -164,7 +164,7 @@ from source:
 
 .. code-block:: bash
 
-        sudo apt-get remove libignition-transport1-dev
+        sudo apt-get remove libignition-transport-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 
