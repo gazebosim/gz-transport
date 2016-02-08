@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #include <chrono>
 #include <cstdlib>
 #include <string>
@@ -27,37 +26,48 @@ using namespace ignition;
 
 std::string partition;
 std::string topic = "/foo";
+int data = 5;
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCall, ThousandCalls)
+/// \brief Three different nodes running in two different processes. In the
+/// subscriber processs there are two nodes. Both should receive the message.
+/// After some time one of them unsubscribe. After that check that only one
+/// node receives the message.
+TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
+      PROJECT_BINARY_PATH, "test/integration/INTEGRATION_twoProcsSrvRep_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
+  unsigned int timeout = 500;
   transport::msgs::Int req;
-  transport::msgs::Int response;
+  transport::msgs::Int rep;
   bool result;
-  unsigned int timeout = 1000;
+
+  req.set_data(data);
+
   transport::Node node;
 
+  // Make sure that the address of the service call provider is known.
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_EQ(req.data(), rep.data());
+  EXPECT_TRUE(result);
 
-  for (int i = 0; i < 15000; i++)
-  {
-    req.set_data(i);
-    ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
+  auto t1 = std::chrono::system_clock::now();
+  EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
+  auto t2 = std::chrono::system_clock::now();
 
-    // Check the service response.
-    ASSERT_TRUE(result);
-    EXPECT_EQ(i, response.data());
-  }
+  double elapsed =
+    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
-  // Need to kill the responser node running on an external process.
-  testing::killFork(pi);
+  // Check if the elapsed time was close to the timeout.
+  EXPECT_NEAR(elapsed, timeout, 20.0);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -68,6 +78,9 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
+
+  // Enable verbose mode.
+  setenv("IGN_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

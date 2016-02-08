@@ -63,8 +63,7 @@ void cbVector(const transport::msgs::Vector3d &/*_msg*/)
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 {
   std::string subscriberPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
+      PROJECT_BINARY_PATH, "test/integration/INTEGRATION_twoProcsSub_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
@@ -93,8 +92,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
   std::string publisherPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+      PROJECT_BINARY_PATH, "test/integration/INTEGRATION_twoProcsPub_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -122,8 +120,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+      PROJECT_BINARY_PATH, "test/integration/INTEGRATION_twoProcsPub_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());

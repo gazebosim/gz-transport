@@ -2,10 +2,10 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   scopedTopic.cc
-  twoProcessesPubSub.cc
-  twoProcessesSrvCall.cc
-  twoProcessesSrvCallStress.cc
-  twoProcessesSrvCallSync1.cc
+  twoProcsPubSub.cc
+  twoProcsSrv.cc
+  twoProcsSrvStress.cc
+  twoProcsSrvSync1.cc
 )
 
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)
@@ -17,11 +17,11 @@ ign_build_tests(${tests})
 set(IGN_SKIP_IN_TESTSUITE True)
 
 set(auxiliary_files
-  scopedTopicSubscriber_aux.cc
-  twoProcessesPublisher_aux.cc
-  twoProcessesPubSubSubscriber_aux.cc
-  twoProcessesSrvCallReplier_aux.cc
-  twoProcessesSrvCallReplierIncreasing_aux.cc
+  scopedTopicSub_aux.cc
+  twoProcsPub_aux.cc
+  twoProcsSub_aux.cc
+  twoProcsSrvRep_aux.cc
+  twoProcsSrvRepInc_aux.cc
 )
 
 ign_build_tests(${auxiliary_files})
