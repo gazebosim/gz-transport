@@ -656,7 +656,7 @@ namespace ignition
       public: bool UnadvertiseSrv(const std::string &_topic);
 
       /// \brief Get the list of topics currently advertised in the network.
-      /// Note that this function can block during some time if the
+      /// Note that this function can block for some time if the
       /// discovery is in its initialization phase.
       /// The value of the "heartbeatInterval" constant declared in
       /// DiscoveryPrivate class sets the maximum blocking time period.
@@ -664,7 +664,7 @@ namespace ignition
       public: void TopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Get the list of topics currently advertised in the network.
-      /// Note that this function can block during some time if the
+      /// Note that this function can block for some time if the
       /// discovery is in its initialization phase.
       /// The value of the "heartbeatInterval" constant declared in
       /// DiscoveryPrivate class sets the maximum blocking time period.
