@@ -658,16 +658,16 @@ namespace ignition
       /// \brief Get the list of topics currently advertised in the network.
       /// Note that this function can block during some time if the
       /// discovery is in its initialization phase.
-      /// The value of the "heartbeatInterval" constant declared in
-      /// DiscoveryPrivate class sets the maximum blocking time period.
+      /// The value of the "heartbeatInterval" constant, with a default
+      /// value of 1000 ms, sets the maximum blocking time period.
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics) const;
 
       /// \brief Get the list of topics currently advertised in the network.
       /// Note that this function can block during some time if the
       /// discovery is in its initialization phase.
-      /// The value of the "heartbeatInterval" constant declared in
-      /// DiscoveryPrivate class sets the maximum blocking time period.
+      /// The value of the "heartbeatInterval" constant, with a default
+      /// value of 1000ms, sets the maximum blocking time period.
       /// \param[out] _topics List of advertised topics.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
