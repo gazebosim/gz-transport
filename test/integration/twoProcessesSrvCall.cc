@@ -259,23 +259,30 @@ TEST(twoProcSrvCall, ServiceList)
 
   transport::Node node;
   std::vector<std::string> services;
+  auto start1 = std::chrono::steady_clock::now();
   node.ServiceList(services);
+  auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(services.size(), 1u);
   EXPECT_EQ(services.at(0), topic);
   services.clear();
 
-  auto start = std::chrono::steady_clock::now();
+  // Time elapsed to get the first service list
+  auto elapsed1 = end1 - start1;
+
+  auto start2 = std::chrono::steady_clock::now();
   node.ServiceList(services);
-  auto end = std::chrono::steady_clock::now();
+  auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(services.size(), 1u);
   EXPECT_EQ(services.at(0), topic);
 
   // The first ServiceList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
   // However, the second call should never block.
-  auto elapsed = end - start;
+  auto elapsed2 = end2 - start2;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
-      (elapsed).count(), 2);
+      (elapsed2).count(), 2);
+
+  EXPECT_LE(elapsed2, elapsed1);
 
   reset();
 
