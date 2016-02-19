@@ -59,7 +59,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _options Node options.
-      public: Node(const NodeOptions &_options = NodeOptions());
+      public: explicit Node(const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor.
       public: virtual ~Node();
