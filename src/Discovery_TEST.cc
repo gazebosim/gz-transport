@@ -184,7 +184,7 @@ void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
 class MyClass
 {
   /// \brief Class constructor.
-  public: explicit MyClass(const std::string &_pUuid)
+  public: MyClass(const std::string &_pUuid)
   {
     this->discov.reset(new transport::Discovery(_pUuid));
   }
