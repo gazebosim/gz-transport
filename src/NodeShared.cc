@@ -285,32 +285,31 @@ void NodeShared::RecvMsgUpdate()
   std::string data;
   std::string msgType;
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  try
   {
-    try
-    {
-      if (!this->subscriber->recv(&msg, 0))
-        return;
-      topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-      // ToDo(caguero): Use this as extra metadata for the subscriber.
-      if (!this->subscriber->recv(&msg, 0))
-        return;
-      // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-      if (!this->subscriber->recv(&msg, 0))
-        return;
-      data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-      if (!this->subscriber->recv(&msg, 0))
-        return;
-      msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-    }
-    catch(const zmq::error_t &_error)
-    {
-      std::cout << "Error: " << _error.what() << std::endl;
+    if (!this->subscriber->recv(&msg, 0))
       return;
-    }
+    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    // ToDo(caguero): Use this as extra metadata for the subscriber.
+    if (!this->subscriber->recv(&msg, 0))
+      return;
+    // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->subscriber->recv(&msg, 0))
+      return;
+    data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->subscriber->recv(&msg, 0))
+      return;
+    msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cout << "Error: " << _error.what() << std::endl;
+    return;
   }
 
   this->mutex.lock();
@@ -425,8 +424,6 @@ void NodeShared::RecvControlUpdate()
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvRequest()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
   if (verbose)
     std::cout << "Message received requesting a service call" << std::endl;
 
@@ -444,6 +441,8 @@ void NodeShared::RecvSrvRequest()
 
   try
   {
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
     if (!this->replier->recv(&msg, 0))
       return;
 
@@ -486,12 +485,15 @@ void NodeShared::RecvSrvRequest()
     return;
   }
 
+  this->mutex.lock();
+
   // Get the REP handler.
   IRepHandlerPtr repHandler;
   if (this->repliers.FirstHandler(topic, reqType, repType, repHandler))
   {
     bool result;
     // Run the service call and get the results.
+    this->mutex.unlock();
     repHandler->RunCallback(req, rep, result);
 
     if (result)
@@ -499,12 +501,15 @@ void NodeShared::RecvSrvRequest()
     else
       resultStr = "0";
 
+    this->mutex.lock();
+
     // I am still not connected to this address.
     if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
           sender) == this->srvConnections.end())
     {
       this->replier->connect(sender.c_str());
       this->srvConnections.push_back(sender);
+      this->mutex.unlock();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       if (this->verbose)
@@ -513,10 +518,12 @@ void NodeShared::RecvSrvRequest()
                   << "] for sending a response" << std::endl;
       }
     }
+    this->mutex.unlock();
 
     // Send the reply.
     try
     {
+      std::lock_guard<std::recursive_mutex> lock(this->mutex);
       zmq::message_t response;
 
       response.rebuild(dstId.size());
@@ -558,8 +565,6 @@ void NodeShared::RecvSrvRequest()
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvResponse()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
   if (verbose)
     std::cout << "Message received containing a service call REP" << std::endl;
 
@@ -573,6 +578,7 @@ void NodeShared::RecvSrvResponse()
 
   try
   {
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
     if (!this->responseReceiver->recv(&msg, 0))
       return;
 
@@ -604,11 +610,15 @@ void NodeShared::RecvSrvResponse()
     return;
   }
 
+  this->mutex.lock();
+
   IReqHandlerPtr reqHandlerPtr;
   if (this->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr))
   {
     // Notify the result.
+    this->mutex.unlock();
     reqHandlerPtr->NotifyResult(rep, result);
+    this->mutex.lock();
 
     // Remove the handler.
     if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))
@@ -622,6 +632,7 @@ void NodeShared::RecvSrvResponse()
     std::cerr << "Received a service call response but I don't have a handler"
               << " for it" << std::endl;
   }
+  this->mutex.unlock();
 }
 
 //////////////////////////////////////////////////

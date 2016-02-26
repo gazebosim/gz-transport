@@ -151,7 +151,11 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
+  std::lock_guard<std::recursive_mutex> discLk(
+    this->Shared()->discovery->Mutex(), std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(
+    this->dataPtr->shared->mutex, std::adopt_lock);
 
   // Topic not advertised before.
   if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
