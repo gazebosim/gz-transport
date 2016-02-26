@@ -151,38 +151,40 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
-
-  // Topic not advertised before.
-  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
-      this->dataPtr->topicsAdvertised.end())
   {
-    return false;
-  }
+    std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
+    std::lock_guard<std::recursive_mutex> discLk(
+      this->Shared()->discovery->Mutex(), std::adopt_lock);
+    std::lock_guard<std::recursive_mutex> lk(
+      this->dataPtr->shared->mutex, std::adopt_lock);
 
-  // Check that the msg type matches the type previously advertised
-  // for topic '_topic'.
-  MessagePublisher pub;
-  auto &info = this->dataPtr->shared->discovery->DiscoveryMsgInfo();
-  std::string procUuid = this->dataPtr->shared->pUuid;
-  std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.Publisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
-  {
-    std::cerr << "Node::Publish() I cannot find the msgType registered for "
-              << "topic [" << _topic << "]" << std::endl;
-    return false;
-  }
+    // Topic not advertised before.
+    if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
+        this->dataPtr->topicsAdvertised.end())
+    {
+      return false;
+    }
 
-  if (pub.MsgTypeName() != _msg.GetTypeName())
-  {
-    std::cerr << "Node::Publish() Type mismatch." << std::endl
-              << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
-              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
-    return false;
+    // Check that the msg type matches the type previously advertised
+    // for topic '_topic'.
+    MessagePublisher pub;
+    auto &info = this->dataPtr->shared->discovery->DiscoveryMsgInfo();
+    std::string procUuid = this->dataPtr->shared->pUuid;
+    std::string nodeUuid = this->dataPtr->nUuid;
+    if (!info.Publisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
+    {
+      std::cerr << "Node::Publish() I cannot find the msgType registered for "
+                << "topic [" << _topic << "]" << std::endl;
+      return false;
+    }
+
+    if (pub.MsgTypeName() != _msg.GetTypeName())
+    {
+      std::cerr << "Node::Publish() Type mismatch." << std::endl
+                << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
+                << "\t* Type published: " << _msg.GetTypeName() << std::endl;
+      return false;
+    }
   }
 
   // Local subscribers.
@@ -212,22 +214,30 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     }
   }
 
-  // Remote subscribers.
-  if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
   {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
-    {
-      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
-      return false;
-    }
+    std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
+    std::lock_guard<std::recursive_mutex> discLk(
+      this->Shared()->discovery->Mutex(), std::adopt_lock);
+    std::lock_guard<std::recursive_mutex> lk(
+      this->dataPtr->shared->mutex, std::adopt_lock);
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
-      _msg.GetTypeName());
+    // Remote subscribers.
+    if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
+    {
+      std::string data;
+      if (!_msg.SerializeToString(&data))
+      {
+        std::cerr << "Node::Publish(): Error serializing data" << std::endl;
+        return false;
+      }
+
+      this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
+        _msg.GetTypeName());
+    }
+    // Debug output.
+    // else
+    //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
   }
-  // Debug output.
-  // else
-  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
 
   return true;
 }
