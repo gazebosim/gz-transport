@@ -279,38 +279,41 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 //////////////////////////////////////////////////
 void NodeShared::RecvMsgUpdate()
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
   zmq::message_t msg(0);
   std::string topic;
   // std::string sender;
   std::string data;
   std::string msgType;
 
-  try
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
   {
-    if (!this->subscriber->recv(&msg, 0))
-      return;
-    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+    try
+    {
+      if (!this->subscriber->recv(&msg, 0))
+        return;
+      topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    // ToDo(caguero): Use this as extra metadata for the subscriber.
-    if (!this->subscriber->recv(&msg, 0))
-      return;
-    // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+      // ToDo(caguero): Use this as extra metadata for the subscriber.
+      if (!this->subscriber->recv(&msg, 0))
+        return;
+      // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->subscriber->recv(&msg, 0))
-      return;
-    data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+      if (!this->subscriber->recv(&msg, 0))
+        return;
+      data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->subscriber->recv(&msg, 0))
+      if (!this->subscriber->recv(&msg, 0))
+        return;
+      msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+    }
+    catch(const zmq::error_t &_error)
+    {
+      std::cout << "Error: " << _error.what() << std::endl;
       return;
-    msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+    }
   }
-  catch(const zmq::error_t &_error)
-  {
-    std::cout << "Error: " << _error.what() << std::endl;
-    return;
-  }
+
+  this->mutex.lock();
 
   // Execute the callbacks registered.
   std::map<std::string, ISubscriptionHandler_M> handlers;
@@ -323,6 +326,7 @@ void NodeShared::RecvMsgUpdate()
     {
       std::cerr << "I couldn't find a subscriber. This should never happen."
                 << std::endl;
+      this->mutex.unlock();
       return;
     }
 
@@ -337,7 +341,11 @@ void NodeShared::RecvMsgUpdate()
         if (subscriptionHandlerPtr)
         {
           if (subscriptionHandlerPtr->TypeName() == msgType)
+          {
+            this->mutex.unlock();
             subscriptionHandlerPtr->RunLocalCallback(*recvMsg);
+            this->mutex.lock();
+          }
         }
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
@@ -346,6 +354,8 @@ void NodeShared::RecvMsgUpdate()
   }
   else
     std::cerr << "I am not subscribed to topic [" << topic << "]" << std::endl;
+
+  this->mutex.unlock();
 }
 
 //////////////////////////////////////////////////
