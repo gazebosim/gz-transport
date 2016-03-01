@@ -250,6 +250,7 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 {
   try
   {
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
     zmq::message_t msg;
     msg.rebuild(_topic.size());
     memcpy(msg.data(), _topic.data(), _topic.size());
