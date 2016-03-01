@@ -808,7 +808,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
         added = this->dataPtr->infoMsg.AddPublisher(advMsg.Publisher());
       }
 
-      if (added and connectCb)
+      if (added && connectCb)
       {
         // Execute the client's callback.
         connectCb(advMsg.Publisher());
@@ -837,7 +837,7 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
         added = this->dataPtr->infoSrv.AddPublisher(advSrv.Publisher());
       }
 
-      if (added and connectSrvCb)
+      if (added && connectSrvCb)
       {
         // Execute the client's callback.
         connectSrvCb(advSrv.Publisher());
