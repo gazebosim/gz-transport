@@ -379,6 +379,91 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
+        std::function<void (const T2 &_rep, const bool _result)> &_cb)
+      {
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+        {
+          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          return false;
+        }
+
+        bool localResponserFound;
+        IRepHandlerPtr repHandler;
+        {
+          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          localResponserFound = this->Shared()->repliers.FirstHandler(
+            fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
+              repHandler);
+        }
+
+        // If the responser is within my process.
+        if (localResponserFound)
+        {
+          // There is a responser in my process, let's use it.
+          T2 rep;
+          bool result;
+          repHandler->RunLocalCallback(_req, rep, result);
+
+          _cb(rep, result);
+          return true;
+        }
+
+        // Create a new request handler.
+        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
+          new ReqHandler<T1, T2>(this->NodeUuid()));
+
+        // Insert the request's parameters.
+        reqHandlerPtr->SetMessage(_req);
+
+        // Insert the callback into the handler.
+        reqHandlerPtr->SetCallback(_cb);
+
+        {
+          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+          // Store the request handler.
+          this->Shared()->requests.AddHandler(
+            fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
+
+          // If the responser's address is known, make the request.
+          SrvAddresses_M addresses;
+          if (this->Shared()->discovery->SrvPublishers(
+            fullyQualifiedTopic, addresses))
+          {
+            this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+              T1().GetTypeName(), T2().GetTypeName());
+          }
+          else
+          {
+            // Discover the service responser.
+            if (!this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic))
+            {
+              std::cerr << "Node::Request(): Error discovering a service. "
+                        << "Did you forget to start the discovery service?"
+                        << std::endl;
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      /// \brief Request a new service using a non-blocking call.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _cb Pointer to the callback function executed when the
+      /// response arrives. The callback has the following parameters:
+      ///   \param[in] _rep Protobuf message containing the response.
+      ///   \param[in] _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename T1, typename T2> bool Request(
+        const std::string &_topic,
+        const T1 &_req,
         void(*_cb)(const T2 &_rep, const bool _result))
       {
         std::string fullyQualifiedTopic;
