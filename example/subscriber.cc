@@ -21,25 +21,10 @@
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
-#include <mutex>
-
-std::mutex mutex;
-
-//////////////////////////////////////////////////
-/// \brief Service response callback.
-void responseCb(const example::msgs::StringMsg &_rep, const bool _result)
-{
-  if (_result)
-    std::cout << "Response: [" << _rep.data() << "]" << std::endl;
-  else
-    std::cerr << "Service call failed" << std::endl;
-}
-
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const example::msgs::StringMsg &_msg)
 {
-  std::lock_guard<std::mutex> lock(mutex);
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
@@ -55,13 +40,6 @@ int main(int argc, char **argv)
     std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return -1;
   }
-
-  // Prepare the input parameters.
-  example::msgs::StringMsg req;
-  req.set_data("HELLO");
-
-  // Request the "/echo" service.
-  node.Request("/echo", req, responseCb);
 
   // Zzzzzz.
   std::cout << "Press <ENTER> to exit" << std::endl;
