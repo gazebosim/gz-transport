@@ -379,7 +379,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Request(
         const std::string &_topic,
         const T1 &_req,
-        std::function<void (const T2 &_rep, const bool _result)> &_cb)
+        std::function<void(const T2 &_rep, const bool _result)> &_cb)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
