@@ -389,8 +389,8 @@ void NodeShared::RecvControlUpdate()
     if (this->verbose)
     {
       std::cout << "Registering a new remote connection" << std::endl;
-      std::cout << "\tProc UUID: [" << procUuid << "]\n";
-      std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
+      std::cout << "\tProc UUID: [" << procUuid << "]" << std::endl;
+      std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
     }
 
     // Register that we have another remote subscriber.
@@ -404,7 +404,7 @@ void NodeShared::RecvControlUpdate()
     {
       std::cout << "Registering the end of a remote connection" << std::endl;
       std::cout << "\tProc UUID: " << procUuid << std::endl;
-      std::cout << "\tNode UUID: [" << nodeUuid << "]\n";
+      std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
     }
 
     // Delete a remote subscriber.
@@ -504,7 +504,7 @@ void NodeShared::RecvSrvRequest()
       {
         this->replier->connect(sender.c_str());
         this->srvConnections.push_back(sender);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
         if (this->verbose)
         {
@@ -673,6 +673,22 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   {
     std::cout << "Found a service call responser at ["
               << responserAddr << "]" << std::endl;
+  }
+
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  // I am still not connected to this address.
+  if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+        responserAddr) == this->srvConnections.end())
+  {
+    this->requester->connect(responserAddr.c_str());
+    this->srvConnections.push_back(responserAddr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    if (this->verbose)
+    {
+      std::cout << "\t* Connected to [" << responserAddr
+                << "] for service requests" << std::endl;
+    }
   }
 
   // Send all the pending REQs.

@@ -389,10 +389,17 @@ namespace ignition
           return false;
         }
 
-        // If the responser is within my process.
+        bool localResponserFound;
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
-          T1().GetTypeName(), T2().GetTypeName(), repHandler))
+        {
+          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          localResponserFound = this->Shared()->repliers.FirstHandler(
+            fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
+              repHandler);
+        }
+
+        // If the responser is within my process.
+        if (localResponserFound)
         {
           // There is a responser in my process, let's use it.
           T2 rep;
@@ -469,10 +476,17 @@ namespace ignition
           return false;
         }
 
-        // If the responser is within my process.
+        bool localResponserFound;
         IRepHandlerPtr repHandler;
-        if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
-          T1().GetTypeName(), T2().GetTypeName(), repHandler))
+        {
+          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          localResponserFound = this->Shared()->repliers.FirstHandler(
+            fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
+              repHandler);
+        }
+
+        // If the responser is within my process.
+        if (localResponserFound)
         {
           // There is a responser in my process, let's use it.
           T2 rep;
