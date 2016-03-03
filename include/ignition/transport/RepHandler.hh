@@ -197,8 +197,7 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function
-        <void(const Req &, Rep &, bool &)> cb;
+      private: std::function<void(const Req &, Rep &, bool &)> cb;
     };
   }
 }
