@@ -707,11 +707,11 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   bool executed = node.Request(topic, req, timeout, rep, result);
   auto t2 = std::chrono::system_clock::now();
 
-  size_t elapsed =
-    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+  int elapsed = static_cast<int>(
+    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count());
 
   // Check if the elapsed time was close to the timeout.
-  size_t diff = abs(elapsed - timeout);
+  int diff = abs(elapsed - timeout);
   EXPECT_LT(diff, 10);
 
   // Check that the service call response was not executed.
