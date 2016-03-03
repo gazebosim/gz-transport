@@ -18,6 +18,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
@@ -392,6 +393,36 @@ TEST(NodeTest, PubSubSameThread)
 }
 
 //////////////////////////////////////////////////
+/// \brief Subscribe to a topic using a lambda function.
+TEST(NodeTest, PubSubSameThreadLamda)
+{
+  transport::msgs::Int msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+
+  bool executed = false;
+  std::function<void(const transport::msgs::Int&)> subCb =
+    [&executed](const transport::msgs::Int &_msg)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      executed = true;
+    };
+
+  EXPECT_TRUE(node.Subscribe(topic, subCb));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(node.Publish(topic, msg));
+
+  EXPECT_TRUE(executed);
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
@@ -604,6 +635,41 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(node.UnadvertiseSrv(topic));
 
   ASSERT_TRUE(node.AdvertisedServices().empty());
+}
+
+//////////////////////////////////////////////////
+/// \brief Make an asynchronous service call using lambdas.
+TEST(NodeTest, ServiceCallAsyncLambda)
+{
+  std::function<void(const transport::msgs::Int &, transport::msgs::Int &,
+    bool &)> advCb = [](const transport::msgs::Int &_req,
+      transport::msgs::Int &_rep, bool &_result)
+      {
+        EXPECT_EQ(_req.data(), data);
+        _rep.set_data(_req.data());
+        _result = true;
+      };
+
+  transport::Node node;
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int, transport::msgs::Int>(topic,
+    advCb)));
+
+  bool executed = false;
+  std::function<void(const transport::msgs::Int &, const bool)> reqCb =
+    [&executed](const transport::msgs::Int &_rep, const bool &_result)
+      {
+        EXPECT_EQ(_rep.data(), data);
+        EXPECT_TRUE(_result);
+        executed = true;
+      };
+
+  transport::msgs::Int req;
+  req.set_data(data);
+
+  EXPECT_TRUE((node.Request<transport::msgs::Int, transport::msgs::Int>(
+    topic, req, reqCb)));
+
+  EXPECT_TRUE(executed);
 }
 
 //////////////////////////////////////////////////
