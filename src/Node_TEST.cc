@@ -711,7 +711,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_LT(abs(elapsed - timeout), 10);
+  size_t diff = abs(elapsed - timeout);
+  EXPECT_LT(diff, 10);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
