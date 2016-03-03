@@ -158,7 +158,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   localAddr.sin_family = AF_INET;
   localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
   localAddr.sin_port =
-      static_cast<u_short>(htons(this->dataPtr->DiscoveryPort));
+      htons(static_cast<u_short>(this->dataPtr->DiscoveryPort));
 
   if (bind(this->dataPtr->sockets.at(0),
     reinterpret_cast<sockaddr *>(&localAddr), sizeof(sockaddr_in)) < 0)
@@ -173,7 +173,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   this->dataPtr->mcastAddr.sin_addr.s_addr =
     inet_addr(this->dataPtr->MulticastGroup.c_str());
   this->dataPtr->mcastAddr.sin_port =
-      static_cast<u_short>(htons(this->dataPtr->DiscoveryPort));
+      htons(static_cast<u_short>(this->dataPtr->DiscoveryPort));
 
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
@@ -1082,7 +1082,7 @@ std::recursive_mutex& Discovery::Mutex() const
 bool Discovery::RegisterNetIface(const std::string &_ip)
 {
   // Make a new socket for sending discovery information.
-  auto sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  int sock = static_cast<int>(socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP));
   if (sock < 0)
   {
     std::cerr << "Socket creation failed." << std::endl;
