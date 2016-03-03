@@ -61,7 +61,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
   auto t2 = std::chrono::system_clock::now();
 
-  double elapsed =
+  auto elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.

@@ -334,7 +334,8 @@ namespace ignition
                                                  int _flags = 0) const
       {
         // Create the header.
-        Header header(this->Version(), _pub.PUuid(), _type, _flags);
+        Header header(this->Version(), _pub.PUuid(), _type,
+            static_cast<uint16_t>(_flags));
         auto msgLength = 0;
         std::vector<char> buffer;
 
@@ -353,7 +354,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.MsgLength());
             advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
+            msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -365,7 +366,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
             subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
+            msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:

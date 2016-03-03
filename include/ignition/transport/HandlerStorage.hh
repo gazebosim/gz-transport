@@ -209,7 +209,7 @@ namespace ignition
                                  const std::string &_nUuid,
                                  const std::string &_reqUuid)
       {
-        unsigned int counter = 0;
+        size_t counter = 0;
         if (this->data.find(_topic) != this->data.end())
         {
           if (this->data[_topic].find(_nUuid) != this->data[_topic].end())
@@ -232,7 +232,7 @@ namespace ignition
       public: bool RemoveHandlersForNode(const std::string &_topic,
                                          const std::string &_nUuid)
       {
-        unsigned int counter = 0;
+        size_t counter = 0;
         if (this->data.find(_topic) != this->data.end())
         {
           counter = this->data[_topic].erase(_nUuid);

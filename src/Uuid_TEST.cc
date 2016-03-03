@@ -36,19 +36,19 @@ TEST(UuidTest, testToString)
   std::ostringstream output;
   output  << uuid1;
   for (auto i = 0; i < 8; ++i)
-    EXPECT_TRUE(isxdigit(output.str()[i]));
+    EXPECT_GT(isxdigit(output.str()[i]), 0);
   EXPECT_EQ(output.str()[8], '-');
   for (auto i = 9; i < 13; ++i)
-    EXPECT_TRUE(isxdigit(output.str()[i]));
+    EXPECT_GT(isxdigit(output.str()[i]), 0);
   EXPECT_EQ(output.str()[13], '-');
   for (auto i = 14; i < 18; ++i)
-    EXPECT_TRUE(isxdigit(output.str()[i]));
+    EXPECT_GT(isxdigit(output.str()[i]), 0);
   EXPECT_EQ(output.str()[18], '-');
   for (auto i = 19; i < 23; ++i)
-    EXPECT_TRUE(isxdigit(output.str()[i]));
+    EXPECT_GT(isxdigit(output.str()[i]), 0);
   EXPECT_EQ(output.str()[23], '-');
   for (auto i = 24; i < 36; ++i)
-    EXPECT_TRUE(isxdigit(output.str()[i]));
+    EXPECT_GT(isxdigit(output.str()[i]), 0);
 }
 
 //////////////////////////////////////////////////

@@ -86,9 +86,9 @@ void Header::SetFlags(const uint16_t _flags)
 //////////////////////////////////////////////////
 int Header::HeaderLength() const
 {
-  return sizeof(this->version) +
+  return static_cast<int>(sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(this->type) + sizeof(this->flags);
+         sizeof(this->type) + sizeof(this->flags));
 }
 
 //////////////////////////////////////////////////

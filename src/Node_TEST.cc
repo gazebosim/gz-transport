@@ -707,7 +707,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   bool executed = node.Request(topic, req, timeout, rep, result);
   auto t2 = std::chrono::system_clock::now();
 
-  double elapsed =
+  size_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
@@ -731,7 +731,8 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
 
   auto i = 0;
-  while (true)
+  bool exitLoop = false;
+  while (!exitLoop)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
@@ -740,7 +741,7 @@ void createInfinitePublisher()
     {
       std::lock_guard<std::mutex> lock(exitMutex);
       if (terminatePub)
-        break;
+        exitLoop = true;
     }
   }
 

@@ -39,7 +39,7 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(pUuid, header.PUuid());
   EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 0);
-  int headerLength = sizeof(header.Version()) +
+  size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
   EXPECT_EQ(header.HeaderLength(), headerLength);
@@ -87,7 +87,7 @@ TEST(PacketTest, HeaderIO)
   Header header(version, pUuid, AdvSrvType, 2);
 
   buffer.resize(header.HeaderLength());
-  int bytes = header.Pack(&buffer[0]);
+  size_t bytes = header.Pack(&buffer[0]);
   EXPECT_EQ(bytes, header.HeaderLength());
 
   // Unpack the Header.
@@ -176,7 +176,7 @@ TEST(PacketTest, SubscriptionIO)
   // Unpack a SubscriptionMsg.
   Header header;
   SubscriptionMsg otherSubMsg;
-  int headerBytes = header.Unpack(&buffer[0]);
+  size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.HeaderLength());
   otherSubMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
@@ -253,7 +253,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
   EXPECT_EQ(header.Type(), AdvSrvType);
   EXPECT_EQ(header.Flags(), 3);
-  int headerLength = sizeof(header.Version()) +
+  size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
   EXPECT_EQ(header.HeaderLength(), headerLength);
@@ -405,7 +405,7 @@ TEST(PacketTest, AdvertiseMsgIO)
   // Unpack an AdvertiseMsg.
   Header header;
   AdvertiseMessage<MessagePublisher> otherAdvMsg;
-  int headerBytes = header.Unpack(&buffer[0]);
+  size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.HeaderLength());
   otherAdvMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
@@ -492,7 +492,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
   EXPECT_EQ(header.Type(), AdvSrvType);
   EXPECT_EQ(header.Flags(), 3);
-  int headerLength = sizeof(header.Version()) +
+  size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
   EXPECT_EQ(header.HeaderLength(), headerLength);
@@ -591,7 +591,7 @@ TEST(PacketTest, AdvertiseSrvIO)
   // Unpack an AdvertiseSrv.
   Header header;
   AdvertiseMessage<ServicePublisher> otherAdvSrv;
-  int headerBytes = header.Unpack(&buffer[0]);
+  size_t headerBytes = header.Unpack(&buffer[0]);
   EXPECT_EQ(headerBytes, header.HeaderLength());
   otherAdvSrv.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
