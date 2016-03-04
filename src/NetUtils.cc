@@ -45,6 +45,12 @@
 # include <ifaddrs.h>
 #endif
 
+#ifdef _MSC_VER
+  // Disable Windows deprecation warnings
+  # pragma warning(push)
+  #pragma warning(disable: 4996)
+#endif
+
 using namespace ignition;
 
 //////////////////////////////////////////////////
@@ -479,3 +485,7 @@ std::string transport::username()
   return pd.pw_name;
 #endif
 }
+
+#ifdef _MSC_VER
+ #pragma warning(pop)
+#endif

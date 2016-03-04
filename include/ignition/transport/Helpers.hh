@@ -92,10 +92,5 @@
   #define ign_strdup strdup
 #endif
 
-// Ignore deprecation warnings on Windows
-#ifdef __WIN32
-  #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#endif
-
 // __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #endif
