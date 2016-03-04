@@ -93,7 +93,7 @@
 #endif
 
 // Ignore deprecation warnings on Windows
-#ifdef _MSC_VER
+#ifdef __WIN32
   #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #endif
 

@@ -705,7 +705,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   transport::Node node;
 
   auto t1 = std::chrono::system_clock::now();
-  bool executed = node.Request(topic, req, timeout, rep, result);
+  bool executed = node.Request(topic, req, static_cast<unsigned int>(timeout),
+      rep, result);
   auto t2 = std::chrono::system_clock::now();
 
   int64_t elapsed =
