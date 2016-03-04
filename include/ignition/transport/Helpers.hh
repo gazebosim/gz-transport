@@ -83,9 +83,9 @@
 
 // Use safer functions on Windows
 #ifdef _MSC_VER
-  #define ign_getenv std::_dupenv_s
-  #define ign_strcat std::strcat_s
-  #define ign_sprintf std::sprintf_s
+  #define ign_getenv _dupenv_s
+  #define ign_strcat strcat_s
+  #define ign_sprintf sprintf_s
 #else
   #define ign_getenv std::getenv
   #define ign_strcat std::strcat
