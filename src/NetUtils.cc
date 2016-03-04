@@ -38,6 +38,7 @@
 #include <string.h>
 #include <vector>
 #include "ignition/transport/config.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 
 #ifdef HAVE_IFADDRS

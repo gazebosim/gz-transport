@@ -53,12 +53,14 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 
   // Make sure that the address of the service call provider is known.
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
+  ASSERT_TRUE(node.Request(topic, req, static_cast<unsigned int>(timeout), rep,
+      result));
   EXPECT_EQ(req.data(), rep.data());
   EXPECT_TRUE(result);
 
   auto t1 = std::chrono::system_clock::now();
-  EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
+  EXPECT_FALSE(node.Request("unknown_service", req,
+      static_cast<unsigned int>(timeout), rep, result));
   auto t2 = std::chrono::system_clock::now();
 
   int64_t elapsed =
