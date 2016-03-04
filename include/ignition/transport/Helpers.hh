@@ -90,5 +90,10 @@
   #define ign_sprintf std::sprintf
 #endif
 
+// Ignore deprecation warnings on Windows
+#ifdef _MSC_VER
+  #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif
+
 // __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #endif

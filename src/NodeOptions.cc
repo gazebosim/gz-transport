@@ -15,10 +15,12 @@
  *
 */
 
+#include <stdlib.h>
+
 #include <cstdlib>
 #include <iostream>
-#include <stdlib.h>
 #include <string>
+
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeOptionsPrivate.hh"
 #include "ignition/transport/TopicUtils.hh"

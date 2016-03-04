@@ -18,13 +18,13 @@
 #ifdef _MSC_VER
 # pragma warning(push, 0)
 #endif
+#include <stdlib.h>
 #include <zmq.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <map>
 #include <mutex>
-#include <stdlib.h>
 #include <string>
 #include <thread>
 #include <vector>

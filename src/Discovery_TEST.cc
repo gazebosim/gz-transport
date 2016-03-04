@@ -15,9 +15,9 @@
  *
 */
 
+#include <stdlib.h>
 #include <chrono>
 #include <memory>
-#include <stdlib.h>
 #include <string>
 #include <thread>
 #include "gtest/gtest.h"

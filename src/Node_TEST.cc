@@ -697,7 +697,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   transport::msgs::Int req;
   transport::msgs::Int rep;
   bool result;
-  unsigned int timeout = 1000;
+  int64_t timeout = 1000;
 
   req.set_data(data);
 
@@ -707,11 +707,12 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   bool executed = node.Request(topic, req, timeout, rep, result);
   auto t2 = std::chrono::system_clock::now();
 
-  auto elapsed =
+  int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 10.0);
+  auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
+  EXPECT_LT(diff, 10);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
