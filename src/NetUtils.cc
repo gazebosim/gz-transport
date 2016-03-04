@@ -32,7 +32,10 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
+#include <string.h>
 #include <vector>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/NetUtils.hh"
