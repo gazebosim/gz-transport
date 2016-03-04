@@ -88,8 +88,12 @@ std::string transport::determineHost()
 {
   char *ip_env;
   // First, did the user set IGN_IP?
-  ip_env = ign_getenv("IGN_IP");
-
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ip_env, &sz, "IGN_IP");
+#else
+  ip_env = std::getenv("IGN_IP");
+#endif
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
@@ -260,7 +264,12 @@ std::vector<std::string> transport::determineInterfaces()
   char *ip_env;
   std::vector<std::string> result;
   // First, did the user set IGN_IP?
-  ip_env = ign_getenv("IGN_IP");
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ip_env, &sz, "IGN_IP");
+#else
+  ip_env = std::getenv("IGN_IP");
+#endif
 
   if (ip_env)
   {
