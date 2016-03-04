@@ -63,7 +63,7 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  char const *tmp = std::getenv("IGN_VERBOSE");
+  char const *tmp = ign_getenv("IGN_VERBOSE");
   if (tmp)
     this->verbose = std::string(tmp) == "1";
 

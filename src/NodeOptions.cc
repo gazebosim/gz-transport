@@ -30,7 +30,7 @@ NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
 {
   // Check if the environment variable IGN_PARTITION is present.
-  char *envPartition = std::getenv("IGN_PARTITION");
+  char *envPartition = ign_getenv("IGN_PARTITION");
 
   if (envPartition)
   {

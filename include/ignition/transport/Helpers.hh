@@ -81,5 +81,16 @@
 // BUILDING_STATIC_LIBS
 #endif
 
+// Use safer functions on Windows
+#ifdef _MSC_VER
+  #define ign_getenv std::_dupenv_s
+  #define ign_strcat std::strcat_s
+  #define ign_sprintf std::sprintf_s
+#else
+  #define ign_getenv std::getenv
+  #define ign_strcat std::strcat
+  #define ign_sprintf std::sprintf
+#endif
+
 // __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #endif

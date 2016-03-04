@@ -948,7 +948,7 @@ TEST(DiscoveryTest, TestActivity)
 TEST(DiscoveryTest, WrongIgnIp)
 {
   // Save the current value of IGN_IP environment variable.
-  char *ipEnv = std::getenv("IGN_IP");
+  char *ipEnv = ign_getenv("IGN_IP");
 
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);

@@ -85,7 +85,7 @@ std::string transport::determineHost()
 {
   char *ip_env;
   // First, did the user set IGN_IP?
-  ip_env = std::getenv("IGN_IP");
+  ip_env = ign_getenv("IGN_IP");
 
   if (ip_env)
   {
@@ -105,7 +105,7 @@ std::string transport::determineHost()
   else if (strlen(host) && strcmp("localhost", host))
   {
     std::string hostIP;
-    strcat(host, ".local");
+    ign_strcat(host, ".local");
     if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
     {
       return hostIP;
@@ -212,7 +212,7 @@ std::string transport::determineHost()
           reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
         // Make it a dotted quad
         char ipv4_str[3*4+3+1];
-        sprintf(ipv4_str, "%d.%d.%d.%d",
+        ign_sprintf(ipv4_str, "%d.%d.%d.%d",
           sockaddress->sin_addr.S_un.S_un_b.s_b1,
           sockaddress->sin_addr.S_un.S_un_b.s_b2,
           sockaddress->sin_addr.S_un.S_un_b.s_b3,
@@ -257,7 +257,7 @@ std::vector<std::string> transport::determineInterfaces()
   char *ip_env;
   std::vector<std::string> result;
   // First, did the user set IGN_IP?
-  ip_env = std::getenv("IGN_IP");
+  ip_env = ign_getenv("IGN_IP");
 
   if (ip_env)
   {
@@ -384,7 +384,7 @@ std::vector<std::string> transport::determineInterfaces()
           reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
         // Make it a dotted quad
         char ipv4_str[3*4+3+1];
-        sprintf(ipv4_str, "%d.%d.%d.%d",
+        ign_sprintf(ipv4_str, "%d.%d.%d.%d",
           sockaddress->sin_addr.S_un.S_un_b.s_b1,
           sockaddress->sin_addr.S_un.S_un_b.s_b2,
           sockaddress->sin_addr.S_un.S_un_b.s_b3,
