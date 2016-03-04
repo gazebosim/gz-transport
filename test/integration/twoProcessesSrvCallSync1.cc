@@ -61,12 +61,11 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
   auto t2 = std::chrono::system_clock::now();
 
-  int elapsed = static_cast<int>(
-    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count());
+  auto elapsed =
+    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  int diff = abs(elapsed - timeout);
-  EXPECT_LT(diff, 10);
+  EXPECT_NEAR(elapsed, timeout, 20.0);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
