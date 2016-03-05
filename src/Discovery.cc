@@ -43,7 +43,14 @@
   using raw_type = void;
 #endif
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <zmq.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <chrono>
 #include <iostream>
 #include <mutex>

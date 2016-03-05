@@ -34,11 +34,6 @@
 // Sometimes it's desirable to build Google Test by compiling a single file.
 // This file serves this purpose.
 
-// Added by caguero
-#ifdef _MSC_VER
-# pragma warning(disable: 4068)
-#endif 
-
 // This line ensures that gtest.h can be compiled on its own, even
 // when it's fused.
 #include "gtest/gtest.h"
