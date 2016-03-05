@@ -15,6 +15,9 @@
  *
 */
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <chrono>
 #include <memory>
 #include <string>
@@ -28,6 +31,9 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 #include "ignition/transport/test_config.h"
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 using namespace ignition;
 

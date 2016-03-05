@@ -15,9 +15,10 @@
  *
 */
 
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 #include <string>
+
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;

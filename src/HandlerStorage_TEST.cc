@@ -15,6 +15,9 @@
  *
 */
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <map>
 #include <string>
 #include "ignition/transport/HandlerStorage.hh"
@@ -22,8 +25,13 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
+
+
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif 
 
 using namespace ignition;
 

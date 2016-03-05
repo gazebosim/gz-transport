@@ -14,13 +14,22 @@
  * limitations under the License.
  *
 */
+
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
+
 #include "msgs/int.pb.h"
+ 
+#ifdef _MSC_VER 
+# pragma warning(pop)
+#endif 
 
 using namespace ignition;
 

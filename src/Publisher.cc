@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+
 #include "ignition/transport/Publisher.hh"
 
 using namespace ignition;

@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_INCLUDED__
 
 #include <string>
+ 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 

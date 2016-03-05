@@ -39,6 +39,7 @@
 
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
+
 #pragma GCC system_header
 
 // The user can define the following macros in the build script to

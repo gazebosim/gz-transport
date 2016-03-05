@@ -15,10 +15,9 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #ifdef _WIN32
+  # pragma warning(disable: 4503) 
+
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   #include <Ws2def.h>
@@ -49,9 +48,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
@@ -67,6 +64,8 @@ using namespace transport;
 #ifdef _WIN32
   static bool initialized = false;
 #endif
+
+
 
 //////////////////////////////////////////////////
 Discovery::Discovery(const std::string &_pUuid, bool _verbose)
@@ -1077,6 +1076,7 @@ std::recursive_mutex& Discovery::Mutex() const
 {
   return this->dataPtr->mutex;
 }
+
 
 //////////////////////////////////////////////////
 bool Discovery::RegisterNetIface(const std::string &_ip)

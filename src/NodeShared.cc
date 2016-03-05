@@ -15,9 +15,6 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #include <zmq.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -27,9 +24,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
@@ -38,6 +33,10 @@
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+
+#ifdef _MSC_VER
+# pragma warning(disable: 4503)
+#endif 
 
 using namespace ignition;
 using namespace transport;

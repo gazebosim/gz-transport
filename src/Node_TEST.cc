@@ -15,6 +15,10 @@
  *
 */
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
+
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
@@ -27,9 +31,13 @@
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
+
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
-
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif 
+ 
 using namespace ignition;
 
 std::string partition;

@@ -15,11 +15,19 @@
  *
 */
 
+#ifdef _MSC_VER
+# pragma warning(push, 0)
+#endif
 #include <map>
 #include <string>
 #include <utility>
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif 
+
 
 using namespace ignition;
 
