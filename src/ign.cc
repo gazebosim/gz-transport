@@ -15,6 +15,7 @@
  *
 */
 
+#include <string.h>
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -67,7 +68,7 @@ extern "C" IGNITION_VISIBLE char *ignitionVersion()
   int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;
   int patchVersion = IGNITION_TRANSPORT_PATCH_VERSION;
 
-  return strdup((std::to_string(majorVersion) + "." +
-                 std::to_string(minorVersion) + "." +
-                 std::to_string(patchVersion)).c_str());
+  return ign_strdup((std::to_string(majorVersion) + "." +
+                     std::to_string(minorVersion) + "." +
+                     std::to_string(patchVersion)).c_str());
 }

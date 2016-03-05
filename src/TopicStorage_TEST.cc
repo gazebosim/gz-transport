@@ -14,17 +14,13 @@
  * limitations under the License.
  *
 */
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
+
 #include <string>
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif 
 
 using namespace ignition;
 

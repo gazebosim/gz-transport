@@ -17,19 +17,13 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-# pragma warning(disable: 4100 4127 4244 4267 4512)
-#endif
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif 
 
 using namespace ignition;
 

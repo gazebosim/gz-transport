@@ -15,6 +15,7 @@
  *
 */
 
+#include <stdlib.h>
 #include <zmq.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -62,7 +63,13 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  char const *tmp = std::getenv("IGN_VERBOSE");
+  char *tmp;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&tmp, &sz, "IGN_VERBOSE");
+#else
+  tmp = std::getenv("IGN_VERBOSE");
+#endif
   if (tmp)
     this->verbose = std::string(tmp) == "1";
 

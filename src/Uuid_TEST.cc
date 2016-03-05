@@ -15,18 +15,12 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #include <cctype>
 #include <iostream>
 #include <string>
+
 #include "ignition/transport/Uuid.hh"
 #include "gtest/gtest.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif 
-
 
 using namespace ignition;
 

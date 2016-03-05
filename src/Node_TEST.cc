@@ -15,28 +15,22 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
-
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
-
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif 
  
 using namespace ignition;
 
@@ -705,21 +699,23 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   transport::msgs::Int req;
   transport::msgs::Int rep;
   bool result;
-  unsigned int timeout = 1000;
+  int64_t timeout = 1000;
 
   req.set_data(data);
 
   transport::Node node;
 
   auto t1 = std::chrono::system_clock::now();
-  bool executed = node.Request(topic, req, timeout, rep, result);
+  bool executed = node.Request(topic, req, static_cast<unsigned int>(timeout),
+      rep, result);
   auto t2 = std::chrono::system_clock::now();
 
-  auto elapsed =
+  int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 10.0);
+  auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
+  EXPECT_LT(diff, 10);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);

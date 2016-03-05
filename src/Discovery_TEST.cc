@@ -15,13 +15,13 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
+#include <stdlib.h>
+
 #include <chrono>
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
@@ -31,9 +31,6 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 #include "ignition/transport/test_config.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 
 using namespace ignition;
 
@@ -954,7 +951,13 @@ TEST(DiscoveryTest, TestActivity)
 TEST(DiscoveryTest, WrongIgnIp)
 {
   // Save the current value of IGN_IP environment variable.
-  char *ipEnv = std::getenv("IGN_IP");
+  char *ipEnv;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ipEnv, &sz, "IGN_IP");
+#else
+  ipEnv = std::getenv("IGN_IP");
+#endif
 
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);

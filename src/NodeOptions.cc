@@ -15,6 +15,7 @@
  *
 */
 
+#include <stdlib.h>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -31,7 +32,13 @@ NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
 {
   // Check if the environment variable IGN_PARTITION is present.
-  char *envPartition = std::getenv("IGN_PARTITION");
+  char *envPartition;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&envPartition, &sz, "IGN_PARTITION");
+#else
+  envPartition = std::getenv("IGN_PARTITION");
+#endif
 
   if (envPartition)
   {

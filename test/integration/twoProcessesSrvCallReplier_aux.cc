@@ -17,15 +17,9 @@
 
 #include <chrono>
 #include <string>
+
 #include "ignition/transport/Node.hh"
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-# pragma warning(disable: 4100 4127 4244 4267 4512)
-#endif
 #include "msgs/int.pb.h"
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif 
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
