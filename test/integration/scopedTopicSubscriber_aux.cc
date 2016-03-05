@@ -22,7 +22,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 #include "msgs/int.pb.h"
- 
+
 using namespace ignition;
 
 bool cbExecuted;

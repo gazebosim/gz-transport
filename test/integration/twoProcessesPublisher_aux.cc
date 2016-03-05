@@ -20,7 +20,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/vector3d.pb.h"
- 
+
 using namespace ignition;
 
 std::string topic = "/foo";

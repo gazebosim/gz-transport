@@ -31,7 +31,7 @@
 #include "ignition/transport/test_config.h"
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
- 
+
 using namespace ignition;
 
 std::string partition;

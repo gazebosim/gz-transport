@@ -22,7 +22,7 @@
 #include <string>
 
 #include "ignition/transport/TransportTypes.hh"
- 
+
 namespace ignition
 {
   namespace transport

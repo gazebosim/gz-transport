@@ -17,7 +17,7 @@
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/AdvertiseOptionsPrivate.hh"
- 
+
 using namespace ignition;
 using namespace transport;
 
