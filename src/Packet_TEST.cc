@@ -39,9 +39,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(pUuid, header.PUuid());
   EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 0);
-  size_t headerLength = sizeof(header.Version()) +
+  int headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check Header setters.
@@ -87,7 +87,7 @@ TEST(PacketTest, HeaderIO)
   Header header(version, pUuid, AdvSrvType, 2);
 
   buffer.resize(header.HeaderLength());
-  size_t bytes = header.Pack(&buffer[0]);
+  int bytes = static_cast<int>(header.Pack(&buffer[0]));
   EXPECT_EQ(bytes, header.HeaderLength());
 
   // Unpack the Header.
