@@ -64,7 +64,7 @@
 
 #ifdef _MSC_VER
   // Disable Windows deprecation warnings
-  # pragma warning(push)
+  #pragma warning(push)
   #pragma warning(disable: 4996)
 #endif
 
