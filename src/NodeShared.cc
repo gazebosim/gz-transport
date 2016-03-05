@@ -37,7 +37,7 @@
 
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)
-#endif 
+#endif
 
 using namespace ignition;
 using namespace transport;

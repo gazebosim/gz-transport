@@ -16,7 +16,7 @@
 */
 
 #ifdef _MSC_VER
-#pragma warning(push, 0) 
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
 #ifdef _MSC_VER
@@ -41,9 +41,9 @@
 #include "ignition/transport/Uuid.hh"
 
 #ifdef _MSC_VER
-# pragma warning(disable: 4503) 
+# pragma warning(disable: 4503)
 #endif
- 
+
 using namespace ignition;
 using namespace transport;
 

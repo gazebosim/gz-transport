@@ -19,7 +19,7 @@
 #define __IGN_TRANSPORT_ADVERTISEOPTIONS_HH_INCLUDED__
 
 #include <memory>
- 
+
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
