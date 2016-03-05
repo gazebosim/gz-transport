@@ -34,6 +34,61 @@ target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
 add_dependencies(requester_async protobuf_compilation)
 
 if (MSVC)
+  # Suppress Protobuf message generation warnings.
+  target_compile_options(publisher PUBLIC "/wd4018")
+  target_compile_options(publisher PUBLIC "/wd4100")
+  target_compile_options(publisher PUBLIC "/wd4127")
+  target_compile_options(publisher PUBLIC "/wd4244")
+  target_compile_options(publisher PUBLIC "/wd4267")
+  target_compile_options(publisher PUBLIC "/wd4512")
+
+  # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+  target_compile_options(publisher PUBLIC "/wd4503")
+
+  # Suppress Protobuf message generation warnings.
+  target_compile_options(subscriber PUBLIC "/wd4018")
+  target_compile_options(subscriber PUBLIC "/wd4100")
+  target_compile_options(subscriber PUBLIC "/wd4127")
+  target_compile_options(subscriber PUBLIC "/wd4244")
+  target_compile_options(subscriber PUBLIC "/wd4267")
+  target_compile_options(subscriber PUBLIC "/wd4512")
+
+  # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+  target_compile_options(subscriber PUBLIC "/wd4503")
+
+  # Suppress Protobuf message generation warnings.
+  target_compile_options(responser PUBLIC "/wd4018")
+  target_compile_options(responser PUBLIC "/wd4100")
+  target_compile_options(responser PUBLIC "/wd4127")
+  target_compile_options(responser PUBLIC "/wd4244")
+  target_compile_options(responser PUBLIC "/wd4267")
+  target_compile_options(responser PUBLIC "/wd4512")
+
+  # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+  target_compile_options(responser PUBLIC "/wd4503")
+
+  # Suppress Protobuf message generation warnings.
+  target_compile_options(requester PUBLIC "/wd4018")
+  target_compile_options(requester PUBLIC "/wd4100")
+  target_compile_options(requester PUBLIC "/wd4127")
+  target_compile_options(requester PUBLIC "/wd4244")
+  target_compile_options(requester PUBLIC "/wd4267")
+  target_compile_options(requester PUBLIC "/wd4512")
+
+  # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+  target_compile_options(requester PUBLIC "/wd4503")
+
+  # Suppress Protobuf message generation warnings.
+  target_compile_options(requester_async PUBLIC "/wd4018")
+  target_compile_options(requester_async PUBLIC "/wd4100")
+  target_compile_options(requester_async PUBLIC "/wd4127")
+  target_compile_options(requester_async PUBLIC "/wd4244")
+  target_compile_options(requester_async PUBLIC "/wd4267")
+  target_compile_options(requester_async PUBLIC "/wd4512")
+
+  # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+  target_compile_options(requester_async PUBLIC "/wd4503")
+
   # Copy the ZMQ DLLs.
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

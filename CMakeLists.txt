@@ -192,8 +192,8 @@ if (MSVC)
   set(WARN_LEVEL "/W4")
 
   # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
-  # Handling exceptions rightly
-  set(UNFILTERED_FLAGS "/EHsc")
+  # Handling exceptions rightly and ignore unknown pragmas
+  set(UNFILTERED_FLAGS "/EHsc /wd4068")
 else()
   # Equivalent to Wall (according to man gcc) but removed the unknown pragmas since we use
   # MSVC only pragmas all over the code

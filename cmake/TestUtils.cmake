@@ -33,6 +33,9 @@ macro (ign_build_tests)
 
       # Suppress the "decorated name length exceed" warning (it happens inside the STL).
       target_compile_options(${BINARY_NAME} PUBLIC "/wd4503")
+
+      # Suppress the "unknown pragma" warning due to #pragma GCC in gtest.
+      target_compile_options(${BINARY_NAME} PUBLIC "/wd4068")
     endif()
 
     target_link_libraries(${BINARY_NAME}
