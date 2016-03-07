@@ -45,7 +45,7 @@
 #include <zmq.hpp>
 #ifdef _WIN32
   #pragma warning(pop)
-  //Suppress "decorated name length exceed" warning in STL.
+  // Suppress "decorated name length exceed" warning in STL.
   #pragma warning(disable: 4503)
   // Suppress "depreted API warnings" in WINSOCK.
   #pragma warning(disable: 4996)
