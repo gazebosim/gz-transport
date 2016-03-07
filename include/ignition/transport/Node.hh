@@ -120,6 +120,26 @@ namespace ignition
                            const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Pointer to the callback function with the following
+      /// parameters:
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename T> bool Subscribe(
+          const std::string &_topic,
+          void(*_cb)(const T &_msg))
+      {
+        std::function<void(const T &)> f =
+          [_cb](const T & _internalMsg)
+          {
+            (*_cb)(_internalMsg);
+          };
+
+        return this->Subscribe<T>(_topic, f);
+      }
+
+      /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a lamda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Lambda function with the following parameters:
@@ -169,26 +189,6 @@ namespace ignition
       }
 
       /// \brief Subscribe to a topic registering a callback.
-      /// In this version the callback is a free function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _cb Pointer to the callback function with the following
-      /// parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename T> bool Subscribe(
-          const std::string &_topic,
-          void(*_cb)(const T &_msg))
-      {
-        std::function<void(const T &)> f =
-          [_cb](const T & _internalMsg)
-          {
-            (*_cb)(_internalMsg);
-          };
-
-        return this->Subscribe<T>(_topic, f);
-      }
-
-      /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
@@ -222,6 +222,32 @@ namespace ignition
       /// \param[in] _topic Topic name to be unsubscribed.
       /// \return true when successfully unsubscribed or false otherwise.
       public: bool Unsubscribe(const std::string &_topic);
+
+      /// \brief Advertise a new service.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T1, typename T2> bool Advertise(
+        const std::string &_topic,
+        void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const T1 &, T2 &, bool &)> f =
+          [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
+          {
+            (*_cb)(_internalReq, _internalRep, _internalResult);
+          };
+
+        return this->Advertise<T1, T2>(_topic, f, _options);
+      }
 
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
@@ -286,32 +312,6 @@ namespace ignition
       }
 
       /// \brief Advertise a new service.
-      /// In this version the callback is a free function.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _cb Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[in] _req Protobuf message containing the request.
-      ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      public: template<typename T1, typename T2> bool Advertise(
-        const std::string &_topic,
-        void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
-        const AdvertiseOptions &_options = AdvertiseOptions())
-      {
-        std::function<void(const T1 &, T2 &, bool &)> f =
-          [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
-          {
-            (*_cb)(_internalReq, _internalRep, _internalResult);
-          };
-
-        return this->Advertise<T1, T2>(_topic, f, _options);
-      }
-
-      /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
@@ -346,6 +346,30 @@ namespace ignition
       /// \brief Get the list of services advertised by this node.
       /// \return A vector containing all services advertised by this node.
       public: std::vector<std::string> AdvertisedServices() const;
+
+      /// \brief Request a new service using a non-blocking call.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _cb Pointer to the callback function executed when the
+      /// response arrives. The callback has the following parameters:
+      ///   \param[in] _rep Protobuf message containing the response.
+      ///   \param[in] _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename T1, typename T2> bool Request(
+        const std::string &_topic,
+        const T1 &_req,
+        void(*_cb)(const T2 &_rep, const bool _result))
+      {
+        std::function<void(const T2 &, const bool)> f =
+          [_cb](const T2 &_internalRep, const bool _internalResult)
+          {
+            (*_cb)(_internalRep, _internalResult);
+          };
+
+        return this->Request<T1, T2>(_topic, _req, f);
+      }
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a lambda function.
@@ -430,30 +454,6 @@ namespace ignition
         }
 
         return true;
-      }
-
-      /// \brief Request a new service using a non-blocking call.
-      /// In this version the callback is a free function.
-      /// \param[in] _topic Topic requested.
-      /// \param[in] _req Protobuf message containing the request's parameters.
-      /// \param[in] _cb Pointer to the callback function executed when the
-      /// response arrives. The callback has the following parameters:
-      ///   \param[in] _rep Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
-      ///   a problem executing your request.
-      /// \return true when the service call was succesfully requested.
-      public: template<typename T1, typename T2> bool Request(
-        const std::string &_topic,
-        const T1 &_req,
-        void(*_cb)(const T2 &_rep, const bool _result))
-      {
-        std::function<void(const T2 &, const bool)> f =
-          [_cb](const T2 &_internalRep, const bool _internalResult)
-          {
-            (*_cb)(_internalRep, _internalResult);
-          };
-
-        return this->Request<T1, T2>(_topic, _req, f);
       }
 
       /// \brief Request a new service using a non-blocking call.
