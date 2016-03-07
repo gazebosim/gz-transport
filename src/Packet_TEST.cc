@@ -40,9 +40,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(pUuid, header.PUuid());
   EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 0);
-  size_t headerLength = sizeof(header.Version()) +
+  int headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check Header setters.
@@ -88,7 +88,7 @@ TEST(PacketTest, HeaderIO)
   Header header(version, pUuid, AdvSrvType, 2);
 
   buffer.resize(header.HeaderLength());
-  size_t bytes = header.Pack(&buffer[0]);
+  int bytes = static_cast<int>(header.Pack(&buffer[0]));
   EXPECT_EQ(bytes, header.HeaderLength());
 
   // Unpack the Header.
@@ -178,7 +178,7 @@ TEST(PacketTest, SubscriptionIO)
   Header header;
   SubscriptionMsg otherSubMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherSubMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherSubMsg.Unpack(pBody);
@@ -257,7 +257,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
@@ -407,7 +407,7 @@ TEST(PacketTest, AdvertiseMsgIO)
   Header header;
   AdvertiseMessage<MessagePublisher> otherAdvMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvMsg.Unpack(pBody);
@@ -496,7 +496,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
@@ -593,7 +593,7 @@ TEST(PacketTest, AdvertiseSrvIO)
   Header header;
   AdvertiseMessage<ServicePublisher> otherAdvSrv;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvSrv.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvSrv.Unpack(pBody);
