@@ -15,11 +15,7 @@
  *
 */
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #ifdef _WIN32
-  // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   #include <Ws2def.h>
   #include <Ws2ipdef.h>
@@ -44,11 +40,16 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma warning(push, 0)
+  #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
+#ifdef _WIN32
+  #pragma warning(pop)
+  //Suppress "decorated name length exceed" warning in STL.
+  #pragma warning(disable: 4503)
+  // Suppress "depreted API warnings" in WINSOCK.
+  #pragma warning(disable: 4996)
+  // For socket(), connect(), send(), and recv().
 #endif
 
 #include <chrono>
@@ -56,9 +57,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
@@ -67,12 +66,6 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
-
-#ifdef _MSC_VER
-  // Disable Windows deprecation warnings
-  #pragma warning(push)
-  #pragma warning(disable: 4996)
-#endif
 
 using namespace ignition;
 using namespace transport;
@@ -1171,6 +1164,3 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
   return true;
 }
 
-#ifdef _MSC_VER
-  #pragma warning(pop)
-#endif
