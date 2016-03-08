@@ -53,9 +53,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.Type(), SubType);
   header.SetFlags(1);
   EXPECT_EQ(header.Flags(), 1);
-  headerLength = sizeof(header.Version()) +
+  headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check << operator

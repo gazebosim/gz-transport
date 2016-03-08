@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
@@ -233,7 +234,14 @@ void NodeShared::RunReceptionTask()
       {static_cast<void*>(*this->replier), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+    try
+    {
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+    }
+    catch(...)
+    {
+      continue;
+    }
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)

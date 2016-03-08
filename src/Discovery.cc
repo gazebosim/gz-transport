@@ -709,8 +709,15 @@ void Discovery::RunReceptionTask()
     {
       {0, this->dataPtr->sockets.at(0), ZMQ_POLLIN, 0},
     };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-      this->dataPtr->Timeout);
+    try
+    {
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+        this->dataPtr->Timeout);
+    }
+    catch(...)
+    {
+      continue;
+    }
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
