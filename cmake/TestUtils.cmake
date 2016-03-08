@@ -24,14 +24,10 @@ macro (ign_build_tests)
 
     if (MSVC)
       # Suppress Protobuf message generation warnings.
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4018")
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4100")
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4127")
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4244")
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4267")
-      target_compile_options(${BINARY_NAME} PUBLIC "/wd4512")
+      target_compile_options(${BINARY_NAME}
+        PUBLIC /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512)
 
-      # Suppress the "decorated name length exceed" warning (it happens inside the STL).
+      # Suppress the "decorated name length exceed" warning (inside the STL).
       target_compile_options(${BINARY_NAME} PUBLIC "/wd4503")
     endif()
 
