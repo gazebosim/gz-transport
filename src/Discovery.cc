@@ -16,6 +16,7 @@
 */
 
 #ifdef _WIN32
+  // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
   #include <Ws2def.h>
   #include <Ws2ipdef.h>
@@ -49,7 +50,6 @@
   #pragma warning(disable: 4503)
   // Suppress "depreted API warnings" in WINSOCK.
   #pragma warning(disable: 4996)
-  // For socket(), connect(), send(), and recv().
 #endif
 
 #include <chrono>

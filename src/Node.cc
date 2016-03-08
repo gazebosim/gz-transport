@@ -41,7 +41,7 @@
 #include "ignition/transport/Uuid.hh"
 
 #ifdef _MSC_VER
-# pragma warning(disable: 4503)
+#pragma warning(disable: 4503)
 #endif
 
 using namespace ignition;
