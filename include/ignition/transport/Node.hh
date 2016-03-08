@@ -130,6 +130,25 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const T &_msg))
       {
+        std::function<void(const T &)> f =
+          [_cb](const T & _internalMsg)
+          {
+            (*_cb)(_internalMsg);
+          };
+
+        return this->Subscribe<T>(_topic, f);
+      }
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// In this version the callback is a lamda function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Lambda function with the following parameters:
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename T> bool Subscribe(
+          const std::string &_topic,
+          std::function<void(const T &_msg)> &_cb)
+      {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
@@ -182,44 +201,14 @@ namespace ignition
           void(C::*_cb)(const T &_msg),
           C *_obj)
       {
-        std::string fullyQualifiedTopic;
-        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-        {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
-        }
+        std::function<void(const T &)> f =
+          [_cb, _obj](const T & _internalMsg)
+          {
+            auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+            cb(_internalMsg);
+          };
 
-        // Create a new subscription handler.
-        std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-          new SubscriptionHandler<T>(this->NodeUuid()));
-
-        // Insert the callback into the handler by creating a free function.
-        subscrHandlerPtr->SetCallback(
-          std::bind(_cb, _obj, std::placeholders::_1));
-
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-        // Store the subscription handler. Each subscription handler is
-        // associated with a topic. When the receiving thread gets new data,
-        // it will recover the subscription handler associated to the topic and
-        // will invoke the callback.
-        this->Shared()->localSubscriptions.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
-
-        // Add the topic to the list of subscribed topics (if it was not before)
-        this->TopicsSubscribed().insert(fullyQualifiedTopic);
-
-        // Discover the list of nodes that publish on the topic.
-        if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
-        {
-          std::cerr << "Node::Subscribe(): Error discovering a topic. "
-                    << "Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
+        return this->Subscribe<T>(_topic, f);
       }
 
       /// \brief Get the list of topics subscribed by this node. Note that
@@ -249,6 +238,32 @@ namespace ignition
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const T1 &, T2 &, bool &)> f =
+          [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
+          {
+            (*_cb)(_internalReq, _internalRep, _internalResult);
+          };
+
+        return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
+      /// \brief Advertise a new service.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T1, typename T2> bool Advertise(
+        const std::string &_topic,
+        std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
@@ -315,51 +330,17 @@ namespace ignition
         C *_obj,
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
-        std::string fullyQualifiedTopic;
-        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-        {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
-        }
+        std::function<void(const T1 &, T2 &, bool &)> f =
+          [_cb, _obj](const T1 &_internalReq,
+                      T2 &_internalRep,
+                      bool &_internalResult)
+          {
+            auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+              std::placeholders::_2, std::placeholders::_3);
+            cb(_internalReq, _internalRep, _internalResult);
+          };
 
-        // Create a new service reply handler.
-        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>());
-
-        // Insert the callback into the handler.
-        repHandlerPtr->SetCallback(
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3));
-
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-        // Add the topic to the list of advertised services.
-        this->SrvsAdvertised().insert(fullyQualifiedTopic);
-
-        // Store the replier handler. Each replier handler is
-        // associated with a topic. When the receiving thread gets new requests,
-        // it will recover the replier handler associated to the topic and
-        // will invoke the service call.
-        this->Shared()->repliers.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
-
-        // Notify the discovery service to register and advertise my responser.
-        ServicePublisher publisher(fullyQualifiedTopic,
-          this->Shared()->myReplierAddress,
-          this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          T1().GetTypeName(), T2().GetTypeName());
-
-        if (!this->Shared()->discovery->AdvertiseSrv(publisher))
-        {
-          std::cerr << "Node::Advertise(): Error advertising a service. "
-                    << "Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
+        return this->Advertise<T1, T2>(_topic, f, _options);
       }
 
       /// \brief Get the list of services advertised by this node.
@@ -380,6 +361,30 @@ namespace ignition
         const std::string &_topic,
         const T1 &_req,
         void(*_cb)(const T2 &_rep, const bool _result))
+      {
+        std::function<void(const T2 &, const bool)> f =
+          [_cb](const T2 &_internalRep, const bool _internalResult)
+          {
+            (*_cb)(_internalRep, _internalResult);
+          };
+
+        return this->Request<T1, T2>(_topic, _req, f);
+      }
+
+      /// \brief Request a new service using a non-blocking call.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \param[in] _cb Lambda function executed when the response arrives.
+      /// The callback has the following parameters:
+      ///   \param[in] _rep Protobuf message containing the response.
+      ///   \param[in] _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename T1, typename T2> bool Request(
+        const std::string &_topic,
+        const T1 &_req,
+        std::function<void(const T2 &_rep, const bool _result)> &_cb)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -468,75 +473,8 @@ namespace ignition
         void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
-        std::string fullyQualifiedTopic;
-        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-        {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
-        }
-
-        bool localResponserFound;
-        IRepHandlerPtr repHandler;
-        {
-          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-          localResponserFound = this->Shared()->repliers.FirstHandler(
-            fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
-              repHandler);
-        }
-
-        // If the responser is within my process.
-        if (localResponserFound)
-        {
-          // There is a responser in my process, let's use it.
-          T2 rep;
-          bool result;
-          repHandler->RunLocalCallback(_req, rep, result);
-
-          _cb(rep, result);
-          return true;
-        }
-
-        // Create a new request handler.
-        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->NodeUuid()));
-
-        // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
-
-        // Insert the callback into the handler.
-        reqHandlerPtr->SetCallback(
+        return this->Request(_topic, _req,
           std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
-
-        {
-          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-          // Store the request handler.
-          this->Shared()->requests.AddHandler(
-            fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
-
-          // If the responser's address is known, make the request.
-          SrvAddresses_M addresses;
-          if (this->Shared()->discovery->SrvPublishers(
-            fullyQualifiedTopic, addresses))
-          {
-            this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-              T1().GetTypeName(), T2().GetTypeName());
-          }
-          else
-          {
-            // Discover the service responser.
-            if (!this->Shared()->discovery->DiscoverSrv(fullyQualifiedTopic))
-            {
-              std::cerr << "Node::Request(): Error discovering a service. "
-                        << "Did you forget to start the discovery service?"
-                        << std::endl;
-              return false;
-            }
-          }
-        }
-
-        return true;
       }
 
       /// \brief Request a new service using a blocking call.
