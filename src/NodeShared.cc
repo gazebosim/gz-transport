@@ -314,7 +314,7 @@ void NodeShared::RecvMsgUpdate()
     }
     catch(const zmq::error_t &_error)
     {
-      std::cout << "Error: " << _error.what() << std::endl;
+      std::cerr << "Error: " << _error.what() << std::endl;
       return;
     }
 
