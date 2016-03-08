@@ -63,7 +63,13 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  char const *tmp = std::getenv("IGN_VERBOSE");
+  char *tmp;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&tmp, &sz, "IGN_VERBOSE");
+#else
+  tmp = std::getenv("IGN_VERBOSE");
+#endif
   if (tmp)
     this->verbose = std::string(tmp) == "1";
 
@@ -187,12 +193,13 @@ NodeShared::~NodeShared()
   replier.reset();
   delete this->context;
 #else
-  while (true)
+  bool exitLoop = false;
+  while (!exitLoop)
   {
     std::lock_guard<std::mutex> lock(this->exitMutex);
     {
       if (this->threadReceptionExiting)
-        break;
+        exitLoop = true;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -207,7 +214,8 @@ NodeShared::~NodeShared()
 //////////////////////////////////////////////////
 void NodeShared::RunReceptionTask()
 {
-  while (true)
+  bool exitLoop = false;
+  while (!exitLoop)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -217,7 +225,14 @@ void NodeShared::RunReceptionTask()
       {static_cast<void*>(*this->replier), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+    try
+    {
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+    }
+    catch(...)
+    {
+      continue;
+    }
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
@@ -233,7 +248,7 @@ void NodeShared::RunReceptionTask()
     {
       std::lock_guard<std::mutex> lock(this->exitMutex);
       if (this->exit)
-        break;
+        exitLoop = true;
     }
   }
 #ifdef _WIN32
@@ -314,7 +329,7 @@ void NodeShared::RecvMsgUpdate()
     }
     catch(const zmq::error_t &_error)
     {
-      std::cout << "Error: " << _error.what() << std::endl;
+      std::cerr << "Error: " << _error.what() << std::endl;
       return;
     }
 
@@ -763,7 +778,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         memcpy(msg.data(), _repType.data(), _repType.size());
         this->requester->send(msg, 0);
       }
-      catch(const zmq::error_t& ze)
+      catch(const zmq::error_t& /*ze*/)
       {
         // Debug output.
         // std::cerr << "Error connecting [" << ze.what() << "]\n";
@@ -854,7 +869,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       }
     }
     // The remote node might not be available when we are connecting.
-    catch(const zmq::error_t& ze)
+    catch(const zmq::error_t& /*ze*/)
     {
     }
   }

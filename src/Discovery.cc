@@ -61,6 +61,12 @@
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
+#ifdef _MSC_VER
+  // Disable Windows deprecation warnings
+  #pragma warning(push)
+  #pragma warning(disable: 4996)
+#endif
+
 using namespace ignition;
 using namespace transport;
 
@@ -157,7 +163,8 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   memset(&localAddr, 0, sizeof(localAddr));
   localAddr.sin_family = AF_INET;
   localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  localAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
+  localAddr.sin_port =
+      htons(static_cast<u_short>(this->dataPtr->DiscoveryPort));
 
   if (bind(this->dataPtr->sockets.at(0),
     reinterpret_cast<sockaddr *>(&localAddr), sizeof(sockaddr_in)) < 0)
@@ -171,7 +178,8 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   this->dataPtr->mcastAddr.sin_family = AF_INET;
   this->dataPtr->mcastAddr.sin_addr.s_addr =
     inet_addr(this->dataPtr->MulticastGroup.c_str());
-  this->dataPtr->mcastAddr.sin_port = htons(this->dataPtr->DiscoveryPort);
+  this->dataPtr->mcastAddr.sin_port =
+      htons(static_cast<u_short>(this->dataPtr->DiscoveryPort));
 
   if (this->dataPtr->verbose)
     this->PrintCurrentState();
@@ -200,7 +208,8 @@ Discovery::~Discovery()
   if (this->dataPtr->threadActivity.joinable())
     this->dataPtr->threadActivity.join();
 #else
-  while (true)
+  bool exitLoop = false;
+  while (!exitLoop)
   {
     std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
     {
@@ -208,7 +217,7 @@ Discovery::~Discovery()
           this->dataPtr->threadHeartbeatExiting &&
           this->dataPtr->threadActivityExiting)
       {
-        break;
+        exitLoop = true;
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -577,7 +586,8 @@ void Discovery::DisconnectionsSrvCb(const SrvDiscoveryCallback &_cb)
 //////////////////////////////////////////////////
 void Discovery::RunActivityTask()
 {
-  while (true)
+  bool timeToExit = false;
+  while (!timeToExit)
   {
     this->dataPtr->mutex.lock();
 
@@ -625,7 +635,7 @@ void Discovery::RunActivityTask()
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
       if (this->dataPtr->exit)
-        break;
+        timeToExit = true;
     }
   }
 #ifdef _WIN32
@@ -637,7 +647,8 @@ void Discovery::RunActivityTask()
 //////////////////////////////////////////////////
 void Discovery::RunHeartbeatTask()
 {
-  while (true)
+  bool timeToExit = false;
+  while (!timeToExit)
   {
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
@@ -678,7 +689,7 @@ void Discovery::RunHeartbeatTask()
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
       if (this->dataPtr->exit)
-        break;
+        timeToExit = true;
     }
   }
 #ifdef _WIN32
@@ -690,15 +701,23 @@ void Discovery::RunHeartbeatTask()
 //////////////////////////////////////////////////
 void Discovery::RunReceptionTask()
 {
-  while (true)
+  bool timeToExit = false;
+  while (!timeToExit)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
       {0, this->dataPtr->sockets.at(0), ZMQ_POLLIN, 0},
     };
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-      this->dataPtr->Timeout);
+    try
+    {
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+        this->dataPtr->Timeout);
+    }
+    catch(...)
+    {
+      continue;
+    }
 
     //  If we got a reply, process it.
     if (items[0].revents & ZMQ_POLLIN)
@@ -713,7 +732,7 @@ void Discovery::RunReceptionTask()
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->exitMutex);
       if (this->dataPtr->exit)
-        break;
+        timeToExit = true;
     }
   }
 #ifdef _WIN32
@@ -853,28 +872,31 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
-      bool found;
       MsgAddresses_M addresses;
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-        found = this->dataPtr->infoMsg.Publishers(recvTopic, addresses);
+        if (!this->dataPtr->infoMsg.HasAnyPublishers(recvTopic,
+              this->dataPtr->pUuid))
+        {
+          break;
+        }
+
+        if (!this->dataPtr->infoMsg.Publishers(recvTopic, addresses))
+          break;
       }
 
-      if (found)
+      for (auto nodeInfo : addresses[this->dataPtr->pUuid])
       {
-        for (auto nodeInfo : addresses[this->dataPtr->pUuid])
+        // Check scope of the topic.
+        if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+            (nodeInfo.Scope() == Scope_t::HOST &&
+             _fromIp != this->dataPtr->hostAddr))
         {
-          // Check scope of the topic.
-          if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
-              (nodeInfo.Scope() == Scope_t::HOST &&
-               _fromIp != this->dataPtr->hostAddr))
-          {
-            continue;
-          }
-
-          // Answer an ADVERTISE message.
-          this->SendMsg(AdvType, nodeInfo);
+          continue;
         }
+
+        // Answer an ADVERTISE message.
+        this->SendMsg(AdvType, nodeInfo);
       }
 
       break;
@@ -887,28 +909,31 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the service requested.
-      bool found;
       SrvAddresses_M addresses;
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-        found = this->dataPtr->infoSrv.Publishers(recvTopic, addresses);
+        if (!this->dataPtr->infoSrv.HasAnyPublishers(
+              recvTopic, this->dataPtr->pUuid))
+        {
+          break;
+        }
+
+        if (!this->dataPtr->infoSrv.Publishers(recvTopic, addresses))
+          break;
       }
 
-      if (found)
+      for (auto nodeInfo : addresses[this->dataPtr->pUuid])
       {
-        for (auto nodeInfo : addresses[this->dataPtr->pUuid])
+        // Check scope of the topic.
+        if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+            (nodeInfo.Scope() == Scope_t::HOST &&
+             _fromIp != this->dataPtr->hostAddr))
         {
-          // Check scope of the topic.
-          if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
-              (nodeInfo.Scope() == Scope_t::HOST &&
-               _fromIp != this->dataPtr->hostAddr))
-          {
-            continue;
-          }
-
-          // Answer an ADVERTISE_SRV message.
-          this->SendMsg(AdvSrvType, nodeInfo);
+          continue;
         }
+
+        // Answer an ADVERTISE_SRV message.
+        this->SendMsg(AdvSrvType, nodeInfo);
       }
 
       break;
@@ -1113,7 +1138,7 @@ std::recursive_mutex& Discovery::Mutex() const
 bool Discovery::RegisterNetIface(const std::string &_ip)
 {
   // Make a new socket for sending discovery information.
-  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  int sock = static_cast<int>(socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP));
   if (sock < 0)
   {
     std::cerr << "Socket creation failed." << std::endl;
@@ -1151,3 +1176,7 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
 
   return true;
 }
+
+#ifdef _MSC_VER
+  #pragma warning(pop)
+#endif
