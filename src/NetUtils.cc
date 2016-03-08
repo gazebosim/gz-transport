@@ -28,17 +28,24 @@
   #include <unistd.h>
 #endif
 
-#include <stdlib.h>
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include "ignition/transport/config.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
+#endif
+
+#ifdef _MSC_VER
+  // Disable Windows deprecation warnings
+  # pragma warning(push)
+  #pragma warning(disable: 4996)
 #endif
 
 using namespace ignition;
@@ -85,8 +92,12 @@ std::string transport::determineHost()
 {
   char *ip_env;
   // First, did the user set IGN_IP?
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ip_env, &sz, "IGN_IP");
+#else
   ip_env = std::getenv("IGN_IP");
-
+#endif
   if (ip_env)
   {
     if (strlen(ip_env) != 0)
@@ -105,7 +116,7 @@ std::string transport::determineHost()
   else if (strlen(host) && strcmp("localhost", host))
   {
     std::string hostIP;
-    strcat(host, ".local");
+    ign_strcat(host, ".local");
     if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
     {
       return hostIP;
@@ -212,7 +223,7 @@ std::string transport::determineHost()
           reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
         // Make it a dotted quad
         char ipv4_str[3*4+3+1];
-        sprintf(ipv4_str, "%d.%d.%d.%d",
+        ign_sprintf(ipv4_str, "%d.%d.%d.%d",
           sockaddress->sin_addr.S_un.S_un_b.s_b1,
           sockaddress->sin_addr.S_un.S_un_b.s_b2,
           sockaddress->sin_addr.S_un.S_un_b.s_b3,
@@ -257,7 +268,12 @@ std::vector<std::string> transport::determineInterfaces()
   char *ip_env;
   std::vector<std::string> result;
   // First, did the user set IGN_IP?
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ip_env, &sz, "IGN_IP");
+#else
   ip_env = std::getenv("IGN_IP");
+#endif
 
   if (ip_env)
   {
@@ -384,7 +400,7 @@ std::vector<std::string> transport::determineInterfaces()
           reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
         // Make it a dotted quad
         char ipv4_str[3*4+3+1];
-        sprintf(ipv4_str, "%d.%d.%d.%d",
+        ign_sprintf(ipv4_str, "%d.%d.%d.%d",
           sockaddress->sin_addr.S_un.S_un_b.s_b1,
           sockaddress->sin_addr.S_un.S_un_b.s_b2,
           sockaddress->sin_addr.S_un.S_un_b.s_b3,
@@ -466,3 +482,7 @@ std::string transport::username()
   return pd.pw_name;
 #endif
 }
+
+#ifdef _MSC_VER
+ #pragma warning(pop)
+#endif
