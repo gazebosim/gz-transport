@@ -15,8 +15,6 @@
  *
 */
 
-#include <stdlib.h>
-
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
@@ -35,7 +33,6 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"

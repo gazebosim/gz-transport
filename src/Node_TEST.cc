@@ -24,7 +24,6 @@
 
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
