@@ -331,11 +331,10 @@ namespace ignition
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
                                                  const T &_pub,
-                                                 int _flags = 0) const
+                                                 const uint16_t _flags = 0) const
       {
         // Create the header.
-        Header header(this->Version(), _pub.PUuid(), _type,
-            static_cast<uint16_t>(_flags));
+        Header header(this->Version(), _pub.PUuid(), _type, _flags);
         auto msgLength = 0;
         std::vector<char> buffer;
 
