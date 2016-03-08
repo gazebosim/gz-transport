@@ -406,7 +406,7 @@ TEST(PacketTest, AdvertiseMsgIO)
   Header header;
   AdvertiseMessage<MessagePublisher> otherAdvMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvMsg.Unpack(pBody);
@@ -495,7 +495,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
