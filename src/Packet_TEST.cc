@@ -592,7 +592,7 @@ TEST(PacketTest, AdvertiseSrvIO)
   Header header;
   AdvertiseMessage<ServicePublisher> otherAdvSrv;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvSrv.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvSrv.Unpack(pBody);
