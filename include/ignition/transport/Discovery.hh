@@ -379,6 +379,7 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
+          std::lock_guard<std::recursive_mutex> lock(this->Mutex());
           if (sendto(sock, reinterpret_cast<const raw_type *>(
             reinterpret_cast<unsigned char*>(&buffer[0])),
             msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),

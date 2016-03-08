@@ -872,28 +872,31 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the topic requested.
-      bool found;
       MsgAddresses_M addresses;
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-        found = this->dataPtr->infoMsg.Publishers(recvTopic, addresses);
+        if (!this->dataPtr->infoMsg.HasAnyPublishers(recvTopic,
+              this->dataPtr->pUuid))
+        {
+          break;
+        }
+
+        if (!this->dataPtr->infoMsg.Publishers(recvTopic, addresses))
+          break;
       }
 
-      if (found)
+      for (auto nodeInfo : addresses[this->dataPtr->pUuid])
       {
-        for (auto nodeInfo : addresses[this->dataPtr->pUuid])
+        // Check scope of the topic.
+        if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+            (nodeInfo.Scope() == Scope_t::HOST &&
+             _fromIp != this->dataPtr->hostAddr))
         {
-          // Check scope of the topic.
-          if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
-              (nodeInfo.Scope() == Scope_t::HOST &&
-               _fromIp != this->dataPtr->hostAddr))
-          {
-            continue;
-          }
-
-          // Answer an ADVERTISE message.
-          this->SendMsg(AdvType, nodeInfo);
+          continue;
         }
+
+        // Answer an ADVERTISE message.
+        this->SendMsg(AdvType, nodeInfo);
       }
 
       break;
@@ -906,28 +909,31 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       auto recvTopic = subMsg.Topic();
 
       // Check if at least one of my nodes advertises the service requested.
-      bool found;
       SrvAddresses_M addresses;
       {
         std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-        found = this->dataPtr->infoSrv.Publishers(recvTopic, addresses);
+        if (!this->dataPtr->infoSrv.HasAnyPublishers(
+              recvTopic, this->dataPtr->pUuid))
+        {
+          break;
+        }
+
+        if (!this->dataPtr->infoSrv.Publishers(recvTopic, addresses))
+          break;
       }
 
-      if (found)
+      for (auto nodeInfo : addresses[this->dataPtr->pUuid])
       {
-        for (auto nodeInfo : addresses[this->dataPtr->pUuid])
+        // Check scope of the topic.
+        if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
+            (nodeInfo.Scope() == Scope_t::HOST &&
+             _fromIp != this->dataPtr->hostAddr))
         {
-          // Check scope of the topic.
-          if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
-              (nodeInfo.Scope() == Scope_t::HOST &&
-               _fromIp != this->dataPtr->hostAddr))
-          {
-            continue;
-          }
-
-          // Answer an ADVERTISE_SRV message.
-          this->SendMsg(AdvSrvType, nodeInfo);
+          continue;
         }
+
+        // Answer an ADVERTISE_SRV message.
+        this->SendMsg(AdvSrvType, nodeInfo);
       }
 
       break;
@@ -1170,4 +1176,3 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
 
   return true;
 }
-
