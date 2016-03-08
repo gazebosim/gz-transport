@@ -19,7 +19,6 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeOptionsPrivate.hh"
 #include "ignition/transport/TopicUtils.hh"

@@ -31,7 +31,6 @@
 # pragma warning(pop)
 #endif
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"

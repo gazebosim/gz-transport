@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <thread>
@@ -23,7 +24,6 @@
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"

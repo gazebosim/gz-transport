@@ -18,8 +18,8 @@
 #ifndef __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #define __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
 
 /// \def IGNITION_VISIBLE
 /// Use to represent "symbol visible" if supported
