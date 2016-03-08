@@ -714,7 +714,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LT(diff, 10);
+  EXPECT_LE(diff, 10);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);

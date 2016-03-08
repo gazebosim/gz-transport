@@ -52,9 +52,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.Type(), SubType);
   header.SetFlags(1);
   EXPECT_EQ(header.Flags(), 1);
-  headerLength = sizeof(header.Version()) +
+  headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check << operator
@@ -177,7 +177,7 @@ TEST(PacketTest, SubscriptionIO)
   Header header;
   SubscriptionMsg otherSubMsg;
   size_t headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherSubMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherSubMsg.Unpack(pBody);
@@ -256,7 +256,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
