@@ -18,11 +18,19 @@
 #ifndef __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <condition_variable>
 #include <functional>
 #include <memory>
 #include <string>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -37,7 +45,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
-      public: explicit IReqHandler(const std::string &_nUuid)
+      public: IReqHandler(const std::string &_nUuid)
         : rep(""),
           result(false),
           hUuid(Uuid().ToString()),
@@ -168,7 +176,7 @@ namespace ignition
       : public IReqHandler
     {
       // Documentation inherited.
-      public: explicit ReqHandler(const std::string &_nUuid)
+      public: ReqHandler(const std::string &_nUuid)
         : IReqHandler(_nUuid)
       {
       }

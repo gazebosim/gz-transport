@@ -16,6 +16,7 @@
 */
 
 #include <string>
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -60,7 +61,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   // Check Publishers.
   EXPECT_FALSE(test.Publishers(topic, m));
   // Try to remove a entry not stored yet.
-  EXPECT_EQ(test.DelPublisherByNode(topic, pUuid2, nUuid4), 0);
+  EXPECT_FALSE(test.DelPublisherByNode(topic, pUuid2, nUuid4));
   // Try to remove a set of entries within a process not stored.
   EXPECT_FALSE(test.DelPublishersByProc(pUuid1));
 

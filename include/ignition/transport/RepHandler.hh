@@ -19,16 +19,18 @@
 #define __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 
 #ifdef _MSC_VER
-# pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
 #ifdef _MSC_VER
-# pragma warning(pop)
+#pragma warning(pop)
 #endif
+
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -197,8 +199,7 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function
-        <void(const Req &, Rep &, bool &)> cb;
+      private: std::function<void(const Req &, Rep &, bool &)> cb;
     };
   }
 }

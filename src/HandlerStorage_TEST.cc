@@ -17,11 +17,13 @@
 
 #include <map>
 #include <string>
+
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
+
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
 
@@ -47,9 +49,9 @@ void reset()
 void cb1(const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
   bool &_result)
 {
-  EXPECT_FLOAT_EQ(_req.x(), 1.0);
-  EXPECT_FLOAT_EQ(_req.y(), 2.0);
-  EXPECT_FLOAT_EQ(_req.z(), 3.0);
+  EXPECT_DOUBLE_EQ(_req.x(), 1.0);
+  EXPECT_DOUBLE_EQ(_req.y(), 2.0);
+  EXPECT_DOUBLE_EQ(_req.z(), 3.0);
   _rep.set_data(intResult);
   _result = true;
 

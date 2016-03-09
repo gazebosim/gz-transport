@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "gtest/gtest.h"
@@ -39,9 +40,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(pUuid, header.PUuid());
   EXPECT_EQ(header.Type(), AdvType);
   EXPECT_EQ(header.Flags(), 0);
-  int headerLength = sizeof(header.Version()) +
+  int headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check Header setters.
@@ -52,9 +53,9 @@ TEST(PacketTest, BasicHeaderAPI)
   EXPECT_EQ(header.Type(), SubType);
   header.SetFlags(1);
   EXPECT_EQ(header.Flags(), 1);
-  headerLength = sizeof(header.Version()) +
+  headerLength = static_cast<int>(sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
-    sizeof(header.Type()) + sizeof(header.Flags());
+    sizeof(header.Type()) + sizeof(header.Flags()));
   EXPECT_EQ(header.HeaderLength(), headerLength);
 
   // Check << operator
@@ -87,7 +88,7 @@ TEST(PacketTest, HeaderIO)
   Header header(version, pUuid, AdvSrvType, 2);
 
   buffer.resize(header.HeaderLength());
-  int bytes = header.Pack(&buffer[0]);
+  int bytes = static_cast<int>(header.Pack(&buffer[0]));
   EXPECT_EQ(bytes, header.HeaderLength());
 
   // Unpack the Header.
@@ -176,8 +177,8 @@ TEST(PacketTest, SubscriptionIO)
   // Unpack a SubscriptionMsg.
   Header header;
   SubscriptionMsg otherSubMsg;
-  int headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherSubMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherSubMsg.Unpack(pBody);
@@ -253,10 +254,10 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
   EXPECT_EQ(header.Type(), AdvSrvType);
   EXPECT_EQ(header.Flags(), 3);
-  int headerLength = sizeof(header.Version()) +
+  size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
@@ -405,8 +406,8 @@ TEST(PacketTest, AdvertiseMsgIO)
   // Unpack an AdvertiseMsg.
   Header header;
   AdvertiseMessage<MessagePublisher> otherAdvMsg;
-  int headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvMsg.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvMsg.Unpack(pBody);
@@ -492,10 +493,10 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(header.PUuid(), anotherHeader.PUuid());
   EXPECT_EQ(header.Type(), AdvSrvType);
   EXPECT_EQ(header.Flags(), 3);
-  int headerLength = sizeof(header.Version()) +
+  size_t headerLength = sizeof(header.Version()) +
     sizeof(uint64_t) + header.PUuid().size() +
     sizeof(header.Type()) + sizeof(header.Flags());
-  EXPECT_EQ(header.HeaderLength(), headerLength);
+  EXPECT_EQ(static_cast<size_t>(header.HeaderLength()), headerLength);
 
   topic = "a_new_topic_test";
   addr = "inproc://local";
@@ -591,8 +592,8 @@ TEST(PacketTest, AdvertiseSrvIO)
   // Unpack an AdvertiseSrv.
   Header header;
   AdvertiseMessage<ServicePublisher> otherAdvSrv;
-  int headerBytes = header.Unpack(&buffer[0]);
-  EXPECT_EQ(headerBytes, header.HeaderLength());
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
   otherAdvSrv.SetHeader(header);
   char *pBody = &buffer[0] + header.HeaderLength();
   size_t bodyBytes = otherAdvSrv.Unpack(pBody);

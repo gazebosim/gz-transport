@@ -16,9 +16,11 @@
 */
 
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
@@ -948,7 +950,13 @@ TEST(DiscoveryTest, TestActivity)
 TEST(DiscoveryTest, WrongIgnIp)
 {
   // Save the current value of IGN_IP environment variable.
-  char *ipEnv = std::getenv("IGN_IP");
+  char *ipEnv;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ipEnv, &sz, "IGN_IP");
+#else
+  ipEnv = std::getenv("IGN_IP");
+#endif
 
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);

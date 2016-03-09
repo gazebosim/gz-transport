@@ -14,9 +14,11 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
@@ -42,7 +44,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
-  unsigned int timeout = 500;
+  int64_t timeout = 500;
   transport::msgs::Int req;
   transport::msgs::Int rep;
   bool result;
@@ -53,19 +55,22 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 
   // Make sure that the address of the service call provider is known.
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  ASSERT_TRUE(node.Request(topic, req, timeout, rep, result));
+  ASSERT_TRUE(node.Request(topic, req, static_cast<unsigned int>(timeout), rep,
+      result));
   EXPECT_EQ(req.data(), rep.data());
   EXPECT_TRUE(result);
 
   auto t1 = std::chrono::system_clock::now();
-  EXPECT_FALSE(node.Request("unknown_service", req, timeout, rep, result));
+  EXPECT_FALSE(node.Request("unknown_service", req,
+      static_cast<unsigned int>(timeout), rep, result));
   auto t2 = std::chrono::system_clock::now();
 
-  double elapsed =
+  int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 20.0);
+  auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
+  EXPECT_LT(diff, 20);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);

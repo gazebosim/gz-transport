@@ -19,16 +19,18 @@
 #define __IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_INCLUDED__
 
 #ifdef _MSC_VER
-# pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
 #ifdef _MSC_VER
-# pragma warning(pop)
+#pragma warning(pop)
 #endif
+
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -44,7 +46,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
-      public: explicit ISubscriptionHandler(const std::string &_nUuid)
+      public: ISubscriptionHandler(const std::string &_nUuid)
         : hUuid(Uuid().ToString()),
           nUuid(_nUuid)
       {
@@ -101,7 +103,7 @@ namespace ignition
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid)
+      public: SubscriptionHandler(const std::string &_nUuid)
         : ISubscriptionHandler(_nUuid)
       {
       }

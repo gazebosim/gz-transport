@@ -19,18 +19,20 @@
 #define _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
 
 #ifdef _MSC_VER
-# pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 #include <zmq.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
+
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"

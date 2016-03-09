@@ -16,20 +16,22 @@
 */
 
 #ifdef _MSC_VER
-# pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#include <cassert>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodePrivate.hh"
@@ -37,6 +39,10 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4503)
+#endif
 
 using namespace ignition;
 using namespace transport;
@@ -121,11 +127,7 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
@@ -151,13 +153,23 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Topic not advertised before.
-  if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
-      this->dataPtr->topicsAdvertised.end())
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
   {
-    return false;
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    // Topic not advertised before.
+    if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
+        this->dataPtr->topicsAdvertised.end())
+    {
+      return false;
+    }
+    hasLocalSubscribers =
+      this->dataPtr->shared->localSubscriptions.Handlers(fullyQualifiedTopic,
+        handlers);
+    hasRemoteSubscribers =
+      this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic);
   }
 
   // Check that the msg type matches the type previously advertised
@@ -182,9 +194,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Local subscribers.
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  if (this->dataPtr->shared->localSubscriptions.Handlers(fullyQualifiedTopic,
-        handlers))
+  if (hasLocalSubscribers)
   {
     for (auto &node : handlers)
     {
@@ -209,7 +219,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic))
+  if (hasRemoteSubscribers)
   {
     std::string data;
     if (!_msg.SerializeToString(&data))
@@ -257,11 +267,7 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
     fullyQualifiedTopic, this->dataPtr->nUuid);
@@ -353,11 +359,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
@@ -382,11 +384,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   std::vector<std::string> allTopics;
   _topics.clear();
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->discovery->TopicList(allTopics);
 
@@ -415,11 +413,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   std::vector<std::string> allServices;
   _services.clear();
 
-  std::lock(this->Shared()->discovery->Mutex(), this->dataPtr->shared->mutex);
-  std::lock_guard<std::recursive_mutex> discLk(
-    this->Shared()->discovery->Mutex(), std::adopt_lock);
-  std::lock_guard<std::recursive_mutex> lk(
-    this->dataPtr->shared->mutex, std::adopt_lock);
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->discovery->ServiceList(allServices);
 

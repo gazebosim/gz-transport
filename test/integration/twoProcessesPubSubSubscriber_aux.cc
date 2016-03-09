@@ -17,14 +17,14 @@
 
 #include <chrono>
 #include <string>
+#ifdef _WIN32
+  #include <filesystem>
+#endif
+
 #include "ignition/transport/Node.hh"
 #include "msgs/vector3d.pb.h"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 using namespace ignition;
 
@@ -37,9 +37,9 @@ std::string data = "bar";
 /// \brief Function is called everytime a topic update is received.
 void cb(const transport::msgs::Vector3d &_msg)
 {
-  EXPECT_FLOAT_EQ(_msg.x(), 1.0);
-  EXPECT_FLOAT_EQ(_msg.y(), 2.0);
-  EXPECT_FLOAT_EQ(_msg.z(), 3.0);
+  EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
+  EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
+  EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
   cbExecuted = true;
 }
 
@@ -47,9 +47,9 @@ void cb(const transport::msgs::Vector3d &_msg)
 /// \brief Function is called everytime a topic update is received.
 void cb2(const transport::msgs::Vector3d &_msg)
 {
-  EXPECT_FLOAT_EQ(_msg.x(), 1.0);
-  EXPECT_FLOAT_EQ(_msg.y(), 2.0);
-  EXPECT_FLOAT_EQ(_msg.z(), 3.0);
+  EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
+  EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
+  EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
   cb2Executed = true;
 }
 
