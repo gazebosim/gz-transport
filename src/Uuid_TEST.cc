@@ -18,6 +18,7 @@
 #include <cctype>
 #include <iostream>
 #include <string>
+
 #include "ignition/transport/Uuid.hh"
 #include "gtest/gtest.h"
 

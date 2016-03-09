@@ -17,11 +17,13 @@
 
 #include <map>
 #include <string>
+
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
+
 #include "msgs/int.pb.h"
 #include "msgs/vector3d.pb.h"
 

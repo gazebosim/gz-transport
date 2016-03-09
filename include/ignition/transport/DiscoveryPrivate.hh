@@ -18,9 +18,6 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #ifdef _WIN32
   #include <Winsock2.h>
 #else
@@ -32,9 +29,7 @@
 #include <thread>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"

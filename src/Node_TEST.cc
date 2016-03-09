@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"

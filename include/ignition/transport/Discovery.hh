@@ -18,10 +18,6 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
-
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
@@ -38,9 +34,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
@@ -432,4 +425,5 @@ namespace ignition
     };
   }
 }
+
 #endif

@@ -16,6 +16,7 @@
 */
 
 #include <string>
+
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/test_config.h"

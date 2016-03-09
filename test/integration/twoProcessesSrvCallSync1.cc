@@ -14,9 +14,11 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"

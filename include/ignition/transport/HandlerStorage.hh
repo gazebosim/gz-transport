@@ -20,6 +20,7 @@
 
 #include <map>
 #include <string>
+
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition

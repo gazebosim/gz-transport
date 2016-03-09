@@ -17,14 +17,14 @@
 
 #include <chrono>
 #include <string>
+#ifdef _WIN32
+  #include <filesystem>
+#endif
+
 #include "ignition/transport/Node.hh"
 #include "msgs/vector3d.pb.h"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 using namespace ignition;
 

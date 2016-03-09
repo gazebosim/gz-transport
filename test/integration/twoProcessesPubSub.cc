@@ -14,8 +14,10 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "msgs/int.pb.h"

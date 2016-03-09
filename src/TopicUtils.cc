@@ -16,6 +16,7 @@
 */
 
 #include <string>
+
 #include "ignition/transport/TopicUtils.hh"
 
 using namespace ignition;

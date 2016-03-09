@@ -18,10 +18,15 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
+
+#ifdef _MSC_VER
+# pragma warning(disable: 4503)
+#endif
 
 using namespace ignition;
 using namespace transport;
