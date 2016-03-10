@@ -45,7 +45,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
-      public: IReqHandler(const std::string &_nUuid)
+      public: explicit IReqHandler(const std::string &_nUuid)
         : rep(""),
           result(false),
           hUuid(Uuid().ToString()),
@@ -176,7 +176,7 @@ namespace ignition
       : public IReqHandler
     {
       // Documentation inherited.
-      public: ReqHandler(const std::string &_nUuid)
+      public: explicit ReqHandler(const std::string &_nUuid)
         : IReqHandler(_nUuid)
       {
       }
