@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <utility>
+
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 

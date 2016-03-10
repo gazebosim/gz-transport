@@ -18,9 +18,11 @@
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
@@ -392,6 +394,36 @@ TEST(NodeTest, PubSubSameThread)
 }
 
 //////////////////////////////////////////////////
+/// \brief Subscribe to a topic using a lambda function.
+TEST(NodeTest, PubSubSameThreadLamda)
+{
+  transport::msgs::Int msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+
+  bool executed = false;
+  std::function<void(const transport::msgs::Int&)> subCb =
+    [&executed](const transport::msgs::Int &_msg)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      executed = true;
+    };
+
+  EXPECT_TRUE(node.Subscribe(topic, subCb));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(node.Publish(topic, msg));
+
+  EXPECT_TRUE(executed);
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
@@ -607,6 +639,41 @@ TEST(NodeTest, ServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
+/// \brief Make an asynchronous service call using lambdas.
+TEST(NodeTest, ServiceCallAsyncLambda)
+{
+  std::function<void(const transport::msgs::Int &, transport::msgs::Int &,
+    bool &)> advCb = [](const transport::msgs::Int &_req,
+      transport::msgs::Int &_rep, bool &_result)
+      {
+        EXPECT_EQ(_req.data(), data);
+        _rep.set_data(_req.data());
+        _result = true;
+      };
+
+  transport::Node node;
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int, transport::msgs::Int>(topic,
+    advCb)));
+
+  bool executed = false;
+  std::function<void(const transport::msgs::Int &, const bool)> reqCb =
+    [&executed](const transport::msgs::Int &_rep, const bool &_result)
+      {
+        EXPECT_EQ(_rep.data(), data);
+        EXPECT_TRUE(_result);
+        executed = true;
+      };
+
+  transport::msgs::Int req;
+  req.set_data(data);
+
+  EXPECT_TRUE((node.Request<transport::msgs::Int, transport::msgs::Int>(
+    topic, req, reqCb)));
+
+  EXPECT_TRUE(executed);
+}
+
+//////////////////////////////////////////////////
 /// \brief Request multiple service calls at the same time.
 TEST(NodeTest, MultipleServiceCallAsync)
 {
@@ -697,21 +764,23 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   transport::msgs::Int req;
   transport::msgs::Int rep;
   bool result;
-  unsigned int timeout = 1000;
+  int64_t timeout = 1000;
 
   req.set_data(data);
 
   transport::Node node;
 
   auto t1 = std::chrono::system_clock::now();
-  bool executed = node.Request(topic, req, timeout, rep, result);
+  bool executed = node.Request(topic, req, static_cast<unsigned int>(timeout),
+      rep, result);
   auto t2 = std::chrono::system_clock::now();
 
-  double elapsed =
+  int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
-  EXPECT_NEAR(elapsed, timeout, 10.0);
+  auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
+  EXPECT_LE(diff, 10);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -731,7 +800,8 @@ void createInfinitePublisher()
   EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
 
   auto i = 0;
-  while (true)
+  bool exitLoop = false;
+  while (!exitLoop)
   {
     EXPECT_TRUE(node.Publish(topic, msg));
     ++i;
@@ -740,7 +810,7 @@ void createInfinitePublisher()
     {
       std::lock_guard<std::mutex> lock(exitMutex);
       if (terminatePub)
-        break;
+        exitLoop = true;
     }
   }
 

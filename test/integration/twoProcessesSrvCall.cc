@@ -17,6 +17,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"

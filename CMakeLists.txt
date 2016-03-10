@@ -6,10 +6,8 @@ project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
-set (PROJECT_MSGS_NAME ignition-transport-msgs)
-
 set (PROJECT_MAJOR_VERSION 1)
-set (PROJECT_MINOR_VERSION 0)
+set (PROJECT_MINOR_VERSION 1)
 set (PROJECT_PATCH_VERSION 0)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
@@ -194,10 +192,10 @@ if (MSVC)
   set(WARN_LEVEL "/W4")
 
   # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
-  # Handling exceptions rightly
-  set(UNFILTERED_FLAGS "/EHsc")
+  # Handling exceptions rightly and ignore unknown pragmas
+  set(UNFILTERED_FLAGS "/EHsc /wd4068")
 else()
-  # Equivalent to Wall (according to man gcc) but removed the unknown pragams since we use
+  # Equivalent to Wall (according to man gcc) but removed the unknown pragmas since we use
   # MSVC only pragmas all over the code
   list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
   list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
@@ -303,7 +301,7 @@ else (build_errors)
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION})
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
   set(cmake_conf_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake")
   set(cmake_conf_version_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config-version.cmake")
 

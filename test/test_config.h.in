@@ -23,8 +23,8 @@
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/conf"
 
-#include <iostream>
 #include <climits>
+#include <iostream>
 #include <random>
 #include <string>
 
@@ -37,6 +37,8 @@
   #include <sys/wait.h>
   #include <unistd.h>
 #endif
+
+#include "ignition/transport/Helpers.hh"
 
 #if (_MSC_VER >= 1400) // Visual Studio 2005
   #include <sstream>
@@ -55,7 +57,7 @@
     std::string name = _name;
     std::string value = _value;
     sstr << name << '=' << value;
-    return putenv(sstr.str().c_str());
+    return _putenv(sstr.str().c_str());
   }
 
   /// \brief Deletes an environment variable.
@@ -107,9 +109,9 @@ namespace testing
     PROCESS_INFORMATION processInfo;
 
     char cmd[500];
-    strcpy(cmd, _command);
-    strcat(cmd, " ");
-    strcat(cmd, _partition);
+    ign_strcpy(cmd, _command);
+    ign_strcat(cmd, " ");
+    ign_strcat(cmd, _partition);
 
     if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
     {
