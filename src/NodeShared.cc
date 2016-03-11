@@ -573,8 +573,8 @@ void NodeShared::RecvSrvRequest()
     }
   }
   // else
-  //  std::cerr << "I do not have a service call registered for topic ["
-  //            << topic << "]\n";
+  //   std::cerr << "I do not have a service call registered for topic ["
+  //             << topic << "]\n";
 }
 
 //////////////////////////////////////////////////

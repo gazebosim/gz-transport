@@ -203,7 +203,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::msgs::Int goodRep;
   transport::msgs::Vector3d badRep;
   bool result;
-  unsigned int timeout = 1000;
+  unsigned int timeout = 2000;
 
   std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
