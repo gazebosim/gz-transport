@@ -46,7 +46,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
-      public: ISubscriptionHandler(const std::string &_nUuid)
+      public: explicit ISubscriptionHandler(const std::string &_nUuid)
         : hUuid(Uuid().ToString()),
           nUuid(_nUuid)
       {
@@ -103,7 +103,7 @@ namespace ignition
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: SubscriptionHandler(const std::string &_nUuid)
+      public: explicit SubscriptionHandler(const std::string &_nUuid)
         : ISubscriptionHandler(_nUuid)
       {
       }
