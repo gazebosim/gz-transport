@@ -17,9 +17,6 @@ applications that work).
 Steps to follow
 ---------------
 
-We will use the Gazebo repository as an example, but the step apply equally
-well to other repositories maintained by OSRF.
-
 1. Are you sure? Has your idea already been done, or maybe someone is already working on it?
 
   Check the `issue tracker <https://bitbucket.org/ignitionrobotics/ign-transport>`_.
