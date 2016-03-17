@@ -36,9 +36,6 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 {
   Node node;
 
-  // Give the node some time to receive topic updates.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
   std::vector<std::string> topics;
   node.TopicList(topics);
 
@@ -50,9 +47,6 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 extern "C" IGNITION_VISIBLE void cmdServiceList()
 {
   Node node;
-
-  // Give the node some time to receive topic updates.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   std::vector<std::string> services;
   node.ServiceList(services);

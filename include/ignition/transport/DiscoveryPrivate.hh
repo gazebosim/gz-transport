@@ -23,6 +23,7 @@
 #else
   #include <arpa/inet.h>
 #endif
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -162,6 +163,15 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::recursive_mutex exitMutex;
+
+      /// \brief Once the discovery starts, it can take up to
+      /// HeartbeatInterval milliseconds to discover the existing nodes on the
+      /// network. This variable is 'false' during the first HeartbeatInterval
+      /// period and is set to 'true' after that.
+      public: bool initialized;
+
+      /// \brief Used to block/unblock until the initialization phase finishes.
+      public: std::condition_variable_any initializedCv;
 
       /// \brief When true, the service threads will finish.
       public: bool exit;
