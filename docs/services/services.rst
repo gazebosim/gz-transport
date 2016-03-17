@@ -3,8 +3,17 @@ Node communication via services
 ================================
 
 In this tutorial, we are going to create two nodes that are going to communicate
-via services. One node will be a service provider that offers an *echo* service,
-whereas the other node will be the service consumer requesting an *echo* call.
+via services. You can see a service as a function that is going to be executed
+in a different node. Services have two main components: a service provider and a
+service consumer. A service provider is the node that offers the service to the
+rest of the world. The service consumers are the nodes that request the function
+offered by the provider. Note that in Ignition Transport the location of the
+service is hidden. The discovery layer of the library is in charge of
+discovering and keeping and updated list of services available.
+
+In this tutorial, one node will be the service provider that offers an *echo*
+service, whereas the other node will be the service consumer requesting an
+*echo* call.
 
 .. code-block:: bash
 
