@@ -170,6 +170,9 @@ namespace ignition
       /// period and is set to 'true' after that.
       public: bool initialized;
 
+      /// \brief Number of heartbeats sent while discovery is uninitialized.
+      public: unsigned int numHeartbeatsUninitialized = 0;
+
       /// \brief Used to block/unblock until the initialization phase finishes.
       public: std::condition_variable_any initializedCv;
 
