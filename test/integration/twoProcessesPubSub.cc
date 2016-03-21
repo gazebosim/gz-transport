@@ -180,7 +180,8 @@ TEST(twoProcPubSub, TopicList)
   topics.clear();
 
   // Time elapsed to get the first topic list
-  auto elapsed1 = end1 - start1;
+  auto elapsed1 = std::chrono::duration_cast<std::chrono::milliseconds>
+    (end1 - start1).count();
 
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
@@ -191,11 +192,11 @@ TEST(twoProcPubSub, TopicList)
   // The first TopicList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
   // However, the second call should never block.
-  auto elapsed2 = end2 - start2;
+  auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
+    (end2 - start2).count();
   EXPECT_LE(elapsed2, elapsed1);
 
-  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
-      (elapsed2).count(), 2);
+  EXPECT_LT(elapsed2, 2);
 
   reset();
 
