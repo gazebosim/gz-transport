@@ -271,7 +271,7 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 {
   try
   {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    std::lock_guard<std::mutex> lock(this->mutex);
     zmq::message_t msg;
     msg.rebuild(_topic.size());
     memcpy(msg.data(), _topic.data(), _topic.size());
@@ -312,7 +312,7 @@ void NodeShared::RecvMsgUpdate()
   bool firstHandlerFound;
 
   {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    std::lock_guard<std::mutex> lock(this->mutex);
 
     try
     {
@@ -378,7 +378,7 @@ void NodeShared::RecvControlUpdate()
   std::string nodeUuid;
   std::string data;
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   try
   {
@@ -455,7 +455,7 @@ void NodeShared::RecvSrvRequest()
   bool hasHandler;
 
   {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    std::lock_guard<std::mutex> lock(this->mutex);
 
     try
     {
@@ -518,7 +518,7 @@ void NodeShared::RecvSrvRequest()
       resultStr = "0";
 
     {
-      std::lock_guard<std::recursive_mutex> lock(this->mutex);
+      std::lock_guard<std::mutex> lock(this->mutex);
       // I am still not connected to this address.
       if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
             sender) == this->srvConnections.end())
@@ -538,7 +538,7 @@ void NodeShared::RecvSrvRequest()
     // Send the reply.
     try
     {
-      std::lock_guard<std::recursive_mutex> lock(this->mutex);
+      std::lock_guard<std::mutex> lock(this->mutex);
       zmq::message_t response;
 
       response.rebuild(dstId.size());
@@ -595,7 +595,7 @@ void NodeShared::RecvSrvResponse()
   bool hasHandler;
 
   {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    std::lock_guard<std::mutex> lock(this->mutex);
 
     try
     {
@@ -640,7 +640,7 @@ void NodeShared::RecvSrvResponse()
     reqHandlerPtr->NotifyResult(rep, result);
 
     // Remove the handler.
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    std::lock_guard<std::mutex> lock(this->mutex);
     {
       if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))
       {
@@ -696,7 +696,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
               << responserAddr << "]" << std::endl;
   }
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   // I am still not connected to this address.
   if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
@@ -796,7 +796,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 //////////////////////////////////////////////////
 void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
@@ -884,7 +884,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  //std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
   std::string topic = _pub.Topic();
   std::string procUuid = _pub.PUuid();
@@ -938,7 +938,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   std::string reqType = _pub.ReqTypeName();
   std::string repType = _pub.RepTypeName();
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  this->mutex.lock();
 
   if (this->verbose)
   {
@@ -965,9 +965,12 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   IReqHandlerPtr handler;
   if (this->requests.FirstHandler(topic, reqType, repType, handler))
   {
+    this->mutex.unlock();
     // Request all pending service calls for this topic and req/rep types.
     this->SendPendingRemoteReqs(topic, reqType, repType);
   }
+  else
+    this->mutex.unlock();
 }
 
 //////////////////////////////////////////////////
@@ -975,7 +978,7 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
 {
   std::string addr = _pub.Addr();
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   // Remove the address from the list of connected addresses.
   this->srvConnections.erase(std::remove(std::begin(this->srvConnections),

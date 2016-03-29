@@ -174,7 +174,7 @@ namespace ignition
       public: std::thread threadReception;
 
       /// \brief Mutex to guarantee exclusive access between all threads.
-      public: std::recursive_mutex mutex;
+      public: std::mutex mutex;
 
       /// \brief When true, the reception thread will finish.
       public: bool exit;

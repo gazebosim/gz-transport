@@ -81,7 +81,7 @@ namespace ignition
           return false;
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+        std::lock_guard<std::mutex> lk(this->Shared()->mutex);
 
         // Add the topic to the list of advertised topics (if it was not before)
         this->TopicsAdvertised().insert(fullyQualifiedTopic);
@@ -165,17 +165,19 @@ namespace ignition
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
 
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+        {
+          std::lock_guard<std::mutex> lk(this->Shared()->mutex);
 
-        // Store the subscription handler. Each subscription handler is
-        // associated with a topic. When the receiving thread gets new data,
-        // it will recover the subscription handler associated to the topic and
-        // will invoke the callback.
-        this->Shared()->localSubscriptions.AddHandler(
-          fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
+          // Store the subscription handler. Each subscription handler is
+          // associated with a topic. When the receiving thread gets new data,
+          // it will recover the subscription handler associated to the topic and
+          // will invoke the callback.
+          this->Shared()->localSubscriptions.AddHandler(
+            fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
-        // Add the topic to the list of subscribed topics (if it was not before)
-        this->TopicsSubscribed().insert(fullyQualifiedTopic);
+          // Add the topic to the list of subscribed topics (if it was not before)
+          this->TopicsSubscribed().insert(fullyQualifiedTopic);
+        }
 
         // Discover the list of nodes that publish on the topic.
         if (!this->Shared()->discovery->DiscoverMsg(fullyQualifiedTopic))
@@ -282,7 +284,7 @@ namespace ignition
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(_cb);
 
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+        std::lock_guard<std::mutex> lk(this->Shared()->mutex);
 
         // Add the topic to the list of advertised services.
         this->SrvsAdvertised().insert(fullyQualifiedTopic);
@@ -398,7 +400,7 @@ namespace ignition
         bool localResponserFound;
         IRepHandlerPtr repHandler;
         {
-          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          std::lock_guard<std::mutex> lk(this->Shared()->mutex);
           localResponserFound = this->Shared()->repliers.FirstHandler(
             fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
               repHandler);
@@ -427,7 +429,7 @@ namespace ignition
         reqHandlerPtr->SetCallback(_cb);
 
         {
-          std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+          //std::lock_guard<std::mutex> lk(this->Shared()->mutex);
 
           // Store the request handler.
           this->Shared()->requests.AddHandler(
@@ -508,8 +510,6 @@ namespace ignition
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(_req);
 
-        std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
-
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
         if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
@@ -543,6 +543,8 @@ namespace ignition
             return false;
           }
         }
+
+        std::unique_lock<std::mutex> lk(this->Shared()->mutex);
 
         // Wait until the REP is available.
         bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);

@@ -612,7 +612,10 @@ void Discovery::RunActivityTask()
         MessagePublisher publisher;
         publisher.SetPUuid(it->first);
         publisher.SetScope(Scope_t::ALL);
+        this->dataPtr->mutex.unlock();
+        std::cout << "Unlock" << std::endl;
         this->dataPtr->disconnectionCb(publisher);
+        this->dataPtr->mutex.lock();
 
         // Remove the activity entry.
         this->dataPtr->activity.erase(it++);

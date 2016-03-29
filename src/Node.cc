@@ -104,7 +104,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::vector<std::string> v;
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   for (auto topic : this->dataPtr->topicsAdvertised)
   {
@@ -127,7 +127,7 @@ bool Node::Unadvertise(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
@@ -157,7 +157,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
   {
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+    std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
     // Topic not advertised before.
     if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
@@ -243,7 +243,7 @@ std::vector<std::string> Node::SubscribedTopics() const
 {
   std::vector<std::string> v;
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   // I'm a real subscriber if I have interest in a topic and I know a publisher.
   for (auto topic : this->dataPtr->topicsSubscribed)
@@ -267,7 +267,7 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
     fullyQualifiedTopic, this->dataPtr->nUuid);
@@ -336,7 +336,7 @@ std::vector<std::string> Node::AdvertisedServices() const
 {
   std::vector<std::string> v;
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   for (auto service : this->dataPtr->srvsAdvertised)
   {
@@ -359,7 +359,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  std::lock_guard<std::mutex> lk(this->dataPtr->shared->mutex);
 
   // Remove the topic from the list of advertised topics in this node.
   this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
