@@ -25,7 +25,7 @@ Install Ignition Transport:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install libignition-transport1-dev
+    sudo apt-get install libignition-transport-dev
 
 Mac OS X
 ========
