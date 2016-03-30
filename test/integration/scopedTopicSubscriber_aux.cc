@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "gtest/gtest.h"

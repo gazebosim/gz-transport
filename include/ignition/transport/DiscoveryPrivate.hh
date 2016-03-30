@@ -18,23 +18,19 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_PRIVATE_HH_INCLUDED__
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
 #ifdef _WIN32
   #include <Winsock2.h>
 #else
   #include <arpa/inet.h>
 #endif
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TopicStorage.hh"
@@ -56,22 +52,22 @@ namespace ignition
       public: virtual ~DiscoveryPrivate() = default;
 
       /// \brief Default activity interval value (ms.).
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
       public: static const unsigned int DefActivityInterval = 100;
 
       /// \brief Default heartbeat interval value (ms.).
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \sa SetHeartbeatInterval.
       public: static const unsigned int DefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
-      /// \sa GetMaxSilenceInterval.
+      /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: static const unsigned int DefSilenceInterval = 3000;
 
       /// \brief Default advertise interval value (ms.).
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \sa SetAdvertiseInterval.
       public: static const unsigned int DefAdvertiseInterval = 1000;
 
@@ -101,22 +97,22 @@ namespace ignition
       public: std::string pUuid;
 
       /// \brief Silence interval value (ms.).
-      /// \sa GetMaxSilenceInterval.
+      /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
       public: unsigned int silenceInterval;
 
       /// \brief Activity interval value (ms.).
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
       public: unsigned int activityInterval;
 
       /// \brief Advertise interval value (ms.).
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \sa SetAdvertiseInterval.
       public: unsigned int advertiseInterval;
 
       /// \brief Heartbeat interval value (ms.).
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \sa SetHeartbeatInterval.
       public: unsigned int heartbeatInterval;
 
@@ -167,6 +163,15 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       public: std::recursive_mutex exitMutex;
+
+      /// \brief Once the discovery starts, it can take up to
+      /// HeartbeatInterval milliseconds to discover the existing nodes on the
+      /// network. This variable is 'false' during the first HeartbeatInterval
+      /// period and is set to 'true' after that.
+      public: bool initialized;
+
+      /// \brief Used to block/unblock until the initialization phase finishes.
+      public: std::condition_variable_any initializedCv;
 
       /// \brief When true, the service threads will finish.
       public: bool exit;

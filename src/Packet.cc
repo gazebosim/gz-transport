@@ -15,9 +15,10 @@
  *
 */
 
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 #include <string>
+
 #include "ignition/transport/Packet.hh"
 
 using namespace ignition;
@@ -29,10 +30,10 @@ Header::Header(const uint16_t _version,
                const uint8_t _type,
                const uint16_t _flags)
 {
-  this->Version(_version);
-  this->PUuid(_pUuid);
-  this->Type(_type);
-  this->Flags(_flags);
+  this->SetVersion(_version);
+  this->SetPUuid(_pUuid);
+  this->SetType(_type);
+  this->SetFlags(_flags);
 }
 
 //////////////////////////////////////////////////
@@ -60,25 +61,25 @@ uint16_t Header::Flags() const
 }
 
 //////////////////////////////////////////////////
-void Header::Version(const uint16_t _version)
+void Header::SetVersion(const uint16_t _version)
 {
   this->version = _version;
 }
 
 //////////////////////////////////////////////////
-void Header::PUuid(const std::string &_pUuid)
+void Header::SetPUuid(const std::string &_pUuid)
 {
   this->pUuid = _pUuid;
 }
 
 //////////////////////////////////////////////////
-void Header::Type(const uint8_t _type)
+void Header::SetType(const uint8_t _type)
 {
   this->type = _type;
 }
 
 //////////////////////////////////////////////////
-void Header::Flags(const uint16_t _flags)
+void Header::SetFlags(const uint16_t _flags)
 {
   this->flags = _flags;
 }
@@ -86,9 +87,9 @@ void Header::Flags(const uint16_t _flags)
 //////////////////////////////////////////////////
 int Header::HeaderLength() const
 {
-  return sizeof(this->version) +
+  return static_cast<int>(sizeof(this->version) +
          sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(this->type) + sizeof(this->flags);
+         sizeof(this->type) + sizeof(this->flags));
 }
 
 //////////////////////////////////////////////////
@@ -168,15 +169,15 @@ size_t Header::Unpack(const char *_buffer)
 }
 
 //////////////////////////////////////////////////
-SubscriptionMsg::SubscriptionMsg(const Header &_header,
+SubscriptionMsg::SubscriptionMsg(const transport::Header &_header,
                                  const std::string &_topic)
 {
   this->SetHeader(_header);
-  this->Topic(_topic);
+  this->SetTopic(_topic);
 }
 
 //////////////////////////////////////////////////
-Header SubscriptionMsg::GetHeader() const
+transport::Header SubscriptionMsg::Header() const
 {
   return this->header;
 }
@@ -188,13 +189,13 @@ std::string SubscriptionMsg::Topic() const
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::SetHeader(const Header &_header)
+void SubscriptionMsg::SetHeader(const transport::Header &_header)
 {
   this->header = _header;
 }
 
 //////////////////////////////////////////////////
-void SubscriptionMsg::Topic(const std::string &_topic)
+void SubscriptionMsg::SetTopic(const std::string &_topic)
 {
   this->topic = _topic;
 }
@@ -209,7 +210,7 @@ size_t SubscriptionMsg::MsgLength() const
 size_t SubscriptionMsg::Pack(char *_buffer) const
 {
   // Pack the header.
-  size_t headerLen = this->GetHeader().Pack(_buffer);
+  size_t headerLen = this->Header().Pack(_buffer);
   if (headerLen == 0)
     return 0;
 

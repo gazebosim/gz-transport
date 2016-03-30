@@ -12,14 +12,24 @@ macro (ign_build_tests)
       add_definitions(-DUSE_LOW_MEMORY_TESTS=1)
     endif(USE_LOW_MEMORY_TESTS)
 
-    set_source_files_properties(${PROTO_SRC} PROPERTIES GENERATED TRUE)
+    #set_source_files_properties(${PROTO_SRC} PROPERTIES GENERATED TRUE)
 
-    add_executable(${BINARY_NAME} ${GTEST_SOURCE_file} ${PROTO_SRC})
+    add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
       gtest gtest_main
+    #  protobuf_compilation
     )
+
+    if (MSVC)
+      # Suppress Protobuf message generation warnings.
+      target_compile_options(${BINARY_NAME}
+        PUBLIC /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512)
+
+      # Suppress the "decorated name length exceed" warning (inside the STL).
+      target_compile_options(${BINARY_NAME} PUBLIC "/wd4503")
+    endif()
 
     target_link_libraries(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}

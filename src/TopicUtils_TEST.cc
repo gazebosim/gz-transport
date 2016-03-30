@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <utility>
+
 #include "ignition/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 
@@ -93,8 +94,8 @@ TEST(TopicUtilsTest, tesPartitions)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check GetFullyQualifiedName.
-TEST(TopicUtilsTest, testGetFullyQualifiedName)
+/// \brief Check FullyQualifiedName.
+TEST(TopicUtilsTest, testFullyQualifiedName)
 {
   // Validation type. The key is the text under test. The value is a pair,
   // where the first element specifies if it's a valid text.
@@ -102,7 +103,7 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
   // text will be transformed. This value only makes sense if the text is valid.
   // E.g.: {"partition/",   {true,  "@/partition@"}}
   // "partition/" is valid text for a partition name and will be transformed
-  // into "@/partition@" after calling to GetFullyQualifiedName().
+  // into "@/partition@" after calling to FullyQualifiedName().
   using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
 
   // Partitions to test.
@@ -147,7 +148,7 @@ TEST(TopicUtilsTest, testGetFullyQualifiedName)
         auto nsUnderTest = ns.first;
         auto tUnderTest  = t.first;
         auto expectedRes = p.second.first && ns.second.first && t.second.first;
-        auto actualRes   = transport::TopicUtils::GetFullyQualifiedName(
+        auto actualRes   = transport::TopicUtils::FullyQualifiedName(
           pUnderTest, nsUnderTest, tUnderTest, actualTopic);
         ASSERT_TRUE(expectedRes == actualRes);
 

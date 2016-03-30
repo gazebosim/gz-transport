@@ -16,6 +16,7 @@
 */
 #include <chrono>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "msgs/ign_vector3d.pb.h"

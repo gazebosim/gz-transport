@@ -17,6 +17,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 #include "ignition/transport/TopicUtils.hh"
@@ -203,7 +204,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::msgs::IgnInt goodRep;
   transport::msgs::IgnVector3d badRep;
   bool result;
-  unsigned int timeout = 1000;
+  unsigned int timeout = 2000;
 
   std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
@@ -237,6 +238,56 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   reset();
 
   // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a service and the other uses Serviceist() for getting the list of
+/// available services.
+TEST(twoProcSrvCall, ServiceList)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  std::vector<std::string> services;
+  auto start1 = std::chrono::steady_clock::now();
+  node.ServiceList(services);
+  auto end1 = std::chrono::steady_clock::now();
+  ASSERT_EQ(services.size(), 1u);
+  EXPECT_EQ(services.at(0), topic);
+  services.clear();
+
+  // Time elapsed to get the first service list
+  auto elapsed1 = end1 - start1;
+
+  auto start2 = std::chrono::steady_clock::now();
+  node.ServiceList(services);
+  auto end2 = std::chrono::steady_clock::now();
+  EXPECT_EQ(services.size(), 1u);
+  EXPECT_EQ(services.at(0), topic);
+
+  // The first ServiceList() call might block if the discovery is still
+  // initializing (it may happen if we run this test alone).
+  // However, the second call should never block.
+  auto elapsed2 = end2 - start2;
+  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
+      (elapsed2).count(), 2);
+
+  EXPECT_LE(elapsed2, elapsed1);
+
+  reset();
+
   testing::waitAndCleanupFork(pi);
 }
 

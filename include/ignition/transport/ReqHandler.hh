@@ -18,11 +18,19 @@
 #ifndef __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 #define __IGN_TRANSPORT_REQHANDLER_HH_INCLUDED__
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <condition_variable>
 #include <functional>
 #include <memory>
 #include <string>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -37,7 +45,7 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _uuid UUID of the node registering the request handler.
-      public: IReqHandler(const std::string &_nUuid)
+      public: explicit IReqHandler(const std::string &_nUuid)
         : rep(""),
           result(false),
           hUuid(Uuid().ToString()),
@@ -127,11 +135,11 @@ namespace ignition
 
       /// \brief Get the message type name used in the service request.
       /// \return Message type name.
-      public: virtual std::string GetReqTypeName() const = 0;
+      public: virtual std::string ReqTypeName() const = 0;
 
       /// \brief Get the message type name used in the service response.
       /// \return Message type name.
-      public: virtual std::string GetRepTypeName() const = 0;
+      public: virtual std::string RepTypeName() const = 0;
 
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
@@ -168,7 +176,7 @@ namespace ignition
       : public IReqHandler
     {
       // Documentation inherited.
-      public: ReqHandler(const std::string &_nUuid)
+      public: explicit ReqHandler(const std::string &_nUuid)
         : IReqHandler(_nUuid)
       {
       }
@@ -196,7 +204,7 @@ namespace ignition
       /// \param[in] _rep Protobuf message containing the service response.
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
-      public: void Callback(const std::function <void(
+      public: void SetCallback(const std::function <void(
         const Rep &_rep, const bool _result)> &_cb)
       {
         this->cb = _cb;
@@ -205,7 +213,7 @@ namespace ignition
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
-      public: void Message(const Req &_reqMsg)
+      public: void SetMessage(const Req &_reqMsg)
       {
         this->reqMsg = _reqMsg;
       }
@@ -245,18 +253,18 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: virtual std::string GetReqTypeName() const
+      public: virtual std::string ReqTypeName() const
       {
         return Req().GetTypeName();
       }
 
       // Documentation inherited.
-      public: virtual std::string GetRepTypeName() const
+      public: virtual std::string RepTypeName() const
       {
         return Rep().GetTypeName();
       }
 
-      // Protobuf message containing the request's parameters.
+      /// \brief Protobuf message containing the request's parameters.
       private: Req reqMsg;
 
       /// \brief Callback to the function registered for this handler with the

@@ -19,16 +19,18 @@
 #define __IGN_TRANSPORT_REPHANDLER_HH_INCLUDED__
 
 #ifdef _MSC_VER
-# pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
 #ifdef _MSC_VER
-# pragma warning(pop)
+#pragma warning(pop)
 #endif
+
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -77,11 +79,11 @@ namespace ignition
 
       /// \brief Get the message type name used in the service request.
       /// \return Message type name.
-      public: virtual std::string GetReqTypeName() const = 0;
+      public: virtual std::string ReqTypeName() const = 0;
 
       /// \brief Get the message type name used in the service response.
       /// \return Message type name.
-      public: virtual std::string GetRepTypeName() const = 0;
+      public: virtual std::string RepTypeName() const = 0;
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
@@ -105,7 +107,7 @@ namespace ignition
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
-      public: void Callback(const std::function
+      public: void SetCallback(const std::function
         <void(const Req &, Rep &, bool &)> &_cb)
       {
         this->cb = _cb;
@@ -167,13 +169,13 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: virtual std::string GetReqTypeName() const
+      public: virtual std::string ReqTypeName() const
       {
         return Req().GetTypeName();
       }
 
       // Documentation inherited.
-      public: virtual std::string GetRepTypeName() const
+      public: virtual std::string RepTypeName() const
       {
         return Rep().GetTypeName();
       }
@@ -197,8 +199,7 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function
-        <void(const Req &, Rep &, bool &)> cb;
+      private: std::function<void(const Req &, Rep &, bool &)> cb;
     };
   }
 }

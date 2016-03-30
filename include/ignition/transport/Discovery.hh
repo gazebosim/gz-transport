@@ -18,10 +18,6 @@
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 
-#ifdef _MSC_VER
-# pragma warning(push, 0)
-#endif
-
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
   #include <Winsock2.h>
@@ -38,9 +34,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Packet.hh"
@@ -187,24 +180,24 @@ namespace ignition
       public: unsigned int SilenceInterval() const;
 
       /// \brief Set the activity interval.
-      /// \sa GetActivityInterval.
+      /// \sa ActivityInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void ActivityInterval(const unsigned int _ms);
+      public: void SetActivityInterval(const unsigned int _ms);
 
       /// \brief Set the heartbeat interval.
-      /// \sa GetHeartbeatInterval.
+      /// \sa HeartbeatInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void HeartbeatInterval(const unsigned int _ms);
+      public: void SetHeartbeatInterval(const unsigned int _ms);
 
       /// \brief Set the advertise interval.
-      /// \sa GetAdvertiseInterval.
+      /// \sa AdvertiseInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void AdvertiseInterval(const unsigned int _ms);
+      public: void SetAdvertiseInterval(const unsigned int _ms);
 
       /// \brief Set the maximum silence interval.
-      /// \sa GetSilenceInterval.
+      /// \sa SilenceInterval.
       /// \param[in] _ms New value in milliseconds.
-      public: void SilenceInterval(const unsigned int _ms);
+      public: void SetSilenceInterval(const unsigned int _ms);
 
       /// \brief Register a callback to receive discovery connection events.
       /// Each time a new topic is connected, the callback will be executed.
@@ -330,8 +323,7 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       private: template<typename T> void SendMsg(uint8_t _type,
-                                                 const T &_pub,
-                                                 int _flags = 0) const
+          const T &_pub, const uint16_t _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -353,7 +345,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(advMsg.MsgLength());
             advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = advMsg.MsgLength();
+            msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -365,7 +357,7 @@ namespace ignition
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
             subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = subMsg.MsgLength();
+            msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:
@@ -387,6 +379,7 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
+          std::lock_guard<std::recursive_mutex> lock(this->Mutex());
           if (sendto(sock, reinterpret_cast<const raw_type *>(
             reinterpret_cast<unsigned char*>(&buffer[0])),
             msgLength, 0, reinterpret_cast<sockaddr *>(this->MulticastAddr()),
@@ -432,4 +425,5 @@ namespace ignition
     };
   }
 }
+
 #endif

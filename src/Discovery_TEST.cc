@@ -16,9 +16,11 @@
 */
 
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
@@ -184,7 +186,7 @@ void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
 class MyClass
 {
   /// \brief Class constructor.
-  public: MyClass(const std::string &_pUuid)
+  public: explicit MyClass(const std::string &_pUuid)
   {
     this->discov.reset(new transport::Discovery(_pUuid));
   }
@@ -293,10 +295,10 @@ TEST(DiscoveryTest, TestBasicAPI)
   // Create a discovery node.
   transport::Discovery discovery(pUuid1);
 
-  discovery.SilenceInterval(newSilenceInterval);
-  discovery.ActivityInterval(newActivityInterval);
-  discovery.AdvertiseInterval(newAdvertiseInterval);
-  discovery.HeartbeatInterval(newHeartbeatInterval);
+  discovery.SetSilenceInterval(newSilenceInterval);
+  discovery.SetActivityInterval(newActivityInterval);
+  discovery.SetAdvertiseInterval(newAdvertiseInterval);
+  discovery.SetHeartbeatInterval(newHeartbeatInterval);
   EXPECT_EQ(discovery.SilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery.ActivityInterval(), newActivityInterval);
   EXPECT_EQ(discovery.AdvertiseInterval(), newAdvertiseInterval);
@@ -948,7 +950,13 @@ TEST(DiscoveryTest, TestActivity)
 TEST(DiscoveryTest, WrongIgnIp)
 {
   // Save the current value of IGN_IP environment variable.
-  char *ipEnv = std::getenv("IGN_IP");
+  char *ipEnv;
+#ifdef _MSC_VER
+  size_t sz = 0;
+  _dupenv_s(&ipEnv, &sz, "IGN_IP");
+#else
+  ipEnv = std::getenv("IGN_IP");
+#endif
 
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);

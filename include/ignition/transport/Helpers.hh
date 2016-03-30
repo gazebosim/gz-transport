@@ -18,6 +18,9 @@
 #ifndef __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 #define __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
 
+#include <cstdio>
+#include <cstring>
+
 /// \def IGNITION_VISIBLE
 /// Use to represent "symbol visible" if supported
 
@@ -79,6 +82,19 @@
     #endif
   #endif
 // BUILDING_STATIC_LIBS
+#endif
+
+// Use safer functions on Windows
+#ifdef _MSC_VER
+  #define ign_strcat strcat_s
+  #define ign_strcpy strcpy_s
+  #define ign_sprintf sprintf_s
+  #define ign_strdup _strdup
+#else
+  #define ign_strcat std::strcat
+  #define ign_strcpy std::strcpy
+  #define ign_sprintf std::sprintf
+  #define ign_strdup strdup
 #endif
 
 // __IGN_TRANSPORT_HELPERS_HH_INCLUDED__

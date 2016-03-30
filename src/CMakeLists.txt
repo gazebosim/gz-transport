@@ -35,21 +35,30 @@ include_directories(${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
 
+set_source_files_properties(${PROTO_HEADER}
+  PROPERTIES COMPILE_FLAGS -Wno-shadow)
+set_source_files_properties(${PROTO_SRC}
+  PROPERTIES COMPILE_FLAGS -Wno-shadow)
+
 if (UNIX)
-  ign_add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${sources})
+  ign_add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${sources} ${PROTO_SRC})
 elseif(WIN32)
   # Probotuf compilation is recommended and configured for a STATIC .lib
   # Not mixing static and shared and just build ignition transport as STATIC
   # on Windows
-  add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} STATIC ${sources})
+  add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} STATIC ${sources} ${PROTO_SRC})
 endif()
+
+# Make sure that we generate the protobuf messages first.
+add_dependencies(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+  protobuf_compilation
+)
 
 # Protobuf module does not have LIBRARIES but LIBRARY
 message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES}
-                      ${PROJECT_MSGS_NAME}${PROJECT_MAJOR_VERSION})
+                      ${uuid_LIBRARIES})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ws2_32 Iphlpapi

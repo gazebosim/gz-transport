@@ -20,6 +20,7 @@
 
 #include <string>
 #include <unordered_set>
+
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodeOptions.hh"
@@ -54,7 +55,7 @@ namespace ignition
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = NodeShared::GetInstance();
+      public: NodeShared *shared = NodeShared::Instance();
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();

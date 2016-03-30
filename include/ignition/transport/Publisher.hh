@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
@@ -53,38 +54,53 @@ namespace ignition
 
       /// \brief Get the topic published by this publisher.
       /// \return Topic name.
+      /// \sa SetTopic.
       public: std::string Topic() const;
 
       /// \brief Get the ZeroMQ address of the publisher.
       /// \return ZeroMQ address.
+      /// \sa SetAddr.
       public: std::string Addr() const;
 
       /// \brief Get the process UUID of the publisher.
       /// return Process UUID.
+      /// \sa SetPUuid.
       public: std::string PUuid() const;
 
       /// \brief Get the node UUID of the publisher.
       /// \return Node UUID.
+      /// \sa SetNUuid.
       public: std::string NUuid() const;
 
       /// \brief Get the scope of the publisher's topic.
       /// \return Scope of the topic advertised by the publisher.
+      /// \sa SetScope.
       public: Scope_t Scope() const;
 
       /// \brief Set the topic name published by this publisher.
-      public: void Topic(const std::string &_topic);
+      /// \param[in] _topic New topic name.
+      /// \sa Topic.
+      public: void SetTopic(const std::string &_topic);
 
       /// \brief Set ZeroMQ address of the publisher.
-      public: void Addr(const std::string &_addr);
+      /// \param[in] _addr New address.
+      /// \sa Addr.
+      public: void SetAddr(const std::string &_addr);
 
       /// \brief Set the process UUID of the publisher.
-      public: void PUuid(const std::string &_pUuid);
+      /// \param[in] _pUuid New process UUID.
+      /// \sa PUuid.
+      public: void SetPUuid(const std::string &_pUuid);
 
       /// \brief Set the node UUID of the publisher.
-      public: void NUuid(const std::string &_nUuid);
+      /// \param[in] _nUuid New node UUID.
+      /// \sa NUuid.
+      public: void SetNUuid(const std::string &_nUuid);
 
       /// \brief Set the scope of the topic advertised by this publisher.
-      public: void Scope(const Scope_t &_scope);
+      /// \param[in] _scope New scope.
+      /// \sa Scope.
+      public: void SetScope(const Scope_t &_scope);
 
       /// \brief Serialize the publisher. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -178,17 +194,22 @@ namespace ignition
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
       /// \return ZeroMQ control address of the publisher.
+      /// \sa SetCtrl.
       public: std::string Ctrl() const;
 
       /// \brief Set the ZeroMQ control address of the publisher.
-      public: void Ctrl(const std::string &_ctrl);
+      /// \param[in] _ctrl New control address.
+      /// \sa Ctrl.
+      public: void SetCtrl(const std::string &_ctrl);
 
       /// \brief Get the message type advertised by this publisher.
       /// \return Message type.
       public: std::string MsgTypeName() const;
 
       /// \brief Set the message type advertised by this publisher.
-      public: void MsgTypeName(const std::string &_msgTypeName);
+      /// \param[in] _msgTypeName New message type.
+      /// \sa MsgTypeName.
+      public: void SetMsgTypeName(const std::string &_msgTypeName);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -249,26 +270,33 @@ namespace ignition
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
+      /// \sa SetSocketId.
       public: std::string SocketId() const;
 
       /// \brief Set the ZeroMQ socket ID for this publisher.
-      public: void SocketId(const std::string &_socketId);
+      /// \param[in] _socketId New socket ID.
+      /// \sa SocketId.
+      public: void SetSocketId(const std::string &_socketId);
 
       /// \brief Get the name of the request's protobuf message advertised.
       /// \return The protobuf message type.
+      /// \sa SetReqTypeName.
       public: std::string ReqTypeName() const;
 
       /// \brief Get the name of the response's protobuf message advertised.
       /// \return The protobuf message type.
+      /// \sa SetRepTypeName.
       public: std::string RepTypeName() const;
 
       /// \brief Set the name of the request's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void ReqTypeName(const std::string &_reqTypeName);
+      /// \sa ReqTypeName.
+      public: void SetReqTypeName(const std::string &_reqTypeName);
 
       /// \brief Set the name of the response's protobuf message advertised.
       /// \param[in] The protobuf message type.
-      public: void RepTypeName(const std::string &_repTypeName);
+      /// \sa RepTypeName.
+      public: void SetRepTypeName(const std::string &_repTypeName);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -287,7 +315,7 @@ namespace ignition
       /// ZeroMQ socket ID used by this publisher.
       protected: std::string socketId;
 
-       /// \brief The name of the request's protobuf message advertised.
+      /// \brief The name of the request's protobuf message advertised.
       private: std::string reqTypeName;
 
       /// \brief The name of the response's protobuf message advertised.
