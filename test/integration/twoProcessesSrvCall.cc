@@ -256,7 +256,7 @@ TEST(twoProcSrvCall, ServiceList)
   reset();
 
   // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   transport::Node node;
   std::vector<std::string> services;
