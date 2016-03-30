@@ -62,6 +62,7 @@ void cbVector(const transport::msgs::Vector3d &/*_msg*/)
 /// subscriber processs there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
+
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
 {
   std::string subscriberPath = testing::portablePathUnion(
@@ -166,11 +167,11 @@ TEST(twoProcPubSub, TopicList)
 
   reset();
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
   transport::Node node;
   std::vector<std::string> topics;
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   auto start1 = std::chrono::steady_clock::now();
   node.TopicList(topics);

@@ -255,10 +255,11 @@ TEST(twoProcSrvCall, ServiceList)
 
   reset();
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
   transport::Node node;
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
   std::vector<std::string> services;
   auto start1 = std::chrono::steady_clock::now();
   node.ServiceList(services);
