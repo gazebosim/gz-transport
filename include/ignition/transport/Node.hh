@@ -584,6 +584,13 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics) const;
 
+      /// \brief Get the information about a topic.
+      /// \param[in] _topic Name of the topic.
+      /// \param[out] _publishers List of publishers on the topic
+      /// \return False if unable to get topic info
+      public: bool TopicInfo(const std::string &_topic,
+                             std::vector<MessagePublisher> &_publishers) const;
+
       /// \brief Get the list of topics currently advertised in the network.
       /// Note that this function can block for some time if the
       /// discovery is in its initialization phase.

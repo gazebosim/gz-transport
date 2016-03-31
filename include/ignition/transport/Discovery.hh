@@ -296,6 +296,10 @@ namespace ignition
       /// \return The discovery mutex.
       public: std::recursive_mutex& Mutex() const;
 
+      /// \brief Check if ready/initialized. If not, then wait on the
+      /// initializedCv condition variable.
+      public: void WaitForInit() const;
+
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalids the old topics.

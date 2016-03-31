@@ -44,6 +44,43 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+
+  Node node;
+
+  // Get the publishers on the requested topic
+  std::vector<MessagePublisher> publishers;
+  node.TopicInfo(_topic, publishers);
+
+  if (!publishers.empty())
+  {
+    std::cout << "Message type:\n  "
+      << publishers.front().MsgTypeName() << std::endl;
+
+    std::cout << "\nPublishers:\n";
+
+    /// List the publishers
+    for (std::vector<MessagePublisher>::iterator iter = publishers.begin();
+        iter != publishers.end(); ++iter)
+    {
+      std::cout << "  " << (*iter).Addr() << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No publishers on topic [" << _topic << "]\n";
+  }
+
+  // TODO: Add subscribers lists
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdServiceList()
 {
   Node node;

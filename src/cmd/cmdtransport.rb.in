@@ -39,6 +39,8 @@ COMMANDS = {  'topic' =>
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
                        "  -l [ --list ]              List all topics.\n" +
+                       "  -i [ --info ] arg          Get info about a topic." +
+                       " Where 'arg' is a topic name.\n"+
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
@@ -72,8 +74,12 @@ class Cmd
       opts.on('-l', '--list', 'Print information about topics') do |l|
         options['list'] = l
       end
-    end
 
+      opts.on('-i topic', '--info topic', String,
+              'Print information about a topic') do |t|
+        options['info'] = t
+      end
+    end
     begin
       opt_parser.parse!(args)
     rescue
@@ -84,7 +90,7 @@ class Cmd
     # Check that there is at least one command and there is a plugin that knows
     # how to handle it.
     if ARGV.empty? || !COMMANDS.key?(ARGV[0]) ||
-       options.empty? || options.empty?
+       options.empty?
       puts usage
       exit(-1)
     end
@@ -134,6 +140,9 @@ class Cmd
         if options.key?('list')
           Importer.extern 'void cmdTopicList()'
           Importer.cmdTopicList
+        elsif options.key?('info')
+          Importer.extern 'void cmdTopicInfo(const char *)'
+          Importer.cmdTopicInfo(options['info'])
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'

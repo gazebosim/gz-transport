@@ -1128,45 +1128,17 @@ void Discovery::PrintCurrentState() const
 //////////////////////////////////////////////////
 void Discovery::TopicList(std::vector<std::string> &_topics) const
 {
-  bool ready;
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-    ready = this->dataPtr->initialized;
-  }
-
-  if (!ready)
-  {
-    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
-    this->dataPtr->initializedCv.wait(
-        lk, [this]{return this->dataPtr->initialized;});
-  }
-
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-    this->dataPtr->infoMsg.TopicList(_topics);
-  }
+  this->WaitForInit();
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->infoMsg.TopicList(_topics);
 }
 
 //////////////////////////////////////////////////
 void Discovery::ServiceList(std::vector<std::string> &_services) const
 {
-  bool ready;
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-    ready = this->dataPtr->initialized;
-  }
-
-  if (!ready)
-  {
-    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
-    this->dataPtr->initializedCv.wait(
-        lk, [this]{return this->dataPtr->initialized;});
-  }
-
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-    this->dataPtr->infoSrv.TopicList(_services);
-  }
+  this->WaitForInit();
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->infoSrv.TopicList(_services);
 }
 
 //////////////////////////////////////////////////
@@ -1216,4 +1188,21 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////
+void Discovery::WaitForInit() const
+{
+  bool ready;
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+    ready = this->dataPtr->initialized;
+  }
+
+  if (!ready)
+  {
+    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
+    this->dataPtr->initializedCv.wait(
+       lk, [this]{return this->dataPtr->initialized;});
+  }
 }

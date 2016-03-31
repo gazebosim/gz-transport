@@ -203,6 +203,44 @@ TEST(twoProcPubSub, TopicList)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a topic and the other uses TopicList() for getting the list of
+/// available topics.
+TEST(twoProcPubSub, TopicInfo)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  std::vector<transport::MessagePublisher> publishers;
+
+  auto start1 = std::chrono::steady_clock::now();
+  EXPECT_FALSE(node.TopicInfo("@", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_FALSE(node.TopicInfo("/bogus", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_TRUE(node.TopicInfo("/foo", publishers));
+  EXPECT_EQ(publishers.size(), 1u);
+  EXPECT_EQ(publishers.front().MsgTypeName(),
+            "ignition.transport.msgs.Vector3d");
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.
