@@ -525,7 +525,7 @@ void NodeShared::RecvSrvRequest()
       {
         this->replier->connect(sender.c_str());
         this->srvConnections.push_back(sender);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         if (this->verbose)
         {
@@ -704,7 +704,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   {
     this->requester->connect(responserAddr.c_str());
     this->srvConnections.push_back(responserAddr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (this->verbose)
     {
       std::cout << "\t* Connected to [" << responserAddr
@@ -839,7 +839,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
       socket.connect(ctrl.c_str());
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       std::map<std::string, ISubscriptionHandler_M> handlers;
       if (this->localSubscriptions.Handlers(topic, handlers))
@@ -952,7 +952,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   {
     this->requester->connect(addr.c_str());
     this->srvConnections.push_back(addr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (this->verbose)
     {
       std::cout << "\t* Connected to [" << addr
