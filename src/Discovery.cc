@@ -687,12 +687,19 @@ void Discovery::RunHeartbeatTask()
 
     {
       std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
+
       if (!this->dataPtr->initialized)
       {
-        this->dataPtr->initialized = true;
+        ++this->dataPtr->numHeartbeatsUninitialized;
+        if (this->dataPtr->numHeartbeatsUninitialized == 2)
+        {
+          // We consider the discovery initialized after two cycles of
+          // heartbeats sent.
+          this->dataPtr->initialized = true;
 
-        // Notify anyone waiting for the initialization phase to finish.
-        this->dataPtr->initializedCv.notify_all();
+          // Notify anyone waiting for the initialization phase to finish.
+          this->dataPtr->initializedCv.notify_all();
+        }
       }
     }
 

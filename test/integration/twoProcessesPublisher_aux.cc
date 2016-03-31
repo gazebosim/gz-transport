@@ -41,7 +41,7 @@ void advertiseAndPublish()
   node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   node.Publish(topic, msg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 //////////////////////////////////////////////////
