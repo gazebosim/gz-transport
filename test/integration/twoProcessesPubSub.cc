@@ -224,7 +224,6 @@ TEST(twoProcPubSub, TopicInfo)
   transport::Node node;
   std::vector<transport::MessagePublisher> publishers;
 
-  auto start1 = std::chrono::steady_clock::now();
   EXPECT_FALSE(node.TopicInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);
 
