@@ -60,16 +60,14 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
 
   if (!publishers.empty())
   {
-    std::cout << "Message type:\n  "
-      << publishers.front().MsgTypeName() << std::endl;
-
-    std::cout << "\nPublishers:\n";
+    std::cout << "Publishers [Address, Message Type]:\n";
 
     /// List the publishers
     for (std::vector<MessagePublisher>::iterator iter = publishers.begin();
         iter != publishers.end(); ++iter)
     {
-      std::cout << "  " << (*iter).Addr() << std::endl;
+      std::cout << "  " << (*iter).Addr() << ", "
+        << (*iter).MsgTypeName() << std::endl;
     }
   }
   else

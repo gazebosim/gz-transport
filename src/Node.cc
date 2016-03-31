@@ -474,8 +474,6 @@ bool Node::TopicInfo(const std::string &_topic,
 {
   this->dataPtr->shared->discovery->WaitForInit();
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -484,6 +482,8 @@ bool Node::TopicInfo(const std::string &_topic,
     return false;
   }
 
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
   // Get all the publishers on the given topics
   MsgAddresses_M pubs;
   if (!this->dataPtr->shared->discovery->MsgPublishers(
@@ -491,6 +491,8 @@ bool Node::TopicInfo(const std::string &_topic,
   {
     return false;
   }
+
+  _publishers.clear();
 
   // Copy the publishers.
   for (MsgAddresses_M::iterator iter = pubs.begin(); iter != pubs.end(); ++iter)
