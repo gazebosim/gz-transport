@@ -218,11 +218,11 @@ TEST(twoProcPubSub, TopicInfo)
 
   reset();
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
   transport::Node node;
   std::vector<transport::MessagePublisher> publishers;
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   EXPECT_FALSE(node.TopicInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);
