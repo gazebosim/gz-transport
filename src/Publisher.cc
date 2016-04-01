@@ -223,6 +223,20 @@ size_t Publisher::MsgLength() const
 }
 
 //////////////////////////////////////////////////
+bool Publisher::operator==(const Publisher &_pub) const
+{
+  return this->topic == _pub.topic && this->addr == _pub.addr &&
+    this->pUuid == _pub.pUuid && this->nUuid == _pub.nUuid &&
+    this->scope == _pub.scope;
+}
+
+//////////////////////////////////////////////////
+bool Publisher::operator!=(const Publisher &_pub) const
+{
+  return !(*this == _pub);
+}
+
+//////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const Scope_t &_scope,
@@ -339,6 +353,20 @@ std::string MessagePublisher::MsgTypeName() const
 void MessagePublisher::SetMsgTypeName(const std::string &_msgTypeName)
 {
   this->msgTypeName = _msgTypeName;
+}
+
+//////////////////////////////////////////////////
+bool MessagePublisher::operator==(const MessagePublisher &_pub) const
+{
+  return Publisher::operator==(_pub) &&
+    this->ctrl == _pub.ctrl &&
+    this->msgTypeName == _pub.msgTypeName;
+}
+
+//////////////////////////////////////////////////
+bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
+{
+  return !(*this == _pub);
 }
 
 //////////////////////////////////////////////////
@@ -491,4 +519,19 @@ void ServicePublisher::SetReqTypeName(const std::string &_reqTypeName)
 void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
 {
   this->repTypeName = _repTypeName;
+}
+
+//////////////////////////////////////////////////
+bool ServicePublisher::operator==(const ServicePublisher &_srv) const
+{
+  return Publisher::operator==(_srv) &&
+    this->socketId == _srv.socketId &&
+    this->reqTypeName == _srv.reqTypeName &&
+    this->repTypeName == _srv.repTypeName;
+}
+
+//////////////////////////////////////////////////
+bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
+{
+  return !(*this == _srv);
 }

@@ -58,6 +58,10 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.NUuid(), NUuid);
   EXPECT_EQ(publisher.Scope(), Scope);
 
+  Publisher pub2(publisher);
+  EXPECT_TRUE(publisher == pub2);
+  EXPECT_FALSE(publisher != pub2);
+
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
   publisher.SetAddr(NewAddr);
@@ -119,6 +123,10 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(publisher.NUuid(), NUuid);
   EXPECT_EQ(publisher.Scope(), Scope);
   EXPECT_EQ(publisher.MsgTypeName(), MsgTypeName);
+
+  MessagePublisher pub2(publisher);
+  EXPECT_TRUE(publisher == pub2);
+  EXPECT_FALSE(publisher != pub2);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
@@ -189,6 +197,10 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(publisher.Scope(), Scope);
   EXPECT_EQ(publisher.ReqTypeName(), ReqTypeName);
   EXPECT_EQ(publisher.RepTypeName(), RepTypeName);
+
+  ServicePublisher pub2(publisher);
+  EXPECT_TRUE(publisher == pub2);
+  EXPECT_FALSE(publisher != pub2);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
