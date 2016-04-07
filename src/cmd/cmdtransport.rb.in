@@ -38,17 +38,18 @@ COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n"\
                        "  ign topic [options]\n\n"\
                        "Options:\n\n"\
-                       "  -l [ --list ]              List all topics.\n" +
                        "  -i [ --info ] arg          Get info about a topic." +
-                       " Where 'arg' is a topic name.\n"+
+                       " 'arg' is a topic name.\n"+
+                       "  -l [ --list ]              List all topics.\n" +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
+                       "  -i [ --info ] arg          Get info about a service."+
+                       " 'arg' is a service name.\n" +
                        "  -l [ --list ]              List all services.\n" +
                        COMMON_OPTIONS
-
             }
 
 #
@@ -151,6 +152,9 @@ class Cmd
         if options.key?('list')
           Importer.extern 'void cmdServiceList()'
           Importer.cmdServiceList
+        elsif options.key?('info')
+          Importer.extern 'void cmdServiceInfo(const char *)'
+          Importer.cmdServiceInfo(options['info'])
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'

@@ -599,6 +599,13 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
+      /// \brief Get the information about a service.
+      /// \param[in] _service Name of the service.
+      /// \param[out] _publishers List of publishers on the service.
+      /// \return False if unable to get service info.
+      public: bool ServiceInfo(const std::string &_service,
+                              std::vector<ServicePublisher> &_publishers) const;
+
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
       private: const std::string &Partition() const;
