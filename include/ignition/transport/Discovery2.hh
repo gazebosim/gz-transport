@@ -15,6 +15,13 @@
  *
 */
 
+//  start
+//  advertise
+//  unadvertise
+//  discover
+//  Info
+//  Publisher
+
 #ifndef __IGN_TRANSPORT_DISCOVERY2_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY2_HH_INCLUDED__
 
@@ -215,21 +222,13 @@ namespace ignition
         // Wait for the service threads to finish before exit.
         if (this->threadReception.joinable())
           this->threadReception.join();
-
-        if (this->threadHeartbeat.joinable())
-          this->threadHeartbeat.join();
-
-        if (this->threadActivity.joinable())
-          this->threadActivity.join();
       #else
         bool exitLoop = false;
         while (!exitLoop)
         {
-          std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
+          std::lock_guard<std::mutex> lock(this->exitMutex);
           {
-            if (this->threadReceptionExiting &&
-                this->threadHeartbeatExiting &&
-                this->threadActivityExiting)
+            if (this->threadReceptionExiting)
             {
               exitLoop = true;
             }
@@ -260,32 +259,23 @@ namespace ignition
       /// service.
       public: void Start()
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
 
-        // The service is already running.
-        if (this->enabled)
-          return;
+          // The service is already running.
+          if (this->enabled)
+            return;
 
-        this->enabled = true;
+          this->enabled = true;
+        }
 
         // Start the thread that receives discovery information.
         this->threadReception =
           std::thread(&Discovery2::RunReceptionTask, this);
 
-        // Start the thread that sends heartbeats.
-        this->threadHeartbeat =
-          std::thread(&Discovery2::RunHeartbeatTask, this);
-
-        // Start the thread that checks the topic information validity.
-        this->threadActivity = std::thread(&Discovery2::RunActivityTask, this);
-
       #ifdef _WIN32
         this->threadReceptionExiting = false;
-        this->threadHeartbeatExiting = false;
-        this->threadActivityExiting = false;
         this->threadReception.detach();
-        this->threadHeartbeat.detach();
-        this->threadActivity.detach();
       #endif
       }
 
@@ -295,13 +285,15 @@ namespace ignition
       /// (e.g. if the discovery has not been started).
       public: bool Advertise(const Pub &_publisher)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
 
-        if (!this->enabled)
-          return false;
+          if (!this->enabled)
+            return false;
 
-        // Add the addressing information (local publisher).
-        this->info.AddPublisher(_publisher);
+          // Add the addressing information (local publisher).
+          this->info.AddPublisher(_publisher);
+        }
 
         // Only advertise a message outside this process if the scope is not 'Process'
         if (_publisher.Scope() != Scope_t::PROCESS)
@@ -327,21 +319,24 @@ namespace ignition
         Addresses_M<Pub> addresses;
 
         {
-          std::lock_guard<std::recursive_mutex> lock(this->mutex);
+          std::lock_guard<std::mutex> lock(this->mutex);
 
           if (!this->enabled)
             return false;
 
           cb = this->connectionCb;
+        }
 
-          Pub pub;
-          pub.SetTopic(_topic);
-          pub.SetPUuid(this->pUuid);
-          pub.SetScope(Scope_t::ALL);
+        Pub pub;
+        pub.SetTopic(_topic);
+        pub.SetPUuid(this->pUuid);
+        pub.SetScope(Scope_t::ALL);
 
-          // Broadcast a discovery request for this service call.
-          this->SendMsg(SubType, pub);
+        // Broadcast a discovery request for this service call.
+        this->SendMsg(SubType, pub);
 
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
           found = this->info.Publishers(_topic, addresses);
         }
 
@@ -370,7 +365,7 @@ namespace ignition
       /// \return Reference to the discovery information object.
       public: const TopicStorage<Pub> &Info() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->info;
       }
 
@@ -381,7 +376,7 @@ namespace ignition
       public: bool Publishers(const std::string &_topic,
                               Addresses_M<Pub> &_publishers)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->info.Publishers(_topic, _publishers);
       }
 
@@ -395,18 +390,20 @@ namespace ignition
       public: bool Unadvertise(const std::string &_topic,
                                   const std::string &_nUuid)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-        if (!this->enabled)
-          return false;
-
         Pub inf;
-        // Don't do anything if the topic is not advertised by any of my nodes.
-        if (!this->info.Publisher(_topic, this->pUuid, _nUuid, inf))
-          return true;
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
 
-        // Remove the topic information.
-        this->info.DelPublisherByNode(_topic, this->pUuid, _nUuid);
+          if (!this->enabled)
+            return false;
+
+          // Don't do anything if the topic is not advertised by any of my nodes.
+          if (!this->info.Publisher(_topic, this->pUuid, _nUuid, inf))
+            return true;
+
+          // Remove the topic information.
+          this->info.DelPublisherByNode(_topic, this->pUuid, _nUuid);
+        }
 
         // Only unadvertise a message outside this process if the scope
         // is not 'Process'.
@@ -420,7 +417,7 @@ namespace ignition
       /// \return A string with this host's IP address.
       public: std::string HostAddr() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->hostAddr;
       }
 
@@ -430,7 +427,7 @@ namespace ignition
       /// \return The value in milliseconds.
       public: unsigned int ActivityInterval() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->activityInterval;
       }
 
@@ -441,7 +438,7 @@ namespace ignition
       /// \return The value in milliseconds.
       public: unsigned int HeartbeatInterval() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->heartbeatInterval;
       }
 
@@ -451,7 +448,7 @@ namespace ignition
       /// \return The value in milliseconds.
       public: unsigned int AdvertiseInterval() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->advertiseInterval;
       }
 
@@ -461,7 +458,7 @@ namespace ignition
       /// \return The value in milliseconds.
       public: unsigned int SilenceInterval() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         return this->silenceInterval;
       }
 
@@ -470,7 +467,7 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetActivityInterval(const unsigned int _ms)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->activityInterval = _ms;
       }
 
@@ -479,7 +476,7 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetHeartbeatInterval(const unsigned int _ms)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->heartbeatInterval = _ms;
       }
 
@@ -488,7 +485,7 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetAdvertiseInterval(const unsigned int _ms)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->advertiseInterval = _ms;
       }
 
@@ -497,7 +494,7 @@ namespace ignition
       /// \param[in] _ms New value in milliseconds.
       public: void SetSilenceInterval(const unsigned int _ms)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->silenceInterval = _ms;
       }
 
@@ -507,7 +504,7 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: void ConnectionsCb(const DiscoveryCallback<Pub> &_cb)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->connectionCb = _cb;
       }
 
@@ -517,14 +514,14 @@ namespace ignition
       /// \param[in] _cb Function callback.
       public: void DisconnectionsCb(const DiscoveryCallback<Pub> &_cb)
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->disconnectionCb = _cb;
       }
 
       /// \brief Print the current discovery state (info, activity, unknown).
       public: void PrintCurrentState() const
       {
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
 
         std::cout << "---------------" << std::endl;
         std::cout << std::boolalpha << "Enabled: "
@@ -570,13 +567,13 @@ namespace ignition
       public: void TopicList(std::vector<std::string> &_topics) const
       {
         this->WaitForInit();
-        std::lock_guard<std::recursive_mutex> lock(this->mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->info.TopicList(_topics);
       }
 
       /// \brief Get mutex used in the Discovery class.
       /// \return The discovery mutex.
-      public: std::recursive_mutex& Mutex() const
+      public: std::mutex& Mutex() const
       {
         return this->mutex;
       }
@@ -587,13 +584,13 @@ namespace ignition
       {
         bool ready;
         {
-          std::lock_guard<std::recursive_mutex> lock(this->mutex);
+          std::lock_guard<std::mutex> lock(this->mutex);
           ready = this->initialized;
         }
 
         if (!ready)
         {
-          std::unique_lock<std::recursive_mutex> lk(this->mutex);
+          std::unique_lock<std::mutex> lk(this->mutex);
           this->initializedCv.wait(
              lk, [this]{return this->initialized;});
         }
@@ -604,123 +601,98 @@ namespace ignition
       /// and invalids the old topics.
       private: void RunActivityTask()
       {
-        bool timeToExit = false;
-        while (!timeToExit)
+        Timestamp now = std::chrono::steady_clock::now();
+
+        std::lock_guard<std::mutex> lock(this->mutex);
+
+        std::chrono::duration<double> elapsed = now - this->timeLastActivity;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>
+           (elapsed).count() < this->activityInterval)
         {
-          this->mutex.lock();
-
-          Timestamp now = std::chrono::steady_clock::now();
-          for (auto it = this->activity.cbegin();
-                 it != this->activity.cend();)
-          {
-            // Elapsed time since the last update from this publisher.
-            std::chrono::duration<double> elapsed = now - it->second;
-
-            // This publisher has expired.
-            if (std::chrono::duration_cast<std::chrono::milliseconds>
-                 (elapsed).count() > this->silenceInterval)
-            {
-              // Remove all the info entries for this process UUID.
-              this->info.DelPublishersByProc(it->first);
-
-              // Notify without topic information. This is useful to inform the client
-              // that a remote node is gone, even if we were not interested in its
-              // topics.
-              Pub publisher;
-              publisher.SetPUuid(it->first);
-              publisher.SetScope(Scope_t::ALL);
-              this->disconnectionCb(publisher);
-
-              // Remove the activity entry.
-              this->activity.erase(it++);
-            }
-            else
-              ++it;
-          }
-          this->mutex.unlock();
-
-      #ifdef _WIN32
-          // We don't know why, but on Windows, during shutdown, when compiled
-          // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-          Sleep(this->activityInterval);
-      #else
-          std::this_thread::sleep_for(
-            std::chrono::milliseconds(this->activityInterval));
-      #endif
-
-          // Is it time to exit?
-          {
-            std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
-            if (this->exit)
-              timeToExit = true;
-          }
+          return;
         }
-      #ifdef _WIN32
-        std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
-        this->threadActivityExiting = true;
-      #endif
+
+        for (auto it = this->activity.cbegin(); it != this->activity.cend();)
+        {
+          // Elapsed time since the last update from this publisher.
+          elapsed = now - it->second;
+
+          // This publisher has expired.
+          if (std::chrono::duration_cast<std::chrono::milliseconds>
+               (elapsed).count() > this->silenceInterval)
+          {
+            // Remove all the info entries for this process UUID.
+            this->info.DelPublishersByProc(it->first);
+
+            // Notify without topic information. This is useful to inform the client
+            // that a remote node is gone, even if we were not interested in its
+            // topics.
+            Pub publisher;
+            publisher.SetPUuid(it->first);
+            publisher.SetScope(Scope_t::ALL);
+            this->disconnectionCb(publisher);
+
+            // Remove the activity entry.
+            this->activity.erase(it++);
+          }
+          else
+            ++it;
+        }
+
+        this->timeLastActivity = std::chrono::steady_clock::now();
       }
 
       /// \brief Broadcast periodic heartbeats.
       private: void RunHeartbeatTask()
       {
-        bool timeToExit = false;
-        while (!timeToExit)
+        Timestamp now = std::chrono::steady_clock::now();
+
         {
+          std::lock_guard<std::mutex> lock(this->mutex);
+
+          std::chrono::duration<double> elapsed = now - this->timeLastHeartbeat;
+          if (std::chrono::duration_cast<std::chrono::milliseconds>
+             (elapsed).count() < this->heartbeatInterval)
           {
-            std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-            Publisher pub("", "", this->pUuid, "", Scope_t::ALL);
-            this->SendMsg(HeartbeatType, pub);
-
-            // Re-advertise topics that are advertised inside this process.
-            std::map<std::string, std::vector<Pub>> nodes;
-            this->info.PublishersByProc(this->pUuid, nodes);
-            for (const auto &topic : nodes)
-            {
-              for (const auto &node : topic.second)
-                this->SendMsg(AdvType, node);
-            }
-          }
-
-      #ifdef _WIN32
-          // We don't know why, but on Windows, during shutdown, when compiled
-          // in Release, when loaded into MATLAB, the sleep_for() call hangs.
-          Sleep(this->heartbeatInterval);
-      #else
-          std::this_thread::sleep_for(
-            std::chrono::milliseconds(this->heartbeatInterval));
-      #endif
-
-          {
-            std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-            if (!this->initialized)
-            {
-              ++this->numHeartbeatsUninitialized;
-              if (this->numHeartbeatsUninitialized == 2)
-              {
-                // We consider the discovery initialized after two cycles of
-                // heartbeats sent.
-                this->initialized = true;
-
-                // Notify anyone waiting for the initialization phase to finish.
-                this->initializedCv.notify_all();
-              }
-            }
-          }
-
-          // Is it time to exit?
-          {
-            std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
-            if (this->exit)
-              timeToExit = true;
+            return;
           }
         }
-      #ifdef _WIN32
-        std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
-        this->threadHeartbeatExiting = true;
-      #endif
+
+        Publisher pub("", "", this->pUuid, "", Scope_t::ALL);
+        this->SendMsg(HeartbeatType, pub);
+
+        std::map<std::string, std::vector<Pub>> nodes;
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+
+          // Re-advertise topics that are advertised inside this process.
+          this->info.PublishersByProc(this->pUuid, nodes);
+        }
+
+        for (const auto &topic : nodes)
+        {
+          for (const auto &node : topic.second)
+            this->SendMsg(AdvType, node);
+        }
+
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+          if (!this->initialized)
+          {
+            ++this->numHeartbeatsUninitialized;
+            if (this->numHeartbeatsUninitialized == 2)
+            {
+              // We consider the discovery initialized after two cycles of
+              // heartbeats sent.
+              this->initialized = true;
+
+              // Notify anyone waiting for the initialization phase to finish.
+              this->initializedCv.notify_all();
+            }
+          }
+
+          this->timeLastHeartbeat = std::chrono::steady_clock::now();
+        }
       }
 
       /// \brief Receive discovery messages.
@@ -734,10 +706,25 @@ namespace ignition
           {
             {0, this->sockets.at(0), ZMQ_POLLIN, 0},
           };
+
+          // Calculate the timeout.
+          auto now = std::chrono::steady_clock::now();
+          auto timeUntilNextHeartbeat = (this->timeLastHeartbeat +
+            std::chrono::milliseconds(this->heartbeatInterval)) - now;
+          auto timeUntilNextActivity = (this->timeLastActivity +
+            std::chrono::milliseconds(this->activityInterval)) - now;
+          auto timeUntilNextReception = (now +
+            std::chrono::milliseconds(this->Timeout)) - now;
+
+          auto t = std::min(timeUntilNextActivity, timeUntilNextActivity);
+          auto t2 = std::min(t, timeUntilNextReception);
+          int timeout = std::chrono::duration_cast<std::chrono::milliseconds>
+            (t2).count();
+          timeout = std::max(timeout, 0);
+
           try
           {
-            zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-              this->Timeout);
+            zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), timeout);
           }
           catch(...)
           {
@@ -753,19 +740,21 @@ namespace ignition
               this->PrintCurrentState();
           }
 
+          this->RunHeartbeatTask();
+          this->RunActivityTask();
+
           // Is it time to exit?
           {
-            std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
+            std::lock_guard<std::mutex> lock(this->exitMutex);
             if (this->exit)
               timeToExit = true;
           }
         }
       #ifdef _WIN32
-        std::lock_guard<std::recursive_mutex> lock(this->exitMutex);
+        std::lock_guard<std::mutex> lock(this->exitMutex);
         this->threadReceptionExiting = true;
       #endif
       }
-
 
       /// \brief Method in charge of receiving the discovery updates.
       private: void RecvDiscoveryUpdate()
@@ -825,7 +814,7 @@ namespace ignition
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
         {
-          std::lock_guard<std::recursive_mutex> lock(this->mutex);
+          std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
@@ -850,7 +839,7 @@ namespace ignition
             // Register an advertised address for the topic.
             bool added;
             {
-              std::lock_guard<std::recursive_mutex> lock(this->mutex);
+              std::lock_guard<std::mutex> lock(this->mutex);
               added = this->info.AddPublisher(advMsg.Publisher());
             }
 
@@ -872,7 +861,7 @@ namespace ignition
             // Check if at least one of my nodes advertises the topic requested.
             Addresses_M<Pub> addresses;
             {
-              std::lock_guard<std::recursive_mutex> lock(this->mutex);
+              std::lock_guard<std::mutex> lock(this->mutex);
               if (!this->info.HasAnyPublishers(recvTopic, this->pUuid))
               {
                 break;
@@ -907,7 +896,7 @@ namespace ignition
           {
             // Remove the activity entry for this publisher.
             {
-              std::lock_guard<std::recursive_mutex> lock(this->mutex);
+              std::lock_guard<std::mutex> lock(this->mutex);
               this->activity.erase(recvPUuid);
             }
 
@@ -922,7 +911,7 @@ namespace ignition
 
             // Remove the address entry for this topic.
             {
-              std::lock_guard<std::recursive_mutex> lock(this->mutex);
+              std::lock_guard<std::mutex> lock(this->mutex);
               this->info.DelPublishersByProc(recvPUuid);
             }
 
@@ -950,7 +939,7 @@ namespace ignition
 
             // Remove the address entry for this topic.
             {
-              std::lock_guard<std::recursive_mutex> lock(this->mutex);
+              std::lock_guard<std::mutex> lock(this->mutex);
               this->info.DelPublisherByNode(advMsg.Publisher().Topic(),
                 advMsg.Publisher().PUuid(), advMsg.Publisher().NUuid());
             }
@@ -1026,7 +1015,6 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
-          std::lock_guard<std::recursive_mutex> lock(this->Mutex());
           if (sendto(sock, reinterpret_cast<const raw_type *>(
             reinterpret_cast<unsigned char*>(&buffer[0])),
             msgLength, 0, reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
@@ -1142,7 +1130,7 @@ namespace ignition
       private: const std::string MulticastGroup = "224.0.0.7";
 
       /// \brief Timeout used for receiving messages (ms.).
-      private: static const int Timeout = 250;
+      private: const int Timeout = 250;
 
       /// \brief Longest string to receive.
       private: static const int MaxRcvStr = 65536;
@@ -1208,19 +1196,19 @@ namespace ignition
       private: sockaddr_in mcastAddr;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
-      private: mutable std::recursive_mutex mutex;
+      private: mutable std::mutex mutex;
 
       /// \brief Thread in charge of receiving and handling incoming messages.
       private: std::thread threadReception;
 
-      /// \brief Thread in charge of sending heartbeats.
-      private: std::thread threadHeartbeat;
+      /// \brief Time in which the last heartbeat was sent.
+      private: Timestamp timeLastHeartbeat;
 
-      /// \brief Thread in charge of update the activity.
-      private: std::thread threadActivity;
+      /// \brief Time in which the last activity check was done.
+      private: Timestamp timeLastActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
-      private: std::recursive_mutex exitMutex;
+      private: std::mutex exitMutex;
 
       /// \brief Once the discovery starts, it can take up to
       /// HeartbeatInterval milliseconds to discover the existing nodes on the
@@ -1240,10 +1228,6 @@ namespace ignition
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.
       private: bool threadReceptionExiting = true;
-      /// \brief True when the hearbeat thread is finishing.
-      private: bool threadHeartbeatExiting = true;
-      /// \brief True when the activity thread is finishing.
-      private: bool threadActivityExiting = true;
 #endif
 
       /// \brief When true, the service is enabled.

@@ -189,10 +189,10 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // Create two discovery nodes.
   transport::Discovery2<MessagePublisher> discovery1(g_pUuid1, g_msgPort);
-  transport::Discovery2<MessagePublisher> discovery2(g_pUuid2, g_msgPort);
+  //transport::Discovery2<MessagePublisher> discovery2(g_pUuid2, g_msgPort);
 
   discovery1.Start();
-  discovery2.Start();
+  //discovery2.Start();
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
