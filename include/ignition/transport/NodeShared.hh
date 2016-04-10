@@ -34,6 +34,7 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Discovery2.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
@@ -137,6 +138,10 @@ namespace ignition
       /// \brief Discovery service.
       public: std::unique_ptr<Discovery> discovery;
 
+      public: std::unique_ptr<Discovery2<MessagePublisher>> msgDiscovery;
+
+      public: std::unique_ptr<Discovery2<ServicePublisher>> srvDiscovery;
+
       /// \brief 0MQ context.
       public: zmq::context_t *context;
 
@@ -204,6 +209,12 @@ namespace ignition
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
+
+      /// \brief Port used by the message discovery layer.
+      private: const int kMsgDiscoveryPort = 11319;
+
+      /// \brief Port used by the servuce discovery layer.
+      private: const int kSrvDiscoveryPort = 11320;
     };
   }
 }

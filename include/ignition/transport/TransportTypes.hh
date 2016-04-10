@@ -57,6 +57,9 @@ namespace ignition
     /// same process uuid.
     using SrvAddresses_M = std::map<std::string, std::vector<ServicePublisher>>;
 
+    template<typename T> using Addresses_M =
+      std::map<std::string, std::vector<T>>;
+
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
     using ProtoMsg = google::protobuf::Message;
@@ -108,6 +111,9 @@ namespace ignition
     /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
     using SrvDiscoveryCallback =
       std::function<void(const ServicePublisher&_publisher)>;
+
+    template <typename T> using DiscoveryCallback =
+      std::function<void(const T &_publisher)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

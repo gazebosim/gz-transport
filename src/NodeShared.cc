@@ -88,6 +88,11 @@ NodeShared::NodeShared()
   // Initialize my discovery service.
   this->discovery.reset(new Discovery(this->pUuid, false));
 
+  this->msgDiscovery.reset(new Discovery2<MessagePublisher>(this->pUuid,
+    this->kMsgDiscoveryPort, false));
+  this->srvDiscovery.reset(new Discovery2<ServicePublisher>(this->pUuid,
+    this->kSrvDiscoveryPort, false));
+
   // Initialize the 0MQ objects.
   try
   {

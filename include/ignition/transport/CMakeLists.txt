@@ -3,6 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   AdvertiseOptions.hh
   Discovery.hh
+  Discovery2.hh
   HandlerStorage.hh
   Helpers.hh
   ign.hh
