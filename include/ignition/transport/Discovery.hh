@@ -117,6 +117,7 @@ namespace ignition
           connectionCb(nullptr),
           disconnectionCb(nullptr),
           verbose(_verbose),
+          initialized(false),
           exit(false),
           enabled(false)
       {
@@ -587,18 +588,17 @@ namespace ignition
       /// initializedCv condition variable.
       public: void WaitForInit() const
       {
-        //  bool ready;
-        //  {
-        //    std::lock_guard<std::mutex> lock(this->mutex);
-        //    ready = this->initialized;
-        //  }
-//
-        //  if (!ready)
-        //  {
-        //    std::unique_lock<std::mutex> lk(this->mutex);
-        //    this->initializedCv.wait(
-        //       lk, [this]{return this->initialized;});
-        //  }
+        bool ready;
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+          ready = this->initialized;
+        }
+
+        if (!ready)
+        {
+          std::unique_lock<std::mutex> lk(this->mutex);
+          this->initializedCv.wait(lk, [this]{return this->initialized;});
+        }
       }
 
       /// \brief Check the validity of the topic information. Each topic update
@@ -1230,7 +1230,7 @@ namespace ignition
       private: unsigned int numHeartbeatsUninitialized = 0;
 
       /// \brief Used to block/unblock until the initialization phase finishes.
-      private: std::condition_variable initializedCv;
+      private: mutable std::condition_variable initializedCv;
 
       /// \brief When true, the service threads will finish.
       private: bool exit;
