@@ -60,7 +60,6 @@ namespace ignition
       /// \param[in] _version Version of the discovery protocol.
       /// \param[in] _pUuid Every process has a unique UUID.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
-      /// \param[in] _partition Partition name.
       /// \param[in] _flags Optional flags included in the header.
       public: Header(const uint16_t _version,
                      const std::string &_pUuid,
