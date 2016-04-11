@@ -26,9 +26,9 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-int data = 5;
+std::string g_partition;
+std::string g_topic = "/foo";
+int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
@@ -42,21 +42,21 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   int64_t timeout = 500;
   transport::msgs::Int req;
   transport::msgs::Int rep;
   bool result;
 
-  req.set_data(data);
+  req.set_data(g_data);
 
   transport::Node node;
 
   // Make sure that the address of the service call provider is known.
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  ASSERT_TRUE(node.Request(topic, req, static_cast<unsigned int>(timeout), rep,
-      result));
+  ASSERT_TRUE(node.Request(g_topic, req, static_cast<unsigned int>(timeout),
+      rep, result));
   EXPECT_EQ(req.data(), rep.data());
   EXPECT_TRUE(result);
 
@@ -80,10 +80,10 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);

@@ -26,9 +26,9 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-int data = 5;
+std::string g_partition;
+std::string g_topic = "/foo";
+int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Two different nodes, each one running in a different process. The
@@ -41,20 +41,20 @@ TEST(ScopedTopicTest, ProcessTest)
      "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   transport::msgs::Int msg;
-  msg.set_data(data);
+  msg.set_data(g_data);
 
   transport::Node node;
   transport::AdvertiseOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic, opts));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic, opts));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   testing::waitAndCleanupFork(pi);
 }
@@ -63,10 +63,10 @@ TEST(ScopedTopicTest, ProcessTest)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

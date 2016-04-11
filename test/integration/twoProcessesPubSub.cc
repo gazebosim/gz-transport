@@ -26,27 +26,27 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-std::string data = "bar";
-bool cbExecuted = false;
-bool cbVectorExecuted = false;
-int counter = 0;
+std::string g_partition;
+std::string g_topic = "/foo";
+std::string g_data = "bar";
+bool g_cbExecuted = false;
+bool g_cbVectorExecuted = false;
+int g_counter = 0;
 
 //////////////////////////////////////////////////
-/// \brief Initialize some global variables.
+/// \brief Initialize some globag_l variables.
 void reset()
 {
-  counter = 0;
-  cbExecuted = false;
+  g_counter = 0;
+  g_cbExecuted = false;
 }
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const transport::msgs::Int &/*_msg*/)
 {
-  cbExecuted = true;
-  counter++;
+  g_cbExecuted = true;
+  g_counter++;
 }
 
 
@@ -54,7 +54,7 @@ void cb(const transport::msgs::Int &/*_msg*/)
 /// \brief Callback for receiving Vector3d data.
 void cbVector(const transport::msgs::Vector3d &/*_msg*/)
 {
-  cbVectorExecuted = true;
+  g_cbVectorExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -69,7 +69,7 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   transport::msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -77,12 +77,12 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_z(3.0);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(g_topic));
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 20; ++i)
   {
-    EXPECT_TRUE(node.Publish(topic, msg));
+    EXPECT_TRUE(node.Publish(g_topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
@@ -99,18 +99,18 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   reset();
 
   transport::Node node;
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   // Check that the message was not received.
-  EXPECT_FALSE(cbExecuted);
+  EXPECT_FALSE(g_cbExecuted);
 
   reset();
 
@@ -128,7 +128,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   reset();
 
@@ -136,15 +136,15 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
   transport::Node node1;
   transport::Node node2;
-  EXPECT_TRUE(node1.Subscribe(topic, cb));
-  EXPECT_TRUE(node2.Subscribe(topic, cbVector));
+  EXPECT_TRUE(node1.Subscribe(g_topic, cb));
+  EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   // Check that the message was not received.
-  EXPECT_FALSE(cbExecuted);
-  EXPECT_TRUE(cbVectorExecuted);
+  EXPECT_FALSE(g_cbExecuted);
+  EXPECT_TRUE(g_cbVectorExecuted);
 
   reset();
 
@@ -162,7 +162,7 @@ TEST(twoProcPubSub, TopicList)
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   reset();
 
@@ -176,7 +176,7 @@ TEST(twoProcPubSub, TopicList)
   node.TopicList(topics);
   auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), topic);
+  EXPECT_EQ(topics.at(0), g_topic);
   topics.clear();
 
   // Time elapsed to get the first topic list
@@ -187,7 +187,7 @@ TEST(twoProcPubSub, TopicList)
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), topic);
+  EXPECT_EQ(topics.at(0), g_topic);
 
   // The first TopicList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
@@ -214,7 +214,7 @@ TEST(twoProcPubSub, TopicInfo)
      "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   reset();
 
@@ -244,10 +244,10 @@ TEST(twoProcPubSub, TopicInfo)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

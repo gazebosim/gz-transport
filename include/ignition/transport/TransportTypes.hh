@@ -102,7 +102,7 @@ namespace ignition
     /// callback contains the publisher's information advertising a topic.
     /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
     using MsgDiscoveryCallback =
-      std::function<void(const MessagePublisher&_publisher)>;
+      std::function<void(const MessagePublisher &_publisher)>;
 
     /// \def SrvDiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
@@ -110,7 +110,7 @@ namespace ignition
     /// callback contains the publisher's information advertising a service.
     /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
     using SrvDiscoveryCallback =
-      std::function<void(const ServicePublisher&_publisher)>;
+      std::function<void(const ServicePublisher &_publisher)>;
 
     template <typename T> using DiscoveryCallback =
       std::function<void(const T &_publisher)>;

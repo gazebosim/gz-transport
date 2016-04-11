@@ -27,40 +27,40 @@
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-bool wrongResponseExecuted;
+bool g_srvExecuted;
+bool g_responseExecuted;
+bool g_wrongResponseExecuted;
 
-std::string partition;
-std::string topic = "/foo";
-int data = 5;
-int counter = 0;
+std::string g_partition;
+std::string g_topic = "/foo";
+int g_data = 5;
+int g_counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
 {
-  responseExecuted = false;
-  wrongResponseExecuted = false;
-  counter = 0;
+  g_responseExecuted = false;
+  g_wrongResponseExecuted = false;
+  g_counter = 0;
 }
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void response(const transport::msgs::Int &_rep, const bool _result)
 {
-  EXPECT_EQ(_rep.data(), data);
+  EXPECT_EQ(_rep.data(), g_data);
   EXPECT_TRUE(_result);
 
-  responseExecuted = true;
-  ++counter;
+  g_responseExecuted = true;
+  ++g_counter;
 }
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
 void wrongResponse(const transport::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
-  wrongResponseExecuted = true;
+  g_wrongResponseExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -73,42 +73,42 @@ TEST(twoProcSrvCall, SrvTwoProcs)
     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
-  responseExecuted = false;
-  counter = 0;
+  g_responseExecuted = false;
+  g_counter = 0;
   transport::msgs::Int req;
-  req.set_data(data);
+  req.set_data(g_data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
-  while (i < 300 && !responseExecuted)
+  while (i < 300 && !g_responseExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the service call response was executed.
-  EXPECT_TRUE(responseExecuted);
-  EXPECT_EQ(counter, 1);
+  EXPECT_TRUE(g_responseExecuted);
+  EXPECT_EQ(g_counter, 1);
 
   // Make another request.
-  responseExecuted = false;
-  counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  g_responseExecuted = false;
+  g_counter = 0;
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
-  while (i < 300 && !responseExecuted)
+  while (i < 300 && !g_responseExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the service call response was executed.
-  EXPECT_TRUE(responseExecuted);
-  EXPECT_EQ(counter, 1);
+  EXPECT_TRUE(g_responseExecuted);
+  EXPECT_EQ(g_counter, 1);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -130,7 +130,7 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   wrongReq.set_x(1);
   wrongReq.set_y(2);
@@ -141,12 +141,12 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(topic, wrongReq, response));
+  EXPECT_TRUE(node.Request(g_topic, wrongReq, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_FALSE(responseExecuted);
+  EXPECT_FALSE(g_responseExecuted);
 
   // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(topic, wrongReq, timeout, rep, result));
+  EXPECT_FALSE(node.Request(g_topic, wrongReq, timeout, rep, result));
 
   reset();
 
@@ -171,21 +171,21 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
-  req.set_data(data);
+  req.set_data(g_data);
 
   reset();
 
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the response.
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_FALSE(wrongResponseExecuted);
+  EXPECT_FALSE(g_wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, wrongRep, result));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, wrongRep, result));
 
   reset();
 
@@ -210,9 +210,9 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
-  req.set_data(data);
+  req.set_data(g_data);
 
   reset();
 
@@ -221,18 +221,18 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::Node node;
 
   // Request service calls with wrong types in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, badRep, result));
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_FALSE(wrongResponseExecuted);
+  EXPECT_FALSE(g_wrongResponseExecuted);
 
   reset();
 
   // Valid service requests.
-  EXPECT_TRUE(node.Request(topic, req, timeout, goodRep, result));
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(g_responseExecuted);
 
   reset();
 
@@ -251,7 +251,7 @@ TEST(twoProcSrvCall, ServiceList)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   reset();
 
@@ -265,7 +265,7 @@ TEST(twoProcSrvCall, ServiceList)
   node.ServiceList(services);
   auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(services.size(), 1u);
-  EXPECT_EQ(services.at(0), topic);
+  EXPECT_EQ(services.at(0), g_topic);
   services.clear();
 
   // Time elapsed to get the first service list
@@ -275,7 +275,7 @@ TEST(twoProcSrvCall, ServiceList)
   node.ServiceList(services);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(services.size(), 1u);
-  EXPECT_EQ(services.at(0), topic);
+  EXPECT_EQ(services.at(0), g_topic);
 
   // The first ServiceList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
@@ -295,10 +295,10 @@ TEST(twoProcSrvCall, ServiceList)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   // Enable verbose mode.
   // setenv("IGN_VERBOSE", "1", 1);
