@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,6 @@
  * limitations under the License.
  *
 */
-
-//  start
-//  advertise(IN publisher) -> void
-//  unadvertise(IN topic, IN nUUID) -> void
-//  discover(IN topic) -> void
-
-
-//  Info
-//  Publisher
-
-//  NewConnection
-//  NewDisconnection
 
 #ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
 #define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
@@ -101,7 +89,7 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
-      /// \param[in] Multicast UDP port used for discovery traffic.
+      /// \param[in] _port UDP port used for discovery traffic.
       /// \param[in] _verbose true for enabling verbose mode.
       public: Discovery(const std::string &_pUuid,
                         const int _port,
@@ -110,36 +98,31 @@ namespace ignition
           hostAddr(determineHost()),
           hostInterfaces(determineInterfaces()),
           pUuid(_pUuid),
-          silenceInterval(DefSilenceInterval),
-          activityInterval(DefActivityInterval),
-          advertiseInterval(DefAdvertiseInterval),
-          heartbeatInterval(DefHeartbeatInterval),
+          silenceInterval(kDefSilenceInterval),
+          activityInterval(kDefActivityInterval),
+          advertiseInterval(kDefAdvertiseInterval),
+          heartbeatInterval(kDefHeartbeatInterval),
           connectionCb(nullptr),
           disconnectionCb(nullptr),
           verbose(_verbose),
           initialized(false),
+          numHeartbeatsUninitialized(0),
           exit(false),
           enabled(false)
       {
 #ifdef _WIN32
-        if (!initialized)
+        WORD wVersionRequested;
+        WSADATA wsaData;
+
+        // Request WinSock v2.2.
+        wVersionRequested = MAKEWORD(2, 2);
+        // Load WinSock DLL.
+        if (WSAStartup(wVersionRequested, &wsaData) != 0)
         {
-          WORD wVersionRequested;
-          WSADATA wsaData;
-
-          // Request WinSock v2.0.
-          wVersionRequested = MAKEWORD(2, 0);
-          // Load WinSock DLL.
-          if (WSAStartup(wVersionRequested, &wsaData) != 0)
-          {
-            std::cerr << "Unable to load WinSock DLL" << std::endl;
-            return;
-          }
-
-          initialized = true;
+          std::cerr << "Unable to load WinSock DLL" << std::endl;
+          return;
         }
 #endif
-
         for (const auto &netIface : this->hostInterfaces)
         {
           auto succeed = this->RegisterNetIface(netIface);
@@ -204,7 +187,7 @@ namespace ignition
         memset(&this->mcastAddr, 0, sizeof(this->mcastAddr));
         this->mcastAddr.sin_family = AF_INET;
         this->mcastAddr.sin_addr.s_addr =
-          inet_addr(this->MulticastGroup.c_str());
+          inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         if (this->verbose)
@@ -241,7 +224,6 @@ namespace ignition
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 #endif
-
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
         this->SendMsg(ByeType,
@@ -253,6 +235,7 @@ namespace ignition
         {
 #ifdef _WIN32
           closesocket(sock);
+          WSACleanup();
 #else
           close(sock);
 #endif
@@ -274,9 +257,12 @@ namespace ignition
           this->enabled = true;
         }
 
+        auto now = std::chrono::steady_clock::now();
+        this->timeNextHeartbeat = now;
+        this->timeNextActivity = now;
+
         // Start the thread that receives discovery information.
-        this->threadReception =
-          std::thread(&Discovery::RunReceptionTask, this);
+        this->threadReception = std::thread(&Discovery::RecvMessages, this);
 
 #ifdef _WIN32
         this->threadReceptionExiting = false;
@@ -338,7 +324,7 @@ namespace ignition
         pub.SetPUuid(this->pUuid);
         pub.SetScope(Scope_t::ALL);
 
-        // Broadcast a discovery request for this service call.
+        // Send a discovery request.
         this->SendMsg(SubType, pub);
 
         {
@@ -349,9 +335,9 @@ namespace ignition
         if (found)
         {
           // I already have information about this topic.
-          for (auto &proc : addresses)
+          for (const auto &proc : addresses)
           {
-            for (auto &node : proc.second)
+            for (const auto &node : proc.second)
             {
               if (cb)
               {
@@ -367,7 +353,7 @@ namespace ignition
         return true;
       }
 
-      /// \brief Get the discovery information object (messages).
+      /// \brief Get the discovery information.
       /// \return Reference to the discovery information object.
       public: const TopicStorage<Pub> &Info() const
       {
@@ -524,7 +510,7 @@ namespace ignition
         this->disconnectionCb = _cb;
       }
 
-      /// \brief Print the current discovery state (info, activity, unknown).
+      /// \brief Print the current discovery state.
       public: void PrintCurrentState() const
       {
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -577,13 +563,6 @@ namespace ignition
         this->info.TopicList(_topics);
       }
 
-      /// \brief Get mutex used in the Discovery class.
-      /// \return The discovery mutex.
-      public: std::mutex& Mutex() const
-      {
-        return this->mutex;
-      }
-
       /// \brief Check if ready/initialized. If not, then wait on the
       /// initializedCv condition variable.
       public: void WaitForInit() const
@@ -604,23 +583,19 @@ namespace ignition
       /// \brief Check the validity of the topic information. Each topic update
       /// has its own timestamp. This method iterates over the list of topics
       /// and invalids the old topics.
-      private: void RunActivityTask()
+      private: void UpdateActivity()
       {
         Timestamp now = std::chrono::steady_clock::now();
 
         std::lock_guard<std::mutex> lock(this->mutex);
 
-        std::chrono::duration<double> elapsed = now - this->timeLastActivity;
-        if (std::chrono::duration_cast<std::chrono::milliseconds>
-           (elapsed).count() < this->activityInterval)
-        {
+        if (now < this->timeNextActivity)
           return;
-        }
 
         for (auto it = this->activity.cbegin(); it != this->activity.cend();)
         {
           // Elapsed time since the last update from this publisher.
-          elapsed = now - it->second;
+          auto elapsed = now - it->second;
 
           // This publisher has expired.
           if (std::chrono::duration_cast<std::chrono::milliseconds>
@@ -630,7 +605,7 @@ namespace ignition
             this->info.DelPublishersByProc(it->first);
 
             // Notify without topic information. This is useful to inform the
-            //  client that a remote node is gone, even if we were not
+            // client that a remote node is gone, even if we were not
             // interested in its topics.
             Pub publisher;
             publisher.SetPUuid(it->first);
@@ -644,23 +619,20 @@ namespace ignition
             ++it;
         }
 
-        this->timeLastActivity = std::chrono::steady_clock::now();
+        this->timeNextActivity = std::chrono::steady_clock::now() +
+          std::chrono::milliseconds(this->activityInterval);
       }
 
       /// \brief Broadcast periodic heartbeats.
-      private: void RunHeartbeatTask()
+      private: void UpdateHeartbeat()
       {
         Timestamp now = std::chrono::steady_clock::now();
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
 
-          std::chrono::duration<double> elapsed = now - this->timeLastHeartbeat;
-          if (std::chrono::duration_cast<std::chrono::milliseconds>
-             (elapsed).count() < this->heartbeatInterval)
-          {
+          if (now < this->timeNextHeartbeat)
             return;
-          }
         }
 
         Publisher pub("", "", this->pUuid, "", Scope_t::ALL);
@@ -696,12 +668,33 @@ namespace ignition
             }
           }
 
-          this->timeLastHeartbeat = std::chrono::steady_clock::now();
+          this->timeNextHeartbeat = std::chrono::steady_clock::now() +
+            std::chrono::milliseconds(this->heartbeatInterval);
         }
       }
 
+      /// \brief Calculate the next timeout. There are three main activities to
+      /// perform by the discovery layer:
+      /// 1. Receive discovery messages.
+      /// 2. Send heartbeats.
+      /// 3. Maintain the discovery information up to date.
+      ///
+      /// Tasks (2) and (3) need to be checked at fixed intervals. This function
+      /// calculates the next timeout to satisfy (2) and (3).
+      private: int NextTimeout() const
+      {
+        auto now = std::chrono::steady_clock::now();
+        auto timeUntilNextHeartbeat = this->timeNextHeartbeat - now;
+        auto timeUntilNextActivity = this->timeNextActivity - now;
+
+        int t = std::chrono::duration_cast<std::chrono::milliseconds>
+          (std::min(timeUntilNextHeartbeat, timeUntilNextActivity)).count();
+        int t2 = std::min(t, this->kTimeout);
+        return std::max(t2, 0);
+      }
+
       /// \brief Receive discovery messages.
-      private: void RunReceptionTask()
+      private: void RecvMessages()
       {
         bool timeToExit = false;
         while (!timeToExit)
@@ -713,19 +706,7 @@ namespace ignition
           };
 
           // Calculate the timeout.
-          auto now = std::chrono::steady_clock::now();
-          auto timeUntilNextHeartbeat = (this->timeLastHeartbeat +
-            std::chrono::milliseconds(this->heartbeatInterval)) - now;
-          auto timeUntilNextActivity = (this->timeLastActivity +
-            std::chrono::milliseconds(this->activityInterval)) - now;
-          auto timeUntilNextReception = (now +
-            std::chrono::milliseconds(this->Timeout)) - now;
-
-          auto t = std::min(timeUntilNextActivity, timeUntilNextActivity);
-          auto t2 = std::min(t, timeUntilNextReception);
-          int timeout = std::chrono::duration_cast<std::chrono::milliseconds>
-            (t2).count();
-          timeout = std::max(timeout, 0);
+          int timeout = this->NextTimeout();
 
           try
           {
@@ -745,8 +726,8 @@ namespace ignition
               this->PrintCurrentState();
           }
 
-          this->RunHeartbeatTask();
-          this->RunActivityTask();
+          this->UpdateHeartbeat();
+          this->UpdateActivity();
 
           // Is it time to exit?
           {
@@ -764,7 +745,7 @@ namespace ignition
       /// \brief Method in charge of receiving the discovery updates.
       private: void RecvDiscoveryUpdate()
       {
-        char rcvStr[this->MaxRcvStr];
+        char rcvStr[this->kMaxRcvStr];
         std::string srcAddr;
         uint16_t srcPort;
         sockaddr_in clntAddr;
@@ -772,7 +753,7 @@ namespace ignition
 
         if ((recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
-              this->MaxRcvStr, 0,
+              this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
               reinterpret_cast<socklen_t *>(&addrLen))) < 0)
         {
@@ -807,7 +788,7 @@ namespace ignition
         pBody += header.HeaderLength();
 
         // Discard the message if the wire protocol is different than mine.
-        if (this->WireVersion != header.Version())
+        if (this->kWireVersion != header.Version())
           return;
 
         auto recvPUuid = header.PUuid();
@@ -877,7 +858,7 @@ namespace ignition
                 break;
             }
 
-            for (auto nodeInfo : addresses[this->pUuid])
+            for (const auto &nodeInfo : addresses[this->pUuid])
             {
               // Check scope of the topic.
               if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
@@ -993,7 +974,6 @@ namespace ignition
             break;
           }
           case SubType:
-          case SubSrvType:
           {
             // Create the [UN]SUBSCRIBE message.
             SubscriptionMsg subMsg(header, topic);
@@ -1066,7 +1046,7 @@ namespace ignition
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        return this->WireVersion;
+        return this->kWireVersion;
       }
 
       /// \brief Register a new network interface in the discovery system.
@@ -1103,7 +1083,7 @@ namespace ignition
         // position 0 for receiving multicast information.
         struct ip_mreq group;
         group.imr_multiaddr.s_addr =
-          inet_addr(this->MulticastGroup.c_str());
+          inet_addr(this->kMulticastGroup.c_str());
         group.imr_interface.s_addr = inet_addr(_ip.c_str());
         if (setsockopt(this->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
           reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
@@ -1119,35 +1099,35 @@ namespace ignition
       /// \brief Default activity interval value (ms.).
       /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
-      private: static const unsigned int DefActivityInterval = 100;
+      private: static const unsigned int kDefActivityInterval = 100;
 
       /// \brief Default heartbeat interval value (ms.).
       /// \sa HeartbeatInterval.
       /// \sa SetHeartbeatInterval.
-      private: static const unsigned int DefHeartbeatInterval = 1000;
+      private: static const unsigned int kDefHeartbeatInterval = 1000;
 
       /// \brief Default silence interval value (ms.).
       /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
-      private: static const unsigned int DefSilenceInterval = 3000;
+      private: static const unsigned int kDefSilenceInterval = 3000;
 
       /// \brief Default advertise interval value (ms.).
       /// \sa AdvertiseInterval.
       /// \sa SetAdvertiseInterval.
-      private: static const unsigned int DefAdvertiseInterval = 1000;
+      private: static const unsigned int kDefAdvertiseInterval = 1000;
 
       /// \brief IP Address used for multicast.
-      private: const std::string MulticastGroup = "224.0.0.7";
+      private: const std::string kMulticastGroup = "224.0.0.7";
 
       /// \brief Timeout used for receiving messages (ms.).
-      private: const int Timeout = 250;
+      private: static const int kTimeout = 250;
 
       /// \brief Longest string to receive.
-      private: static const int MaxRcvStr = 65536;
+      private: static const int kMaxRcvStr = 65536;
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      private: static const uint8_t WireVersion = 3;
+      private: static const uint8_t kWireVersion = 4;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
@@ -1211,11 +1191,11 @@ namespace ignition
       /// \brief Thread in charge of receiving and handling incoming messages.
       private: std::thread threadReception;
 
-      /// \brief Time in which the last heartbeat was sent.
-      private: Timestamp timeLastHeartbeat;
+      /// \brief Time at which the next heartbeat cycle will be sent.
+      private: Timestamp timeNextHeartbeat;
 
-      /// \brief Time in which the last activity check was done.
-      private: Timestamp timeLastActivity;
+      /// \brief Time at which the next activity check will be done.
+      private: Timestamp timeNextActivity;
 
       /// \brief Mutex to guarantee exclusive access to the exit variable.
       private: std::mutex exitMutex;
@@ -1227,12 +1207,12 @@ namespace ignition
       private: bool initialized;
 
       /// \brief Number of heartbeats sent while discovery is uninitialized.
-      private: unsigned int numHeartbeatsUninitialized = 0;
+      private: unsigned int numHeartbeatsUninitialized;
 
       /// \brief Used to block/unblock until the initialization phase finishes.
       private: mutable std::condition_variable initializedCv;
 
-      /// \brief When true, the service threads will finish.
+      /// \brief When true, the service thread will finish.
       private: bool exit;
 
 #ifdef _WIN32
