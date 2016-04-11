@@ -596,7 +596,7 @@ namespace ignition
       /// discovery is in its initialization phase.
       /// The value of the "heartbeatInterval" constant, with a default
       /// value of 1000ms, sets the maximum blocking time period.
-      /// \param[out] _topics List of advertised topics.
+      /// \param[out] _services List of advertised services.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
       /// \brief Get the partition name used by this node.

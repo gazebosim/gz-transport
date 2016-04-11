@@ -52,7 +52,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] _msg AdvMsg to write to the stream.
+      /// \param[in] _uuid UUID to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                          const ignition::transport::Uuid &_uuid)
       {

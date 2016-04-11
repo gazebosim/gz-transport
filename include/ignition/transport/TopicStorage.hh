@@ -242,9 +242,9 @@ namespace ignition
 
       /// \brief Given a process UUID, the function returns the list of
       /// publishers contained in this process UUID with its address information
-      /// \param _pUuid Process UUID.
-      /// \param _pubs Map of publishers where the keys are the node UUIDs and
-      /// the value is its address information.
+      /// \param[in] _pUuid Process UUID.
+      /// \param[out] _pubs Map of publishers where the keys are the node UUIDs
+      /// and the value is its address information.
       public: void PublishersByProc(const std::string &_pUuid,
                              std::map<std::string, std::vector<T>> &_pubs) const
       {
