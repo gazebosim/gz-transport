@@ -687,8 +687,9 @@ namespace ignition
         auto timeUntilNextHeartbeat = this->timeNextHeartbeat - now;
         auto timeUntilNextActivity = this->timeNextActivity - now;
 
-        int t = std::chrono::duration_cast<std::chrono::milliseconds>
-          (std::min(timeUntilNextHeartbeat, timeUntilNextActivity)).count();
+        int t = static_cast<int>(
+          std::chrono::duration_cast<std::chrono::milliseconds>
+            (std::min(timeUntilNextHeartbeat, timeUntilNextActivity)).count());
         int t2 = std::min(t, this->kTimeout);
         return std::max(t2, 0);
       }
