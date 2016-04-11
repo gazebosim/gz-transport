@@ -746,7 +746,7 @@ namespace ignition
       /// \brief Method in charge of receiving the discovery updates.
       private: void RecvDiscoveryUpdate()
       {
-        char rcvStr[this->kMaxRcvStr];
+        char rcvStr[Discovery::kMaxRcvStr];
         std::string srcAddr;
         uint16_t srcPort;
         sockaddr_in clntAddr;
@@ -1121,7 +1121,7 @@ namespace ignition
       private: const std::string kMulticastGroup = "224.0.0.7";
 
       /// \brief Timeout used for receiving messages (ms.).
-      private: static const int kTimeout = 250;
+      private: const int kTimeout = 250;
 
       /// \brief Longest string to receive.
       private: static const int kMaxRcvStr = 65536;
