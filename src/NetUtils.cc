@@ -308,8 +308,6 @@ std::vector<std::string> transport::determineInterfaces()
   else
     std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
   delete [] addrs;
-  std::cerr << "DEBUG: Determined my IP address to be: " <<
-    ret_addr << std::endl;
   if (result.empty() || (result.size() == 1 && result.at(0) == "127.0.0.1"))
   {
     std::cerr <<
