@@ -117,7 +117,6 @@ std::string transport::determineHost()
   else if (strlen(host) && strcmp("localhost", host))
   {
     std::string hostIP;
-    ign_strcat(host, ".local");
     if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
     {
       return hostIP;
@@ -239,8 +238,6 @@ std::string transport::determineHost()
   else
     std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
   delete [] addrs;
-  std::cerr << "DEBUG: Determined my IP address to be: " <<
-    ret_addr << std::endl;
   if (ret_addr == "127.0.0.1")
   {
     std::cerr <<
@@ -424,8 +421,6 @@ std::vector<std::string> transport::determineInterfaces()
   else
     std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
   delete [] addrs;
-  std::cerr << "DEBUG: Determined my IP address to be: " <<
-    ret_addr << std::endl;
   if (result.empty() || (result.size() == 1 && result.at(0) == "127.0.0.1"))
   {
     std::cerr <<

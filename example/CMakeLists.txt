@@ -35,8 +35,7 @@ add_dependencies(requester_async protobuf_compilation)
 
 if (MSVC)
   # Suppress Protobuf message generation warnings.
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-    /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512")
 
   # Suppress the "decorated name length exceed" warning (inside the STL).
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4503")
