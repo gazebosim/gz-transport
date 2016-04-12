@@ -217,13 +217,13 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Create two discovery nodes simulating they are in different processes.
   transport::Discovery<MessagePublisher> discovery1(g_pUuid1, g_msgPort);
-  transport::Discovery<MessagePublisher> Discovery(g_pUuid2, g_msgPort, true);
+  transport::Discovery<MessagePublisher> Discovery2(g_pUuid2, g_msgPort, true);
 
   // Register one callback for receiving notifications.
-  Discovery.ConnectionsCb(onDiscoveryResponse);
+  Discovery2.ConnectionsCb(onDiscoveryResponse);
 
   discovery1.Start();
-  Discovery.Start();
+  Discovery2.Start();
 
   // This should trigger a discovery response on discovery2.
   MessagePublisher publisher(g_topic, g_addr1, g_ctrl1, g_pUuid1, g_nUuid1,
