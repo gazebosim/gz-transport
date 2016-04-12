@@ -37,12 +37,22 @@ namespace ignition
     /// \brief Determine if an IP is private.
     /// \param[in] _hostname Hostname
     /// \param[out] _ip IP associated to the input hostname.
-    /// \return 0 when success.
-    int hostnameToIp(char *_hostname, std::string &_ip);
+    /// \return true when success or false otherwise.
+    bool hostnameToIp(const char *_hostname,
+                      std::string &_ip);
+
+    /// \brief Get the value of the environment variable IGN_IP.
+    /// \param[out] _ip The value of IGN_IP.
+    /// \return true if IGN_IP was set and had a non-empty value.
+    bool ignIP(std::string &_ip);
+
+    /// \brief Get the preferred local IP address. We only consider public
+    /// IP addresses.
+    /// \param[out] _ip The preferred local IP address.
+    /// \return true if a public local IP was found or false otherwise.
+    bool preferredPublicIP(std::string &_ip);
 
     /// \brief Determine IP or hostname.
-    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
-    /// roscpp/src/libros/network.cpp
     /// \return The IP or hostname of this host.
     IGNITION_VISIBLE
     std::string determineHost();

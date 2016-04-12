@@ -93,8 +93,14 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
 
-  // Get the list of network interfaces in this host.
-  this->dataPtr->hostInterfaces = determineInterfaces();
+  std::string ign_ip;
+  if (transport::ignIP(ign_ip))
+    this->dataPtr->hostInterfaces = {ign_ip};
+  else
+  {
+    // Get the list of network interfaces in this host.
+    this->dataPtr->hostInterfaces = determineInterfaces();
+  }
 
 #ifdef _WIN32
   if (!initialized)
