@@ -117,7 +117,6 @@ std::string transport::determineHost()
   else if (strlen(host) && strcmp("localhost", host))
   {
     std::string hostIP;
-    ign_strcat(host, ".local");
     if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
     {
       return hostIP;
