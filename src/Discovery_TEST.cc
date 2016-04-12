@@ -62,8 +62,10 @@ int g_counter = 0;
 template<typename T> class DiscoveryDerived : public transport::Discovery<T>
 {
   // Documentation inherited.
-  public: DiscoveryDerived(const std::string &_pUuid, bool _verbose = false)
-    : transport::Discovery<T>(_pUuid, g_msgPort, _verbose)
+  public: DiscoveryDerived(const std::string &_pUuid,
+                           const int _port,
+                           const bool _verbose = false)
+    : transport::Discovery<T>(_pUuid, _port, _verbose)
   {
   }
 
@@ -494,10 +496,10 @@ TEST(DiscoveryTest, TestActivity)
     g_scope, "type");
   ServicePublisher srvPublisher(g_service, g_addr1, g_id1, proc2Uuid,
     g_nUuid2, g_scope, "reqType", "repType");
-  DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid);
+  DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid, g_msgPort);
 
   {
-    DiscoveryDerived<ServicePublisher> discovery2(proc2Uuid);
+    DiscoveryDerived<MessagePublisher> discovery2(proc2Uuid, g_msgPort);
 
     discovery1.Start();
     discovery2.Start();
