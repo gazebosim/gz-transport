@@ -189,34 +189,19 @@ std::vector<std::string> transport::determineInterfaces()
     }
     // prefer non-loopback IPs
     if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
-    {
-      std::cout << "discarded (Loopback)" << std::endl;
       continue;  // ignore loopback unless we have no other choice
-    }
     // Does not support multicast.
     if (!(ifa->ifa_flags & IFF_MULTICAST))
-    {
-      std::cout << ip_ << " discarded (does not support multicast)" << std::endl;
       continue;
-    }
     // Is not running.
     if (!(ifa->ifa_flags & IFF_UP))
-    {
-      std::cout << ip_ << "discarded (is not running)" << std::endl;
       continue;
-    }
     // IPv6 interface.
     if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
-    {
-      std::cout << ip_ << " is a IPv6" << std::endl;
       interface = std::string(ip_);
-    }
     // Private network interface.
     else if (isPrivateIP(ip_) && !preferred_ip[0])
-    {
-      std::cout << ip_ << " is private" << std::endl;
       interface = std::string(ip_);
-    }
     // Any other interface.
     else if (!isPrivateIP(ip_) &&
              (isPrivateIP(preferred_ip) || !preferred_ip[0]))
