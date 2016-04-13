@@ -27,6 +27,8 @@
 #endif
 
 #include <algorithm>
+#include <condition_variable>
+#include <csignal>
 #include <functional>
 #include <map>
 #include <memory>
@@ -46,39 +48,44 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-#include <csignal>
-
 namespace ignition
 {
   namespace transport
   {
     class NodePrivate;
 
-    static bool node_terminate;
-    static std::mutex node_mutex;
-    static std::condition_variable node_cv;
+    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
+    /// waitForShutdown().
+    static bool shutdown = false;
 
-    static void node_signal_handler(int _signal)
+    /// Mutex to protect the boolean shutdown variable.
+    static std::mutex shutdown_mutex;
+
+    /// Condition variable to wakeup waitForShutdown() and exit.
+    static std::condition_variable shutdown_cv;
+
+    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
+    /// \param[in] _signal Signal received.
+    static void signal_handler(int _signal)
     {
       if (_signal == SIGINT || _signal == SIGTERM)
       {
-        node_mutex.lock();
-        node_terminate = true;
-        node_mutex.unlock();
-        node_cv.notify_all();
+        shutdown_mutex.lock();
+        shutdown = true;
+        shutdown_mutex.unlock();
+        shutdown_cv.notify_all();
       }
-      std::cout << "captured" << std::endl;
     }
 
-    /// \brief ToDo.
+    /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     IGNITION_VISIBLE inline void waitForShutdown()
     {
-      // Install a signal handler for SIGINT.
-      std::signal(SIGINT,  node_signal_handler);
-      std::signal(SIGTERM, node_signal_handler);
+      // Install a signal handler for SIGINT and SIGTERM.
+      std::signal(SIGINT,  signal_handler);
+      std::signal(SIGTERM, signal_handler);
 
-      std::unique_lock<std::mutex> lk(node_mutex);
-      node_cv.wait(lk, []{return node_terminate;});
+      std::unique_lock<std::mutex> lk(shutdown_mutex);
+      shutdown_cv.wait(lk, []{return shutdown;});
     }
 
     /// \class Node Node.hh ignition/transport/Node.hh

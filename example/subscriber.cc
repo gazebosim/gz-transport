@@ -43,7 +43,6 @@ int main(int argc, char **argv)
 
   // Zzzzzz.
   ignition::transport::waitForShutdown();
-  std::cout << "exiting" << std::endl;
 
   return 0;
 }
