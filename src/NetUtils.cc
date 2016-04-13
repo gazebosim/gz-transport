@@ -52,41 +52,87 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
-bool transport::isPrivateIP(const char *_ip)
+namespace ignition
 {
-  bool b = !strncmp("192.168", _ip, 7) || !strncmp("10.", _ip, 3) ||
-           !strncmp("169.254", _ip, 7);
-  return b;
+  namespace transport
+  {
+    /// \brief Determine if an IP is private.
+    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
+    /// roscpp/src/libros/network.cpp
+    /// \param[in] _ip Input IP address.
+    /// \return true if the IP address is private.
+    static bool isPrivateIP(const char *_ip)
+    {
+      bool b = !strncmp("192.168", _ip, 7) || !strncmp("10.", _ip, 3) ||
+               !strncmp("169.254", _ip, 7);
+      return b;
+    }
+
+    /// \brief Determine if an IP is private.
+    /// \param[in] _hostname Hostname
+    /// \param[out] _ip IP associated to the input hostname.
+    /// \return true when success or false otherwise.
+    static bool hostnameToIp(const char *_hostname, std::string &_ip)
+    {
+      struct hostent *he;
+      struct in_addr **addr_list;
+      int i;
+
+      if ((he = gethostbyname(_hostname)) == nullptr)
+      {
+    #ifndef _WIN32
+        // Complain, but not on Windows, where this apparently always happens.
+        std::cerr << "Error in gethostbyname when using hostname = " << _hostname
+          << std::endl;
+    #endif
+        return false;
+      }
+
+      addr_list = (struct in_addr **) he->h_addr_list;
+
+      for (i = 0; addr_list[i] != nullptr; ++i)
+      {
+        // Return the first one;
+        _ip = std::string(inet_ntoa(*addr_list[i]));
+        return true;
+      }
+
+      return false;
+    }
+
+    //////////////////////////////////////////////////
+    static bool preferredPublicIP(std::string &_ip)
+    {
+      char host[1024];
+      memset(host, 0, sizeof(host));
+      if (gethostname(host, sizeof(host) - 1) != 0)
+        return false;
+
+      // We don't want "localhost" to be our hostname.
+      if (!strlen(host) || !strcmp("localhost", host))
+        return false;
+
+      std::string hostIP;
+      if (!hostnameToIp(host, hostIP) || isPrivateIP(hostIP.c_str()))
+        return false;
+
+      _ip = hostIP;
+      return true;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
-bool transport::hostnameToIp(const char *_hostname, std::string &_ip)
-{
-  struct hostent *he;
-  struct in_addr **addr_list;
-  int i;
 
-  if ((he = gethostbyname(_hostname)) == nullptr)
-  {
-#ifndef _WIN32
-    // Complain, but not on Windows, where this apparently always happens.
-    std::cerr << "Error in gethostbyname when using hostname = " << _hostname
-      << std::endl;
-#endif
-    return false;
-  }
 
-  addr_list = (struct in_addr **) he->h_addr_list;
-
-  for (i = 0; addr_list[i] != nullptr; ++i)
-  {
-    // Return the first one;
-    _ip = std::string(inet_ntoa(*addr_list[i]));
-    return true;
-  }
-
-  return false;
-}
+//////////////////////////////////////////////////
+//int transport::hostnameToIp(char *_hostname, std::string &_ip)
+//{
+//  if (hostnameToIp(_hostname, _ip))
+//    return 0;
+//  else
+//    return 1;
+//}
 
 //////////////////////////////////////////////////
 bool transport::ignIP(std::string &_ip)
@@ -107,25 +153,7 @@ bool transport::ignIP(std::string &_ip)
     return false;
 }
 
-//////////////////////////////////////////////////
-bool transport::preferredPublicIP(std::string &_ip)
-{
-  char host[1024];
-  memset(host, 0, sizeof(host));
-  if (gethostname(host, sizeof(host) - 1) != 0)
-    return false;
 
-  // We don't want "localhost" to be our hostname.
-  if (!strlen(host) || !strcmp("localhost", host))
-    return false;
-
-  std::string hostIP;
-  if (!hostnameToIp(host, hostIP) || isPrivateIP(hostIP.c_str()))
-    return false;
-
-  _ip = hostIP;
-  return true;
-}
 
 //////////////////////////////////////////////////
 std::string transport::determineHost()
