@@ -100,7 +100,10 @@ namespace ignition
       return false;
     }
 
-    //////////////////////////////////////////////////
+    /// \brief Get the preferred local IP address. We only consider public
+    /// IP addresses.
+    /// \param[out] _ip The preferred local IP address.
+    /// \return true if a public local IP was found or false otherwise.
     static bool preferredPublicIP(std::string &_ip)
     {
       char host[1024];
@@ -121,39 +124,6 @@ namespace ignition
     }
   }
 }
-
-//////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////
-//int transport::hostnameToIp(char *_hostname, std::string &_ip)
-//{
-//  if (hostnameToIp(_hostname, _ip))
-//    return 0;
-//  else
-//    return 1;
-//}
-
-//////////////////////////////////////////////////
-bool transport::ignIP(std::string &_ip)
-{
-  char *ip_env;
-#ifdef _MSC_VER
-    size_t sz = 0;
-    _dupenv_s(&ip_env, &sz, "IGN_IP");
-#else
-    ip_env = std::getenv("IGN_IP");
-#endif
-
-    if (ip_env && (strlen(ip_env) != 0))
-    {
-      _ip = ip_env;
-      return true;
-    }
-    return false;
-}
-
-
 
 //////////////////////////////////////////////////
 std::string transport::determineHost()
@@ -359,6 +329,25 @@ std::string transport::hostname()
 #endif
 
   return hostname;
+}
+
+//////////////////////////////////////////////////
+bool transport::ignIP(std::string &_ip)
+{
+  char *ip_env;
+#ifdef _MSC_VER
+    size_t sz = 0;
+    _dupenv_s(&ip_env, &sz, "IGN_IP");
+#else
+    ip_env = std::getenv("IGN_IP");
+#endif
+
+    if (ip_env && (strlen(ip_env) != 0))
+    {
+      _ip = ip_env;
+      return true;
+    }
+    return false;
 }
 
 //////////////////////////////////////////////////

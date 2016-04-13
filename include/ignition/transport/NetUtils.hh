@@ -19,7 +19,6 @@
 #define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
-#include <vector>
 
 #include "ignition/transport/Helpers.hh"
 
@@ -27,24 +26,6 @@ namespace ignition
 {
   namespace transport
   {
-    //bool isPrivateIP(const char *_ip);
-
-    /// \brief Determine if an IP is private.
-    /// \param[in] _hostname Hostname
-    /// \param[out] _ip IP associated to the input hostname.
-    /// \return true when success or false otherwise.
-    //bool hostnameToIp(const char *_hostname,
-    //                  std::string &_ip);
-
-    //int hostnameToIp(char *_hostname,
-    //                 std::string &_ip);
-
-    /// \brief Get the preferred local IP address. We only consider public
-    /// IP addresses.
-    /// \param[out] _ip The preferred local IP address.
-    /// \return true if a public local IP was found or false otherwise.
-    //bool preferredPublicIP(std::string &_ip);
-
     /// \brief Determine IP or hostname.
     /// \return The IP or hostname of this host.
     IGNITION_VISIBLE
