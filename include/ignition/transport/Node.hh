@@ -46,11 +46,40 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
+#include <csignal>
+
 namespace ignition
 {
   namespace transport
   {
     class NodePrivate;
+
+    static bool node_terminate;
+    static std::mutex node_mutex;
+    static std::condition_variable node_cv;
+
+    static void node_signal_handler(int _signal)
+    {
+      if (_signal == SIGINT || _signal == SIGTERM)
+      {
+        node_mutex.lock();
+        node_terminate = true;
+        node_mutex.unlock();
+        node_cv.notify_all();
+      }
+      std::cout << "captured" << std::endl;
+    }
+
+    /// \brief ToDo.
+    IGNITION_VISIBLE inline void waitForShutdown()
+    {
+      // Install a signal handler for SIGINT.
+      std::signal(SIGINT,  node_signal_handler);
+      std::signal(SIGTERM, node_signal_handler);
+
+      std::unique_lock<std::mutex> lk(node_mutex);
+      node_cv.wait(lk, []{return node_terminate;});
+    }
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.

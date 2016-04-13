@@ -42,8 +42,8 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  std::cout << "Press <ENTER> to exit" << std::endl;
-  getchar();
+  ignition::transport::waitForShutdown();
+  std::cout << "exiting" << std::endl;
 
   return 0;
 }

@@ -52,5 +52,5 @@ int main(int argc, char **argv)
   }
 
   // Wait for requests.
-  getchar();
+  ignition::transport::waitForShutdown();
 }

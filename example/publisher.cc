@@ -15,12 +15,13 @@
  *
 */
 
+#include <atomic>
 #include <chrono>
 #include <csignal>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
-bool terminatePub = false;
+std::atomic<bool> terminatePub(false);
 
 //////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -35,8 +36,9 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Install a signal handler for SIGINT.
-  std::signal(SIGINT, signal_handler);
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;

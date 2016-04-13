@@ -47,6 +47,10 @@
 using namespace ignition;
 using namespace transport;
 
+bool node_terminate = false;
+std::mutex node_mutex;
+std::condition_variable node_cv;
+
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())

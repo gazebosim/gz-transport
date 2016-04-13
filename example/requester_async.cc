@@ -44,6 +44,5 @@ int main(int argc, char **argv)
   node.Request("/echo", req, responseCb);
 
   // Wait for the response.
-  std::cout << "Press <ENTER> to exit" << std::endl;
-  getchar();
+  ignition::transport::waitForShutdown();
 }
