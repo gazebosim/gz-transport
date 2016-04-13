@@ -16,7 +16,6 @@
 */
 
 #include <iostream>
-#include <string>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 

@@ -18,6 +18,8 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <iostream>
+#include <string>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
