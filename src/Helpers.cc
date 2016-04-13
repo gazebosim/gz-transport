@@ -15,6 +15,7 @@
  *
 */
 
+#include <cstdlib>
 #include <string>
 
 #include "ignition/transport/Helpers.hh"
