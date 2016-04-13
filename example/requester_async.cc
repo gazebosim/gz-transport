@@ -16,7 +16,6 @@
 */
 
 #include <iostream>
-#include <string>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
@@ -43,7 +42,6 @@ int main(int argc, char **argv)
   // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
 
-  // Wait for the response.
-  std::cout << "Press <ENTER> to exit" << std::endl;
-  getchar();
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }
