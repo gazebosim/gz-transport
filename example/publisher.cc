@@ -20,6 +20,7 @@
 #include <csignal>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 

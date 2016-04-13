@@ -1136,6 +1136,29 @@ TEST(NodeTest, ServiceList)
       (elapsed).count(), 2);
 }
 
+//////////////////////////////////////////////////
+/// \brief Create a separate thread, block it calling waitForShutdown() and
+/// emit a SIGINT signal. Check that the transport library captures the signal
+/// and is able to terminate.
+TEST(NodeTest, waitForShutdownSIGINT)
+{
+  std::thread aThread([]{ignition::transport::waitForShutdown();});
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  raise(SIGINT);
+  aThread.join();
+}
+
+//////////////////////////////////////////////////
+/// \brief Create a separate thread, block it calling waitForShutdown() and
+/// emit a SIGTERM signal. Check that the transport library captures the signal
+/// and is able to terminate.TEST(NodeTest, TerminateSIGTERM)
+TEST(NodeTest, waitForShutdownSIGTERM)
+{
+  std::thread aThread([]{ignition::transport::waitForShutdown();});
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  raise(SIGTERM);
+  aThread.join();
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
