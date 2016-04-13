@@ -51,6 +51,35 @@
 
 using namespace ignition;
 
+namespace ignition
+{
+  namespace transport
+  {
+    /// \brief Get the preferred local IP address.
+    /// Note that we don't consider private IP addresses.
+    /// \param[out] _ip The preferred local IP address.
+    /// \return true if a public local IP was found or false otherwise.
+    static bool preferredPublicIP(std::string &_ip)
+    {
+      char host[1024];
+      memset(host, 0, sizeof(host));
+      if (gethostname(host, sizeof(host) - 1) != 0)
+        return false;
+
+      // We don't want "localhost" to be our hostname.
+      if (!strlen(host) || !strcmp("localhost", host))
+        return false;
+
+      std::string hostIP;
+      if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()))
+        return false;
+
+      _ip = hostIP;
+      return true;
+    }
+  }
+}
+
 //////////////////////////////////////////////////
 bool transport::isPrivateIP(const char *_ip)
 {
@@ -96,171 +125,26 @@ std::string transport::determineHost()
   if (env("IGN_IP", ignIp) && !ignIp.empty())
     return ignIp;
 
-  // Second, try the hostname
-  char host[1024];
-  memset(host, 0, sizeof(host));
-  if (gethostname(host, sizeof(host) - 1) != 0)
-    std::cerr << "determineIP: gethostname failed" << std::endl;
-
-  // We don't want localhost to be our ip
-  else if (strlen(host) && strcmp("localhost", host))
-  {
-    std::string hostIP;
-    ign_strcat(host, ".local");
-    if (hostnameToIp(host, hostIP) == 0 && !isPrivateIP(hostIP.c_str()))
-    {
-      return hostIP;
-    }
-  }
+  // Second, try the preferred local and public IP address.
+  std::string hostIP;
+  if (preferredPublicIP(hostIP))
+    return hostIP;
 
   // Third, fall back on interface search, which will yield an IP address
-#ifdef HAVE_IFADDRS
-  struct ifaddrs *ifa = nullptr, *ifp = NULL;
-  int rc;
-  if ((rc = getifaddrs(&ifp)) < 0)
+  auto interfaces = determineInterfaces();
+  for (const auto &ip : interfaces)
   {
-    std::cerr << "error in getifaddrs: " << strerror(rc) << std::endl;
-    exit(-1);
+    // Return the first public IP address.
+    if (!isPrivateIP(ip.c_str()))
+      return ip;
   }
-  char preferred_ip[200] = {0};
-  for (ifa = ifp; ifa; ifa = ifa->ifa_next)
-  {
-    char ip_[200];
-    socklen_t salen;
-    if (!ifa->ifa_addr)
-      continue;  // evidently this interface has no ip address
-    if (ifa->ifa_addr->sa_family == AF_INET)
-      salen = sizeof(struct sockaddr_in);
-    else if (ifa->ifa_addr->sa_family == AF_INET6)
-      salen = sizeof(struct sockaddr_in6);
-    else
-      continue;
-    if (getnameinfo(ifa->ifa_addr, salen, ip_, sizeof(ip_), nullptr, 0,
-                    NI_NUMERICHOST) < 0)
-    {
-      std::cout << "getnameinfo couldn't get the ip of interface " <<
-                   ifa->ifa_name << std::endl;
-      continue;
-    }
-    // prefer non-private IPs over private IPs
-    if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
-      continue;  // ignore loopback unless we have no other choice
-    // Does not support multicast.
-    if (!(ifa->ifa_flags & IFF_MULTICAST))
-      continue;
-    // Is not running.
-    if (!(ifa->ifa_flags & IFF_UP))
-      continue;
-    if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
-      strcpy(preferred_ip, ip_);
-    else if (isPrivateIP(ip_) && !preferred_ip[0])
-      strcpy(preferred_ip, ip_);
-    else if (!isPrivateIP(ip_) &&
-             (isPrivateIP(preferred_ip) || !preferred_ip[0]))
-      strcpy(preferred_ip, ip_);
-  }
-  freeifaddrs(ifp);
-  if (!preferred_ip[0])
-  {
-    std::cerr <<
-      "Couldn't find a preferred IP via the getifaddrs() call; "
-      "I'm assuming that your IP "
-      "address is 127.0.0.1.  This should work for local processes, "
-      "but will almost certainly not work if you have remote processes."
-      "Report to the disc-zmq development team to seek a fix." << std::endl;
-    return std::string("127.0.0.1");
-  }
-  return std::string(preferred_ip);
-#elif defined(_WIN32)
-  // Establish our default return value, in case everything below fails.
-  std::string ret_addr("127.0.0.1");
-  // Look up our address.
-  ULONG outBufLen = 0;
-  PIP_ADAPTER_ADDRESSES addrs = NULL;
-  // Not sure whether these are the right flags, but they work for
-  // me on Windows 7
-  ULONG flags = (GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
-                 GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME);
-  // The first time, it'll fail; we're asking how much space is needed to
-  // store the result.
-  GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen);
-  // Allocate the required space.
-  addrs = new IP_ADAPTER_ADDRESSES[outBufLen];
-  ULONG ret;
-  // Now the call should succeed.
-  if ((ret = GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen)) ==
-    NO_ERROR)
-  {
-    // Iterate over all returned adapters, arbitrarily sticking with the
-    // last non-loopback one that we find.
-    for (PIP_ADAPTER_ADDRESSES curr = addrs; curr; curr = curr->Next)
-    {
-      // This adapter does not support multicast.
-      if (curr->Flags & IP_ADAPTER_NO_MULTICAST)
-        continue;
 
-      // The interface is not running.
-      if (curr->OperStatus != IfOperStatusUp)
-        continue;
-
-      // Iterate over all unicast addresses for this adapter
-      for (PIP_ADAPTER_UNICAST_ADDRESS unicast = curr->FirstUnicastAddress;
-           unicast; unicast = unicast->Next)
-      {
-        // Cast to get an IPv4 numeric address (the AF_INET flag used above
-        // ensures that we're only going to get IPv4 address here).
-        sockaddr_in* sockaddress =
-          reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
-        // Make it a dotted quad
-        char ipv4_str[3*4+3+1];
-        ign_sprintf(ipv4_str, "%d.%d.%d.%d",
-          sockaddress->sin_addr.S_un.S_un_b.s_b1,
-          sockaddress->sin_addr.S_un.S_un_b.s_b2,
-          sockaddress->sin_addr.S_un.S_un_b.s_b3,
-          sockaddress->sin_addr.S_un.S_un_b.s_b4);
-        // Ignore loopback address (that's our default anyway)
-        if (!strcmp(ipv4_str, "127.0.0.1"))
-          continue;
-        ret_addr = ipv4_str;
-      }
-    }
-  }
-  else
-    std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
-  delete [] addrs;
-  std::cerr << "DEBUG: Determined my IP address to be: " <<
-    ret_addr << std::endl;
-  if (ret_addr == "127.0.0.1")
-  {
-    std::cerr <<
-      "Couldn't find a preferred IP via the GetAdaptersAddresses() call; "
-      "I'm assuming that your IP "
-      "address is 127.0.0.1.  This should work for local processes, "
-      "but will almost certainly not work if you have remote processes."
-      "Report to the disc-zmq development team to seek a fix." << std::endl;
-  }
-  return ret_addr;
-#else
-  // @todo Fix IP determination in the case where getifaddrs() isn't
-  // available.
-  std::cerr <<
-    "You don't have the getifaddrs() call; I'm assuming that your IP "
-    "address is 127.0.0.1.  This should work for local processes, "
-    "but will almost certainly not work if you have remote processes."
-    "Report to the disc-zmq development team to seek a fix." << std::endl;
-  return std::string("127.0.0.1");
-#endif
+  return interfaces.front();
 }
 
 //////////////////////////////////////////////////
 std::vector<std::string> transport::determineInterfaces()
 {
-  // First, did the user set IGN_IP?
-  std::string ignIp;
-  if (env("IGN_IP", ignIp) && !ignIp.empty())
-    return {ignIp};
-
-  // Second, fall back on interface search, which will yield an IP address
 #ifdef HAVE_IFADDRS
   std::vector<std::string> result;
   struct ifaddrs *ifa = nullptr, *ifp = NULL;
@@ -399,8 +283,6 @@ std::vector<std::string> transport::determineInterfaces()
   else
     std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
   delete [] addrs;
-  std::cerr << "DEBUG: Determined my IP address to be: " <<
-    ret_addr << std::endl;
   if (result.empty() || (result.size() == 1 && result.at(0) == "127.0.0.1"))
   {
     std::cerr <<
