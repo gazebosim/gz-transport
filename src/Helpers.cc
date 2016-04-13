@@ -32,7 +32,7 @@ namespace ignition
       char *v;
 #ifdef _MSC_VER
       size_t sz = 0;
-      _dupenv_s(&v, &sz, _name);
+      _dupenv_s(&v, &sz, _name.c_str());
 #else
       v = std::getenv(_name.c_str());
 #endif
