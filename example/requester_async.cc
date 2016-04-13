@@ -43,6 +43,6 @@ int main(int argc, char **argv)
   // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
 
-  // Wait for the response.
+  // Zzzzzz.
   ignition::transport::waitForShutdown();
 }

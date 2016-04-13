@@ -51,6 +51,6 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // Wait for requests.
+  // Zzzzzz.
   ignition::transport::waitForShutdown();
 }
