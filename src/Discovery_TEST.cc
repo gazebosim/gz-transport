@@ -385,7 +385,7 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Create two discovery nodes simulating they are in different processes.
   transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2, true);
+  transport::Discovery discovery2(pUuid2);
 
   // Register one callback for receiving notifications.
   discovery2.ConnectionsCb(onDiscoveryResponse);

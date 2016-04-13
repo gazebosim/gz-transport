@@ -837,6 +837,12 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       transport::AdvertiseMessage<MessagePublisher> advMsg;
       advMsg.Unpack(pBody);
 
+      if (advMsg.Publisher().Scope() == Scope_t::HOST)
+      {
+        std::cout << "Local IP: " << this->dataPtr->hostAddr << std::endl;
+        std::cout << "_From IP: " << _fromIp << std::endl;
+      }
+
       // Check scope of the topic.
       if ((advMsg.Publisher().Scope() == Scope_t::PROCESS) ||
           (advMsg.Publisher().Scope() == Scope_t::HOST &&
