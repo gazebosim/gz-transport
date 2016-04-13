@@ -27,8 +27,6 @@
 #endif
 
 #include <algorithm>
-#include <condition_variable>
-#include <csignal>
 #include <functional>
 #include <map>
 #include <memory>
@@ -54,39 +52,10 @@ namespace ignition
   {
     class NodePrivate;
 
-    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
-    /// waitForShutdown().
-    static bool shutdown = false;
-
-    /// Mutex to protect the boolean shutdown variable.
-    static std::mutex shutdown_mutex;
-
-    /// Condition variable to wakeup waitForShutdown() and exit.
-    static std::condition_variable shutdown_cv;
-
-    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
-    /// \param[in] _signal Signal received.
-    static void signal_handler(int _signal)
-    {
-      if (_signal == SIGINT || _signal == SIGTERM)
-      {
-        shutdown_mutex.lock();
-        shutdown = true;
-        shutdown_mutex.unlock();
-        shutdown_cv.notify_all();
-      }
-    }
-
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
-    IGNITION_VISIBLE inline void waitForShutdown()
-    {
-      // Install a signal handler for SIGINT and SIGTERM.
-      std::signal(SIGINT,  signal_handler);
-      std::signal(SIGTERM, signal_handler);
-
-      std::unique_lock<std::mutex> lk(shutdown_mutex);
-      shutdown_cv.wait(lk, []{return shutdown;});
-    }
+    /// Note that this function registers a signal handler. Do not use this
+    /// function if you want to manage yourself SIGINT/SIGTERM.
+    IGNITION_VISIBLE void waitForShutdown();
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
