@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
@@ -69,15 +70,8 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  char *tmp;
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&tmp, &sz, "IGN_VERBOSE");
-#else
-  tmp = std::getenv("IGN_VERBOSE");
-#endif
-  if (tmp)
-    this->verbose = std::string(tmp) == "1";
+  std::string ignVerbose;
+  this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
   char bindEndPoint[1024];
 
