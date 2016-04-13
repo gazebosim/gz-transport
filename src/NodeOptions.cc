@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeOptionsPrivate.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -31,19 +32,9 @@ NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
 {
   // Check if the environment variable IGN_PARTITION is present.
-  char *envPartition;
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&envPartition, &sz, "IGN_PARTITION");
-#else
-  envPartition = std::getenv("IGN_PARTITION");
-#endif
-
-  if (envPartition)
-  {
-    std::string partitionStr = std::string(envPartition);
-    this->SetPartition(partitionStr);
-  }
+  std::string ignPartition;
+  if (env("IGN_PARTITION", ignPartition))
+    this->SetPartition(ignPartition);
 }
 
 //////////////////////////////////////////////////

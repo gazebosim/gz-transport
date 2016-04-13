@@ -19,6 +19,7 @@
 #define __IGN_TRANSPORT_NETUTILS_HH_INCLUDED__
 
 #include <string>
+#include <vector>
 
 #include "ignition/transport/Helpers.hh"
 
@@ -42,12 +43,6 @@ namespace ignition
     /// \return The computer's hostname.
     IGNITION_VISIBLE
     std::string hostname();
-
-    /// \brief Get the value of the environment variable IGN_IP.
-    /// \param[out] _ip The value of IGN_IP.
-    /// \return true if IGN_IP was set and had a non-empty value.
-    IGNITION_VISIBLE
-    bool ignIP(std::string &_ip);
 
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.

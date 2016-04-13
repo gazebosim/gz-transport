@@ -129,9 +129,9 @@ namespace ignition
 std::string transport::determineHost()
 {
   // First, did the user set IGN_IP?
-  std::string ipEnv;
-  if (ignIP(ipEnv))
-    return ipEnv;
+  std::string ignIp;
+  if (env("IGN_IP", ignIp) && !ignIp.empty())
+    return ignIp;
 
   // Second, try the preferred local and public IP address.
   std::string hostIP;
@@ -329,25 +329,6 @@ std::string transport::hostname()
 #endif
 
   return hostname;
-}
-
-//////////////////////////////////////////////////
-bool transport::ignIP(std::string &_ip)
-{
-  char *ip_env;
-#ifdef _MSC_VER
-    size_t sz = 0;
-    _dupenv_s(&ip_env, &sz, "IGN_IP");
-#else
-    ip_env = std::getenv("IGN_IP");
-#endif
-
-    if (ip_env && (strlen(ip_env) != 0))
-    {
-      _ip = ip_env;
-      return true;
-    }
-    return false;
 }
 
 //////////////////////////////////////////////////

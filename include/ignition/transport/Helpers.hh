@@ -20,6 +20,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 /// \def IGNITION_VISIBLE
 /// Use to represent "symbol visible" if supported
@@ -83,6 +84,20 @@
   #endif
 // BUILDING_STATIC_LIBS
 #endif
+
+namespace ignition
+{
+  namespace transport
+  {
+    /// \brief Find the environment variable '_name' and returns its value.
+    /// \param[in] _name Name of the environment variable.
+    /// \param[out] _value Value if the variable was found.
+    /// \return True if the variable was found or false otherwise.
+    IGNITION_VISIBLE
+    bool env(const std::string &_name,
+             std::string &_value);
+  }
+}
 
 // Use safer functions on Windows
 #ifdef _MSC_VER
