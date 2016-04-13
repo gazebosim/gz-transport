@@ -19,6 +19,7 @@ set (gtest_sources
   AdvertiseOptions_TEST.cc
   Discovery_TEST.cc
   HandlerStorage_TEST.cc
+  Helpers_TEST.cc
   NetUtils_TEST.cc
   Node_TEST.cc
   NodeOptions_TEST.cc
