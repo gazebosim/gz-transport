@@ -80,6 +80,17 @@ namespace ignition
         return false;
       }
 
+      // Get the complete list of compatible interfaces.
+      auto interfaces = determineInterfaces();
+
+      // Make sure that this interface is compatible with Discovery.
+      if (std::find(interfaces.begin(), interfaces.end(), hostIP) ==
+            interfaces.end())
+      {
+        std::cout << "Not compatible" << std::endl;
+        return false;
+      }
+
       std::cout << "toIP2: " << hostIP << std::endl;
       _ip = hostIP;
       return true;
