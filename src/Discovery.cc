@@ -93,6 +93,7 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
 
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
+  std::cout << "hostAddr?" << this->dataPtr->hostAddr << std::endl;
 
   std::string ignIp;
   if (env("IGN_IP", ignIp) && !ignIp.empty())
@@ -102,6 +103,10 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
     // Get the list of network interfaces in this host.
     this->dataPtr->hostInterfaces = determineInterfaces();
   }
+
+  std::cout << "interfaces?" << std::endl;
+  for (auto ip : this->dataPtr->hostInterfaces)
+    std::cout << "Interface " << ip << std::endl;
 
 #ifdef _WIN32
   if (!initialized)
@@ -836,6 +841,12 @@ void Discovery::DispatchDiscoveryMsg(const std::string &_fromIp, char *_msg)
       // Read the rest of the fields.
       transport::AdvertiseMessage<MessagePublisher> advMsg;
       advMsg.Unpack(pBody);
+
+      if (advMsg.Publisher().Scope() == Scope_t::HOST)
+      {
+        std::cout << "From: " << _fromIp << std::endl;
+        std::cout << "Me: " << this->dataPtr->hostAddr << std::endl;
+      }
 
       // Check scope of the topic.
       if ((advMsg.Publisher().Scope() == Scope_t::PROCESS) ||

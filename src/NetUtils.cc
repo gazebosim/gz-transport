@@ -66,6 +66,8 @@ namespace ignition
       if (gethostname(host, sizeof(host) - 1) != 0)
         return false;
 
+      std::cout << "hostname: " << host << std::endl;
+
       // We don't want "localhost" to be our hostname.
       if (!strlen(host) || !strcmp("localhost", host))
         return false;
@@ -74,9 +76,11 @@ namespace ignition
       if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()) ||
           hostIP.find("127.0.") == 0)
       {
+        std::cout << "toIP1: " << hostIP << std::endl;
         return false;
       }
 
+      std::cout << "toIP2: " << hostIP << std::endl;
       _ip = hostIP;
       return true;
     }
@@ -128,10 +132,14 @@ std::string transport::determineHost()
   if (env("IGN_IP", ignIp) && !ignIp.empty())
     return ignIp;
 
+  std::cout << "IGN_IP not set" << std::endl;
+
   // Second, try the preferred local and public IP address.
   std::string hostIP;
   if (preferredPublicIP(hostIP))
     return hostIP;
+
+  std::cout << "Preferred IP not set" << std::endl;
 
   // Third, fall back on interface search, which will yield an IP address
   auto interfaces = determineInterfaces();
