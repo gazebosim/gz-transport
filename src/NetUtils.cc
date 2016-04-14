@@ -71,8 +71,11 @@ namespace ignition
         return false;
 
       std::string hostIP;
-      if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()))
+      if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()) ||
+          hostIP.find("127.0.") == 0)
+      {
         return false;
+      }
 
       _ip = hostIP;
       return true;
