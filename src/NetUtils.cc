@@ -188,15 +188,25 @@ std::vector<std::string> transport::determineInterfaces()
                    ifa->ifa_name << std::endl;
       continue;
     }
+    std::cout << "i " << ip_ << std::endl;
     // prefer non-loopback IPs
     if (!strcmp("127.0.0.1", ip_) || strchr(ip_, ':'))
+    {
+      std::cout << "Discarded localhost" << std::endl;
       continue;  // ignore loopback unless we have no other choice
+    }
     // Does not support multicast.
     if (!(ifa->ifa_flags & IFF_MULTICAST))
+    {
+      std::cout << "Discarded multicast" << std::endl;
       continue;
+    }
     // Is not running.
     if (!(ifa->ifa_flags & IFF_UP))
+    {
+      std::cout << "discarded not running" << std::endl;
       continue;
+    }
     // IPv6 interface.
     if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
       interface = std::string(ip_);
