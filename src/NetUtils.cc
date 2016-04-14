@@ -66,8 +66,6 @@ namespace ignition
       if (gethostname(host, sizeof(host) - 1) != 0)
         return false;
 
-      std::cout << "Hostname: " << host << std::endl;
-
       // We don't want "localhost" to be our hostname.
       if (!strlen(host) || !strcmp("localhost", host))
         return false;
@@ -76,10 +74,8 @@ namespace ignition
       if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()) ||
           hostIP.find("127.0.") == 0)
       {
-        std::cout << "hostname2IP: " << hostIP << std::endl;
         return false;
       }
-      std::cout << "hostname2IP: " << hostIP << std::endl;
 
       _ip = hostIP;
       return true;
@@ -135,8 +131,6 @@ std::string transport::determineHost()
     return ignIp;
   }
 
-  std::cout << "IGN_IP was not set" << std::endl;
-
   // Second, try the preferred local and public IP address.
   std::string hostIP;
   if (preferredPublicIP(hostIP))
@@ -146,7 +140,6 @@ std::string transport::determineHost()
   auto interfaces = determineInterfaces();
   for (const auto &ip : interfaces)
   {
-    std::cout << "Interface: " << ip << std::endl;
     // Return the first public IP address.
     if (!isPrivateIP(ip.c_str()))
       return ip;
@@ -159,7 +152,6 @@ std::string transport::determineHost()
 std::vector<std::string> transport::determineInterfaces()
 {
 #ifdef HAVE_IFADDRS
-  std::cout << "HAVE_IFADDRS" << std::endl;
   std::vector<std::string> result;
   struct ifaddrs *ifa = nullptr, *ifp = NULL;
   int rc;
