@@ -151,6 +151,16 @@ class MyTestClass
     this->wrongCallbackSrvExecuted = true;
   }
 
+  /// \brief Response callback to a service request.
+  public: void EchoResponse(const transport::msgs::Int &_rep,
+    const bool _result)
+  {
+    EXPECT_EQ(_rep.data(), data);
+    EXPECT_TRUE(_result);
+
+    this->responseExecuted = true;
+  }
+
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const transport::msgs::Int &_msg)
   {
@@ -196,6 +206,12 @@ class MyTestClass
 
     this->Reset();
 
+    // Request a valid service using a member function callback.
+    this->node.Request(topic, req, &MyTestClass::EchoResponse, this);
+    EXPECT_TRUE(this->responseExecuted);
+
+    this->Reset();
+
     // Service requests with wrong types.
     EXPECT_FALSE(this->node.Request(topic, wrongReq, timeout, rep, result));
     EXPECT_FALSE(this->node.Request(topic, req, timeout, wrongRep, result));
@@ -211,12 +227,14 @@ class MyTestClass
     this->callbackExecuted = false;
     this->callbackSrvExecuted = false;
     this->wrongCallbackSrvExecuted = false;
+    this->responseExecuted = false;
   }
 
   /// \brief Member variables that flag when the callbacks are executed.
   public: bool callbackExecuted;
   public: bool callbackSrvExecuted;
   public: bool wrongCallbackSrvExecuted;
+  public: bool responseExecuted;
 
   /// \brief Transport node;
   private: transport::Node node;
@@ -407,10 +425,10 @@ TEST(NodeTest, PubSubSameThreadLamda)
   bool executed = false;
   std::function<void(const transport::msgs::Int&)> subCb =
     [&executed](const transport::msgs::Int &_msg)
-    {
-      EXPECT_EQ(_msg.data(), data);
-      executed = true;
-    };
+  {
+    EXPECT_EQ(_msg.data(), data);
+    executed = true;
+  };
 
   EXPECT_TRUE(node.Subscribe(topic, subCb));
 
@@ -644,12 +662,12 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   std::function<void(const transport::msgs::Int &, transport::msgs::Int &,
     bool &)> advCb = [](const transport::msgs::Int &_req,
-      transport::msgs::Int &_rep, bool &_result)
-      {
-        EXPECT_EQ(_req.data(), data);
-        _rep.set_data(_req.data());
-        _result = true;
-      };
+      transport::msgs::Int &_rep, bool _result)
+  {
+    EXPECT_EQ(_req.data(), data);
+    _rep.set_data(_req.data());
+    _result = true;
+  };
 
   transport::Node node;
   EXPECT_TRUE((node.Advertise<transport::msgs::Int, transport::msgs::Int>(topic,
@@ -657,18 +675,17 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 
   bool executed = false;
   std::function<void(const transport::msgs::Int &, const bool)> reqCb =
-    [&executed](const transport::msgs::Int &_rep, const bool &_result)
-      {
-        EXPECT_EQ(_rep.data(), data);
-        EXPECT_TRUE(_result);
-        executed = true;
-      };
+    [&executed](const transport::msgs::Int &_rep, const bool _result)
+  {
+    EXPECT_EQ(_rep.data(), data);
+    EXPECT_TRUE(_result);
+    executed = true;
+  };
 
   transport::msgs::Int req;
   req.set_data(data);
 
-  EXPECT_TRUE((node.Request<transport::msgs::Int, transport::msgs::Int>(
-    topic, req, reqCb)));
+  EXPECT_TRUE((node.Request(topic, req, reqCb)));
 
   EXPECT_TRUE(executed);
 }

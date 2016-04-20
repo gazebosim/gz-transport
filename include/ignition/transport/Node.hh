@@ -131,11 +131,10 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const T &_msg))
       {
-        std::function<void(const T &)> f =
-          [_cb](const T & _internalMsg)
-          {
-            (*_cb)(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb](const T & _internalMsg)
+        {
+          (*_cb)(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -202,12 +201,11 @@ namespace ignition
           void(C::*_cb)(const T &_msg),
           C *_obj)
       {
-        std::function<void(const T &)> f =
-          [_cb, _obj](const T & _internalMsg)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-            cb(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb, _obj](const T & _internalMsg)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          cb(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -243,9 +241,9 @@ namespace ignition
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
-          {
-            (*_cb)(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -335,11 +333,11 @@ namespace ignition
           [_cb, _obj](const T1 &_internalReq,
                       T2 &_internalRep,
                       bool &_internalResult)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-              std::placeholders::_2, std::placeholders::_3);
-            cb(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2, std::placeholders::_3);
+          cb(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -365,9 +363,9 @@ namespace ignition
       {
         std::function<void(const T2 &, const bool)> f =
           [_cb](const T2 &_internalRep, const bool _internalResult)
-          {
-            (*_cb)(_internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalRep, _internalResult);
+        };
 
         return this->Request<T1, T2>(_topic, _req, f);
       }
@@ -474,8 +472,15 @@ namespace ignition
         void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
-        return this->Request(_topic, _req,
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+        std::function<void(const T2 &, const bool)> f =
+          [_cb, _obj](const T2 &_internalRep, const bool _internalResult)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2);
+          cb(_internalRep, _internalResult);
+        };
+
+        return this->Request<T1, T2>(_topic, _req, f);
       }
 
       /// \brief Request a new service using a blocking call.
