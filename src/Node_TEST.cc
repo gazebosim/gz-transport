@@ -662,7 +662,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   std::function<void(const transport::msgs::Int &, transport::msgs::Int &,
     bool &)> advCb = [](const transport::msgs::Int &_req,
-      transport::msgs::Int &_rep, bool _result)
+      transport::msgs::Int &_rep, bool &_result)
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
