@@ -908,7 +908,13 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     // Disconnect from a publisher's socket.
     // for (const auto &connection : this->connections[procUuid])
     //   this->subscriber->disconnect(connection.addr.c_str());
-    this->subscriber->disconnect(connection.Addr().c_str());
+    try
+    {
+      this->subscriber->disconnect(connection.Addr().c_str());
+    }
+    catch(...)
+    {
+    }
 
     // I am no longer connected.
     this->connections.DelPublisherByNode(topic, procUuid, nUuid);
@@ -923,7 +929,15 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 
     // Disconnect from all the connections of that publisher.
     for (auto &connection : info[procUuid])
-      this->subscriber->disconnect(connection.Addr().c_str());
+    {
+      try
+      {
+        this->subscriber->disconnect(connection.Addr().c_str());
+      }
+      catch(...)
+      {
+      }
+    }
 
     // Remove all the connections from the process disonnected.
     this->connections.DelPublishersByProc(procUuid);
