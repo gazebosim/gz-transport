@@ -25,6 +25,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <csignal>
+#include <condition_variable>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -46,6 +48,47 @@
 
 using namespace ignition;
 using namespace transport;
+
+namespace ignition
+{
+  namespace transport
+  {
+    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
+    /// waitForShutdown().
+    static bool g_shutdown = false;
+
+    /// \brief Mutex to protect the boolean shutdown variable.
+    static std::mutex g_shutdown_mutex;
+
+    /// \brief Condition variable to wakeup waitForShutdown() and exit.
+    static std::condition_variable g_shutdown_cv;
+
+    //////////////////////////////////////////////////
+    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
+    /// \param[in] _signal Signal received.
+    static void signal_handler(const int _signal)
+    {
+      if (_signal == SIGINT || _signal == SIGTERM)
+      {
+        g_shutdown_mutex.lock();
+        g_shutdown = true;
+        g_shutdown_mutex.unlock();
+        g_shutdown_cv.notify_all();
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void ignition::transport::waitForShutdown()
+{
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
+
+  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+  g_shutdown_cv.wait(lk, []{return g_shutdown;});
+}
 
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
