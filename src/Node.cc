@@ -57,10 +57,10 @@ namespace ignition
     /// waitForShutdown().
     static bool g_shutdown = false;
 
-    /// Mutex to protect the boolean shutdown variable.
+    /// \brief Mutex to protect the boolean shutdown variable.
     static std::mutex g_shutdown_mutex;
 
-    /// Condition variable to wakeup waitForShutdown() and exit.
+    /// \brief Condition variable to wakeup waitForShutdown() and exit.
     static std::condition_variable g_shutdown_cv;
 
     //////////////////////////////////////////////////
