@@ -15,7 +15,7 @@
  *
 */
 
-#include <cstdio>
+#include <iostream>
 #include <string>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
@@ -51,6 +51,6 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // Wait for requests.
-  getchar();
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }

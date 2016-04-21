@@ -15,7 +15,6 @@
  *
 */
 
-#include <cstdio>
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
@@ -42,8 +41,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  std::cout << "Press <ENTER> to exit" << std::endl;
-  getchar();
+  ignition::transport::waitForShutdown();
 
   return 0;
 }
