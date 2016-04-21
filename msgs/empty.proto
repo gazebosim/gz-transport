@@ -1,9 +1,0 @@
-package ignition.transport.msgs;
-
-/// \brief Empty message
-
-message Empty
-{
-  /// \brief Empty data
-  optional bool data = 1;
-}

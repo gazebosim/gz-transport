@@ -40,14 +40,8 @@ int main(int argc, char **argv)
   example::msgs::StringMsg req;
   req.set_data("HELLO");
 
-  // Request a service providing an input parameter.
+  // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
-
-  // Request a service without providing input parameter.
-  node.Request("/echo", responseCb);
-
-  // Request without expecting a reply.
-  node.Request("/echo", req);
 
   // Wait for the response.
   std::cout << "Press <ENTER> to exit" << std::endl;

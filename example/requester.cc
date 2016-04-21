@@ -33,21 +33,8 @@ int main(int argc, char **argv)
   bool result;
   unsigned int timeout = 5000;
 
-  // Request a service providing an input parameter.
+  // Request the "/echo" service.
   bool executed = node.Request("/echo", req, timeout, rep, result);
-
-  if (executed)
-  {
-    if (result)
-      std::cout << "Response: [" << rep.data() << "]" << std::endl;
-    else
-      std::cout << "Service call failed" << std::endl;
-  }
-  else
-    std::cerr << "Service call timed out" << std::endl;
-
-  // Request a service without providing the input parameter.
-  executed = node.Request("/echo", timeout, rep, result);
 
   if (executed)
   {
