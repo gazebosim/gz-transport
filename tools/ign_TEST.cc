@@ -195,6 +195,13 @@ int main(int argc, char **argv)
   // is located.
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
 
+  // Make sure that we load the library recently built and not the one installed
+  // in your system.
+#ifndef _WIN32
+  std::string libraryPath = std::string(PROJECT_BINARY_PATH) + "/src";
+  setenv("LD_LIBRARY_PATH", libraryPath.c_str(), 1);
+#endif
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
