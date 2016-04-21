@@ -152,7 +152,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 }
 
 //////////////////////////////////////////////////
-/// \brief ToDo
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// subscribes to a topic and the other advertises, publishes a message and
+/// terminates. This test checks that the subscriber doesn't get affected by
+/// the prompt termination of the publisher.
 TEST(twoProcPubSub, FastPublisher)
 {
   std::string publisherPath = testing::portablePathUnion(
