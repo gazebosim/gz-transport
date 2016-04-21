@@ -39,6 +39,8 @@ int main(int argc, char **argv)
   example::msgs::StringMsg req;
   req.set_data("HELLO");
 
+  std::cout << "Press <CTRL-C> to exit" << std::endl;
+
   // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
 
