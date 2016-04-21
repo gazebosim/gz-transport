@@ -25,8 +25,11 @@
 void srvEcho(const example::msgs::StringMsg &_req,
   example::msgs::StringMsg &_rep, bool &_result)
 {
+  std::cout << "Request received [" << _req.data() << "]" << std::endl;
+
   // Set the response's content.
-  _rep.set_data(_req.data());
+  //_rep.set_data(_req.data());
+  _rep.set_data("hi");
 
   // The response succeed.
   _result = true;
