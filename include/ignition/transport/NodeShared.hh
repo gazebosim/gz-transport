@@ -204,7 +204,6 @@ namespace ignition
 
       /// \brief Discovery service.
       public: std::unique_ptr<Discovery> discovery;
-
     };
   }
 }
