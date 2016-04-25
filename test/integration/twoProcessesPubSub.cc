@@ -153,6 +153,28 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
+/// subscribes to a topic and the other advertises, publishes a message and
+/// terminates. This test checks that the subscriber doesn't get affected by
+/// the prompt termination of the publisher.
+TEST(twoProcPubSub, FastPublisher)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_fastPub_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(topic, cbVector));
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a topic and the other uses TopicList() for getting the list of
 /// available topics.
 TEST(twoProcPubSub, TopicList)
