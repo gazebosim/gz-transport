@@ -554,3 +554,47 @@ bool Node::TopicInfo(const std::string &_topic,
 
   return true;
 }
+
+//////////////////////////////////////////////////
+bool Node::ServiceInfo(const std::string &_service,
+                       std::vector<ServicePublisher> &_publishers) const
+{
+  this->dataPtr->shared->discovery->WaitForInit();
+
+  // Construct a topic name with the partition and namespace
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _service, fullyQualifiedTopic))
+  {
+    return false;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Get all the publishers on the given service.
+  SrvAddresses_M pubs;
+  if (!this->dataPtr->shared->discovery->SrvPublishers(
+        fullyQualifiedTopic, pubs))
+  {
+    return false;
+  }
+
+  _publishers.clear();
+
+  // Copy the publishers.
+  for (SrvAddresses_M::iterator iter = pubs.begin(); iter != pubs.end(); ++iter)
+  {
+    for (std::vector<ServicePublisher>::iterator pubIter = iter->second.begin();
+         pubIter != iter->second.end(); ++pubIter)
+    {
+      // Add the publisher if it doesn't already exist.
+      if (std::find(_publishers.begin(), _publishers.end(), *pubIter) ==
+          _publishers.end())
+      {
+        _publishers.push_back(*pubIter);
+      }
+    }
+  }
+
+  return true;
+}

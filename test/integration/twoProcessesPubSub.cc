@@ -205,8 +205,8 @@ TEST(twoProcPubSub, TopicList)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
-/// advertises a topic and the other uses TopicList() for getting the list of
-/// available topics.
+/// advertises a topic and the other uses TopicInfo() for getting information
+/// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
