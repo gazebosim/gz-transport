@@ -91,6 +91,41 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
 }
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
+{
+  if (!_service || std::string(_service).empty())
+  {
+    std::cerr << "Invalid service. Service must not be empty.\n";
+    return;
+  }
+
+  Node node;
+
+  // Get the publishers on the requested topic
+  std::vector<ServicePublisher> publishers;
+  node.ServiceInfo(_service, publishers);
+
+  if (!publishers.empty())
+  {
+    std::cout << "Service providers [Address, Request Message Type, "
+              << "Response Message Type]:\n";
+
+    /// List the publishers
+    for (std::vector<ServicePublisher>::iterator iter = publishers.begin();
+        iter != publishers.end(); ++iter)
+    {
+      std::cout << "  " << (*iter).Addr() << ", "
+        << (*iter).ReqTypeName() << ", " << (*iter).RepTypeName()
+        << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No service providers on service [" << _service << "]\n";
+  }
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE char *ignitionVersion()
 {
   int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;

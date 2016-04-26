@@ -126,6 +126,28 @@ TEST(ignTest, ServiceList)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check 'ign service -i' running the advertiser on a different process.
+TEST(ignTest, ServiceInfo)
+{
+  // Launch a new publisher process that advertises a topic.
+  std::string replier_path = testing::portablePathUnion(
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
+    partition.c_str());
+
+  // Check the 'ign service -i' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service -i /foo");
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on the same process.
 TEST(ignTest, TopicListSameProc)
 {
@@ -179,6 +201,21 @@ TEST(ignTest, ServiceListSameProc)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -l");
   EXPECT_EQ(output, "/foo\n");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign service -i' running the advertiser on the same process.
+TEST(ignTest, ServiceInfoSameProc)
+{
+  ignition::transport::Node node;
+  EXPECT_TRUE(node.Advertise("/foo", srvEcho));
+
+  // Check the 'ign service -i' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service -i /foo");
+
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
 }
 
 /////////////////////////////////////////////////
