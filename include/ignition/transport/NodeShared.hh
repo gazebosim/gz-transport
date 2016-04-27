@@ -134,6 +134,9 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
+      /// \brief Discovery service.
+      public: std::unique_ptr<Discovery> discovery;
+
       /// \brief 0MQ context.
       public: zmq::context_t *context;
 
@@ -201,9 +204,6 @@ namespace ignition
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
-
-      /// \brief Discovery service.
-      public: std::unique_ptr<Discovery> discovery;
     };
   }
 }
