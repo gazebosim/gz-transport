@@ -109,14 +109,7 @@ int transport::hostnameToIp(char *_hostname, std::string &_ip)
   int i;
 
   if ((he = gethostbyname(_hostname)) == nullptr)
-  {
-#ifndef _WIN32
-    // Complain, but not on Windows, where this apparently always happens.
-    std::cerr << "Error in gethostbyname when using hostname = " << _hostname
-      << std::endl;
-#endif
     return 1;
-  }
 
   addr_list = (struct in_addr **) he->h_addr_list;
 
