@@ -242,8 +242,8 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
-/// advertises a service and the other uses Serviceist() for getting the list of
-/// available services.
+/// advertises a service and the other uses ServiceList() for getting the list
+/// of available services.
 TEST(twoProcSrvCall, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
@@ -285,6 +285,45 @@ TEST(twoProcSrvCall, ServiceList)
       (elapsed2).count(), 2);
 
   EXPECT_LE(elapsed2, elapsed1);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a service and the other uses ServiceInfo() for getting
+/// information about the service.
+TEST(twoProcPubSub, ServiceInfo)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+  std::vector<transport::ServicePublisher> publishers;
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  EXPECT_FALSE(node.ServiceInfo("@", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_FALSE(node.ServiceInfo("/bogus", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
+  EXPECT_EQ(publishers.size(), 1u);
+  EXPECT_EQ(publishers.front().ReqTypeName(),
+            "ignition.transport.msgs.Int");
+  EXPECT_EQ(publishers.front().RepTypeName(),
+            "ignition.transport.msgs.Int");
 
   reset();
 
