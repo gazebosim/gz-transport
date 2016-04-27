@@ -44,6 +44,41 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+
+  Node node;
+
+  // Get the publishers on the requested topic
+  std::vector<MessagePublisher> publishers;
+  node.TopicInfo(_topic, publishers);
+
+  if (!publishers.empty())
+  {
+    std::cout << "Publishers [Address, Message Type]:\n";
+
+    /// List the publishers
+    for (std::vector<MessagePublisher>::iterator iter = publishers.begin();
+        iter != publishers.end(); ++iter)
+    {
+      std::cout << "  " << (*iter).Addr() << ", "
+        << (*iter).MsgTypeName() << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No publishers on topic [" << _topic << "]\n";
+  }
+
+  // TODO: Add subscribers lists
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE void cmdServiceList()
 {
   Node node;
@@ -53,6 +88,41 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
 
   for (auto const &service : services)
     std::cout << service << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
+{
+  if (!_service || std::string(_service).empty())
+  {
+    std::cerr << "Invalid service. Service must not be empty.\n";
+    return;
+  }
+
+  Node node;
+
+  // Get the publishers on the requested topic
+  std::vector<ServicePublisher> publishers;
+  node.ServiceInfo(_service, publishers);
+
+  if (!publishers.empty())
+  {
+    std::cout << "Service providers [Address, Request Message Type, "
+              << "Response Message Type]:\n";
+
+    /// List the publishers
+    for (std::vector<ServicePublisher>::iterator iter = publishers.begin();
+        iter != publishers.end(); ++iter)
+    {
+      std::cout << "  " << (*iter).Addr() << ", "
+        << (*iter).ReqTypeName() << ", " << (*iter).RepTypeName()
+        << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No service providers on service [" << _service << "]\n";
+  }
 }
 
 //////////////////////////////////////////////////

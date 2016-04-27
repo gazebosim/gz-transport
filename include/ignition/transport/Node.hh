@@ -52,6 +52,11 @@ namespace ignition
   {
     class NodePrivate;
 
+    /// \brief Block the current thread until a SIGINT or SIGTERM is received.
+    /// Note that this function registers a signal handler. Do not use this
+    /// function if you want to manage yourself SIGINT/SIGTERM.
+    IGNITION_VISIBLE void waitForShutdown();
+
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
@@ -131,11 +136,10 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const T &_msg))
       {
-        std::function<void(const T &)> f =
-          [_cb](const T & _internalMsg)
-          {
-            (*_cb)(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb](const T & _internalMsg)
+        {
+          (*_cb)(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -202,12 +206,11 @@ namespace ignition
           void(C::*_cb)(const T &_msg),
           C *_obj)
       {
-        std::function<void(const T &)> f =
-          [_cb, _obj](const T & _internalMsg)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-            cb(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb, _obj](const T & _internalMsg)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          cb(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -243,9 +246,9 @@ namespace ignition
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
-          {
-            (*_cb)(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -335,11 +338,11 @@ namespace ignition
           [_cb, _obj](const T1 &_internalReq,
                       T2 &_internalRep,
                       bool &_internalResult)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-              std::placeholders::_2, std::placeholders::_3);
-            cb(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2, std::placeholders::_3);
+          cb(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -365,9 +368,9 @@ namespace ignition
       {
         std::function<void(const T2 &, const bool)> f =
           [_cb](const T2 &_internalRep, const bool _internalResult)
-          {
-            (*_cb)(_internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalRep, _internalResult);
+        };
 
         return this->Request<T1, T2>(_topic, _req, f);
       }
@@ -474,8 +477,15 @@ namespace ignition
         void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
-        return this->Request(_topic, _req,
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+        std::function<void(const T2 &, const bool)> f =
+          [_cb, _obj](const T2 &_internalRep, const bool _internalResult)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2);
+          cb(_internalRep, _internalResult);
+        };
+
+        return this->Request<T1, T2>(_topic, _req, f);
       }
 
       /// \brief Request a new service using a blocking call.
@@ -584,6 +594,13 @@ namespace ignition
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics) const;
 
+      /// \brief Get the information about a topic.
+      /// \param[in] _topic Name of the topic.
+      /// \param[out] _publishers List of publishers on the topic
+      /// \return False if unable to get topic info
+      public: bool TopicInfo(const std::string &_topic,
+                             std::vector<MessagePublisher> &_publishers) const;
+
       /// \brief Get the list of topics currently advertised in the network.
       /// Note that this function can block for some time if the
       /// discovery is in its initialization phase.
@@ -591,6 +608,13 @@ namespace ignition
       /// value of 1000ms, sets the maximum blocking time period.
       /// \param[out] _topics List of advertised topics.
       public: void ServiceList(std::vector<std::string> &_services) const;
+
+      /// \brief Get the information about a service.
+      /// \param[in] _service Name of the service.
+      /// \param[out] _publishers List of publishers on the service.
+      /// \return False if unable to get service info.
+      public: bool ServiceInfo(const std::string &_service,
+                              std::vector<ServicePublisher> &_publishers) const;
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.

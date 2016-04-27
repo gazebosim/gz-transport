@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
@@ -69,15 +70,8 @@ NodeShared::NodeShared()
     exit(false)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
-  char *tmp;
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&tmp, &sz, "IGN_VERBOSE");
-#else
-  tmp = std::getenv("IGN_VERBOSE");
-#endif
-  if (tmp)
-    this->verbose = std::string(tmp) == "1";
+  std::string ignVerbose;
+  this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
   char bindEndPoint[1024];
 
@@ -215,6 +209,9 @@ NodeShared::~NodeShared()
   // destructor to hang (probably waiting for ZMQ sockets to terminate).
   // ToDo: Fix it.
 #endif
+
+  // Explicitly reset discovery to prevent callbacks
+  this->discovery.reset();
 }
 
 //////////////////////////////////////////////////
@@ -905,11 +902,6 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     if (!this->connections.Publisher(topic, procUuid, nUuid, connection))
       return;
 
-    // Disconnect from a publisher's socket.
-    // for (const auto &connection : this->connections[procUuid])
-    //   this->subscriber->disconnect(connection.addr.c_str());
-    this->subscriber->disconnect(connection.Addr().c_str());
-
     // I am no longer connected.
     this->connections.DelPublisherByNode(topic, procUuid, nUuid);
   }
@@ -920,10 +912,6 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     MsgAddresses_M info;
     if (!this->connections.Publishers(topic, info))
       return;
-
-    // Disconnect from all the connections of that publisher.
-    for (auto &connection : info[procUuid])
-      this->subscriber->disconnect(connection.Addr().c_str());
 
     // Remove all the connections from the process disonnected.
     this->connections.DelPublishersByProc(procUuid);

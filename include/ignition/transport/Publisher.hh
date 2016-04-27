@@ -117,6 +117,20 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
+      /// \brief Equality operator. This function checks if the given
+      /// publisher has identical Topic, Addr, PUuid, NUuid, and Scope
+      /// strings to this object.
+      /// \param[in] _pub The publisher to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const Publisher &_pub) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// publisher does not have identical Topic, Addr, PUuid, NUuid, and Scope
+      /// strings to this object.
+      /// \param[in] _pub The publisher to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const Publisher &_srv) const;
+
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
       /// \param[in] _msg Publisher to write to the stream.
@@ -223,6 +237,20 @@ namespace ignition
         return _out;
       }
 
+      /// \brief Equality operator. This function checks if the given
+      /// message publisher has identical Topic, Addr, PUuid, NUuid, Scope,
+      /// Ctrl, and MsgTypeName strings to this object.
+      /// \param[in] _pub The message publisher to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const MessagePublisher &_pub) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// message publisher does not have identical Topic, Addr, PUuid, NUuid,
+      /// Scope, Ctrl, and MsgTypeName strings to this object.
+      /// \param[in] _pub The message publisher to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const MessagePublisher &_pub) const;
+
       /// \brief ZeroMQ control address of the publisher.
       protected: std::string ctrl;
 
@@ -311,6 +339,20 @@ namespace ignition
 
         return _out;
       }
+
+      /// \brief Equality operator. This function checks if the given
+      /// service has identical Topic, Addr, PUuid, NUuid, Scope,
+      /// SocketId, ReqTypeName, RepTypeName strings to this object.
+      /// \param[in] _srv The service publisher to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const ServicePublisher &_srv) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// service does not have identical Topic, Addr, PUuid, NUuid, Scope,
+      /// SocketId, ReqTypeName, RepTypeName strings to this object.
+      /// \param[in] _srv The service publisher to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const ServicePublisher &_srv) const;
 
       /// ZeroMQ socket ID used by this publisher.
       protected: std::string socketId;

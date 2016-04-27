@@ -22,12 +22,18 @@
 
 #include "ignition/transport/Helpers.hh"
 
-/// \brief External hook to execute 'ign topic list' command from the command
-/// line.
+/// \brief External hook to execute 'ign topic -i' from the command line.
+/// \param[in] _topic Topic name.
+extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic);
+
+/// \brief External hook to execute 'ign service -i' from the command line.
+/// \param[in] _service Service name.
+extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service);
+
+/// \brief External hook to execute 'ign topic -l' from the command line.
 extern "C" IGNITION_VISIBLE void cmdTopicList();
 
-/// \brief External hook to execute 'ign service list' command from the command
-/// line.
+/// \brief External hook to execute 'ign service -l' from the command line.
 extern "C" IGNITION_VISIBLE void cmdServiceList();
 
 /// \brief External hook to read the library version.

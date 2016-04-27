@@ -16,7 +16,6 @@
 */
 
 #include <iostream>
-#include <string>
 #include <ignition/transport.hh>
 #include "msgs/stringmsg.pb.h"
 
@@ -40,10 +39,11 @@ int main(int argc, char **argv)
   example::msgs::StringMsg req;
   req.set_data("HELLO");
 
+  std::cout << "Press <CTRL-C> to exit" << std::endl;
+
   // Request the "/echo" service.
   node.Request("/echo", req, responseCb);
 
-  // Wait for the response.
-  std::cout << "Press <ENTER> to exit" << std::endl;
-  getchar();
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }

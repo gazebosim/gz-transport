@@ -153,6 +153,28 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
+/// subscribes to a topic and the other advertises, publishes a message and
+/// terminates. This test checks that the subscriber doesn't get affected by
+/// the prompt termination of the publisher.
+TEST(twoProcPubSub, FastPublisher)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_fastPub_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(topic, cbVector));
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a topic and the other uses TopicList() for getting the list of
 /// available topics.
 TEST(twoProcPubSub, TopicList)
@@ -197,6 +219,43 @@ TEST(twoProcPubSub, TopicList)
   EXPECT_LE(elapsed2, elapsed1);
 
   EXPECT_LT(elapsed2, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a topic and the other uses TopicInfo() for getting information
+/// about the topic.
+TEST(twoProcPubSub, TopicInfo)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+  std::vector<transport::MessagePublisher> publishers;
+
+  // We need some time for discovering the other node.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  EXPECT_FALSE(node.TopicInfo("@", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_FALSE(node.TopicInfo("/bogus", publishers));
+  EXPECT_EQ(publishers.size(), 0u);
+
+  EXPECT_TRUE(node.TopicInfo("/foo", publishers));
+  EXPECT_EQ(publishers.size(), 1u);
+  EXPECT_EQ(publishers.front().MsgTypeName(),
+            "ignition.transport.msgs.Vector3d");
 
   reset();
 

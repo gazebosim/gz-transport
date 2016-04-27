@@ -91,21 +91,10 @@ int transport::hostnameToIp(char *_hostname, std::string &_ip)
 //////////////////////////////////////////////////
 std::string transport::determineHost()
 {
-  char *ip_env;
   // First, did the user set IGN_IP?
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&ip_env, &sz, "IGN_IP");
-#else
-  ip_env = std::getenv("IGN_IP");
-#endif
-  if (ip_env)
-  {
-    if (strlen(ip_env) != 0)
-      return ip_env;
-    else
-      std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
-  }
+  std::string ignIp;
+  if (env("IGN_IP", ignIp) && !ignIp.empty())
+    return ignIp;
 
   // Second, try the hostname
   char host[1024];
@@ -266,29 +255,14 @@ std::string transport::determineHost()
 //////////////////////////////////////////////////
 std::vector<std::string> transport::determineInterfaces()
 {
-  char *ip_env;
-  std::vector<std::string> result;
   // First, did the user set IGN_IP?
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&ip_env, &sz, "IGN_IP");
-#else
-  ip_env = std::getenv("IGN_IP");
-#endif
-
-  if (ip_env)
-  {
-    if (strlen(ip_env) != 0)
-    {
-      result.push_back(std::string(ip_env));
-      return result;
-    }
-    else
-      std::cerr << "invalid IGN_IP (an empty string)" << std::endl;
-  }
+  std::string ignIp;
+  if (env("IGN_IP", ignIp) && !ignIp.empty())
+    return {ignIp};
 
   // Second, fall back on interface search, which will yield an IP address
 #ifdef HAVE_IFADDRS
+  std::vector<std::string> result;
   struct ifaddrs *ifa = nullptr, *ifp = NULL;
   int rc;
   if ((rc = getifaddrs(&ifp)) < 0)
@@ -360,6 +334,7 @@ std::vector<std::string> transport::determineInterfaces()
   }
   return result;
 #elif defined(_WIN32)
+  std::vector<std::string> result;
   // Establish our default return value, in case everything below fails.
   std::string ret_addr("127.0.0.1");
   // Look up our address.
