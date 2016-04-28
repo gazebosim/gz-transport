@@ -63,6 +63,48 @@ namespace ignition
     /// calls.
     class IGNITION_VISIBLE Node
     {
+      /// \brief A class that is used to store information about an
+      /// advertised publisher. An instance of this class is returned
+      /// from Node::Advertise, and should be used in subsequent
+      /// Node::Publish calls.
+      ///
+      /// ## Pseudo code example ##
+      ///
+      ///    auto pubId = myNode.Advertise<MsgType>("topic_name");
+      ///
+      ///    MsgType msg;
+      ///    myNode.Publish(pubId, msg);
+      ///
+      public: class PublisherId
+      {
+        /// \brief Default constructor
+        public: PublisherId();
+
+        /// \brief Constructor
+        /// \param[in] _topic Name of the topic on which messages
+        /// could be published.
+        public: PublisherId(const std::string &_topic);
+
+        /// \brief Allows this class to be evaluated as a boolean.
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool();
+
+        /// \brief Return true if valid information, such as
+        /// a non-empty topic name, is present.
+        /// \return True if this object can be used in Node::Publish
+        /// calls.
+        public: bool Valid() const;
+
+        /// \brief Return the name of the topic.
+        /// \return Name of the topic that message would be
+        /// published on.
+        public: std::string Topic() const;
+
+        /// \brief Name of the topic
+        private: std::string topic = "";
+      };
+
       /// \brief Constructor.
       /// \param[in] _options Node options.
       public: explicit Node(const NodeOptions &_options = NodeOptions());
@@ -75,15 +117,16 @@ namespace ignition
       /// \param[in] _options Advertise options.
       /// \return true if the topic was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(const std::string &_topic,
-                          const AdvertiseOptions &_options = AdvertiseOptions())
+      public: template<typename T> Node::PublisherId Advertise(
+                  const std::string &_topic,
+                  const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
+          return PublisherId();
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -103,10 +146,10 @@ namespace ignition
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return false;
+          return PublisherId();
         }
 
-        return true;
+        return PublisherId(fullyQualifiedTopic);
       }
 
       /// \brief Get the list of topics advertised by this node.
@@ -123,6 +166,14 @@ namespace ignition
       /// \param[in] _msg protobuf message.
       /// \return true when success.
       public: bool Publish(const std::string &_topic,
+                           const ProtoMsg &_msg);
+
+      /// \brief Publish a message.
+      /// \param[in] _id Id of the publisher, which encapsulates the topic
+      /// on which to send the message.
+      /// \param[in] _msg protobuf message.
+      /// \return true when success.
+      public: bool Publish(const PublisherId &_id,
                            const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
@@ -648,6 +699,14 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
+
+      /// \brief Publish a message helper.
+      /// \sa Publish
+      /// \param[in] _topic Fully qualified topic to be published.
+      /// \param[in] _msg protobuf message.
+      /// \return true when success.
+      private: bool PublishHelper(const std::string &_topic,
+                                  const ProtoMsg &_msg);
 
       /// \internal
       /// \brief Smart pointer to private data.

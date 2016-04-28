@@ -91,6 +91,33 @@ void ignition::transport::waitForShutdown()
 }
 
 //////////////////////////////////////////////////
+Node::PublisherId::PublisherId()
+{}
+
+//////////////////////////////////////////////////
+Node::PublisherId::PublisherId(const std::string &_topic) : topic(_topic)
+{
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Node::PublisherId::Valid() const
+{
+  return !this->topic.empty();
+}
+
+//////////////////////////////////////////////////
+std::string Node::PublisherId::Topic() const
+{
+  return this->topic;
+}
+
+//////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())
 {
@@ -186,6 +213,12 @@ bool Node::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+bool Node::Publish(const PublisherId &_id, const ProtoMsg &_msg)
+{
+  return _id.Valid() ? this->PublishHelper(_id.Topic(), _msg) : false;
+}
+
+//////////////////////////////////////////////////
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
@@ -196,6 +229,12 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
+  return this->PublishHelper(fullyQualifiedTopic, _msg);
+}
+
+//////////////////////////////////////////////////
+bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
+{
   std::map<std::string, ISubscriptionHandler_M> handlers;
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
@@ -203,16 +242,15 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
     // Topic not advertised before.
-    if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
+    if (this->dataPtr->topicsAdvertised.find(_topic) ==
         this->dataPtr->topicsAdvertised.end())
     {
       return false;
     }
     hasLocalSubscribers =
-      this->dataPtr->shared->localSubscriptions.Handlers(fullyQualifiedTopic,
-        handlers);
+      this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
     hasRemoteSubscribers =
-      this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic);
+      this->dataPtr->shared->remoteSubscribers.HasTopic(_topic);
   }
 
   // Check that the msg type matches the type previously advertised
@@ -221,7 +259,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   auto &info = this->dataPtr->shared->discovery->DiscoveryMsgInfo();
   std::string procUuid = this->dataPtr->shared->pUuid;
   std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.Publisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
+  if (!info.Publisher(_topic, procUuid, nodeUuid, pub))
   {
     std::cerr << "Node::Publish() I cannot find the msgType registered for "
               << "topic [" << _topic << "]" << std::endl;
@@ -271,7 +309,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
       return false;
     }
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
+    this->dataPtr->shared->Publish(_topic, data,
       _msg.GetTypeName());
   }
   // Debug output.

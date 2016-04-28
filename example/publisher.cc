@@ -49,7 +49,8 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  if (!node.Advertise<example::msgs::StringMsg>(topic))
+  auto pubId = node.Advertise<example::msgs::StringMsg>(topic);
+  if (!pubId)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
     return -1;
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    if (!node.Publish(topic, msg))
+    if (!node.Publish(pubId, msg))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
