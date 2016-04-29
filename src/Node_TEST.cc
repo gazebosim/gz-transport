@@ -177,8 +177,17 @@ class MyTestClass
     // Advertise an illegal topic.
     EXPECT_FALSE(this->node.Advertise<transport::msgs::Int>("invalid topic"));
 
-    EXPECT_TRUE(this->node.Advertise<transport::msgs::Int>(topic));
-    EXPECT_TRUE(this->node.Publish(topic, msg));
+    auto pubId = this->node.Advertise<transport::msgs::Int>("invalid topic");
+    EXPECT_FALSE(pubId);
+    EXPECT_FALSE(pubId.Valid());
+    EXPECT_TRUE(pubId.Topic().empty());
+
+    pubId = this->node.Advertise<transport::msgs::Int>(topic);
+    EXPECT_TRUE(pubId);
+    EXPECT_TRUE(pubId.Valid());
+    EXPECT_FALSE(pubId.Topic().empty());
+    EXPECT_TRUE(pubId.Topic().find(topic) != std::string::npos);
+    EXPECT_TRUE(this->node.Publish(pubId, msg));
   }
 
   public: void TestServiceCall()
