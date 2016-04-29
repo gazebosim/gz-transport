@@ -115,7 +115,9 @@ namespace ignition
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _options Advertise options.
-      /// \return true if the topic was succesfully advertised.
+      /// \return A PublisherId, which can be used in Node::Publish calls.
+      /// The PublisherId also acts as boolean, where true occurs if the topic
+      /// was succesfully advertised.
       /// \sa AdvertiseOptions.
       public: template<typename T> Node::PublisherId Advertise(
                   const std::string &_topic,
