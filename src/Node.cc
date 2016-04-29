@@ -92,7 +92,8 @@ void ignition::transport::waitForShutdown()
 
 //////////////////////////////////////////////////
 Node::PublisherId::PublisherId()
-{}
+{
+}
 
 //////////////////////////////////////////////////
 Node::PublisherId::PublisherId(const std::string &_topic) : topic(_topic)
