@@ -179,9 +179,13 @@ class MyTestClass
 
     auto pubId = this->node.Advertise<transport::msgs::Int>("invalid topic");
     EXPECT_FALSE(pubId);
+    EXPECT_FALSE(pubId.Valid());
+    EXPECT_TRUE(pubId.Topic().empty());
 
     pubId = this->node.Advertise<transport::msgs::Int>(topic);
     EXPECT_TRUE(pubId);
+    EXPECT_TRUE(pubId.Valid());
+    EXPECT_FALSE(pubId.Topic().empty());
     EXPECT_TRUE(this->node.Publish(pubId, msg));
   }
 
