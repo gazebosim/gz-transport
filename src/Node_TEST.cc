@@ -186,6 +186,7 @@ class MyTestClass
     EXPECT_TRUE(pubId);
     EXPECT_TRUE(pubId.Valid());
     EXPECT_FALSE(pubId.Topic().empty());
+    EXPECT_TRUE(pubId.Topic().find(topic) != std::string::npos);
     EXPECT_TRUE(this->node.Publish(pubId, msg));
   }
 
