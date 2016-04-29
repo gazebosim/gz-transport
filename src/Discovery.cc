@@ -61,6 +61,7 @@
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/DiscoveryPrivate.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
@@ -93,8 +94,14 @@ Discovery::Discovery(const std::string &_pUuid, bool _verbose)
   // Get this host IP address.
   this->dataPtr->hostAddr = determineHost();
 
-  // Get the list of network interfaces in this host.
-  this->dataPtr->hostInterfaces = determineInterfaces();
+  std::string ignIp;
+  if (env("IGN_IP", ignIp) && !ignIp.empty())
+    this->dataPtr->hostInterfaces = {ignIp};
+  else
+  {
+    // Get the list of network interfaces in this host.
+    this->dataPtr->hostInterfaces = determineInterfaces();
+  }
 
 #ifdef _WIN32
   if (!initialized)
