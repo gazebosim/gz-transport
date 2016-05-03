@@ -94,6 +94,15 @@ else()
   BUILD_WARNING ("ignition-tools not found, for command line utilities, please install ignition-tools.")
 endif()
 
+#################################################
+# Find ign msgs library
+find_package(ignition-msgs0 QUIET)
+if (NOT ignition-msgs0_FOUND)
+  message(FATAL "Looking for ignition-msgs - not found")
+else()
+  message(STATUS "Looking for ignition-msgs - found")
+endif()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)

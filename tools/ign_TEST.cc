@@ -94,7 +94,7 @@ TEST(ignTest, TopicInfo)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -i /foo");
+  std::string output = custom_exec_str(ign + " topic -t /foo -i");
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Vector3d")
       != std::string::npos);
@@ -139,7 +139,7 @@ TEST(ignTest, ServiceInfo)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -i /foo");
+  std::string output = custom_exec_str(ign + " service -s /foo -i");
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
 

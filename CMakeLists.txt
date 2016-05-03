@@ -266,8 +266,9 @@ else (build_errors)
   include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}/include
+    ${IGNITION-MSGS_INCLUDE_DIRS}
   )
-  link_directories(${PROJECT_BINARY_DIR}/src)
+  link_directories(${PROJECT_BINARY_DIR}/src ${IGNITION-MSGS_LIBRARY_DIRS})
 
   if (DEFINED CMAKE_CXX_FLAGS)
     message (STATUS "Custom CFlags:${CMAKE_CXX_FLAGS}")

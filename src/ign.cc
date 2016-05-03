@@ -12,12 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
-*/
+ * */
 
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
@@ -124,6 +124,56 @@ extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
     std::cout << "No service providers on service [" << _service << "]\n";
   }
 }
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_VISIBLE void cmdTopicPub(const char *_topic,
+                                           const char *_msgType,
+                                           const char *_msgData)
+{
+  if (!_topic)
+  {
+    std::cerr << "Topic name is null\n";
+    return;
+  }
+
+  if (!_msgType)
+  {
+    std::cerr << "Message type is null\n";
+    return;
+  }
+
+  if (!_msgData)
+  {
+    std::cerr << "Message data is null\n";
+    return;
+  }
+
+  // Create the message, and populate the field with _msgData
+  auto msg = ignition::msgs::Factory::New(_msgType, _msgData);
+  if (msg)
+  {
+    // Create the node and advertise the topic
+    ignition::transport::Node node;
+    auto pubId = node.Advertise(_topic, msg->GetTypeName());
+
+    // Publish the message
+    if (pubId)
+    {
+      node.Publish(pubId, *msg);
+    }
+    else
+    {
+      std::cerr << "Unable to advertise on topic[" << _topic << "] "
+        << "with message type[" << _msgType << "].\n";
+    }
+  }
+  else
+  {
+    std::cerr << "Unable to create message of type[" << _msgType << "] "
+      << "with data[" << _msgData << "].\n";
+  }
+}
+
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_VISIBLE char *ignitionVersion()

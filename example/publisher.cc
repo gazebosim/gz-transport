@@ -22,8 +22,7 @@
 #include <string>
 #include <thread>
 #include <ignition/transport.hh>
-
-#include "msgs/stringmsg.pb.h"
+#include <ignition/msgs.hh>
 
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
@@ -49,7 +48,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  auto pubId = node.Advertise<example::msgs::StringMsg>(topic);
+  auto pubId = node.Advertise<ignition::msgs::StringMsg>(topic);
   if (!pubId)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  example::msgs::StringMsg msg;
+  ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
