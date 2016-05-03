@@ -32,7 +32,7 @@ namespace ignition
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
     /// It stores the topic name that publishes, addresses, UUIDs, scope, etc.
-    class IGNITION_VISIBLE Publisher
+    class IGNITION_TRANSPORT_VISIBLE Publisher
     {
       /// \brief Default constructor.
       public: Publisher() = default;
@@ -172,7 +172,7 @@ namespace ignition
     /// \class MessagePublisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a message publisher.
-    class IGNITION_VISIBLE MessagePublisher : public Publisher
+    class IGNITION_TRANSPORT_VISIBLE MessagePublisher : public Publisher
     {
       /// \brief Default constructor.
       public: MessagePublisher() = default;
@@ -261,7 +261,7 @@ namespace ignition
     /// \class ServicePublisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a service publisher.
-    class IGNITION_VISIBLE ServicePublisher : public Publisher
+    class IGNITION_TRANSPORT_VISIBLE ServicePublisher : public Publisher
     {
       /// \brief Default constructor.
       public: ServicePublisher() = default;

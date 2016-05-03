@@ -43,7 +43,7 @@ namespace ignition
     /// \class DiscoveryPrivate DiscoveryPrivate.hh
     /// ignition/transport/DiscoveryPrivate.hh
     /// \brief Private data for the Discovery class.
-    class IGNITION_VISIBLE DiscoveryPrivate
+    class IGNITION_TRANSPORT_VISIBLE DiscoveryPrivate
     {
       /// \brief Constructor.
       public: DiscoveryPrivate() = default;

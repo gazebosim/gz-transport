@@ -32,7 +32,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicList()
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList()
 {
   Node node;
 
@@ -44,7 +44,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -79,7 +79,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdServiceList()
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList()
 {
   Node node;
 
@@ -91,7 +91,7 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
 {
   if (!_service || std::string(_service).empty())
   {
@@ -126,7 +126,7 @@ extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicPub(const char *_topic,
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
                                            const char *_msgType,
                                            const char *_msgData)
 {
@@ -176,7 +176,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicPub(const char *_topic,
 
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE char *ignitionVersion()
+extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
 {
   int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
   int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;

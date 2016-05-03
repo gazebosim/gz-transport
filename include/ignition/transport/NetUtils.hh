@@ -44,24 +44,24 @@ namespace ignition
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
     /// \return The IP or hostname of this host.
-    IGNITION_VISIBLE
+    IGNITION_TRANSPORT_VISIBLE
     std::string determineHost();
 
     /// \brief Determine the list of network interfaces for this machine.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
     /// \return The list of network interfaces.
-    IGNITION_VISIBLE
+    IGNITION_TRANSPORT_VISIBLE
     std::vector<std::string> determineInterfaces();
 
     /// \brief Determine the computer's hostname.
     /// \return The computer's hostname.
-    IGNITION_VISIBLE
+    IGNITION_TRANSPORT_VISIBLE
     std::string hostname();
 
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
-    IGNITION_VISIBLE
+    IGNITION_TRANSPORT_VISIBLE
     std::string username();
   }
 }
