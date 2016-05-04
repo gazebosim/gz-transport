@@ -17,12 +17,11 @@
 
 #include <iostream>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
-#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -52,7 +51,7 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
+void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
   bool &_result)
 {
   _rep.set_data(_req.data());
@@ -96,7 +95,7 @@ TEST(ignTest, TopicInfo)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -t /foo -i");
   ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.transport.msgs.Vector3d")
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
       != std::string::npos);
 
   // Wait for the child process to return.
@@ -141,7 +140,7 @@ TEST(ignTest, ServiceInfo)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -s /foo -i");
   ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
+  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -153,12 +152,12 @@ TEST(ignTest, TopicListSameProc)
 {
   ignition::transport::Node node;
 
-  ignition::transport::msgs::Vector3d msg;
+  ignition::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::Vector3d>("/foo"));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>("/foo"));
   EXPECT_TRUE(node.Publish("/foo", msg));
 
   // Check the 'ign topic -l' command.
@@ -173,20 +172,20 @@ TEST(ignTest, TopicInfoSameProc)
 {
   ignition::transport::Node node;
 
-  ignition::transport::msgs::Vector3d msg;
+  ignition::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise<ignition::transport::msgs::Vector3d>("/foo"));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>("/foo"));
   EXPECT_TRUE(node.Publish("/foo", msg));
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -i /foo");
+  std::string output = custom_exec_str(ign + " topic -t /foo -i");
 
   ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.transport.msgs.Vector3d") !=
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") !=
       std::string::npos);
 }
 
@@ -212,10 +211,10 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -i /foo");
+  std::string output = custom_exec_str(ign + " service -s /foo -i");
 
   ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
+  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -235,8 +234,7 @@ int main(int argc, char **argv)
   // Make sure that we load the library recently built and not the one installed
   // in your system.
 #ifndef _WIN32
-  std::string libraryPath = std::string(PROJECT_BINARY_PATH) + "/src";
-  setenv("LD_LIBRARY_PATH", libraryPath.c_str(), 1);
+  setenv("LD_LIBRARY_PATH", IGN_TEST_LIBRARY_PATH, 1);
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);

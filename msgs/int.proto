@@ -1,9 +1,0 @@
-package ignition.transport.msgs;
-
-/// \brief Integer message
-
-message Int
-{
-  /// \brief 32 bit integer data
-  required int32 data = 1;
-}

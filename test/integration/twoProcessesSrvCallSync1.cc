@@ -18,11 +18,11 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
 
 using namespace ignition;
 
@@ -45,8 +45,8 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
     partition.c_str());
 
   int64_t timeout = 500;
-  transport::msgs::Int req;
-  transport::msgs::Int rep;
+  ignition::msgs::Int32 req;
+  ignition::msgs::Int32 rep;
   bool result;
 
   req.set_data(data);

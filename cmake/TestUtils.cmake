@@ -33,6 +33,7 @@ macro (ign_build_tests)
 
     target_link_libraries(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+      ${IGNITION-MSGS_LIBRARIES}
     )
 
     if (UNIX)

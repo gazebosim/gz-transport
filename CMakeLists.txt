@@ -280,7 +280,6 @@ else (build_errors)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
-    add_subdirectory(msgs)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(conf)
