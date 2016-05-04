@@ -4,24 +4,24 @@ include (CheckCXXSourceCompiles)
 include (${project_cmake_dir}/FindOS.cmake)
 
 ########################################
-if (PROTOBUF_VERSION LESS 2.3.0)
-  BUILD_ERROR("Incorrect version: Gazebo requires protobuf version 2.3.0 or greater")
-endif()
-
-########################################
-# The Google Protobuf library for message generation + serialization
-find_package(Protobuf REQUIRED)
-if (NOT PROTOBUF_FOUND)
-  BUILD_ERROR ("Missing: Google Protobuf (libprotobuf-dev)")
-endif()
-if (NOT PROTOBUF_PROTOC_EXECUTABLE)
-  BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
-endif()
-if (NOT PROTOBUF_PROTOC_LIBRARY)
-  BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
-endif()
-
-include_directories(${PROTOBUF_INCLUDE_DIR})
+# if (PROTOBUF_VERSION LESS 2.3.0)
+#   BUILD_ERROR("Incorrect version: Gazebo requires protobuf version 2.3.0 or greater")
+# endif()
+# 
+# ########################################
+# # The Google Protobuf library for message generation + serialization
+# find_package(Protobuf REQUIRED)
+# if (NOT PROTOBUF_FOUND)
+#   BUILD_ERROR ("Missing: Google Protobuf (libprotobuf-dev)")
+# endif()
+# if (NOT PROTOBUF_PROTOC_EXECUTABLE)
+#   BUILD_ERROR ("Missing: Google Protobuf Compiler (protobuf-compiler)")
+# endif()
+# if (NOT PROTOBUF_PROTOC_LIBRARY)
+#   BUILD_ERROR ("Missing: Google Protobuf Compiler Library (libprotoc-dev)")
+# endif()
+# 
+# include_directories(${PROTOBUF_INCLUDE_DIR})
 
 #################################################
 # Find ZeroMQ.

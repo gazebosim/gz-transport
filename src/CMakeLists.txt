@@ -30,8 +30,6 @@ set (gtest_sources
   Uuid_TEST.cc
 )
 
-set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES
-                            GENERATED TRUE)
 include_directories(${CMAKE_BINARY_DIR}/ ${CMAKE_BINARY_DIR}/test/)
 
 ign_build_tests(${gtest_sources})
@@ -53,16 +51,10 @@ target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${IGNITION-MSGS_LIBRARIES})
 
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ws2_32 Iphlpapi
-			optimized
-			    ${PROTOBUF_LIBRARY}
-			    ${PROTOBUF_PROTOC_LIBRARY}
-			debug
-			    ${PROTOBUF_LIBRARY_DEBUG}
-			    ${PROTOBUF_PROTOC_LIBRARY_DEBUG})
-else()
   target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                        ${PROTOBUF_LIBRARY})
+    ws2_32 Iphlpapi)
+else()
+  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
 endif()
 
 ign_install_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})

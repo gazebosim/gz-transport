@@ -108,7 +108,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 ### Configuration (cmake)
 
     "C:\Program Files(x86)\Microsft Visual Studio 12\VC\vcvarsall.bat" x86
-    cmake .. -G"Visual Studio 12" -DZeroMQ_ROOT_DIR="C:\Program Files (x86)\ZeroMQ 4.0.4" -DPROTOBUF_SRC_ROOT_FOLDER="C:\<path_to_protobuf-2.6.0>" -DCPPZMQ_HEADER_PATH="C:\<path_to_cppzmq>"
+    cmake .. -G"Visual Studio 12" -DZeroMQ_ROOT_DIR="C:\Program Files (x86)\ZeroMQ 4.0.4" -DCPPZMQ_HEADER_PATH="C:\<path_to_cppzmq>"
 
 ### Compilation
 
