@@ -63,7 +63,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
 
-        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
+        set PATH=%PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
 
 1. Now build the examples:
 
