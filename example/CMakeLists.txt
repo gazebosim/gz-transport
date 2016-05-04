@@ -39,6 +39,12 @@ if (MSVC)
   # Suppress the "decorated name length exceed" warning (inside the STL).
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4503")
 
+  set(BUILD_SHARED_LIBS FALSE)
+  add_definitions(-DBUILDING_STATIC_LIBS -DWIN32_LEAN_AND_MEAN)
+
+  # Don't pull in the Windows min/max macros
+  add_definitions(-DNOMINMAX)
+
   # Copy the ZMQ DLLs.
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
