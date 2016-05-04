@@ -4,6 +4,11 @@
 # set the IGN_SKIP_IN_TESTSUITE variable to true. The variable will
 # be set to false at the end of the function.
 macro (ign_build_tests)
+
+  # Find the Python interpreter for running the 
+  # check_test_ran.py script 
+  find_package(PythonInterp QUIET)
+
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
@@ -60,7 +65,7 @@ macro (ign_build_tests)
       set(IGN_SKIP_IN_TESTSUITE False)
     endif()
 
-    if (NOT IGN_SKIP_IN_TESTSUITE)
+    if (NOT IGN_SKIP_IN_TESTSUITE AND PYTHONINTERP_FOUND)
       add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
         --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
