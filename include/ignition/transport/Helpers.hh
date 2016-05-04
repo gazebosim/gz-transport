@@ -30,7 +30,6 @@
 
 #if defined BUILDING_STATIC_LIBS
   #define IGNITION_TRANSPORT_VISIBLE
-  #define IGNITION_MSGS_VISIBLE
   #define IGNITION_HIDDEN
 #else
   #if defined __WIN32 || defined __CYGWIN__
