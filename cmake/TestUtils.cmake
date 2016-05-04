@@ -51,29 +51,25 @@ macro (ign_build_tests)
         gtest
         gtest_main
       )
-
-      # Copy in ignition-msgs libraries
-      foreach(lib ${IGNITION-MSGS_LIBRARIES})
-        add_custom_command(TARGET ${BINARY_NAME}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${lib}"
-        $<TARGET_FILE_DIR:${BINARY_NAME}> VERBATIM)
-      endforeach()
     endif()
 
     if (NOT DEFINED IGN_SKIP_IN_TESTSUITE)
       set(IGN_SKIP_IN_TESTSUITE False)
     endif()
 
-    if (NOT IGN_SKIP_IN_TESTSUITE AND PYTHONINTERP_FOUND)
+    if (NOT IGN_SKIP_IN_TESTSUITE)
       add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
         --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
       set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
-      # Check that the test produced a result and create a failure if it didn't.
-      # Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} python ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
-        ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+      if (PYTHONINTERP_FOUND)
+        # Check that the test produced a result and create a failure if
+	# it didn't.Guards against crashed and timed out tests.
+        add_test(check_${BINARY_NAME} python
+	  ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
+          ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+      endif()
     endif()
   endforeach()
 
