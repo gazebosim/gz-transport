@@ -47,10 +47,17 @@ macro (ign_build_tests)
         gtest
         gtest_main
       )
+
+      # Copy in ignition-msgs libraries
+      foreach(lib ${IGNITION-MSGS_LIBRARIES})
+        add_custom_command(TARGET ${BINARY_NAME}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${lib}"
+        $<TARGET_FILE_DIR:${BINARY_NAME}> VERBATIM)
+      endforeach()
     endif()
 
     if (NOT DEFINED IGN_SKIP_IN_TESTSUITE)
-	set(IGN_SKIP_IN_TESTSUITE False)
+      set(IGN_SKIP_IN_TESTSUITE False)
     endif()
 
     if (NOT IGN_SKIP_IN_TESTSUITE)
