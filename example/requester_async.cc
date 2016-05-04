@@ -17,11 +17,11 @@
 
 #include <iostream>
 #include <ignition/transport.hh>
-#include "msgs/stringmsg.pb.h"
+#include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.
-void responseCb(const example::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  example::msgs::StringMsg req;
+  ignition::msgs::StringMsg req;
   req.set_data("HELLO");
 
   std::cout << "Press <CTRL-C> to exit" << std::endl;

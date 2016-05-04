@@ -18,12 +18,12 @@
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
-#include "msgs/stringmsg.pb.h"
+#include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-void srvEcho(const example::msgs::StringMsg &_req,
-  example::msgs::StringMsg &_rep, bool &_result)
+void srvEcho(const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep, bool &_result)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
