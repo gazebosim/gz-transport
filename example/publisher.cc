@@ -21,8 +21,8 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <ignition/transport.hh>
 #include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);

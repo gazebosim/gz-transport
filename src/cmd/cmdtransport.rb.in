@@ -52,7 +52,7 @@ COMMANDS = {  'topic' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
-                       "  -i [ --info ]          Get info about a service." +
+                       "  -i [ --info ]          Get info about a service.\n" +
                        "  -s [ --service ] arg   Name of a service.\n" +
                        "                         Required with -i.\n" +
                        " 'arg' is a service name.\n" +

@@ -5,8 +5,8 @@
 # be set to false at the end of the function.
 macro (ign_build_tests)
 
-  # Find the Python interpreter for running the 
-  # check_test_ran.py script 
+  # Find the Python interpreter for running the
+  # check_test_ran.py script
   find_package(PythonInterp QUIET)
 
   # Build all the tests
@@ -17,9 +17,7 @@ macro (ign_build_tests)
       add_definitions(-DUSE_LOW_MEMORY_TESTS=1)
     endif(USE_LOW_MEMORY_TESTS)
 
-    set_source_files_properties(${PROTO_SRC} PROPERTIES GENERATED TRUE)
-
-    add_executable(${BINARY_NAME} ${GTEST_SOURCE_file} ${PROTO_SRC})
+    add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
@@ -65,9 +63,9 @@ macro (ign_build_tests)
 
       if (PYTHONINTERP_FOUND)
         # Check that the test produced a result and create a failure if
-	# it didn't.Guards against crashed and timed out tests.
+        # it didn't. Guards against crashed and timed out tests.
         add_test(check_${BINARY_NAME} python
-	  ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
+          ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
           ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
       endif()
     endif()

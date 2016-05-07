@@ -17,8 +17,8 @@
 
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
 #include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
