@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_TRANSPORT_NODE_HH_INCLUDED_
-#define IGN_TRANSPORT_NODE_HH_INCLUDED_
+#ifndef IGN_TRANSPORT_NODE_HH_
+#define IGN_TRANSPORT_NODE_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
