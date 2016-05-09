@@ -101,7 +101,6 @@ if (NOT ignition-msgs0_FOUND)
   message(FATAL_ERROR "Looking for ignition-msgs - not found")
 else()
   message(STATUS "Looking for ignition-msgs - found")
-  include_directories(${IGNITION-MSGS_INCLUDE_DIRS})
 endif()
 
 ########################################
