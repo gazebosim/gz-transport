@@ -164,7 +164,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
     }
     else
     {
-      std::cerr << "Unable to advertise on topic[" << _topic << "] "
+      std::cerr << "Unable to publish on topic[" << _topic << "] "
         << "with message type[" << _msgType << "].\n";
     }
   }
