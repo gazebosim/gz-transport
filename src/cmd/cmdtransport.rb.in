@@ -45,8 +45,10 @@ COMMANDS = {  'topic' =>
                        "                        Required with -i, -p.\n" +
                        "  -m [ --msgtype ] arg  Type of message to publish.\n"+
                        "                        Arg is a message type.\n" +
+                       "                        Required with -p.\n" +
                        "  -p [ --pub ] arg      Publish a message.\n" +
                        "                        Arg is the message data\n" +
+                       "                        Requires -t and -m.\n" +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
