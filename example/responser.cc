@@ -17,8 +17,8 @@
 
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
 #include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
