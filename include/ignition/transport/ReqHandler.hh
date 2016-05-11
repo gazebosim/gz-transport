@@ -176,7 +176,7 @@ namespace ignition
       : public IReqHandler
     {
       // Documentation inherited.
-      public: ReqHandler(const std::string &_nUuid)
+      public: explicit ReqHandler(const std::string &_nUuid)
         : IReqHandler(_nUuid)
       {
       }

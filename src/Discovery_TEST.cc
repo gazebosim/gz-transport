@@ -532,7 +532,7 @@ TEST(DiscoveryTest, WrongIgnIp)
 #endif
 
   // Incorrect value for IGN_IP
-  setenv("IGN_IP", "127.0.0.0", 1);
+  setenv("IGN_IP", "999.0.0.0", 1);
 
   transport::Discovery<MessagePublisher> discovery1(g_pUuid1, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");

@@ -52,15 +52,62 @@ namespace ignition
   {
     class NodePrivate;
 
+    /// \brief Block the current thread until a SIGINT or SIGTERM is received.
+    /// Note that this function registers a signal handler. Do not use this
+    /// function if you want to manage yourself SIGINT/SIGTERM.
+    IGNITION_VISIBLE void waitForShutdown();
+
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
     class IGNITION_VISIBLE Node
     {
+      /// \brief A class that is used to store information about an
+      /// advertised publisher. An instance of this class is returned
+      /// from Node::Advertise, and should be used in subsequent
+      /// Node::Publish calls.
+      ///
+      /// ## Pseudo code example ##
+      ///
+      ///    auto pubId = myNode.Advertise<MsgType>("topic_name");
+      ///
+      ///    MsgType msg;
+      ///    myNode.Publish(pubId, msg);
+      ///
+      public: class PublisherId
+      {
+        /// \brief Default constructor
+        public: PublisherId();
+
+        /// \brief Constructor
+        /// \param[in] _topic Name of the topic on which messages
+        /// could be published.
+        public: PublisherId(const std::string &_topic);
+
+        /// \brief Allows this class to be evaluated as a boolean.
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool();
+
+        /// \brief Return true if valid information, such as
+        /// a non-empty topic name, is present.
+        /// \return True if this object can be used in Node::Publish
+        /// calls.
+        public: bool Valid() const;
+
+        /// \brief Return the name of the topic.
+        /// \return Name of the topic that message would be
+        /// published on.
+        public: std::string Topic() const;
+
+        /// \brief Name of the topic
+        private: std::string topic = "";
+      };
+
       /// \brief Constructor.
       /// \param[in] _options Node options.
-      public: Node(const NodeOptions &_options = NodeOptions());
+      public: explicit Node(const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -68,17 +115,20 @@ namespace ignition
       /// \brief Advertise a new topic.
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _options Advertise options.
-      /// \return true if the topic was succesfully advertised.
+      /// \return A PublisherId, which can be used in Node::Publish calls.
+      /// The PublisherId also acts as boolean, where true occurs if the topic
+      /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(const std::string &_topic,
-                          const AdvertiseOptions &_options = AdvertiseOptions())
+      public: template<typename T> Node::PublisherId Advertise(
+                  const std::string &_topic,
+                  const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return false;
+          return PublisherId();
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -98,10 +148,10 @@ namespace ignition
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return false;
+          return PublisherId();
         }
 
-        return true;
+        return PublisherId(fullyQualifiedTopic);
       }
 
       /// \brief Get the list of topics advertised by this node.
@@ -120,6 +170,14 @@ namespace ignition
       public: bool Publish(const std::string &_topic,
                            const ProtoMsg &_msg);
 
+      /// \brief Publish a message.
+      /// \param[in] _id Id of the publisher, which encapsulates the topic
+      /// on which to send the message.
+      /// \param[in] _msg protobuf message.
+      /// \return true when success.
+      public: bool Publish(const PublisherId &_id,
+                           const ProtoMsg &_msg);
+
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
@@ -131,11 +189,10 @@ namespace ignition
           const std::string &_topic,
           void(*_cb)(const T &_msg))
       {
-        std::function<void(const T &)> f =
-          [_cb](const T & _internalMsg)
-          {
-            (*_cb)(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb](const T & _internalMsg)
+        {
+          (*_cb)(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -202,12 +259,11 @@ namespace ignition
           void(C::*_cb)(const T &_msg),
           C *_obj)
       {
-        std::function<void(const T &)> f =
-          [_cb, _obj](const T & _internalMsg)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-            cb(_internalMsg);
-          };
+        std::function<void(const T &)> f = [_cb, _obj](const T & _internalMsg)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          cb(_internalMsg);
+        };
 
         return this->Subscribe<T>(_topic, f);
       }
@@ -243,9 +299,9 @@ namespace ignition
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
-          {
-            (*_cb)(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -335,11 +391,11 @@ namespace ignition
           [_cb, _obj](const T1 &_internalReq,
                       T2 &_internalRep,
                       bool &_internalResult)
-          {
-            auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-              std::placeholders::_2, std::placeholders::_3);
-            cb(_internalReq, _internalRep, _internalResult);
-          };
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2, std::placeholders::_3);
+          cb(_internalReq, _internalRep, _internalResult);
+        };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
@@ -365,9 +421,9 @@ namespace ignition
       {
         std::function<void(const T2 &, const bool)> f =
           [_cb](const T2 &_internalRep, const bool _internalResult)
-          {
-            (*_cb)(_internalRep, _internalResult);
-          };
+        {
+          (*_cb)(_internalRep, _internalResult);
+        };
 
         return this->Request<T1, T2>(_topic, _req, f);
       }
@@ -474,8 +530,15 @@ namespace ignition
         void(C::*_cb)(const T2 &_rep, const bool _result),
         C *_obj)
       {
-        return this->Request(_topic, _req,
-          std::bind(_cb, _obj, std::placeholders::_1, std::placeholders::_2));
+        std::function<void(const T2 &, const bool)> f =
+          [_cb, _obj](const T2 &_internalRep, const bool _internalResult)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2);
+          cb(_internalRep, _internalResult);
+        };
+
+        return this->Request<T1, T2>(_topic, _req, f);
       }
 
       /// \brief Request a new service using a blocking call.
@@ -599,6 +662,13 @@ namespace ignition
       /// \param[out] _services List of advertised services.
       public: void ServiceList(std::vector<std::string> &_services) const;
 
+      /// \brief Get the information about a service.
+      /// \param[in] _service Name of the service.
+      /// \param[out] _publishers List of publishers on the service.
+      /// \return False if unable to get service info.
+      public: bool ServiceInfo(const std::string &_service,
+                              std::vector<ServicePublisher> &_publishers) const;
+
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
       private: const std::string &Partition() const;
@@ -631,6 +701,14 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
+
+      /// \brief Publish a message helper.
+      /// \sa Publish
+      /// \param[in] _topic Fully qualified topic to be published.
+      /// \param[in] _msg protobuf message.
+      /// \return true when success.
+      private: bool PublishHelper(const std::string &_topic,
+                                  const ProtoMsg &_msg);
 
       /// \internal
       /// \brief Smart pointer to private data.

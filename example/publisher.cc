@@ -15,12 +15,18 @@
  *
 */
 
+#include <atomic>
 #include <chrono>
 #include <csignal>
+#include <iostream>
+#include <string>
+#include <thread>
 #include <ignition/transport.hh>
+
 #include "msgs/stringmsg.pb.h"
 
-bool terminatePub = false;
+/// \brief Flag used to break the publisher loop and terminate the program.
+static std::atomic<bool> g_terminatePub(false);
 
 //////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -29,20 +35,22 @@ bool terminatePub = false;
 void signal_handler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
-    terminatePub = true;
+    g_terminatePub = true;
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Install a signal handler for SIGINT.
-  std::signal(SIGINT, signal_handler);
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  if (!node.Advertise<example::msgs::StringMsg>(topic))
+  auto pubId = node.Advertise<example::msgs::StringMsg>(topic);
+  if (!pubId)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
     return -1;
@@ -53,9 +61,9 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
-  while (!terminatePub)
+  while (!g_terminatePub)
   {
-    if (!node.Publish(topic, msg))
+    if (!node.Publish(pubId, msg))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;

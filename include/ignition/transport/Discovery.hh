@@ -937,7 +937,7 @@ namespace ignition
         auto msgLength = 0;
         std::vector<char> buffer;
 
-        std::string topic = _pub.Topic();
+        std::string aTopic = _pub.Topic();
 
         switch (_type)
         {
@@ -956,7 +956,7 @@ namespace ignition
           case SubType:
           {
             // Create the [UN]SUBSCRIBE message.
-            SubscriptionMsg subMsg(header, topic);
+            SubscriptionMsg subMsg(header, aTopic);
 
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
@@ -997,7 +997,7 @@ namespace ignition
         if (this->Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << topic << "]" << std::endl;
+                    << " msg [" << aTopic << "]" << std::endl;
         }
       }
 

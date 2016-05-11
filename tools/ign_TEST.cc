@@ -126,6 +126,28 @@ TEST(ignTest, ServiceList)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check 'ign service -i' running the advertiser on a different process.
+TEST(ignTest, ServiceInfo)
+{
+  // Launch a new publisher process that advertises a topic.
+  std::string replier_path = testing::portablePathUnion(
+    PROJECT_BINARY_PATH,
+    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
+    partition.c_str());
+
+  // Check the 'ign service -i' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service -i /foo");
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on the same process.
 TEST(ignTest, TopicListSameProc)
 {
@@ -181,6 +203,21 @@ TEST(ignTest, ServiceListSameProc)
   EXPECT_EQ(output, "/foo\n");
 }
 
+//////////////////////////////////////////////////
+/// \brief Check 'ign service -i' running the advertiser on the same process.
+TEST(ignTest, ServiceInfoSameProc)
+{
+  ignition::transport::Node node;
+  EXPECT_TRUE(node.Advertise("/foo", srvEcho));
+
+  // Check the 'ign service -i' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service -i /foo");
+
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
+}
+
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
@@ -194,6 +231,13 @@ int main(int argc, char **argv)
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
+
+  // Make sure that we load the library recently built and not the one installed
+  // in your system.
+#ifndef _WIN32
+  std::string libraryPath = std::string(PROJECT_BINARY_PATH) + "/src";
+  setenv("LD_LIBRARY_PATH", libraryPath.c_str(), 1);
+#endif
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

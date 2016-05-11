@@ -25,6 +25,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <csignal>
+#include <condition_variable>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -46,6 +48,75 @@
 
 using namespace ignition;
 using namespace transport;
+
+namespace ignition
+{
+  namespace transport
+  {
+    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
+    /// waitForShutdown().
+    static bool g_shutdown = false;
+
+    /// \brief Mutex to protect the boolean shutdown variable.
+    static std::mutex g_shutdown_mutex;
+
+    /// \brief Condition variable to wakeup waitForShutdown() and exit.
+    static std::condition_variable g_shutdown_cv;
+
+    //////////////////////////////////////////////////
+    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
+    /// \param[in] _signal Signal received.
+    static void signal_handler(const int _signal)
+    {
+      if (_signal == SIGINT || _signal == SIGTERM)
+      {
+        g_shutdown_mutex.lock();
+        g_shutdown = true;
+        g_shutdown_mutex.unlock();
+        g_shutdown_cv.notify_all();
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void ignition::transport::waitForShutdown()
+{
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
+
+  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+  g_shutdown_cv.wait(lk, []{return g_shutdown;});
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::PublisherId()
+{
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::PublisherId(const std::string &_topic) : topic(_topic)
+{
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Node::PublisherId::Valid() const
+{
+  return !this->topic.empty();
+}
+
+//////////////////////////////////////////////////
+std::string Node::PublisherId::Topic() const
+{
+  return this->topic;
+}
 
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
@@ -143,6 +214,12 @@ bool Node::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+bool Node::Publish(const PublisherId &_id, const ProtoMsg &_msg)
+{
+  return _id.Valid() ? this->PublishHelper(_id.Topic(), _msg) : false;
+}
+
+//////////////////////////////////////////////////
 bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 {
   std::string fullyQualifiedTopic;
@@ -153,6 +230,12 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     return false;
   }
 
+  return this->PublishHelper(fullyQualifiedTopic, _msg);
+}
+
+//////////////////////////////////////////////////
+bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
+{
   std::map<std::string, ISubscriptionHandler_M> handlers;
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
@@ -160,16 +243,15 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
     // Topic not advertised before.
-    if (this->dataPtr->topicsAdvertised.find(fullyQualifiedTopic) ==
+    if (this->dataPtr->topicsAdvertised.find(_topic) ==
         this->dataPtr->topicsAdvertised.end())
     {
       return false;
     }
     hasLocalSubscribers =
-      this->dataPtr->shared->localSubscriptions.Handlers(fullyQualifiedTopic,
-        handlers);
+      this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
     hasRemoteSubscribers =
-      this->dataPtr->shared->remoteSubscribers.HasTopic(fullyQualifiedTopic);
+      this->dataPtr->shared->remoteSubscribers.HasTopic(_topic);
   }
 
   // Check that the msg type matches the type previously advertised
@@ -178,7 +260,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   auto &info = this->dataPtr->shared->msgDiscovery->Info();
   std::string procUuid = this->dataPtr->shared->pUuid;
   std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.Publisher(fullyQualifiedTopic, procUuid, nodeUuid, pub))
+  if (!info.Publisher(_topic, procUuid, nodeUuid, pub))
   {
     std::cerr << "Node::Publish() I cannot find the msgType registered for "
               << "topic [" << _topic << "]" << std::endl;
@@ -228,7 +310,7 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
       return false;
     }
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
+    this->dataPtr->shared->Publish(_topic, data,
       _msg.GetTypeName());
   }
   // Debug output.
@@ -498,6 +580,50 @@ bool Node::TopicInfo(const std::string &_topic,
   for (MsgAddresses_M::iterator iter = pubs.begin(); iter != pubs.end(); ++iter)
   {
     for (std::vector<MessagePublisher>::iterator pubIter = iter->second.begin();
+         pubIter != iter->second.end(); ++pubIter)
+    {
+      // Add the publisher if it doesn't already exist.
+      if (std::find(_publishers.begin(), _publishers.end(), *pubIter) ==
+          _publishers.end())
+      {
+        _publishers.push_back(*pubIter);
+      }
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::ServiceInfo(const std::string &_service,
+                       std::vector<ServicePublisher> &_publishers) const
+{
+  this->dataPtr->shared->srvDiscovery->WaitForInit();
+
+  // Construct a topic name with the partition and namespace
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _service, fullyQualifiedTopic))
+  {
+    return false;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Get all the publishers on the given service.
+  SrvAddresses_M pubs;
+  if (!this->dataPtr->shared->srvDiscovery->Publishers(
+        fullyQualifiedTopic, pubs))
+  {
+    return false;
+  }
+
+  _publishers.clear();
+
+  // Copy the publishers.
+  for (SrvAddresses_M::iterator iter = pubs.begin(); iter != pubs.end(); ++iter)
+  {
+    for (std::vector<ServicePublisher>::iterator pubIter = iter->second.begin();
          pubIter != iter->second.end(); ++pubIter)
     {
       // Add the publisher if it doesn't already exist.
