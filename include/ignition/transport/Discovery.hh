@@ -313,7 +313,7 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Discover(const std::string &_topic)
+      public: bool Discover(const std::string &_topic) const
       {
         DiscoveryCallback<Pub> cb;
         bool found;
@@ -375,7 +375,7 @@ namespace ignition
       /// \param[out] _publishers Publishers requested.
       /// \return True if the topic is found and there is at least one publisher
       public: bool Publishers(const std::string &_topic,
-                              Addresses_M<Pub> &_publishers)
+                              Addresses_M<Pub> &_publishers) const
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         return this->info.Publishers(_topic, _publishers);
