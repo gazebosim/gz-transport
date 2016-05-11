@@ -938,7 +938,7 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       private: template<typename T>
-      void SendMsg(uint8_t _type,
+      void SendMsg(const uint8_t _type,
                    const T &_pub,
                    const uint16_t _flags = 0) const
       {
