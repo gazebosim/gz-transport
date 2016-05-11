@@ -209,10 +209,10 @@ namespace ignition
       public: HandlerStorage<IReqHandler> requests;
 
       /// \brief Port used by the message discovery layer.
-      private: const int kMsgDiscPort = 11319;
+      private: const int kMsgDiscPort = 11317;
 
       /// \brief Port used by the servuce discovery layer.
-      private: const int kSrvDiscPort = 11320;
+      private: const int kSrvDiscPort = 11318;
     };
   }
 }

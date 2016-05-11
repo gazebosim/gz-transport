@@ -151,7 +151,6 @@ TEST(DiscoveryTest, TestBasicAPI)
 {
   unsigned int newSilenceInterval    = 100;
   unsigned int newActivityInterval   = 200;
-  unsigned int newAdvertiseInterval  = 300;
   unsigned int newHeartbeatInterval  = 400;
 
   // Create a discovery node.
@@ -159,12 +158,10 @@ TEST(DiscoveryTest, TestBasicAPI)
 
   discovery.SetSilenceInterval(newSilenceInterval);
   discovery.SetActivityInterval(newActivityInterval);
-  discovery.SetAdvertiseInterval(newAdvertiseInterval);
   discovery.SetHeartbeatInterval(newHeartbeatInterval);
 
   EXPECT_EQ(discovery.SilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery.ActivityInterval(), newActivityInterval);
-  EXPECT_EQ(discovery.AdvertiseInterval(), newAdvertiseInterval);
   EXPECT_EQ(discovery.HeartbeatInterval(), newHeartbeatInterval);
 
   EXPECT_NE(discovery.HostAddr(), "");

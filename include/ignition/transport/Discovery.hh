@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
-#define __IGN_TRANSPORT_DISCOVERY_HH_INCLUDED__
+#ifndef IGNITION_TRANSPORT_DISCOVERY_HH_
+#define IGNITION_TRANSPORT_DISCOVERY_HH_
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
@@ -100,7 +100,6 @@ namespace ignition
           pUuid(_pUuid),
           silenceInterval(kDefSilenceInterval),
           activityInterval(kDefActivityInterval),
-          advertiseInterval(kDefAdvertiseInterval),
           heartbeatInterval(kDefHeartbeatInterval),
           connectionCb(nullptr),
           disconnectionCb(nullptr),
@@ -434,16 +433,6 @@ namespace ignition
         return this->heartbeatInterval;
       }
 
-      /// \brief While a topic is being advertised by a node, a beacon is sent
-      /// periodically every 'advertise interval' milliseconds.
-      /// \sa SetAdvertiseInterval.
-      /// \return The value in milliseconds.
-      public: unsigned int AdvertiseInterval() const
-      {
-        std::lock_guard<std::mutex> lock(this->mutex);
-        return this->advertiseInterval;
-      }
-
       /// \brief Get the maximum time allowed without receiving any discovery
       /// information from a node before canceling its entries.
       /// \sa SetSilenceInterval.
@@ -470,15 +459,6 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->heartbeatInterval = _ms;
-      }
-
-      /// \brief Set the advertise interval.
-      /// \sa AdvertiseInterval.
-      /// \param[in] _ms New value in milliseconds.
-      public: void SetAdvertiseInterval(const unsigned int _ms)
-      {
-        std::lock_guard<std::mutex> lock(this->mutex);
-        this->advertiseInterval = _ms;
       }
 
       /// \brief Set the maximum silence interval.
@@ -525,8 +505,6 @@ namespace ignition
                   << " ms." << std::endl;
         std::cout << "\tHeartbeat: " << this->heartbeatInterval
                   << "ms." << std::endl;
-        std::cout << "\tRetrans.: " << this->advertiseInterval
-                  << " ms." << std::endl;
         std::cout << "\tSilence: " << this->silenceInterval
                   << " ms." << std::endl;
         std::cout << "Known information: " << std::endl;
@@ -674,13 +652,14 @@ namespace ignition
       }
 
       /// \brief Calculate the next timeout. There are three main activities to
-      /// perform by the discovery layer:
+      /// perform by the discovery component:
       /// 1. Receive discovery messages.
       /// 2. Send heartbeats.
       /// 3. Maintain the discovery information up to date.
       ///
       /// Tasks (2) and (3) need to be checked at fixed intervals. This function
       /// calculates the next timeout to satisfy (2) and (3).
+      /// \return A timeout (milliseconds).
       private: int NextTimeout() const
       {
         auto now = std::chrono::steady_clock::now();
@@ -1112,11 +1091,6 @@ namespace ignition
       /// \sa SetMaxSilenceInterval.
       private: static const unsigned int kDefSilenceInterval = 3000;
 
-      /// \brief Default advertise interval value (ms.).
-      /// \sa AdvertiseInterval.
-      /// \sa SetAdvertiseInterval.
-      private: static const unsigned int kDefAdvertiseInterval = 1000;
-
       /// \brief IP Address used for multicast.
       private: const std::string kMulticastGroup = "224.0.0.7";
 
@@ -1151,11 +1125,6 @@ namespace ignition
       /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
       private: unsigned int activityInterval;
-
-      /// \brief Advertise interval value (ms.).
-      /// \sa AdvertiseInterval.
-      /// \sa SetAdvertiseInterval.
-      private: unsigned int advertiseInterval;
 
       /// \brief Heartbeat interval value (ms.).
       /// \sa HeartbeatInterval.
@@ -1225,7 +1194,12 @@ namespace ignition
       private: bool enabled;
     };
 
+    /// \def MsgDiscovery
+    /// \brief A discovery object for topics.
     using MsgDiscovery = Discovery<MessagePublisher>;
+
+    /// \def SrvDiscovery
+    /// \brief A discovery object for services.
     using SrvDiscovery = Discovery<ServicePublisher>;
   }
 }
