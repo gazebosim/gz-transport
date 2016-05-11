@@ -30,18 +30,18 @@
 using namespace ignition;
 
 // Global variables used for multiple tests.
-std::string g_topic   = "foo";
-std::string g_nUuid1  = "node-UUID-1";
-std::string g_nUuid2  = "node-UUID-2";
-std::string g_hUuid   = "handler-UUID";
-int g_intResult       = 4;
-bool g_cbExecuted = false;
+std::string topic   = "foo";
+std::string nUuid1  = "node-UUID-1";
+std::string nUuid2  = "node-UUID-2";
+std::string hUuid   = "handler-UUID";
+int intResult       = 4;
+bool cbExecuted = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
 {
-  g_cbExecuted = false;
+  cbExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -52,10 +52,10 @@ void cb1(const transport::msgs::Vector3d &_req, transport::msgs::Int &_rep,
   EXPECT_DOUBLE_EQ(_req.x(), 1.0);
   EXPECT_DOUBLE_EQ(_req.y(), 2.0);
   EXPECT_DOUBLE_EQ(_req.z(), 3.0);
-  _rep.set_data(g_intResult);
+  _rep.set_data(intResult);
   _result = true;
 
-  g_cbExecuted = true;
+  cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -76,12 +76,12 @@ TEST(RepStorageTest, RepStorageAPI)
   reqMsg.set_z(3.0);
 
   // Check some operations when there is no data stored.
-  EXPECT_FALSE(reps.Handlers(g_topic, m));
-  EXPECT_FALSE(reps.FirstHandler(g_topic, reqType, rep1Type, handler));
-  EXPECT_FALSE(reps.Handler(g_topic, g_nUuid1, g_hUuid, handler));
-  EXPECT_FALSE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_FALSE(reps.RemoveHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid1));
+  EXPECT_FALSE(reps.Handlers(topic, m));
+  EXPECT_FALSE(reps.FirstHandler(topic, reqType, rep1Type, handler));
+  EXPECT_FALSE(reps.Handler(topic, nUuid1, hUuid, handler));
+  EXPECT_FALSE(reps.HasHandlersForTopic(topic));
+  EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Create a REP handler.
   std::shared_ptr<transport::RepHandler<transport::msgs::Vector3d,
@@ -91,28 +91,28 @@ TEST(RepStorageTest, RepStorageAPI)
   rep1HandlerPtr->SetCallback(cb1);
 
   // Insert the handler and check operations.
-  reps.AddHandler(g_topic, g_nUuid1, rep1HandlerPtr);
-  EXPECT_TRUE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_TRUE(reps.HasHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid2));
-  EXPECT_TRUE(reps.FirstHandler(g_topic, reqType, rep1Type, handler));
+  reps.AddHandler(topic, nUuid1, rep1HandlerPtr);
+  EXPECT_TRUE(reps.HasHandlersForTopic(topic));
+  EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
+  EXPECT_TRUE(reps.FirstHandler(topic, reqType, rep1Type, handler));
   ASSERT_TRUE(handler != NULL);
   std::string handlerUuid = handler->HandlerUuid();
   EXPECT_EQ(handlerUuid, rep1HandlerPtr->HandlerUuid());
-  EXPECT_TRUE(reps.Handler(g_topic, g_nUuid1, handlerUuid, handler));
-  EXPECT_FALSE(reps.Handler(g_topic, "wrongNodeUuid", handlerUuid, handler));
-  EXPECT_FALSE(reps.Handler(g_topic, g_nUuid1, "wrongHandlerUuid", handler));
-  EXPECT_TRUE(reps.Handlers(g_topic, m));
+  EXPECT_TRUE(reps.Handler(topic, nUuid1, handlerUuid, handler));
+  EXPECT_FALSE(reps.Handler(topic, "wrongNodeUuid", handlerUuid, handler));
+  EXPECT_FALSE(reps.Handler(topic, nUuid1, "wrongHandlerUuid", handler));
+  EXPECT_TRUE(reps.Handlers(topic, m));
   EXPECT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, g_nUuid1);
+  EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
 
   // Check the handler operations.
-  handler = m[g_nUuid1].begin()->second;
+  handler = m[nUuid1].begin()->second;
   handler->RunLocalCallback(reqMsg, rep1Msg, result);
-  EXPECT_TRUE(g_cbExecuted);
-  EXPECT_EQ(rep1Msg.data(), g_intResult);
+  EXPECT_TRUE(cbExecuted);
+  EXPECT_EQ(rep1Msg.data(), intResult);
   EXPECT_TRUE(result);
 
   reset();
@@ -121,10 +121,10 @@ TEST(RepStorageTest, RepStorageAPI)
   std::string repSerialized;
   EXPECT_TRUE(reqMsg.SerializeToString(&reqSerialized));
   handler->RunCallback(reqSerialized, repSerialized, result);
-  EXPECT_TRUE(g_cbExecuted);
+  EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
   EXPECT_TRUE(rep1Msg.ParseFromString(repSerialized));
-  EXPECT_EQ(rep1Msg.data(), g_intResult);
+  EXPECT_EQ(rep1Msg.data(), intResult);
 
   // Create another REP handler without a callback for node1.
   std::shared_ptr<transport::RepHandler<transport::msgs::Int,
@@ -132,7 +132,7 @@ TEST(RepStorageTest, RepStorageAPI)
       <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler.
-  reps.AddHandler(g_topic, g_nUuid1, rep2HandlerPtr);
+  reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
 
   // Create another REP handler without a callback for node1.
   std::shared_ptr<transport::RepHandler<transport::msgs::Int,
@@ -140,9 +140,8 @@ TEST(RepStorageTest, RepStorageAPI)
       <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler.
-  reps.AddHandler(g_topic, g_nUuid1, rep5HandlerPtr);
-  EXPECT_TRUE(reps.RemoveHandler(g_topic, g_nUuid1,
-    rep5HandlerPtr->HandlerUuid()));
+  reps.AddHandler(topic, nUuid1, rep5HandlerPtr);
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, rep5HandlerPtr->HandlerUuid()));
 
   // Create a REP handler without a callback for node2.
   std::shared_ptr<transport::RepHandler<transport::msgs::Int,
@@ -150,48 +149,48 @@ TEST(RepStorageTest, RepStorageAPI)
       <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler and check operations.
-  reps.AddHandler(g_topic, g_nUuid2, rep3HandlerPtr);
-  EXPECT_TRUE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_TRUE(reps.HasHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_TRUE(reps.HasHandlersForNode(g_topic, g_nUuid2));
-  EXPECT_TRUE(reps.FirstHandler(g_topic, reqType, rep1Type, handler));
+  reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
+  EXPECT_TRUE(reps.HasHandlersForTopic(topic));
+  EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid2));
+  EXPECT_TRUE(reps.FirstHandler(topic, reqType, rep1Type, handler));
   handlerUuid = rep3HandlerPtr->HandlerUuid();
-  EXPECT_TRUE(reps.Handler(g_topic, g_nUuid2, handlerUuid, handler));
+  EXPECT_TRUE(reps.Handler(topic, nUuid2, handlerUuid, handler));
   EXPECT_EQ(handler->HandlerUuid(), handlerUuid);
-  EXPECT_TRUE(reps.Handlers(g_topic, m));
+  EXPECT_TRUE(reps.Handlers(topic, m));
   EXPECT_EQ(m.size(), 2u);
 
   reset();
 
   // Check the handler operations.
-  handler = m[g_nUuid2].begin()->second;
+  handler = m[nUuid2].begin()->second;
   handler->RunLocalCallback(reqMsg, rep1Msg, result);
-  EXPECT_FALSE(g_cbExecuted);
+  EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
   reset();
 
   handler->RunCallback(reqSerialized, repSerialized, result);
-  EXPECT_FALSE(g_cbExecuted);
+  EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
   // Remove the last REP handler.
-  EXPECT_TRUE(reps.RemoveHandler(g_topic, g_nUuid2, handler->HandlerUuid()));
-  EXPECT_TRUE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_TRUE(reps.HasHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid2));
-  EXPECT_TRUE(reps.Handlers(g_topic, m));
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid2, handler->HandlerUuid()));
+  EXPECT_TRUE(reps.HasHandlersForTopic(topic));
+  EXPECT_TRUE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
+  EXPECT_TRUE(reps.Handlers(topic, m));
   EXPECT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, g_nUuid1);
+  EXPECT_EQ(m.begin()->first, nUuid1);
 
   reset();
 
   // Remove all REP handlers for node1.
-  EXPECT_TRUE(reps.RemoveHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.Handlers(g_topic, m));
-  EXPECT_FALSE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_FALSE(reps.RemoveHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid1));
+  EXPECT_TRUE(reps.RemoveHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.Handlers(topic, m));
+  EXPECT_FALSE(reps.HasHandlersForTopic(topic));
+  EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
 
   // Insert another handler, remove it, and check that the map is empty.
   std::shared_ptr<transport::RepHandler<transport::msgs::Int,
@@ -199,12 +198,12 @@ TEST(RepStorageTest, RepStorageAPI)
       <transport::msgs::Int, transport::msgs::Int>());
 
   // Insert the handler.
-  reps.AddHandler(g_topic, g_nUuid1, rep3HandlerPtr);
+  reps.AddHandler(topic, nUuid1, rep3HandlerPtr);
   handlerUuid = rep3HandlerPtr->HandlerUuid();
-  EXPECT_TRUE(reps.RemoveHandler(g_topic, g_nUuid1, handlerUuid));
-  EXPECT_FALSE(reps.HasHandlersForTopic(g_topic));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid1));
-  EXPECT_FALSE(reps.HasHandlersForNode(g_topic, g_nUuid2));
+  EXPECT_TRUE(reps.RemoveHandler(topic, nUuid1, handlerUuid));
+  EXPECT_FALSE(reps.HasHandlersForTopic(topic));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid2));
 }
 
 //////////////////////////////////////////////////
@@ -219,22 +218,22 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   // Create a Subscription handler.
   std::shared_ptr<transport::SubscriptionHandler<transport::msgs::Int>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <transport::msgs::Int>(g_nUuid1));
+      <transport::msgs::Int>(nUuid1));
 
   // Insert the handler and check operations.
-  subs.AddHandler(g_topic, g_nUuid1, sub1HandlerPtr);
+  subs.AddHandler(topic, nUuid1, sub1HandlerPtr);
 
   transport::ISubscriptionHandlerPtr h;
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
-  EXPECT_TRUE(subs.Handler(g_topic, g_nUuid1, handlerUuid, h));
+  EXPECT_TRUE(subs.Handler(topic, nUuid1, handlerUuid, h));
   EXPECT_FALSE(h->RunLocalCallback(msg));
 
   // Try to retrieve the first callback with an incorrect type.
   transport::ISubscriptionHandlerPtr handler;
-  EXPECT_FALSE(subs.FirstHandler(g_topic, "incorrect type", handler));
+  EXPECT_FALSE(subs.FirstHandler(topic, "incorrect type", handler));
 
   // Now try to retrieve the first callback with the correct type.
-  EXPECT_TRUE(subs.FirstHandler(g_topic, msg.GetTypeName(), handler));
+  EXPECT_TRUE(subs.FirstHandler(topic, msg.GetTypeName(), handler));
 
   // Verify the handler.
   EXPECT_EQ(handler->TypeName(), sub1HandlerPtr->TypeName());

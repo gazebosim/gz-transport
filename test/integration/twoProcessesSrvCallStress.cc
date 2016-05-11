@@ -26,8 +26,8 @@
 
 using namespace ignition;
 
-std::string g_partition;
-std::string g_topic = "/foo";
+std::string partition;
+std::string topic = "/foo";
 
 //////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
@@ -37,7 +37,7 @@ TEST(twoProcSrvCall, ThousandCalls)
      "test/integration/INTEGRATION_twoProcessesSrvCallReplierIncreasing_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
+    partition.c_str());
 
   transport::msgs::Int req;
   transport::msgs::Int response;
@@ -50,7 +50,7 @@ TEST(twoProcSrvCall, ThousandCalls)
   for (int i = 0; i < 15000; i++)
   {
     req.set_data(i);
-    ASSERT_TRUE(node.Request(g_topic, req, timeout, response, result));
+    ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
 
     // Check the service response.
     ASSERT_TRUE(result);
@@ -65,10 +65,10 @@ TEST(twoProcSrvCall, ThousandCalls)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  g_partition = testing::getRandomNumber();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", g_partition.c_str(), 1);
+  setenv("IGN_PARTITION", partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

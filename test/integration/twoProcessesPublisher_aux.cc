@@ -23,7 +23,7 @@
 
 using namespace ignition;
 
-std::string g_topic = "/foo";
+std::string topic = "/foo";
 
 //////////////////////////////////////////////////
 /// \brief A publisher node.
@@ -36,11 +36,11 @@ void advertiseAndPublish()
 
   transport::Node node;
 
-  node.Advertise<transport::msgs::Vector3d>(g_topic);
+  node.Advertise<transport::msgs::Vector3d>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  node.Publish(g_topic, msg);
+  node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-  node.Publish(g_topic, msg);
+  node.Publish(topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 

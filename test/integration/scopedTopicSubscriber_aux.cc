@@ -25,36 +25,36 @@
 
 using namespace ignition;
 
-bool g_cbExecuted;
-std::string g_topic = "/foo";
-int g_data = 5;
+bool cbExecuted;
+std::string topic = "/foo";
+int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
 void cb(const transport::msgs::Int &_msg)
 {
-  EXPECT_EQ(_msg.data(), g_data);
-  g_cbExecuted = true;
+  EXPECT_EQ(_msg.data(), data);
+  cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
 void subscriber()
 {
-  g_cbExecuted = false;
+  cbExecuted = false;
   transport::Node node;
 
-  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+  EXPECT_TRUE(node.Subscribe(topic, cb));
 
   int i = 0;
-  while (i < 100 && !g_cbExecuted)
+  while (i < 100 && !cbExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
   }
 
   // Check that the message was not received because the scope was Process.
-  EXPECT_FALSE(g_cbExecuted);
-  g_cbExecuted = false;
+  EXPECT_FALSE(cbExecuted);
+  cbExecuted = false;
 }
 
 //////////////////////////////////////////////////

@@ -221,6 +221,10 @@ NodeShared::~NodeShared()
   // destructor to hang (probably waiting for ZMQ sockets to terminate).
   // ToDo: Fix it.
 #endif
+
+  // Explicitly reset discovery to prevent callbacks
+  this->msgDiscovery.reset();
+  this->srvDiscovery.reset();
 }
 
 //////////////////////////////////////////////////

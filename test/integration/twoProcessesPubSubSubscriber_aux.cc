@@ -28,10 +28,10 @@
 
 using namespace ignition;
 
-bool g_cbExecuted;
-bool g_cb2Executed;
-std::string g_topic = "/foo";
-std::string g_data = "bar";
+bool cbExecuted;
+bool cb2Executed;
+std::string topic = "/foo";
+std::string data = "bar";
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -40,7 +40,7 @@ void cb(const transport::msgs::Vector3d &_msg)
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
   EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
-  g_cbExecuted = true;
+  cbExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -50,24 +50,24 @@ void cb2(const transport::msgs::Vector3d &_msg)
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
   EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
-  g_cb2Executed = true;
+  cb2Executed = true;
 }
 
 //////////////////////////////////////////////////
 void runSubscriber()
 {
-  g_cbExecuted = false;
-  g_cb2Executed = false;
+  cbExecuted = false;
+  cb2Executed = false;
 
   transport::Node node;
   transport::Node node2;
 
-  EXPECT_TRUE(node.Subscribe(g_topic, cb));
-  EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node2.Subscribe(topic, cb2));
 
   int interval = 100;
 
-  while (!g_cbExecuted || !g_cb2Executed)
+  while (!cbExecuted || !cb2Executed)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     interval--;
@@ -77,20 +77,20 @@ void runSubscriber()
   }
 
   // Check that the message was received.
-  EXPECT_TRUE(g_cbExecuted);
-  EXPECT_TRUE(g_cb2Executed);
+  EXPECT_TRUE(cbExecuted);
+  EXPECT_TRUE(cb2Executed);
 
-  g_cb2Executed = false;
-  EXPECT_TRUE(node.Unsubscribe(g_topic));
+  cb2Executed = false;
+  EXPECT_TRUE(node.Unsubscribe(topic));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  g_cbExecuted = false;
+  cbExecuted = false;
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was only received in node2
-  EXPECT_FALSE(g_cbExecuted);
-  EXPECT_TRUE(g_cb2Executed);
-  g_cbExecuted = false;
-  g_cb2Executed = false;
+  EXPECT_FALSE(cbExecuted);
+  EXPECT_TRUE(cb2Executed);
+  cbExecuted = false;
+  cb2Executed = false;
 }
 
 //////////////////////////////////////////////////

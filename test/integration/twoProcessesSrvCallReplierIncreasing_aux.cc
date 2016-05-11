@@ -26,8 +26,8 @@
 
 using namespace ignition;
 
-std::string g_topic = "/foo";
-int g_Forever = INT_MAX;
+std::string topic = "/foo";
+int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -42,10 +42,10 @@ void srvEcho(const transport::msgs::Int &_req, transport::msgs::Int &_rep,
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(topic, srvEcho));
 
   // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(g_Forever));
+  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
 }
 
 //////////////////////////////////////////////////
