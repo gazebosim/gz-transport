@@ -95,8 +95,6 @@ namespace ignition
                         const int _port,
                         const bool _verbose = false)
         : port(_port),
-          hostAddr(determineHost()),
-          hostInterfaces(determineInterfaces()),
           pUuid(_pUuid),
           silenceInterval(kDefSilenceInterval),
           activityInterval(kDefActivityInterval),
@@ -109,6 +107,18 @@ namespace ignition
           exit(false),
           enabled(false)
       {
+        // Get this host IP address.
+        this->hostAddr = determineHost();
+
+        std::string ignIp;
+        if (env("IGN_IP", ignIp) && !ignIp.empty())
+          this->hostInterfaces = {ignIp};
+        else
+        {
+          // Get the list of network interfaces in this host.
+          this->hostInterfaces = determineInterfaces();
+        }
+
 #ifdef _WIN32
         WORD wVersionRequested;
         WSADATA wsaData;
@@ -937,7 +947,7 @@ namespace ignition
         auto msgLength = 0;
         std::vector<char> buffer;
 
-        std::string aTopic = _pub.Topic();
+        std::string topic = _pub.Topic();
 
         switch (_type)
         {
@@ -956,7 +966,7 @@ namespace ignition
           case SubType:
           {
             // Create the [UN]SUBSCRIBE message.
-            SubscriptionMsg subMsg(header, aTopic);
+            SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
             buffer.resize(subMsg.MsgLength());
@@ -997,7 +1007,7 @@ namespace ignition
         if (this->Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << aTopic << "]" << std::endl;
+                    << " msg [" << topic << "]" << std::endl;
         }
       }
 

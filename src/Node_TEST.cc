@@ -34,19 +34,19 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-std::mutex exitMutex;
+static std::string partition;
+static std::string g_topic = "/foo";
+static std::mutex exitMutex;
 
-int data = 5;
-bool cbExecuted;
-bool cb2Executed;
-bool cbVectorExecuted;
-bool srvExecuted;
-bool responseExecuted;
-bool wrongResponseExecuted;
-int counter = 0;
-bool terminatePub = false;
+static int data = 5;
+static bool cbExecuted;
+static bool cb2Executed;
+static bool cbVectorExecuted;
+static bool srvExecuted;
+static bool responseExecuted;
+static bool wrongResponseExecuted;
+static int counter = 0;
+static bool terminatePub = false;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -130,7 +130,7 @@ class MyTestClass
     // Subscribe to an illegal topic.
     EXPECT_FALSE(this->node.Subscribe("Bad Topic", &MyTestClass::Cb, this));
 
-    EXPECT_TRUE(this->node.Subscribe(topic, &MyTestClass::Cb, this));
+    EXPECT_TRUE(this->node.Subscribe(g_topic, &MyTestClass::Cb, this));
   }
 
   // Member function used as a callback for responding to a service call.
@@ -182,11 +182,11 @@ class MyTestClass
     EXPECT_FALSE(pubId.Valid());
     EXPECT_TRUE(pubId.Topic().empty());
 
-    pubId = this->node.Advertise<transport::msgs::Int>(topic);
+    pubId = this->node.Advertise<transport::msgs::Int>(g_topic);
     EXPECT_TRUE(pubId);
     EXPECT_TRUE(pubId.Valid());
     EXPECT_FALSE(pubId.Topic().empty());
-    EXPECT_TRUE(pubId.Topic().find(topic) != std::string::npos);
+    EXPECT_TRUE(pubId.Topic().find(g_topic) != std::string::npos);
     EXPECT_TRUE(this->node.Publish(pubId, msg));
   }
 
@@ -207,8 +207,8 @@ class MyTestClass
     EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::Echo, this));
 
     // Advertise and request a valid service.
-    EXPECT_TRUE(this->node.Advertise(topic, &MyTestClass::Echo, this));
-    EXPECT_TRUE(this->node.Request(topic, req, timeout, rep, result));
+    EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::Echo, this));
+    EXPECT_TRUE(this->node.Request(g_topic, req, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
     EXPECT_TRUE(this->callbackSrvExecuted);
@@ -216,16 +216,16 @@ class MyTestClass
     this->Reset();
 
     // Request a valid service using a member function callback.
-    this->node.Request(topic, req, &MyTestClass::EchoResponse, this);
+    this->node.Request(g_topic, req, &MyTestClass::EchoResponse, this);
     EXPECT_TRUE(this->responseExecuted);
 
     this->Reset();
 
     // Service requests with wrong types.
-    EXPECT_FALSE(this->node.Request(topic, wrongReq, timeout, rep, result));
-    EXPECT_FALSE(this->node.Request(topic, req, timeout, wrongRep, result));
-    EXPECT_TRUE(this->node.Request(topic, wrongReq, response));
-    EXPECT_TRUE(this->node.Request(topic, req, wrongResponse));
+    EXPECT_FALSE(this->node.Request(g_topic, wrongReq, timeout, rep, result));
+    EXPECT_FALSE(this->node.Request(g_topic, req, timeout, wrongRep, result));
+    EXPECT_TRUE(this->node.Request(g_topic, wrongReq, response));
+    EXPECT_TRUE(this->node.Request(g_topic, req, wrongResponse));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
@@ -254,7 +254,7 @@ class MyTestClass
 void CreateSubscriber()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
@@ -280,7 +280,7 @@ void CreatePubSubTwoThreads(
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic, opts));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic, opts));
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -290,7 +290,7 @@ void CreatePubSubTwoThreads(
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a msg on topic.
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   // Wait until the subscribe thread finishes.
   subscribeThread.join();
@@ -324,30 +324,30 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
   // Publish some data on topic without advertising it first.
-  EXPECT_FALSE(node1.Publish(topic, msg));
+  EXPECT_FALSE(node1.Publish(g_topic, msg));
 
-  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(g_topic));
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
-  EXPECT_EQ(advertisedTopics.at(0), topic);
+  EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
-  EXPECT_TRUE(node2.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node2.Advertise<transport::msgs::Int>(g_topic));
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
-  EXPECT_EQ(advertisedTopics.at(0), topic);
+  EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
-  EXPECT_TRUE(node2.Subscribe(topic, cb));
+  EXPECT_TRUE(node2.Subscribe(g_topic, cb));
   auto subscribedTopics = node2.SubscribedTopics();
   ASSERT_EQ(subscribedTopics.size(), 1u);
-  EXPECT_EQ(subscribedTopics.at(0), topic);
+  EXPECT_EQ(subscribedTopics.at(0), g_topic);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a message by each node.
-  EXPECT_TRUE(node1.Publish(topic, msg));
-  EXPECT_TRUE(node2.Publish(topic, msg));
+  EXPECT_TRUE(node1.Publish(g_topic, msg));
+  EXPECT_TRUE(node2.Publish(g_topic, msg));
 
   // Wait some time for the messages to arrive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -371,12 +371,12 @@ TEST(NodeTest, PubSubSameThread)
   // Advertise an illegal topic.
   EXPECT_FALSE(node.Advertise<transport::msgs::Int>("invalid topic"));
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic));
 
   // Subscribe to an illegal topic.
   EXPECT_FALSE(node.Subscribe("invalid topic", cb));
 
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -385,7 +385,7 @@ TEST(NodeTest, PubSubSameThread)
   EXPECT_FALSE(node.Publish("invalid topic", msg));
 
   // Publish a first message.
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -396,7 +396,7 @@ TEST(NodeTest, PubSubSameThread)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -409,10 +409,10 @@ TEST(NodeTest, PubSubSameThread)
   // Unadvertise an illegal topic.
   EXPECT_FALSE(node.Unadvertise("invalid topic"));
 
-  EXPECT_TRUE(node.Unadvertise(topic));
+  EXPECT_TRUE(node.Unadvertise(g_topic));
 
   // Publish a third message.
-  EXPECT_FALSE(node.Publish(topic, msg));
+  EXPECT_FALSE(node.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -429,7 +429,7 @@ TEST(NodeTest, PubSubSameThreadLamda)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic));
 
   bool executed = false;
   std::function<void(const transport::msgs::Int&)> subCb =
@@ -439,13 +439,13 @@ TEST(NodeTest, PubSubSameThreadLamda)
     executed = true;
   };
 
-  EXPECT_TRUE(node.Subscribe(topic, subCb));
+  EXPECT_TRUE(node.Subscribe(g_topic, subCb));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   EXPECT_TRUE(executed);
 }
@@ -472,18 +472,18 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(g_topic));
 
   // Subscribe to topic in node1.
-  EXPECT_TRUE(node1.Subscribe(topic, cb));
+  EXPECT_TRUE(node1.Subscribe(g_topic, cb));
 
   // Subscribe to topic in node2.
-  EXPECT_TRUE(node2.Subscribe(topic, cb2));
+  EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node1.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -495,7 +495,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   auto subscribedTopics = node1.SubscribedTopics();
   ASSERT_EQ(subscribedTopics.size(), 1u);
-  EXPECT_EQ(subscribedTopics.at(0), topic);
+  EXPECT_EQ(subscribedTopics.at(0), g_topic);
 
   reset();
 
@@ -503,13 +503,13 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_FALSE(node1.Unsubscribe("invalid topic"));
 
   // Node1 is not interested in the topic anymore.
-  EXPECT_TRUE(node1.Unsubscribe(topic));
+  EXPECT_TRUE(node1.Unsubscribe(g_topic));
 
   // Give some time to receive the unsubscription.
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a second message.
-  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node1.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -523,10 +523,10 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   reset();
 
-  EXPECT_TRUE(node1.Unadvertise(topic));
+  EXPECT_TRUE(node1.Unadvertise(g_topic));
 
   // Publish a third message
-  EXPECT_FALSE(node1.Publish(topic, msg));
+  EXPECT_FALSE(node1.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -595,10 +595,10 @@ TEST(NodeTest, TypeMismatch)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic));
 
-  EXPECT_FALSE(node.Publish(topic, wrongMsg));
-  EXPECT_TRUE(node.Publish(topic, rightMsg));
+  EXPECT_FALSE(node.Publish(g_topic, wrongMsg));
+  EXPECT_TRUE(node.Publish(g_topic, rightMsg));
 }
 
 //////////////////////////////////////////////////
@@ -616,16 +616,16 @@ TEST(NodeTest, ServiceCallAsync)
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
 
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   auto advertisedServices = node.AdvertisedServices();
   ASSERT_EQ(advertisedServices.size(), 1u);
-  EXPECT_EQ(advertisedServices.at(0), topic);
+  EXPECT_EQ(advertisedServices.at(0), g_topic);
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
 
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
   while (i < 100 && !srvExecuted)
@@ -643,7 +643,7 @@ TEST(NodeTest, ServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
   while (i < 100 && !responseExecuted)
@@ -660,7 +660,7 @@ TEST(NodeTest, ServiceCallAsync)
   // Try to unadvertise an invalid service.
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
-  EXPECT_TRUE(node.UnadvertiseSrv(topic));
+  EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
 
   ASSERT_TRUE(node.AdvertisedServices().empty());
 }
@@ -679,8 +679,8 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<transport::msgs::Int, transport::msgs::Int>(topic,
-    advCb)));
+  EXPECT_TRUE((node.Advertise<transport::msgs::Int,
+    transport::msgs::Int>(g_topic, advCb)));
 
   bool executed = false;
   std::function<void(const transport::msgs::Int &, const bool)> reqCb =
@@ -694,7 +694,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   transport::msgs::Int req;
   req.set_data(data);
 
-  EXPECT_TRUE((node.Request(topic, req, reqCb)));
+  EXPECT_TRUE((node.Request(g_topic, req, reqCb)));
 
   EXPECT_TRUE(executed);
 }
@@ -714,12 +714,12 @@ TEST(NodeTest, MultipleServiceCallAsync)
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvEcho));
 
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, response));
 
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
   while (i < 100 && !srvExecuted)
@@ -737,9 +737,9 @@ TEST(NodeTest, MultipleServiceCallAsync)
   srvExecuted = false;
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
-  EXPECT_TRUE(node.Request(topic, req, response));
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
   while (i < 100 && counter < 3)
@@ -756,7 +756,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   // Try to unadvertise an invalid service.
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
-  EXPECT_TRUE(node.UnadvertiseSrv(topic));
+  EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
 }
 
 //////////////////////////////////////////////////
@@ -771,12 +771,12 @@ TEST(NodeTest, ServiceCallSync)
   req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   // Request an invalid service name.
   EXPECT_FALSE(node.Request("invalid service", req, timeout, rep, result));
 
-  EXPECT_TRUE(node.Request(topic, req, timeout, rep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, timeout, rep, result));
 
   // Check that the service call response was executed.
   EXPECT_TRUE(result);
@@ -797,7 +797,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
   transport::Node node;
 
   auto t1 = std::chrono::system_clock::now();
-  bool executed = node.Request(topic, req, static_cast<unsigned int>(timeout),
+  bool executed = node.Request(g_topic, req, static_cast<unsigned int>(timeout),
       rep, result);
   auto t2 = std::chrono::system_clock::now();
 
@@ -823,13 +823,13 @@ void createInfinitePublisher()
   msg.set_data(data);
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic));
 
   auto i = 0;
   bool exitLoop = false;
   while (!exitLoop)
   {
-    EXPECT_TRUE(node.Publish(topic, msg));
+    EXPECT_TRUE(node.Publish(g_topic, msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
@@ -922,15 +922,15 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(g_topic));
 
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Send a message with a wrong type.
-  EXPECT_FALSE(node.Publish(topic, msgV));
+  EXPECT_FALSE(node.Publish(g_topic, msgV));
 
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
@@ -938,7 +938,7 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -963,15 +963,15 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(g_topic));
 
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Send a message with a wrong type.
-  EXPECT_TRUE(node.Publish(topic, msgV));
+  EXPECT_TRUE(node.Publish(g_topic, msgV));
 
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
@@ -993,18 +993,18 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(g_topic));
 
   // Good subscriber.
-  EXPECT_TRUE(node1.Subscribe(topic, cb));
+  EXPECT_TRUE(node1.Subscribe(g_topic, cb));
 
   // Bad subscriber: cbVector does not match the types advertised by node1.
-  EXPECT_TRUE(node2.Subscribe(topic, cbVector));
+  EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_TRUE(node1.Publish(topic, msg));
+  EXPECT_TRUE(node1.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1034,15 +1034,15 @@ TEST(NodeTest, SrvRequestWrongReq)
   reset();
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(topic, wrongReq, response));
+  EXPECT_TRUE(node.Request(g_topic, wrongReq, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(responseExecuted);
 
   // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(topic, wrongReq, timeout, rep, result));
+  EXPECT_FALSE(node.Request(g_topic, wrongReq, timeout, rep, result));
 
   reset();
 }
@@ -1063,15 +1063,15 @@ TEST(NodeTest, SrvRequestWrongRep)
   reset();
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   // Request an asynchronous service call with wrong type in the response.
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, wrongRep, result));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, wrongRep, result));
 
   reset();
 }
@@ -1091,17 +1091,17 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
 
   // Request service calls with wrong types in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, badRep, result));
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Valid service requests.
-  EXPECT_TRUE(node.Request(topic, req, timeout, goodRep, result));
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_TRUE(responseExecuted);
 }
@@ -1143,7 +1143,7 @@ TEST(NodeTest, ServiceList)
   std::vector<std::string> services;
   transport::Node node;
 
-  node.Advertise(topic, srvEcho);
+  node.Advertise(g_topic, srvEcho);
 
   node.ServiceList(services);
   EXPECT_EQ(services.size(), 1u);

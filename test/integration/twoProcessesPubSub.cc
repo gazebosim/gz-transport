@@ -26,12 +26,12 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-std::string data = "bar";
-bool cbExecuted = false;
-bool cbVectorExecuted = false;
-int counter = 0;
+static std::string partition;
+static std::string g_topic = "/foo";
+static std::string data = "bar";
+static bool cbExecuted = false;
+static bool cbVectorExecuted = false;
+static int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -77,12 +77,12 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_z(3.0);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
+  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(g_topic));
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 20; ++i)
   {
-    EXPECT_TRUE(node.Publish(topic, msg));
+    EXPECT_TRUE(node.Publish(g_topic, msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
@@ -104,7 +104,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
   reset();
 
   transport::Node node;
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -136,8 +136,8 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
   transport::Node node1;
   transport::Node node2;
-  EXPECT_TRUE(node1.Subscribe(topic, cb));
-  EXPECT_TRUE(node2.Subscribe(topic, cbVector));
+  EXPECT_TRUE(node1.Subscribe(g_topic, cb));
+  EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -169,7 +169,7 @@ TEST(twoProcPubSub, FastPublisher)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Subscribe(topic, cbVector));
+  EXPECT_TRUE(node.Subscribe(g_topic, cbVector));
   testing::waitAndCleanupFork(pi);
 }
 
@@ -198,7 +198,7 @@ TEST(twoProcPubSub, TopicList)
   node.TopicList(topics);
   auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), topic);
+  EXPECT_EQ(topics.at(0), g_topic);
   topics.clear();
 
   // Time elapsed to get the first topic list
@@ -209,7 +209,7 @@ TEST(twoProcPubSub, TopicList)
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), topic);
+  EXPECT_EQ(topics.at(0), g_topic);
 
   // The first TopicList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).

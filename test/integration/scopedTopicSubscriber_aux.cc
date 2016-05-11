@@ -25,9 +25,9 @@
 
 using namespace ignition;
 
-bool cbExecuted;
-std::string topic = "/foo";
-int data = 5;
+static bool cbExecuted;
+static std::string g_topic = "/foo";
+static int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -43,7 +43,7 @@ void subscriber()
   cbExecuted = false;
   transport::Node node;
 
-  EXPECT_TRUE(node.Subscribe(topic, cb));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   int i = 0;
   while (i < 100 && !cbExecuted)
