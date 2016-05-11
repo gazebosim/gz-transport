@@ -211,7 +211,7 @@ namespace ignition
       /// \brief Port used by the message discovery layer.
       private: const int kMsgDiscPort = 11317;
 
-      /// \brief Port used by the servuce discovery layer.
+      /// \brief Port used by the service discovery layer.
       private: const int kSrvDiscPort = 11318;
     };
   }
