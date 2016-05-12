@@ -109,6 +109,7 @@ class Cmd
 
     # Read the plugin that handles the command.
     plugin = LIBRARY_NAME
+    puts plugin
     conf_version = LIBRARY_VERSION
 
     begin

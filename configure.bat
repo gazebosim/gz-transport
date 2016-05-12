@@ -11,9 +11,12 @@
 @set PROTOBUF_PATH=%cd%\..\..\protobuf-2.6.0-win%build_bitness%-vc12
 @set ZEROMQ_PATH=%cd%\..\..\ZeroMQ 3.2.4
 @set CPPZMQ_PATH=%cd%\..\..\cppzmq
+@set IGNITION-TOOLS_PATH=%cd%\..\..\ign-tools\build\install\%build_type%
+@set IGNITION-TOOLS_CMAKE_PREFIX_PATH=%IGNITION-TOOLS_PATH%\lib\cmake
 
 @echo Configuring for build type %build_type% for %build_bitness% bits
 cmake -G "NMake Makefiles"^
+	  -DCMAKE_PREFIX_PATH="%IGNITION-TOOLS_CMAKE_PREFIX_PATH%"^
       -DZeroMQ_ROOT_DIR="%ZEROMQ_PATH%"^
       -DPROTOBUF_SRC_ROOT_FOLDER="%PROTOBUF_PATH%"^
       -DCPPZMQ_HEADER_PATH="%CPPZMQ_PATH%"^

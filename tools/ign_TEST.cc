@@ -32,7 +32,7 @@ std::string partition;
 std::string custom_exec_str(std::string _cmd)
 {
   _cmd += " 2>&1";
-  FILE *pipe = popen(_cmd.c_str(), "r");
+  FILE *pipe = _popen(_cmd.c_str(), "r");
 
   if (!pipe)
     return "ERROR";
@@ -46,7 +46,7 @@ std::string custom_exec_str(std::string _cmd)
       result += buffer;
   }
 
-  pclose(pipe);
+  _pclose(pipe);
   return result;
 }
 

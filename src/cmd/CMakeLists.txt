@@ -5,6 +5,8 @@ include (${project_cmake_dir}/Utils.cmake)
 # Ex: cmdtransport0.rb
 if (APPLE)
   set(IGN_LIBRARY_NAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.dylib)
+elseif (WIN32)
+  set(IGN_LIBRARY_NAME ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.lib)	
 else()
   set(IGN_LIBRARY_NAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.so)
 endif()
