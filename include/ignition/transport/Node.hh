@@ -34,6 +34,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
@@ -632,6 +633,23 @@ namespace ignition
 
         _result = true;
         return true;
+      }
+
+      /// \brief Request a new service without response.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename T1> bool Request(const std::string &_topic,
+                                                 const T1 &_req)
+      {
+        // This callback is here for reusing the regular Request() call with
+        // input and output parameters.
+        std::function<void(const ignition::msgs::Empty &, const bool)> f =
+          [](const ignition::msgs::Empty &, const bool)
+        {
+        };
+
+        return this->Request<T1, ignition::msgs::Empty>(_topic, _req, f);
       }
 
       /// \brief Unadvertise a service.
