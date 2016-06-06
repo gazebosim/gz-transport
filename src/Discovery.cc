@@ -662,7 +662,7 @@ void Discovery::RunHeartbeatTask()
 
       std::string pUuid = this->dataPtr->pUuid;
       Publisher pub("", "", this->dataPtr->pUuid, "", Scope_t::ALL);
-      this->SendMsg(HeartbeatType, pub);
+      //this->SendMsg(HeartbeatType, pub);
 
       // Re-advertise topics that are advertised inside this process.
       std::map<std::string, std::vector<MessagePublisher>> msgNodes;
