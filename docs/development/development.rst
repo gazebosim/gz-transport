@@ -43,16 +43,17 @@ Besides discovering services from the outside world, the discovery will announce
 ``Discover()`` is used to learn about a given topic as soon as possible. It's important to remark the "as soon as possible" because discovery will eventually learn about all the topics but this might take some time (depending on configuration). If a client needs to know about a particular service,
 ``Discover()`` will trigger a discovery request that will reduce the time needed to discover the information about a service.
 
-As you can imagine, exchanging messages over the network can be slow and we cannot block the users waiting for discovery information. We don't even know how many nodes are on the network so it would be hard and really slow to block and return all the information to our users. The way we tackle the notification inside the ``Discovery`` is using callbacks. A discovery user needs to register two callbacks: one for receiving notifications when new services are available and another for notifying when a service is no longer active. The functions ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow the discovery user to set these two notification callbacks. For example, a user will invoke the `Discover()` call and, after some time, its ``ConnectionCb`` will be executed with the information about the requested service. In the meantime, other callback invocations could be triggered because ``Discovery`` will proactively learn about all the available services and generate notifications.
+As you can imagine, exchanging messages over the network can be slow and we  cannot block the users waiting for discovery information. We don't even know how many nodes are on the network so it would be hard and really slow to block and return all the information to our users. The way we tackle the notification  inside the ``Discovery`` is using callbacks. A discovery user needs to register two callbacks: one for receiving notifications when new services are available  and another for notifying when a service is no longer active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow the discovery user to set these two notification callbacks. For example, a user will invoke the `Discover()` call and, after some time, its ``ConnectionCb`` will be executed with the information about the requested service. In the meantime, other callback invocations could be triggered because ``Discovery`` will proactively learn about all the available services and generate notifications.
 
 You can check the complete API details here[].
 
 [Un]Announce a local service
 --------------------------
 
-This feature registers a new service in the internal data structure that keeps all the discovery information. Local and remote services are stored in the same way, the only difference is that the local services will share the process UUID with the discovery service. We store what we call a ``Publisher``, which contains the service name and all the metadata associated.
+This feature registers a new service in the internal data structure that keeps  all the discovery information. Local and remote services are stored in the same way, the only difference is that the local services will share the process UUID with the discovery service. We store what we call a ``Publisher``, which contains the service name and all the metadata associated.
 
-Each publisher advertises the service with a specific scope as described here[]. If the service' scope is `PROCESS`` the discovery won't announce it over the network, otherwise it will send to the multicast group an ``ADVERTISE`` message with the following format:
+Each publisher advertises the service with a specific scope as described here[]. If the service' scope is `PROCESS`` the discovery won't announce it over the network, otherwise it will send to the multicast group an
+``ADVERTISE`` message with the following format:
 
 ::
    HEADER
@@ -84,7 +85,7 @@ Each publisher advertises the service with a specific scope as described here[].
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 
-All discovery nodes will receive this request and should update its discovery information and notify its user via the notification callbacks if they didn't have previous information about the service received. An ADVERTISE message should be notified over the connection callback, while an UNADVERTISE message
+All discovery nodes will receive this request and should update its discovery information and notify its user via the notification callbacks if they didn't  have previous information about the service received. An ADVERTISE message   should be notified over the connection callback, while an UNADVERTISE message
 should be notified over the disconnection callback.
 
 Trigger a service discovery
@@ -117,6 +118,37 @@ registered should answer with an ADVERTISE message. The answer is a multicast me
 Service update
 --------------
 
-Each discovery instance should periodically send a HEARTBEAT message over the
-multicast channel to notify that all information already announced is still valid. The frequency of HEARBEAT messages can be changed with the function
-``SetHeartbeatInterval()``. By default, the HEARTBEAT frequency is set to 1 second.
+Each discovery instance should periodically send an ADVERTISE message per local service announced over the multicast channel to notify that all information already announced is still valid. The frequency of sending these service update messages can be changed with the function ``SetHeartbeatInterval()``. By default, the service update frequency is set to 1 second.
+
+Alternatively, we could replace the send of all ADVERTISE messages with one HEARTBEAT message that contains the process UUID of the discovery instance. Upon reception, all other discovery instances should update all their entries associated with the received process UUID. Although this approach is more efficient and saves some messages sent over the network, prevents a discovery
+instance to learn about services available without explictly asking for them. We think this is a good feature to have. For example, an introspection tool that shows all the services available can take advantage of this feature without and prior knowledge.
+
+Is responsability of each discovery instance to cancel any service that hasn't been updated for a while. The function ``SilenceInterval()` sets the maximum time that an entry should be stored in memory without hearing an ADVERTISE message. Every ADVERTISE message received should refresh the service timestamp associated with it.
+
+When a discovery instance terminates, it should notify through the discovery channel that all its services need to invalidated. This is performed by sending
+a BYE message with the following format:
+
+
+::
+   BYE
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                               |
+  \                            Header                             \
+  |                                                               |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+When this message is received, a discovery instance should invalidate all entries associated with the process UUID contained in the header. Note that this is the expected behavior when a discovery instance gently terminates. In the case of an abrupt termination, the lack of service updates will cause the same result, although it'll take a bit more time.
+
+
+Threading model
+---------------
+
+A discovery instance will create an additional internal thread when the user calls ``Start()``. This thread takes care of the service update tasks. This involves the reception of other discovery messages and the update of the discovery information. Also, it's among its responsabilities to answer with an ADVERTISE message when a SUBSCRIBE message is received and there are local services available.
+
+The first time announcement of a local service and the discovery of a non local service happens the user thread. So, in a regular scenario where the user doesn't share discovery among other threads, all the discovery operations will run in two threads, the user thread and the internal discovery thread spawned after calling ``Start()``. All the functions in the discovery are thread safe.
+
+Multiple network interfaces
+---------------------------
+
