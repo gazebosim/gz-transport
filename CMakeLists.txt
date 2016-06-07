@@ -334,6 +334,13 @@ else (build_errors)
     add_subdirectory(cmake/packager-hooks)
   endif()
 
+  if (WIN32)
+    file(GLOB ZMQ_DLLS "${ZeroMQ_ROOT_DIR}/bin/*.dll")
+    file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/src)
+    file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/test/integration)
+  endif()
+
+
   message(STATUS "Configuration successful. Type make to compile
   ${PROJECT_NAME_LOWER}")
 endif(build_errors)
