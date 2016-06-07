@@ -95,6 +95,7 @@ namespace ignition
                         const int _port,
                         const bool _verbose = false)
         : port(_port),
+          hostAddr(determineHost()),
           pUuid(_pUuid),
           silenceInterval(kDefSilenceInterval),
           activityInterval(kDefActivityInterval),
@@ -107,9 +108,6 @@ namespace ignition
           exit(false),
           enabled(false)
       {
-        // Get this host IP address.
-        this->hostAddr = determineHost();
-
         std::string ignIp;
         if (env("IGN_IP", ignIp) && !ignIp.empty())
           this->hostInterfaces = {ignIp};
