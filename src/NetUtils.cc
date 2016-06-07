@@ -71,8 +71,9 @@ namespace ignition
         return false;
 
       std::string hostIP;
+      const std::string kPrefix = "127.0.";
       if ((hostnameToIp(host, hostIP) != 0) || isPrivateIP(hostIP.c_str()) ||
-          hostIP.find("127.0.") == 0)
+          hostIP.compare(0, kPrefix.size(), kPrefix) == 0)
       {
         return false;
       }
