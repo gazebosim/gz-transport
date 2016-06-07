@@ -1011,14 +1011,14 @@ namespace ignition
 
       /// \brief Get the list of sockets used for discovery.
       /// \return The list of sockets.
-      private: const std::vector<int>& Sockets() const
+      private: const std::vector<int> &Sockets() const
       {
         return this->sockets;
       }
 
       /// \brief Get the data structure used for multicast communication.
       /// \return The data structure containing the multicast information.
-      private: const sockaddr_in* MulticastAddr() const
+      private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
       }
