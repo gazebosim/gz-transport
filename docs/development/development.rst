@@ -10,7 +10,7 @@ if you're interested in making code contributions.
 Ignition Transport's internal architecture can be illustrated with the following
 diagram:
 
-::
+.. code-block:: cpp
 
     +=================================================+  +=====================+
     |                         Host #1                 |  |       Host #2       |
