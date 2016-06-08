@@ -18,6 +18,7 @@ Contents:
 	Using services <services/services>
    Environment variables <environment_variables/env_variables>
 	Contribute <contribute/contribute>
+   Development <development/development>
    API <api/api>
 
 Indices and tables
