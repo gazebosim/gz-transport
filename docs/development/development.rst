@@ -6,6 +6,29 @@ The purpose of this section is to describe the internal design of Ignition Trans
 
 Ignition Transport's internal architecture can be illustrated with the following diagram:
 
+::
+
+ +=================================================+    +======================+
+ |                         Host #1                 |    |       Host #2        |
+ | +-------------------------+ +-----------------+ |    | +------------------+ |
+ | |      Process #1         | |  Process #2     | |    | |   Process #3     | |
+ | |  +-------+   +-------+  | |  +-------+      | |    | |    +-------+     | |
+ | |  |Node #1|   |Node #2|  | |  |Node #3|      | |    | |    |Node #4|     | |
+ | |  +-------+   +-------+  | |  +-------+      | |    | |    +-------+     | |
+ | |      ⇅           ⇅      | |      ⇅          | |    | |        ⇅         | |
+ | | +---------+ +---------+ | | +-------------+ | |    | | +--------------+ | |
+ | | |Shared #1| |Shared #2| | | |Shared #3    | | |    | | |Shared #4     | | |
+ | | +---------+ +---------+ | | +-------------+ | |    | | +--------------+ | |
+ | |  ⇑   ⇅           ⇅   ⇑  | |       ⇅       ⇑ | |    | |        ⇅       ⇑ | |
+ | |  | +--------------+  |  | |+------------+ | | |    | | +------------+ | | |
+ | |  | | Discovery #1 |  |  | ||Discovery #2| | | |    | | |Discovery #3| | | |
+ | |  ⇓ +--------------+  ⇓  | |+------------+ ⇓ | |    | | +------------+ ⇓ | |
+ | +-------------------------+ +-----------------+ |    | +------------------+ |
+ +=================================================+    +======================+
+                ⇅                      ⇅                         ⇅
+                ==================================================
+                \              Local Area Network                \
+                ==================================================
 
 Next, are the most important components of the library:
 
@@ -43,7 +66,7 @@ Besides discovering services from the outside world, the discovery will announce
 ``Discover()`` is used to learn about a given topic as soon as possible. It's important to remark the "as soon as possible" because discovery will eventually learn about all the topics but this might take some time (depending on configuration). If a client needs to know about a particular service,
 ``Discover()`` will trigger a discovery request that will reduce the time needed to discover the information about a service.
 
-As you can imagine, exchanging messages over the network can be slow and we  cannot block the users waiting for discovery information. We don't even know how many nodes are on the network so it would be hard and really slow to block and return all the information to our users. The way we tackle the notification  inside the ``Discovery`` is using callbacks. A discovery user needs to register two callbacks: one for receiving notifications when new services are available  and another for notifying when a service is no longer active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow the discovery user to set these two notification callbacks. For example, a user will invoke the `Discover()` call and, after some time, its ``ConnectionCb`` will be executed with the information about the requested service. In the meantime, other callback invocations could be triggered because ``Discovery`` will proactively learn about all the available services and generate notifications.
+As you can imagine, exchanging messages over the network can be slow and we  cannot block the users waiting for discovery information. We don't even know how many nodes are on the network so it would be hard and really slow to block and return all the information to our users when available. The way we tackle the notification  inside the ``Discovery`` is using callbacks. A discovery user needs to register two callbacks: one for receiving notifications when new services are available  and another for notifying when a service is no longer active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow the discovery user to set these two notification callbacks. For example, a user will invoke the `Discover()` call and, after some time, its ``ConnectionCb`` will be executed with the information about the requested service. In the meantime, other callback invocations could be triggered because ``Discovery`` will proactively learn about all the available services and generate notifications.
 
 You can check the complete API details here[].
 
@@ -85,8 +108,8 @@ Each publisher advertises the service with a specific scope as described here[].
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 
-All discovery nodes will receive this request and should update its discovery information and notify its user via the notification callbacks if they didn't  have previous information about the service received. An ADVERTISE message   should be notified over the connection callback, while an UNADVERTISE message
-should be notified over the disconnection callback.
+All discovery nodes will receive this request and should update its discovery information and notify its user via the notification callbacks if they didn't  have previous information about the service received. An ADVERTISE message   should trigger the connection callback, while an UNADVERTISE message
+should fire the disconnection callback.
 
 Trigger a service discovery
 ---------------------------
@@ -147,8 +170,19 @@ Threading model
 
 A discovery instance will create an additional internal thread when the user calls ``Start()``. This thread takes care of the service update tasks. This involves the reception of other discovery messages and the update of the discovery information. Also, it's among its responsabilities to answer with an ADVERTISE message when a SUBSCRIBE message is received and there are local services available.
 
-The first time announcement of a local service and the discovery of a non local service happens the user thread. So, in a regular scenario where the user doesn't share discovery among other threads, all the discovery operations will run in two threads, the user thread and the internal discovery thread spawned after calling ``Start()``. All the functions in the discovery are thread safe.
+The first time announcement of a local service and the explicit discovery request of a service happen on the user thread. So, in a regular scenario where the user doesn't share discovery among other threads, all the discovery operations will run in two threads, the user thread and the internal discovery thread spawned after calling ``Start()``. All the functions in the discovery are thread safe.
 
 Multiple network interfaces
 ---------------------------
 
+The goal of the discovery service is to discover all topics available. It's not uncommon these days that a machine has multiple network interfaces for its wired and wireless connections, a virtual machine, or a localhost device, among others. By selecting one network interface and listening only on this one, we would miss the discovery messages that are sent by instances sitting on other subnets.
+
+E.g.:
+
+Our discovery service handles this problem in severals steps. First, it learns about the network interfaces that are available locally. For that purpose we have developed the ``NetUtils`` auxiliar file. The ``determineInterfaces()`` function returns a list of all the network interfaces found on the machine. When we know all the available network interfaces we create a container of sockets, one per local IP address. These sockets are used for sending discovery data over the network, flooding all the subnets and reaching other potential discovery instances.
+
+We use one of the sockets contained in the vector for receiving data via the multicast channel. We have to join the multicast group for each local network interface but we can reuse the same socket. This will guarantee that our socket will receive the multicast traffic coming from any of our local network interfaces. This is the reason for having a single `bind()` function in our call even if we can receive from multiple interfaces. Our receiving socket is the one we register in the ``zmq::poll()` function for processing incoming discovery data.
+
+When it's time to send outbound data, we iterate through the list of sockets and send the message over each one, flooding all the subnets with our discovery requests.
+
+Note that the result of ``determineInterfaces()`` can be manually set by using the ``IGN_IP`` environment variable, as described here[]. This will essentially ignore other network interfaces, isolating all discovery traffic through the specified interface.
