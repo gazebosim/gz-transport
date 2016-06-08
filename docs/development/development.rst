@@ -40,10 +40,10 @@ Next, are the most important components of the library:
 
   This class is the main interface with the users. The ``Node`` class contains
   all the functions that allow users to advertise, subscribe and publish
-  messages, as well as advertise and request topics. This is the only class that
-  a user should use.
+  messages, as well as advertise and request services. This is the only class
+  that a user should directly use.
 
-1. NodeShared (shown as ``Shared`` in the diagram for space purposes).
+2. NodeShared (shown as ``Shared`` in the diagram for space purposes).
 
   A single instance of a ``NodeShared`` class is shared between all the
   ``Node`` objects running inside the same process. The ``NodeShared`` instance
@@ -51,7 +51,7 @@ Next, are the most important components of the library:
   and service communication. The goal of this class is to share resources
   between a group of nodes.
 
-1. Discovery.
+3. Discovery.
 
   A discovery layer is required in each process to learn about the location of
   topics and services. Our topics and services don't have any location
@@ -87,12 +87,12 @@ to be used by the discovery sockets and the UUID of the process in which the
 discovery is running. This UUID will be used when announcing local services.
 
 Once a ``Discovery`` object is created it won't discover anything. You'll need
-to call the `Start()` function for enabling the discovery.
+to call the ``Start()`` function for enabling the discovery.
 
 Besides discovering services from the outside world, the discovery will announce
 the services that are offered in the same process that the discovery is running.
 The ``Advertise()`` function will register a local service and announce it over
-the network. The symmetric `Unadvertise()` will notify that a service won't be
+the network. The symmetric ``Unadvertise()`` will notify that a service won't be
 offered anymore.
 
 ``Discover()`` is used to learn about a given topic as soon as possible. It's
@@ -111,7 +111,7 @@ needs to register two callbacks: one for receiving notifications when new
 services are available  and another for notifying when a service is no longer
 active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow
 the discovery user to set these two notification callbacks. For example, a user
-will invoke the `Discover()` call and, after some time, its ``ConnectionCb``
+will invoke the ``Discover()`` call and, after some time, its ``ConnectionCb``
 will be executed with the information about the requested service. In the
 meantime, other callback invocations could be triggered because ``Discovery``
 will proactively learn about all the available services and generate
@@ -131,13 +131,13 @@ contains the service name and all the metadata associated.
 
 Each publisher advertises the service with a specific scope as described `here
 <http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope>`_.
-If the service' scope is `PROCESS`` the discovery won't announce it over the
-network, otherwise it will send to the multicast group an
-``ADVERTISE`` message with the following format:
+If the service' scope is ``PROCESS``, the discovery won't announce it over the
+network. Otherwise, it will send to the multicast group an ``ADVERTISE`` message
+with the following format:
 
 .. code-block:: cpp
 
-     HEADER
+    HEADER
      0                   1                   2                   3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -152,7 +152,11 @@ network, otherwise it will send to the multicast group an
     | Process UUID  |  Message Type |             Flags             |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-     [UN]ADVERTISE
+The value of the ``Message Type`` field in the header is ``[UN]ADVERTISE``.
+
+.. code-block:: cpp
+
+    [UN]ADVERTISE
      0                   1                   2                   3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -168,9 +172,9 @@ network, otherwise it will send to the multicast group an
 
 All discovery nodes will receive this request and should update its discovery
 information and notify its user via the notification callbacks if they didn't
-have previous information about the service received. An ADVERTISE message
-should trigger the connection callback, while an UNADVERTISE message should fire
-the disconnection callback.
+have previous information about the service received. An ``ADVERTISE`` message
+should trigger the connection callback, while an ``UNADVERTISE`` message should
+fire the disconnection callback.
 
 Trigger a service discovery
 ---------------------------
@@ -181,7 +185,7 @@ the following format:
 
 .. code-block:: cpp
 
-     SUBSCRIBE
+    SUBSCRIBE
      0                   1                   2                   3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -197,21 +201,24 @@ the following format:
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 
+The value of the ``Message Type`` field in the header is ``SUBSCRIBE``.
+
 All discovery instances listening on the same port where the SUBSCRIBE message
 was sent will receive the message. Each discovery instance with a local service
-registered should answer with an ADVERTISE message. The answer is a multicast
-message too that should be received by all discovery instances.
+registered should answer with an ``ADVERTISE`` message. The answer is a
+multicast message too that should be received by all discovery instances.
 
 Service update
 --------------
 
-Each discovery instance should periodically send an ADVERTISE message per local
-service announced over the multicast channel to notify that all information
-already announced is still valid. The frequency of sending these service update
-messages can be changed with the function ``SetHeartbeatInterval()``. By
-default, the service update frequency is set to 1 second.
+Each discovery instance should periodically send an ``ADVERTISE`` message per
+local service announced over the multicast channel to notify that all
+information already announced is still valid. The frequency of sending these
+service update messages can be changed with the function
+``SetHeartbeatInterval()``. By default, the service update frequency is set to
+one second.
 
-Alternatively, we could replace the send of all ADVERTISE messages with one
+Alternatively, we could replace the send of all ``ADVERTISE`` messages with one
 HEARTBEAT message that contains the process UUID of the discovery instance. Upon
 reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
@@ -223,9 +230,9 @@ prior knowledge.
 
 Is responsability of each discovery instance to cancel any service that hasn't
 been updated for a while. The function ``SilenceInterval()` sets the maximum
-time that an entry should be stored in memory without hearing an ADVERTISE
-message. Every ADVERTISE message received should refresh the service timestamp
-associated with it.
+time that an entry should be stored in memory without hearing an ``ADVERTISE``
+message. Every ``ADVERTISE`` message received should refresh the service
+timestamp associated with it.
 
 When a discovery instance terminates, it should notify through the discovery
 channel that all its services need to invalidated. This is performed by sending
@@ -234,7 +241,7 @@ a BYE message with the following format:
 
 .. code-block:: cpp
 
-     BYE
+    BYE
      0                   1                   2                   3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -242,6 +249,8 @@ a BYE message with the following format:
     \                            Header                             \
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+The value of the ``Message Type`` field in the header is ``BYE``.
 
 When this message is received, a discovery instance should invalidate all
 entries associated with the process UUID contained in the header. Note that this
@@ -257,7 +266,7 @@ A discovery instance will create an additional internal thread when the user
 calls ``Start()``. This thread takes care of the service update tasks. This
 involves the reception of other discovery messages and the update of the
 discovery information. Also, it's among its responsabilities to answer with an
-ADVERTISE message when a SUBSCRIBE message is received and there are local
+``ADVERTISE`` message when a SUBSCRIBE message is received and there are local
 services available.
 
 The first time announcement of a local service and the explicit discovery
