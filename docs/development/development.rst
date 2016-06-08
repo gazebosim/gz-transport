@@ -40,14 +40,14 @@ Next, are the most important components of the library:
 
   This class is the main interface with the users. The ``Node`` class contains
   all the functions that allow users to advertise, subscribe and publish
-  messages, as well as advertise and request services. This is the only class
+  topics, as well as advertise and request services. This is the only class
   that a user should directly use.
 
 2. NodeShared (shown as ``Shared`` in the diagram for space purposes).
 
   A single instance of a ``NodeShared`` class is shared between all the
   ``Node`` objects running inside the same process. The ``NodeShared`` instance
-  contains all the ZMQ sockets used for sending and receiving data for message
+  contains all the ZMQ sockets used for sending and receiving data for topic
   and service communication. The goal of this class is to share resources
   between a group of nodes.
 
@@ -66,13 +66,18 @@ Next, are the most important components of the library:
 Discovery service
 =================
 
-The Discovery class implements a distributed service discovery protocol. The
-services are plain strings (``/echo``, ``/my_robot/camera``) and this layer
-learns about the meta information associated to each service. The service
-location, the unique identifier of the node providing the service or its process
+Communication occurs between nodes via named data streams, called topics. Each
+node has a universally unique id (UUID) and may run on any machine in a local
+network. A mechanism, called discovery, is needed to help nodes find each other
+and the topics that they manage.
+
+The Discovery class implements the protocol for distributed node discovery.
+The topics are plain strings (``/echo``, ``/my_robot/camera``) and this layer
+learns about the meta information associated to each topic. The topic
+location, the unique identifier of the node providing a service or its process
 are some examples of the information that the discovery component learns for
-each service. The main responsibility of the discovery is to keep an updated
-list of active services ready to be queried by other entities.
+each topic. The main responsibility of the discovery is to keep an updated
+list of active topics ready to be queried by other entities.
 
 In Ignition Transport we use two discovery objects, each one operating on a
 different UDP port. One object is dedicated to topics and the other is dedicated
@@ -84,23 +89,23 @@ API
 The first thing to do before using a discovery object is to create it. The
 ``Discovery`` class constructor requires a parameter for specifying the UDP port
 to be used by the discovery sockets and the UUID of the process in which the
-discovery is running. This UUID will be used when announcing local services.
+discovery is running. This UUID will be used when announcing local topic.
 
 Once a ``Discovery`` object is created it won't discover anything. You'll need
 to call the ``Start()`` function for enabling the discovery.
 
-Besides discovering services from the outside world, the discovery will announce
-the services that are offered in the same process that the discovery is running.
-The ``Advertise()`` function will register a local service and announce it over
-the network. The symmetric ``Unadvertise()`` will notify that a service won't be
+Besides discovering topics from the outside world, the discovery will announce
+the topics that are offered in the same process that the discovery is running.
+The ``Advertise()`` function will register a local topic and announce it over
+the network. The symmetric ``Unadvertise()`` will notify that a topic won't be
 offered anymore.
 
 ``Discover()`` is used to learn about a given topic as soon as possible. It's
 important to remark the "as soon as possible" because discovery will eventually
 learn about all the topics but this might take some time (depending on
-configuration). If a client needs to know about a particular service,
+configuration). If a client needs to know about a particular topic,
 ``Discover()`` will trigger a discovery request that will reduce the time needed
-to discover the information about a service.
+to discover the information about a topic.
 
 As you can imagine, exchanging messages over the network can be slow and we
 cannot block the users waiting for discovery information. We don't even know how
@@ -108,30 +113,30 @@ many nodes are on the network so it would be hard and really slow to block and
 return all the information to our users when available. The way we tackle the
 notification  inside the ``Discovery`` is using callbacks. A discovery user
 needs to register two callbacks: one for receiving notifications when new
-services are available  and another for notifying when a service is no longer
+topics are available and another for notifying when a topic is no longer
 active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow
 the discovery user to set these two notification callbacks. For example, a user
 will invoke the ``Discover()`` call and, after some time, its ``ConnectionCb``
-will be executed with the information about the requested service. In the
+will be executed with the information about the requested topic. In the
 meantime, other callback invocations could be triggered because ``Discovery``
-will pro-actively learn about all the available services and generate
+will pro-actively learn about all the available topics and generate
 notifications.
 
 You can check the complete API details
 `here <http://ignition-transport.readthedocs.io/en/latest/api/api.html>`_.
 
-[Un]Announce a local service
+[Un]Announce a local topic
 --------------------------
 
-This feature registers a new service in the internal data structure that keeps
-all the discovery information. Local and remote services are stored in the same
-way, the only difference is that the local services will share the process UUID
+This feature registers a new topic in the internal data structure that keeps
+all the discovery information. Local and remote topics are stored in the same
+way, the only difference is that the local topics will share the process UUID
 with the discovery service. We store what we call a ``Publisher``, which
-contains the service name and all the meta-data associated.
+contains the topic name and all the meta-data associated.
 
-Each publisher advertises the service with a specific scope as described `here
+Each publisher advertises the topic with a specific scope as described `here
 <http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope>`_.
-If the service' scope is ``PROCESS``, the discovery won't announce it over the
+If the topic' scope is ``PROCESS``, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an ``ADVERTISE`` message
 with the following format:
 
@@ -172,15 +177,15 @@ The value of the ``Message Type`` field in the header is ``[UN]ADVERTISE``.
 
 All discovery nodes will receive this request and should update its discovery
 information and notify its user via the notification callbacks if they didn't
-have previous information about the service received. An ``ADVERTISE`` message
+have previous information about the topic received. An ``ADVERTISE`` message
 should trigger the connection callback, while an ``UNADVERTISE`` message should
 fire the disconnection callback.
 
-Trigger a service discovery
+Trigger a topic discovery
 ---------------------------
 
 A user can call ``Discover()`` for triggering the immediate discovery of a
-service. Over the wire, this call will generate a ``SUBSCRIBE`` message with
+topic. Over the wire, this call will generate a ``SUBSCRIBE`` message with
 the following format:
 
 .. code-block:: cpp
@@ -205,17 +210,17 @@ The value of the ``Message Type`` field in the header is ``SUBSCRIBE``.
 
 All discovery instances listening on the same port where the ``SUBSCRIBE``
 message was sent will receive the message. Each discovery instance with a local
-service registered should answer with an ``ADVERTISE`` message. The answer is a
+topic registered should answer with an ``ADVERTISE`` message. The answer is a
 multicast message too that should be received by all discovery instances.
 
-Service update
+Topic update
 --------------
 
 Each discovery instance should periodically send an ``ADVERTISE`` message per
-local service announced over the multicast channel to notify that all
+local topic announced over the multicast channel to notify that all
 information already announced is still valid. The frequency of sending these
-service update messages can be changed with the function
-``SetHeartbeatInterval()``. By default, the service update frequency is set to
+topic update messages can be changed with the function
+``SetHeartbeatInterval()``. By default, the topic update frequency is set to
 one second.
 
 Alternatively, we could replace the send of all ``ADVERTISE`` messages with one
@@ -223,19 +228,19 @@ Alternatively, we could replace the send of all ``ADVERTISE`` messages with one
 Upon reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
 efficient and saves some messages sent over the network, prevents a discovery
-instance to learn about services available without explicitly asking for them.
+instance to learn about topics available without explicitly asking for them.
 We think this is a good feature to have. For example, an introspection tool that
-shows all the services available can take advantage of this feature without and
+shows all the topics available can take advantage of this feature without and
 prior knowledge.
 
-Is responsibility of each discovery instance to cancel any service that hasn't
+Is responsibility of each discovery instance to cancel any topic that hasn't
 been updated for a while. The function ``SilenceInterval()`` sets the maximum
 time that an entry should be stored in memory without hearing an ``ADVERTISE``
-message. Every ``ADVERTISE`` message received should refresh the service
+message. Every ``ADVERTISE`` message received should refresh the topic
 timestamp associated with it.
 
 When a discovery instance terminates, it should notify through the discovery
-channel that all its services need to invalidated. This is performed by sending
+channel that all its topics need to invalidated. This is performed by sending
 a ``BYE`` message with the following format:
 
 
@@ -255,7 +260,7 @@ The value of the ``Message Type`` field in the header is ``BYE``.
 When this message is received, a discovery instance should invalidate all
 entries associated with the process UUID contained in the header. Note that this
 is the expected behavior when a discovery instance gently terminates. In the
-case of an abrupt termination, the lack of service updates will cause the same
+case of an abrupt termination, the lack of topic updates will cause the same
 result, although it'll take a bit more time.
 
 
@@ -263,14 +268,14 @@ Threading model
 ---------------
 
 A discovery instance will create an additional internal thread when the user
-calls ``Start()``. This thread takes care of the service update tasks. This
+calls ``Start()``. This thread takes care of the topic update tasks. This
 involves the reception of other discovery messages and the update of the
 discovery information. Also, it's among its responsibilities to answer with an
 ``ADVERTISE`` message when a ``SUBSCRIBE`` message is received and there are
-local services available.
+local topics available.
 
-The first time announcement of a local service and the explicit discovery
-request of a service happen on the user thread. So, in a regular scenario where
+The first time announcement of a local topic and the explicit discovery
+request of a topic happen on the user thread. So, in a regular scenario where
 the user doesn't share discovery among other threads, all the discovery
 operations will run in two threads, the user thread and the internal discovery
 thread spawned after calling ``Start()``. All the functions in the discovery are

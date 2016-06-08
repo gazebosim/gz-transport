@@ -2,4 +2,4 @@
 API
 ===
 
-Please, visit `this link <https://osrf-distributions.s3.amazonaws.com/ign-transport/api/0.9.0/index.html>`_ for version 0.x.
+Please, visit `this link <https://s3.amazonaws.com/osrf-distributions/ign-transport/api/2.0.0/index.html>`_ for version 2.x.
