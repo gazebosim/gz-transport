@@ -160,6 +160,9 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
     // Publish the message
     if (pubId)
     {
+      // \todo Change this sleep to a WaitForSubscribers() call.
+      // See issue #xxx
+      std::this_thread::sleep_for(std::chrono::milliseconds(800));
       node.Publish(pubId, *msg);
     }
     else

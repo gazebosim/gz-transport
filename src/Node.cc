@@ -236,8 +236,6 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
 //////////////////////////////////////////////////
 bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
 {
-  this->dataPtr->shared->discovery->WaitForInit();
-
   std::map<std::string, ISubscriptionHandler_M> handlers;
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
