@@ -11,7 +11,6 @@ Ignition Transport's internal architecture can be illustrated with the following
 diagram:
 
 ::
-
  +=================================================+    +======================+
  |                         Host #1                 |    |       Host #2        |
  | +-------------------------+ +-----------------+ |    | +------------------+ |
