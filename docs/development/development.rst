@@ -203,9 +203,9 @@ the following format:
 
 The value of the ``Message Type`` field in the header is ``SUBSCRIBE``.
 
-All discovery instances listening on the same port where the SUBSCRIBE message
-was sent will receive the message. Each discovery instance with a local service
-registered should answer with an ``ADVERTISE`` message. The answer is a
+All discovery instances listening on the same port where the ``SUBSCRIBE``
+message was sent will receive the message. Each discovery instance with a local
+service registered should answer with an ``ADVERTISE`` message. The answer is a
 multicast message too that should be received by all discovery instances.
 
 Service update
@@ -219,8 +219,8 @@ service update messages can be changed with the function
 one second.
 
 Alternatively, we could replace the send of all ``ADVERTISE`` messages with one
-HEARTBEAT message that contains the process UUID of the discovery instance. Upon
-reception, all other discovery instances should update all their entries
+``HEARTBEAT`` message that contains the process UUID of the discovery instance.
+Upon reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
 efficient and saves some messages sent over the network, prevents a discovery
 instance to learn about services available without explicitly asking for them.
@@ -236,7 +236,7 @@ timestamp associated with it.
 
 When a discovery instance terminates, it should notify through the discovery
 channel that all its services need to invalidated. This is performed by sending
-a BYE message with the following format:
+a ``BYE`` message with the following format:
 
 
 .. code-block:: cpp
@@ -299,10 +299,10 @@ We use one of the sockets contained in the vector for receiving data via the
 multicast channel. We have to join the multicast group for each local network
 interface but we can reuse the same socket. This will guarantee that our socket
 will receive the multicast traffic coming from any of our local network
-interfaces. This is the reason for having a single `bind()` function in our call
-even if we can receive from multiple interfaces. Our receiving socket is the one
-we register in the ``zmq::poll()` function for processing incoming discovery
-data.
+interfaces. This is the reason for having a single ``bind()`` function in our
+call even if we can receive from multiple interfaces. Our receiving socket is
+the one we register in the ``zmq::poll()`` function for processing incoming
+discovery data.
 
 When it's time to send outbound data, we iterate through the list of sockets and
 send the message over each one, flooding all the subnets with our discovery
