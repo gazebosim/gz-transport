@@ -58,16 +58,16 @@ NodeShared *NodeShared::Instance()
 
 //////////////////////////////////////////////////
 NodeShared::NodeShared()
-  : verbose(false),
+  : timeout(Timeout),
+    exit(false),
+    verbose(false),
     context(new zmq::context_t(1)),
     publisher(new zmq::socket_t(*context, ZMQ_PUB)),
     subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
     control(new zmq::socket_t(*context, ZMQ_DEALER)),
     requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
     responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
-    replier(new zmq::socket_t(*context, ZMQ_ROUTER)),
-    timeout(Timeout),
-    exit(false)
+    replier(new zmq::socket_t(*context, ZMQ_ROUTER))
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
   std::string ignVerbose;
@@ -183,15 +183,6 @@ NodeShared::~NodeShared()
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
-
-  // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
-  publisher.reset();
-  subscriber.reset();
-  control.reset();
-  requester.reset();
-  responseReceiver.reset();
-  replier.reset();
-  delete this->context;
 #else
   bool exitLoop = false;
   while (!exitLoop)
@@ -209,9 +200,6 @@ NodeShared::~NodeShared()
   // destructor to hang (probably waiting for ZMQ sockets to terminate).
   // ToDo: Fix it.
 #endif
-
-  // Explicitly reset discovery to prevent callbacks
-  this->discovery.reset();
 }
 
 //////////////////////////////////////////////////
