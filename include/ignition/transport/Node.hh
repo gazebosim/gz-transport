@@ -82,7 +82,7 @@ namespace ignition
         /// \brief Constructor
         /// \param[in] _topic Name of the topic on which messages
         /// could be published.
-        public: PublisherId(const std::string &_topic);
+        public: explicit PublisherId(const std::string &_topic);
 
         /// \brief Allows this class to be evaluated as a boolean.
         /// \return True if valid
