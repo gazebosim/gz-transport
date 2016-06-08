@@ -287,13 +287,12 @@ would miss the discovery messages that are sent by instances sitting on other
 subnets.
 
 Our discovery service handles this problem in severals steps. First, it learns
-about the network interfaces that are available locally. For that purpose we
-have developed the ``NetUtils`` auxiliary file. The ``determineInterfaces()``
-function returns a list of all the network interfaces found on the machine.
-When we know all the available network interfaces we create a container of
-sockets, one per local IP address. These sockets are used for sending discovery
-data over the network, flooding all the subnets and reaching other potential
-discovery instances.
+about the network interfaces that are available locally. The
+``determineInterfaces()`` function (contained in ``NetUtils`` file) returns a
+list of all the network interfaces found on the machine. When we know all the
+available network interfaces we create a container of sockets, one per local IP
+address. These sockets are used for sending discovery data over the network,
+flooding all the subnets and reaching other potential discovery instances.
 
 We use one of the sockets contained in the vector for receiving data via the
 multicast channel. We have to join the multicast group for each local network
