@@ -116,56 +116,15 @@ namespace ignition
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 
-      /// \brief Print activity to stdout.
-      public: int verbose;
-
-      /// \brief My pub/sub address.
-      public: std::string myAddress;
-
-      /// \brief My pub/sub control address.
-      public: std::string myControlAddress;
-
-      /// \brief My requester service call address.
-      public: std::string myRequesterAddress;
-
-      /// \brief My replier service call address.
-      public: std::string myReplierAddress;
-
-      /// \brief IP address of this host.
-      public: std::string hostAddr;
-
-      /// \brief Discovery service (messages).
-      public: std::unique_ptr<MsgDiscovery> msgDiscovery;
-
-      /// \brief Discovery service (services).
-      public: std::unique_ptr<SrvDiscovery> srvDiscovery;
-
-      /// \brief 0MQ context.
-      public: zmq::context_t *context;
-
-      /// \brief ZMQ socket to send topic updates.
-      public: std::unique_ptr<zmq::socket_t> publisher;
-
-      /// \brief ZMQ socket to receive topic updates.
-      public: std::unique_ptr<zmq::socket_t> subscriber;
-
-      /// \brief ZMQ socket to receive control updates (new connections, ...).
-      public: std::unique_ptr<zmq::socket_t> control;
-
-      /// \brief ZMQ socket for sending service call requests.
-      public: std::unique_ptr<zmq::socket_t> requester;
-
-      /// \brief ZMQ socket for receiving service call responses.
-      public: std::unique_ptr<zmq::socket_t> responseReceiver;
+      //////////////////////////////////////////////////
+      /////// Declare here other member variables //////
+      //////////////////////////////////////////////////
 
       /// \brief Response receiver socket identity.
       public: Uuid responseReceiverId;
 
       /// \brief Replier socket identity.
       public: Uuid replierId;
-
-      /// \brief ZMQ socket to receive service call requests.
-      public: std::unique_ptr<zmq::socket_t> replier;
 
       /// \brief Process UUID.
       public: std::string pUuid;
@@ -186,6 +145,12 @@ namespace ignition
       /// \brief True when the reception thread is finishing.
       public: bool threadReceptionExiting;
 #endif
+
+      /// \brief Port used by the message discovery layer.
+      private: const int kMsgDiscPort = 11317;
+
+      /// \brief Port used by the service discovery layer.
+      private: const int kSrvDiscPort = 11318;
 
       /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       private: std::mutex exitMutex;
@@ -208,11 +173,63 @@ namespace ignition
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
 
-      /// \brief Port used by the message discovery layer.
-      private: const int kMsgDiscPort = 11317;
+      /// \brief Print activity to stdout.
+      public: int verbose;
 
-      /// \brief Port used by the service discovery layer.
-      private: const int kSrvDiscPort = 11318;
+      /// \brief My pub/sub address.
+      public: std::string myAddress;
+
+      /// \brief My pub/sub control address.
+      public: std::string myControlAddress;
+
+      /// \brief My requester service call address.
+      public: std::string myRequesterAddress;
+
+      /// \brief My replier service call address.
+      public: std::string myReplierAddress;
+
+      /// \brief IP address of this host.
+      public: std::string hostAddr;
+
+      //////////////////////////////////////////////////
+      ///////    Declare here the ZMQ Context    ///////
+      //////////////////////////////////////////////////
+
+      /// \brief 0MQ context. Always declare this object before any ZMQ socket
+      /// to make sure that the context is destroyed after all sockets.
+      public: std::unique_ptr<zmq::context_t> context;
+
+      //////////////////////////////////////////////////
+      ///////     Declare here all ZMQ sockets   ///////
+      //////////////////////////////////////////////////
+
+      /// \brief ZMQ socket to send topic updates.
+      public: std::unique_ptr<zmq::socket_t> publisher;
+
+      /// \brief ZMQ socket to receive topic updates.
+      public: std::unique_ptr<zmq::socket_t> subscriber;
+
+      /// \brief ZMQ socket to receive control updates (new connections, ...).
+      public: std::unique_ptr<zmq::socket_t> control;
+
+      /// \brief ZMQ socket for sending service call requests.
+      public: std::unique_ptr<zmq::socket_t> requester;
+
+      /// \brief ZMQ socket for receiving service call responses.
+      public: std::unique_ptr<zmq::socket_t> responseReceiver;
+
+      /// \brief ZMQ socket to receive service call requests.
+      public: std::unique_ptr<zmq::socket_t> replier;
+
+      //////////////////////////////////////////////////
+      /////// Declare here the discovery object  ///////
+      //////////////////////////////////////////////////
+
+      /// \brief Discovery service (messages).
+      public: std::unique_ptr<MsgDiscovery> msgDiscovery;
+
+      /// \brief Discovery service (services).
+      public: std::unique_ptr<SrvDiscovery> srvDiscovery;
     };
   }
 }
