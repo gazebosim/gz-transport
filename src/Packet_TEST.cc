@@ -125,7 +125,7 @@ TEST(PacketTest, BasicSubscriptionAPI)
   EXPECT_EQ(subMsg.Topic(), topic);
 
   size_t msgLength = subMsg.Header().HeaderLength() +
-    sizeof(uint64_t) + topic.size();
+    sizeof(uint16_t) + topic.size();
   EXPECT_EQ(subMsg.MsgLength(), msgLength);
 
   // Check Sub setters.
@@ -233,7 +233,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(advMsg.Publisher().MsgTypeName(), typeName);
 
   size_t msgLength = advMsg.Header().HeaderLength() +
-    sizeof(uint64_t) + topic.size() +
+    sizeof(uint16_t) + topic.size() +
     sizeof(uint64_t) + addr.size() +
     sizeof(uint64_t) + ctrl.size() +
     sizeof(uint64_t) + procUuid.size() +
@@ -473,7 +473,7 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.Publisher().RepTypeName(), repType);
 
   size_t msgLength = advSrv.Header().HeaderLength() +
-    sizeof(uint64_t) + topic.size() +
+    sizeof(uint16_t) + topic.size() +
     sizeof(uint64_t) + addr.size() +
     sizeof(uint64_t) + id.size() +
     sizeof(uint64_t) + pUuid.size() +

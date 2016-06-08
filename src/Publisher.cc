@@ -115,7 +115,7 @@ size_t Publisher::Pack(char *_buffer) const
   }
 
   // Pack the topic length.
-  uint64_t topicLength = this->topic.size();
+  uint16_t topicLength = this->topic.size();
   memcpy(_buffer, &topicLength, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
@@ -169,7 +169,7 @@ size_t Publisher::Unpack(char *_buffer)
   }
 
   // Unpack the topic length.
-  uint64_t topicLength;
+  uint16_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
@@ -215,7 +215,7 @@ size_t Publisher::Unpack(char *_buffer)
 //////////////////////////////////////////////////
 size_t Publisher::MsgLength() const
 {
-  return sizeof(uint64_t) + this->topic.size() +
+  return sizeof(uint16_t) + this->topic.size() +
          sizeof(uint64_t) + this->addr.size() +
          sizeof(uint64_t) + this->pUuid.size() +
          sizeof(uint64_t) + this->nUuid.size() +

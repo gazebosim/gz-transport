@@ -57,10 +57,22 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.PUuid(), PUuid);
   EXPECT_EQ(publisher.NUuid(), NUuid);
   EXPECT_EQ(publisher.Scope(), Scope);
+  size_t msgLength = sizeof(uint16_t) + publisher.Topic().size() +
+    sizeof(uint64_t) + publisher.Addr().size() +
+    sizeof(uint64_t) + publisher.PUuid().size() +
+    sizeof(uint64_t) + publisher.NUuid().size() +
+    sizeof(uint8_t);
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 
   Publisher pub2(publisher);
   EXPECT_TRUE(publisher == pub2);
   EXPECT_FALSE(publisher != pub2);
+  msgLength = sizeof(uint16_t) + pub2.Topic().size() +
+    sizeof(uint64_t) + pub2.Addr().size() +
+    sizeof(uint64_t) + pub2.PUuid().size() +
+    sizeof(uint64_t) + pub2.NUuid().size() +
+    sizeof(uint8_t);
+  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
@@ -74,6 +86,12 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.PUuid(), NewPUuid);
   EXPECT_EQ(publisher.NUuid(), NewNUuid);
   EXPECT_EQ(publisher.Scope(), NewScope);
+  msgLength = sizeof(uint16_t) + publisher.Topic().size() +
+    sizeof(uint64_t) + publisher.Addr().size() +
+    sizeof(uint64_t) + publisher.PUuid().size() +
+    sizeof(uint64_t) + publisher.NUuid().size() +
+    sizeof(uint8_t);
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
@@ -123,10 +141,18 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(publisher.NUuid(), NUuid);
   EXPECT_EQ(publisher.Scope(), Scope);
   EXPECT_EQ(publisher.MsgTypeName(), MsgTypeName);
+  size_t msgLength = publisher.Publisher::MsgLength() +
+    sizeof(uint64_t) + publisher.Ctrl().size() +
+    sizeof(uint64_t) + publisher.MsgTypeName().size();
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 
   MessagePublisher pub2(publisher);
   EXPECT_TRUE(publisher == pub2);
   EXPECT_FALSE(publisher != pub2);
+  msgLength = pub2.Publisher::MsgLength() +
+    sizeof(uint64_t) + pub2.Ctrl().size() +
+    sizeof(uint64_t) + pub2.MsgTypeName().size();
+  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
@@ -144,6 +170,10 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(publisher.NUuid(), NewNUuid);
   EXPECT_EQ(publisher.Scope(), NewScope);
   EXPECT_EQ(publisher.MsgTypeName(), NewMsgTypeName);
+  msgLength = publisher.Publisher::MsgLength() +
+    sizeof(uint64_t) + publisher.Ctrl().size() +
+    sizeof(uint64_t) + publisher.MsgTypeName().size();
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
@@ -197,10 +227,20 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(publisher.Scope(), Scope);
   EXPECT_EQ(publisher.ReqTypeName(), ReqTypeName);
   EXPECT_EQ(publisher.RepTypeName(), RepTypeName);
+  size_t msgLength = publisher.Publisher::MsgLength() +
+    sizeof(uint64_t) + publisher.SocketId().size() +
+    sizeof(uint64_t) + publisher.ReqTypeName().size() +
+    sizeof(uint64_t) + publisher.RepTypeName().size();
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 
   ServicePublisher pub2(publisher);
   EXPECT_TRUE(publisher == pub2);
   EXPECT_FALSE(publisher != pub2);
+  msgLength = pub2.Publisher::MsgLength() +
+    sizeof(uint64_t) + pub2.SocketId().size() +
+    sizeof(uint64_t) + pub2.ReqTypeName().size() +
+    sizeof(uint64_t) + pub2.RepTypeName().size();
+  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(NewTopic);
@@ -220,6 +260,11 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(publisher.Scope(), NewScope);
   EXPECT_EQ(publisher.ReqTypeName(), NewReqTypeName);
   EXPECT_EQ(publisher.RepTypeName(), NewRepTypeName);
+  msgLength = publisher.Publisher::MsgLength() +
+    sizeof(uint64_t) + publisher.SocketId().size() +
+    sizeof(uint64_t) + publisher.ReqTypeName().size() +
+    sizeof(uint64_t) + publisher.RepTypeName().size();
+  EXPECT_EQ(publisher.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
