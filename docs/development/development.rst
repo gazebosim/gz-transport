@@ -71,7 +71,7 @@ services are plain strings (``/echo``, ``/my_robot/camera``) and this layer
 learns about the meta information associated to each service. The service
 location, the unique identifier of the node providing the service or its process
 are some examples of the information that the discovery component learns for
-each service. The main responsability of the discovery is to keep an updated
+each service. The main responsibility of the discovery is to keep an updated
 list of active services ready to be queried by other entities.
 
 In Ignition Transport we use two discovery objects, each one operating on a
@@ -114,7 +114,7 @@ the discovery user to set these two notification callbacks. For example, a user
 will invoke the ``Discover()`` call and, after some time, its ``ConnectionCb``
 will be executed with the information about the requested service. In the
 meantime, other callback invocations could be triggered because ``Discovery``
-will proactively learn about all the available services and generate
+will pro-actively learn about all the available services and generate
 notifications.
 
 You can check the complete API details
@@ -127,7 +127,7 @@ This feature registers a new service in the internal data structure that keeps
 all the discovery information. Local and remote services are stored in the same
 way, the only difference is that the local services will share the process UUID
 with the discovery service. We store what we call a ``Publisher``, which
-contains the service name and all the metadata associated.
+contains the service name and all the meta-data associated.
 
 Each publisher advertises the service with a specific scope as described `here
 <http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope>`_.
@@ -179,7 +179,7 @@ fire the disconnection callback.
 Trigger a service discovery
 ---------------------------
 
-A user can call ``Discover()`` for triggering the inmediate discovery of a
+A user can call ``Discover()`` for triggering the immediate discovery of a
 service. Over the wire, this call will generate a ``SUBSCRIBE`` message with
 the following format:
 
@@ -223,13 +223,13 @@ HEARTBEAT message that contains the process UUID of the discovery instance. Upon
 reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
 efficient and saves some messages sent over the network, prevents a discovery
-instance to learn about services available without explictly asking for them.
+instance to learn about services available without explicitly asking for them.
 We think this is a good feature to have. For example, an introspection tool that
 shows all the services available can take advantage of this feature without and
 prior knowledge.
 
-Is responsability of each discovery instance to cancel any service that hasn't
-been updated for a while. The function ``SilenceInterval()` sets the maximum
+Is responsibility of each discovery instance to cancel any service that hasn't
+been updated for a while. The function ``SilenceInterval()`` sets the maximum
 time that an entry should be stored in memory without hearing an ``ADVERTISE``
 message. Every ``ADVERTISE`` message received should refresh the service
 timestamp associated with it.
@@ -265,9 +265,9 @@ Threading model
 A discovery instance will create an additional internal thread when the user
 calls ``Start()``. This thread takes care of the service update tasks. This
 involves the reception of other discovery messages and the update of the
-discovery information. Also, it's among its responsabilities to answer with an
-``ADVERTISE`` message when a SUBSCRIBE message is received and there are local
-services available.
+discovery information. Also, it's among its responsibilities to answer with an
+``ADVERTISE`` message when a ``SUBSCRIBE`` message is received and there are
+local services available.
 
 The first time announcement of a local service and the explicit discovery
 request of a service happen on the user thread. So, in a regular scenario where
@@ -288,7 +288,7 @@ subnets.
 
 Our discovery service handles this problem in severals steps. First, it learns
 about the network interfaces that are available locally. For that purpose we
-have developed the ``NetUtils`` auxiliar file. The ``determineInterfaces()``
+have developed the ``NetUtils`` auxiliary file. The ``determineInterfaces()``
 function returns a list of all the network interfaces found on the machine.
 When we know all the available network interfaces we create a container of
 sockets, one per local IP address. These sockets are used for sending discovery
