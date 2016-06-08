@@ -135,7 +135,7 @@ If the service' scope is `PROCESS`` the discovery won't announce it over the
 network, otherwise it will send to the multicast group an
 ``ADVERTISE`` message with the following format:
 
-::
+.. code-block:: cpp
 
      HEADER
      0                   1                   2                   3
@@ -179,7 +179,7 @@ A user can call ``Discover()`` for triggering the inmediate discovery of a
 service. Over the wire, this call will generate a ``SUBSCRIBE`` message with
 the following format:
 
-::
+.. code-block:: cpp
 
      SUBSCRIBE
      0                   1                   2                   3
@@ -232,7 +232,7 @@ channel that all its services need to invalidated. This is performed by sending
 a BYE message with the following format:
 
 
-::
+.. code-block:: cpp
 
      BYE
      0                   1                   2                   3
@@ -276,8 +276,6 @@ and wireless connections, a virtual machine, or a localhost device, among
 others. By selecting one network interface and listening only on this one, we
 would miss the discovery messages that are sent by instances sitting on other
 subnets.
-
-E.g.:
 
 Our discovery service handles this problem in severals steps. First, it learns
 about the network interfaces that are available locally. For that purpose we
