@@ -129,13 +129,13 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
   ValidationT topics =
     {
       {"~/def",    {false, ""}},
+      {"~/def/",   {false, ""}},
       {"~def",     {false, ""}},
+      {"~def/",    {false, ""}},
       {"/def",     {true,  "/def"}},
       {"def/",     {true,  "def"}},
       {"def/ghi",  {true,  "def/ghi"}},
-      {"def/ghi/", {true,  "def/ghi"}},
-      {"~/def/",   {false, ""}},
-      {"~def/",    {false, ""}}
+      {"def/ghi/", {true,  "def/ghi"}}
     };
 
   // We try all the partition, namespaces and topics combinations.
@@ -162,7 +162,7 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
           if (tUnderTest.front() == '/')
             expectedTopic = expectedP + expectedT;
           else
-            expectedTopic += expectedP + expectedNs + expectedT;
+            expectedTopic = expectedP + expectedNs + expectedT;
 
           EXPECT_EQ(actualTopic, expectedTopic);
         }
