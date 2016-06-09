@@ -194,7 +194,16 @@ bool Node::Unadvertise(const std::string &_topic)
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    if (fullyQualifiedTopic.size() > TopicUtils::maxNameLength)
+    {
+      std::cerr << "Fully qualified topic beginning with ["
+        << fullyQualifiedTopic.substr(0, TopicUtils::maxNameLength)
+        << "] is too long." << std::endl;
+    }
+    else
+    {
+      std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    }
     return false;
   }
 
@@ -226,7 +235,16 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    if (fullyQualifiedTopic.size() > TopicUtils::maxNameLength)
+    {
+      std::cerr << "Fully qualified topic beginning with ["
+        << fullyQualifiedTopic.substr(0, TopicUtils::maxNameLength)
+        << "] is too long." << std::endl;
+    }
+    else
+    {
+      std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    }
     return false;
   }
 
@@ -345,7 +363,16 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    if (fullyQualifiedTopic.size() > TopicUtils::maxNameLength)
+    {
+      std::cerr << "Fully qualified topic beginning with ["
+        << fullyQualifiedTopic.substr(0, TopicUtils::maxNameLength)
+        << "] is too long." << std::endl;
+    }
+    else
+    {
+      std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    }
     return false;
   }
 
@@ -437,7 +464,16 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
-    std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+    if (fullyQualifiedTopic.size() > TopicUtils::maxNameLength)
+    {
+      std::cerr << "Fully qualified topic beginning with ["
+        << fullyQualifiedTopic.substr(0, TopicUtils::maxNameLength)
+        << "] is too long." << std::endl;
+    }
+    else
+    {
+      std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    }
     return false;
   }
 

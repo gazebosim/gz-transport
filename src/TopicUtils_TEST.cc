@@ -36,6 +36,8 @@ TEST(TopicUtilsTest, testTopics)
   EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/d"));
   EXPECT_TRUE(transport::TopicUtils::IsValidTopic("/abc/d/e"));
+  EXPECT_TRUE(transport::TopicUtils::IsValidTopic(
+    std::string(transport::TopicUtils::maxNameLength, 'a')));
 
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic(""));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic(" "));
@@ -47,6 +49,8 @@ TEST(TopicUtilsTest, testTopics)
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("~/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("~"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("@partition"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidTopic(
+    std::string(transport::TopicUtils::maxNameLength + 1, 'a')));
 }
 
 //////////////////////////////////////////////////
@@ -60,6 +64,8 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/fg"));
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace("/abcde/fg/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidNamespace(""));
+  EXPECT_TRUE(transport::TopicUtils::IsValidNamespace(
+    std::string(transport::TopicUtils::maxNameLength, 'a')));
 
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(" "));
@@ -69,6 +75,8 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~/abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("@namespace"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(
+    std::string(transport::TopicUtils::maxNameLength + 1, 'a')));
 }
 
 //////////////////////////////////////////////////
@@ -82,6 +90,8 @@ TEST(TopicUtilsTest, tesPartitions)
   EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/fg"));
   EXPECT_TRUE(transport::TopicUtils::IsValidPartition("/abcde/fg/"));
   EXPECT_TRUE(transport::TopicUtils::IsValidPartition(""));
+  EXPECT_TRUE(transport::TopicUtils::IsValidPartition(
+    std::string(transport::TopicUtils::maxNameLength, 'a')));
 
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition(" "));
@@ -91,6 +101,8 @@ TEST(TopicUtilsTest, tesPartitions)
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~/abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("@namespace"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition(
+    std::string(transport::TopicUtils::maxNameLength + 1, 'a')));
 }
 
 //////////////////////////////////////////////////
@@ -105,6 +117,8 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
   // "partition/" is valid text for a partition name and will be transformed
   // into "@/partition@" after calling to FullyQualifiedName().
   using ValidationT = std::map<std::string, std::pair<bool, std::string>>;
+  std::string longString(transport::TopicUtils::maxNameLength + 1, 'a');
+  std::string goodString(transport::TopicUtils::maxNameLength - 3, 'a');
 
   // Partitions to test.
   ValidationT partitions =
@@ -112,17 +126,21 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
       {"@partition",   {false, ""}},
       {"@partition/@", {false, ""}},
       {"@@",           {false, ""}},
+      {longString,     {false, ""}},
       {"partition",    {true,  "@/partition@"}},
       {"",             {true,  "@@"}},
       {"partition/",   {true,  "@/partition@"}},
+      {goodString,     {true,  "@/" + goodString + "@"}}
     };
 
   // Namespaces to test.
   ValidationT namespaces =
     {
-      {"~ns", {false, ""}},
-      {"",    {true,  "/"}},
-      {"abc", {true,  "/abc/"}}
+      {"~ns",      {false, ""}},
+      {longString, {false, ""}},
+      {"",         {true,  "/"}},
+      {"abc",      {true,  "/abc/"}},
+      {goodString, {true,  "/" + goodString + "/"}}
     };
 
   // Topics to test.
@@ -132,10 +150,12 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
       {"~/def/",   {false, ""}},
       {"~def",     {false, ""}},
       {"~def/",    {false, ""}},
+      {longString, {false, ""}},
       {"/def",     {true,  "/def"}},
       {"def/",     {true,  "def"}},
       {"def/ghi",  {true,  "def/ghi"}},
-      {"def/ghi/", {true,  "def/ghi"}}
+      {"def/ghi/", {true,  "def/ghi"}},
+      {goodString, {true,  goodString}}
     };
 
   // We try all the partition, namespaces and topics combinations.
@@ -147,7 +167,22 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
         auto pUnderTest  = p.first;
         auto nsUnderTest = ns.first;
         auto tUnderTest  = t.first;
-        auto expectedRes = p.second.first && ns.second.first && t.second.first;
+
+        // If the topic starts with "/", we should ignore the namespace.
+        bool isLongName;
+        if (tUnderTest.front() == '/')
+        {
+          isLongName = p.second.second.size() + t.second.second.size() >
+            transport::TopicUtils::maxNameLength;
+        }
+        else
+        {
+          isLongName = p.second.second.size() + ns.second.second.size() +
+            t.second.second.size() > transport::TopicUtils::maxNameLength;
+        }
+
+        auto expectedRes = p.second.first && ns.second.first && t.second.first
+          && !isLongName;
         auto actualRes   = transport::TopicUtils::FullyQualifiedName(
           pUnderTest, nsUnderTest, tUnderTest, actualTopic);
         ASSERT_TRUE(expectedRes == actualRes);

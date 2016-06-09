@@ -63,6 +63,9 @@ namespace ignition
                                              const std::string &_ns,
                                              const std::string &_topic,
                                              std::string &_name);
+
+      /// \brief Fully qualified topic name length must not exceed max length.
+      public: static const uint16_t maxNameLength = 65535;
     };
   }
 }
