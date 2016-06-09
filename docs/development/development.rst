@@ -122,8 +122,7 @@ meantime, other callback invocations could be triggered because ``Discovery``
 will pro-actively learn about all the available topics and generate
 notifications.
 
-You can check the complete API details
-`here <http://ignition-transport.readthedocs.io/en/latest/api/api.html>`_.
+You can check the complete API details :doc:`here <../api/api>`.
 
 [Un]Announce a local topic
 --------------------------
@@ -136,7 +135,7 @@ contains the topic name and all the meta-data associated.
 
 Each publisher advertises the topic with a specific scope as described `here
 <http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope>`_.
-If the topic' scope is ``PROCESS``, the discovery won't announce it over the
+If the topic's scope is ``PROCESS``, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an ``ADVERTISE`` message
 with the following format:
 
@@ -304,8 +303,8 @@ multicast channel. We have to join the multicast group for each local network
 interface but we can reuse the same socket. This will guarantee that our socket
 will receive the multicast traffic coming from any of our local network
 interfaces. This is the reason for having a single ``bind()`` function in our
-call even if we can receive from multiple interfaces. Our receiving socket is
-the one we register in the ``zmq::poll()`` function for processing incoming
+call even if we can receive data from multiple interfaces. Our receiving socket
+is the one we register in the ``zmq::poll()`` function for processing incoming
 discovery data.
 
 When it's time to send outbound data, we iterate through the list of sockets and
@@ -313,5 +312,5 @@ send the message over each one, flooding all the subnets with our discovery
 requests.
 
 Note that the result of ``determineInterfaces()`` can be manually set by using
-the ``IGN_IP`` environment variable, as described `here <http://ignition-transport.readthedocs.io/en/latest/environment_variables/env_variables.html>`_. This will essentially ignore other network interfaces,
+the ``IGN_IP`` environment variable, as described :doc:`here <../environment_variables/env_variables>`. This will essentially ignore other network interfaces,
 isolating all discovery traffic through the specified interface.
