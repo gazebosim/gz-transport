@@ -190,7 +190,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 //////////////////////////////////////////////////
 bool Node::Unadvertise(const std::string &_topic)
 {
-  std::string fullyQualifiedTopic = _topic;
+  std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
   {
