@@ -18,7 +18,14 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
@@ -72,7 +79,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
     }
   }
   else
-  {
+  { 
     std::cout << "No publishers on topic [" << _topic << "]\n";
   }
 
