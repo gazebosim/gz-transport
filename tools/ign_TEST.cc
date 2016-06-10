@@ -227,14 +227,14 @@ TEST(ignTest, ServiceInfoSameProc)
 
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -p' to send a message.
-TEST(ignTest, PublicMsg)
+/// \brief Check 'ign topic -p' to send a message.
+TEST(ignTest, TopicPublish)
 {
   ignition::transport::Node node;
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
-  // Check the 'ign service -p' command.
+  // Check the 'ign topic -p' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign +
       " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"'");
@@ -243,6 +243,18 @@ TEST(ignTest, PublicMsg)
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   EXPECT_EQ(g_topicCBStr, "good_value");
+
+  // Try to publish a message not included in Ignition Messages.
+  std::string error = "Unable to create message of type";
+  output = custom_exec_str(ign +
+      " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"'");
+  EXPECT_TRUE(output.compare(0, error.size(), error) == 0);
+
+  // Try to publish using an incorrect topic name.
+  error = "Topic [/] is not valid";
+  output = custom_exec_str(ign +
+      " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"'");
+  EXPECT_TRUE(output.compare(0, error.size(), error) == 0);
 }
 
 /////////////////////////////////////////////////
