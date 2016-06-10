@@ -38,27 +38,35 @@ COMMANDS = {  'topic' =>
                        "Print information about topics.\n\n" +
                        "  ign topic [options]\n\n" +
                        "Options:\n\n" +
-                       "  -i [ --info ]         Get info about a topic.\n" +
-                       "                        Requires the -t option.\n" +
-                       "  -l [ --list ]         List all topics.\n" +
-                       "  -t [ --topic ] arg    Name of a topic.\n" +
-                       "                        Required with -i, -p.\n" +
-                       "  -m [ --msgtype ] arg  Type of message to publish.\n"+
-                       "                        Arg is a message type.\n" +
-                       "                        Required with -p.\n" +
-                       "  -p [ --pub ] arg      Publish a message.\n" +
-                       "                        Arg is the message data\n" +
-                       "                        Requires -t and -m.\n" +
+                       "  -i [ --info ]              Get info about a topic.\n"+
+                       "                             Requires the -t option.\n"+
+                       "  -l [ --list ]              List all topics.\n"       +
+                       "  -t [ --topic ] arg         Name of a topic.\n"       +
+                       "                             Required with -i, -p.\n"  +
+                       "  -m [ --msgtype ] arg       Type of message to "      +
+                       "publish.\n"                                            +
+                       "                             Arg is a message type.\n" +
+                       "                             Required with -p.\n"      +
+                       "  -p [ --pub ] arg           Publish a message.\n"     +
+                       "                             Arg is the message data." +
+                       " The format expected is\n                            " +
+                       " the same used by Protobuf DebugString(). E.g.:\n\n"   +
+                       "                               ign topic -t /foo -m "  +
+                       "  ignition.msgs.StringMsg\n                          " +
+                       "     -p \'data:\"Custom data\"\'\n\n"                +
+                       "                             Requires -t and -m.\n"    +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
-                       "  -i [ --info ]          Get info about a service.\n" +
-                       "  -s [ --service ] arg   Name of a service.\n" +
-                       "                         Required with -i.\n" +
-                       " 'arg' is a service name.\n" +
-                       "  -l [ --list ]              List all services.\n" +
+                       "  -i [ --info ]              Get info about a "        +
+                       "service.\n"                                            +
+                       "  -s [ --service ] arg       Name of a service.\n"     +
+                       "                             Required with -i.\n"      +
+                       "                             'arg' is a service "      +
+                       "name.\n"                                               +
+                       "  -l [ --list ]              List all services.\n"     +
                        COMMON_OPTIONS
             }
 
