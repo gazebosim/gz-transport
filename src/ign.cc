@@ -79,7 +79,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
     }
   }
   else
-  { 
+  {
     std::cout << "No publishers on topic [" << _topic << "]\n";
   }
 
