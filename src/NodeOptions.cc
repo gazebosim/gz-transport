@@ -67,16 +67,7 @@ bool NodeOptions::SetNameSpace(const std::string &_ns)
 {
   if (!TopicUtils::IsValidNamespace(_ns))
   {
-    if (_ns.size() > TopicUtils::maxNameLength)
-    {
-      std::cerr << "Namespace beginning with ["
-        << _ns.substr(0, TopicUtils::maxNameLength)
-        << "] is too long." << std::endl;
-    }
-    else
-    {
-      std::cerr << "Invalid namespace [" << _ns << "]" << std::endl;
-    }
+    std::cerr << "Invalid namespace [" << _ns << "]" << std::endl;
     return false;
   }
   this->dataPtr->ns = _ns;
@@ -94,16 +85,7 @@ bool NodeOptions::SetPartition(const std::string &_partition)
 {
   if (!TopicUtils::IsValidPartition(_partition))
   {
-    if (_partition.size() > TopicUtils::maxNameLength)
-    {
-      std::cerr << "Partition name beginning with ["
-        << _partition.substr(0, TopicUtils::maxNameLength)
-        << "] is too long." << std::endl;
-    }
-    else
-    {
-      std::cerr << "Invalid partition name [" << _partition << "]" << std::endl;
-    }
+    std::cerr << "Invalid partition name [" << _partition << "]" << std::endl;
     return false;
   }
   this->dataPtr->partition = _partition;
