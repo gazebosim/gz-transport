@@ -57,16 +57,27 @@ COMMANDS = {  'topic' =>
                        "                             Requires -t and -m.\n"    +
                        COMMON_OPTIONS,
               'service' =>
-                       "Print information about services.\n\n"\
-                       "  ign service [options]\n\n"\
-                       "Options:\n\n"\
-                       "  -i [ --info ]              Get info about a "        +
-                       "service.\n"                                            +
-                       "  -s [ --service ] arg       Name of a service.\n"     +
-                       "                             Required with -i.\n"      +
-                       "                             'arg' is a service "      +
-                       "name.\n"                                               +
-                       "  -l [ --list ]              List all services.\n"     +
+                       "Print information about services.\n\n" +
+                       "  ign service [options]\n\n" +
+                       "Options:\n\n" +
+                       "  -i [ --info ]          Get info about a service.\n" +
+                       "                         Requires the -s option.\n" +
+                       "  -l [ --list ]          List all services.\n" +
+                       "  -s [ --service ] arg   Name of a service.\n" +
+                       "                         Arg is a service name.\n" +
+                       "                         Required with -i, -r.\n" +
+                       "  -r [ --req ] arg       Request a service.\n" +
+                       "                         Arg is the request data.\n" +
+                       "                         Requires -s, -t,\n" +
+                       "                         --reqtype, --reptype.\n" +
+                       "  --timeout arg          Timeout in milliseconds.\n" +
+                       "                         Arg is a timeout in\n" +
+                       "                         milliseconds.\n" +
+                       "                         Required with -r.\n" +
+                       "  --reqtype arg          Type of a request.\n" +
+                       "                         Arg is the request type.\n" +
+                       "  --reptype arg          Type of a response.\n" +
+                       "                         Arg is the response type.\n" +
                        COMMON_OPTIONS
             }
 
@@ -86,7 +97,7 @@ class Cmd
     opt_parser = OptionParser.new do |opts|
       opts.banner = usage
 
-      opts.on('-h', '--help", "Print this help message') do
+      opts.on('-h', '--help', 'Print this help message') do
         puts usage
         exit(0)
       end
@@ -118,6 +129,27 @@ class Cmd
               'Print information about a topic') do |t|
         options['info'] = t
       end
+
+      opts.on('-r data', '--req', String,
+              'Request a data') do |t|
+        options['req'] = t
+      end
+
+      opts.on('--timeout data', Integer,
+              'Timeout') do |t|
+        options['timeout'] = t
+      end
+
+      opts.on('--reqtype type', String,
+              'Request type') do |t|
+        options['reqtype'] = t
+      end
+
+      opts.on('--reptype type', String,
+              'Response type') do |t|
+        options['reptype'] = t
+      end
+
     end
     begin
       opt_parser.parse!(args)
@@ -183,7 +215,7 @@ class Cmd
           Importer.extern 'void cmdTopicInfo(const char *)'
           Importer.cmdTopicInfo(options['topic'])
         elsif options.key?('pub')
-          Importer.extern 'void cmdTopicPub(const char *,const char *, const char *)'
+          Importer.extern 'void cmdTopicPub(const char *, const char *, const char *)'
           Importer.cmdTopicPub(options['topic'], options['msgtype'],
                                options['pub'])
         else
@@ -197,6 +229,11 @@ class Cmd
         elsif options.key?('info')
           Importer.extern 'void cmdServiceInfo(const char *)'
           Importer.cmdServiceInfo(options['service'])
+        elsif options.key?('req')
+          Importer.extern 'void cmdServiceReq(const char *, const char *,'\
+                          'const char *, int, const char *)'
+          Importer.cmdServiceReq(options['service'], options['reqtype'],
+            options['reptype'], options['timeout'], options['req'])
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'

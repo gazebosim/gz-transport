@@ -185,6 +185,59 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
   }
 }
 
+//////////////////////////////////////////////////
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
+  const char *_reqType, const char *_repType, int _timeout, const char *_reqData)
+{
+  if (!_service)
+  {
+    std::cerr << "Service name is null\n";
+    return;
+  }
+
+  if (!_reqType)
+  {
+    std::cerr << "Request type is null\n";
+    return;
+  }
+
+  if (!_repType)
+  {
+    std::cerr << "Response type is null\n";
+    return;
+  }
+
+  if (!_reqData)
+  {
+    std::cerr << "Request data is null\n";
+    return;
+  }
+
+  // Create the request, and populate the field with _reqData
+  auto req = ignition::msgs::Factory::New(_reqType, _reqData);
+  if (!req)
+  {
+    std::cerr << "Unable to create request of type[" << _reqType << "] "
+              << "with data[" << _reqData << "].\n";
+    return;
+  }
+
+  // Create the response.
+  auto rep = ignition::msgs::Factory::New(_repType);
+  if (!rep)
+  {
+    std::cerr << "Unable to create response of type[" << _repType << "].\n";
+    return;
+  }
+
+  // Create the node.
+  ignition::transport::Node node;
+  bool result;
+
+  // Request the service.
+  bool executed = node.Request(_service, *req, _timeout, *rep, result);
+}
+
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
