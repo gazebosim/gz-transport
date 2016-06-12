@@ -327,7 +327,7 @@ namespace ignition
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -447,7 +447,7 @@ namespace ignition
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -560,7 +560,7 @@ namespace ignition
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
           return false;
         }
 
