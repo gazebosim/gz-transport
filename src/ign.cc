@@ -18,7 +18,14 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
