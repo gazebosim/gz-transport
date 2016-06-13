@@ -248,13 +248,13 @@ TEST(ignTest, TopicPublish)
   std::string error = "Unable to create message of type";
   output = custom_exec_str(ign +
       " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"'");
-  EXPECT_TRUE(output.compare(0, error.size(), error) == 0);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
       " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"'");
-  EXPECT_TRUE(output.compare(0, error.size(), error) == 0);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0);
 }
 
 /////////////////////////////////////////////////
