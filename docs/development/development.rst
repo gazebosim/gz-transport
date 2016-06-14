@@ -314,3 +314,24 @@ requests.
 Note that the result of ``determineInterfaces()`` can be manually set by using
 the ``IGN_IP`` environment variable, as described :doc:`here <../environment_variables/env_variables>`. This will essentially ignore other network interfaces,
 isolating all discovery traffic through the specified interface.
+
+
+Node Shared
+===========
+
+This is the class that implements all the data exchange between nodes. There's
+only one ``NodeShared`` instance per process and each instance has its own
+process Universal Unique Identifier (UUID). Next are the main responsabilities
+of this class:
+
+1. Send a message from a local to a remote node when requested.
+2. Send a service request to a remote node when requested.
+3. Receive service requests, process them, and reply with the responses.
+4. Receive service responses that were requested from local nodes.
+5. Receive control messages send from new remote subscribers.
+
+All these features have been implemented using a custom protocol via
+`ZeroMQ <http://zeromq.org/>`_. ZeroMQ is a distributed message library with a
+socket-based API. ZeroMQ offers different socket types that fit quite well
+with our communication approach based on publication-subscription and
+request-response.
