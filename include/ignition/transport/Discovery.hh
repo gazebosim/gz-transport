@@ -43,7 +43,7 @@
   using raw_type = void;
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
   #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
@@ -235,7 +235,6 @@ namespace ignition
         // all our advertised topics.
         this->SendMsg(ByeType,
           Publisher("", "", this->pUuid, "", Scope_t::ALL));
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         // Close sockets.
         for (const auto &sock : this->sockets)
