@@ -48,7 +48,8 @@ endif()
 # Protobuf module does not have LIBRARIES but LIBRARY
 target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES})
+                      ${uuid_LIBRARIES}
+                      ${IGNITION-MSGS_LIBRARIES})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ws2_32 Iphlpapi
