@@ -307,6 +307,31 @@ namespace ignition
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
 
+      /// \brief Advertise a new service without input parameter.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(
+        const std::string &_topic,
+        void(*_cb)(T &_rep, bool &_result),
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const msgs::Empty &, T &, bool &)> f =
+          [_cb](const msgs::Empty &_internalReq, T &_internalRep,
+                bool &_internalResult)
+        {
+          (*_cb)(_internalRep, _internalResult);
+        };
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic name associated to the service.
@@ -369,6 +394,31 @@ namespace ignition
         return true;
       }
 
+      /// \brief Advertise a new service without input parameter.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(
+        const std::string &_topic,
+        std::function<void(T &_rep, bool &_result)> &_cb,
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const msgs::Empty &, T &, bool &)> f =
+          [_cb](const msgs::Empty &_internalReq, T &_internalRep,
+                bool &_internalResult)
+        {
+          (_cb)(_internalRep, _internalResult);
+        };
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
@@ -399,6 +449,36 @@ namespace ignition
         };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
+      /// \brief Advertise a new service without input parameter.
+      /// In this version the callback is a member function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename C, typename T> bool Advertise(
+        const std::string &_topic,
+        void(C::*_cb)(T &_rep, bool &_result),
+        C *_obj,
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const msgs::Empty &, T &, bool &)> f =
+          [_cb, _obj](const msgs::Empty &_internalReq, T &_internalRep,
+                      bool &_internalResult)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2);
+          cb(_internalRep, _internalResult);
+        };
+
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
       }
 
       /// \brief Get the list of services advertised by this node.
