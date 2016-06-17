@@ -93,6 +93,16 @@ void srvEcho(const ignition::msgs::Int32 &_req,
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a service without input call.
+void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+{
+  srvExecuted = true;
+  _rep.set_data(data);
+  _result = true;
+}
+
+
+//////////////////////////////////////////////////
 /// \brief Service call response callback.
 void response(const ignition::msgs::Int32 &_rep, const bool _result)
 {
@@ -144,6 +154,15 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
+  // Member function used as a callback for responding to a service without
+  // input call.
+  public: void WithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+  {
+    _rep.set_data(data);
+    _result = true;
+    this->callbackSrvExecuted = true;
+  }
+
   /// \brief Member function used as a callback for responding to a service call
   public: void WrongEcho(const ignition::msgs::Vector3d &/*_req*/,
     ignition::msgs::Int32 &/*_rep*/, bool &_result)
@@ -154,6 +173,16 @@ class MyTestClass
 
   /// \brief Response callback to a service request.
   public: void EchoResponse(const ignition::msgs::Int32 &_rep,
+    const bool _result)
+  {
+    EXPECT_EQ(_rep.data(), data);
+    EXPECT_TRUE(_result);
+
+    this->responseExecuted = true;
+  }
+
+  /// \brief Response callback to a service without input request.
+  public: void WithoutInputResponse(const ignition::msgs::Int32 &_rep,
     const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
@@ -207,9 +236,23 @@ class MyTestClass
     // Advertise an illegal service name.
     EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::Echo, this));
 
+    // Advertise an illegal service name without input.
+    EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::WithoutInput,
+      this));
+
     // Advertise and request a valid service.
     EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::Echo, this));
     EXPECT_TRUE(this->node.Request(g_topic, req, timeout, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(rep.data(), data);
+    EXPECT_TRUE(this->callbackSrvExecuted);
+
+    this->Reset();
+
+    // Advertise and request a valid service without input.
+    EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::WithoutInput,
+      this));
+    EXPECT_TRUE(this->node.Request(g_topic, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
     EXPECT_TRUE(this->callbackSrvExecuted);
@@ -222,6 +265,12 @@ class MyTestClass
 
     this->Reset();
 
+    // Request a valid service without input using a member function callback.
+    this->node.Request(g_topic, &MyTestClass::WithoutInputResponse, this);
+    EXPECT_TRUE(this->responseExecuted);
+
+    this->Reset();
+
     // Service requests with wrong types.
     EXPECT_FALSE(this->node.Request(g_topic, wrongReq, timeout, rep, result));
     EXPECT_FALSE(this->node.Request(g_topic, req, timeout, wrongRep, result));
@@ -230,6 +279,8 @@ class MyTestClass
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
+
+    EXPECT_FALSE(this->node.Request(g_topic, timeout, wrongRep, result));
   }
 
   public: void Reset()
@@ -667,6 +718,70 @@ TEST(NodeTest, ServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages
+/// (service without input).
+TEST(NodeTest, ServiceWithoutInputCallAsync)
+{
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+
+  transport::Node node;
+
+  // Advertise an invalid service name.
+  EXPECT_FALSE(node.Advertise("invalid service", srvWithoutInput));
+
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  auto advertisedServices = node.AdvertisedServices();
+  ASSERT_EQ(advertisedServices.size(), 1u);
+  EXPECT_EQ(advertisedServices.at(0), g_topic);
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", response));
+
+  EXPECT_TRUE(node.Request(g_topic, response));
+
+  int i = 0;
+  while (i < 100 && !srvExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Make another request.
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+  EXPECT_TRUE(node.Request(g_topic, response));
+
+  i = 0;
+  while (i < 100 && !responseExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Try to unadvertise an invalid service.
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
+
+  EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
+
+  ASSERT_TRUE(node.AdvertisedServices().empty());
+}
+
+
+//////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using lambdas.
 TEST(NodeTest, ServiceCallAsyncLambda)
 {
@@ -696,6 +811,35 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   req.set_data(data);
 
   EXPECT_TRUE((node.Request(g_topic, req, reqCb)));
+
+  EXPECT_TRUE(executed);
+}
+
+//////////////////////////////////////////////////
+/// \brief Make an asynchronous service call using lambdas (service without
+/// input).
+TEST(NodeTest, ServiceWithoutInputCallAsyncLambda)
+{
+  std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
+    [](ignition::msgs::Int32 &_rep, bool &_result)
+  {
+    _rep.set_data(data);
+    _result = true;
+  };
+
+  transport::Node node;
+  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
+
+  bool executed = false;
+  std::function<void(const ignition::msgs::Int32 &, const bool)> reqCb =
+    [&executed](const ignition::msgs::Int32 &_rep, const bool _result)
+  {
+    EXPECT_EQ(_rep.data(), data);
+    EXPECT_TRUE(_result);
+    executed = true;
+  };
+
+  EXPECT_TRUE((node.Request(g_topic, reqCb)));
 
   EXPECT_TRUE(executed);
 }
@@ -761,6 +905,65 @@ TEST(NodeTest, MultipleServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
+/// \brief Request multiple service calls at the same time (service without
+/// input).
+TEST(NodeTest, MultipleServiceWithoutInputCallAsync)
+{
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+
+  transport::Node node;
+
+  // Advertise an invalid service name.
+  EXPECT_FALSE(node.Advertise("invalid service", srvWithoutInput));
+
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", response));
+
+  EXPECT_TRUE(node.Request(g_topic, response));
+
+  int i = 0;
+  while (i < 100 && !srvExecuted)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 1);
+
+  // Make another request.
+  srvExecuted = false;
+  responseExecuted = false;
+  counter = 0;
+  EXPECT_TRUE(node.Request(g_topic, response));
+  EXPECT_TRUE(node.Request(g_topic, response));
+  EXPECT_TRUE(node.Request(g_topic, response));
+
+  i = 0;
+  while (i < 100 && counter < 3)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ++i;
+  }
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(responseExecuted);
+  EXPECT_TRUE(srvExecuted);
+  EXPECT_EQ(counter, 3);
+
+  // Try to unadvertise an invalid service.
+  EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
+
+  EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
+}
+
+//////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSync)
 {
@@ -785,6 +988,28 @@ TEST(NodeTest, ServiceCallSync)
 }
 
 //////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages (service
+/// without input).
+TEST(NodeTest, ServiceWithoutInputCallSync)
+{
+  ignition::msgs::Int32 rep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  // Request an invalid service name.
+  EXPECT_FALSE(node.Request("invalid service", timeout, rep, result));
+
+  EXPECT_TRUE(node.Request(g_topic, timeout, rep, result));
+
+  // Check that the service call response was executed.
+  EXPECT_TRUE(result);
+  EXPECT_EQ(rep.data(), data);
+}
+
+//////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
@@ -799,6 +1024,33 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   auto t1 = std::chrono::system_clock::now();
   bool executed = node.Request(g_topic, req, static_cast<unsigned int>(timeout),
+      rep, result);
+  auto t2 = std::chrono::system_clock::now();
+
+  int64_t elapsed =
+    std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+
+  // Check if the elapsed time was close to the timeout.
+  auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
+  EXPECT_LE(diff, 10);
+
+  // Check that the service call response was not executed.
+  EXPECT_FALSE(executed);
+}
+
+//////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages (service
+/// without input).
+TEST(NodeTest, ServiceWithoutInputCallSyncTimeout)
+{
+  ignition::msgs::Int32 rep;
+  bool result;
+  int64_t timeout = 1000;
+
+  transport::Node node;
+
+  auto t1 = std::chrono::system_clock::now();
+  bool executed = node.Request(g_topic, static_cast<unsigned int>(timeout),
       rep, result);
   auto t2 = std::chrono::system_clock::now();
 
