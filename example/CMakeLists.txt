@@ -58,6 +58,27 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async.cc")
   add_dependencies(requester_async protobuf_compilation)
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/responser_without_input.cc")
+  add_executable(responser_without_input responser_without_input.cc ${PROTO_SRC})
+  target_link_libraries(responser_without_input ${IGNITION-TRANSPORT_LIBRARIES}
+                                  ${IGNITION-MSGS_LIBRARIES})
+  add_dependencies(responser_without_input protobuf_compilation)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_without_input.cc")
+  add_executable(requester_without_input requester_without_input.cc ${PROTO_SRC})
+  target_link_libraries(requester_without_input ${IGNITION-TRANSPORT_LIBRARIES}
+                                  ${IGNITION-MSGS_LIBRARIES})
+  add_dependencies(requester_without_input protobuf_compilation)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_without_input.cc")
+  add_executable(requester_async_without_input requester_async_without_input.cc ${PROTO_SRC})
+  target_link_libraries(requester_async_without_input ${IGNITION-TRANSPORT_LIBRARIES}
+                                        ${IGNITION-MSGS_LIBRARIES})
+  add_dependencies(requester_async_without_input protobuf_compilation)
+endif()
+
 if (MSVC)
   # Suppress Protobuf message generation warnings.
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512")
