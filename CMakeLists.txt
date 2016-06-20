@@ -337,6 +337,10 @@ else (build_errors)
     file(GLOB ZMQ_DLLS "${ZeroMQ_ROOT_DIR}/bin/*.dll")
     file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/src)
     file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/test/integration)
+
+    file(GLOB IGN-MSGS_DLLS "${IGNITION-MSGS_ROOT_DIR}/lib/*.dll")
+    file(COPY ${IGN-MSGS_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/src)
+    file(COPY ${IGN-MSGS_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/test/integration)
   endif()
 
 
