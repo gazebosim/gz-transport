@@ -16,10 +16,10 @@
 */
 #include <chrono>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
-#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -29,14 +29,14 @@ static std::string g_topic = "/foo";
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  transport::msgs::Vector3d msg;
+  ignition::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
   transport::Node node;
 
-  node.Advertise<transport::msgs::Vector3d>(g_topic);
+  node.Advertise<ignition::msgs::Vector3d>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   node.Publish(g_topic, msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));

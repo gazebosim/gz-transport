@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef __IGN_TRANSPORT_NODE_HH_INCLUDED__
-#define __IGN_TRANSPORT_NODE_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_NODE_HH_
+#define IGN_TRANSPORT_NODE_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -55,13 +54,13 @@ namespace ignition
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
-    IGNITION_VISIBLE void waitForShutdown();
+    IGNITION_TRANSPORT_VISIBLE void waitForShutdown();
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
-    class IGNITION_VISIBLE Node
+    class IGNITION_TRANSPORT_VISIBLE Node
     {
       /// \brief A class that is used to store information about an
       /// advertised publisher. An instance of this class is returned
@@ -123,6 +122,23 @@ namespace ignition
                   const std::string &_topic,
                   const AdvertiseOptions &_options = AdvertiseOptions())
       {
+        return this->Advertise(_topic, T().GetTypeName(), _options);
+      }
+
+      /// \brief Advertise a new topic.
+      /// \param[in] _topic Topic name to be advertised.
+      /// \param[in] _msgTypeName Name of the message type that will be
+      /// published on the topic. The message type name can be retrieved
+      /// from a protobuf message using the GetTypeName() function.
+      /// \param[in] _options Advertise options.
+      /// \return A PublisherId, which can be used in Node::Publish calls.
+      /// The PublisherId also acts as boolean, where true occurs if the topic
+      /// was succesfully advertised.
+      /// \sa AdvertiseOptions.
+      public: Node::PublisherId Advertise(const std::string &_topic,
+                  const std::string &_msgTypeName,
+                  const AdvertiseOptions &_options = AdvertiseOptions())
+      {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
@@ -141,7 +157,7 @@ namespace ignition
           this->Shared()->myAddress,
           this->Shared()->myControlAddress,
           this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          T().GetTypeName());
+          _msgTypeName);
 
         if (!this->Shared()->msgDiscovery->Advertise(publisher))
         {

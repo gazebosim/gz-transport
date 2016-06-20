@@ -35,20 +35,38 @@ COMMON_OPTIONS =
                "  --force-version <VERSION>  Use a specific library version.\n"\
                '  --versions                 Show the available versions.'
 COMMANDS = {  'topic' =>
-                       "Print information about topics.\n\n"\
-                       "  ign topic [options]\n\n"\
-                       "Options:\n\n"\
-                       "  -i [ --info ] arg          Get info about a topic." +
-                       " 'arg' is a topic name.\n"+
-                       "  -l [ --list ]              List all topics.\n" +
+                       "Print information about topics.\n\n" +
+                       "  ign topic [options]\n\n" +
+                       "Options:\n\n" +
+                       "  -i [ --info ]              Get info about a topic.\n"+
+                       "                             Requires the -t option.\n"+
+                       "  -l [ --list ]              List all topics.\n"       +
+                       "  -t [ --topic ] arg         Name of a topic.\n"       +
+                       "                             Required with -i, -p.\n"  +
+                       "  -m [ --msgtype ] arg       Type of message to "      +
+                       "publish.\n"                                            +
+                       "                             Arg is a message type.\n" +
+                       "                             Required with -p.\n"      +
+                       "  -p [ --pub ] arg           Publish a message.\n"     +
+                       "                             Arg is the message data." +
+                       " The format expected is\n                            " +
+                       " the same used by Protobuf DebugString(). E.g.:\n\n"   +
+                       "                               ign topic -t /foo -m "  +
+                       "  ignition.msgs.StringMsg\n                          " +
+                       "     -p \'data:\"Custom data\"\'\n\n"                +
+                       "                             Requires -t and -m.\n"    +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"\
                        "  ign service [options]\n\n"\
                        "Options:\n\n"\
-                       "  -i [ --info ] arg          Get info about a service."+
-                       " 'arg' is a service name.\n" +
-                       "  -l [ --list ]              List all services.\n" +
+                       "  -i [ --info ]              Get info about a "        +
+                       "service.\n"                                            +
+                       "  -s [ --service ] arg       Name of a service.\n"     +
+                       "                             Required with -i.\n"      +
+                       "                             'arg' is a service "      +
+                       "name.\n"                                               +
+                       "  -l [ --list ]              List all services.\n"     +
                        COMMON_OPTIONS
             }
 
@@ -76,7 +94,27 @@ class Cmd
         options['list'] = l
       end
 
-      opts.on('-i topic', '--info topic', String,
+      opts.on('-t topic', '--topic', String,
+              'Topic name') do |t|
+        options['topic'] = t
+      end
+
+      opts.on('-s service', '--service', String,
+              'Service name') do |t|
+        options['service'] = t
+      end
+
+      opts.on('-m type', '--msgtype', String,
+              'Message type') do |t|
+        options['msgtype'] = t
+      end
+
+      opts.on('-p data', '--pub', String,
+              'Publish a message') do |t|
+        options['pub'] = t
+      end
+
+      opts.on('-i', '--info', String,
               'Print information about a topic') do |t|
         options['info'] = t
       end
@@ -143,7 +181,11 @@ class Cmd
           Importer.cmdTopicList
         elsif options.key?('info')
           Importer.extern 'void cmdTopicInfo(const char *)'
-          Importer.cmdTopicInfo(options['info'])
+          Importer.cmdTopicInfo(options['topic'])
+        elsif options.key?('pub')
+          Importer.extern 'void cmdTopicPub(const char *,const char *, const char *)'
+          Importer.cmdTopicPub(options['topic'], options['msgtype'],
+                               options['pub'])
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
@@ -154,7 +196,7 @@ class Cmd
           Importer.cmdServiceList
         elsif options.key?('info')
           Importer.extern 'void cmdServiceInfo(const char *)'
-          Importer.cmdServiceInfo(options['info'])
+          Importer.cmdServiceInfo(options['service'])
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'

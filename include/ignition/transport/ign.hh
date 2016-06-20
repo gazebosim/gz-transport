@@ -24,20 +24,20 @@
 
 /// \brief External hook to execute 'ign topic -i' from the command line.
 /// \param[in] _topic Topic name.
-extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic);
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic);
 
 /// \brief External hook to execute 'ign service -i' from the command line.
 /// \param[in] _service Service name.
-extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service);
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service);
 
 /// \brief External hook to execute 'ign topic -l' from the command line.
-extern "C" IGNITION_VISIBLE void cmdTopicList();
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList();
 
 /// \brief External hook to execute 'ign service -l' from the command line.
-extern "C" IGNITION_VISIBLE void cmdServiceList();
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList();
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" IGNITION_VISIBLE char *ignitionVersion();
+extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion();
 
 #endif

@@ -84,7 +84,7 @@ namespace ignition
     /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
     template<typename Pub>
-    class IGNITION_VISIBLE Discovery
+    class IGNITION_TRANSPORT_VISIBLE Discovery
     {
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
@@ -552,15 +552,10 @@ namespace ignition
       /// initializedCv condition variable.
       public: void WaitForInit() const
       {
-        bool ready;
-        {
-          std::lock_guard<std::mutex> lock(this->mutex);
-          ready = this->initialized;
-        }
+        std::unique_lock<std::mutex> lk(this->mutex);
 
-        if (!ready)
+        if (!this->initialized)
         {
-          std::unique_lock<std::mutex> lk(this->mutex);
           this->initializedCv.wait(lk, [this]{return this->initialized;});
         }
       }

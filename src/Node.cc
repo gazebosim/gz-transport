@@ -248,6 +248,7 @@ bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
     {
       return false;
     }
+
     hasLocalSubscribers =
       this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
     hasRemoteSubscribers =
