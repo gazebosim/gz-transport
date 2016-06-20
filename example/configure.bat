@@ -11,13 +11,17 @@
 @set ZEROMQ_PATH=%cd%\..\..\..\ZeroMQ 3.2.4
 @set CPPZMQ_PATH=%cd%\..\..\..\cppzmq
 @set IGN_TRANSPORT_PATH=%cd%\..\..\build\install\%build_type%
+@set IGNITION-MSGS_PATH=%cd%\..\..\..\ign-msgs\build\install\%build_type%
+@set IGNITION-MSGS_CMAKE_PREFIX_PATH=%IGNITION-MSGS_PATH%\CMake
+@set IGNITION-MATH_PATH=%cd%\..\..\..\ign-math\build\install\%build_type%
+@set IGNITION-MATH_CMAKE_PREFIX_PATH=%IGNITION-MATH_PATH%\CMake
 
 cmake -G "NMake Makefiles"^
+      -DCMAKE_PREFIX_PATH="%IGN_TRANSPORT_PATH%\lib\cmake\ignition-transport1;%IGNITION-MSGS_CMAKE_PREFIX_PATH%;%IGNITION-MATH_CMAKE_PREFIX_PATH%;"^
       -DZeroMQ_ROOT_DIR="%ZEROMQ_PATH%"^
       -DPROTOBUF_SRC_ROOT_FOLDER="%PROTOBUF_PATH%"^
       -DCPPZMQ_HEADER_PATH="%CPPZMQ_PATH%"^
       -DCMAKE_INSTALL_PREFIX="install"^
-      -DCMAKE_PREFIX_PATH="%IGN_TRANSPORT_PATH%\lib\cmake\ignition-transport1"^
       -DCMAKE_BUILD_TYPE=%build_type%^
       ..
 

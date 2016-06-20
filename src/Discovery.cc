@@ -1207,15 +1207,10 @@ bool Discovery::RegisterNetIface(const std::string &_ip)
 /////////////////////////////////////////////////
 void Discovery::WaitForInit() const
 {
-  bool ready;
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
-    ready = this->dataPtr->initialized;
-  }
+  std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
 
-  if (!ready)
+  if (!this->dataPtr->initialized)
   {
-    std::unique_lock<std::recursive_mutex> lk(this->dataPtr->mutex);
     this->dataPtr->initializedCv.wait(
        lk, [this]{return this->dataPtr->initialized;});
   }

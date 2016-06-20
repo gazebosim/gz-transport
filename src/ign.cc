@@ -19,6 +19,14 @@
 #include <iostream>
 #include <vector>
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
+#include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "ignition/transport/config.hh"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Helpers.hh"
@@ -32,7 +40,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicList()
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList()
 {
   Node node;
 
@@ -44,7 +52,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -79,7 +87,7 @@ extern "C" IGNITION_VISIBLE void cmdTopicInfo(const char *_topic)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdServiceList()
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList()
 {
   Node node;
 
@@ -91,7 +99,7 @@ extern "C" IGNITION_VISIBLE void cmdServiceList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
 {
   if (!_service || std::string(_service).empty())
   {
@@ -126,7 +134,60 @@ extern "C" IGNITION_VISIBLE void cmdServiceInfo(const char *_service)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_VISIBLE char *ignitionVersion()
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
+                                           const char *_msgType,
+                                           const char *_msgData)
+{
+  if (!_topic)
+  {
+    std::cerr << "Topic name is null\n";
+    return;
+  }
+
+  if (!_msgType)
+  {
+    std::cerr << "Message type is null\n";
+    return;
+  }
+
+  if (!_msgData)
+  {
+    std::cerr << "Message data is null\n";
+    return;
+  }
+
+  // Create the message, and populate the field with _msgData
+  auto msg = ignition::msgs::Factory::New(_msgType, _msgData);
+  if (msg)
+  {
+    // Create the node and advertise the topic
+    ignition::transport::Node node;
+    auto pubId = node.Advertise(_topic, msg->GetTypeName());
+
+    // Publish the message
+    if (pubId)
+    {
+      // \todo Change this sleep to a WaitForSubscribers() call.
+      // See issue #xxx
+      std::this_thread::sleep_for(std::chrono::milliseconds(800));
+      node.Publish(pubId, *msg);
+    }
+    else
+    {
+      std::cerr << "Unable to publish on topic[" << _topic << "] "
+        << "with message type[" << _msgType << "].\n";
+    }
+  }
+  else
+  {
+    std::cerr << "Unable to create message of type[" << _msgType << "] "
+      << "with data[" << _msgData << "].\n";
+  }
+}
+
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
 {
   int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
   int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;

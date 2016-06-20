@@ -17,11 +17,11 @@
 
 #include <chrono>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "msgs/int.pb.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
@@ -43,14 +43,14 @@ TEST(ScopedTopicTest, ProcessTest)
   testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
     partition.c_str());
 
-  transport::msgs::Int msg;
+  ignition::msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
   transport::AdvertiseOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise<transport::msgs::Int>(topic, opts));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(topic, opts));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(node.Publish(topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));

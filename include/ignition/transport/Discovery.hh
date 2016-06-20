@@ -55,7 +55,7 @@ namespace ignition
     /// discovery uses heartbeats to track the state of other peers in the
     /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
-    class IGNITION_VISIBLE Discovery
+    class IGNITION_TRANSPORT_VISIBLE Discovery
     {
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a

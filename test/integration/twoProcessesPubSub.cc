@@ -17,11 +17,10 @@
 
 #include <chrono>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "msgs/int.pb.h"
-#include "msgs/vector3d.pb.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
@@ -43,7 +42,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const transport::msgs::Int &/*_msg*/)
+void cb(const ignition::msgs::Int32 &/*_msg*/)
 {
   cbExecuted = true;
   counter++;
@@ -52,7 +51,7 @@ void cb(const transport::msgs::Int &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const transport::msgs::Vector3d &/*_msg*/)
+void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
 }
@@ -71,13 +70,13 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 
-  transport::msgs::Vector3d msg;
+  ignition::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<transport::msgs::Vector3d>(topic));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>(topic));
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 20; ++i)
@@ -254,8 +253,7 @@ TEST(twoProcPubSub, TopicInfo)
 
   EXPECT_TRUE(node.TopicInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().MsgTypeName(),
-            "ignition.transport.msgs.Vector3d");
+  EXPECT_EQ(publishers.front().MsgTypeName(), "ignition.msgs.Vector3d");
 
   reset();
 

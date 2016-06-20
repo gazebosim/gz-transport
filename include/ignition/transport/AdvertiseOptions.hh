@@ -47,7 +47,7 @@ namespace ignition
     /// \brief A class for customizing the publication options for a topic or
     /// service advertised.
     /// E.g.: Set the scope of a topic/service.
-    class IGNITION_VISIBLE AdvertiseOptions
+    class IGNITION_TRANSPORT_VISIBLE AdvertiseOptions
     {
       /// \brief Constructor.
       public: AdvertiseOptions();

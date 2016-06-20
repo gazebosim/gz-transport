@@ -38,7 +38,7 @@ namespace ignition
   {
     /// \class Uuid Uuid.hh ignition/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
-    class IGNITION_VISIBLE Uuid
+    class IGNITION_TRANSPORT_VISIBLE Uuid
     {
       /// \brief Constructor.
       public: Uuid();
