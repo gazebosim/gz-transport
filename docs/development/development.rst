@@ -131,7 +131,7 @@ This feature registers a new topic in the internal data structure that keeps
 all the discovery information. Local and remote topics are stored in the same
 way, the only difference is that the local topics will share the process UUID
 with the discovery service. We store what we call a ``Publisher``, which
-contains the topic name and all the meta-data associated.
+contains the topic name and all the associated meta-data.
 
 Each publisher advertises the topic with a specific scope as described `here
 <http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope>`_.
@@ -226,13 +226,13 @@ Alternatively, we could replace the send of all ``ADVERTISE`` messages with one
 ``HEARTBEAT`` message that contains the process UUID of the discovery instance.
 Upon reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
-efficient and saves some messages sent over the network, prevents a discovery
+efficient and saves some messages sent over the network, it prevents a discovery
 instance to learn about topics available without explicitly asking for them.
 We think this is a good feature to have. For example, an introspection tool that
-shows all the topics available can take advantage of this feature without and
+shows all the topics available can take advantage of this feature without any
 prior knowledge.
 
-Is responsibility of each discovery instance to cancel any topic that hasn't
+It is the responsibility of each discovery instance to cancel any topic that hasn't
 been updated for a while. The function ``SilenceInterval()`` sets the maximum
 time that an entry should be stored in memory without hearing an ``ADVERTISE``
 message. Every ``ADVERTISE`` message received should refresh the topic
@@ -290,7 +290,7 @@ others. By selecting one network interface and listening only on this one, we
 would miss the discovery messages that are sent by instances sitting on other
 subnets.
 
-Our discovery service handles this problem in severals steps. First, it learns
+Our discovery service handles this problem in several steps. First, it learns
 about the network interfaces that are available locally. The
 ``determineInterfaces()`` function (contained in ``NetUtils`` file) returns a
 list of all the network interfaces found on the machine. When we know all the
