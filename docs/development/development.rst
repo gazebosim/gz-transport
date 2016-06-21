@@ -89,7 +89,7 @@ API
 The first thing to do before using a discovery object is to create it. The
 ``Discovery`` class constructor requires a parameter for specifying the UDP port
 to be used by the discovery sockets and the UUID of the process in which the
-discovery is running. This UUID will be used when announcing local topic.
+discovery is running. This UUID will be used when announcing a local topic.
 
 Once a ``Discovery`` object is created it won't discover anything. You'll need
 to call the ``Start()`` function for enabling the discovery.
@@ -101,8 +101,8 @@ the network. The symmetric ``Unadvertise()`` will notify that a topic won't be
 offered anymore.
 
 ``Discover()`` is used to learn about a given topic as soon as possible. It's
-important to remark the "as soon as possible" because discovery will eventually
-learn about all the topics but this might take some time (depending on
+important to remark about the "as soon as possible" because discovery will eventually
+learn about all the topics but this might take some time (depending on your
 configuration). If a client needs to know about a particular topic,
 ``Discover()`` will trigger a discovery request that will reduce the time needed
 to discover the information about a topic.
@@ -111,7 +111,7 @@ As you can imagine, exchanging messages over the network can be slow and we
 cannot block the users waiting for discovery information. We don't even know how
 many nodes are on the network so it would be hard and really slow to block and
 return all the information to our users when available. The way we tackle the
-notification  inside the ``Discovery`` is using callbacks. A discovery user
+notification  inside ``Discovery`` is through callbacks. A discovery user
 needs to register two callbacks: one for receiving notifications when new
 topics are available and another for notifying when a topic is no longer
 active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow
