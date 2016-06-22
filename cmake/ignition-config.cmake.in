@@ -62,6 +62,9 @@ list(APPEND @PKG_NAME@_LIBRARY_DIRS ${PROTOBUF_LIBRARY_DIR})
 
 # ZeroMQ dependency.
 if (NOT ZeroMQ_FOUND)
+  if (NOT ZeroMQ_ROOT_DIR)
+    set(ZeroMQ_ROOT_DIR "@ZeroMQ_ROOT_DIR@")
+  endif()
   include ("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake")
 endif()
 list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
@@ -76,7 +79,8 @@ if (NOT cppzmq_FOUND)
             PATHS
               ${ZeroMQ_INCLUDE_DIR}
               ${ZeroMQ_INCLUDEDIR}
-              ${CPPZMQ_HEADER_PATH})
+	      ${CPPZMQ_HEADER_PATH}
+              "@CPPZMQ_HEADER_PATH@")
 endif()
 list(APPEND @PKG_NAME@_INCLUDE_DIRS ${cppzmq_INCLUDE_DIRS})
 

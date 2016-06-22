@@ -52,6 +52,10 @@ if (PACKAGE_SOURCE_ONLY)
   return()
 endif()
 
+# Fix path format. On windows this will replace backslashes with forward slashes
+file(TO_CMAKE_PATH ${ZeroMQ_ROOT_DIR} ZeroMQ_ROOT_DIR)
+file(TO_CMAKE_PATH ${CPPZMQ_HEADER_PATH} CPPZMQ_HEADER_PATH)
+
 #################################################
 # Documentation:
 add_subdirectory(doc)
