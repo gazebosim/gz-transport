@@ -862,20 +862,12 @@ TEST(NodeTest, SigIntTermination)
   std::signal(SIGINT, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
-#ifdef _WIN32
-  thread.detach();
-#endif
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
 
-#ifndef _WIN32
   if (thread.joinable())
     thread.join();
-#else
-  WaitForSingleObject(thread.native_handle(), INFINITE);
-  CloseHandle(thread.native_handle());
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -889,20 +881,12 @@ TEST(NodeTest, SigTermTermination)
   std::signal(SIGTERM, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
-#ifdef _WIN32
-  thread.detach();
-#endif
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGTERM);
 
-#ifndef _WIN32
   if (thread.joinable())
     thread.join();
-#else
-  WaitForSingleObject(thread.native_handle(), INFINITE);
-  CloseHandle(thread.native_handle());
-#endif
 }
 
 //////////////////////////////////////////////////
