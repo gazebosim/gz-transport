@@ -52,9 +52,14 @@ if (PACKAGE_SOURCE_ONLY)
   return()
 endif()
 
-# Fix path format. On windows this will replace backslashes with forward slashes
-file(TO_CMAKE_PATH ${ZeroMQ_ROOT_DIR} ZeroMQ_ROOT_DIR)
-file(TO_CMAKE_PATH ${CPPZMQ_HEADER_PATH} CPPZMQ_HEADER_PATH)
+# Fix path format (if variables are specified).
+# On windows this will replace backslashes with forward slashes
+if (ZeroMQ_ROOT_DIR)
+  file(TO_CMAKE_PATH ${ZeroMQ_ROOT_DIR} ZeroMQ_ROOT_DIR)
+endif()
+if (CPPZMQ_HEADER_PATH)
+  file(TO_CMAKE_PATH ${CPPZMQ_HEADER_PATH} CPPZMQ_HEADER_PATH)
+endif()
 
 #################################################
 # Documentation:
