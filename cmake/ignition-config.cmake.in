@@ -79,7 +79,7 @@ if (NOT cppzmq_FOUND)
             PATHS
               ${ZeroMQ_INCLUDE_DIR}
               ${ZeroMQ_INCLUDEDIR}
-	      ${CPPZMQ_HEADER_PATH}
+              ${CPPZMQ_HEADER_PATH}
               "@CPPZMQ_HEADER_PATH@")
 endif()
 list(APPEND @PKG_NAME@_INCLUDE_DIRS ${cppzmq_INCLUDE_DIRS})
