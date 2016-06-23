@@ -18,6 +18,7 @@
 #ifndef __IGN_TRANSPORT_TOPICUTILS_HH_INCLUDED__
 #define __IGN_TRANSPORT_TOPICUTILS_HH_INCLUDED__
 
+#include <cstdint>
 #include <string>
 
 #include "ignition/transport/Helpers.hh"
