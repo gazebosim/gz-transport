@@ -842,7 +842,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without input using lambdas.
-TEST(NodeTest, ServiceWithoutInputCallAsyncLambda)
+TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
     [](ignition::msgs::Int32 &_rep, bool &_result)
@@ -930,7 +930,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 
 //////////////////////////////////////////////////
 /// \brief Request multiple service calls without input at the same time.
-TEST(NodeTest, MultipleServiceWithoutInputCallAsync)
+TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 {
   srvExecuted = false;
   responseExecuted = false;
