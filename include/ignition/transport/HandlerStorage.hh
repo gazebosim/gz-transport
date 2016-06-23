@@ -131,7 +131,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node UUID of the handler.
       /// \param[in] _hUuid Handler UUID.
-      /// \param[out] _handlers Handler requested.
+      /// \param[out] _handler Handler requested.
       /// \return true if the handler was found.
       public: bool Handler(const std::string &_topic,
                            const std::string &_nUuid,

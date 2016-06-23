@@ -43,19 +43,21 @@ namespace ignition
     class IReqHandler;
     class ISubscriptionHandler;
 
-    /// \def MsgAddresses_M
-    /// \brief The map stores all the publishers advertising this topic.
-    /// The keys are the process uuid of the nodes. For each uuid key, the
+    /// \def Addresses_M
+    /// \brief Map that stores all generic publishers.
+    /// The keys are the process uuids of the nodes. For each uuid key, the
     /// value contains the list of publishers advertising the topic within the
-    // same process uuid.
-    using MsgAddresses_M = std::map<std::string, std::vector<MessagePublisher>>;
+    /// same proccess uuid.
+    template<typename T>
+    using Addresses_M = std::map<std::string, std::vector<T>>;
+
+    /// \def MsgAddresses_M
+    /// \brief Specialized Addresses_M map for message publishers.
+    using MsgAddresses_M = Addresses_M<MessagePublisher>;
 
     /// \def SrvAddresses_M
-    /// \brief The map stores all the publishers advertising this service.
-    /// The keys are the process uuid of the nodes. For each uuid key, the
-    /// value contains the list of publishers advertising the service within the
-    /// same process uuid.
-    using SrvAddresses_M = std::map<std::string, std::vector<ServicePublisher>>;
+    /// \brief Specialized Addresses_M map for service publishers.
+    using SrvAddresses_M = Addresses_M<ServicePublisher>;
 
     /// \def ProtoMsg
     /// \brief An abbreviated protobuf message type.
@@ -93,21 +95,25 @@ namespace ignition
     using IReqHandler_M =
       std::map<std::string, std::map<std::string, IReqHandlerPtr>>;
 
-    /// \def MsgDiscoveryCallback
+    /// \def DiscoveryCallback
     /// \brief The user can register callbacks of this type when new connections
     /// or disconnections are detected by the discovery. The prototype of the
     /// callback contains the publisher's information advertising a topic.
     /// E.g.: void onDiscoveryResponse(const MessagePublisher &_publisher).
+    template <typename T>
+    using DiscoveryCallback = std::function<void(const T &_publisher)>;
+
+    /// \def MsgDiscoveryCallback
+    /// \brief Specialized DiscoveryCallback function for receiving a message
+    /// publisher.
     using MsgDiscoveryCallback =
-      std::function<void(const MessagePublisher&_publisher)>;
+      std::function<void(const MessagePublisher &_publisher)>;
 
     /// \def SrvDiscoveryCallback
-    /// \brief The user can register callbacks of this type when new connections
-    /// or disconnections are detected by the discovery. The prototype of the
-    /// callback contains the publisher's information advertising a service.
-    /// E.g.: void onDiscoveryResponse(const ServicePublisher &_publisher).
+    /// \brief Specialized DiscoveryCallback function for receiving a service
+    /// publisher.
     using SrvDiscoveryCallback =
-      std::function<void(const ServicePublisher&_publisher)>;
+      std::function<void(const ServicePublisher &_publisher)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

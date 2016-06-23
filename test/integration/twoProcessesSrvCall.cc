@@ -26,14 +26,13 @@
 
 using namespace ignition;
 
-bool srvExecuted;
-bool responseExecuted;
-bool wrongResponseExecuted;
+static bool responseExecuted;
+static bool wrongResponseExecuted;
 
-std::string partition;
-std::string topic = "/foo";
-int data = 5;
-int counter = 0;
+static std::string partition;
+static std::string g_topic = "/foo";
+static int data = 5;
+static int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -80,7 +79,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
   while (i < 300 && !responseExecuted)
@@ -96,7 +95,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   // Make another request.
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
   while (i < 300 && !responseExecuted)
@@ -140,12 +139,12 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(topic, wrongReq, response));
+  EXPECT_TRUE(node.Request(g_topic, wrongReq, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(responseExecuted);
 
   // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(topic, wrongReq, timeout, rep, result));
+  EXPECT_FALSE(node.Request(g_topic, wrongReq, timeout, rep, result));
 
   reset();
 
@@ -179,12 +178,12 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the response.
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, wrongRep, result));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, wrongRep, result));
 
   reset();
 
@@ -220,16 +219,16 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::Node node;
 
   // Request service calls with wrong types in the response.
-  EXPECT_FALSE(node.Request(topic, req, timeout, badRep, result));
-  EXPECT_TRUE(node.Request(topic, req, wrongResponse));
+  EXPECT_FALSE(node.Request(g_topic, req, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   reset();
 
   // Valid service requests.
-  EXPECT_TRUE(node.Request(topic, req, timeout, goodRep, result));
-  EXPECT_TRUE(node.Request(topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, req, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(g_topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_TRUE(responseExecuted);
 
@@ -264,7 +263,7 @@ TEST(twoProcSrvCall, ServiceList)
   node.ServiceList(services);
   auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(services.size(), 1u);
-  EXPECT_EQ(services.at(0), topic);
+  EXPECT_EQ(services.at(0), g_topic);
   services.clear();
 
   // Time elapsed to get the first service list
@@ -274,7 +273,7 @@ TEST(twoProcSrvCall, ServiceList)
   node.ServiceList(services);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(services.size(), 1u);
-  EXPECT_EQ(services.at(0), topic);
+  EXPECT_EQ(services.at(0), g_topic);
 
   // The first ServiceList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).

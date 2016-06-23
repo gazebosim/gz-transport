@@ -26,8 +26,8 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
+static std::string partition;
+static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
 TEST(twoProcSrvCall, ThousandCalls)
@@ -50,7 +50,7 @@ TEST(twoProcSrvCall, ThousandCalls)
   for (int i = 0; i < 15000; i++)
   {
     req.set_data(i);
-    ASSERT_TRUE(node.Request(topic, req, timeout, response, result));
+    ASSERT_TRUE(node.Request(g_topic, req, timeout, response, result));
 
     // Check the service response.
     ASSERT_TRUE(result);

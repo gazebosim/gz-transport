@@ -2,7 +2,6 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
   AdvertiseOptions.cc
-  Discovery.cc
   Helpers.cc
   ign.cc
   NetUtils.cc
@@ -44,7 +43,6 @@ elseif(WIN32)
 endif()
 
 # Protobuf module does not have LIBRARIES but LIBRARY
-message("ZeroMQ_LIBRARIES: ${ZeroMQ_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES} 

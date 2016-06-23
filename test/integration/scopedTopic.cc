@@ -26,9 +26,9 @@
 
 using namespace ignition;
 
-std::string partition;
-std::string topic = "/foo";
-int data = 5;
+static std::string partition;
+static std::string g_topic = "/foo";
+static int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Two different nodes, each one running in a different process. The
@@ -50,11 +50,11 @@ TEST(ScopedTopicTest, ProcessTest)
   transport::AdvertiseOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(topic, opts));
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic, opts));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(topic, msg));
+  EXPECT_TRUE(node.Publish(g_topic, msg));
 
   testing::waitAndCleanupFork(pi);
 }

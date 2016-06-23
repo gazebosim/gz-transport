@@ -146,6 +146,12 @@ namespace ignition
       public: bool threadReceptionExiting;
 #endif
 
+      /// \brief Port used by the message discovery layer.
+      private: const int kMsgDiscPort = 11317;
+
+      /// \brief Port used by the service discovery layer.
+      private: const int kSrvDiscPort = 11318;
+
       /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       private: std::mutex exitMutex;
 
@@ -219,8 +225,11 @@ namespace ignition
       /////// Declare here the discovery object  ///////
       //////////////////////////////////////////////////
 
-      /// \brief Discovery service.
-      public: std::unique_ptr<Discovery> discovery;
+      /// \brief Discovery service (messages).
+      public: std::unique_ptr<MsgDiscovery> msgDiscovery;
+
+      /// \brief Discovery service (services).
+      public: std::unique_ptr<SrvDiscovery> srvDiscovery;
     };
   }
 }

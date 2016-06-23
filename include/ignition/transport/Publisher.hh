@@ -129,7 +129,7 @@ namespace ignition
       /// strings to this object.
       /// \param[in] _pub The publisher to compare against.
       /// \return True if this object does not match the provided object.
-      public: bool operator!=(const Publisher &_srv) const;
+      public: bool operator!=(const Publisher &_pub) const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -317,12 +317,12 @@ namespace ignition
       public: std::string RepTypeName() const;
 
       /// \brief Set the name of the request's protobuf message advertised.
-      /// \param[in] The protobuf message type.
+      /// \param[in] _reqTypeName The protobuf message type.
       /// \sa ReqTypeName.
       public: void SetReqTypeName(const std::string &_reqTypeName);
 
       /// \brief Set the name of the response's protobuf message advertised.
-      /// \param[in] The protobuf message type.
+      /// \param[in] _repTypeName The protobuf message type.
       /// \sa RepTypeName.
       public: void SetRepTypeName(const std::string &_repTypeName);
 

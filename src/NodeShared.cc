@@ -79,14 +79,15 @@ NodeShared::NodeShared()
   Uuid uuid;
   this->pUuid = uuid.ToString();
 
-  // Initialize my discovery service.
-  this->discovery.reset(new Discovery(this->pUuid, false));
+  // Initialize my discovery services.
+  this->msgDiscovery.reset(new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
+  this->srvDiscovery.reset(new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
 
   // Initialize the 0MQ objects.
   try
   {
     // Set the hostname's ip address.
-    this->hostAddr = this->discovery->HostAddr();
+    this->hostAddr = this->msgDiscovery->HostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
@@ -152,19 +153,24 @@ NodeShared::NodeShared()
 #endif
 
   // Set the callback to notify discovery updates (new topics).
-  discovery->ConnectionsCb(&NodeShared::OnNewConnection, this);
+  msgDiscovery->ConnectionsCb(std::bind(&NodeShared::OnNewConnection,
+    this, std::placeholders::_1));
 
   // Set the callback to notify discovery updates (invalid topics).
-  discovery->DisconnectionsCb(&NodeShared::OnNewDisconnection, this);
+  msgDiscovery->DisconnectionsCb(std::bind(&NodeShared::OnNewDisconnection,
+    this, std::placeholders::_1));
 
   // Set the callback to notify svc discovery updates (new services).
-  discovery->ConnectionsSrvCb(&NodeShared::OnNewSrvConnection, this);
+  srvDiscovery->ConnectionsCb(std::bind(&NodeShared::OnNewSrvConnection,
+    this, std::placeholders::_1));
 
   // Set the callback to notify svc discovery updates (invalid services).
-  discovery->DisconnectionsSrvCb(&NodeShared::OnNewSrvDisconnection, this);
+  srvDiscovery->DisconnectionsCb(std::bind(&NodeShared::OnNewSrvDisconnection,
+    this, std::placeholders::_1));
 
-  // Start the discovery service.
-  discovery->Start();
+  // Start the discovery services.
+  msgDiscovery->Start();
+  srvDiscovery->Start();
 }
 
 //////////////////////////////////////////////////
@@ -648,7 +654,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->discovery->SrvPublishers(_topic, addresses);
+  this->srvDiscovery->Publishers(_topic, addresses);
   if (addresses.empty())
     return;
 

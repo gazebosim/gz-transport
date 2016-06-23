@@ -24,7 +24,6 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/DiscoveryPrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -32,42 +31,41 @@
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
+using namespace transport;
 
 // Global constants used for multiple tests.
 static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-std::string topic   = testing::getRandomNumber();
-std::string service = testing::getRandomNumber();
-std::string addr1   = "tcp://127.0.0.1:12345";
-std::string ctrl1   = "tcp://127.0.0.1:12346";
-std::string id1     = "identity1";
-std::string pUuid1  = transport::Uuid().ToString();
-std::string nUuid1  = transport::Uuid().ToString();
-std::string addr2   = "tcp://127.0.0.1:12347";
-std::string ctrl2   = "tcp://127.0.0.1:12348";
-std::string id2     = "identity2";
-std::string pUuid2  = transport::Uuid().ToString();
-std::string nUuid2  = transport::Uuid().ToString();
-transport::Scope_t scope = transport::Scope_t::ALL;
-bool connectionExecuted = false;
-bool connectionExecutedMF = false;
-bool disconnectionExecuted = false;
-bool disconnectionExecutedMF = false;
-bool connectionSrvExecuted = false;
-bool connectionSrvExecutedMF = false;
-bool disconnectionSrvExecuted = false;
-bool disconnectionSrvExecutedMF = false;
-int counter = 0;
+static const int g_msgPort = 11319;
+static const int g_srvPort = 11320;
+static std::string g_topic   = testing::getRandomNumber();
+static std::string service = testing::getRandomNumber();
+static std::string addr1   = "tcp://127.0.0.1:12345";
+static std::string ctrl1   = "tcp://127.0.0.1:12346";
+static std::string id1     = "identity1";
+static std::string pUuid1  = transport::Uuid().ToString();
+static std::string nUuid1  = transport::Uuid().ToString();
+static std::string addr2   = "tcp://127.0.0.1:12347";
+static std::string ctrl2   = "tcp://127.0.0.1:12348";
+static std::string id2     = "identity2";
+static std::string pUuid2  = transport::Uuid().ToString();
+static std::string nUuid2  = transport::Uuid().ToString();
+static transport::Scope_t scope = transport::Scope_t::ALL;
+static bool connectionExecuted = false;
+static bool disconnectionExecuted = false;
+static int g_counter = 0;
 
 /// \brief Helper class to access the protected member variables of Discovery
 /// within the tests.
-class DiscoveryDerived : public transport::Discovery
+template<typename T> class DiscoveryDerived : public transport::Discovery<T>
 {
   // Documentation inherited.
-  public: DiscoveryDerived(const std::string &_pUuid, bool _verbose = false)
-    : transport::Discovery(_pUuid, _verbose)
+  public: DiscoveryDerived(const std::string &_pUuid,
+                           const int _port,
+                           const bool _verbose = false)
+    : transport::Discovery<T>(_pUuid, _port, _verbose)
   {
   }
 
@@ -79,8 +77,8 @@ class DiscoveryDerived : public transport::Discovery
   public: void TestActivity(const std::string &_pUuid,
                             const bool _expectedActivity) const
   {
-    EXPECT_EQ(this->dataPtr->activity.find(_pUuid) !=
-              this->dataPtr->activity.end(), _expectedActivity);
+    EXPECT_EQ(this->activity.find(_pUuid) !=
+              this->activity.end(), _expectedActivity);
   };
 };
 
@@ -89,14 +87,8 @@ class DiscoveryDerived : public transport::Discovery
 void reset()
 {
   connectionExecuted = false;
-  connectionExecutedMF = false;
   disconnectionExecuted = false;
-  disconnectionExecutedMF = false;
-  connectionSrvExecuted = false;
-  connectionSrvExecutedMF = false;
-  disconnectionSrvExecuted = false;
-  disconnectionSrvExecutedMF = false;
-  counter = 0;
+  g_counter = 0;
 }
 
 //////////////////////////////////////////////////
@@ -126,27 +118,12 @@ void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-/// \brief Function called each time a discovery srv call update is received.
-void onDiscoverySrvResponse(const transport::ServicePublisher &_publisher)
-{
-  // This discovery event is not relevant for the test, ignore it.
-  if (_publisher.NUuid() != nUuid1)
-    return;
-
-  EXPECT_EQ(_publisher.Addr(), addr1);
-  EXPECT_EQ(_publisher.Topic(), service);
-  EXPECT_EQ(_publisher.PUuid(), pUuid1);
-  EXPECT_EQ(_publisher.Scope(), scope);
-  connectionSrvExecuted = true;
-}
-
-//////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received. This is
 /// used in the case of multiple publishers.
 void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
-  if (_publisher.Topic() != topic)
+  if (_publisher.Topic() != g_topic)
     return;
 
   EXPECT_NE(_publisher.Addr(), "");
@@ -154,7 +131,7 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
   EXPECT_NE(_publisher.PUuid(), "");
   EXPECT_NE(_publisher.NUuid(), "");
   connectionExecuted = true;
-  ++counter;
+  ++g_counter;
 }
 
 //////////////////////////////////////////////////
@@ -169,139 +146,22 @@ void onDisconnection(const transport::MessagePublisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-/// \brief Function called each time a discovery update is received.
-void onDisconnectionSrv(const transport::ServicePublisher &_publisher)
-{
-  // This discovery event is not relevant for the test, ignore it.
-  if (_publisher.Topic() != service)
-    return;
-
-  EXPECT_EQ(_publisher.PUuid(), pUuid1);
-  disconnectionSrvExecuted = true;
-}
-
-//////////////////////////////////////////////////
-/// \brief A class for testing subscription passing a member function
-/// as a callback.
-class MyClass
-{
-  /// \brief Class constructor.
-  public: explicit MyClass(const std::string &_pUuid)
-  {
-    this->discov.reset(new transport::Discovery(_pUuid));
-  }
-
-  /// \brief Class destructor.
-  public: virtual ~MyClass()
-  {
-  }
-
-  /// \brief Register a member function as a discovery callback.
-  public: void RegisterConnections()
-  {
-    this->discov->ConnectionsCb(&MyClass::OnConnectResponse, this);
-  }
-
-  /// \brief Register a member function as a discovery disconnection callback.
-  public: void RegisterDisconnections()
-  {
-    this->discov->DisconnectionsCb(&MyClass::OnDisconnection, this);
-  }
-
-    /// \brief Register a member function as a discovery callback (services).
-  public: void RegisterSrvConnections()
-  {
-    this->discov->ConnectionsSrvCb(&MyClass::OnConnectSrvResponse, this);
-  }
-
-  /// \brief Register a member function as a discovery disconnection callback
-  /// (services).
-  public: void RegisterSrvDisconnections()
-  {
-    this->discov->DisconnectionsSrvCb(&MyClass::OnDisconnectionSrv, this);
-  }
-
-  /// \brief Member function called each time a discovery update is received.
-  public: void OnConnectResponse(const transport::MessagePublisher &_publisher)
-  {
-    // This discovery event is not relevant for the test, ignore it.
-    if (_publisher.Topic() != topic)
-      return;
-
-    EXPECT_EQ(_publisher.Addr(), addr1);
-    EXPECT_EQ(_publisher.Ctrl(), ctrl1);
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
-    EXPECT_EQ(_publisher.NUuid(), nUuid1);
-    EXPECT_EQ(_publisher.Scope(), scope);
-    connectionExecutedMF = true;
-  }
-
-  /// \brief Member function called each time a disconnect. update is received.
-  public: void OnDisconnection(const transport::MessagePublisher &_publisher)
-  {
-    // This discovery event is not relevant for the test, ignore it.
-    if (_publisher.PUuid() != pUuid1)
-      return;
-
-    disconnectionExecutedMF = true;
-  }
-
-  /// \brief Member function called each time a discovery update is received
-  /// (services).
-  public: void OnConnectSrvResponse(
-    const transport::ServicePublisher &_publisher)
-  {
-    // This discovery event is not relevant for the test, ignore it.
-    if (_publisher.Topic() != service)
-      return;
-
-    EXPECT_EQ(_publisher.Addr(), addr1);
-    EXPECT_EQ(_publisher.PUuid(), pUuid1);
-    EXPECT_EQ(_publisher.NUuid(), nUuid1);
-    EXPECT_EQ(_publisher.Scope(), scope);
-    connectionSrvExecutedMF = true;
-  }
-
-  /// \brief Member function called each time a disconnect. update is received
-  /// (services).
-  public: void OnDisconnectionSrv(const transport::ServicePublisher &_publisher)
-  {
-    // This discovery event is not relevant for the test, ignore it.
-    if (_publisher.PUuid() != pUuid1)
-      return;
-
-    disconnectionSrvExecutedMF = true;
-  }
-
-  /// \brief Start the discovery service.
-  public: void Start()
-  {
-    this->discov->Start();
-  }
-
-  // \brief A discovery object.
-  private: std::unique_ptr<transport::Discovery> discov;
-};
-
-//////////////////////////////////////////////////
 /// \brief Test the setters, getters and basic functions.
 TEST(DiscoveryTest, TestBasicAPI)
 {
   unsigned int newSilenceInterval    = 100;
   unsigned int newActivityInterval   = 200;
-  unsigned int newAdvertiseInterval  = 300;
   unsigned int newHeartbeatInterval  = 400;
 
   // Create a discovery node.
-  transport::Discovery discovery(pUuid1);
+  Discovery<MessagePublisher> discovery(pUuid1, g_msgPort);
 
   discovery.SetSilenceInterval(newSilenceInterval);
   discovery.SetActivityInterval(newActivityInterval);
-  discovery.SetAdvertiseInterval(newAdvertiseInterval);
   discovery.SetHeartbeatInterval(newHeartbeatInterval);
+
   EXPECT_EQ(discovery.SilenceInterval(), newSilenceInterval);
   EXPECT_EQ(discovery.ActivityInterval(), newActivityInterval);
-  EXPECT_EQ(discovery.AdvertiseInterval(), newAdvertiseInterval);
   EXPECT_EQ(discovery.HeartbeatInterval(), newHeartbeatInterval);
 
   EXPECT_NE(discovery.HostAddr(), "");
@@ -311,19 +171,13 @@ TEST(DiscoveryTest, TestBasicAPI)
 /// \brief Try to use the discovery features without calling Start().
 TEST(DiscoveryTest, WithoutCallingStart)
 {
-  transport::Discovery discovery(pUuid1);
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-
-  transport::ServicePublisher srvPublisher(service, addr1, id1, pUuid1, nUuid1,
+  Discovery<ServicePublisher> discovery(pUuid1, g_srvPort);
+  ServicePublisher srvPublisher(service, addr1, id1, pUuid1, nUuid1,
     scope, "reqType", "repType");
 
-  EXPECT_FALSE(discovery.AdvertiseMsg(publisher));
-  EXPECT_FALSE(discovery.AdvertiseSrv(srvPublisher));
-  EXPECT_FALSE(discovery.DiscoverMsg(topic));
-  EXPECT_FALSE(discovery.DiscoverSrv(service));
-  EXPECT_FALSE(discovery.UnadvertiseMsg(topic, nUuid1));
-  EXPECT_FALSE(discovery.UnadvertiseSrv(service, nUuid1));
+  EXPECT_FALSE(discovery.Advertise(srvPublisher));
+  EXPECT_FALSE(discovery.Discover(service));
+  EXPECT_FALSE(discovery.Unadvertise(service, nUuid1));
 }
 
 //////////////////////////////////////////////////
@@ -333,17 +187,16 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  MsgDiscovery discovery1(pUuid1, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_msgPort);
 
   discovery1.Start();
   discovery2.Start();
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -353,50 +206,24 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 }
 
 //////////////////////////////////////////////////
-/// \brief Advertise a topic without registering callbacks.
-/// This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestAdvertiseNoResponseMF)
-{
-  reset();
-
-  transport::Discovery discovery1(pUuid1);
-  MyClass object(pUuid2);
-
-  discovery1.Start();
-  object.Start();
-
-  // This should generate discovery traffic but no response on object because
-  // there is no callback registered.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
-
-  waitForCallback(MaxIters, Nap, connectionExecutedMF);
-
-  EXPECT_FALSE(connectionExecutedMF);
-  EXPECT_FALSE(disconnectionExecutedMF);
-}
-
-//////////////////////////////////////////////////
 /// \brief Check that the discovery triggers the callbacks after an advertise.
 TEST(DiscoveryTest, TestAdvertise)
 {
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2, true);
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
+  transport::Discovery<MessagePublisher> Discovery2(pUuid2, g_msgPort, true);
 
   // Register one callback for receiving notifications.
-  discovery2.ConnectionsCb(onDiscoveryResponse);
+  Discovery2.ConnectionsCb(onDiscoveryResponse);
 
   discovery1.Start();
-  discovery2.Start();
+  Discovery2.Start();
 
   // This should trigger a discovery response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -407,9 +234,9 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
-  transport::MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::PROCESS, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher2));
+  MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1, nUuid1,
+    Scope_t::PROCESS, "type");
+  EXPECT_TRUE(discovery1.Advertise(publisher2));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -419,9 +246,9 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should trigger a discovery response on discovery2.
-  transport::MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1,
-    nUuid1, transport::Scope_t::HOST, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher3));
+  MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1, nUuid1,
+    Scope_t::HOST, "type");
+  EXPECT_TRUE(discovery1.Advertise(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -436,8 +263,8 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid1);
+  MsgDiscovery discovery1(pUuid1, g_msgPort);
+  MsgDiscovery discovery2(pUuid1, g_msgPort);
 
   // Register one callback for receiving notifications.
   discovery2.ConnectionsCb(onDiscoveryResponse);
@@ -447,40 +274,13 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
 
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
   EXPECT_FALSE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the callbacks after an advertise.
-/// This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestAdvertiseMF)
-{
-  reset();
-
-  // Create two discovery nodes (one is embedded in an object).
-  transport::Discovery discovery1(pUuid1);
-  MyClass object(pUuid2);
-  object.RegisterConnections();
-
-  discovery1.Start();
-  object.Start();
-
-  // This should trigger a discovery response on object.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
-
-  waitForCallback(MaxIters, Nap, connectionExecutedMF);
-
-  EXPECT_TRUE(connectionExecutedMF);
-  EXPECT_FALSE(disconnectionExecutedMF);
 }
 
 //////////////////////////////////////////////////
@@ -491,15 +291,14 @@ TEST(DiscoveryTest, TestDiscover)
   reset();
 
   // Create one discovery node and advertise a topic.
-  transport::Discovery discovery1(pUuid1);
+  Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
   discovery1.Start();
 
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   // Create a second discovery node that did not see the previous ADV message.
-  transport::Discovery discovery2(pUuid2);
+  MsgDiscovery discovery2(pUuid2, g_msgPort);
   discovery2.Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -511,7 +310,7 @@ TEST(DiscoveryTest, TestDiscover)
   discovery2.ConnectionsCb(onDiscoveryResponse);
 
   // Request the discovery of a topic.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(g_topic));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -524,7 +323,7 @@ TEST(DiscoveryTest, TestDiscover)
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(g_topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
@@ -539,8 +338,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  MsgDiscovery discovery1(pUuid1, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_msgPort);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
@@ -549,9 +348,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -562,7 +360,7 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(g_topic, nUuid1));
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
 
@@ -571,50 +369,10 @@ TEST(DiscoveryTest, TestUnadvertise)
   EXPECT_TRUE(disconnectionExecuted);
 
   // Unadvertise a topic not advertised.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
+  EXPECT_TRUE(discovery1.Unadvertise(g_topic, nUuid1));
 
-  transport::MsgAddresses_M addresses;
-  EXPECT_FALSE(discovery2.MsgPublishers(topic, addresses));
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the disconnection callback after
-/// an unadvertise. This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestUnadvertiseMF)
-{
-  reset();
-
-  // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  MyClass object(pUuid2);
-
-  // Register one callback for receiving disconnect notifications.
-  object.RegisterDisconnections();
-
-  discovery1.Start();
-  object.Start();
-
-  // This should not trigger a disconnect response on object.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher));
-
-  waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
-
-  // Check that no discovery response were received.
-  EXPECT_FALSE(connectionExecutedMF);
-  EXPECT_FALSE(disconnectionExecutedMF);
-
-  reset();
-
-  // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseMsg(topic, nUuid1));
-
-  waitForCallback(MaxIters, Nap, disconnectionExecutedMF);
-
-  // Check that the discovery response was received.
-  EXPECT_FALSE(connectionExecutedMF);
-  EXPECT_TRUE(disconnectionExecutedMF);
+  MsgAddresses_M addresses;
+  EXPECT_FALSE(discovery2.Publishers(g_topic, addresses));
 }
 
 //////////////////////////////////////////////////
@@ -625,9 +383,8 @@ TEST(DiscoveryTest, TestNodeBye)
   reset();
 
   // Create two discovery nodes.
-  std::unique_ptr<transport::Discovery> discovery1(
-    new transport::Discovery(pUuid1));
-  transport::Discovery discovery2(pUuid2);
+  std::unique_ptr<MsgDiscovery> discovery1(new MsgDiscovery(pUuid1, g_msgPort));
+  MsgDiscovery discovery2(pUuid2, g_msgPort);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
@@ -636,9 +393,8 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  EXPECT_TRUE(discovery1->AdvertiseMsg(publisher));
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  EXPECT_TRUE(discovery1->Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
 
@@ -666,19 +422,19 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   reset();
 
   // Create two discovery nodes and advertise the same topic.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
+  MsgDiscovery discovery1(pUuid1, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_msgPort);
 
-  transport::MessagePublisher publisher1(topic, addr1, ctrl1, pUuid1, nUuid1,
-    scope, "type");
-  transport::MessagePublisher publisher2(topic, addr2, ctrl2, pUuid2, nUuid2,
-    scope, "type");
+  MessagePublisher publisher1(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope,
+    "t");
+  MessagePublisher publisher2(g_topic, addr2, ctrl2, pUuid2, nUuid2, scope,
+    "t");
 
   discovery1.Start();
   discovery2.Start();
 
-  EXPECT_TRUE(discovery1.AdvertiseMsg(publisher1));
-  EXPECT_TRUE(discovery2.AdvertiseMsg(publisher2));
+  EXPECT_TRUE(discovery1.Advertise(publisher1));
+  EXPECT_TRUE(discovery2.Advertise(publisher2));
 
   // The callbacks should not be triggered but let's wait some time in case
   // something goes wrong.
@@ -692,10 +448,10 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   discovery2.ConnectionsCb(onDiscoveryResponseMultiple);
 
   // Request the discovery of a topic.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(g_topic));
 
   int i = 0;
-  while (i < MaxIters && counter < 2)
+  while (i < MaxIters && g_counter < 2)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(Nap));
     ++i;
@@ -704,209 +460,19 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   // Check that the two discovery responses were received.
   EXPECT_TRUE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
-  EXPECT_EQ(counter, 2);
+  EXPECT_EQ(g_counter, 2);
 
   reset();
 
   // Request again the discovery of a topic. The callback should be executed
   // from the Discover method this time because the topic information should be
   // known.
-  EXPECT_TRUE(discovery2.DiscoverMsg(topic));
+  EXPECT_TRUE(discovery2.Discover(g_topic));
 
   // Check that the discovery response was received.
   EXPECT_TRUE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);
-  EXPECT_EQ(counter, 2);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the srv call callbacks after
-/// an advertise.
-TEST(DiscoveryTest, TestAdvertiseSrv)
-{
-  reset();
-
-  // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
-
-  // Register one callback for receiving notifications.
-  discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
-
-  discovery1.Start();
-  discovery2.Start();
-
-  // This should trigger a discovery srv call response on discovery2.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
-
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
-
-  waitForCallback(MaxIters, Nap, connectionSrvExecuted);
-
-  EXPECT_TRUE(connectionSrvExecuted);
-  EXPECT_FALSE(disconnectionSrvExecuted);
-  EXPECT_FALSE(connectionExecuted);
-  EXPECT_FALSE(disconnectionExecuted);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the callbacks after a service
-/// call advertise.
-/// This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestAdvertiseSrvMF)
-{
-  reset();
-
-  // Create two discovery nodes (one is embedded in an object).
-  transport::Discovery discovery1(pUuid1);
-  MyClass object(pUuid2);
-  object.RegisterSrvConnections();
-
-  discovery1.Start();
-  object.Start();
-
-  // This should trigger a discovery response on object.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
-
-  waitForCallback(MaxIters, Nap, connectionSrvExecutedMF);
-
-  EXPECT_TRUE(connectionSrvExecutedMF);
-  EXPECT_FALSE(disconnectionSrvExecutedMF);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the disconnection callback after
-/// an unadvertise.
-TEST(DiscoveryTest, TestUnadvertiseSrv)
-{
-  reset();
-
-  // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  transport::Discovery discovery2(pUuid2);
-
-  // Register one callback for receiving disconnect  notifications (srv calls).
-  discovery2.DisconnectionsSrvCb(onDisconnectionSrv);
-
-  discovery1.Start();
-  discovery2.Start();
-
-  // This should not trigger a disconnect response on discovery2.
-  transport::ServicePublisher publisher1(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher1));
-
-  waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
-
-  // Check that no discovery response was received.
-  EXPECT_FALSE(connectionSrvExecuted);
-  EXPECT_FALSE(disconnectionSrvExecuted);
-
-  reset();
-
-  // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
-
-  waitForCallback(MaxIters, Nap, disconnectionSrvExecuted);
-
-  // Check that the discovery response was received.
-  EXPECT_FALSE(connectionSrvExecuted);
-  EXPECT_TRUE(disconnectionSrvExecuted);
-
-  // Unadvertise a topic not advertised.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
-  transport::SrvAddresses_M addresses;
-  EXPECT_FALSE(discovery2.SrvPublishers(topic, addresses));
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery triggers the disconnection callback after
-/// an unadvertise service. This test uses a discovery object within a class.
-TEST(DiscoveryTest, TestUnadvertiseSrvMF)
-{
-  reset();
-
-  // Create two discovery nodes.
-  transport::Discovery discovery1(pUuid1);
-  MyClass object(pUuid2);
-
-  // Register one callback for receiving disconnect notifications.
-  object.RegisterSrvDisconnections();
-
-  discovery1.Start();
-  object.Start();
-
-  // This should not trigger a disconnect response on object.
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
-
-  waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
-
-  // Check that no discovery response was received.
-  EXPECT_FALSE(connectionSrvExecutedMF);
-  EXPECT_FALSE(disconnectionSrvExecutedMF);
-
-  reset();
-
-  // This should trigger a disconnect response on discovery2.
-  EXPECT_TRUE(discovery1.UnadvertiseSrv(service, nUuid1));
-
-  waitForCallback(MaxIters, Nap, disconnectionSrvExecutedMF);
-
-  // Check that the discovery response was received.
-  EXPECT_FALSE(connectionSrvExecutedMF);
-  EXPECT_TRUE(disconnectionSrvExecutedMF);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that the discovery service triggers the callbacks after
-/// a discovery and after register the discovery callback.
-TEST(DiscoveryTest, TestDiscoverSrv)
-{
-  reset();
-
-  // Create one discovery node and advertise a service.
-  transport::Discovery discovery1(pUuid1);
-  discovery1.Start();
-  transport::ServicePublisher publisher(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
-  EXPECT_TRUE(discovery1.AdvertiseSrv(publisher));
-
-  // Create a second discovery node that did not see the previous ADVSRV message
-  transport::Discovery discovery2(pUuid2);
-  discovery2.Start();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // I should not see any discovery updates.
-  EXPECT_FALSE(connectionSrvExecuted);
-  EXPECT_FALSE(disconnectionSrvExecuted);
-
-  // Register one callback for receiving notifications.
-  discovery2.ConnectionsSrvCb(onDiscoverySrvResponse);
-
-  // Request the discovery of a service.
-  EXPECT_TRUE(discovery2.DiscoverSrv(service));
-
-  waitForCallback(MaxIters, Nap, connectionSrvExecuted);
-
-  // Check that the discovery response was received.
-  EXPECT_TRUE(connectionSrvExecuted);
-  EXPECT_FALSE(disconnectionSrvExecuted);
-
-  reset();
-
-  // Request again the discovery of a service. The callback should be executed
-  // from the Discover method this time because the service information should
-  // be known.
-  EXPECT_TRUE(discovery2.DiscoverSrv(service));
-
-  // Check that the discovery response was received.
-  EXPECT_TRUE(connectionSrvExecuted);
-  EXPECT_FALSE(disconnectionSrvExecuted);
+  EXPECT_EQ(g_counter, 2);
 }
 
 //////////////////////////////////////////////////
@@ -916,19 +482,19 @@ TEST(DiscoveryTest, TestActivity)
 {
   auto proc1Uuid = testing::getRandomNumber();
   auto proc2Uuid = testing::getRandomNumber();
-  transport::MessagePublisher publisher(topic, addr1, ctrl1, proc1Uuid,
-    nUuid1, scope, "type");
-  transport::ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
+  MessagePublisher publisher(g_topic, addr1, ctrl1, proc1Uuid, nUuid1, scope,
+    "type");
+  ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
     nUuid2, scope, "reqType", "repType");
-  DiscoveryDerived discovery1(proc1Uuid);
+  DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid, g_msgPort);
 
   {
-    DiscoveryDerived discovery2(proc2Uuid);
+    DiscoveryDerived<MessagePublisher> discovery2(proc2Uuid, g_msgPort);
 
     discovery1.Start();
     discovery2.Start();
 
-    discovery1.AdvertiseMsg(publisher);
+    discovery1.Advertise(publisher);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(
       discovery1.HeartbeatInterval() * 2));
@@ -950,24 +516,19 @@ TEST(DiscoveryTest, TestActivity)
 TEST(DiscoveryTest, WrongIgnIp)
 {
   // Save the current value of IGN_IP environment variable.
-  char *ipEnv;
-#ifdef _MSC_VER
-  size_t sz = 0;
-  _dupenv_s(&ipEnv, &sz, "IGN_IP");
-#else
-  ipEnv = std::getenv("IGN_IP");
-#endif
+  std::string ignIp;
+  env("IGN_IP", ignIp);
 
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);
 
-  transport::Discovery discovery1(pUuid1);
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
   // Unset IGN_IP.
   unsetenv("IGN_IP");
 
   // Restore IGN_IP.
-  if (ipEnv)
-    setenv("IGN_IP", ipEnv, 1);
+  if (!ignIp.empty())
+    setenv("IGN_IP", ignIp.c_str(), 1);
 }

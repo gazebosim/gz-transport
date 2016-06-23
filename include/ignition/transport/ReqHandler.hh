@@ -44,7 +44,7 @@ namespace ignition
     class IGNITION_TRANSPORT_VISIBLE IReqHandler
     {
       /// \brief Constructor.
-      /// \param[in] _uuid UUID of the node registering the request handler.
+      /// \param[in] _nUuid UUID of the node registering the request handler.
       public: explicit IReqHandler(const std::string &_nUuid)
         : rep(""),
           result(false),

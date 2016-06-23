@@ -25,7 +25,7 @@
 
 using namespace ignition;
 
-std::string topic = "/foo";
+static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -40,7 +40,7 @@ void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(topic, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
   std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 
