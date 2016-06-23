@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,23 +63,22 @@ void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 
 //////////////////////////////////////////////////
 /// \brief Two different nodes running in two different processes. One node
-/// advertises a service and the other requests a few service calls.
-TEST(twoProcSrvCall, SrvTwoProcs)
+/// advertises a service without input and the other requests a few service
+/// calls.
+TEST(twoProcSrvCallWithoutInput, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
     PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
   responseExecuted = false;
   counter = 0;
-  ignition::msgs::Int32 req;
-  req.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Request(g_topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, response));
 
   int i = 0;
   while (i < 300 && !responseExecuted)
@@ -95,7 +94,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   // Make another request.
   responseExecuted = false;
   counter = 0;
-  EXPECT_TRUE(node.Request(g_topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, response));
 
   i = 0;
   while (i < 300 && !responseExecuted)
@@ -113,77 +112,33 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service responser and a service requester. The
-/// requester uses a wrong type for the request argument. The test should verify
-/// that the service call does not succeed.
-TEST(twoProcSrvCall, SrvRequestWrongReq)
+/// \brief This test spawns a service without input responser and a service
+/// requester. The requester uses a wrong type for the response argument. The
+/// test should verify that the service call does not succeed.
+TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
-  ignition::msgs::Vector3d wrongReq;
-  ignition::msgs::Int32 rep;
-  bool result;
-  unsigned int timeout = 1000;
-
-  std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
-
-  wrongReq.set_x(1);
-  wrongReq.set_y(2);
-  wrongReq.set_z(3);
-
-  reset();
-
-  transport::Node node;
-
-  // Request an asynchronous service call with wrong type in the request.
-  EXPECT_TRUE(node.Request(g_topic, wrongReq, response));
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_FALSE(responseExecuted);
-
-  // Request a synchronous service call with wrong type in the request.
-  EXPECT_FALSE(node.Request(g_topic, wrongReq, timeout, rep, result));
-
-  reset();
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
-}
-
-//////////////////////////////////////////////////
-/// \brief This test spawns a service responser and a service requester. The
-/// requester uses a wrong type for the response argument. The test should
-/// verify that the service call does not succeed.
-TEST(twoProcSrvCall, SrvRequestWrongRep)
-{
-  ignition::msgs::Int32 req;
   ignition::msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
-
+     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
-
-  req.set_data(data);
 
   reset();
 
   transport::Node node;
 
   // Request an asynchronous service call with wrong type in the response.
-  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
+  EXPECT_TRUE(node.Request(g_topic, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   // Request a synchronous service call with wrong type in the response.
-  EXPECT_FALSE(node.Request(g_topic, req, timeout, wrongRep, result));
+  EXPECT_FALSE(node.Request(g_topic, timeout, wrongRep, result));
 
   reset();
 
@@ -192,12 +147,11 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service responser and two service requesters. One
-/// requester uses wrong type arguments. The test should verify that only one
-/// of the requesters receives the response.
-TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
+/// \brief This test spawns a service without input responser and two service
+/// requesters. One requester uses wrong type arguments. The test should verify
+/// that only one of the requesters receives the response.
+TEST(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
-  ignition::msgs::Int32 req;
   ignition::msgs::Int32 goodRep;
   ignition::msgs::Vector3d badRep;
   bool result;
@@ -205,12 +159,10 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 
   std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
-
-  req.set_data(data);
 
   reset();
 
@@ -219,16 +171,16 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   transport::Node node;
 
   // Request service calls with wrong types in the response.
-  EXPECT_FALSE(node.Request(g_topic, req, timeout, badRep, result));
-  EXPECT_TRUE(node.Request(g_topic, req, wrongResponse));
+  EXPECT_FALSE(node.Request(g_topic, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(g_topic, wrongResponse));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_FALSE(wrongResponseExecuted);
 
   reset();
 
   // Valid service requests.
-  EXPECT_TRUE(node.Request(g_topic, req, timeout, goodRep, result));
-  EXPECT_TRUE(node.Request(g_topic, req, response));
+  EXPECT_TRUE(node.Request(g_topic, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(g_topic, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_TRUE(responseExecuted);
 
@@ -240,13 +192,13 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
-/// advertises a service and the other uses ServiceList() for getting the list
-/// of available services.
-TEST(twoProcSrvCall, ServiceList)
+/// advertises a service without input and the other uses ServiceList() for
+/// getting the list of available services.
+TEST(twoProcSrvCallWithoutInput, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -291,13 +243,13 @@ TEST(twoProcSrvCall, ServiceList)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
-/// advertises a service and the other uses ServiceInfo() for getting
-/// information about the service.
-TEST(twoProcSrvCall, ServiceInfo)
+/// advertises a service without input and the other uses ServiceInfo() for
+/// getting information about the service.
+TEST(twoProcSrvCallWithoutInput, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -318,7 +270,7 @@ TEST(twoProcSrvCall, ServiceInfo)
 
   EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Int32");
+  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Empty");
   EXPECT_EQ(publishers.front().RepTypeName(), "ignition.msgs.Int32");
 
   reset();
