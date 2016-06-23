@@ -224,7 +224,7 @@ size_t SubscriptionMsg::Pack(char *_buffer) const
   _buffer += headerLen;
 
   // Pack the topic length.
-  uint16_t topicLength = this->topic.size();
+  uint16_t topicLength = static_cast<uint16_t>(this->topic.size());
   memcpy(_buffer, &topicLength, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
