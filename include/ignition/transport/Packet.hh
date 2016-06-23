@@ -51,7 +51,7 @@ namespace ignition
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the process UUID of the sender node, the type
     // of message (ADV, SUB, ... ) and optional flags.
-    class IGNITION_VISIBLE Header
+    class IGNITION_TRANSPORT_VISIBLE Header
     {
       /// \brief Constructor.
       public: Header() = default;
@@ -155,7 +155,7 @@ namespace ignition
     /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
-    class IGNITION_VISIBLE SubscriptionMsg
+    class IGNITION_TRANSPORT_VISIBLE SubscriptionMsg
     {
       /// \brief Constructor.
       public: SubscriptionMsg() = default;
@@ -227,7 +227,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
 
-    template <class T> class IGNITION_VISIBLE AdvertiseMessage
+    template <class T> class IGNITION_TRANSPORT_VISIBLE AdvertiseMessage
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;

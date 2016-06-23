@@ -32,7 +32,7 @@ namespace ignition
     /// \class NodeOptions NodeOptions.hh ignition/transport/NodeOptions.hh
     /// \brief A class for customizing the behavior of the Node.
     /// E.g.: Set a custom namespace or a partition name.
-    class IGNITION_VISIBLE NodeOptions
+    class IGNITION_TRANSPORT_VISIBLE NodeOptions
     {
       /// \brief Constructor.
       public: NodeOptions();

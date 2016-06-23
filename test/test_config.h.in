@@ -15,11 +15,13 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_TEST_CONFIG_HH__INCLUDED__
-#define __IGN_TRANSPORT_TEST_CONFIG_HH__INCLUDED__
+#ifndef IGNITION_TRANSPORT_TEST_CONFIG_HH_
+#define IGNITION_TRANSPORT_TEST_CONFIG_HH_
 
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
+#define IGN_TEST_LIBRARY_PATH "@IGNITION-MSGS_LIBRARY_DIRS@:"\
+  "${PROJECT_BINARY_DIR}/src"
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 
@@ -113,7 +115,8 @@ namespace testing
     ign_strcat(cmd, " ");
     ign_strcat(cmd, _partition);
 
-    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
+    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
+          TRUE, 0, NULL, NULL, &info, &processInfo))
     {
       std::cerr << "CreateProcess call failed" << std::endl;
     }
@@ -124,8 +127,11 @@ namespace testing
 
     if (pid == 0)
     {
-      if (execl(_command, _command, _partition, reinterpret_cast<char *>(0)) == -1)
+      if (execl(_command, _command, _partition,
+            reinterpret_cast<char *>(0)) == -1)
+      {
         std::cerr << "Error running execl call: " << _command << std::endl;
+      }
     }
 
     return pid;

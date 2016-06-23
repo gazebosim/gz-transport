@@ -34,7 +34,7 @@ namespace ignition
     /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, removing them, etc.
-    template<typename T> class IGNITION_VISIBLE TopicStorage
+    template<typename T> class IGNITION_TRANSPORT_VISIBLE TopicStorage
     {
       /// \brief Constructor.
       public: TopicStorage() = default;

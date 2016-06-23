@@ -6,8 +6,8 @@ project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
-set (PROJECT_MAJOR_VERSION 1)
-set (PROJECT_MINOR_VERSION 2)
+set (PROJECT_MAJOR_VERSION 2)
+set (PROJECT_MINOR_VERSION 0)
 set (PROJECT_PATCH_VERSION 0)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
@@ -279,7 +279,6 @@ else (build_errors)
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
-    add_subdirectory(msgs)
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(conf)
@@ -338,6 +337,10 @@ else (build_errors)
     file(GLOB ZMQ_DLLS "${ZeroMQ_ROOT_DIR}/bin/*.dll")
     file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/src)
     file(COPY ${ZMQ_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/test/integration)
+
+    file(GLOB IGN-MSGS_DLLS "${IGNITION-MSGS_ROOT_DIR}/lib/*.dll")
+    file(COPY ${IGN-MSGS_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/src)
+    file(COPY ${IGN-MSGS_DLLS} DESTINATION ${PROJECT_BINARY_DIR}/test/integration)
   endif()
 
 

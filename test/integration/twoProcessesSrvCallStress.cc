@@ -18,11 +18,11 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
 
 using namespace ignition;
 
@@ -39,8 +39,8 @@ TEST(twoProcSrvCall, ThousandCalls)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
-  transport::msgs::Int req;
-  transport::msgs::Int response;
+  ignition::msgs::Int32 req;
+  ignition::msgs::Int32 response;
   bool result;
   unsigned int timeout = 1000;
   transport::Node node;

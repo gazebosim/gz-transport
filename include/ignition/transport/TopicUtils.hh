@@ -28,7 +28,7 @@ namespace ignition
   {
     /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
     /// \brief This class provides different utilities related with topics.
-    class IGNITION_VISIBLE TopicUtils
+    class IGNITION_TRANSPORT_VISIBLE TopicUtils
     {
       /// \brief Determines if a namespace is valid.
       /// \param[in] _ns Namespace to be checked.

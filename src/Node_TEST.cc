@@ -30,8 +30,6 @@
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/test_config.h"
-#include "msgs/int.pb.h"
-#include "msgs/vector3d.pb.h"
 
 using namespace ignition;
 
@@ -378,7 +376,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Publish some data on topic without advertising it first.
   EXPECT_FALSE(node1.Publish(g_topic, msg));
 
-  EXPECT_TRUE(node1.Advertise<ignition::msgs::Int32>(g_topic));
+  EXPECT_TRUE(node1.Advertise(g_topic, msg.GetTypeName()));
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
@@ -796,7 +794,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 
   transport::Node node;
   EXPECT_TRUE((node.Advertise<ignition::msgs::Int32,
-    ignition::msgs::Int32>(g_topic, advCb)));
+        ignition::msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
   std::function<void(const ignition::msgs::Int32 &, const bool)> reqCb =
@@ -1116,20 +1114,12 @@ TEST(NodeTest, SigIntTermination)
   std::signal(SIGINT, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
-#ifdef _WIN32
-  thread.detach();
-#endif
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGINT);
 
-#ifndef _WIN32
   if (thread.joinable())
     thread.join();
-#else
-  WaitForSingleObject(thread.native_handle(), INFINITE);
-  CloseHandle(thread.native_handle());
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -1143,20 +1133,12 @@ TEST(NodeTest, SigTermTermination)
   std::signal(SIGTERM, signal_handler);
 
   auto thread = std::thread(createInfinitePublisher);
-#ifdef _WIN32
-  thread.detach();
-#endif
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   std::raise(SIGTERM);
 
-#ifndef _WIN32
   if (thread.joinable())
     thread.join();
-#else
-  WaitForSingleObject(thread.native_handle(), INFINITE);
-  CloseHandle(thread.native_handle());
-#endif
 }
 
 //////////////////////////////////////////////////

@@ -33,7 +33,7 @@ namespace ignition
 
     /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
     /// \brief Private data for Private Node class.
-    class IGNITION_VISIBLE NodePrivate
+    class IGNITION_TRANSPORT_VISIBLE NodePrivate
     {
       /// \brief Constructor.
       public: NodePrivate() = default;
