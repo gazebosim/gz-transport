@@ -91,14 +91,13 @@ void srvEcho(const ignition::msgs::Int32 &_req,
 }
 
 //////////////////////////////////////////////////
-/// \brief Provide a service without input call.
+/// \brief Provide a service call without input.
 void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
 {
   srvExecuted = true;
   _rep.set_data(data);
   _result = true;
 }
-
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
@@ -152,8 +151,8 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
-  // Member function used as a callback for responding to a service without
-  // input call.
+  // Member function used as a callback for responding to a service call
+  // without input.
   public: void WithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
   {
     _rep.set_data(data);
@@ -161,7 +160,7 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
-  /// \brief Member function used as a callback for responding to a service call
+  /// \brief Member function used as a callback for responding to a service call.
   public: void WrongEcho(const ignition::msgs::Vector3d &/*_req*/,
     ignition::msgs::Int32 &/*_rep*/, bool &_result)
   {
@@ -179,7 +178,7 @@ class MyTestClass
     this->responseExecuted = true;
   }
 
-  /// \brief Response callback to a service without input request.
+  /// \brief Response callback to a service request without input.
   public: void WithoutInputResponse(const ignition::msgs::Int32 &_rep,
     const bool _result)
   {
@@ -234,23 +233,9 @@ class MyTestClass
     // Advertise an illegal service name.
     EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::Echo, this));
 
-    // Advertise an illegal service name without input.
-    EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::WithoutInput,
-      this));
-
     // Advertise and request a valid service.
     EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::Echo, this));
     EXPECT_TRUE(this->node.Request(g_topic, req, timeout, rep, result));
-    ASSERT_TRUE(result);
-    EXPECT_EQ(rep.data(), data);
-    EXPECT_TRUE(this->callbackSrvExecuted);
-
-    this->Reset();
-
-    // Advertise and request a valid service without input.
-    EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::WithoutInput,
-      this));
-    EXPECT_TRUE(this->node.Request(g_topic, timeout, rep, result));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
     EXPECT_TRUE(this->callbackSrvExecuted);
@@ -263,12 +248,6 @@ class MyTestClass
 
     this->Reset();
 
-    // Request a valid service without input using a member function callback.
-    this->node.Request(g_topic, &MyTestClass::WithoutInputResponse, this);
-    EXPECT_TRUE(this->responseExecuted);
-
-    this->Reset();
-
     // Service requests with wrong types.
     EXPECT_FALSE(this->node.Request(g_topic, wrongReq, timeout, rep, result));
     EXPECT_FALSE(this->node.Request(g_topic, req, timeout, wrongRep, result));
@@ -277,8 +256,44 @@ class MyTestClass
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
+  }
 
+  public: void TestServiceCallWithoutInput()
+  {
+    ignition::msgs::Int32 rep;
+    ignition::msgs::Vector3d wrongRep;
+    int timeout = 500;
+    bool result;
+
+    this->Reset();
+
+    // Advertise an illegal service name without input.
+    EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::WithoutInput,
+      this));
+
+    // Advertise and request a valid service without input.
+    EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::WithoutInput,
+      this));
+    EXPECT_TRUE(this->node.Request(g_topic, timeout, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(rep.data(), data);
+    EXPECT_TRUE(this->callbackSrvExecuted);
+
+    this->Reset();
+
+    // Request a valid service without input using a member function callback.
+    this->node.Request(g_topic, &MyTestClass::WithoutInputResponse, this);
+    EXPECT_TRUE(this->responseExecuted);
+
+    this->Reset();
+
+    // Service requests without input with wrong types.
     EXPECT_FALSE(this->node.Request(g_topic, timeout, wrongRep, result));
+    EXPECT_TRUE(this->node.Request(g_topic, response));
+    EXPECT_TRUE(this->node.Request(g_topic, wrongResponse));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_TRUE(this->callbackSrvExecuted);
+    EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
   public: void Reset()
@@ -609,6 +624,25 @@ TEST(NodeTest, ClassMemberCallback)
 }
 
 //////////////////////////////////////////////////
+/// \brief Use the transport inside a class and check advertise, subscribe and
+/// publish (service without input).
+TEST(NodeTest, ClassMemberCallbackWithoutInput)
+{
+  MyTestClass client;
+
+  // Wait for the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  client.SendSomeData();
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_TRUE(client.callbackExecuted);
+
+  client.TestServiceCallWithoutInput();
+}
+
+//////////////////////////////////////////////////
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
@@ -777,7 +811,6 @@ TEST(NodeTest, ServiceWithoutInputCallAsync)
 
   ASSERT_TRUE(node.AdvertisedServices().empty());
 }
-
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using lambdas.
