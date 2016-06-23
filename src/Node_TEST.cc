@@ -141,7 +141,8 @@ class MyTestClass
     EXPECT_TRUE(this->node.Subscribe(g_topic, &MyTestClass::Cb, this));
   }
 
-  // Member function used as a callback for responding to a service call.
+  /// \brief Member function used as a callback for responding to a service
+  /// call.
   public: void Echo(const ignition::msgs::Int32 &_req,
     ignition::msgs::Int32 &_rep, bool &_result)
   {
@@ -151,8 +152,8 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
-  // Member function used as a callback for responding to a service call
-  // without input.
+  /// \brief Member function used as a callback for responding to a service
+  /// call without input.
   public: void WithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
   {
     _rep.set_data(data);
