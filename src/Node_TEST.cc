@@ -133,7 +133,6 @@ class MyTestClass
   public: MyTestClass()
     : callbackExecuted(false),
       callbackSrvExecuted(false),
-      wrongCallbackSrvExecuted(false),
       responseExecuted(false)
   {
   }
@@ -165,15 +164,6 @@ class MyTestClass
     _rep.set_data(data);
     _result = true;
     this->callbackSrvExecuted = true;
-  }
-
-  /// \brief Member function used as a callback for responding to a service
-  /// call.
-  public: void WrongEcho(const ignition::msgs::Vector3d &/*_req*/,
-    ignition::msgs::Int32 &/*_rep*/, bool &_result)
-  {
-    _result = true;
-    this->wrongCallbackSrvExecuted = true;
   }
 
   /// \brief Response callback to a service request.
@@ -265,7 +255,6 @@ class MyTestClass
     EXPECT_TRUE(this->node.Request(g_topic, req, wrongResponse));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
-    EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
   /// \brief Advertise a service without input, request a service without input
@@ -304,21 +293,18 @@ class MyTestClass
     EXPECT_TRUE(this->node.Request(g_topic, wrongResponse));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
-    EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
   public: void Reset()
   {
     this->callbackExecuted = false;
     this->callbackSrvExecuted = false;
-    this->wrongCallbackSrvExecuted = false;
     this->responseExecuted = false;
   }
 
   /// \brief Member variables that flag when the actions are executed.
   public: bool callbackExecuted;
   public: bool callbackSrvExecuted;
-  public: bool wrongCallbackSrvExecuted;
   public: bool responseExecuted;
 
   /// \brief Transport node;
