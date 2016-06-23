@@ -28,7 +28,6 @@ using namespace ignition;
 
 static std::string partition;
 static std::string g_topic = "/foo";
-static int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
