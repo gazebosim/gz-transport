@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////
 /// \brief Provide a "without_input" service.
-void srvEcho(ignition::msgs::StringMsg &_rep, bool &_result)
+void srvWithoutInput(ignition::msgs::StringMsg &_rep, bool &_result)
 {
   // Set the response's content.
   _rep.set_data("Answer from 'without_input' server");
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   std::string service = "/without_input";
 
   // Advertise a service call.
-  if (!node.Advertise(service, srvEcho))
+  if (!node.Advertise(service, srvWithoutInput))
   {
     std::cerr << "Error advertising service [" << service << "]" << std::endl;
     return -1;
