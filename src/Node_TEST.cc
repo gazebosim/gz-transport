@@ -125,15 +125,21 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 }
 
 //////////////////////////////////////////////////
-/// \brief A class for testing subscription passing a member function
-/// as a callback.
+/// \brief A class for testing subscription, advertisement, and request passing
+/// a member function as a callback.
 class MyTestClass
 {
   /// \brief Class constructor.
   public: MyTestClass()
     : callbackExecuted(false),
       callbackSrvExecuted(false),
-      wrongCallbackSrvExecuted(false)
+      wrongCallbackSrvExecuted(false),
+      responseExecuted(false)
+  {
+  }
+
+  /// \brief Create a subscriber.
+  public: void Subscribe()
   {
     // Subscribe to an illegal topic.
     EXPECT_FALSE(this->node.Subscribe("Bad Topic", &MyTestClass::Cb, this));
@@ -161,7 +167,8 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
-  /// \brief Member function used as a callback for responding to a service call.
+  /// \brief Member function used as a callback for responding to a service
+  /// call.
   public: void WrongEcho(const ignition::msgs::Vector3d &/*_req*/,
     ignition::msgs::Int32 &/*_rep*/, bool &_result)
   {
@@ -218,6 +225,8 @@ class MyTestClass
     EXPECT_TRUE(this->node.Publish(pubId, msg));
   }
 
+  /// \brief Advertise a service, request a service using non-blocking and
+  /// blocking call.
   public: void TestServiceCall()
   {
     ignition::msgs::Int32 req;
@@ -259,6 +268,8 @@ class MyTestClass
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
+  /// \brief Advertise a service without input, request a service without input
+  /// using non-blocking and blocking call.
   public: void TestServiceCallWithoutInput()
   {
     ignition::msgs::Int32 rep;
@@ -290,10 +301,9 @@ class MyTestClass
 
     // Service requests without input with wrong types.
     EXPECT_FALSE(this->node.Request(g_topic, timeout, wrongRep, result));
-    EXPECT_TRUE(this->node.Request(g_topic, response));
     EXPECT_TRUE(this->node.Request(g_topic, wrongResponse));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    EXPECT_TRUE(this->callbackSrvExecuted);
+    EXPECT_FALSE(this->callbackSrvExecuted);
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
@@ -305,7 +315,7 @@ class MyTestClass
     this->responseExecuted = false;
   }
 
-  /// \brief Member variables that flag when the callbacks are executed.
+  /// \brief Member variables that flag when the actions are executed.
   public: bool callbackExecuted;
   public: bool callbackSrvExecuted;
   public: bool wrongCallbackSrvExecuted;
@@ -608,9 +618,10 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 //////////////////////////////////////////////////
 /// \brief Use the transport inside a class and check advertise, subscribe and
 /// publish.
-TEST(NodeTest, ClassMemberCallback)
+TEST(NodeTest, ClassMemberCallbackMessage)
 {
   MyTestClass client;
+  client.Subscribe();
 
   // Wait for the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -620,26 +631,23 @@ TEST(NodeTest, ClassMemberCallback)
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_TRUE(client.callbackExecuted);
+}
 
+//////////////////////////////////////////////////
+/// \brief Make an asynchronous and synchronous service calls using member
+/// function.
+TEST(NodeTest, ClassMemberCallbackService)
+{
+  MyTestClass client;
   client.TestServiceCall();
 }
 
 //////////////////////////////////////////////////
-/// \brief Use the transport inside a class and check advertise, subscribe and
-/// publish (service without input).
-TEST(NodeTest, ClassMemberCallbackWithoutInput)
+/// \brief Make an asynchronous and synchronous service calls without input
+/// using member function.
+TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 {
   MyTestClass client;
-
-  // Wait for the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  client.SendSomeData();
-
-  // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_TRUE(client.callbackExecuted);
-
   client.TestServiceCallWithoutInput();
 }
 
@@ -687,7 +695,7 @@ TEST(NodeTest, TypeMismatch)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages.
+/// \brief Make an asynchronous service call using free function.
 TEST(NodeTest, ServiceCallAsync)
 {
   srvExecuted = false;
@@ -751,9 +759,8 @@ TEST(NodeTest, ServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages
-/// (service without input).
-TEST(NodeTest, ServiceWithoutInputCallAsync)
+/// \brief Make an asynchronous service call without input using free function.
+TEST(NodeTest, ServiceCallWithoutInputAsync)
 {
   srvExecuted = false;
   responseExecuted = false;
@@ -848,8 +855,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 }
 
 //////////////////////////////////////////////////
-/// \brief Make an asynchronous service call using lambdas (service without
-/// input).
+/// \brief Make an asynchronous service call without input using lambdas.
 TEST(NodeTest, ServiceWithoutInputCallAsyncLambda)
 {
   std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
@@ -937,8 +943,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 }
 
 //////////////////////////////////////////////////
-/// \brief Request multiple service calls at the same time (service without
-/// input).
+/// \brief Request multiple service calls without input at the same time.
 TEST(NodeTest, MultipleServiceWithoutInputCallAsync)
 {
   srvExecuted = false;
@@ -996,7 +1001,7 @@ TEST(NodeTest, MultipleServiceWithoutInputCallAsync)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages.
+/// \brief Make a synchronous service call.
 TEST(NodeTest, ServiceCallSync)
 {
   ignition::msgs::Int32 req;
@@ -1020,9 +1025,8 @@ TEST(NodeTest, ServiceCallSync)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages (service
-/// without input).
-TEST(NodeTest, ServiceWithoutInputCallSync)
+/// \brief Make a synchronous service call without input.
+TEST(NodeTest, ServiceCallWithoutInputSync)
 {
   ignition::msgs::Int32 rep;
   bool result;
@@ -1042,7 +1046,7 @@ TEST(NodeTest, ServiceWithoutInputCallSync)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages.
+/// \brief Check a timeout in a synchronous service call.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
   ignition::msgs::Int32 req;
@@ -1071,9 +1075,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 }
 
 //////////////////////////////////////////////////
-/// \brief A thread can create a node, and send and receive messages (service
-/// without input).
-TEST(NodeTest, ServiceWithoutInputCallSyncTimeout)
+/// \brief Check a timeout in a synchronous service call without input.
+TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
   ignition::msgs::Int32 rep;
   bool result;
