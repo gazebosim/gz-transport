@@ -507,6 +507,9 @@ TEST(DiscoveryTest, TestActivity)
       discovery1.HeartbeatInterval() * 2));
   }
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(
+    discovery1.HeartbeatInterval()));
+
   // We shouldn't observe activity from proc1Uuid2 anymore.
   discovery1.TestActivity(proc2Uuid, false);
 }
