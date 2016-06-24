@@ -124,7 +124,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += topicLength;
 
   // Pack the zeromq address length.
-  uint16_t addrLength = this->addr.size();
+  uint16_t addrLength = static_cast<uint16_t>(this->addr.size());
   memcpy(_buffer, &addrLength, sizeof(addrLength));
   _buffer += sizeof(addrLength);
 
@@ -133,7 +133,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += addrLength;
 
   // Pack the process UUID length.
-  uint16_t pUuidLength = this->pUuid.size();
+  uint16_t pUuidLength = static_cast<uint16_t>(this->pUuid.size());
   memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
@@ -142,7 +142,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += pUuidLength;
 
   // Pack the node UUID length.
-  uint16_t nUuidLength = this->nUuid.size();
+  uint16_t nUuidLength = static_cast<uint16_t>(this->nUuid.size());
   memcpy(_buffer, &nUuidLength, sizeof(nUuidLength));
   _buffer += sizeof(nUuidLength);
 
@@ -265,7 +265,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
   _buffer += len;
 
   // Pack the zeromq control address length.
-  uint16_t ctrlLength = this->ctrl.size();
+  uint16_t ctrlLength = static_cast<uint16_t>(this->ctrl.size());
   memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
   _buffer += sizeof(ctrlLength);
 
@@ -274,7 +274,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
   _buffer += ctrlLength;
 
   // Pack the type name length.
-  uint16_t typeNameLength = this->msgTypeName.size();
+  uint16_t typeNameLength = static_cast<uint16_t>(this->msgTypeName.size());
   memcpy(_buffer, &typeNameLength, sizeof(typeNameLength));
   _buffer += sizeof(typeNameLength);
 
@@ -400,7 +400,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += len;
 
   // Pack the socket ID length.
-  uint16_t socketIdLength = this->socketId.size();
+  uint16_t socketIdLength = static_cast<uint16_t>(this->socketId.size());
   memcpy(_buffer, &socketIdLength, sizeof(socketIdLength));
   _buffer += sizeof(socketIdLength);
 
@@ -409,7 +409,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += socketIdLength;
 
   // Pack the request type length.
-  uint16_t reqTypeLength = this->reqTypeName.size();
+  uint16_t reqTypeLength = static_cast<uint16_t>(this->reqTypeName.size());
   memcpy(_buffer, &reqTypeLength, sizeof(reqTypeLength));
   _buffer += sizeof(reqTypeLength);
 
@@ -418,7 +418,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += reqTypeLength;
 
   // Pack the response type length.
-  uint16_t repTypeLength = this->repTypeName.size();
+  uint16_t repTypeLength = static_cast<uint16_t>(this->repTypeName.size());
   memcpy(_buffer, &repTypeLength, sizeof(repTypeLength));
   _buffer += sizeof(repTypeLength);
 

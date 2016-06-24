@@ -116,7 +116,7 @@ size_t Header::Pack(char *_buffer) const
   _buffer += sizeof(this->version);
 
   // Pack the process UUID length.
-  uint16_t pUuidLength = this->pUuid.size();
+  uint16_t pUuidLength = static_cast<uint16_t>(this->pUuid.size());
   memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
