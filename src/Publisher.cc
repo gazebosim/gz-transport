@@ -124,7 +124,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += topicLength;
 
   // Pack the zeromq address length.
-  uint64_t addrLength = this->addr.size();
+  uint16_t addrLength = this->addr.size();
   memcpy(_buffer, &addrLength, sizeof(addrLength));
   _buffer += sizeof(addrLength);
 
@@ -133,7 +133,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += addrLength;
 
   // Pack the process UUID length.
-  uint64_t pUuidLength = this->pUuid.size();
+  uint16_t pUuidLength = this->pUuid.size();
   memcpy(_buffer, &pUuidLength, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
@@ -142,7 +142,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += pUuidLength;
 
   // Pack the node UUID length.
-  uint64_t nUuidLength = this->nUuid.size();
+  uint16_t nUuidLength = this->nUuid.size();
   memcpy(_buffer, &nUuidLength, sizeof(nUuidLength));
   _buffer += sizeof(nUuidLength);
 
@@ -178,7 +178,7 @@ size_t Publisher::Unpack(char *_buffer)
   _buffer += topicLength;
 
   // Unpack the zeromq address length.
-  uint64_t addrLength;
+  uint16_t addrLength;
   memcpy(&addrLength, _buffer, sizeof(addrLength));
   _buffer += sizeof(addrLength);
 
@@ -187,7 +187,7 @@ size_t Publisher::Unpack(char *_buffer)
   _buffer += addrLength;
 
   // Unpack the process UUID length.
-  uint64_t pUuidLength;
+  uint16_t pUuidLength;
   memcpy(&pUuidLength, _buffer, sizeof(pUuidLength));
   _buffer += sizeof(pUuidLength);
 
@@ -196,7 +196,7 @@ size_t Publisher::Unpack(char *_buffer)
   _buffer += pUuidLength;
 
   // Unpack the node UUID length.
-  uint64_t nUuidLength;
+  uint16_t nUuidLength;
   memcpy(&nUuidLength, _buffer, sizeof(nUuidLength));
   _buffer += sizeof(nUuidLength);
 
@@ -216,9 +216,9 @@ size_t Publisher::Unpack(char *_buffer)
 size_t Publisher::MsgLength() const
 {
   return sizeof(uint16_t) + this->topic.size() +
-         sizeof(uint64_t) + this->addr.size() +
-         sizeof(uint64_t) + this->pUuid.size() +
-         sizeof(uint64_t) + this->nUuid.size() +
+         sizeof(uint16_t) + this->addr.size() +
+         sizeof(uint16_t) + this->pUuid.size() +
+         sizeof(uint16_t) + this->nUuid.size() +
          sizeof(uint8_t);
 }
 
@@ -265,7 +265,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
   _buffer += len;
 
   // Pack the zeromq control address length.
-  uint64_t ctrlLength = this->ctrl.size();
+  uint16_t ctrlLength = this->ctrl.size();
   memcpy(_buffer, &ctrlLength, sizeof(ctrlLength));
   _buffer += sizeof(ctrlLength);
 
@@ -274,7 +274,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
   _buffer += ctrlLength;
 
   // Pack the type name length.
-  uint64_t typeNameLength = this->msgTypeName.size();
+  uint16_t typeNameLength = this->msgTypeName.size();
   memcpy(_buffer, &typeNameLength, sizeof(typeNameLength));
   _buffer += sizeof(typeNameLength);
 
@@ -304,7 +304,7 @@ size_t MessagePublisher::Unpack(char *_buffer)
   _buffer += len;
 
   // Unpack the zeromq control address length.
-  uint64_t ctrlLength;
+  uint16_t ctrlLength;
   memcpy(&ctrlLength, _buffer, sizeof(ctrlLength));
   _buffer += sizeof(ctrlLength);
 
@@ -313,7 +313,7 @@ size_t MessagePublisher::Unpack(char *_buffer)
   _buffer += ctrlLength;
 
   // Unpack the type name length.
-  uint64_t typeNameLength;
+  uint16_t typeNameLength;
   memcpy(&typeNameLength, _buffer, sizeof(typeNameLength));
   _buffer += sizeof(typeNameLength);
 
@@ -327,8 +327,8 @@ size_t MessagePublisher::Unpack(char *_buffer)
 size_t MessagePublisher::MsgLength() const
 {
   return Publisher::MsgLength() +
-         sizeof(uint64_t) + this->ctrl.size() +
-         sizeof(uint64_t) + this->msgTypeName.size();
+         sizeof(uint16_t) + this->ctrl.size() +
+         sizeof(uint16_t) + this->msgTypeName.size();
 }
 
 //////////////////////////////////////////////////
@@ -400,7 +400,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += len;
 
   // Pack the socket ID length.
-  uint64_t socketIdLength = this->socketId.size();
+  uint16_t socketIdLength = this->socketId.size();
   memcpy(_buffer, &socketIdLength, sizeof(socketIdLength));
   _buffer += sizeof(socketIdLength);
 
@@ -409,7 +409,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += socketIdLength;
 
   // Pack the request type length.
-  uint64_t reqTypeLength = this->reqTypeName.size();
+  uint16_t reqTypeLength = this->reqTypeName.size();
   memcpy(_buffer, &reqTypeLength, sizeof(reqTypeLength));
   _buffer += sizeof(reqTypeLength);
 
@@ -418,7 +418,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   _buffer += reqTypeLength;
 
   // Pack the response type length.
-  uint64_t repTypeLength = this->repTypeName.size();
+  uint16_t repTypeLength = this->repTypeName.size();
   memcpy(_buffer, &repTypeLength, sizeof(repTypeLength));
   _buffer += sizeof(repTypeLength);
 
@@ -447,7 +447,7 @@ size_t ServicePublisher::Unpack(char *_buffer)
   _buffer += len;
 
   // Unpack the socket ID length.
-  uint64_t socketIdLength;
+  uint16_t socketIdLength;
   memcpy(&socketIdLength, _buffer, sizeof(socketIdLength));
   _buffer += sizeof(socketIdLength);
 
@@ -456,7 +456,7 @@ size_t ServicePublisher::Unpack(char *_buffer)
   _buffer += socketIdLength;
 
   // Unpack the request type length.
-  uint64_t reqTypeLength;
+  uint16_t reqTypeLength;
   memcpy(&reqTypeLength, _buffer, sizeof(reqTypeLength));
   _buffer += sizeof(reqTypeLength);
 
@@ -465,7 +465,7 @@ size_t ServicePublisher::Unpack(char *_buffer)
   _buffer += reqTypeLength;
 
   // Unpack the response type length.
-  uint64_t repTypeLength;
+  uint16_t repTypeLength;
   memcpy(&repTypeLength, _buffer, sizeof(repTypeLength));
   _buffer += sizeof(repTypeLength);
 
@@ -480,9 +480,9 @@ size_t ServicePublisher::Unpack(char *_buffer)
 size_t ServicePublisher::MsgLength() const
 {
   return Publisher::MsgLength() +
-         sizeof(uint64_t) + this->socketId.size() +
-         sizeof(uint64_t) + this->reqTypeName.size() +
-         sizeof(uint64_t) + this->repTypeName.size();
+         sizeof(uint16_t) + this->socketId.size() +
+         sizeof(uint16_t) + this->reqTypeName.size() +
+         sizeof(uint16_t) + this->repTypeName.size();
 }
 
 //////////////////////////////////////////////////
