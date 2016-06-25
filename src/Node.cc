@@ -638,3 +638,18 @@ bool Node::ServiceInfo(const std::string &_service,
 
   return true;
 }
+
+//////////////////////////////////////////////////
+bool Node::WaitForSubscribers(const std::string &_topic, const int _timeout)
+{
+  const auto &advTopics = this->AdvertisedTopics();
+  if (std::find(advTopics.begin(), advTopics.end(), _topic) == advTopics.end())
+  {
+    std::cerr << "Topic [" << _topic << "] not advertised." << std::endl;
+    return false;
+  }
+
+  // Wait until there's a subscriber interested on this topic.
+  // ToDo: Use a condition variable.
+  return this->Shared()->topicWatchers[_topic].Wait(_timeout);
+}

@@ -17,6 +17,7 @@ set (headers
   SubscriptionHandler.hh
   TopicStorage.hh
   TopicUtils.hh
+  TopicWatcher.hh
   TransportTypes.hh
   Uuid.hh
 )

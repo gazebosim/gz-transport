@@ -55,6 +55,12 @@ int main(int argc, char **argv)
     return -1;
   }
 
+  if (!node.WaitForSubscribers(topic, 10000))
+  {
+    std::cerr << "No subscribers available" << std::endl;
+    return 0;
+  }
+
   // Prepare the message.
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");

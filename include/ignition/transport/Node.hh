@@ -685,6 +685,13 @@ namespace ignition
       public: bool ServiceInfo(const std::string &_service,
                               std::vector<ServicePublisher> &_publishers) const;
 
+
+      /// \brief Block until there is at least one subscriber.
+      /// \paran[in] _topic The topic.
+      /// \param[in] _timeout The call will timeout after '_timeout' ms.
+      public: bool WaitForSubscribers(const std::string &_service,
+                                      const int _timeout = -1);
+
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
       private: const std::string &Partition() const;

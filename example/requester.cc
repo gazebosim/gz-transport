@@ -16,6 +16,7 @@
 */
 
 #include <iostream>
+#include <string>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
@@ -29,12 +30,13 @@ int main(int argc, char **argv)
   ignition::msgs::StringMsg req;
   req.set_data("HELLO");
 
+  const std::string kService = "/echo";
   ignition::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 
   // Request the "/echo" service.
-  bool executed = node.Request("/echo", req, timeout, rep, result);
+  bool executed = node.Request(kService, req, timeout, rep, result);
 
   if (executed)
   {

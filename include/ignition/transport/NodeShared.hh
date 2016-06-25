@@ -27,6 +27,7 @@
 #pragma warning(pop)
 #endif
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -40,6 +41,7 @@
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TopicWatcher.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -190,6 +192,9 @@ namespace ignition
 
       /// \brief IP address of this host.
       public: std::string hostAddr;
+
+      /// \brief ToDo.
+      public: std::map<std::string, TopicWatcher> topicWatchers;
 
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////
