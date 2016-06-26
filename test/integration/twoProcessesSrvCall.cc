@@ -73,8 +73,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   ignition::msgs::Int32 req;
   req.set_data(data);
 
@@ -93,8 +93,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   EXPECT_EQ(counter, 1);
 
   // Make another request.
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
@@ -107,6 +107,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
   EXPECT_EQ(counter, 1);
+
+  reset();
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);

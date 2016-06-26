@@ -27,14 +27,14 @@
 using namespace ignition;
 
 static std::string g_topic = "/foo";
-static int data = 5;
-static int Forever = INT_MAX;
+static int g_data = 5;
+static int g_Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
 void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
 {
-  _rep.set_data(data);
+  _rep.set_data(g_data);
   _result = true;
 }
 
@@ -45,7 +45,7 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
 
   // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
+  std::this_thread::sleep_for(std::chrono::milliseconds(g_Forever));
 }
 
 //////////////////////////////////////////////////

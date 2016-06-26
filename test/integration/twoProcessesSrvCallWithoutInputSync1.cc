@@ -26,14 +26,14 @@
 
 using namespace ignition;
 
-static std::string partition;
+static std::string g_partition;
 static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber processs there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
+/// \brief This test spawns a service without input responser and a service
+/// without input requester. The synchronous requester uses a wrong service's
+/// name. The test should verify that the service call does not succeed and the
+/// elapsed time was close to the timeout.
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
@@ -41,7 +41,7 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
      "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   int64_t timeout = 500;
   ignition::msgs::Int32 rep;
@@ -75,10 +75,10 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);

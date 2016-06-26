@@ -26,13 +26,13 @@
 using namespace ignition;
 
 static std::string g_topic = "/foo";
-static int data = 5;
+static int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
 void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
 {
-  _rep.set_data(data);
+  _rep.set_data(g_data);
   _result = true;
 }
 

@@ -58,7 +58,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Three different nodes running in two different processes. In the
-/// subscriber processs there are two nodes. Both should receive the message.
+/// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)

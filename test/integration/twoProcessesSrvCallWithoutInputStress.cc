@@ -26,7 +26,7 @@
 
 using namespace ignition;
 
-static std::string partition;
+static std::string g_partition;
 static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
@@ -38,7 +38,7 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
      "INTEGRATION_twoProcessesSrvCallWithoutInputReplierIncreasing_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   ignition::msgs::Int32 response;
   bool result;
@@ -63,10 +63,10 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

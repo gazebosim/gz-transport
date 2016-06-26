@@ -31,10 +31,10 @@ static std::string g_topic = "/foo";
 static int data = 5;
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber processs there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
+/// \brief This test spawns a service responser and a service requester. The
+/// synchronous requester uses a wrong service's name. The test should verify
+/// that the service call does not succeed and the elapsed time was close to
+/// the timeout.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
