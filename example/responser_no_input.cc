@@ -21,11 +21,18 @@
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
-/// \brief Provide a "without_input" service.
-void srvWithoutInput(ignition::msgs::StringMsg &_rep, bool &_result)
+/// \brief Provide a "quote" service.
+/// Well OK, it's just single-quote service but do you really need more?
+void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
 {
+  std::string awesomeQuote = "This is it! This is the answer. It says here..."
+    "that a bolt of lightning is going to strike the clock tower at precisely "
+    "10:04pm, next Saturday night! If...If we could somehow...harness this "
+    "lightning...channel it...into the flux capacitor...it just might work. "
+    "Next Saturday night, we're sending you back to the future!";
+
   // Set the response's content.
-  _rep.set_data("Answer from 'without_input' server");
+  _rep.set_data(awesomeQuote);
 
   // The response succeed.
   _result = true;
@@ -41,10 +48,10 @@ int main(int argc, char **argv)
 
   // Create a transport node.
   ignition::transport::Node node;
-  std::string service = "/without_input";
+  std::string service = "/quote";
 
   // Advertise a service call.
-  if (!node.Advertise(service, srvWithoutInput))
+  if (!node.Advertise(service, srvQuote))
   {
     std::cerr << "Error advertising service [" << service << "]" << std::endl;
     return -1;

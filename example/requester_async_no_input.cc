@@ -20,25 +20,26 @@
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
+/// \brief Service response callback.
+void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+{
+  if (_result)
+    std::cout << "Response: [" << _rep.data() << "]" << std::endl;
+  else
+    std::cerr << "Service call failed" << std::endl;
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
   ignition::transport::Node node;
 
-  ignition::msgs::StringMsg rep;
-  bool result;
-  unsigned int timeout = 5000;
+  std::cout << "Press <CTRL-C> to exit" << std::endl;
 
-  // Request the "/without_input" service.
-  bool executed = node.Request("/without_input", timeout, rep, result);
+  // Request the "/quote" service.
+  node.Request("/quote", responseCb);
 
-  if (executed)
-  {
-    if (result)
-      std::cout << "Response: [" << rep.data() << "]" << std::endl;
-    else
-      std::cout << "Service call failed" << std::endl;
-  }
-  else
-    std::cerr << "Service call timed out" << std::endl;
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }
