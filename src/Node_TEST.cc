@@ -359,6 +359,8 @@ void CreatePubSubTwoThreads(
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -417,6 +419,8 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Check that the msg was received twice.
   EXPECT_TRUE(cbExecuted);
   EXPECT_EQ(counter, 2);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -480,12 +484,16 @@ TEST(NodeTest, PubSubSameThread)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   EXPECT_FALSE(cbExecuted);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
-TEST(NodeTest, PubSubSameThreadLamda)
+TEST(NodeTest, PubSubSameThreadLambda)
 {
+  reset();
+
   ignition::msgs::Int32 msg;
   msg.set_data(data);
 
@@ -510,6 +518,8 @@ TEST(NodeTest, PubSubSameThreadLamda)
   EXPECT_TRUE(node.Publish(g_topic, msg));
 
   EXPECT_TRUE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -518,6 +528,30 @@ TEST(NodeTest, PubSubSameThreadLamda)
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
 {
   CreatePubSubTwoThreads();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "Process" scope.
+TEST(NodeTest, ScopeProcess)
+{
+  CreatePubSubTwoThreads(transport::Scope_t::PROCESS);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "Host" scope.
+TEST(NodeTest, ScopeHost)
+{
+  CreatePubSubTwoThreads(transport::Scope_t::HOST);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "All" scope.
+TEST(NodeTest, ScopeAll)
+{
+  CreatePubSubTwoThreads(transport::Scope_t::ALL);
 }
 
 //////////////////////////////////////////////////
@@ -587,7 +621,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   EXPECT_TRUE(node1.Unadvertise(g_topic));
 
-  // Publish a third message
+  // Publish a third message.
   EXPECT_FALSE(node1.Publish(g_topic, msg));
 
   // Give some time to the subscribers.
@@ -599,6 +633,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 
   auto subscribedServices = node1.AdvertisedServices();
   ASSERT_TRUE(subscribedServices.empty());
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -638,33 +674,11 @@ TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that two nodes in different threads are able to communicate
-/// advertising a topic with "Process" scope.
-TEST(NodeTest, ScopeProcess)
-{
-  CreatePubSubTwoThreads(transport::Scope_t::PROCESS);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that two nodes in different threads are able to communicate
-/// advertising a topic with "Host" scope.
-TEST(NodeTest, ScopeHost)
-{
-  CreatePubSubTwoThreads(transport::Scope_t::HOST);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check that two nodes in different threads are able to communicate
-/// advertising a topic with "All" scope.
-TEST(NodeTest, ScopeAll)
-{
-  CreatePubSubTwoThreads(transport::Scope_t::ALL);
-}
-
-//////////////////////////////////////////////////
 /// \brief Check that the types advertised and published match.
 TEST(NodeTest, TypeMismatch)
 {
+  reset();
+
   ignition::msgs::Int32 rightMsg;
   ignition::msgs::Vector3d wrongMsg;
   rightMsg.set_data(1);
@@ -678,15 +692,16 @@ TEST(NodeTest, TypeMismatch)
 
   EXPECT_FALSE(node.Publish(g_topic, wrongMsg));
   EXPECT_TRUE(node.Publish(g_topic, rightMsg));
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using free function.
 TEST(NodeTest, ServiceCallAsync)
 {
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   ignition::msgs::Int32 req;
   req.set_data(data);
 
@@ -719,9 +734,8 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_EQ(counter, 1);
 
   // Make another request.
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
@@ -742,15 +756,15 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
 
   ASSERT_TRUE(node.AdvertisedServices().empty());
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without input using free function.
 TEST(NodeTest, ServiceCallWithoutInputAsync)
 {
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
 
   transport::Node node;
 
@@ -781,9 +795,8 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
   EXPECT_EQ(counter, 1);
 
   // Make another request.
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   EXPECT_TRUE(node.Request(g_topic, response));
 
   i = 0;
@@ -804,12 +817,16 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
 
   ASSERT_TRUE(node.AdvertisedServices().empty());
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using lambdas.
 TEST(NodeTest, ServiceCallAsyncLambda)
 {
+  reset();
+
   std::function<void(const ignition::msgs::Int32 &, ignition::msgs::Int32 &,
     bool &)> advCb = [](const ignition::msgs::Int32 &_req,
       ignition::msgs::Int32 &_rep, bool &_result)
@@ -838,12 +855,16 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   EXPECT_TRUE((node.Request(g_topic, req, reqCb)));
 
   EXPECT_TRUE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without input using lambdas.
 TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
+  reset();
+
   std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
     [](ignition::msgs::Int32 &_rep, bool &_result)
   {
@@ -866,15 +887,16 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
   EXPECT_TRUE((node.Request(g_topic, reqCb)));
 
   EXPECT_TRUE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Request multiple service calls at the same time.
 TEST(NodeTest, MultipleServiceCallAsync)
 {
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   ignition::msgs::Int32 req;
   req.set_data(data);
 
@@ -903,9 +925,8 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_EQ(counter, 1);
 
   // Make another request.
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   EXPECT_TRUE(node.Request(g_topic, req, response));
   EXPECT_TRUE(node.Request(g_topic, req, response));
   EXPECT_TRUE(node.Request(g_topic, req, response));
@@ -926,15 +947,15 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
   EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Request multiple service calls without input at the same time.
 TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 {
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
 
   transport::Node node;
 
@@ -961,9 +982,8 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   EXPECT_EQ(counter, 1);
 
   // Make another request.
-  srvExecuted = false;
-  responseExecuted = false;
-  counter = 0;
+  reset();
+
   EXPECT_TRUE(node.Request(g_topic, response));
   EXPECT_TRUE(node.Request(g_topic, response));
   EXPECT_TRUE(node.Request(g_topic, response));
@@ -984,12 +1004,16 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   EXPECT_FALSE(node.UnadvertiseSrv("invalid service"));
 
   EXPECT_TRUE(node.UnadvertiseSrv(g_topic));
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make a synchronous service call.
 TEST(NodeTest, ServiceCallSync)
 {
+  reset();
+
   ignition::msgs::Int32 req;
   ignition::msgs::Int32 rep;
   bool result;
@@ -1008,12 +1032,16 @@ TEST(NodeTest, ServiceCallSync)
   // Check that the service call response was executed.
   EXPECT_TRUE(result);
   EXPECT_EQ(rep.data(), req.data());
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Make a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSync)
 {
+  reset();
+
   ignition::msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
@@ -1029,12 +1057,16 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
   // Check that the service call response was executed.
   EXPECT_TRUE(result);
   EXPECT_EQ(rep.data(), data);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check a timeout in a synchronous service call.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
+  reset();
+
   ignition::msgs::Int32 req;
   ignition::msgs::Int32 rep;
   bool result;
@@ -1058,12 +1090,16 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check a timeout in a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
+  reset();
+
   ignition::msgs::Int32 rep;
   bool result;
   int64_t timeout = 1000;
@@ -1084,6 +1120,8 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -1093,6 +1131,8 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 /// the method Interrupted().
 void createInfinitePublisher()
 {
+  reset();
+
   ignition::msgs::Int32 msg;
   msg.set_data(data);
   transport::Node node;
@@ -1115,6 +1155,8 @@ void createInfinitePublisher()
   }
 
   EXPECT_LT(i, 200);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -1272,6 +1314,8 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 
   // Check that the message was not received by node2.
   EXPECT_FALSE(cbVectorExecuted);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -1280,6 +1324,8 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 /// that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongReq)
 {
+  reset();
+
   ignition::msgs::Vector3d wrongReq;
   ignition::msgs::Int32 rep;
   bool result;
@@ -1288,8 +1334,6 @@ TEST(NodeTest, SrvRequestWrongReq)
   wrongReq.set_x(1);
   wrongReq.set_y(2);
   wrongReq.set_z(3);
-
-  reset();
 
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
@@ -1311,14 +1355,14 @@ TEST(NodeTest, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongRep)
 {
+  reset();
+
   ignition::msgs::Int32 req;
   ignition::msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
   req.set_data(data);
-
-  reset();
 
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
@@ -1335,11 +1379,39 @@ TEST(NodeTest, SrvRequestWrongRep)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test spawns a service without input responser and a service
+/// without input requester. The requester uses a wrong type for the response
+/// argument. The test should verify that the service call does not succeed.
+TEST(NodeTest, SrvWithoutInputRequestWrongRep)
+{
+  reset();
+
+  ignition::msgs::Vector3d wrongRep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  // Request an asynchronous service call with wrong type in the response.
+  EXPECT_TRUE(node.Request(g_topic, wrongResponse));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_FALSE(wrongResponseExecuted);
+
+  // Request a synchronous service call with wrong type in the response.
+  EXPECT_FALSE(node.Request(g_topic, timeout, wrongRep, result));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief This test spawns a service responser and two service requesters. One
 /// requester uses wrong type arguments. The test should verify that only one
 /// of the requesters receives the response.
 TEST(NodeTest, SrvTwoRequestsOneWrong)
 {
+  reset();
+
   ignition::msgs::Int32 req;
   ignition::msgs::Int32 goodRep;
   ignition::msgs::Vector3d badRep;
@@ -1362,6 +1434,39 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   EXPECT_TRUE(node.Request(g_topic, req, response));
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_TRUE(responseExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a service without input responser and two service
+/// without input requesters. One requester uses wrong type arguments. The test
+/// should verify that only one of the requesters receives the response.
+TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
+{
+  reset();
+
+  ignition::msgs::Int32 goodRep;
+  ignition::msgs::Vector3d badRep;
+  bool result;
+  unsigned int timeout = 1000;
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  // Request service calls with wrong types in the response.
+  EXPECT_FALSE(node.Request(g_topic, timeout, badRep, result));
+  EXPECT_TRUE(node.Request(g_topic, wrongResponse));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_FALSE(wrongResponseExecuted);
+
+  // Valid service requests.
+  EXPECT_TRUE(node.Request(g_topic, timeout, goodRep, result));
+  EXPECT_TRUE(node.Request(g_topic, response));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_TRUE(responseExecuted);
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -1414,7 +1519,7 @@ TEST(NodeTest, ServiceList)
 
   // The first TopicList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
-  //  However, the second call should never block.
+  // However, the second call should never block.
   auto elapsed = end - start;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed).count(), 2);
@@ -1435,7 +1540,7 @@ TEST(NodeTest, waitForShutdownSIGINT)
 //////////////////////////////////////////////////
 /// \brief Create a separate thread, block it calling waitForShutdown() and
 /// emit a SIGTERM signal. Check that the transport library captures the signal
-/// and is able to terminate.TEST(NodeTest, TerminateSIGTERM)
+/// and is able to terminate.
 TEST(NodeTest, waitForShutdownSIGTERM)
 {
   std::thread aThread([]{ignition::transport::waitForShutdown();});
