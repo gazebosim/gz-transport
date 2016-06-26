@@ -203,7 +203,7 @@ void SubscriptionMsg::SetTopic(const std::string &_topic)
 //////////////////////////////////////////////////
 size_t SubscriptionMsg::MsgLength() const
 {
-  return this->header.HeaderLength() + sizeof(uint64_t) + this->topic.size();
+  return this->header.HeaderLength() + sizeof(uint16_t) + this->topic.size();
 }
 
 //////////////////////////////////////////////////
@@ -224,7 +224,7 @@ size_t SubscriptionMsg::Pack(char *_buffer) const
   _buffer += headerLen;
 
   // Pack the topic length.
-  uint64_t topicLength = this->topic.size();
+  uint16_t topicLength = static_cast<uint16_t>(this->topic.size());
   memcpy(_buffer, &topicLength, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 
@@ -246,7 +246,7 @@ size_t SubscriptionMsg::Unpack(char *_buffer)
   }
 
   // Unpack the topic length.
-  uint64_t topicLength;
+  uint16_t topicLength;
   memcpy(&topicLength, _buffer, sizeof(topicLength));
   _buffer += sizeof(topicLength);
 

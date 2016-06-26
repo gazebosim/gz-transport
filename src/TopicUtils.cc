@@ -25,6 +25,10 @@ using namespace transport;
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
+  // Too long string is not valid.
+  if (_ns.size() > kMaxNameLength)
+    return false;
+
   // "/" is not valid.
   if (_ns == "/")
     return false;
@@ -104,6 +108,10 @@ bool TopicUtils::FullyQualifiedName(const std::string &_partition,
 
   // Add the partition prefix.
   _name.insert(0, "@" + partition + "@");
+
+  // Too long string is not valid.
+  if (_name.size() > kMaxNameLength)
+    return false;
 
   return true;
 }
