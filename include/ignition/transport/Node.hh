@@ -348,7 +348,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb](const msgs::Empty &_internalReq, T &_internalRep,
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
                 bool &_internalResult)
         {
           (*_cb)(_internalRep, _internalResult);
@@ -435,7 +435,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb](const msgs::Empty &_internalReq, T &_internalRep,
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
                 bool &_internalResult)
         {
           (_cb)(_internalRep, _internalResult);
@@ -494,7 +494,7 @@ namespace ignition
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb, _obj](const msgs::Empty &_internalReq, T &_internalRep,
+          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep,
                       bool &_internalResult)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1,
