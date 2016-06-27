@@ -31,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <ignition/msgs.hh>
 
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Helpers.hh"
@@ -781,6 +782,13 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         msg.rebuild(_repType.size());
         memcpy(msg.data(), _repType.data(), _repType.size());
         this->requester->send(msg, 0);
+
+        // \brief This if statement is only for service requests without
+        // \any response where response parameter is "Empty".
+        if (_repType == ignition::msgs::Empty().GetTypeName())
+        {
+          this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        }
       }
       catch(const zmq::error_t& /*ze*/)
       {
