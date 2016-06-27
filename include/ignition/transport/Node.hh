@@ -34,6 +34,15 @@
 #include <unordered_set>
 #include <vector>
 
+// ToDo: Remove after fixing the warnings
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
+#include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
@@ -414,6 +423,30 @@ namespace ignition
         };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
+      /// \brief Advertise a new service without any output parameter.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      /// \param[in] _req Protobuf message containing the request.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(
+        const std::string &_topic,
+        void(*_cb)(const T &_req),
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
+          [](const T &_internalReq,
+             ignition::msgs::Empty &_internalRep,
+             bool &_internalResult)
+        {
+        };
+
+        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
       }
 
       /// \brief Get the list of services advertised by this node.
