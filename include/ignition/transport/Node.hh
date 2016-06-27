@@ -683,6 +683,23 @@ namespace ignition
         return true;
       }
 
+      /// \brief Request a new service without waiting for response.
+      /// \param[in] _topic Topic requested.
+      /// \param[in] _req Protobuf message containing the request's parameters.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename T> bool Request(const std::string &_topic,
+                                                const T &_req)
+        {
+          // This callback is here for reusing the regular Request() call with
+          // input and output parameters.
+          std::function<void(const ignition::msgs::Empty &, const bool)> f =
+            [](const ignition::msgs::Empty &, const bool)
+          {
+          };
+
+          return this->Request<T, ignition::msgs::Empty>(_topic, _req, f);
+        }
+
       /// \brief Unadvertise a service.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \return true if the service was successfully unadvertised.
