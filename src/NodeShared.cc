@@ -526,6 +526,13 @@ void NodeShared::RecvSrvRequest()
       }
     }
 
+    // If 'reptype' is msgs::Empty", this is a oneway request
+    // and we don't send response
+    if (repType == ignition::msgs::Empty().GetTypeName())
+    {
+      return;
+    }
+
     // Send the reply.
     try
     {
