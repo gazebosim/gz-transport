@@ -331,6 +331,31 @@ namespace ignition
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
 
+      /// \brief Advertise a new service without any output parameter.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      /// \param[in] _req Protobuf message containing the request.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(
+        const std::string &_topic,
+        void(*_cb)(const T &_req),
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
+          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
+                bool &/*_internalResult*/)
+        {
+          (*_cb)(_internalReq);
+        };
+
+        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic name associated to the service.
@@ -393,6 +418,31 @@ namespace ignition
         return true;
       }
 
+      /// \brief Advertise a new service without any output parameter.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      /// \param[in] _req Protobuf message containing the request.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T> bool Advertise(
+        const std::string &_topic,
+        std::function<void(T &_req)> &_cb,
+        const AdvertiseOptions &_options = AdvertiseOptions())
+      {
+        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
+          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
+                bool &/*_internalResult*/)
+        {
+          (*_cb)(_internalReq);
+        };
+
+        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
@@ -426,24 +476,29 @@ namespace ignition
       }
 
       /// \brief Advertise a new service without any output parameter.
+      /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      /// \param[in] _req Protobuf message containing the request.
+      ///  \param[in] _req Protobuf message containing the request.
+      /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
-      /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(
+      /// \sa AdvertiseOptions
+      public: template<typename C, typename T> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const T &_req),
+        void(C::*_cb)(const T &_req),
+        C *_obj,
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
-          [](const T &_internalReq,
-             ignition::msgs::Empty &_internalRep,
-             bool &_internalResult)
+          [_cb, _obj](const T &_internalReq,
+             ignition::msgs::Empty &/*_internalRep*/,
+             bool &/*_internalResult*/)
         {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          cb(_internalReq);
         };
 
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
