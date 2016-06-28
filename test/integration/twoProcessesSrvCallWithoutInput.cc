@@ -113,9 +113,9 @@ TEST(twoProcSrvCallWithoutInput, SrvTwoProcs)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service without input responser and a service
-/// without input requester. The requester uses a wrong type for the response
-/// argument. The test should verify that the service call does not succeed.
+/// \brief This test spawns a service that doesn't accept input parameters. The
+/// service requester uses a wrong type for the response argument. The test
+/// should verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
   ignition::msgs::Vector3d wrongRep;
@@ -148,9 +148,10 @@ TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service without input responser and two service
-/// requesters. One requester uses wrong type arguments. The test should verify
-/// that only one of the requesters receives the response.
+/// \brief This test spawns a service that doesn't accept input parameters. The
+/// service requesters use incorrect types in some of the requests. The test
+/// should verify that a response is received only when the appropriate types
+/// are used.
 TEST(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
   ignition::msgs::Int32 goodRep;

@@ -30,10 +30,10 @@ static std::string g_partition;
 static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service without input responser and a service
-/// without input requester. The synchronous requester uses a wrong service's
-/// name. The test should verify that the service call does not succeed and the
-/// elapsed time was close to the timeout.
+/// \brief This test spawns a service that doesn't accept input parameters. The
+/// synchronous requester uses a wrong service's name. The test should verify
+/// that the service call does not succeed and the elapsed time was close to
+/// the timeout.
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(

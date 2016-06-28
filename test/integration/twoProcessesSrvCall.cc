@@ -194,9 +194,10 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service responser and two service requesters. One
-/// requester uses wrong type arguments. The test should verify that only one
-/// of the requesters receives the response.
+/// \brief This test spawns a service responser and two service requesters. The
+/// service requesters use incorrect types in some of the requests. The test
+/// should verify that a response is received only when the appropriate types
+/// are used.
 TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 {
   ignition::msgs::Int32 req;
