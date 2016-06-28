@@ -41,11 +41,6 @@ void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Let's print the list of our network interfaces.
-  std::cout << "List of network interfaces in this machine:" << std::endl;
-  for (const auto &netIface : ignition::transport::determineInterfaces())
-    std::cout << "\t" << netIface << std::endl;
-
   // Create a transport node.
   ignition::transport::Node node;
   std::string service = "/quote";
