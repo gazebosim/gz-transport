@@ -28,7 +28,7 @@ using namespace ignition;
 
 static std::string g_topic = "/foo";
 static int g_data = 5;
-static int g_Forever = INT_MAX;
+static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
@@ -45,7 +45,7 @@ void runReplier()
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
 
   // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(g_Forever));
+  std::this_thread::sleep_for(std::chrono::milliseconds(kForever));
 }
 
 //////////////////////////////////////////////////
