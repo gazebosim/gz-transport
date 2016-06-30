@@ -504,6 +504,13 @@ void NodeShared::RecvSrvRequest()
     // Run the service call and get the results.
     repHandler->RunCallback(req, rep, result);
 
+    // If 'reptype' is msgs::Empty", this is a oneway request
+    // and we don't send response
+    if (repType == ignition::msgs::Empty().GetTypeName())
+    {
+      return;
+    }
+
     if (result)
       resultStr = "1";
     else
@@ -525,13 +532,6 @@ void NodeShared::RecvSrvRequest()
                     << "] for sending a response" << std::endl;
         }
       }
-    }
-
-    // If 'reptype' is msgs::Empty", this is a oneway request
-    // and we don't send response
-    if (repType == ignition::msgs::Empty().GetTypeName())
-    {
-      return;
     }
 
     // Send the reply.
@@ -782,18 +782,18 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         msg.rebuild(_repType.size());
         memcpy(msg.data(), _repType.data(), _repType.size());
         this->requester->send(msg, 0);
-
-        // \brief This if statement is only for service requests without
-        // \any response where response parameter is "Empty".
-        if (_repType == ignition::msgs::Empty().GetTypeName())
-        {
-          this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
-        }
       }
       catch(const zmq::error_t& /*ze*/)
       {
         // Debug output.
         // std::cerr << "Error connecting [" << ze.what() << "]\n";
+      }
+
+      // \Remove the handler associated to this service request. We won't
+      // \receive a response because this is a oneway request.
+      if (_repType == ignition::msgs::Empty().GetTypeName())
+      {
+        this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
     }
   }
