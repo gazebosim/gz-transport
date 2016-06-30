@@ -34,10 +34,10 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
 endif ()
 
-# On Windows we produce .dll libraries with no prefix.
+# On Windows we need to link againt .lib files with no prefix.
 if (WIN32)
   SET(CMAKE_FIND_LIBRARY_PREFIXES "")
-  SET(CMAKE_FIND_SUFFIXES ".lib" ".dll")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
 endif()
 
 foreach(lib @PKG_LIBRARIES@)
@@ -67,10 +67,9 @@ if (NOT ZeroMQ_FOUND)
   endif()
   include ("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@/FindZeroMQ.cmake")
 endif()
-list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
-list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDEDIR})
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS})
+list(APPEND @PKG_NAME@_LIBRARY_DIRS ${ZeroMQ_LIBRARY_DIRS})
 list(APPEND @PKG_NAME@_LIBRARIES ${ZeroMQ_LIBRARIES})
-list(APPEND @PKG_NAME@_LIBRARY_DIRS ${ZeroMQ_LIBDIR})
 
 # cppzmq dependency.
 if (NOT cppzmq_FOUND)
