@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <ignition/transport.hh>
-#include "msgs/stringmsg.pb.h"
+#include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 void srvEcho(const example::msgs::StringMsg &_req)
@@ -28,10 +28,13 @@ void srvEcho(const example::msgs::StringMsg &_req)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Let's print the list of our network interfaces.
+  std::cout << "List of network interfaces in this machine:" << std::endl;
+  for (const auto &netIface : ignition::transport::determineInterfaces())
+    std::cout << "\t" << netIface << std::endl;
+
   // Create a transport node.
   ignition::transport::Node node;
-
-  // Prepare the input parameters.
   std::string service = "/foo";
 
   // Advertise a topic.
