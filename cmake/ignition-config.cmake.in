@@ -98,15 +98,3 @@ if (MSVC)
 endif()
 
 list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
-
-#################################################
-# Find ign msgs library
-find_package(ignition-msgs0 QUIET)
-if (NOT ignition-msgs0_FOUND)
-  message(FATAL "Looking for ignition-msgs - not found")
-else()
-  message(STATUS "Looking for ignition-msgs - found")
-endif()
-list(APPEND @PKG_NAME@_INCLUDE_DIRS ${IGNITION-MSGS_INCLUDE_DIRS})
-list(APPEND @PKG_NAME@_LIBRARY_DIRS ${IGNITION-MSGS_LIBRARY_DIRS})
-list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-MSGS_LIBRARIES})
