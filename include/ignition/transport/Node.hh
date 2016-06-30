@@ -336,7 +336,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      /// \param[in] _req Protobuf message containing the request.
+      ///   \param[in] _req Protobuf message containing the request.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -423,7 +423,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      /// \param[in] _req Protobuf message containing the request.
+      ///   \param[in] _req Protobuf message containing the request.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -480,7 +480,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
-      ///  \param[in] _req Protobuf message containing the request.
+      ///   \param[in] _req Protobuf message containing the request.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
