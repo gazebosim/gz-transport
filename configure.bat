@@ -19,7 +19,6 @@
 @echo Configuring for build type %build_type% for %build_bitness% bits
 cmake -G "NMake Makefiles"^
       -DCMAKE_PREFIX_PATH="%IGNITION-MSGS_CMAKE_PREFIX_PATH%;%IGNITION-MATH_CMAKE_PREFIX_PATH%;"^
-      -DIGNITION-MSGS_ROOT_DIR="%IGNITION-MSGS_PATH%"^
       -DZeroMQ_ROOT_DIR="%ZEROMQ_PATH%"^
       -DPROTOBUF_SRC_ROOT_FOLDER="%PROTOBUF_PATH%"^
       -DIGNITION-MSGS_FOLDER="%IGNITION-MSGS_PATH%"^
