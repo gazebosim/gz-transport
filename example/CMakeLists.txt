@@ -32,6 +32,21 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async.cc")
   target_link_libraries(requester_async ${IGNITION-TRANSPORT_LIBRARIES})
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/responser_no_input.cc")
+  add_executable(responser_no_input responser_no_input.cc)
+  target_link_libraries(responser_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_no_input.cc")
+  add_executable(requester_no_input requester_no_input.cc)
+  target_link_libraries(requester_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
+  add_executable(requester_async_no_input requester_async_no_input.cc)
+  target_link_libraries(requester_async_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 if (MSVC)
   # Suppress Protobuf message generation warnings.
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512")

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,43 +26,38 @@
 
 using namespace ignition;
 
-static std::string partition;
+static std::string g_partition;
 static std::string g_topic = "/foo";
-static int data = 5;
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service responser and a service requester. The
+/// \brief This test spawns a service that doesn't accept input parameters. The
 /// synchronous requester uses a wrong service's name. The test should verify
 /// that the service call does not succeed and the elapsed time was close to
 /// the timeout.
-TEST(twoProcSrvCallSync1, SrvTwoProcs)
+TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   int64_t timeout = 500;
-  ignition::msgs::Int32 req;
   ignition::msgs::Int32 rep;
   bool result;
-
-  req.set_data(data);
 
   transport::Node node;
 
   // Make sure that the address of the service call provider is known.
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  ASSERT_TRUE(node.Request(g_topic, req, static_cast<unsigned int>(timeout),
-    rep, result));
-  EXPECT_EQ(req.data(), rep.data());
+  ASSERT_TRUE(node.Request(g_topic, static_cast<unsigned int>(timeout), rep,
+    result));
   EXPECT_TRUE(result);
 
   auto t1 = std::chrono::system_clock::now();
-  EXPECT_FALSE(node.Request("unknown_service", req,
-      static_cast<unsigned int>(timeout), rep, result));
+  EXPECT_FALSE(node.Request("unknown_service",
+    static_cast<unsigned int>(timeout), rep, result));
   auto t2 = std::chrono::system_clock::now();
 
   int64_t elapsed =
@@ -80,10 +75,10 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);
