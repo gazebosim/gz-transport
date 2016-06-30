@@ -97,6 +97,7 @@ void srvWithoutOutput(const ignition::msgs::Int32 &_req)
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -269,7 +270,7 @@ class MyTestClass
     this->Reset();
 
     // Service requests without output with wrong types.
-    EXPECT_FALSE(this->node.Request(g_topic, wrongReq));
+    EXPECT_TRUE(this->node.Request(g_topic, wrongReq));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
     EXPECT_FALSE(this->wrongCallbackSrvExecuted);
@@ -603,14 +604,6 @@ TEST(NodeTest, ClassMemberCallback)
 }
 
 //////////////////////////////////////////////////
-/// \brief Make an asynchronous and synchronous service calls without output
-/// using member function.
-TEST(NodeTest, ClassMemberCallbackServiceWithoutOutput)
-{
-  MyTestClass client;
-  client.TestServiceCallWithoutOutput();
-}
-//////////////////////////////////////////////////
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
@@ -725,6 +718,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
 
   transport::Node node;
   ignition::msgs::Int32 req;
+  req.set_data(data);
 
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvWithoutOutput));
@@ -957,26 +951,6 @@ TEST(NodeTest, ServiceCallSync)
   // Check that the service call response was executed.
   EXPECT_TRUE(result);
   EXPECT_EQ(rep.data(), req.data());
-}
-
-//////////////////////////////////////////////////
-/// \brief Make a synchronous service call without output..
-TEST(NodeTest, ServiceWithoutOutputCallSync)
-{
-  reset();
-
-  ignition::msgs::Int32 req;
-
-  transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutOutput));
-
-  // Request an invalid service name.
-  EXPECT_FALSE(node.Request("invalid service", req));
-
-  EXPECT_TRUE(node.Request(g_topic, req));
-
-  // Check that the service call was executed.
-  EXPECT_EQ(req.data(), data);
 }
 
 //////////////////////////////////////////////////

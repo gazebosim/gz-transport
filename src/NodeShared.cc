@@ -789,8 +789,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         // std::cerr << "Error connecting [" << ze.what() << "]\n";
       }
 
-      // \Remove the handler associated to this service request. We won't
-      // \receive a response because this is a oneway request.
+      // Remove the handler associated to this service request. We won't
+      // receive a response because this is a oneway request.
       if (_repType == ignition::msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
