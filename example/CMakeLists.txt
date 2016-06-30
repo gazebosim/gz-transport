@@ -56,11 +56,4 @@ if (MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
     $<TARGET_FILE_DIR:publisher> VERBATIM)
-
-  # Copy the Ignition Messages DLL.
-  add_custom_command(TARGET publisher POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${IGNITION-MSGS_FOLDER}/lib/ignition-msgs0.dll"
-    $<TARGET_FILE_DIR:publisher> VERBATIM)
-
 endif()
