@@ -791,18 +791,19 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 /// \brief Make an asynchronous service call without output using lambdas.
 TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
-  std::function<void(const ignition::msgs::Int32 &)> advCb =
-    [](const ignition::msgs::Int32 &_req)
+  std::function<void(const ignition::msgs::Int32 &, ignition::msgs::Empty &,
+    bool &)> advCb = [](const ignition::msgs::Int32 &_req,
+    ignition::msgs::Empty &, bool &)
   {
     EXPECT_EQ(_req.data(), data);
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic)));
+  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
-  std::function<void(const ignition::msgs::Int32 &)> reqCb =
-    [&executed](const ignition::msgs::Int32 &_req)
+  std::function<void(const ignition::msgs::Empty &, const bool)> reqCb =
+    [&executed](const ignition::msgs::Empty &, const bool)
   {
     executed = true;
   };
@@ -810,7 +811,7 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
   ignition::msgs::Int32 req;
   req.set_data(data);
 
-  EXPECT_TRUE((node.Request(g_topic, req)));
+  EXPECT_TRUE(node.Request(g_topic, req, reqCb));
 
   EXPECT_TRUE(executed);
 }
@@ -884,6 +885,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 
   transport::Node node;
   ignition::msgs::Int32 req;
+  req.set_data(data);
 
   // Advertise an invalid service name.
   EXPECT_FALSE(node.Advertise("invalid service", srvWithoutOutput));
