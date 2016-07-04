@@ -177,6 +177,14 @@ class MyTestClass
     this->callbackSrvExecuted = true;
   }
 
+  // Member function used as a callback for responding to a service call
+  // without output.
+  public: void WithoutOutput(const ignition::msgs::Int32 &_req)
+  {
+    EXPECT_EQ(_req.data(), data);
+    this->callbackSrvExecuted = true;
+  }
+
   /// \brief Response callback to a service request.
   public: void EchoResponse(const ignition::msgs::Int32 &_rep,
     const bool _result)
@@ -331,7 +339,6 @@ class MyTestClass
     EXPECT_TRUE(this->node.Request(g_topic, wrongReq));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
-    EXPECT_FALSE(this->wrongCallbackSrvExecuted);
   }
 
   public: void Reset()
