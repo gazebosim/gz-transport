@@ -42,6 +42,21 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/RequesterOneway.cc")
   target_link_libraries(RequesterOneway ${IGNITION-TRANSPORT_LIBRARIES})
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/responser_no_input.cc")
+  add_executable(responser_no_input responser_no_input.cc)
+  target_link_libraries(responser_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_no_input.cc")
+  add_executable(requester_no_input requester_no_input.cc)
+  target_link_libraries(requester_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
+  add_executable(requester_async_no_input requester_async_no_input.cc)
+  target_link_libraries(requester_async_no_input ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 if (MSVC)
   # Suppress Protobuf message generation warnings.
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4018 /wd4100 /wd4127 /wd4244 /wd4267 /wd4512")
@@ -65,4 +80,11 @@ if (MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
     $<TARGET_FILE_DIR:publisher> VERBATIM)
+
+  # Copy the Ignition Messages DLL.
+  add_custom_command(TARGET publisher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${IGNITION-MSGS_FOLDER}/lib/ignition-msgs0.dll"
+    $<TARGET_FILE_DIR:publisher> VERBATIM)
+
 endif()

@@ -31,6 +31,23 @@ macro (ign_build_tests)
 
       # Suppress the "decorated name length exceed" warning (inside the STL).
       target_compile_options(${BINARY_NAME} PUBLIC "/wd4503")
+
+      # Copy the ZMQ DLLs.
+      add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-3_2_4.dll"
+        ${CMAKE_CURRENT_BINARY_DIR} VERBATIM)
+
+      add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-3_2_4.dll"
+        ${CMAKE_CURRENT_BINARY_DIR} VERBATIM)
+
+      # Copy the Ignition Messages DLL.
+      add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${IGNITION-MSGS_FOLDER}/lib/ignition-msgs0.dll"
+        ${CMAKE_CURRENT_BINARY_DIR} VERBATIM)
     endif()
 
     target_link_libraries(${BINARY_NAME}
