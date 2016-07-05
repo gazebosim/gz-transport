@@ -108,7 +108,7 @@ part of a namespace. Two or more consecutive slashes (``//``) are not allowed.
 Namespace  Topic name    Fully qualified topic  Validity  Comment
 =========  ============  =====================  ========  =======
 *ns1*      */topicA*     */topicA*              Valid     Absolute topic
-\          *topicA*      */topicA*              Valid     Absolute topic
+\          */topicA*     */topicA*              Valid     Absolute topic
 *ns1*      *topicA*      */ns1/topicA*          Valid
 \          *topicA*      \                      Invalid   Empty string is invalid
 *my ns*    *topicA*      \                      Invalid   Contains white space
