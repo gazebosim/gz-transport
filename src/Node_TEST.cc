@@ -988,19 +988,23 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 /// \lambdas.
 TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
-  std::function<void(const ignition::msgs::Int32)> advCb =
-    [](const ignition::msgs::Int32 &_req)
+  bool executed = false;
+
+  std::function<void(const ignition::msgs::Int32 &)> advCb =
+    [&executed](const ignition::msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
+    executed = true;
   };
 
   transport::Node node;
-  //EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
 
   ignition::msgs::Int32 req;
   req.set_data(data);
 
   EXPECT_TRUE(node.Request(g_topic, req));
+  EXPECT_TRUE(executed);
 }
 
 //////////////////////////////////////////////////
