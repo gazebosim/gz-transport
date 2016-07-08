@@ -480,14 +480,14 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename T> bool Advertise(
         const std::string &_topic,
-        std::function<void(T &_req)> &_cb,
+        std::function<void(const T &_req)> &_cb,
         const AdvertiseOptions &_options = AdvertiseOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
                 bool &/*_internalResult*/)
         {
-          (*_cb)(_internalReq);
+          (_cb)(_internalReq);
         };
 
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);

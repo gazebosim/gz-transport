@@ -26,16 +26,12 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
 
   // Prepare the input parameters.
-  example::msgs::StringMsg req;
+  ignition::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/echo" service.
   bool executed = node.Request("/echo", req);
 
-  if (executed)
-  {
-    std::cout << "Service call succeeded" << std::endl;
-  }
-  else
+  if (!executed)
     std::cerr << "Service call failed" << std::endl;
 }

@@ -100,7 +100,7 @@ void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
 }
 
 //////////////////////////////////////////////////
-/// \brief Provide a service call without output.
+/// \brief Provide a service call without waiting for response.
 void srvWithoutOutput(const ignition::msgs::Int32 &_req)
 {
   srvExecuted = true;
@@ -178,7 +178,7 @@ class MyTestClass
   }
 
   // Member function used as a callback for responding to a service call
-  // without output.
+  // without without waiting for a response.
   public: void WithoutOutput(const ignition::msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
@@ -314,6 +314,8 @@ class MyTestClass
     EXPECT_FALSE(this->callbackSrvExecuted);
   }
 
+  /// \brief Advertise a service without waiting for response, request a service
+  /// without waiting for response using non-blocking and blocking call.
   public: void TestServiceCallWithoutOutput()
   {
     ignition::msgs::Int32 req;
@@ -323,11 +325,11 @@ class MyTestClass
 
     this->Reset();
 
-    // Advertise an illegal service name without output.
+    // Advertise an illegal service name without waiting for response.
     EXPECT_FALSE(this->node.Advertise("Bad Srv", &MyTestClass::WithoutOutput,
                                       this));
 
-    // Advertise and request a valid service without output.
+    // Advertise and request a valid service without waiting for response.
     EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::WithoutOutput,
                                      this));
     EXPECT_TRUE(this->node.Request(g_topic, req));
@@ -335,7 +337,7 @@ class MyTestClass
 
     this->Reset();
 
-    // Service requests without output with wrong types.
+    // Service requests without waiting for response with wrong types.
     EXPECT_TRUE(this->node.Request(g_topic, wrongReq));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_FALSE(this->callbackSrvExecuted);
@@ -868,7 +870,8 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 }
 
 //////////////////////////////////////////////////
-/// \brief Make an asynchronous service call without output using free function.
+/// \brief Make an asynchronous service call without waiting for a response
+/// \using free function.
 TEST(NodeTest, ServiceWithoutOutputCallAsync)
 {
   reset();
@@ -981,32 +984,23 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 }
 
 //////////////////////////////////////////////////
-/// \brief Make an asynchronous service call without output using lambdas.
+/// \Make an asynchronous service call without waiting for response using
+/// \lambdas.
 TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
-  std::function<void(const ignition::msgs::Int32 &, ignition::msgs::Empty &,
-    bool &)> advCb = [](const ignition::msgs::Int32 &_req,
-    ignition::msgs::Empty &, bool &)
+  std::function<void(const ignition::msgs::Int32)> advCb =
+    [](const ignition::msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
-
-  bool executed = false;
-  std::function<void(const ignition::msgs::Empty &, const bool)> reqCb =
-    [&executed](const ignition::msgs::Empty &, const bool)
-  {
-    executed = true;
-  };
+  //EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
 
   ignition::msgs::Int32 req;
   req.set_data(data);
 
-  EXPECT_TRUE(node.Request(g_topic, req, reqCb));
-
-  EXPECT_TRUE(executed);
+  EXPECT_TRUE(node.Request(g_topic, req));
 }
 
 //////////////////////////////////////////////////
@@ -1126,7 +1120,8 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   reset();
 }
 
-/// \brief Request multiple service calls without output at the same time.
+/// \brief Request multiple service calls without without waiting for a response
+/// \ at the same time.
 TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 {
   reset();
