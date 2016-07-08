@@ -314,8 +314,7 @@ class MyTestClass
     EXPECT_FALSE(this->callbackSrvExecuted);
   }
 
-  /// \brief Advertise a service without waiting for response, request a service
-  /// without waiting for response using non-blocking and blocking call.
+  /// \brief Advertise and request a service without waiting for response.
   public: void TestServiceCallWithoutOutput()
   {
     ignition::msgs::Int32 req;
