@@ -27,14 +27,13 @@
 using namespace ignition;
 
 static std::string g_topic = "/foo";
-static int g_data = 5;
 static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without output.
 void srvWithoutOutput(const ignition::msgs::Int32 &_req)
 {
-  EXPECT_EQ(_req.data(), g_data);
+  EXPECT_GE(_req.data(), 0);
 }
 
 //////////////////////////////////////////////////
