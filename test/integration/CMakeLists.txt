@@ -9,6 +9,8 @@ set(tests
   twoProcessesSrvCallWithoutInput.cc
   twoProcessesSrvCallWithoutInputStress.cc
   twoProcessesSrvCallWithoutInputSync1.cc
+  twoProcessesSrvCallWithoutOutput.cc
+  twoProcessesSrvCallWithoutOutputStress.cc
 )
 
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)
@@ -28,6 +30,8 @@ set(auxiliary_files
   twoProcessesSrvCallReplierIncreasing_aux.cc
   twoProcessesSrvCallWithoutInputReplier_aux.cc
   twoProcessesSrvCallWithoutInputReplierIncreasing_aux.cc
+  twoProcessesSrvCallWithoutOutputReplier_aux.cc
+  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux.cc
 )
 
 ign_build_tests(${auxiliary_files})
