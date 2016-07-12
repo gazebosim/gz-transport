@@ -129,7 +129,7 @@ requests.
 Responser oneway
 ================
 
-Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser_oneway.cc>`_file within the ``ign_transport_tutorial``
+Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
