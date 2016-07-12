@@ -21,8 +21,9 @@
 #include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
-void srvEcho(const example::msgs::StringMsg &_req)
+void srvOneway(const ignition::msgs::StringMsg &_req)
 {
+  std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -30,10 +31,10 @@ int main(int argc, char **argv)
 {
   // Create a transport node.
   ignition::transport::Node node;
-  std::string service = "/foo";
+  std::string service = "/oneway";
 
-  // Advertise a topic.
-  if (!node.Advertise(service, srvEcho))
+  // Advertise a oneway service.
+  if (!node.Advertise(service, srvOneway))
   {
     std::cerr << "Error advertising service [" << service << "]" << std::endl;
     return -1;

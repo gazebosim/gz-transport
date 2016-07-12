@@ -29,8 +29,8 @@ int main(int argc, char **argv)
   ignition::msgs::StringMsg req;
   req.set_data("HELLO");
 
-  // Request the "/echo" service.
-  bool executed = node.Request("/echo", req);
+  // Request the "/oneway" service.
+  bool executed = node.Request("/oneway", req);
 
   if (!executed)
     std::cerr << "Service call failed" << std::endl;
