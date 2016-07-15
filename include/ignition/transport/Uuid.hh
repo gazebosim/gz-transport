@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_UUID_HH_INCLUDED__
-#define __IGN_TRANSPORT_UUID_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_UUID_HH_
+#define IGN_TRANSPORT_UUID_HH_
 
 #include <iostream>
 #include <string>

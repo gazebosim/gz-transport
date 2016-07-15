@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
-#define __IGN_TRANSPORT_TOPICSTORAGE_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_TOPICSTORAGE_HH_
+#define IGN_TRANSPORT_TOPICSTORAGE_HH_
 
 #include <algorithm>
 #include <map>
