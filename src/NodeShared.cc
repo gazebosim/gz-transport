@@ -185,7 +185,9 @@ NodeShared::~NodeShared()
     this->threadReception.join();
 
   // Explicitly reset discovery to prevent callbacks.
-  // See issue #139. Do not merge forward.
+  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
+  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // Do not merge forward.
   this->discovery.reset();
 
   // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
@@ -209,7 +211,9 @@ NodeShared::~NodeShared()
   }
 
   // Explicitly reset discovery to prevent callbacks.
-  // See issue #139. Do not merge forward.
+  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
+  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // Do not merge forward.
   this->discovery.reset();
 
   // We intentionally don't destroy the context in Windows.
