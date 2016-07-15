@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/NetUtils.hh"
 
 namespace ignition
 {
