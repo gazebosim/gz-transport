@@ -24,7 +24,6 @@
 #endif
 
 #include <chrono>
-#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -126,8 +125,10 @@ NodeShared::NodeShared()
   }
   catch(const zmq::error_t& ze)
   {
-     std::cerr << "NodeShared() Error: " << ze.what() << std::endl;
-     std::exit(EXIT_FAILURE);
+    std::cerr << "NodeShared() Error: " << ze.what() << std::endl;
+    std::cerr << "Ignition Transport has not been correctly initialized"
+              << std::endl;
+    return;
   }
 
   if (this->verbose)
