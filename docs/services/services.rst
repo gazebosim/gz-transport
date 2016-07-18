@@ -129,6 +129,11 @@ requests.
 Responser oneway
 ================
 
+Not all the service requests require a response. In these cases we can use
+Responser oneway to process service requests without sending back a response.
+So, we don't need any output parameters in this case nor we have to wait for the
+response.
+
 Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
@@ -388,6 +393,10 @@ your service request is handled.
 Requester oneway
 ================
 
+This case is similiar to Responser oneway. This can be used for service requests
+that does not require a response back. So, we don't need any output parameters
+in this case nor we have to wait for the response.
+
 Download the `requester_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
@@ -462,7 +471,7 @@ Run ``cmake`` and build the code.
 .. code-block:: bash
 
     cmake ..
-    make responser responser_oneway requester requester_async requestor_oneway
+    make responser responser_oneway requester requester_async requester_oneway
 
 
 Running the examples
