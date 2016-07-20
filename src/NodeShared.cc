@@ -184,6 +184,12 @@ NodeShared::~NodeShared()
   if (this->threadReception.joinable())
     this->threadReception.join();
 
+  // Explicitly reset discovery to prevent callbacks.
+  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
+  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // Do not merge forward.
+  this->discovery.reset();
+
   // We explicitly destroy the ZMQ socket before destroying the ZMQ context.
   publisher.reset();
   subscriber.reset();
@@ -204,14 +210,17 @@ NodeShared::~NodeShared()
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
+  // Explicitly reset discovery to prevent callbacks.
+  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
+  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // Do not merge forward.
+  this->discovery.reset();
+
   // We intentionally don't destroy the context in Windows.
   // For some reason, when MATLAB deallocates the MEX file makes the context
   // destructor to hang (probably waiting for ZMQ sockets to terminate).
   // ToDo: Fix it.
 #endif
-
-  // Explicitly reset discovery to prevent callbacks
-  this->discovery.reset();
 }
 
 //////////////////////////////////////////////////
