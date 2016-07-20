@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_MESSAGEPUBLISHER_HH_INCLUDED__
-#define __IGN_TRANSPORT_MESSAGEPUBLISHER_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_PUBLISHER_HH_
+#define IGN_TRANSPORT_PUBLISHER_HH_
 
 #include <iostream>
 #include <string>

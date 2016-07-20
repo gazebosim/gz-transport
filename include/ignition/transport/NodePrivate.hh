@@ -15,13 +15,12 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
-#define __IGN_TRANSPORT_NODEPRIVATE_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_NODEPRIVATE_HH_
+#define IGN_TRANSPORT_NODEPRIVATE_HH_
 
 #include <string>
 #include <unordered_set>
 
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodeOptions.hh"
 
@@ -31,9 +30,9 @@ namespace ignition
   {
     class NodeShared;
 
-    /// \class NodePrivate NodePrivate.hh ignition/transport/NodePrivate.hh
-    /// \brief Private data for Private Node class.
-    class IGNITION_TRANSPORT_VISIBLE NodePrivate
+    /// \internal
+    /// \brief Private data for Node class.
+    class NodePrivate
     {
       /// \brief Constructor.
       public: NodePrivate() = default;

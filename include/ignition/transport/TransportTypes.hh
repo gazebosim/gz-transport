@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
-#define _IGN_TRANSPORT_TRANSPORTTYPES_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_TRANSPORTTYPES_HH_
+#define IGN_TRANSPORT_TRANSPORTTYPES_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
