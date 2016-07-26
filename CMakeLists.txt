@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-set(IGN_PROJECT_NAME "transport")
+project (ignition-transport)
 
-project (ignition-${IGN_PROJECT_NAME})
+string (SUBSTRING ${PROJECT_NAME} 9 -1 IGN_PROJECT_NAME)
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
