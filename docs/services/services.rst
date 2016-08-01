@@ -17,7 +17,7 @@ service, whereas the other node will be the service consumer requesting an
 
 .. code-block:: bash
 
-    mkdir -p ~/ign_transport_tutorial/msgs
+    mkdir ~/ign_transport_tutorial
     cd ~/ign_transport_tutorial
 
 Responser
@@ -28,15 +28,15 @@ folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
-    #include <cstdio>
+    #include <iostream>
     #include <string>
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
     //////////////////////////////////////////////////
     /// \brief Provide an "echo" service.
-    void srvEcho(const example::msgs::StringMsg &_req,
-      example::msgs::StringMsg &_rep, bool &_result)
+    void srvEcho(const ignition::msgs::StringMsg &_req,
+      ignition::msgs::StringMsg &_rep, bool &_result)
     {
       // Set the response's content.
       _rep.set_data(_req.data());
@@ -64,8 +64,8 @@ folder and open it with your favorite editor:
         return -1;
       }
 
-      // Wait for requests.
-      getchar();
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
     }
 
 Walkthrough
@@ -73,23 +73,23 @@ Walkthrough
 
 .. code-block:: cpp
 
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
 The line ``#include <ignition/transport.hh>`` contains the Ignition Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
 for our messages. We are going to use ``StringMsg`` type Protobuf messages
-defined in ``stringmsg.pb.h`` for our services.
+for our services.
 
 
 .. code-block:: cpp
 
     //////////////////////////////////////////////////
     /// \brief Provide an "echo" service.
-    void srvEcho(const example::msgs::StringMsg &_req,
-      example::msgs::StringMsg &_rep, bool &_result)
+    void srvEcho(const ignition::msgs::StringMsg &_req,
+      ignition::msgs::StringMsg &_rep, bool &_result)
     {
       // Set the response's content.
       _rep.set_data(_req.data());
@@ -103,7 +103,8 @@ execute every time a new service request is received. The signature of the
 callback is always similar to the one shown in this example with the exception
 of the Protobuf messages types for the ``_req`` (request) and ``_rep``
 (response). The request parameter contains the input parameters of the request.
-The response message contains any resulting data from the service call. The ``_result`` parameter denotes if the overall service call was considered
+The response message contains any resulting data from the service call. The
+``_result`` parameter denotes if the overall service call was considered
 successful or not. In our example, as a simple *echo* service, we just fill the
 response with the same data contained in the request.
 
@@ -120,10 +121,18 @@ response with the same data contained in the request.
       return -1;
     }
 
+    // Zzzzzz.
+    ignition::transport::waitForShutdown();
+
 We declare a *Node* that will offer all the transport functionality. In our
 case, we are interested in offering a service, so the first step is to announce
 our service name. Once a service name is advertised, we can accept service
 requests.
+
+If you don't have any other tasks to do besides waiting for service requests,
+you can use the call `waitForShutdown()` that will block your current thread
+until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
+*SIGTERM* signals.
 
 Synchronous requester
 =====================
@@ -134,8 +143,8 @@ folder and open it with your favorite editor:
 .. code-block:: cpp
 
     #include <iostream>
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
     //////////////////////////////////////////////////
     int main(int argc, char **argv)
@@ -144,10 +153,10 @@ folder and open it with your favorite editor:
       ignition::transport::Node node;
 
       // Prepare the input parameters.
-      example::msgs::StringMsg req;
+      ignition::msgs::StringMsg req;
       req.set_data("HELLO");
 
-      example::msgs::StringMsg rep;
+      ignition::msgs::StringMsg rep;
       bool result;
       unsigned int timeout = 5000;
 
@@ -175,10 +184,10 @@ Walkthrough
     ignition::transport::Node node;
 
     // Prepare the input parameters.
-    example::msgs::StringMsg req;
+    ignition::msgs::StringMsg req;
     req.set_data("HELLO");
 
-    example::msgs::StringMsg rep;
+    ignition::msgs::StringMsg rep;
     bool result;
     unsigned int timeout = 5000;
 
@@ -232,13 +241,12 @@ Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-tra
 .. code-block:: cpp
 
     #include <iostream>
-    #include <string>
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
     //////////////////////////////////////////////////
     /// \brief Service response callback.
-    void responseCb(const example::msgs::StringMsg &_rep, const bool _result)
+    void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
     {
       if (_result)
         std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -253,15 +261,16 @@ Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-tra
       ignition::transport::Node node;
 
       // Prepare the input parameters.
-      example::msgs::StringMsg req;
+      ignition::msgs::StringMsg req;
       req.set_data("HELLO");
+
+      std::cout << "Press <CTRL-C> to exit" << std::endl;
 
       // Request the "/echo" service.
       node.Request("/echo", req, responseCb);
 
-      // Wait for the response.
-      std::cout << "Press <ENTER> to exit" << std::endl;
-      getchar();
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
     }
 
 
@@ -272,7 +281,7 @@ Walkthrough
 
     //////////////////////////////////////////////////
     /// \brief Service response callback.
-    void responseCb(const example::msgs::StringMsg &_rep, const bool _result)
+    void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
     {
       if (_result)
         std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -294,7 +303,7 @@ case, we know that the service ``/echo`` will answer with a Protobuf
     ignition::transport::Node node;
 
     // Prepare the input parameters.
-    example::msgs::StringMsg req;
+    ignition::msgs::StringMsg req;
     req.set_data("HELLO");
 
     // Request the "/echo" service.
@@ -302,7 +311,8 @@ case, we know that the service ``/echo`` will answer with a Protobuf
 
 
 In this section of the code we declare a node and a Protobuf message that is
-filled with the input parameters for our request. Next, we just use the asynchronous variant of the ``Request()`` method that forwards a service call to
+filled with the input parameters for our request. Next, we just use the
+asynchronous variant of the ``Request()`` method that forwards a service call to
 any service provider of the service ``/echo``.
 Ignition Transport will find a node, communicate the data, capture the response
 and pass it to your callback, in addition of the service call result. Note that
@@ -388,10 +398,10 @@ case, we are interested in offering a oneway service, so the first step is to
 announce our service name. Once a service name is advertised, we can accept
 service requests.
 
-Requester oneway
+Oneway requester
 ================
 
-This case is similiar to the oneway service provider. This code be used for
+This case is similiar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
