@@ -113,6 +113,11 @@ namespace ignition
       /// \brief Destructor.
       protected: virtual ~NodeShared();
 
+      /// \brief Initialize all sockets.
+      /// \return True when success or false otherwise. This function might
+      /// return false if any operation on a ZMQ socket triggered an exception.
+      private: bool InitializeSockets();
+
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
 

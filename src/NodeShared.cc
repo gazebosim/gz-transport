@@ -24,7 +24,6 @@
 #endif
 
 #include <chrono>
-#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -82,8 +81,6 @@ NodeShared::NodeShared()
   std::string ignVerbose;
   this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
-  char bindEndPoint[1024];
-
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -93,52 +90,8 @@ NodeShared::NodeShared()
   this->srvDiscovery.reset(new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
 
   // Initialize the 0MQ objects.
-  try
-  {
-    // Set the hostname's ip address.
-    this->hostAddr = this->msgDiscovery->HostAddr();
-
-    // Publisher socket listening in a random port.
-    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
-
-    int lingerVal = 0;
-    this->publisher->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->publisher->bind(anyTcpEp.c_str());
-    size_t size = sizeof(bindEndPoint);
-    this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myAddress = bindEndPoint;
-
-    // Control socket listening in a random port.
-    this->control->bind(anyTcpEp.c_str());
-    this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myControlAddress = bindEndPoint;
-
-    // ResponseReceiver socket listening in a random port.
-    std::string id = this->responseReceiverId.ToString();
-    this->responseReceiver->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
-    this->responseReceiver->bind(anyTcpEp.c_str());
-    this->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myRequesterAddress = bindEndPoint;
-
-    // Replier socket listening in a random port.
-    id = this->replierId.ToString();
-    this->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
-    int RouteOn = 1;
-    this->replier->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->replier->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn, sizeof(RouteOn));
-    this->replier->bind(anyTcpEp.c_str());
-    this->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myReplierAddress = bindEndPoint;
-
-    this->requester->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
-      sizeof(RouteOn));
-  }
-  catch(const zmq::error_t& ze)
-  {
-     std::cerr << "NodeShared() Error: " << ze.what() << std::endl;
-     std::exit(EXIT_FAILURE);
-  }
+  if (!this->InitializeSockets())
+    return;
 
   if (this->verbose)
   {
@@ -992,4 +945,60 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::cout << "Service call disconnection callback" << std::endl;
     std::cout << _pub;
   }
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::InitializeSockets()
+{
+  try
+  {
+    // Set the hostname's ip address.
+    this->hostAddr = this->msgDiscovery->HostAddr();
+
+    // Publisher socket listening in a random port.
+    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+
+    char bindEndPoint[1024];
+    int lingerVal = 0;
+    this->publisher->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    this->publisher->bind(anyTcpEp.c_str());
+    size_t size = sizeof(bindEndPoint);
+    this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myAddress = bindEndPoint;
+
+    // Control socket listening in a random port.
+    this->control->bind(anyTcpEp.c_str());
+    this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myControlAddress = bindEndPoint;
+
+    // ResponseReceiver socket listening in a random port.
+    std::string id = this->responseReceiverId.ToString();
+    this->responseReceiver->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    this->responseReceiver->bind(anyTcpEp.c_str());
+    this->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myRequesterAddress = bindEndPoint;
+
+    // Replier socket listening in a random port.
+    id = this->replierId.ToString();
+    this->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    int RouteOn = 1;
+    this->replier->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    this->replier->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn, sizeof(RouteOn));
+    this->replier->bind(anyTcpEp.c_str());
+    this->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->myReplierAddress = bindEndPoint;
+
+    this->requester->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
+    this->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
+      sizeof(RouteOn));
+  }
+  catch(const zmq::error_t& ze)
+  {
+    std::cerr << "NodeShared() Error: " << ze.what() << std::endl;
+    std::cerr << "Ignition Transport has not been correctly initialized"
+              << std::endl;
+    return false;
+  }
+
+  return true;
 }
