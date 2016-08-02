@@ -25,7 +25,7 @@ Install Ignition Transport:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install libignition-transport-dev
+    sudo apt-get install libignition-transport2-dev
 
 Mac OS X
 ========
@@ -50,7 +50,7 @@ Run the following commands:
 .. code-block:: bash
 
     brew tap osrf/simulation
-    brew install ignition-transport1
+    brew install ignition-transport2
 
 Windows
 =======
@@ -97,6 +97,45 @@ The correct structure is
         ign-ws/cppzmq
 
 To fix this problem, manually move the nested directories up one level.
+
+
+Clone and prepare the Ignition Math dependency:
+
+.. code-block:: bash
+
+        hg clone https://bitbucket.org/ignitionrobotics/ign-math
+        cd ign-math
+        mkdir build
+
+In a Windows Command Prompt, load your compiler setup, e.g.:
+
+.. code-block:: bash
+
+        "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+
+In the Windows Command Promp, configure and build:
+
+.. code-block:: bash
+
+        cd ign-math\build
+        ..\configure
+        nmake install
+
+Clone and prepare the Ignition Msgs dependency:
+
+.. code-block:: bash
+
+        hg clone https://bitbucket.org/ignitionrobotics/ign-msgs
+        cd ign-msgs
+        mkdir build
+
+In the Windows Command Prompt, configure and build:
+
+.. code-block:: bash
+
+        cd ign-msgs\build
+        ..\configure
+        nmake install
 
 Clone ign-transport:
 
@@ -164,13 +203,13 @@ from source:
 
 .. code-block:: bash
 
-        sudo apt-get remove libignition-transport-dev
+        sudo apt-get remove libignition-transport2-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 
 .. code-block:: bash
 
-        sudo apt-get install cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev
+        sudo apt-get install cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
 
 Clone the repository into a directory and go into it:
 
