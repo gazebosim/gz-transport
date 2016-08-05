@@ -2,6 +2,10 @@
 
 ### Ignition Transport 2.0.0
 
+1. Move ZMQ initialization from constructor to separate function in
+   NodeShared.
+    * [Pull request 166](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/166)
+
 1. `Node::Advertise` returns a publisher id that can be used to publish messages, as an alternative to remembering topic strings.
     * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/129)
 
