@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
-#define _IGN_TRANSPORT_NODESHARED_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_NODESHARED_HH_
+#define IGN_TRANSPORT_NODESHARED_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -112,6 +112,11 @@ namespace ignition
 
       /// \brief Destructor.
       protected: virtual ~NodeShared();
+
+      /// \brief Initialize all sockets.
+      /// \return True when success or false otherwise. This function might
+      /// return false if any operation on a ZMQ socket triggered an exception.
+      private: bool InitializeSockets();
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;

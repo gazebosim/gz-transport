@@ -15,22 +15,20 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_INCLUDED__
-#define __IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
+#define IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
 
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 
 namespace ignition
 {
   namespace transport
   {
-    /// \class NodeOptionsPrivate NodeOptionsPrivate.hh
-    ///     ignition/transport/NodeOptionsPrivate.hh
-    /// \brief Private data for Private NodeOption class.
-    class IGNITION_TRANSPORT_VISIBLE NodeOptionsPrivate
+    /// \internal
+    /// \brief Private data for NodeOption class.
+    class NodeOptionsPrivate
     {
       /// \brief Constructor.
       public: NodeOptionsPrivate() = default;

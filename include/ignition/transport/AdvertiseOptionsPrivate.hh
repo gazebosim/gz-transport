@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef __IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_INCLUDED__
-#define __IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_INCLUDED__
+#ifndef IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_
+#define IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
@@ -26,7 +26,7 @@ namespace ignition
   namespace transport
   {
     /// \internal
-    /// \brief Private data for Private AdvertiseOptions class.
+    /// \brief Private data for AdvertiseOptions class.
     class AdvertiseOptionsPrivate
     {
       /// \brief Constructor.

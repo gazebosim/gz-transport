@@ -114,7 +114,7 @@ return all the information to our users when available. The way we tackle the
 notification  inside ``Discovery`` is through callbacks. A discovery user
 needs to register two callbacks: one for receiving notifications when new
 topics are available and another for notifying when a topic is no longer
-active. The functions       ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow
+active. The functions ``ConnectionsCb()`` and ``DisconnectionsCb()`` allow
 the discovery user to set these two notification callbacks. For example, a user
 will invoke the ``Discover()`` call and, after some time, its ``ConnectionCb``
 will be executed with the information about the requested topic. In the
@@ -147,14 +147,12 @@ with the following format:
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |            Version            |     Process UUID Length       |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |     Process UUID Length       |         Process UUID          |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |                                                               |
     \                          Process UUID                         \
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    | Process UUID  |  Message Type |             Flags             |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Message Type |             Flags             |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 The value of the ``Message Type`` field in the header is ``[UN]ADVERTISE``.
 
@@ -197,7 +195,7 @@ the following format:
     \                            Header                             \
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                         Topic length                          |
+    |         Topic length          |             Topic             |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |                                                               |
     \                            Topic                              \
