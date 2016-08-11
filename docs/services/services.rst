@@ -401,7 +401,7 @@ service requests.
 Oneway requester
 ================
 
-This case is similiar to the oneway service provider. This code can be used for
+This case is similar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
@@ -460,6 +460,143 @@ communicate the data without waiting for the response. The return value of
 variant of ``Request()`` is also asynchronous, so your code will not block while
 your service request is handled.
 
+Service without input parameter
+===============================
+
+Sometimes we want to receive some result but don't have any input parameter to
+send.
+
+Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_no_input.cc>`_
+ file within the ``ign_transport_tutorial`` folder and open it with your
+favorite editor:
+
+.. code-block:: cpp
+
+#include <iostream>
+#include <string>
+#include <ignition/msgs.hh>
+#include <ignition/transport.hh>
+
+//////////////////////////////////////////////////
+/// \brief Provide a "quote" service.
+/// Well OK, it's just single-quote service but do you really need more?
+void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+{
+  std::string awesomeQuote = "This is it! This is the answer. It says here..."
+    "that a bolt of lightning is going to strike the clock tower at precisely "
+    "10:04pm, next Saturday night! If...If we could somehow...harness this "
+    "lightning...channel it...into the flux capacitor...it just might work. "
+    "Next Saturday night, we're sending you back to the future!";
+
+  // Set the response's content.
+  _rep.set_data(awesomeQuote);
+
+  // The response succeed.
+  _result = true;
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Create a transport node.
+  ignition::transport::Node node;
+  std::string service = "/quote";
+
+  // Advertise a service call.
+  if (!node.Advertise(service, srvQuote))
+  {
+    std::cerr << "Error advertising service [" << service << "]" << std::endl;
+    return -1;
+  }
+
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
+}
+
+
+Walkthrough
+-----------
+
+.. code-block:: cpp
+
+void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+
+Service doesn't receive anything. The signature of the callback contains two
+parameters ``_rep`` (response) and ``_result``. In our example, we return
+the quote.
+
+.. code-block:: cpp
+
+// Create a transport node.
+ignition::transport::Node node;
+std::string service = "/quote";
+
+// Advertise a service call.
+if (!node.Advertise(service, srvQuote))
+{
+  std::cerr << "Error advertising service [" << service << "]" << std::endl;
+  return -1;
+}
+
+// Zzzzzz.
+ignition::transport::waitForShutdown();
+
+We declare a *Node* that will offer all the transport functionality. In our
+case, we are interested in offering service without input, so the first step is
+to announce the service name. Once a service name is advertised, we can accept
+service requests.
+
+Empty requester sync and async
+==============================
+
+This case is similar to the service without input parameter. We don't send any
+request.
+
+Download the `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
+file within the ``ign_transport_tutorial`` folder and open it with your
+favorite editor:
+
+.. code-block:: cpp
+
+#include <iostream>
+#include <ignition/msgs.hh>
+#include <ignition/transport.hh>
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Create a transport node.
+  ignition::transport::Node node;
+
+  ignition::msgs::StringMsg rep;
+  bool result;
+  unsigned int timeout = 5000;
+
+  // Request the "/quote" service.
+  bool executed = node.Request("/quote", timeout, rep, result);
+
+  if (executed)
+  {
+    if (result)
+      std::cout << "Response: [" << rep.data() << "]" << std::endl;
+    else
+      std::cout << "Service call failed" << std::endl;
+  }
+  else
+    std::cerr << "Service call timed out" << std::endl;
+}
+
+Walkthrough
+-----------
+
+First of all we declare a node and a message that will contain the response from
+``/quote`` service. Next, we use the variant without input parameter of the
+``Request()`` method. The return value of ``Request()`` indicates if the request
+was successfully executed.
+
+We have the async version for service request without input. You should
+download `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
+file within the ``ign_transport_tutorial`` folder.
 
 Building the code
 =================
@@ -480,6 +617,7 @@ Run ``cmake`` and build the code.
 
     cmake ..
     make responser responser_oneway requester requester_async requester_oneway
+    make responser_no_input requester_no_input requester_async_no_input
 
 
 Running the examples
@@ -542,3 +680,33 @@ showing that your service provider has received a request:
 
     caguero@turtlebot:~/ign_transport_tutorial/build$ ./responser_oneway
     Request received: [HELLO]
+
+For running the examples without input, open three terminals and from your ``build/``
+directory run the executables.
+
+From terminal 1:
+
+.. code-block:: bash
+
+    ./responser_no_input
+
+From terminal 2:
+
+.. code-block:: bash
+
+    ./requester_no_input
+
+From terminal 3:
+
+.. code-block:: bash
+
+    ./requester_async_no_input
+
+
+In your requesters' terminals, you should expect an output similar to this one,
+showing that you have received a response:
+
+.. code-block:: bash
+
+    caguero@turtlebot:~/ign_transport_tutorial/build$ ./responser_no_input
+    Response: [This is it! This is the answer. It says here...that a bolt of lightning is going to strike the clock tower at precisely 10:04pm, next Saturday night! If...If we could somehow...harness this lightning...channel it...into the flux capacitor...it just might work. Next Saturday night, we're sending you back to the future!]
