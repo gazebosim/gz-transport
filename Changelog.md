@@ -1,5 +1,8 @@
 ## Ignition Transport 2.x
 
+1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
+    * [Pull request 168](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/168)
+
 ### Ignition Transport 2.0.0
 
 1. Move ZMQ initialization from constructor to separate function in
