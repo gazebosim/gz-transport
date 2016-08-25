@@ -591,10 +591,11 @@ Walkthrough
 
 First of all we declare a node and a message that will contain the response from
 ``/quote`` service. Next, we use the variant without input parameter of the
-``Request()`` method. The return value of ``Request()`` indicates if the request
-was successfully executed.
+``Request()`` method. The return value of ``Request()`` indicates whether the
+request timed out or reached the service provider and ``result`` shows if the
+service was successfully executed.
 
-We have the async version for service request without input. You should
+We also have the async version for service request without input. You should
 download `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
 file within the ``ign_transport_tutorial`` folder.
 
@@ -708,5 +709,9 @@ showing that you have received a response:
 
 .. code-block:: bash
 
-    caguero@turtlebot:~/ign_transport_tutorial/build$ ./responser_no_input
-    Response: [This is it! This is the answer. It says here...that a bolt of lightning is going to strike the clock tower at precisely 10:04pm, next Saturday night! If...If we could somehow...harness this lightning...channel it...into the flux capacitor...it just might work. Next Saturday night, we're sending you back to the future!]
+    caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester_no_input
+    Response: [This is it! This is the answer. It says here...that a bolt of
+    lightning is going to strike the clock tower at precisely 10:04pm, next
+    Saturday night! If...If we could somehow...harness this lightning...channel
+    it...into the flux capacitor...it just might work. Next Saturday night,
+    we're sending you back to the future!]
