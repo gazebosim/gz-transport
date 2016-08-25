@@ -113,7 +113,7 @@ In a Windows Command Prompt, load your compiler setup, e.g.:
 
         "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
-In the Windows Command Promp, configure and build:
+In the Windows Command Prompt, configure and build:
 
 .. code-block:: bash
 
