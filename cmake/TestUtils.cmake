@@ -40,7 +40,7 @@ macro (ign_build_tests)
 
       add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-4.0.4.dll"
+        "${ZeroMQ_ROOT_DIR}/bin/libzmq-v120-mt-gd-4_0_4.dll"
         ${CMAKE_CURRENT_BINARY_DIR} VERBATIM)
 
       # Copy the Ignition Messages DLL.
