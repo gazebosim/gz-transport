@@ -289,7 +289,8 @@ namespace ignition
             return false;
 
           // Add the addressing information (local publisher).
-          this->info.AddPublisher(_publisher);
+          if (!this->info.AddPublisher(_publisher))
+            return false;
         }
 
         // Only advertise a message outside this process if the scope
