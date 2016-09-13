@@ -121,7 +121,7 @@ namespace ignition
       public: virtual ~Node();
 
       /// \brief Advertise a new topic. If a topic is currently advertised,
-      ///  you cannot advertise it a second time (regardless of its type).
+      /// you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _options Advertise options.
       /// \return A PublisherId, which can be used in Node::Publish calls.
@@ -136,7 +136,7 @@ namespace ignition
       }
 
       /// \brief Advertise a new topic. If a topic is currently advertised,
-      ///  you cannot advertise it a second time (regardless of its type).
+      /// you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _msgTypeName Name of the message type that will be
       /// published on the topic. The message type name can be retrieved
