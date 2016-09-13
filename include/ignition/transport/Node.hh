@@ -120,8 +120,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new topic. It's not possible to advertise more than
-      /// one topic with the same name in a node.
+      /// \brief Advertise a new topic. If a topic is currently advertised,
+      ///  you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _options Advertise options.
       /// \return A PublisherId, which can be used in Node::Publish calls.
@@ -135,8 +135,8 @@ namespace ignition
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
 
-      /// \brief Advertise a new topic. It's not possible to advertise more than
-      /// one topic with the same name in a node.
+      /// \brief Advertise a new topic. If a topic is currently advertised,
+      ///  you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _msgTypeName Name of the message type that will be
       /// published on the topic. The message type name can be retrieved
