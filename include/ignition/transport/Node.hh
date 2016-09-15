@@ -679,7 +679,7 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->SetMessage(&_req);
 
         // Insert the callback into the handler.
         reqHandlerPtr->SetCallback(_cb);
@@ -809,14 +809,15 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->SetMessage(&_req);
+        reqHandlerPtr->SetResponse(&_rep);
 
         std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
         if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
-          T1().GetTypeName(), T2().GetTypeName(), repHandler))
+          _req.GetTypeName(), _rep.GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(_req, _rep, _result);
@@ -833,7 +834,7 @@ namespace ignition
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            T1().GetTypeName(), T2().GetTypeName());
+            _req.GetTypeName(), _rep.GetTypeName());
         }
         else
         {
