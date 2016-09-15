@@ -1,3 +1,8 @@
+## Ignition Transport 3.0.0
+
+1. Added ign service --req <args ...> for requesting services using the command line.
+    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/172)
+
 ## Ignition Transport 2.x
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
