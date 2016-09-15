@@ -135,8 +135,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
-                                           const char *_msgType,
-                                           const char *_msgData)
+  const char *_msgType, const char *_msgData)
 {
   if (!_topic)
   {
@@ -187,7 +186,8 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
-  const char *_reqType, const char *_repType, int _timeout, const char *_reqData)
+  const char *_reqType, const char *_repType, const int _timeout,
+  const char *_reqData)
 {
   if (!_service)
   {
