@@ -213,9 +213,27 @@ namespace ignition
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
-      public: void SetMessage(const Req &_reqMsg)
+      public: void SetMessage(const Req *_reqMsg)
       {
-        this->reqMsg = _reqMsg;
+        if (!_reqMsg)
+        {
+          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
+          return;
+        }
+
+        this->reqMsg.CopyFrom(*_reqMsg);
+      }
+
+      /// \brief Set the REP protobuf message for this handler.
+      /// This function is only used for compatibility with SetResponse() when
+      /// [REP = google::protobuf::Message]. It shouldn't be executed.
+      /// \param[in] _repMsg Protofub message containing the variable where
+      /// the result will be stored. The only purpose of this function is to
+      /// store the type information of _repMsg.
+      public: void SetResponse(const Rep * /*_repMsg*/)
+      {
+        std::cerr << "ReqHandler::SetResponse() Warning: This function "
+                  << "shouldn't be executing." << std::endl;
       }
 
       // Documentation inherited
@@ -273,6 +291,112 @@ namespace ignition
       /// \param[in] _result True when the service request was successful or
       /// false otherwise.
       private: std::function<void(const Rep &_rep, const bool _result)> cb;
+    };
+
+    /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
+    /// \brief Template specialization for google::protobuf::Message.
+    /// This is only used by some ign command line tools.
+    template <> class ReqHandler<google::protobuf::Message,
+                                 google::protobuf::Message>
+      : public IReqHandler
+    {
+      // Documentation inherited.
+      public: explicit ReqHandler(const std::string &_nUuid)
+        : IReqHandler(_nUuid)
+      {
+      }
+
+      /// \brief Set the REQ protobuf message for this handler.
+      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// of the service request.
+      public: void SetMessage(const google::protobuf::Message *_reqMsg)
+      {
+        if (!_reqMsg)
+        {
+          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
+          return;
+        }
+
+        this->reqMsg = _reqMsg->New();
+        this->reqMsg->CopyFrom(*_reqMsg);
+      }
+
+      /// \brief Set the REP protobuf message for this handler.
+      /// \param[in] _repMsg Protofub message containing the variable where
+      /// the result will be stored. The only purpose of this function is to
+      /// store the type information of _repMsg.
+      public: void SetResponse(const google::protobuf::Message *_repMsg)
+      {
+        if (!_repMsg)
+        {
+          std::cerr << "ReqHandler::SetResponse() _repMsg is null" << std::endl;
+          return;
+        }
+
+        this->repMsg = _repMsg->New();
+        this->repMsg->CopyFrom(*_repMsg);
+      }
+
+      // Documentation inherited
+      public: bool Serialize(std::string &_buffer) const
+      {
+        if (!this->reqMsg)
+        {
+          std::cerr << "ReqHandler::Serialize() reqMsg is null" << std::endl;
+          return false;
+        }
+
+        if (!this->reqMsg->SerializeToString(&_buffer))
+        {
+          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
+                    << std::endl;
+          return false;
+        }
+
+        return true;
+      }
+
+      // Documentation inherited.
+      public: void NotifyResult(const std::string &_rep, const bool _result)
+      {
+        this->rep = _rep;
+        this->result = _result;
+
+        this->repAvailable = true;
+        this->condition.notify_one();
+      }
+
+      // Documentation inherited.
+      public: virtual std::string ReqTypeName() const
+      {
+        if (this->reqMsg)
+          return this->reqMsg->GetTypeName();
+        else
+        {
+          std::cerr << "ReqHandler::ReqTypeName() Warning: Using ReqTypeName() "
+                    << "without type information" << std::endl;
+          return "";
+        }
+      }
+
+      //// Documentation inherited.
+      public: virtual std::string RepTypeName() const
+      {
+        if (this->repMsg)
+          return this->repMsg->GetTypeName();
+        else
+        {
+          std::cerr << "ReqHandler::RepTypeName() Warning: Using RepTypeName() "
+                    << "without type information" << std::endl;
+          return "";
+        }
+      }
+
+      /// \brief Protobuf message containing the request's parameters.
+      private: google::protobuf::Message *reqMsg = nullptr;
+
+      /// \brief Protobuf message containing the response.
+      private: google::protobuf::Message *repMsg = nullptr;
     };
   }
 }

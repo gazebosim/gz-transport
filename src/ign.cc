@@ -229,6 +229,15 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
 
   // Request the service.
   bool executed = node.Request(_service, *req, _timeout, *rep, result);
+  if (executed)
+  {
+    if (result)
+      std::cout << rep->DebugString() << std::endl;
+    else
+      std::cout << "Service call failed" << std::endl;
+  }
+  else
+    std::cerr << "Service call timed out" << std::endl;
 }
 
 
