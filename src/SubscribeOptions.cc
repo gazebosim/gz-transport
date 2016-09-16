@@ -42,17 +42,17 @@ SubscribeOptions::~SubscribeOptions()
 //////////////////////////////////////////////////
 bool SubscribeOptions::Throttled() const
 {
-  return this->MsgsPerSec() >= 0;
+  return this->MsgsPerSec() == kUnthrottled;
 }
 
 //////////////////////////////////////////////////
-int SubscribeOptions::MsgsPerSec() const
+unsigned long int SubscribeOptions::MsgsPerSec() const
 {
   return this->dataPtr->msgsPerSec;
 }
 
 //////////////////////////////////////////////////
-void SubscribeOptions::SetMsgsPerSec(const int _newMsgsPerSec)
+void SubscribeOptions::SetMsgsPerSec(const unsigned long int _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }

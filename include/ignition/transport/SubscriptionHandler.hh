@@ -171,13 +171,14 @@ namespace ignition
         if (!this->opts.Throttled())
           return true;
 
+        Timestamp now = std::chrono::steady_clock::now();
+
         if (!this->firstCbHasBeenExecuted)
         {
+          this->lastCbTimestamp = now;
           this->firstCbHasBeenExecuted = true;
           return true;
         }
-
-        Timestamp now = std::chrono::steady_clock::now();
 
         // Elapsed time since the last callback execution.
         auto elapsed = now - this->lastCbTimestamp;
@@ -201,10 +202,7 @@ namespace ignition
         {
           // Check the subscription throttling option.
           if (!this->UpdateThrottling())
-          {
-            std::cout << "Ignoring message" << std::endl;
             return true;
-          }
 
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 

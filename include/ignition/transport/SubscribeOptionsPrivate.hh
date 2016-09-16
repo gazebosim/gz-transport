@@ -36,7 +36,7 @@ namespace ignition
       public: virtual ~SubscribeOptionsPrivate() = default;
 
       /// \brief Default message subscription rate.
-      public: int msgsPerSec = SubscribeOptions::kUnthrottled;
+      public: unsigned long int msgsPerSec = SubscribeOptions::kUnthrottled;
     };
   }
 }
