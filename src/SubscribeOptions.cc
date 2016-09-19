@@ -15,6 +15,7 @@
  *
 */
 
+#include <cstdint>
 #include <limits>
 
 #include "ignition/transport/SubscribeOptions.hh"
