@@ -2,7 +2,7 @@
 
 1. Subscription options added. The first option is to provide the ability to
    set the received message rate on the subscriber side.
-    * [Pull request 173](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/173)
+    * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/174)
 
 ## Ignition Transport 2.x
 
