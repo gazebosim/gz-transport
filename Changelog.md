@@ -1,3 +1,9 @@
+## Ignition Transport 3.0.0
+
+1. Subscription options added. The first option is to provide the ability to
+   set the received message rate on the subscriber side.
+    * [Pull request 173](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/173)
+
 ## Ignition Transport 2.x
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
