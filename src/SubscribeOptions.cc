@@ -15,11 +15,17 @@
  *
 */
 
+#include <limits>
+
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscribeOptionsPrivate.hh"
 
 using namespace ignition;
 using namespace transport;
+
+//////////////////////////////////////////////////
+const uint64_t SubscribeOptions::kUnthrottled =
+  std::numeric_limits<uint64_t>::max();
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
@@ -42,17 +48,17 @@ SubscribeOptions::~SubscribeOptions()
 //////////////////////////////////////////////////
 bool SubscribeOptions::Throttled() const
 {
-  return this->MsgsPerSec() == kUnthrottled;
+  return this->MsgsPerSec() != kUnthrottled;
 }
 
 //////////////////////////////////////////////////
-unsigned long int SubscribeOptions::MsgsPerSec() const
+uint64_t SubscribeOptions::MsgsPerSec() const
 {
   return this->dataPtr->msgsPerSec;
 }
 
 //////////////////////////////////////////////////
-void SubscribeOptions::SetMsgsPerSec(const unsigned long int _newMsgsPerSec)
+void SubscribeOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }

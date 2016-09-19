@@ -18,7 +18,6 @@
 #ifndef IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
 #define IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
 
-#include <limits>
 #include <memory>
 
 #include "ignition/transport/Helpers.hh"
@@ -51,18 +50,19 @@ namespace ignition
       public: bool Throttled() const;
 
       /// \brief Set the maximum number of messages per second received per
-      /// topic.
+      /// topic. Note that we calculate the minimum period of a message based
+      /// on the msgs/sec rate. Any message received since the last subscription
+      /// callback and the duration of the period will be discarded.
       /// \param[in] _newMsgsPerSec Maximum number of messages per second.
-      public: void SetMsgsPerSec(const unsigned long int _newMsgsPerSec);
+      public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
 
       /// \brief Get the maximum number of messages per seconds received per
       /// topic.
       /// \return The maximum number of messages per second.
-      public: unsigned long int MsgsPerSec() const;
+      public: uint64_t MsgsPerSec() const;
 
       /// \brief Constant used when not interested in throttling.
-      public: static const unsigned long int kUnthrottled =
-        std::numeric_limits<unsigned long int>::max();
+      public: static const uint64_t kUnthrottled;
 
       /// \internal
       /// \brief Shared pointer to private data.
