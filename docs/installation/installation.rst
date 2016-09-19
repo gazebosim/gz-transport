@@ -81,8 +81,8 @@ Download the following dependencies into that directory:
 
     Choose one of these options:
 
-    - `ZeroMQ 3.2.4 (32-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-x86.zip>`_
-    - `ZeroMQ 3.2.4 (64-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-amd64.zip>`_
+    - `ZeroMQ 4.0.4 (32-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-x86.zip>`_
+    - `ZeroMQ 4.0.4 (64-bit) <http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-amd64.zip>`_
 
 Unzip each of them. The Windows unzip utility will likely create an incorrect directory structure, where a directory with the name of the zip contains the directory that has the source files. Here is an example:
 
@@ -128,7 +128,7 @@ Before running any executables, you need to modify your ``PATH`` to include the 
 
 .. code-block:: bash
 
-        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
+        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin
 
 Now build the examples:
 
