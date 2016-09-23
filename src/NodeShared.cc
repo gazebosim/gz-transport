@@ -318,8 +318,6 @@ void NodeShared::RecvMsgUpdate()
       }
     }
   }
-  else
-    std::cerr << "I am not subscribed to topic [" << topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
