@@ -570,6 +570,19 @@ TEST(NodeTest, PubSubSameThreadLambda)
 }
 
 //////////////////////////////////////////////////
+/// \brief Advertise two topics with the same name. It's not possible to do it
+/// within the same node but it's valid on separate nodes.
+TEST(NodeTest, AdvertiseTwoEqualTopics)
+{
+  transport::Node node1;
+  transport::Node node2;
+
+  EXPECT_TRUE(node1.Advertise<ignition::msgs::Int32>(g_topic));
+  EXPECT_FALSE(node1.Advertise<ignition::msgs::StringMsg>(g_topic));
+  EXPECT_TRUE(node2.Advertise<ignition::msgs::StringMsg>(g_topic));
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)

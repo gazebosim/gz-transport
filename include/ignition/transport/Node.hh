@@ -121,7 +121,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~Node();
 
-      /// \brief Advertise a new topic.
+      /// \brief Advertise a new topic. If a topic is currently advertised,
+      /// you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _options Advertise options.
       /// \return A PublisherId, which can be used in Node::Publish calls.
@@ -135,7 +136,8 @@ namespace ignition
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
 
-      /// \brief Advertise a new topic.
+      /// \brief Advertise a new topic. If a topic is currently advertised,
+      /// you cannot advertise it a second time (regardless of its type).
       /// \param[in] _topic Topic name to be advertised.
       /// \param[in] _msgTypeName Name of the message type that will be
       /// published on the topic. The message type name can be retrieved
@@ -158,6 +160,17 @@ namespace ignition
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+        auto currentTopics = this->TopicsAdvertised();
+
+        if (currentTopics.find(fullyQualifiedTopic) != currentTopics.end())
+        {
+          std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
+                    << " advertise the same topic twice on the same node."
+                    << " If you want to advertise the same topic with different"
+                    << " types, use separate nodes" << std::endl;
+          return PublisherId();
+        }
 
         // Add the topic to the list of advertised topics (if it was not before)
         this->TopicsAdvertised().insert(fullyQualifiedTopic);
