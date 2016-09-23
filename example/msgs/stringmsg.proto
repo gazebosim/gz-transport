@@ -1,3 +1,4 @@
+syntax = "proto2";
 package example.msgs;
 
 /// \brief String message
