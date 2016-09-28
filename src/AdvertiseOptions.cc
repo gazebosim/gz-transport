@@ -15,6 +15,9 @@
  *
 */
 
+#include <cstdint>
+#include <limits>
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/AdvertiseOptionsPrivate.hh"
 
@@ -47,6 +50,13 @@ AdvertiseOptions &AdvertiseOptions::operator=(const AdvertiseOptions &_other)
 }
 
 //////////////////////////////////////////////////
+//AdvertiseOptions::AdvertiseOptions(const AdvertiseOptions &_other)
+//  : dataPtr(new AdvertiseOptionsPrivate())
+//{
+//  this->SetMsgsPerSec(_other.MsgsPerSec());
+//}
+
+//////////////////////////////////////////////////
 const Scope_t &AdvertiseOptions::Scope() const
 {
   return this->dataPtr->scope;
@@ -56,4 +66,26 @@ const Scope_t &AdvertiseOptions::Scope() const
 void AdvertiseOptions::SetScope(const Scope_t &_scope)
 {
   this->dataPtr->scope = _scope;
+}
+
+//////////////////////////////////////////////////
+const uint64_t AdvertiseOptions::kUnthrottled =
+  std::numeric_limits<uint64_t>::max();
+
+//////////////////////////////////////////////////
+bool AdvertiseOptions::Throttled() const
+{
+  return this->MsgsPerSec() != kUnthrottled;
+}
+
+//////////////////////////////////////////////////
+uint64_t AdvertiseOptions::MsgsPerSec() const
+{
+  return this->dataPtr->msgsPerSec;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
+{
+  this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }
