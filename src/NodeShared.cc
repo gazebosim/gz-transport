@@ -809,9 +809,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       std::map<std::string, ISubscriptionHandler_M> handlers;
       if (this->localSubscriptions.Handlers(topic, handlers))
       {
-        for (auto &node : handlers)
+        for (auto const &node : handlers)
         {
-          for (auto &handler : node.second)
+          for (auto const &handler : node.second)
           {
             if (handler.second->TypeName() != _pub.MsgTypeName())
               continue;
