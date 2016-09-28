@@ -18,6 +18,8 @@
 #ifndef IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_
 #define IGN_TRANSPORT_ADVERTISEOPTIONSPRIVATE_HH_
 
+#include <cstdint>
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
@@ -37,6 +39,9 @@ namespace ignition
 
       /// \brief Scope of the topic/service..
       public: Scope_t scope = Scope_t::ALL;
+
+      /// \brief Default message advertisement rate.
+      public: uint64_t msgsPerSec = AdvertiseOptions::kUnthrottled;
     };
   }
 }

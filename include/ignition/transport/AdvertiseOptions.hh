@@ -76,6 +76,27 @@ namespace ignition
       /// \sa Scope_t.
       public: void SetScope(const Scope_t &_scope);
 
+      /// \brief Whether the advertisement has been throttled.
+      /// \return true when the advertisement is throttled or false otherwise.
+      /// \sa SetMsgsPerSec
+      /// \sa MsgsPerSec
+      public: bool Throttled() const;
+
+      /// \brief Set the maximum number of messages per second sent per
+      /// topic. Note that we calculate the minimum period of a message based
+      /// on the msgs/sec rate. Any message sent since the last advertisement
+      /// call and the duration of the period will be discarded.
+      /// \param[in] _newMsgsPerSec Maximum number of messages per second.
+      public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
+
+      /// \brief Get the maximum number of messages per seconds sent per
+      /// topic.
+      /// \return The maximum number of messages per second.
+      public: uint64_t MsgsPerSec() const;
+
+      /// \brief Constant used when not interested in throttling.
+      public: static const uint64_t kUnthrottled;
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::AdvertiseOptionsPrivate> dataPtr;
