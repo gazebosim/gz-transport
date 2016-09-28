@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   // Subscribe to a topic by registering a callback.
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
-  if (!node.Subscribe(topic, cb))
+  if (!node.Subscribe(topic, cb, opts))
   {
     std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return -1;

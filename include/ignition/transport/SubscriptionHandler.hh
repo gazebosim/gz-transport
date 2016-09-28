@@ -54,7 +54,6 @@ namespace ignition
         : hUuid(Uuid().ToString()),
           opts(_opts),
           lastCbTimestamp(std::chrono::seconds{0}),
-         // firstCbHasBeenExecuted(false),
           periodNs(0.0),
           nUuid(_nUuid)
       {
@@ -105,10 +104,6 @@ namespace ignition
       /// \brief Timestamp of the last callback executed.
       protected: Timestamp lastCbTimestamp;
 
-      /// \brief True when we have executed the callback at least one time or
-      /// false when we haven't executed yet.
-      //protected: bool firstCbHasBeenExecuted;
-
       /// \brief If throttling is enabled, the minimum period for receiving a
       /// message in nanoseconds.
       protected: double periodNs;
@@ -129,11 +124,6 @@ namespace ignition
         const SubscribeOptions &_opts = SubscribeOptions())
         : ISubscriptionHandler(_nUuid, _opts)
       {
-        //auto now = std::chrono::steady_clock::now();
-        //this->lastCbTimestamp =
-        //  now - std::chrono::duration_cast<std::chrono::nanoseconds>(
-        //    this->periodNs);
-
         if (this->opts.Throttled())
           this->periodNs = 1e9 / this->opts.MsgsPerSec();
       }
@@ -179,18 +169,8 @@ namespace ignition
 
         Timestamp now = std::chrono::steady_clock::now();
 
-        //if (!this->firstCbHasBeenExecuted)
-        //{
-        //  this->lastCbTimestamp = now;
-        //  this->firstCbHasBeenExecuted = true;
-        //  return true;
-        //}
-
         // Elapsed time since the last callback execution.
         auto elapsed = now - this->lastCbTimestamp;
-
-        std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() << std::endl;
 
         if (std::chrono::duration_cast<std::chrono::nanoseconds>(
               elapsed).count() < this->periodNs)
