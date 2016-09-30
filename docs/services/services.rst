@@ -466,9 +466,7 @@ Service without input parameter
 Sometimes we want to receive some result but don't have any input parameter to
 send.
 
-Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_no_input.cc>`_
- file within the ``ign_transport_tutorial`` folder and open it with your
-favorite editor:
+Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_no_input.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
