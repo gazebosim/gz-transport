@@ -472,46 +472,46 @@ favorite editor:
 
 .. code-block:: cpp
 
-#include <iostream>
-#include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+    #include <iostream>
+    #include <string>
+    #include <ignition/msgs.hh>
+    #include <ignition/transport.hh>
 
-//////////////////////////////////////////////////
-/// \brief Provide a "quote" service.
-/// Well OK, it's just single-quote service but do you really need more?
-void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
-{
-  std::string awesomeQuote = "This is it! This is the answer. It says here..."
-    "that a bolt of lightning is going to strike the clock tower at precisely "
-    "10:04pm, next Saturday night! If...If we could somehow...harness this "
-    "lightning...channel it...into the flux capacitor...it just might work. "
-    "Next Saturday night, we're sending you back to the future!";
+    //////////////////////////////////////////////////
+    /// \brief Provide a "quote" service.
+    /// Well OK, it's just single-quote service but do you really need more?
+    void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+    {
+      std::string awesomeQuote = "This is it! This is the answer. It says here..."
+        "that a bolt of lightning is going to strike the clock tower at precisely "
+        "10:04pm, next Saturday night! If...If we could somehow...harness this "
+        "lightning...channel it...into the flux capacitor...it just might work. "
+        "Next Saturday night, we're sending you back to the future!";
 
-  // Set the response's content.
-  _rep.set_data(awesomeQuote);
+      // Set the response's content.
+      _rep.set_data(awesomeQuote);
 
-  // The response succeed.
-  _result = true;
-}
+      // The response succeed.
+      _result = true;
+    }
 
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Create a transport node.
-  ignition::transport::Node node;
-  std::string service = "/quote";
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      // Create a transport node.
+      ignition::transport::Node node;
+      std::string service = "/quote";
 
-  // Advertise a service call.
-  if (!node.Advertise(service, srvQuote))
-  {
-    std::cerr << "Error advertising service [" << service << "]" << std::endl;
-    return -1;
-  }
+      // Advertise a service call.
+      if (!node.Advertise(service, srvQuote))
+      {
+        std::cerr << "Error advertising service [" << service << "]" << std::endl;
+        return -1;
+      }
 
-  // Zzzzzz.
-  ignition::transport::waitForShutdown();
-}
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
+    }
 
 
 Walkthrough
@@ -519,7 +519,7 @@ Walkthrough
 
 .. code-block:: cpp
 
-void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+    void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
 
 Service doesn't receive anything. The signature of the callback contains two
 parameters ``_rep`` (response) and ``_result``. In our example, we return
@@ -527,19 +527,19 @@ the quote.
 
 .. code-block:: cpp
 
-// Create a transport node.
-ignition::transport::Node node;
-std::string service = "/quote";
+    // Create a transport node.
+    ignition::transport::Node node;
+    std::string service = "/quote";
 
-// Advertise a service call.
-if (!node.Advertise(service, srvQuote))
-{
-  std::cerr << "Error advertising service [" << service << "]" << std::endl;
-  return -1;
-}
+    // Advertise a service call.
+    if (!node.Advertise(service, srvQuote))
+    {
+      std::cerr << "Error advertising service [" << service << "]" << std::endl;
+      return -1;
+    }
 
-// Zzzzzz.
-ignition::transport::waitForShutdown();
+    // Zzzzzz.
+    ignition::transport::waitForShutdown();
 
 We declare a *Node* that will offer all the transport functionality. In our
 case, we are interested in offering service without input, so the first step is
@@ -558,33 +558,33 @@ favorite editor:
 
 .. code-block:: cpp
 
-#include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+    #include <iostream>
+    #include <ignition/msgs.hh>
+    #include <ignition/transport.hh>
 
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Create a transport node.
-  ignition::transport::Node node;
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      // Create a transport node.
+      ignition::transport::Node node;
 
-  ignition::msgs::StringMsg rep;
-  bool result;
-  unsigned int timeout = 5000;
+      ignition::msgs::StringMsg rep;
+      bool result;
+      unsigned int timeout = 5000;
 
-  // Request the "/quote" service.
-  bool executed = node.Request("/quote", timeout, rep, result);
+      // Request the "/quote" service.
+      bool executed = node.Request("/quote", timeout, rep, result);
 
-  if (executed)
-  {
-    if (result)
-      std::cout << "Response: [" << rep.data() << "]" << std::endl;
-    else
-      std::cout << "Service call failed" << std::endl;
-  }
-  else
-    std::cerr << "Service call timed out" << std::endl;
-}
+      if (executed)
+      {
+        if (result)
+          std::cout << "Response: [" << rep.data() << "]" << std::endl;
+        else
+          std::cout << "Service call failed" << std::endl;
+      }
+      else
+        std::cerr << "Service call timed out" << std::endl;
+    }
 
 Walkthrough
 -----------
