@@ -271,8 +271,11 @@ bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
       return false;
     }
 
-    this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
-      _msg.GetTypeName());
+    if (!this->dataPtr->shared->Publish(fullyQualifiedTopic, data,
+          _msg.GetTypeName()))
+    {
+      return false;
+    }
   }
   // Debug output.
   // else

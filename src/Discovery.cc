@@ -290,7 +290,8 @@ bool Discovery::AdvertiseMsg(const MessagePublisher &_publisher)
     return false;
 
   // Add the addressing information (local publisher).
-  this->dataPtr->infoMsg.AddPublisher(_publisher);
+  if (!this->dataPtr->infoMsg.AddPublisher(_publisher))
+    return false;
 
   // Only advertise a message outside this process if the scope is not 'Process'
   if (_publisher.Scope() != Scope_t::PROCESS)
@@ -308,7 +309,8 @@ bool Discovery::AdvertiseSrv(const ServicePublisher &_publisher)
     return false;
 
   // Add the addressing information (local publisher).
-  this->dataPtr->infoSrv.AddPublisher(_publisher);
+  if (!this->dataPtr->infoSrv.AddPublisher(_publisher))
+    return false;
 
   // Only advertise a message outside this process if the scope is not 'Process'
   if (_publisher.Scope() != Scope_t::PROCESS)
