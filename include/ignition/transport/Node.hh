@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@
 #endif
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -116,14 +117,7 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _options Node options.
-      /// \param[in] _opts Advertise options.
-      public: explicit Node(const NodeOptions &_options = NodeOptions(),
-	const AdvertiseOptions &_opts = AdvertiseOptions())
-	: opts(_opts),
-	  firstAdHasBeenPublished(false),
-	  periodNs(0.0)
-	{
-	}
+      public: explicit Node(const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor.
       public: virtual ~Node();
@@ -140,6 +134,13 @@ namespace ignition
                   const std::string &_topic,
                   const AdvertiseOptions &_options = AdvertiseOptions())
       {
+	opts = _options;
+	lastMsgTimestamp = std::chrono::seconds{0};
+	periodNs = 0.0;
+	
+	if (this->opts.Throttled())
+	this->periodNs = 1e9 / this->opts.MsgsPerSec();
+
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
 
@@ -1009,55 +1010,18 @@ namespace ignition
       /// \brief Advertise options.
       protected: AdvertiseOptions opts;
 
-      /// \brief Timestamp of the last advertisement published.
-      protected: Timestamp lastAdTimestamp;
-
-      /// \brief True when we have published the advertisement at least one
-      /// time or false when we haven't published yet.
-      protected: bool firstAdHasBeenPublished;
+      /// \brief Timestamp of the last message published.
+      protected: Timestamp lastMsgTimestamp;
 
       /// \brief If throttling is enabled, the minimum period for sending a
       /// message in nanoseconds.
       protected: double periodNs;
 
       /// \brief Check if message publication is throttled. If so, verify
-      /// whether the advertisement should be published or not.
-      /// \return true if the advertisement should be published or false otherwise.
-      private: bool UpdateThrottling()
-      {
-        if (!this->opts.Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-
-        if (!this->firstAdHasBeenPublished)
-        {
-          this->lastAdTimestamp = now;
-          this->firstAdHasBeenPublished = true;
-          return true;
-        }
-
-        // Elapsed time since the last advertisement publication.
-        auto elapsed = now - this->lastAdTimestamp;
-
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
-          return false;
-        }
-
-        // Update the last advertisement publication.
-        this->lastAdTimestamp = now;
-        return true;
-      }
-
-      private: bool PublishHelper(const std::string &_topic,
-                                  const ProtoMsg &_msg)
-      {
-	// Check the advertisement throttling option.
-	if (this->UpdateThrottling())
-	return false;
-      }
+      /// whether the message should be published or not.
+      /// \return true if the message should be published or false
+      /// otherwise.
+      private: bool UpdateThrottling();
 
       /// \internal
       /// \brief Smart pointer to private data.

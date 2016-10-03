@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <csignal>
 #include <condition_variable>
 #include <iostream>
@@ -248,6 +249,10 @@ bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
     {
       return false;
     }
+
+    // Check the message throttling option.
+    if (this->UpdateThrottling())
+      return false;
 
     hasLocalSubscribers =
       this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
@@ -636,5 +641,27 @@ bool Node::ServiceInfo(const std::string &_service,
     }
   }
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::UpdateThrottling()
+{
+  if (!this->opts.Throttled())
+    return true;
+
+  Timestamp now = std::chrono::steady_clock::now();
+
+  // Elapsed time since the last message publication.
+  auto elapsed = now - this->lastMsgTimestamp;
+
+  if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+        elapsed).count() < this->periodNs)
+  {
+    return false;
+  }
+
+  // Update the last message publication.
+  this->lastMsgTimestamp = now;
   return true;
 }
