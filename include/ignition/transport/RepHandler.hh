@@ -26,6 +26,10 @@
 #pragma warning(pop)
 #endif
 
+#if GOOGLE_PROTOBUF_VERSION > 2999999
+#include <google/protobuf/stubs/casts.h>
+#endif
+
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -121,8 +125,14 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
+#if GOOGLE_PROTOBUF_VERSION > 2999999
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
+#else
+          auto msgReq =
+            google::protobuf::internal::down_cast<const Req*>(&_msgReq);
+          auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
+#endif
 
           this->cb(*msgReq, *msgRep, _result);
         }

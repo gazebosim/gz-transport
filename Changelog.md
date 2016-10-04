@@ -1,5 +1,8 @@
 ## Ignition Transport 2.x
 
+1. Protobuf3 support added.
+    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/181)
+
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
     * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)
 
