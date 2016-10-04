@@ -27,7 +27,7 @@
 using namespace ignition;
 
 static std::string g_partition;
-static std::string g_ignVersion("--force-version " +
+static const std::string g_ignVersion("--force-version " +
   std::string(IGN_VERSION_FULL));
 
 /////////////////////////////////////////////////
