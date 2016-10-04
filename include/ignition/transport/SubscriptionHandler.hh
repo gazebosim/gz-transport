@@ -145,11 +145,11 @@ namespace ignition
         // Execute the callback (if existing)
         if (this->cb)
         {
-          #if GOOGLE_PROTOBUF_VERSION > 2999999
+#if GOOGLE_PROTOBUF_VERSION > 2999999
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-          #else
+#else
           auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
-          #endif
+#endif
 
           this->cb(*msgPtr);
           return true;
