@@ -27,8 +27,8 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
     Choose one of these options:
 
-    - [ZeroMQ 3.2.4 (32-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-x86.zip)
-    - [ZeroMQ 3.2.4 (64-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-3.2.4-amd64.zip)
+    - [ZeroMQ 4.0.4 (32-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-x86.zip)
+    - [ZeroMQ 4.0.4 (64-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-amd64.zip)
 
 1. Unzip each of them. The Windows unzip utility will likely create an incorrect directory structure, where a directory with the name of the zip contains the directory that has the source files. Here is an example:
 
@@ -63,7 +63,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Before running any executables, you need to modify your `PATH` to include the `bin` subdirectory of ZeroMQ to let Windows find dynamic libs (similar to `LD_LIBRARY_PATH` on Linux).  Don't put quotes around the path, even if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
 
-        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 3.2.4\bin
+        set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin
 
 1. Now build the examples:
 
