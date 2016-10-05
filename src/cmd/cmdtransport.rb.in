@@ -32,41 +32,76 @@ LIBRARY_NAME = '@IGN_LIBRARY_NAME@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMON_OPTIONS =
                "  -h [ --help ]              Print this help message.\n"\
+               "                                                    \n"        +
                "  --force-version <VERSION>  Use a specific library version.\n"\
+               "                                                    \n"        +
                '  --versions                 Show the available versions.'
 COMMANDS = {  'topic' =>
-                       "Print information about topics.\n\n" +
-                       "  ign topic [options]\n\n" +
-                       "Options:\n\n" +
+                       "Print information about topics.\n\n"                   +
+                       "  ign topic [options]\n\n"                             +
+                       "Options:\n\n"                                          +
                        "  -i [ --info ]              Get info about a topic.\n"+
                        "                             Requires the -t option.\n"+
+                       "                                                    \n"+
                        "  -l [ --list ]              List all topics.\n"       +
+                       "                                                    \n"+
                        "  -t [ --topic ] arg         Name of a topic.\n"       +
                        "                             Required with -i, -p.\n"  +
+                       "                                                    \n"+
                        "  -m [ --msgtype ] arg       Type of message to "      +
                        "publish.\n"                                            +
                        "                             Arg is a message type.\n" +
                        "                             Required with -p.\n"      +
+                       "                                                    \n"+
                        "  -p [ --pub ] arg           Publish a message.\n"     +
                        "                             Arg is the message data." +
                        " The format expected is\n                            " +
                        " the same used by Protobuf DebugString(). E.g.:\n\n"   +
                        "                               ign topic -t /foo -m "  +
                        "  ignition.msgs.StringMsg\n                          " +
-                       "     -p \'data:\"Custom data\"\'\n\n"                +
+                       "     -p \'data:\"Custom data\"\'\n\n"                  +
                        "                             Requires -t and -m.\n"    +
+                       "                                                    \n"+
                        COMMON_OPTIONS,
               'service' =>
-                       "Print information about services.\n\n"\
-                       "  ign service [options]\n\n"\
-                       "Options:\n\n"\
-                       "  -i [ --info ]              Get info about a "        +
-                       "service.\n"                                            +
-                       "  -s [ --service ] arg       Name of a service.\n"     +
-                       "                             Required with -i.\n"      +
-                       "                             'arg' is a service "      +
-                       "name.\n"                                               +
+                       "Print information about services.\n\n"                 +
+                       "  ign service [options]\n\n"                           +
+                       "Options:\n\n"                                          +
+                       "  -i [ --info ]              Get info about a service."+
+                       "\n"                                                    +
+                       "                             Requires the -s option.\n"+
+                       "                                                    \n"+
                        "  -l [ --list ]              List all services.\n"     +
+                       "                                                    \n"+
+                       "  -s [ --service ] arg       Name of a service.\n"     +
+                       "                             Arg is a service name.\n" +
+                       "                             Required with -i, -r.\n"  +
+                       "                                                    \n"+
+                       "  -r [ --req ] arg           Request a service.\n"     +
+                       "                             Arg is the input data."   +
+                       " The format expected is\n                            " +
+                       " the same used by Protobuf DebugString(). E.g.:\n\n"   +
+                       "                               ign service -s /echo\n" +
+                       "                               --reqtype ignition.msgs"+
+                       ".StringMsg\n"                                          +
+                       "                               --reptype ignition.msgs"+
+                       ".StringMsg\n"                                          +
+                       "                               --timeout 2000 --req \'"+
+                       "data: \"Hello\"\n\n"                                   +
+                       "                             Requires -s, --timeout,\n"+
+                       "                             --reqtype, --reptype.\n"  +
+                       "                                                    \n"+
+                       "  --timeout arg              Timeout in milliseconds." +
+                       "\n                             Arg is a timeout in "   +
+                       "milliseconds.\n"                                       +
+                       "                             Required with -r.\n"      +
+                       "                                                    \n"+
+                       "  --reqtype arg              Type of a request.\n"     +
+                       "                             Arg is the request type." +
+                       "                                                  \n\n"+
+                       "  --reptype arg              Type of a response.\n"    +
+                       "                             Arg is the response type."+
+                       "                                                  \n\n"+
                        COMMON_OPTIONS
             }
 
@@ -86,7 +121,7 @@ class Cmd
     opt_parser = OptionParser.new do |opts|
       opts.banner = usage
 
-      opts.on('-h', '--help", "Print this help message') do
+      opts.on('-h', '--help', 'Print this help message') do
         puts usage
         exit(0)
       end
@@ -118,6 +153,27 @@ class Cmd
               'Print information about a topic') do |t|
         options['info'] = t
       end
+
+      opts.on('-r data', '--req', String,
+              'Request a data') do |t|
+        options['req'] = t
+      end
+
+      opts.on('--timeout data', Integer,
+              'Timeout') do |t|
+        options['timeout'] = t
+      end
+
+      opts.on('--reqtype type', String,
+              'Request type') do |t|
+        options['reqtype'] = t
+      end
+
+      opts.on('--reptype type', String,
+              'Response type') do |t|
+        options['reptype'] = t
+      end
+
     end
     begin
       opt_parser.parse!(args)
@@ -180,12 +236,25 @@ class Cmd
           Importer.extern 'void cmdTopicList()'
           Importer.cmdTopicList
         elsif options.key?('info')
-          Importer.extern 'void cmdTopicInfo(const char *)'
-          Importer.cmdTopicInfo(options['topic'])
+          if not options.key?('topic')
+            puts 'ign topic --info: missing topic name (-t <topic>)'
+            puts 'Try ign topic --help'
+          else
+            Importer.extern 'void cmdTopicInfo(const char *)'
+            Importer.cmdTopicInfo(options['topic'])
+          end
         elsif options.key?('pub')
-          Importer.extern 'void cmdTopicPub(const char *,const char *, const char *)'
-          Importer.cmdTopicPub(options['topic'], options['msgtype'],
-                               options['pub'])
+          if not options.key?('topic')
+            puts 'ign topic --pub: missing topic name (-t <topic>)'
+            puts 'Try ign topic --help'
+          elsif not options.key?('msgtype')
+            puts 'ign topic --pub: missing message type (--msgtype <type>)'
+            puts 'Try ign topic --help'
+          else
+            Importer.extern 'void cmdTopicPub(const char *, const char *, const char *)'
+            Importer.cmdTopicPub(options['topic'], options['msgtype'],
+                                 options['pub'])
+          end
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'
@@ -195,8 +264,33 @@ class Cmd
           Importer.extern 'void cmdServiceList()'
           Importer.cmdServiceList
         elsif options.key?('info')
-          Importer.extern 'void cmdServiceInfo(const char *)'
-          Importer.cmdServiceInfo(options['service'])
+          if not options.key?('service')
+            puts 'ign service --info: missing service name (-s <service>)'
+            puts 'Try ign service --help'
+          else
+            Importer.extern 'void cmdServiceInfo(const char *)'
+            Importer.cmdServiceInfo(options['service'])
+          end
+        elsif options.key?('req')
+          if not options.key?('service')
+            puts 'ign service --req: missing service name (-s <service>)'
+            puts 'Try ign service --help'
+          elsif not options.key?('reqtype')
+            puts 'ign service --req: missing input type (--reqtype <type>)'
+            puts 'Try ign service --help'
+          elsif not options.key?('reptype')
+            puts 'ign service --req: missing response type (--reptype <type>)'
+            puts 'Try ign service --help'
+          elsif not options.key?('timeout')
+            puts 'ign service --req: missing timeout in ms (--timeout '\
+                 '<timeout>)'
+            puts 'Try ign service --help'
+          else
+            Importer.extern 'void cmdServiceReq(const char *, const char *,'\
+                            'const char *, int, const char *)'
+            Importer.cmdServiceReq(options['service'], options['reqtype'],
+              options['reptype'], options['timeout'], options['req'])
+          end
         else
           puts 'Command error: I do not have an implementation '\
                'for this command.'

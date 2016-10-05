@@ -257,6 +257,30 @@ TEST(ignTest, TopicPublish)
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 }
 
+//////////////////////////////////////////////////
+/// \brief Check 'ign service -r' to request a service.
+TEST(ignTest, ServiceRequest)
+{
+  ignition::transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(10);
+
+  // Check the 'ign service -r' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign +
+      " service -s " + service + " --reqtype ign_msgs.Int32 " +
+      "--reptype ign_msgs.Int32 --timeout 1000 " +
+      "--req 'data: " + value + "'");
+
+  ASSERT_EQ(output, "data: " + value + "\n\n");
+}
+
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)

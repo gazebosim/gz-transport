@@ -9,23 +9,28 @@ nodes will be running on different processes within the same machine.
 
 .. code-block:: bash
 
-    mkdir -p ~/ign_transport_tutorial/msgs
+    mkdir ~/ign_transport_tutorial
     cd ~/ign_transport_tutorial
 
 Publisher
 ======================
 
-Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
+Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
+    #include <atomic>
     #include <chrono>
     #include <csignal>
+    #include <iostream>
+    #include <string>
+    #include <thread>
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
-    bool terminatePub = false;
+    /// \brief Flag used to break the publisher loop and terminate the program.
+    static std::atomic<bool> g_terminatePub(false);
 
     //////////////////////////////////////////////////
     /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -34,33 +39,35 @@ folder and open it with your favorite editor:
     void signal_handler(int _signal)
     {
       if (_signal == SIGINT || _signal == SIGTERM)
-        terminatePub = true;
+        g_terminatePub = true;
     }
 
     //////////////////////////////////////////////////
     int main(int argc, char **argv)
     {
-      // Install a signal handler for SIGINT.
-      std::signal(SIGINT, signal_handler);
+      // Install a signal handler for SIGINT and SIGTERM.
+      std::signal(SIGINT,  signal_handler);
+      std::signal(SIGTERM, signal_handler);
 
       // Create a transport node and advertise a topic.
       ignition::transport::Node node;
       std::string topic = "/foo";
 
-      if (!node.Advertise<example::msgs::StringMsg>(topic))
+      auto pubId = node.Advertise<ignition::msgs::StringMsg>(topic);
+      if (!pubId)
       {
         std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
         return -1;
       }
 
       // Prepare the message.
-      example::msgs::StringMsg msg;
+      ignition::msgs::StringMsg msg;
       msg.set_data("HELLO");
 
       // Publish messages at 1Hz.
-      while (!terminatePub)
+      while (!g_terminatePub)
       {
-        if (!node.Publish(topic, msg))
+        if (!node.Publish(pubId, msg))
           break;
 
         std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
@@ -75,23 +82,27 @@ Walkthrough
 
 .. code-block:: cpp
 
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
-The line ``#include <ignition/transport/Node.hh>`` contains the Ignition
-Transport header for using the transport library.
+The line ``#include <ignition/transport.hh>`` contains all the Ignition
+Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
-for our messages. We are going to publish ``StringMsg`` type protobuf messages
-defined in ``stringmsg.pb.h``.
+for our messages. We are going to publish ``StringMsg`` type protobuf messages.
 
 .. code-block:: cpp
 
-    // Create a transport node.
-    transport::Node node;
+    // Create a transport node and advertise a topic.
+    ignition::transport::Node node;
+    std::string topic = "/foo";
 
-    // Advertise a topic.
-    publisher.Advertise<tutorial::msgs::StringMsg>(topic);
+    auto pubId = node.Advertise<ignition::msgs::StringMsg>(topic);
+    if (!pubId)
+    {
+      std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
+      return -1;
+    }
 
 First of all we declare a *Node* that will offer all the transport
 functionality. In our case, we are interested on publishing topic updates, so
@@ -101,13 +112,16 @@ advertised, we can start publishing periodic messages.
 .. code-block:: cpp
 
     // Prepare the message.
-    tutorial::msgs::StringMsg msg;
-    msg.set_data(data);
+    ignition::msgs::StringMsg msg;
+    msg.set_data("HELLO");
 
     // Publish messages at 1Hz.
-    while (!terminatePub)
+    while (!g_terminatePub)
     {
-      node.Publish(topic, msg);
+      if (!node.Publish(pubId, msg))
+        break;
+
+      std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
@@ -118,20 +132,19 @@ The method *Publish()* sends a message to all the subscribers.
 Subscriber
 ==========
 
-Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
+Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
-    #include <cstdio>
     #include <iostream>
     #include <string>
+    #include <ignition/msgs.hh>
     #include <ignition/transport.hh>
-    #include "msgs/stringmsg.pb.h"
 
     //////////////////////////////////////////////////
     /// \brief Function called each time a topic update is received.
-    void cb(const example::msgs::StringMsg &_msg)
+    void cb(const ignition::msgs::StringMsg &_msg)
     {
       std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
     }
@@ -150,8 +163,7 @@ folder and open it with your favorite editor:
       }
 
       // Zzzzzz.
-      std::cout << "Press <ENTER> to exit" << std::endl;
-      getchar();
+      ignition::transport::waitForShutdown();
 
       return 0;
     }
@@ -164,7 +176,7 @@ Walkthrough
 
     //////////////////////////////////////////////////
     /// \brief Function called each time a topic update is received.
-    void cb(const example::msgs::StringMsg &_msg)
+    void cb(const ignition::msgs::StringMsg &_msg)
     {
       std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
     }
@@ -174,7 +186,7 @@ a new topic update. The signature of the callback is always similar to the one
 shown in this example with the only exception of the protobuf message type.
 You should create a function callback with the appropriate protobuf type
 depending on the type of the topic advertised. In our case, we know that topic
-``/topicA`` will contain a Protobuf ``StringMsg`` type.
+``/foo`` will contain a Protobuf ``StringMsg`` type.
 
 .. code-block:: cpp
 
@@ -192,10 +204,20 @@ After the node creation, the method ``Subscribe()`` allows you to subscribe to a
 given topic name by specifying your subscription callback function.
 
 
+.. code-block:: cpp
+
+    // Zzzzzz.
+    ignition::transport::waitForShutdown();
+
+If you don't have any other tasks to do besides waiting for incoming messages,
+you can use the call `waitForShutdown()` that will block your current thread
+until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
+*SIGTERM* signals.
+
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder. Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
 
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
