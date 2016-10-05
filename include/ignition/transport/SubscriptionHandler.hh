@@ -26,12 +26,14 @@
 #pragma warning(pop)
 #endif
 
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -46,8 +48,13 @@ namespace ignition
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
-      public: explicit ISubscriptionHandler(const std::string &_nUuid)
+      /// \param[in] _opts Subscription options.
+      public: explicit ISubscriptionHandler(const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions())
         : hUuid(Uuid().ToString()),
+          opts(_opts),
+          lastCbTimestamp(std::chrono::seconds{0}),
+          periodNs(0.0),
           nUuid(_nUuid)
       {
       }
@@ -61,7 +68,7 @@ namespace ignition
       /// \param[in] _msg Protobuf message received.
       /// \return True when success, false otherwise.
       public: virtual bool RunLocalCallback(
-                                     const transport::ProtoMsg &_msg) const = 0;
+                                           const transport::ProtoMsg &_msg) = 0;
 
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
@@ -91,6 +98,16 @@ namespace ignition
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
+      /// \brief Subscribe options.
+      protected: SubscribeOptions opts;
+
+      /// \brief Timestamp of the last callback executed.
+      protected: Timestamp lastCbTimestamp;
+
+      /// \brief If throttling is enabled, the minimum period for receiving a
+      /// message in nanoseconds.
+      protected: double periodNs;
+
       /// \brief Node UUID.
       private: std::string nUuid;
     };
@@ -103,9 +120,12 @@ namespace ignition
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid)
-        : ISubscriptionHandler(_nUuid)
+      public: explicit SubscriptionHandler(const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions())
+        : ISubscriptionHandler(_nUuid, _opts)
       {
+        if (this->opts.Throttled())
+          this->periodNs = 1e9 / this->opts.MsgsPerSec();
       }
 
       // Documentation inherited.
@@ -139,13 +159,45 @@ namespace ignition
         this->cb = _cb;
       }
 
+      /// \brief Check if message subscription is throttled. If so, verify
+      /// whether the callback should be executed or not.
+      /// \return true if the callback should be executed or false otherwise.
+      private: bool UpdateThrottling()
+      {
+        if (!this->opts.Throttled())
+          return true;
+
+        Timestamp now = std::chrono::steady_clock::now();
+
+        // Elapsed time since the last callback execution.
+        auto elapsed = now - this->lastCbTimestamp;
+
+        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() < this->periodNs)
+        {
+          return false;
+        }
+
+        // Update the last callback execution.
+        this->lastCbTimestamp = now;
+        return true;
+      }
+
       // Documentation inherited.
-      public: bool RunLocalCallback(const transport::ProtoMsg &_msg) const
+      public: bool RunLocalCallback(const transport::ProtoMsg &_msg)
       {
         // Execute the callback (if existing)
         if (this->cb)
         {
+          // Check the subscription throttling option.
+          if (!this->UpdateThrottling())
+            return true;
+
+#if GOOGLE_PROTOBUF_VERSION > 2999999
           auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+#else
+          auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
+#endif
 
           this->cb(*msgPtr);
           return true;

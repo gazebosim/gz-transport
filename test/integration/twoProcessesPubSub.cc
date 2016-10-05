@@ -38,6 +38,7 @@ void reset()
 {
   counter = 0;
   cbExecuted = false;
+  cbVectorExecuted = false;
 }
 
 //////////////////////////////////////////////////
@@ -45,7 +46,7 @@ void reset()
 void cb(const ignition::msgs::Int32 &/*_msg*/)
 {
   cbExecuted = true;
-  counter++;
+  ++counter;
 }
 
 
@@ -54,6 +55,7 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -169,6 +171,39 @@ TEST(twoProcPubSub, FastPublisher)
   transport::Node node;
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbVector));
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates one publisher and one subscriber on different
+/// processes. The publisher publishes at higher frequency than the rate set
+/// by the subscriber.
+TEST(NodeTest, PubThrottled)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_pub_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  ignition::transport::SubscribeOptions opts;
+  opts.SetMsgsPerSec(1u);
+  EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+
   testing::waitAndCleanupFork(pi);
 }
 

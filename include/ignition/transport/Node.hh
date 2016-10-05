@@ -51,6 +51,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
+#include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -230,17 +231,19 @@ namespace ignition
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const T &_msg))
+          void(*_cb)(const T &_msg),
+          const SubscribeOptions &_opts = SubscribeOptions())
       {
         std::function<void(const T &)> f = [_cb](const T & _internalMsg)
         {
           (*_cb)(_internalMsg);
         };
 
-        return this->Subscribe<T>(_topic, f);
+        return this->Subscribe<T>(_topic, f, _opts);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -248,10 +251,12 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Lambda function with the following parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
-          std::function<void(const T &_msg)> &_cb)
+          std::function<void(const T &_msg)> &_cb,
+          const SubscribeOptions &_opts = SubscribeOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -263,7 +268,7 @@ namespace ignition
 
         // Create a new subscription handler.
         std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->NodeUuid()));
+            new SubscriptionHandler<T>(this->NodeUuid(), _opts));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -299,11 +304,13 @@ namespace ignition
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
           void(C::*_cb)(const T &_msg),
-          C *_obj)
+          C *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions())
       {
         std::function<void(const T &)> f = [_cb, _obj](const T & _internalMsg)
         {
@@ -311,7 +318,7 @@ namespace ignition
           cb(_internalMsg);
         };
 
-        return this->Subscribe<T>(_topic, f);
+        return this->Subscribe<T>(_topic, f, _opts);
       }
 
       /// \brief Get the list of topics subscribed by this node. Note that
@@ -700,7 +707,7 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->SetMessage(&_req);
 
         // Insert the callback into the handler.
         reqHandlerPtr->SetCallback(_cb);
@@ -830,14 +837,15 @@ namespace ignition
           new ReqHandler<T1, T2>(this->NodeUuid()));
 
         // Insert the request's parameters.
-        reqHandlerPtr->SetMessage(_req);
+        reqHandlerPtr->SetMessage(&_req);
+        reqHandlerPtr->SetResponse(&_rep);
 
         std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // If the responser is within my process.
         IRepHandlerPtr repHandler;
         if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
-          T1().GetTypeName(), T2().GetTypeName(), repHandler))
+          _req.GetTypeName(), _rep.GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
           repHandler->RunLocalCallback(_req, _rep, _result);
@@ -854,7 +862,7 @@ namespace ignition
           fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            T1().GetTypeName(), T2().GetTypeName());
+            _req.GetTypeName(), _rep.GetTypeName());
         }
         else
         {

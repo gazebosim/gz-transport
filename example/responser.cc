@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string service = "/echo";
 
-  // Advertise a service call.
+  // Advertise a service.
   if (!node.Advertise(service, srvEcho))
   {
     std::cerr << "Error advertising service [" << service << "]" << std::endl;

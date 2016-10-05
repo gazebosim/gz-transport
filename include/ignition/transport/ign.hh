@@ -36,6 +36,33 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList();
 /// \brief External hook to execute 'ign service -l' from the command line.
 extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList();
 
+/// \brief External hook to execute 'ign topic -p' from the command line.
+/// \param[in] _topic Topic name.
+/// \param[in] _msgType Message type.
+/// \param[in] _msgData The format expected is the same used by Protobuf
+/// DebugString().
+/// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
+///                   "'data:\"Custom data\"');
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
+                                                       const char *_msgType,
+                                                       const char *_msgData);
+
+/// \brief External hook to execute 'ign service -r' from the command line.
+/// \param[in] _service Service name.
+/// \param[in] _reqType Message type used in the request.
+/// \param[in] _repType Message type used in the response.
+/// \param[in] _timeout The request will timeout after '_timeout' ms.
+/// \param[in] _reqData Input data sent in the request.
+/// The format expected is the same used by Protobuf DebugString().
+/// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
+///                     "ignition.msgs.StringMsg", 1000,
+///                     "'data:\"Custom data\"');
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
+                                                         const char *_reqType,
+                                                         const char *_repType,
+                                                         const int _timeout,
+                                                         const char *_reqData);
+
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
 extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion();

@@ -25,8 +25,10 @@
 
 using namespace ignition;
 
-std::string g_partition;
-std::string g_topicCBStr;
+static std::string g_partition;
+static std::string g_topicCBStr;
+static const std::string g_ignVersion("--force-version " +
+  std::string(IGN_VERSION_FULL));
 
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
@@ -80,7 +82,7 @@ TEST(ignTest, TopicList)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l");
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -101,7 +103,8 @@ TEST(ignTest, TopicInfo)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i");
+  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
+    g_ignVersion);
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
       != std::string::npos);
@@ -125,7 +128,7 @@ TEST(ignTest, ServiceList)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l");
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -146,7 +149,8 @@ TEST(ignTest, ServiceInfo)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i");
+  std::string output = custom_exec_str(ign + " service -s /foo -i " +
+    g_ignVersion);
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
@@ -170,7 +174,7 @@ TEST(ignTest, TopicListSameProc)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l");
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -190,7 +194,8 @@ TEST(ignTest, TopicInfoSameProc)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i");
+  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
+    g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Vector3d") !=
@@ -206,7 +211,7 @@ TEST(ignTest, ServiceListSameProc)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l");
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -219,7 +224,8 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i");
+  std::string output = custom_exec_str(ign + " service -s /foo -i " +
+    g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
@@ -237,7 +243,8 @@ TEST(ignTest, TopicPublish)
   // Check the 'ign topic -p' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"'");
+      " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
+      g_ignVersion);
 
   ASSERT_TRUE(output.empty());
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -247,14 +254,40 @@ TEST(ignTest, TopicPublish)
   // Try to publish a message not included in Ignition Messages.
   std::string error = "Unable to create message of type";
   output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"'");
+      " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
+      g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
-      " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"'");
+      " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign service -r' to request a service.
+TEST(ignTest, ServiceRequest)
+{
+  ignition::transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(10);
+
+  // Check the 'ign service -r' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign +
+      " service -s " + service + " --reqtype ign_msgs.Int32 " +
+      "--reptype ign_msgs.Int32 --timeout 1000 " +
+      "--req 'data: " + value + "'");
+
+  ASSERT_EQ(output, "data: " + value + "\n\n");
 }
 
 /////////////////////////////////////////////////
