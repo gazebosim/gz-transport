@@ -1,5 +1,8 @@
 ## Ignition Transport 2.x
 
+1. Fix issue #55.
+    * [Pull request 182](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/182)
+
 1. Protobuf3 support added.
     * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/181)
 
