@@ -1,3 +1,4 @@
+syntax = "proto2";
 package ignition.transport.msgs;
 
 /// \brief Integer message

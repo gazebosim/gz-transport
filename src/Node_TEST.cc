@@ -442,6 +442,19 @@ TEST(NodeTest, PubSubSameThreadLamda)
 }
 
 //////////////////////////////////////////////////
+/// \brief Advertise two topics with the same name. It's not possible to do it
+/// within the same node but it's valid on separate nodes.
+TEST(NodeTest, AdvertiseTwoEqualTopics)
+{
+  transport::Node node1;
+  transport::Node node2;
+
+  EXPECT_TRUE(node1.Advertise<transport::msgs::Int>(topic));
+  EXPECT_FALSE(node1.Advertise<transport::msgs::Vector3d>(topic));
+  EXPECT_TRUE(node2.Advertise<transport::msgs::Vector3d>(topic));
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
