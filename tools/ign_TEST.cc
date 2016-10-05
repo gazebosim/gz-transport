@@ -26,7 +26,9 @@
 
 using namespace ignition;
 
-std::string partition;
+static std::string g_partition;
+static const std::string g_ignVersion("--force-version " +
+  std::string(IGN_VERSION_FULL));
 
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
@@ -69,11 +71,11 @@ TEST(ignTest, TopicList)
     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l");
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -90,11 +92,11 @@ TEST(ignTest, TopicInfo)
     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -i /foo");
+  std::string output = custom_exec_str(ign + " topic -i /foo " + g_ignVersion);
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Vector3d")
       != std::string::npos);
@@ -114,11 +116,11 @@ TEST(ignTest, ServiceList)
     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l");
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
@@ -135,11 +137,12 @@ TEST(ignTest, ServiceInfo)
     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
-    partition.c_str());
+    g_partition.c_str());
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -i /foo");
+  std::string output = custom_exec_str(ign + " service -i /foo " +
+    g_ignVersion);
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
 
@@ -163,7 +166,7 @@ TEST(ignTest, TopicListSameProc)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l");
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -183,7 +186,7 @@ TEST(ignTest, TopicInfoSameProc)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -i /foo");
+  std::string output = custom_exec_str(ign + " topic -i /foo " + g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Vector3d") !=
@@ -199,7 +202,7 @@ TEST(ignTest, ServiceListSameProc)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l");
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
   EXPECT_EQ(output, "/foo\n");
 }
 
@@ -212,7 +215,8 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -i /foo");
+  std::string output = custom_exec_str(ign + " service -i /foo " +
+    g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.transport.msgs.Int") != std::string::npos);
@@ -223,10 +227,10 @@ TEST(ignTest, ServiceInfoSameProc)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  partition = testing::getRandomNumber();
+  g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.

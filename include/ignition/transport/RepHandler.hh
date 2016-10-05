@@ -26,6 +26,10 @@
 #pragma warning(pop)
 #endif
 
+#if GOOGLE_PROTOBUF_VERSION > 2999999
+#include <google/protobuf/stubs/casts.h>
+#endif
+
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -34,10 +38,6 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
-
-#if GOOGLE_PROTOBUF_VERSION > 2999999
-#include <google/protobuf/stubs/casts.h>
-#endif
 
 namespace ignition
 {
@@ -129,7 +129,8 @@ namespace ignition
           auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
           #else
-          auto msgReq = google::protobuf::internal::down_cast<const Req*>(&_msgReq);
+          auto msgReq =
+            google::protobuf::internal::down_cast<const Req*>(&_msgReq);
           auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
           #endif
 
