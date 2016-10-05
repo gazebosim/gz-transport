@@ -10,6 +10,7 @@ set (sources
   NodeShared.cc
   Packet.cc
   Publisher.cc
+  SubscribeOptions.cc
   TopicUtils.cc
   Uuid.cc
 )
@@ -24,6 +25,7 @@ set (gtest_sources
   NodeOptions_TEST.cc
   Packet_TEST.cc
   Publisher_TEST.cc
+  SubscribeOptions_TEST.cc
   TopicStorage_TEST.cc
   TopicUtils_TEST.cc
   Uuid_TEST.cc
@@ -45,7 +47,7 @@ endif()
 # Protobuf module does not have LIBRARIES but LIBRARY
 target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES} 
+                      ${uuid_LIBRARIES}
                       ${IGNITION-MSGS_LIBRARIES})
 
 if(WIN32)

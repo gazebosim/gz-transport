@@ -14,6 +14,7 @@ set (headers
   Publisher.hh
   RepHandler.hh
   ReqHandler.hh
+  SubscribeOptions.hh
   SubscriptionHandler.hh
   TopicStorage.hh
   TopicUtils.hh
