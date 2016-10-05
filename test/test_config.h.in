@@ -24,6 +24,7 @@
   "${PROJECT_BINARY_DIR}/src"
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+#define IGN_VERSION_FULL "@PROJECT_VERSION_FULL@"
 
 #include <climits>
 #include <iostream>
