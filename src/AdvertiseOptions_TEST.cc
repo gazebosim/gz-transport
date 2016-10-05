@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,16 @@ TEST(AdvertiseOptionsTest, accessors)
   EXPECT_EQ(opts.Scope(), transport::Scope_t::ALL);
   opts.SetScope(transport::Scope_t::HOST);
   EXPECT_EQ(opts.Scope(), transport::Scope_t::HOST);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check Throttled().
+TEST(AdvertiseOptionsTest, throttled)
+{
+  transport::AdvertiseOptions opts;
+  EXPECT_FALSE(opts.Throttled());
+  opts.SetMsgsPerSec(3u);
+  EXPECT_TRUE(opts.Throttled());
 }
 
 //////////////////////////////////////////////////

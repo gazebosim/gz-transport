@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,6 +195,38 @@ TEST(NodeTest, PubThrottled)
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  // Node published 2 messages in ~1.5 sec. We should receive both messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates one publisher and one subscriber on different
+/// processes. The publisher publishes at throttled frequency lower than the
+/// rate set by the subscriber.
+TEST(NodeTest, SubThrottled)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_pub_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  ignition::transport::AdvertiseOptions opts;
+  opts.SetMsgsPerSec(1u);
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));

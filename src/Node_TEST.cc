@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1527,6 +1527,38 @@ TEST(NodeTest, PubThrottled)
   }
 
   // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates one publisher and one subscriber. The publisher
+/// publishes at throttled frequency lower than the rate set by the subscriber.
+TEST(NodeTest, SubThrottled)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+
+  ignition::transport::AdvertiseOptions opts;
+  opts.SetMsgsPerSec(1u);
+
+  for (auto i = 0; i < 15; ++i)
+  {
+    EXPECT_TRUE(node.Publish(g_topic, msg));
+
+    // Rate: 10 msgs/sec.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Node tried to piblish 15 messages in ~1.5 sec. We should only receive 2
+  // messages.
   EXPECT_EQ(counter, 2);
 
   reset();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@
 #endif
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -135,7 +136,7 @@ namespace ignition
                   const AdvertiseOptions &_options = AdvertiseOptions())
       {
 	opts = _options;
-	lastMsgTimestamp = std::chrono::seconds{0};
+	//lastMsgTimestamp = std::chrono::seconds{0};
 	periodNs = 0.0;
 	
 	if (this->opts.Throttled())
