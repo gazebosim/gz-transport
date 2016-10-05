@@ -135,8 +135,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
-                                           const char *_msgType,
-                                           const char *_msgData)
+  const char *_msgType, const char *_msgData)
 {
   if (!_topic)
   {
@@ -183,6 +182,69 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
     std::cerr << "Unable to create message of type[" << _msgType << "] "
       << "with data[" << _msgData << "].\n";
   }
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
+  const char *_reqType, const char *_repType, const int _timeout,
+  const char *_reqData)
+{
+  if (!_service)
+  {
+    std::cerr << "Service name is null\n";
+    return;
+  }
+
+  if (!_reqType)
+  {
+    std::cerr << "Request type is null\n";
+    return;
+  }
+
+  if (!_repType)
+  {
+    std::cerr << "Response type is null\n";
+    return;
+  }
+
+  if (!_reqData)
+  {
+    std::cerr << "Request data is null\n";
+    return;
+  }
+
+  // Create the request, and populate the field with _reqData
+  auto req = ignition::msgs::Factory::New(_reqType, _reqData);
+  if (!req)
+  {
+    std::cerr << "Unable to create request of type[" << _reqType << "] "
+              << "with data[" << _reqData << "].\n";
+    return;
+  }
+
+  // Create the response.
+  auto rep = ignition::msgs::Factory::New(_repType);
+  if (!rep)
+  {
+    std::cerr << "Unable to create response of type[" << _repType << "].\n";
+    return;
+  }
+
+  // Create the node.
+  ignition::transport::Node node;
+  bool result;
+
+  // Request the service.
+  bool executed = node.Request(_service, *req, _timeout, *rep, result);
+  if (executed)
+  {
+    if (result)
+      std::cout << rep->DebugString() << std::endl;
+    else
+      std::cout << "Service call failed" << std::endl;
+  }
+  else
+    std::cerr << "Service call timed out" << std::endl;
 }
 
 

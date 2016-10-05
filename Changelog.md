@@ -1,5 +1,8 @@
 ## Ignition Transport 3.0.0
 
+1. Added ign service --req <args ...> for requesting services using the command line.
+    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/172)
+
 1. Do not allow to advertise a topic that is currently advertised on the same node.
    See [issue #54] (https://bitbucket.org/ignitionrobotics/ign-transport/issues/54)
     * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/169)
