@@ -121,7 +121,8 @@ std::string Node::PublisherId::Topic() const
 
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
-  : dataPtr(new NodePrivate())
+  :  lastMsgTimestamp(std::chrono::seconds{0}),
+     dataPtr(new NodePrivate())
 {
   // Generate the node UUID.
   Uuid uuid;

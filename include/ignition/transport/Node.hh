@@ -135,12 +135,11 @@ namespace ignition
                   const std::string &_topic,
                   const AdvertiseOptions &_options = AdvertiseOptions())
       {
-	opts = _options;
-	//lastMsgTimestamp = std::chrono::seconds{0};
-	periodNs = 0.0;
-	
-	if (this->opts.Throttled())
-	this->periodNs = 1e9 / this->opts.MsgsPerSec();
+	      this->opts = _options;
+	      this->periodNs = 0.0;
+
+	      if (this->opts.Throttled())
+	        this->periodNs = 1e9 / this->opts.MsgsPerSec();
 
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
@@ -1013,7 +1012,7 @@ namespace ignition
       /// \param[in] _msg protobuf message.
       /// \return true when success.
       private: virtual bool PublishHelper(const std::string &_topic,
-                                  const ProtoMsg &_msg);
+                                          const ProtoMsg &_msg);
 
       /// \brief Advertise options.
       protected: AdvertiseOptions opts;
