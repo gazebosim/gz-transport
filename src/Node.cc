@@ -91,34 +91,6 @@ void ignition::transport::waitForShutdown()
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::PublisherId()
-{
-}
-
-//////////////////////////////////////////////////
-Node::PublisherId::PublisherId(const std::string &_topic) : topic(_topic)
-{
-}
-
-//////////////////////////////////////////////////
-Node::PublisherId::operator bool()
-{
-  return this->Valid();
-}
-
-//////////////////////////////////////////////////
-bool Node::PublisherId::Valid() const
-{
-  return !this->topic.empty();
-}
-
-//////////////////////////////////////////////////
-std::string Node::PublisherId::Topic() const
-{
-  return this->topic;
-}
-
-//////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())
 {
@@ -214,9 +186,9 @@ bool Node::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Node::Publish(const PublisherId &_id, const ProtoMsg &_msg)
+bool Node::Publish(const MessagePublisher &_pub, const ProtoMsg &_msg)
 {
-  return _id.Valid() ? this->PublishHelper(_id.Topic(), _msg) : false;
+  return _pub.Valid() ? this->PublishHelper(_pub.Topic(), _msg) : false;
 }
 
 //////////////////////////////////////////////////

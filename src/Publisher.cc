@@ -27,13 +27,26 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 Publisher::Publisher(const std::string &_topic, const std::string &_addr,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope)
+  const std::string &_pUuid, const std::string &_nUuid,
+  const AdvertiseOptions &_opts)
   : topic(_topic),
     addr(_addr),
     pUuid(_pUuid),
     nUuid(_nUuid),
-    scope(_scope)
+    opts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+Publisher::Publisher::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Publisher::Valid() const
+{
+  return !this->Topic().empty();
 }
 
 //////////////////////////////////////////////////
@@ -61,9 +74,9 @@ std::string Publisher::NUuid() const
 }
 
 //////////////////////////////////////////////////
-Scope_t Publisher::Scope() const
+const AdvertiseOptions& Publisher::Options() const
 {
-  return this->scope;
+  return this->opts;
 }
 
 //////////////////////////////////////////////////
@@ -88,12 +101,6 @@ void Publisher::SetPUuid(const std::string &_pUuid)
 void Publisher::SetNUuid(const std::string &_nUuid)
 {
   this->nUuid = _nUuid;
-}
-
-//////////////////////////////////////////////////
-void Publisher::SetScope(const Scope_t &_scope)
-{
-  this->scope = _scope;
 }
 
 //////////////////////////////////////////////////
@@ -151,7 +158,7 @@ size_t Publisher::Pack(char *_buffer) const
   _buffer += nUuidLength;
 
   // Pack the topic scope.
-  uint8_t intscope = static_cast<uint8_t>(this->scope);
+  uint8_t intscope = static_cast<uint8_t>(this->Options().Scope());
   memcpy(_buffer, &intscope, sizeof(intscope));
 
   return this->MsgLength();
@@ -207,7 +214,7 @@ size_t Publisher::Unpack(char *_buffer)
   // Unpack the topic scope.
   uint8_t intscope;
   memcpy(&intscope, _buffer, sizeof(intscope));
-  this->scope = static_cast<Scope_t>(intscope);
+  // this->scope = static_cast<Scope_t>(intscope);
 
   return this->MsgLength();
 }
@@ -227,7 +234,7 @@ bool Publisher::operator==(const Publisher &_pub) const
 {
   return this->topic == _pub.topic && this->addr == _pub.addr &&
     this->pUuid == _pub.pUuid && this->nUuid == _pub.nUuid &&
-    this->scope == _pub.scope;
+    this->opts == _pub.Options();
 }
 
 //////////////////////////////////////////////////
@@ -239,11 +246,12 @@ bool Publisher::operator!=(const Publisher &_pub) const
 //////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_msgTypeName)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
+  const std::string &_nUuid, const std::string &_msgTypeName,
+  const AdvertiseMessageOptions &_opts)
+  : Publisher(_topic, _addr, _pUuid, _nUuid, _opts),
     ctrl(_ctrl),
-    msgTypeName(_msgTypeName)
+    msgTypeName(_msgTypeName),
+    msgOpts(_opts)
 {
 }
 
@@ -372,12 +380,14 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 //////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_socketId,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_reqType, const std::string &_repType)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
+  const std::string &_pUuid, const std::string &_nUuid,
+  const std::string &_reqType, const std::string &_repType,
+  const AdvertiseServiceOptions &_opts)
+  : Publisher(_topic, _addr, _pUuid, _nUuid, opts),
     socketId(_socketId),
     reqTypeName(_reqType),
-    repTypeName(_repType)
+    repTypeName(_repType),
+    srvOpts(_opts)
 {
 }
 

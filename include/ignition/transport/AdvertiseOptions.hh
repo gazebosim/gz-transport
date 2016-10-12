@@ -26,7 +26,8 @@ namespace ignition
 {
   namespace transport
   {
-    class AdvertiseOptionsPrivate;
+    class AdvertiseMessageOptionsPrivate;
+    class AdvertiseServiceOptionsPrivate;
 
     /// \def Scope This strongly typed enum defines the different options for
     /// the scope of a topic/service.
@@ -50,19 +51,25 @@ namespace ignition
     class IGNITION_TRANSPORT_VISIBLE AdvertiseOptions
     {
       /// \brief Constructor.
-      public: AdvertiseOptions();
+      public: AdvertiseOptions() = default;
 
       /// \brief Copy constructor.
       /// \param[in] _other AdvertiseOptions to copy.
       public: AdvertiseOptions(const AdvertiseOptions &_other);
 
       /// \brief Destructor.
-      public: virtual ~AdvertiseOptions();
+      public: virtual ~AdvertiseOptions() = default;
 
       /// \brief Assignment operator.
       /// \param[in] _other The new AdvertiseOptions.
       /// \return A reference to this instance.
       public: AdvertiseOptions &operator=(const AdvertiseOptions &_other);
+
+      /// \brief Equality operator. This function checks if the given
+      /// AdverriseOptions has identical content to this object.
+      /// \param[in] _opts The options to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const AdvertiseOptions &_opts) const;
 
       /// \brief Get the scope used in this topic/service.
       /// \return The scope.
@@ -76,9 +83,65 @@ namespace ignition
       /// \sa Scope_t.
       public: void SetScope(const Scope_t &_scope);
 
+      /// \brief Scope of the topic/service.
+      protected: Scope_t scope = Scope_t::ALL;
+    };
+
+    /// \class AdvertiseMessageOptions AdvertiseOptions.hh
+    /// ignition/transport/AdvertiseOptions.hh
+    /// \brief A class for customizing the publication options for a topic
+    /// advertised.
+    /// E.g.: Set the rate of messages per second published.
+    class IGNITION_TRANSPORT_VISIBLE AdvertiseMessageOptions
+      : public AdvertiseOptions
+    {
+      /// \brief Constructor.
+      public: AdvertiseMessageOptions();
+
+      /// \brief Copy constructor.
+      /// \param[in] _other AdvertiseMessageOptions to copy.
+      public: AdvertiseMessageOptions(const AdvertiseMessageOptions &_other);
+
+      /// \brief Destructor.
+      public: virtual ~AdvertiseMessageOptions();
+
+      /// \brief Assignment operator.
+      /// \param[in] _other The new AdvertiseMessageOptions.
+      /// \return A reference to this instance.
+      public: AdvertiseMessageOptions &operator=(
+        const AdvertiseMessageOptions &_other);
+
       /// \internal
       /// \brief Smart pointer to private data.
-      protected: std::unique_ptr<transport::AdvertiseOptionsPrivate> dataPtr;
+      protected: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;
+    };
+
+    /// \class AdvertiseServiceOptions AdvertiseOptions.hh
+    /// ignition/transport/AdvertiseOptions.hh
+    /// \brief A class for customizing the publication options for a service
+    /// advertised.
+    class IGNITION_TRANSPORT_VISIBLE AdvertiseServiceOptions
+      : public AdvertiseOptions
+    {
+      /// \brief Constructor.
+      public: AdvertiseServiceOptions();
+
+      /// \brief Copy constructor.
+      /// \param[in] _other AdvertiseServiceOptions to copy.
+      public: AdvertiseServiceOptions(const AdvertiseServiceOptions &_other);
+
+      /// \brief Destructor.
+      public: virtual ~AdvertiseServiceOptions();
+
+      /// \brief Assignment operator.
+      /// \param[in] _other The new AdvertiseServiceOptions.
+      /// \return A reference to this instance.
+      public: AdvertiseServiceOptions &operator=(
+        const AdvertiseServiceOptions &_other);
+
+      /// \internal
+      /// \brief Smart pointer to private data.
+      protected: std::unique_ptr<AdvertiseServiceOptionsPrivate> dataPtr;
     };
   }
 }

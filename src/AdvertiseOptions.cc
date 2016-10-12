@@ -16,27 +16,44 @@
 */
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/AdvertiseOptionsPrivate.hh"
 
 using namespace ignition;
 using namespace transport;
 
-//////////////////////////////////////////////////
-AdvertiseOptions::AdvertiseOptions()
-  : dataPtr(new AdvertiseOptionsPrivate())
+namespace ignition
 {
+  namespace transport
+  {
+    /// \internal
+    /// \brief Private data for AdvertiseMessageOptions class.
+    class AdvertiseMessageOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseMessageOptionsPrivate() = default;
+
+      /// \brief Destructor.
+      public: virtual ~AdvertiseMessageOptionsPrivate() = default;
+    };
+
+    /// \internal
+    /// \brief Private data for AdvertiseServiceOptions class.
+    class AdvertiseServiceOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseServiceOptionsPrivate() = default;
+
+      /// \brief Destructor.
+      public: virtual ~AdvertiseServiceOptionsPrivate() = default;
+    };
+  }
 }
+
+
 
 //////////////////////////////////////////////////
 AdvertiseOptions::AdvertiseOptions(const AdvertiseOptions &_other)
-  : dataPtr(new AdvertiseOptionsPrivate())
 {
   (*this) = _other;
-}
-
-//////////////////////////////////////////////////
-AdvertiseOptions::~AdvertiseOptions()
-{
 }
 
 //////////////////////////////////////////////////
@@ -47,13 +64,73 @@ AdvertiseOptions &AdvertiseOptions::operator=(const AdvertiseOptions &_other)
 }
 
 //////////////////////////////////////////////////
+bool AdvertiseOptions::operator==(const AdvertiseOptions &_opts) const
+{
+  return this->scope == _opts.Scope();
+}
+
+//////////////////////////////////////////////////
 const Scope_t &AdvertiseOptions::Scope() const
 {
-  return this->dataPtr->scope;
+  return this->scope;
 }
 
 //////////////////////////////////////////////////
 void AdvertiseOptions::SetScope(const Scope_t &_scope)
 {
-  this->dataPtr->scope = _scope;
+  this->scope = _scope;
+}
+
+//////////////////////////////////////////////////
+AdvertiseMessageOptions::AdvertiseMessageOptions()
+  : AdvertiseOptions(),
+    dataPtr(new AdvertiseMessageOptionsPrivate())
+{
+}
+
+//////////////////////////////////////////////////
+AdvertiseMessageOptions::AdvertiseMessageOptions(
+  const AdvertiseMessageOptions &_other)
+  : AdvertiseOptions()
+{
+  (*this) = _other;
+}
+
+//////////////////////////////////////////////////
+AdvertiseMessageOptions::~AdvertiseMessageOptions()
+{
+}
+
+//////////////////////////////////////////////////
+AdvertiseMessageOptions &AdvertiseMessageOptions::operator=(
+  const AdvertiseMessageOptions &_other)
+{
+  return *this;
+}
+
+//////////////////////////////////////////////////
+AdvertiseServiceOptions::AdvertiseServiceOptions()
+  : AdvertiseOptions(),
+    dataPtr(new AdvertiseServiceOptionsPrivate())
+{
+}
+
+//////////////////////////////////////////////////
+AdvertiseServiceOptions::AdvertiseServiceOptions(
+  const AdvertiseServiceOptions &_other)
+  : AdvertiseOptions()
+{
+  (*this) = _other;
+}
+
+//////////////////////////////////////////////////
+AdvertiseServiceOptions::~AdvertiseServiceOptions()
+{
+}
+
+//////////////////////////////////////////////////
+AdvertiseServiceOptions &AdvertiseServiceOptions::operator=(
+  const AdvertiseServiceOptions &_other)
+{
+  return *this;
 }

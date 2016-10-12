@@ -47,10 +47,21 @@ namespace ignition
                         const std::string &_addr,
                         const std::string &_pUuid,
                         const std::string &_nUuid,
-                        const Scope_t &_scope);
+                        const AdvertiseOptions &_opts);
 
       /// \brief Destructor.
       public: virtual ~Publisher() = default;
+
+      /// \brief Allows this class to be evaluated as a boolean.
+      /// \return True if valid
+      /// \sa Valid
+      public: operator bool();
+
+      /// \brief Return true if valid information, such as
+      /// a non-empty topic name, is present.
+      /// \return True if this object can be used in Node::Publish
+      /// calls.
+      public: bool Valid() const;
 
       /// \brief Get the topic published by this publisher.
       /// \return Topic name.
@@ -72,10 +83,7 @@ namespace ignition
       /// \sa SetNUuid.
       public: std::string NUuid() const;
 
-      /// \brief Get the scope of the publisher's topic.
-      /// \return Scope of the topic advertised by the publisher.
-      /// \sa SetScope.
-      public: Scope_t Scope() const;
+      public: const AdvertiseOptions& Options() const;
 
       /// \brief Set the topic name published by this publisher.
       /// \param[in] _topic New topic name.
@@ -96,11 +104,6 @@ namespace ignition
       /// \param[in] _nUuid New node UUID.
       /// \sa NUuid.
       public: void SetNUuid(const std::string &_nUuid);
-
-      /// \brief Set the scope of the topic advertised by this publisher.
-      /// \param[in] _scope New scope.
-      /// \sa Scope.
-      public: void SetScope(const Scope_t &_scope);
 
       /// \brief Serialize the publisher. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -143,9 +146,9 @@ namespace ignition
              << "\tProcess UUID: " << _msg.PUuid() << std::endl
              << "\tNode UUID: " << _msg.NUuid() << std::endl
              << "\tTopic Scope: ";
-        if (_msg.Scope() == Scope_t::PROCESS)
+        if (_msg.Options().Scope() == Scope_t::PROCESS)
           _out << "Process" << std::endl;
-        else if (_msg.Scope() == Scope_t::HOST)
+        else if (_msg.Options().Scope() == Scope_t::HOST)
           _out << "Host" << std::endl;
         else
           _out << "All" << std::endl;
@@ -165,8 +168,7 @@ namespace ignition
       /// \brief Node UUID of the publisher.
       protected: std::string nUuid;
 
-      /// \brief Scope of the topic advertised by this publisher.
-      protected: Scope_t scope = Scope_t::ALL;
+      protected: AdvertiseOptions opts;
     };
 
     /// \class MessagePublisher Publisher.hh
@@ -183,15 +185,14 @@ namespace ignition
       /// \param[in] _ctrl ZeroMQ control address.
       /// \param[in] _pUuid Process UUID.
       /// \param[in] _nUUID node UUID.
-      /// \param[in] _scope Scope.
       /// \param[in] _msgTypeName Message type advertised by this publisher.
-      public: MessagePublisher(const std::string &_topic,
-                               const std::string &_addr,
-                               const std::string &_ctrl,
-                               const std::string &_pUuid,
-                               const std::string &_nUuid,
-                               const Scope_t &_scope,
-                               const std::string &_msgTypeName);
+      public: explicit MessagePublisher(const std::string &_topic,
+                                        const std::string &_addr,
+                                        const std::string &_ctrl,
+                                        const std::string &_pUuid,
+                                        const std::string &_nUuid,
+                                        const std::string &_msgTypeName,
+                                        const AdvertiseMessageOptions &_opts);
 
       /// \brief Destructor.
       public: virtual ~MessagePublisher() = default;
@@ -256,6 +257,8 @@ namespace ignition
 
       /// \brief Message type advertised by this publisher.
       protected: std::string msgTypeName;
+
+      protected: AdvertiseMessageOptions msgOpts;
     };
 
     /// \class ServicePublisher Publisher.hh
@@ -280,9 +283,9 @@ namespace ignition
                                const std::string &_id,
                                const std::string &_pUuid,
                                const std::string &_nUuid,
-                               const Scope_t &_scope,
                                const std::string &_reqType,
-                               const std::string &_repType);
+                               const std::string &_repType,
+                               const AdvertiseServiceOptions &_opts);
 
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
@@ -362,6 +365,8 @@ namespace ignition
 
       /// \brief The name of the response's protobuf message advertised.
       private: std::string repTypeName;
+
+      private: AdvertiseServiceOptions srvOpts;
     };
   }
 }

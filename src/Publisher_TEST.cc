@@ -51,12 +51,12 @@ static const std::string NewRepTypeName = "ResponseType2";
 /// \brief Check the Publisher accessors.
 TEST(PublisherTest, Publisher)
 {
-  Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
+  Publisher publisher(Topic, Addr, PUuid, NUuid, AdvertiseOptions());
   EXPECT_EQ(publisher.Topic(), Topic);
   EXPECT_EQ(publisher.Addr(),  Addr);
   EXPECT_EQ(publisher.PUuid(), PUuid);
   EXPECT_EQ(publisher.NUuid(), NUuid);
-  EXPECT_EQ(publisher.Scope(), Scope);
+  EXPECT_EQ(publisher.Options().Scope(), Scope);
   size_t msgLength = sizeof(uint16_t) + publisher.Topic().size() +
     sizeof(uint16_t) + publisher.Addr().size() +
     sizeof(uint16_t) + publisher.PUuid().size() +
@@ -79,13 +79,13 @@ TEST(PublisherTest, Publisher)
   publisher.SetAddr(NewAddr);
   publisher.SetPUuid(NewPUuid);
   publisher.SetNUuid(NewNUuid);
-  publisher.SetScope(NewScope);
+  // publisher.SetScope(NewScope);
 
   EXPECT_EQ(publisher.Topic(), NewTopic);
   EXPECT_EQ(publisher.Addr(),  NewAddr);
   EXPECT_EQ(publisher.PUuid(), NewPUuid);
   EXPECT_EQ(publisher.NUuid(), NewNUuid);
-  EXPECT_EQ(publisher.Scope(), NewScope);
+  // EXPECT_EQ(publisher.Scope(), NewScope);
   msgLength = sizeof(uint16_t) + publisher.Topic().size() +
     sizeof(uint16_t) + publisher.Addr().size() +
     sizeof(uint16_t) + publisher.PUuid().size() +
@@ -104,7 +104,7 @@ TEST(PublisherTest, PublisherIO)
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  Publisher publisher(Topic, Addr, PUuid, NUuid, Scope);
+  Publisher publisher(Topic, Addr, PUuid, NUuid, AdvertiseOptions());
 
   buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
@@ -119,7 +119,7 @@ TEST(PublisherTest, PublisherIO)
   EXPECT_EQ(publisher.Addr(),  otherPublisher.Addr());
   EXPECT_EQ(publisher.PUuid(), otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
-  EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
+  EXPECT_EQ(publisher.Options().Scope(), otherPublisher.Options().Scope());
 
   // Try to pack a header passing a NULL buffer.
   EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
@@ -132,14 +132,14 @@ TEST(PublisherTest, PublisherIO)
 /// \brief Check the MessagePublisher accessors.
 TEST(PublisherTest, MessagePublisher)
 {
-  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
-    MsgTypeName);
+  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, MsgTypeName,
+    AdvertiseMessageOptions());
   EXPECT_EQ(publisher.Topic(), Topic);
   EXPECT_EQ(publisher.Addr(),  Addr);
   EXPECT_EQ(publisher.Ctrl(),  Ctrl);
   EXPECT_EQ(publisher.PUuid(), PUuid);
   EXPECT_EQ(publisher.NUuid(), NUuid);
-  EXPECT_EQ(publisher.Scope(), Scope);
+  EXPECT_EQ(publisher.Options().Scope(), Scope);
   EXPECT_EQ(publisher.MsgTypeName(), MsgTypeName);
   size_t msgLength = publisher.Publisher::MsgLength() +
     sizeof(uint16_t) + publisher.Ctrl().size() +
@@ -160,7 +160,7 @@ TEST(PublisherTest, MessagePublisher)
   publisher.SetCtrl(NewCtrl);
   publisher.SetPUuid(NewPUuid);
   publisher.SetNUuid(NewNUuid);
-  publisher.SetScope(NewScope);
+  // publisher.SetScope(NewScope);
   publisher.SetMsgTypeName(NewMsgTypeName);
 
   EXPECT_EQ(publisher.Topic(), NewTopic);
@@ -168,7 +168,7 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(publisher.Ctrl(),  NewCtrl);
   EXPECT_EQ(publisher.PUuid(), NewPUuid);
   EXPECT_EQ(publisher.NUuid(), NewNUuid);
-  EXPECT_EQ(publisher.Scope(), NewScope);
+  // EXPECT_EQ(publisher.Scope(), NewScope);
   EXPECT_EQ(publisher.MsgTypeName(), NewMsgTypeName);
   msgLength = publisher.Publisher::MsgLength() +
     sizeof(uint16_t) + publisher.Ctrl().size() +
@@ -186,8 +186,8 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, Scope,
-    MsgTypeName);
+  MessagePublisher publisher(Topic, Addr, Ctrl, PUuid, NUuid, MsgTypeName,
+    AdvertiseMessageOptions());
 
   buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
@@ -203,7 +203,7 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(publisher.Ctrl(),  otherPublisher.Ctrl());
   EXPECT_EQ(publisher.PUuid(), otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
-  EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
+  EXPECT_EQ(publisher.Options().Scope(), otherPublisher.Options().Scope());
   EXPECT_EQ(publisher.MsgTypeName(), otherPublisher.MsgTypeName());
 
   // Try to pack a header passing a NULL buffer.
@@ -217,14 +217,14 @@ TEST(PublisherTest, MessagePublisherIO)
 /// \brief Check the ServicePublisher accessors.
 TEST(PublisherTest, ServicePublisher)
 {
-  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
-    ReqTypeName, RepTypeName);
+  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid,
+    ReqTypeName, RepTypeName, AdvertiseServiceOptions());
   EXPECT_EQ(publisher.Topic(), Topic);
   EXPECT_EQ(publisher.Addr(),  Addr);
   EXPECT_EQ(publisher.SocketId(), SocketId);
   EXPECT_EQ(publisher.PUuid(), PUuid);
   EXPECT_EQ(publisher.NUuid(), NUuid);
-  EXPECT_EQ(publisher.Scope(), Scope);
+  EXPECT_EQ(publisher.Options().Scope(), Scope);
   EXPECT_EQ(publisher.ReqTypeName(), ReqTypeName);
   EXPECT_EQ(publisher.RepTypeName(), RepTypeName);
   size_t msgLength = publisher.Publisher::MsgLength() +
@@ -248,7 +248,7 @@ TEST(PublisherTest, ServicePublisher)
   publisher.SetSocketId(NewSocketId);
   publisher.SetPUuid(NewPUuid);
   publisher.SetNUuid(NewNUuid);
-  publisher.SetScope(NewScope);
+  // publisher.SetScope(NewScope);
   publisher.SetReqTypeName(NewReqTypeName);
   publisher.SetRepTypeName(NewRepTypeName);
 
@@ -257,7 +257,7 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(publisher.SocketId(),  NewSocketId);
   EXPECT_EQ(publisher.PUuid(), NewPUuid);
   EXPECT_EQ(publisher.NUuid(), NewNUuid);
-  EXPECT_EQ(publisher.Scope(), NewScope);
+  // EXPECT_EQ(publisher.Scope(), NewScope);
   EXPECT_EQ(publisher.ReqTypeName(), NewReqTypeName);
   EXPECT_EQ(publisher.RepTypeName(), NewRepTypeName);
   msgLength = publisher.Publisher::MsgLength() +
@@ -277,8 +277,8 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid, Scope,
-    ReqTypeName, RepTypeName);
+  ServicePublisher publisher(Topic, Addr, SocketId, PUuid, NUuid,
+    ReqTypeName, RepTypeName, AdvertiseServiceOptions());
 
   buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
@@ -294,7 +294,7 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(publisher.SocketId(),  otherPublisher.SocketId());
   EXPECT_EQ(publisher.PUuid(), otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(), otherPublisher.NUuid());
-  EXPECT_EQ(publisher.Scope(), otherPublisher.Scope());
+  EXPECT_EQ(publisher.Options().Scope(), otherPublisher.Options().Scope());
   EXPECT_EQ(publisher.ReqTypeName(), otherPublisher.ReqTypeName());
   EXPECT_EQ(publisher.RepTypeName(), otherPublisher.RepTypeName());
 

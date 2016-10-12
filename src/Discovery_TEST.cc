@@ -52,7 +52,7 @@ static std::string ctrl2   = "tcp://127.0.0.1:12348";
 static std::string id2     = "identity2";
 static std::string pUuid2  = transport::Uuid().ToString();
 static std::string nUuid2  = transport::Uuid().ToString();
-static transport::Scope_t scope = transport::Scope_t::ALL;
+// static transport::Scope_t scope = transport::Scope_t::ALL;
 static bool connectionExecuted = false;
 static bool disconnectionExecuted = false;
 static int g_counter = 0;
@@ -173,7 +173,7 @@ TEST(DiscoveryTest, WithoutCallingStart)
 {
   Discovery<ServicePublisher> discovery(pUuid1, g_srvPort);
   ServicePublisher srvPublisher(service, addr1, id1, pUuid1, nUuid1,
-    scope, "reqType", "repType");
+    "reqType", "repType", AdvertiseServiceOptions());
 
   EXPECT_FALSE(discovery.Advertise(srvPublisher));
   EXPECT_FALSE(discovery.Discover(service));
@@ -195,7 +195,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
 
   // This should generate discovery traffic but no response on discovery2
   // because there is no callback registered.
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -222,7 +223,8 @@ TEST(DiscoveryTest, TestAdvertise)
   Discovery2.Start();
 
   // This should trigger a discovery response on discovery2.
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -234,8 +236,10 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // This should not trigger a discovery response on discovery2. They are in
   // different proccesses and the scope is set to "Process".
+  AdvertiseMessageOptions opts1;
+  opts1.SetScope(Scope_t::PROCESS);
   MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1, nUuid1,
-    Scope_t::PROCESS, "type");
+    "type", opts1);
   EXPECT_TRUE(discovery1.Advertise(publisher2));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -246,8 +250,10 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should trigger a discovery response on discovery2.
-  MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1, nUuid1,
-    Scope_t::HOST, "type");
+  AdvertiseMessageOptions opts2;
+  opts2.SetScope(Scope_t::HOST);
+  MessagePublisher publisher3("/topic3", addr1, ctrl1, pUuid1, nUuid1, "type",
+    opts2);
   EXPECT_TRUE(discovery1.Advertise(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -274,7 +280,8 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
 
   // This should not trigger a discovery response on discovery2. If the nodes
   // are on the same process, they will not communicate using zeromq.
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -294,7 +301,8 @@ TEST(DiscoveryTest, TestDiscover)
   Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
   discovery1.Start();
 
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   // Create a second discovery node that did not see the previous ADV message.
@@ -348,7 +356,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, disconnectionExecuted);
@@ -393,7 +402,8 @@ TEST(DiscoveryTest, TestNodeBye)
   discovery2.Start();
 
   // This should not trigger a disconnect response on discovery2.
-  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope, "t");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
   EXPECT_TRUE(discovery1->Advertise(publisher));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
@@ -425,10 +435,10 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   MsgDiscovery discovery1(pUuid1, g_msgPort);
   MsgDiscovery discovery2(pUuid2, g_msgPort);
 
-  MessagePublisher publisher1(g_topic, addr1, ctrl1, pUuid1, nUuid1, scope,
-    "t");
-  MessagePublisher publisher2(g_topic, addr2, ctrl2, pUuid2, nUuid2, scope,
-    "t");
+  MessagePublisher publisher1(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
+    AdvertiseMessageOptions());
+  MessagePublisher publisher2(g_topic, addr2, ctrl2, pUuid2, nUuid2, "t",
+    AdvertiseMessageOptions());
 
   discovery1.Start();
   discovery2.Start();
@@ -482,10 +492,10 @@ TEST(DiscoveryTest, TestActivity)
 {
   auto proc1Uuid = testing::getRandomNumber();
   auto proc2Uuid = testing::getRandomNumber();
-  MessagePublisher publisher(g_topic, addr1, ctrl1, proc1Uuid, nUuid1, scope,
-    "type");
+  MessagePublisher publisher(g_topic, addr1, ctrl1, proc1Uuid, nUuid1, "type",
+    AdvertiseMessageOptions());
   ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
-    nUuid2, scope, "reqType", "repType");
+    nUuid2, "reqType", "repType", AdvertiseServiceOptions());
   DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid, g_msgPort);
 
   {

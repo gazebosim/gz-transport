@@ -382,7 +382,7 @@ void CreatePubSubTwoThreads(
 {
   reset();
 
-  transport::AdvertiseOptions opts;
+  transport::AdvertiseMessageOptions opts;
   opts.SetScope(_sc);
 
   ignition::msgs::Int32 msg;

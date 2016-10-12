@@ -72,48 +72,6 @@ namespace ignition
     /// calls.
     class IGNITION_TRANSPORT_VISIBLE Node
     {
-      /// \brief A class that is used to store information about an
-      /// advertised publisher. An instance of this class is returned
-      /// from Node::Advertise, and should be used in subsequent
-      /// Node::Publish calls.
-      ///
-      /// ## Pseudo code example ##
-      ///
-      ///    auto pubId = myNode.Advertise<MsgType>("topic_name");
-      ///
-      ///    MsgType msg;
-      ///    myNode.Publish(pubId, msg);
-      ///
-      public: class PublisherId
-      {
-        /// \brief Default constructor
-        public: PublisherId();
-
-        /// \brief Constructor
-        /// \param[in] _topic Name of the topic on which messages
-        /// could be published.
-        public: explicit PublisherId(const std::string &_topic);
-
-        /// \brief Allows this class to be evaluated as a boolean.
-        /// \return True if valid
-        /// \sa Valid
-        public: operator bool();
-
-        /// \brief Return true if valid information, such as
-        /// a non-empty topic name, is present.
-        /// \return True if this object can be used in Node::Publish
-        /// calls.
-        public: bool Valid() const;
-
-        /// \brief Return the name of the topic.
-        /// \return Name of the topic that message would be
-        /// published on.
-        public: std::string Topic() const;
-
-        /// \brief Name of the topic
-        private: std::string topic = "";
-      };
-
       /// \brief Constructor.
       /// \param[in] _options Node options.
       public: explicit Node(const NodeOptions &_options = NodeOptions());
@@ -129,9 +87,9 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> Node::PublisherId Advertise(
+      public: template<typename T> MessagePublisher Advertise(
                   const std::string &_topic,
-                  const AdvertiseOptions &_options = AdvertiseOptions())
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
@@ -147,16 +105,16 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: Node::PublisherId Advertise(const std::string &_topic,
+      public: MessagePublisher Advertise(const std::string &_topic,
                   const std::string &_msgTypeName,
-                  const AdvertiseOptions &_options = AdvertiseOptions())
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return PublisherId();
+          return MessagePublisher();
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -169,7 +127,7 @@ namespace ignition
                     << " advertise the same topic twice on the same node."
                     << " If you want to advertise the same topic with different"
                     << " types, use separate nodes" << std::endl;
-          return PublisherId();
+          return MessagePublisher();
         }
 
         // Add the topic to the list of advertised topics (if it was not before)
@@ -179,18 +137,17 @@ namespace ignition
         MessagePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myAddress,
           this->Shared()->myControlAddress,
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          _msgTypeName);
+          this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
 
         if (!this->Shared()->msgDiscovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return PublisherId();
+          return MessagePublisher();
         }
 
-        return PublisherId(fullyQualifiedTopic);
+        return publisher;
       }
 
       /// \brief Get the list of topics advertised by this node.
@@ -214,7 +171,7 @@ namespace ignition
       /// on which to send the message.
       /// \param[in] _msg protobuf message.
       /// \return true when success.
-      public: bool Publish(const PublisherId &_id,
+      public: bool Publish(const MessagePublisher &_pub,
                            const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
@@ -340,7 +297,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
@@ -365,7 +322,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         void(*_cb)(T &_rep, bool &_result),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -389,7 +346,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T &_req),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
@@ -416,7 +373,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -449,8 +406,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          T1().GetTypeName(), T2().GetTypeName());
+          this->Shared()->pUuid, this->NodeUuid(),
+          T1().GetTypeName(), T2().GetTypeName(), _options);
 
         if (!this->Shared()->srvDiscovery->Advertise(publisher))
         {
@@ -477,7 +434,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         std::function<void(T &_rep, bool &_result)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -501,7 +458,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         std::function<void(const T &_req)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
@@ -530,7 +487,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb, _obj](const T1 &_internalReq,
@@ -561,7 +518,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(T &_rep, bool &_result),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -590,7 +547,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(const T &_req),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb, _obj](const T &_internalReq,
