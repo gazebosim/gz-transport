@@ -49,7 +49,7 @@ SubscribeOptions::~SubscribeOptions()
 //////////////////////////////////////////////////
 bool SubscribeOptions::Throttled() const
 {
-  return this->MsgsPerSec() != kUnthrottled;
+  return this->MsgsPerSec() != this->kUnthrottled;
 }
 
 //////////////////////////////////////////////////

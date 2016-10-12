@@ -145,13 +145,7 @@ namespace ignition
              << "\tAddress: " << _msg.Addr() << std::endl
              << "\tProcess UUID: " << _msg.PUuid() << std::endl
              << "\tNode UUID: " << _msg.NUuid() << std::endl
-             << "\tTopic Scope: ";
-        if (_msg.Options().Scope() == Scope_t::PROCESS)
-          _out << "Process" << std::endl;
-        else if (_msg.Options().Scope() == Scope_t::HOST)
-          _out << "Host" << std::endl;
-        else
-          _out << "All" << std::endl;
+             << "\t" << _msg.opts;
 
         return _out;
       }
@@ -168,6 +162,7 @@ namespace ignition
       /// \brief Node UUID of the publisher.
       protected: std::string nUuid;
 
+      /// \brief Advertise options (e.g.: scope).
       protected: AdvertiseOptions opts;
     };
 

@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
 #define IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 
@@ -167,8 +168,33 @@ namespace ignition
                                           const AdvertiseMessageOptions &_other)
       {
         _out << static_cast<AdvertiseOptions>(_other);
+        if (_other.Throttled())
+        {
+          _out << "Throttled? Yes" << std::endl;
+          _out << "Rate: " << _other.MsgsPerSec() << " msgs/sec" << std::endl;
+        }
+        else
+          _out << "Throttled? No" << std::endl;
+
         return _out;
       }
+
+      /// \brief Whether the publication has been throttled.
+      /// \return true when the publication is throttled or false otherwise.
+      /// \sa SetMsgsPerSec
+      /// \sa MsgsPerSec
+      public: bool Throttled() const;
+
+      /// \brief Get the maximum number of messages per seconds to be published.
+      /// \return The maximum number of messages per second.
+      public: uint64_t MsgsPerSec() const;
+
+      /// \brief Set the maximum number of messages per second to be published.
+      /// Note that we calculate the minimum period of a message based
+      /// on the msgs/sec rate. Any message sent since the last Publish()
+      /// and the duration of the period will be discarded.
+      /// \param[in] _newMsgsPerSec Maximum number of messages per second.
+      public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
 
       /// \brief Serialize the options. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
@@ -184,6 +210,9 @@ namespace ignition
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
+
+      /// \brief Constant used when not interested in throttling.
+      public: static const uint64_t kUnthrottled;
 
       /// \internal
       /// \brief Smart pointer to private data.

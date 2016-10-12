@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <limits>
 
 #include "ignition/transport/AdvertiseOptions.hh"
 
@@ -37,6 +38,9 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~AdvertiseMessageOptionsPrivate() = default;
+
+      /// \brief Default message publication rate.
+      public: uint64_t msgsPerSec = AdvertiseMessageOptions::kUnthrottled;
     };
 
     /// \internal
@@ -132,6 +136,10 @@ size_t AdvertiseOptions::MsgLength() const
 }
 
 //////////////////////////////////////////////////
+const uint64_t AdvertiseMessageOptions::kUnthrottled =
+  std::numeric_limits<uint64_t>::max();
+
+//////////////////////////////////////////////////
 AdvertiseMessageOptions::AdvertiseMessageOptions()
   : AdvertiseOptions(),
     dataPtr(new AdvertiseMessageOptionsPrivate())
@@ -141,7 +149,7 @@ AdvertiseMessageOptions::AdvertiseMessageOptions()
 //////////////////////////////////////////////////
 AdvertiseMessageOptions::AdvertiseMessageOptions(
   const AdvertiseMessageOptions &_other)
-  : AdvertiseOptions()
+  : AdvertiseMessageOptions()
 {
   (*this) = _other;
 }
@@ -156,6 +164,7 @@ AdvertiseMessageOptions &AdvertiseMessageOptions::operator=(
   const AdvertiseMessageOptions &_other)
 {
   AdvertiseOptions::operator=(_other);
+  this->SetMsgsPerSec(_other.MsgsPerSec());
   return *this;
 }
 
@@ -163,7 +172,8 @@ AdvertiseMessageOptions &AdvertiseMessageOptions::operator=(
 bool AdvertiseMessageOptions::operator==(
   const AdvertiseMessageOptions &_other) const
 {
-  return AdvertiseOptions::operator==(_other);
+  return AdvertiseOptions::operator==(_other) &&
+         this->MsgsPerSec() == _other.MsgsPerSec();
 }
 
 //////////////////////////////////////////////////
@@ -172,6 +182,25 @@ bool AdvertiseMessageOptions::operator!=(
 {
   return !(*this == _other);
 }
+
+//////////////////////////////////////////////////
+bool AdvertiseMessageOptions::Throttled() const
+{
+  return this->MsgsPerSec() != this->kUnthrottled;
+}
+
+//////////////////////////////////////////////////
+uint64_t AdvertiseMessageOptions::MsgsPerSec() const
+{
+  return this->dataPtr->msgsPerSec;
+}
+
+//////////////////////////////////////////////////
+void AdvertiseMessageOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
+{
+  this->dataPtr->msgsPerSec = _newMsgsPerSec;
+}
+
 
 //////////////////////////////////////////////////
 size_t AdvertiseMessageOptions::Pack(char *_buffer) const
@@ -188,6 +217,12 @@ size_t AdvertiseMessageOptions::Pack(char *_buffer) const
   size_t len = AdvertiseOptions::Pack(_buffer);
   if (len == 0)
     return 0;
+
+  _buffer += len;
+
+  // Pack the msgsPerSec.
+  memcpy(_buffer, &this->dataPtr->msgsPerSec,
+    sizeof(this->dataPtr->msgsPerSec));
 
   return this->MsgLength();
 }
@@ -208,13 +243,21 @@ size_t AdvertiseMessageOptions::Unpack(const char *_buffer)
   if (len == 0)
     return 0;
 
+  _buffer += len;
+
+  // Unpack the msgsPerSec.
+  uint64_t newMsgsPerSec;
+  memcpy(&newMsgsPerSec, _buffer, sizeof(newMsgsPerSec));
+  this->SetMsgsPerSec(newMsgsPerSec);
+
   return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
 size_t AdvertiseMessageOptions::MsgLength() const
 {
-  return AdvertiseOptions::MsgLength();
+  return AdvertiseOptions::MsgLength() +
+         sizeof(this->dataPtr->msgsPerSec);
 }
 
 
@@ -228,7 +271,7 @@ AdvertiseServiceOptions::AdvertiseServiceOptions()
 //////////////////////////////////////////////////
 AdvertiseServiceOptions::AdvertiseServiceOptions(
   const AdvertiseServiceOptions &_other)
-  : AdvertiseOptions()
+  : AdvertiseServiceOptions()
 {
   (*this) = _other;
 }
