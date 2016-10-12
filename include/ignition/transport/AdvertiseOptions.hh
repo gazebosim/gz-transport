@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
 #define IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
 
+#include <iostream>
 #include <memory>
 
 #include "ignition/transport/Helpers.hh"
@@ -66,10 +67,33 @@ namespace ignition
       public: AdvertiseOptions &operator=(const AdvertiseOptions &_other);
 
       /// \brief Equality operator. This function checks if the given
-      /// AdverriseOptions has identical content to this object.
-      /// \param[in] _opts The options to compare against.
+      /// AdvertiseOptions has identical content to this object.
+      /// \param[in] _other The options to compare against.
       /// \return True if this object matches the provided object.
-      public: bool operator==(const AdvertiseOptions &_opts) const;
+      public: bool operator==(const AdvertiseOptions &_other) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// options does not have identical values to this object.
+      /// \param[in] _other The options to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const AdvertiseOptions &_other) const;
+
+
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _other AdvertiseOptions to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                              const AdvertiseOptions &_other)
+      {
+        _out << "Scope: ";
+        if (_other.Scope() == Scope_t::PROCESS)
+          _out << "Process" << std::endl;
+        else if (_other.Scope() == Scope_t::HOST)
+          _out << "Host" << std::endl;
+        else
+          _out << "All" << std::endl;
+        return _out;
+      }
 
       /// \brief Get the scope used in this topic/service.
       /// \return The scope.
@@ -83,12 +107,25 @@ namespace ignition
       /// \sa Scope_t.
       public: void SetScope(const Scope_t &_scope);
 
+      /// \brief Serialize the options. The caller has ownership of the
+      /// buffer and is responsible for its [de]allocation.
+      /// \param[out] _buffer Destination buffer in which the options
+      /// will be serialized.
+      /// \return Number of bytes serialized.
+      public: size_t Pack(char *_buffer) const;
+
+      /// \brief Unserialize the options.
+      /// \param[in] _buffer Input buffer with the data to be unserialized.
+      public: size_t Unpack(const char *_buffer);
+
+      /// \brief Get the total length of the message.
+      /// \return Return the length of the message in bytes.
+      public: size_t MsgLength() const;
+
       /// \brief Scope of the topic/service.
       protected: Scope_t scope = Scope_t::ALL;
     };
 
-    /// \class AdvertiseMessageOptions AdvertiseOptions.hh
-    /// ignition/transport/AdvertiseOptions.hh
     /// \brief A class for customizing the publication options for a topic
     /// advertised.
     /// E.g.: Set the rate of messages per second published.
@@ -111,13 +148,48 @@ namespace ignition
       public: AdvertiseMessageOptions &operator=(
         const AdvertiseMessageOptions &_other);
 
+      /// \brief Equality operator. This function checks if the given
+      /// AdvertiseMessageOptions has identical content to this object.
+      /// \param[in] _other The options to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const AdvertiseMessageOptions &_other) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// options does not have identical values to this object.
+      /// \param[in] _other The options to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const AdvertiseMessageOptions &_other) const;
+
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] __other AdvertiseOptions to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                          const AdvertiseMessageOptions &_other)
+      {
+        _out << static_cast<AdvertiseOptions>(_other);
+        return _out;
+      }
+
+      /// \brief Serialize the options. The caller has ownership of the
+      /// buffer and is responsible for its [de]allocation.
+      /// \param[out] _buffer Destination buffer in which the options
+      /// will be serialized.
+      /// \return Number of bytes serialized.
+      public: size_t Pack(char *_buffer) const;
+
+      /// \brief Unserialize the options.
+      /// \param[in] _buffer Input buffer with the data to be unserialized.
+      public: size_t Unpack(const char *_buffer);
+
+      /// \brief Get the total length of the message.
+      /// \return Return the length of the message in bytes.
+      public: size_t MsgLength() const;
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;
     };
 
-    /// \class AdvertiseServiceOptions AdvertiseOptions.hh
-    /// ignition/transport/AdvertiseOptions.hh
     /// \brief A class for customizing the publication options for a service
     /// advertised.
     class IGNITION_TRANSPORT_VISIBLE AdvertiseServiceOptions
@@ -138,6 +210,44 @@ namespace ignition
       /// \return A reference to this instance.
       public: AdvertiseServiceOptions &operator=(
         const AdvertiseServiceOptions &_other);
+
+      /// \brief Equality operator. This function checks if the given
+      /// AdvertiseMessageOptions has identical content to this object.
+      /// \param[in] _other The options to compare against.
+      /// \return True if this object matches the provided object.
+      public: bool operator==(const AdvertiseServiceOptions &_other) const;
+
+      /// \brief Inequality operator. This function checks if the given
+      /// options does not have identical values to this object.
+      /// \param[in] _other The options to compare against.
+      /// \return True if this object does not match the provided object.
+      public: bool operator!=(const AdvertiseServiceOptions &_other) const;
+
+      /// \brief Stream insertion operator.
+      /// \param[out] _out The output stream.
+      /// \param[in] _other AdvertiseServiceOptions to write to the stream.
+      public: friend std::ostream &operator<<(std::ostream &_out,
+                                          const AdvertiseServiceOptions &_other)
+      {
+        _out << static_cast<AdvertiseOptions>(_other);
+        return _out;
+      }
+
+      /// \brief Serialize the options. The caller has ownership of the
+      /// buffer and is responsible for its [de]allocation.
+      /// \param[out] _buffer Destination buffer in which the options
+      /// will be serialized.
+      /// \return Number of bytes serialized.
+      public: size_t Pack(char *_buffer) const;
+
+      /// \brief Unserialize the options.
+      /// \param[in] _buffer Input buffer with the data to be unserialized.
+      public: size_t Unpack(const char *_buffer);
+
+      /// \brief Get the total length of the message.
+      /// \return Return the length of the message in bytes.
+      public: size_t MsgLength() const;
+
 
       /// \internal
       /// \brief Smart pointer to private data.
