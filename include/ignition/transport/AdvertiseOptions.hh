@@ -28,6 +28,7 @@ namespace ignition
 {
   namespace transport
   {
+    class AdvertiseOptionsPrivate;
     class AdvertiseMessageOptionsPrivate;
     class AdvertiseServiceOptionsPrivate;
 
@@ -53,14 +54,14 @@ namespace ignition
     class IGNITION_TRANSPORT_VISIBLE AdvertiseOptions
     {
       /// \brief Constructor.
-      public: AdvertiseOptions() = default;
+      public: AdvertiseOptions();
 
       /// \brief Copy constructor.
       /// \param[in] _other AdvertiseOptions to copy.
       public: AdvertiseOptions(const AdvertiseOptions &_other);
 
       /// \brief Destructor.
-      public: virtual ~AdvertiseOptions() = default;
+      public: virtual ~AdvertiseOptions();
 
       /// \brief Assignment operator.
       /// \param[in] _other The new AdvertiseOptions.
@@ -86,7 +87,8 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const AdvertiseOptions &_other)
       {
-        _out << "Scope: ";
+        _out << "Advertise options:";
+        _out << "\tScope: ";
         if (_other.Scope() == Scope_t::PROCESS)
           _out << "Process" << std::endl;
         else if (_other.Scope() == Scope_t::HOST)
@@ -123,8 +125,9 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
-      /// \brief Scope of the topic/service.
-      protected: Scope_t scope = Scope_t::ALL;
+      /// \internal
+      /// \brief Smart pointer to private data.
+      private: std::unique_ptr<AdvertiseOptionsPrivate> dataPtr;
     };
 
     /// \brief A class for customizing the publication options for a topic
@@ -170,11 +173,11 @@ namespace ignition
         _out << static_cast<AdvertiseOptions>(_other);
         if (_other.Throttled())
         {
-          _out << "Throttled? Yes" << std::endl;
-          _out << "Rate: " << _other.MsgsPerSec() << " msgs/sec" << std::endl;
+          _out << "\tThrottled? Yes" << std::endl;
+          _out << "\tRate: " << _other.MsgsPerSec() << " msgs/sec" << std::endl;
         }
         else
-          _out << "Throttled? No" << std::endl;
+          _out << "\tThrottled? No" << std::endl;
 
         return _out;
       }
@@ -216,7 +219,7 @@ namespace ignition
 
       /// \internal
       /// \brief Smart pointer to private data.
-      protected: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;
+      private: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;
     };
 
     /// \brief A class for customizing the publication options for a service
@@ -280,7 +283,7 @@ namespace ignition
 
       /// \internal
       /// \brief Smart pointer to private data.
-      protected: std::unique_ptr<AdvertiseServiceOptionsPrivate> dataPtr;
+      private: std::unique_ptr<AdvertiseServiceOptionsPrivate> dataPtr;
     };
   }
 }

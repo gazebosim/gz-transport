@@ -30,6 +30,20 @@ namespace ignition
   namespace transport
   {
     /// \internal
+    /// \brief Private data for AdvertiseOptions class.
+    class AdvertiseOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseOptionsPrivate() = default;
+
+      /// \brief Destructor.
+      public: virtual ~AdvertiseOptionsPrivate() = default;
+
+      /// \brief Default scope value.
+      public: Scope_t scope = Scope_t::ALL;
+    };
+
+    /// \internal
     /// \brief Private data for AdvertiseMessageOptions class.
     class AdvertiseMessageOptionsPrivate
     {
@@ -57,9 +71,21 @@ namespace ignition
 }
 
 //////////////////////////////////////////////////
+AdvertiseOptions::AdvertiseOptions()
+  : dataPtr(new AdvertiseOptionsPrivate())
+{
+}
+
+//////////////////////////////////////////////////
 AdvertiseOptions::AdvertiseOptions(const AdvertiseOptions &_other)
+  : AdvertiseOptions()
 {
   (*this) = _other;
+}
+
+//////////////////////////////////////////////////
+AdvertiseOptions::~AdvertiseOptions()
+{
 }
 
 //////////////////////////////////////////////////
@@ -72,7 +98,7 @@ AdvertiseOptions &AdvertiseOptions::operator=(const AdvertiseOptions &_other)
 //////////////////////////////////////////////////
 bool AdvertiseOptions::operator==(const AdvertiseOptions &_other) const
 {
-  return this->scope == _other.Scope();
+  return this->Scope() == _other.Scope();
 }
 
 //////////////////////////////////////////////////
@@ -84,13 +110,13 @@ bool AdvertiseOptions::operator!=(const AdvertiseOptions &_other) const
 //////////////////////////////////////////////////
 const Scope_t &AdvertiseOptions::Scope() const
 {
-  return this->scope;
+  return this->dataPtr->scope;
 }
 
 //////////////////////////////////////////////////
 void AdvertiseOptions::SetScope(const Scope_t &_scope)
 {
-  this->scope = _scope;
+  this->dataPtr->scope = _scope;
 }
 
 //////////////////////////////////////////////////
@@ -124,7 +150,7 @@ size_t AdvertiseOptions::Unpack(const char *_buffer)
 
   uint8_t intscope;
   memcpy(&intscope, _buffer, sizeof(intscope));
-  this->scope = static_cast<Scope_t>(intscope);
+  this->SetScope(static_cast<Scope_t>(intscope));
 
   return this->MsgLength();
 }

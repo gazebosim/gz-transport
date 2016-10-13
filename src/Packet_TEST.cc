@@ -215,8 +215,11 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   std::string nodeUuid = "nodeUUID";
   Scope_t scope = Scope_t::ALL;
   std::string typeName = "StringMsg";
+  AdvertiseMessageOptions msgOpts1;
+  msgOpts1.SetMsgsPerSec(10u);
+
   MessagePublisher pub(topic, addr, ctrl, procUuid, nodeUuid, typeName,
-    AdvertiseMessageOptions());
+    msgOpts1);
   AdvertiseMessage<MessagePublisher> advMsg(otherHeader, pub);
 
   // Check AdvertiseMsg getters.
@@ -233,6 +236,7 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(advMsg.Publisher().NUuid(), nodeUuid);
   EXPECT_EQ(advMsg.Publisher().Options().Scope(), scope);
   EXPECT_EQ(advMsg.Publisher().MsgTypeName(), typeName);
+  EXPECT_EQ(advMsg.Publisher().Options(), msgOpts1);
 
   size_t msgLength = advMsg.Header().HeaderLength() +
     sizeof(uint16_t) + topic.size() +
@@ -241,7 +245,8 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     sizeof(uint16_t) + procUuid.size() +
     sizeof(uint16_t) + nodeUuid.size() +
     sizeof(uint8_t)  +
-    sizeof(uint16_t) + typeName.size();
+    sizeof(uint16_t) + typeName.size() +
+    msgOpts1.MsgLength();
   EXPECT_EQ(advMsg.MsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";

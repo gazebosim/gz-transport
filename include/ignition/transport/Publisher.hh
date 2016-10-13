@@ -42,7 +42,7 @@ namespace ignition
       /// \param[in] _addr ZeroMQ address.
       /// \param[in] _pUuid Process UUID.
       /// \param[in] _nUUID node UUID.
-      /// \param[in] _scope Scope.
+      /// \param[in] _opts The advertise options.
       public: Publisher(const std::string &_topic,
                         const std::string &_addr,
                         const std::string &_pUuid,
@@ -83,6 +83,9 @@ namespace ignition
       /// \sa SetNUuid.
       public: std::string NUuid() const;
 
+      /// \brief Get the advertised options.
+      /// \return The advertised options.
+      /// \sa SetOptions.
       public: const AdvertiseOptions& Options() const;
 
       /// \brief Set the topic name published by this publisher.
@@ -105,20 +108,34 @@ namespace ignition
       /// \sa NUuid.
       public: void SetNUuid(const std::string &_nUuid);
 
+      /// \brief Set the advertised options.
+      /// \param[in] _opts New advertised options.
+      /// \sa Options.
+      public: void SetOptions(const AdvertiseOptions &_opts);
+
       /// \brief Serialize the publisher. The caller has ownership of the
       /// buffer and is responsible for its [de]allocation.
       /// \param[out] _buffer Destination buffer in which the publisher
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      public: virtual size_t Pack(char *_buffer) const;
+
+      ///
+      protected: size_t PackInternal(char *_buffer) const;
 
       /// \brief Unserialize the publisher.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(char *_buffer);
+      public: virtual size_t Unpack(char *_buffer);
+
+      ///
+      protected: size_t UnpackInternal(char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      public: virtual size_t MsgLength() const;
+
+      ///
+      protected: size_t MsgLengthInternal() const;
 
       /// \brief Equality operator. This function checks if the given
       /// publisher has identical Topic, Addr, PUuid, NUuid, and Scope
@@ -145,7 +162,7 @@ namespace ignition
              << "\tAddress: " << _msg.Addr() << std::endl
              << "\tProcess UUID: " << _msg.PUuid() << std::endl
              << "\tNode UUID: " << _msg.NUuid() << std::endl
-             << "\t" << _msg.opts;
+             << _msg.Options();
 
         return _out;
       }
@@ -162,7 +179,7 @@ namespace ignition
       /// \brief Node UUID of the publisher.
       protected: std::string nUuid;
 
-      /// \brief Advertise options (e.g.: scope).
+      /// \brief Advertised options.
       protected: AdvertiseOptions opts;
     };
 
@@ -181,6 +198,7 @@ namespace ignition
       /// \param[in] _pUuid Process UUID.
       /// \param[in] _nUUID node UUID.
       /// \param[in] _msgTypeName Message type advertised by this publisher.
+      /// \param[in] _opts Advertise options.
       public: explicit MessagePublisher(const std::string &_topic,
                                         const std::string &_addr,
                                         const std::string &_ctrl,
@@ -193,13 +211,13 @@ namespace ignition
       public: virtual ~MessagePublisher() = default;
 
       // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
+      public: virtual size_t Pack(char *_buffer) const;
 
       // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
+      public: virtual size_t Unpack(char *_buffer);
 
       // Documentation inherited.
-      public: size_t MsgLength() const;
+      public: virtual size_t MsgLength() const;
 
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
@@ -220,6 +238,16 @@ namespace ignition
       /// \param[in] _msgTypeName New message type.
       /// \sa MsgTypeName.
       public: void SetMsgTypeName(const std::string &_msgTypeName);
+
+      /// \brief Get the advertised options.
+      /// \return The advertised options.
+      /// \sa SetOptions.
+      public: const AdvertiseMessageOptions& Options() const;
+
+      /// \brief Set the advertised options.
+      /// \param[in] _opts New advertised options.
+      /// \sa Options.
+      public: void SetOptions(const AdvertiseMessageOptions &_opts);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -253,6 +281,7 @@ namespace ignition
       /// \brief Message type advertised by this publisher.
       protected: std::string msgTypeName;
 
+      /// \brief Advertise options (e.g.: msgsPerSec).
       protected: AdvertiseMessageOptions msgOpts;
     };
 
