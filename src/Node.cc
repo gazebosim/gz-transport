@@ -186,24 +186,24 @@ bool Node::Unadvertise(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-bool Node::Publish(const MessagePublisher &_pub, const ProtoMsg &_msg)
-{
-  return _pub.Valid() ? this->PublishHelper(_pub.Topic(), _msg) : false;
-}
+//bool Node::Publish(const MessagePublisher &_pub, const ProtoMsg &_msg)
+//{
+//  return _pub.Valid() ? this->PublishHelper(_pub.Topic(), _msg) : false;
+//}
 
 //////////////////////////////////////////////////
-bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  return this->PublishHelper(fullyQualifiedTopic, _msg);
-}
+//bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
+//{
+//  std::string fullyQualifiedTopic;
+//  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+//    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+//  {
+//    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+//    return false;
+//  }
+//
+//  return this->PublishHelper(fullyQualifiedTopic, _msg);
+//}
 
 //////////////////////////////////////////////////
 bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)

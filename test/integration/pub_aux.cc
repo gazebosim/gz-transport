@@ -36,12 +36,12 @@ void advertiseAndPublish()
 
   transport::Node node;
 
-  node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   for (auto i = 0; i < 15; ++i)
   {
-    EXPECT_TRUE(node.Publish(g_topic, msg));
+    EXPECT_TRUE(pub.Publish(msg));
 
     // Rate: 10 msgs/sec.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

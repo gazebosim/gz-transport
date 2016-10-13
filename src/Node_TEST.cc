@@ -231,7 +231,7 @@ class MyTestClass
     EXPECT_TRUE(pubId.Valid());
     EXPECT_FALSE(pubId.Topic().empty());
     EXPECT_TRUE(pubId.Topic().find(g_topic) != std::string::npos);
-    EXPECT_TRUE(this->node.Publish(pubId, msg));
+    EXPECT_TRUE(pubId.Publish(msg));
   }
 
   /// \brief Advertise a service, request a service using non-blocking and
@@ -389,7 +389,8 @@ void CreatePubSubTwoThreads(
   msg.set_data(data);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic, opts));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  EXPECT_TRUE(pub);
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
@@ -399,7 +400,7 @@ void CreatePubSubTwoThreads(
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a msg on topic.
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Wait until the subscribe thread finishes.
   subscribeThread.join();
@@ -434,16 +435,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.SubscribedTopics().empty());
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
-  // Publish some data on topic without advertising it first.
-  EXPECT_FALSE(node1.Publish(g_topic, msg));
-
-  EXPECT_TRUE(node1.Advertise(g_topic, msg.GetTypeName()));
+  auto pub1 = node1.Advertise(g_topic, msg.GetTypeName());
+  EXPECT_TRUE(pub1);
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
-  EXPECT_TRUE(node2.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub2 = node2.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub2);
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
@@ -457,8 +457,8 @@ TEST(NodeTest, PubWithoutAdvertise)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a message by each node.
-  EXPECT_TRUE(node1.Publish(g_topic, msg));
-  EXPECT_TRUE(node2.Publish(g_topic, msg));
+  EXPECT_TRUE(pub1.Publish(msg));
+  EXPECT_TRUE(pub2.Publish(msg));
 
   // Wait some time for the messages to arrive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -484,7 +484,8 @@ TEST(NodeTest, PubSubSameThread)
   // Advertise an illegal topic.
   EXPECT_FALSE(node.Advertise<ignition::msgs::Int32>("invalid topic"));
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
   // Subscribe to an illegal topic.
   EXPECT_FALSE(node.Subscribe("invalid topic", cb));
@@ -494,11 +495,8 @@ TEST(NodeTest, PubSubSameThread)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Try to publish a message using an invalid topic.
-  EXPECT_FALSE(node.Publish("invalid topic", msg));
-
   // Publish a first message.
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -509,7 +507,7 @@ TEST(NodeTest, PubSubSameThread)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -525,7 +523,7 @@ TEST(NodeTest, PubSubSameThread)
   EXPECT_TRUE(node.Unadvertise(g_topic));
 
   // Publish a third message.
-  EXPECT_FALSE(node.Publish(g_topic, msg));
+  EXPECT_FALSE(pub.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -546,7 +544,8 @@ TEST(NodeTest, PubSubSameThreadLambda)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
   bool executed = false;
   std::function<void(const ignition::msgs::Int32&)> subCb =
@@ -562,7 +561,7 @@ TEST(NodeTest, PubSubSameThreadLambda)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   EXPECT_TRUE(executed);
 
@@ -628,7 +627,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub1);
 
   // Subscribe to topic in node1.
   EXPECT_TRUE(node1.Subscribe(g_topic, cb));
@@ -639,7 +639,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_TRUE(node1.Publish(g_topic, msg));
+  EXPECT_TRUE(pub1.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -665,7 +665,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Publish a second message.
-  EXPECT_TRUE(node1.Publish(g_topic, msg));
+  EXPECT_TRUE(pub1.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -682,7 +682,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   EXPECT_TRUE(node1.Unadvertise(g_topic));
 
   // Publish a third message.
-  EXPECT_FALSE(node1.Publish(g_topic, msg));
+  EXPECT_FALSE(pub1.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -748,10 +748,11 @@ TEST(NodeTest, TypeMismatch)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
-  EXPECT_FALSE(node.Publish(g_topic, wrongMsg));
-  EXPECT_TRUE(node.Publish(g_topic, rightMsg));
+  EXPECT_FALSE(pub.Publish(wrongMsg));
+  EXPECT_TRUE(pub.Publish(rightMsg));
 
   reset();
 }
@@ -1319,13 +1320,14 @@ void createInfinitePublisher()
   msg.set_data(data);
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
   auto i = 0;
   bool exitLoop = false;
   while (!exitLoop)
   {
-    EXPECT_TRUE(node.Publish(g_topic, msg));
+    EXPECT_TRUE(pub.Publish(msg));
     ++i;
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
@@ -1404,7 +1406,8 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
@@ -1412,7 +1415,7 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Send a message with a wrong type.
-  EXPECT_FALSE(node.Publish(g_topic, msgV));
+  EXPECT_FALSE(pub.Publish(msgV));
 
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
@@ -1420,7 +1423,7 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1445,7 +1448,8 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
@@ -1453,7 +1457,7 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Send a message with a wrong type.
-  EXPECT_TRUE(node.Publish(g_topic, msgV));
+  EXPECT_TRUE(pub.Publish(msgV));
 
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
@@ -1475,7 +1479,8 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub1);
 
   // Good subscriber.
   EXPECT_TRUE(node1.Subscribe(g_topic, cb));
@@ -1486,7 +1491,7 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_TRUE(node1.Publish(g_topic, msg));
+  EXPECT_TRUE(pub1.Publish(msg));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1512,7 +1517,8 @@ TEST(NodeTest, PubThrottled)
 
   transport::Node node;
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
 
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
@@ -1520,7 +1526,7 @@ TEST(NodeTest, PubThrottled)
 
   for (auto i = 0; i < 15; ++i)
   {
-    EXPECT_TRUE(node.Publish(g_topic, msg));
+    EXPECT_TRUE(pub.Publish(msg));
 
     // Rate: 10 msgs/sec.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

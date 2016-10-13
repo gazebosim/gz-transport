@@ -163,16 +163,16 @@ namespace ignition
       /// \param[in] _topic Topic to be published.
       /// \param[in] _msg protobuf message.
       /// \return true when success.
-      public: bool Publish(const std::string &_topic,
-                           const ProtoMsg &_msg);
+      //public: bool Publish(const std::string &_topic,
+      //                     const ProtoMsg &_msg);
 
       /// \brief Publish a message.
       /// \param[in] _id Id of the publisher, which encapsulates the topic
       /// on which to send the message.
       /// \param[in] _msg protobuf message.
       /// \return true when success.
-      public: bool Publish(const MessagePublisher &_pub,
-                           const ProtoMsg &_msg);
+      //public: bool Publish(const MessagePublisher &_pub,
+      //                     const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
