@@ -87,8 +87,8 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const AdvertiseOptions &_other)
       {
-        _out << "Advertise options:";
-        _out << "\tScope: ";
+        _out << "Advertise options:\n"
+             << "\tScope: ";
         if (_other.Scope() == Scope_t::PROCESS)
           _out << "Process" << std::endl;
         else if (_other.Scope() == Scope_t::HOST)

@@ -244,7 +244,6 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     sizeof(uint16_t) + ctrl.size() +
     sizeof(uint16_t) + procUuid.size() +
     sizeof(uint16_t) + nodeUuid.size() +
-    sizeof(uint8_t)  +
     sizeof(uint16_t) + typeName.size() +
     msgOpts1.MsgLength();
   EXPECT_EQ(advMsg.MsgLength(), msgLength);
@@ -273,6 +272,10 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   nodeUuid = "nodeUUID2";
   scope = Scope_t::HOST;
   typeName = "Int";
+  AdvertiseMessageOptions msgOpts2;
+  msgOpts2.SetScope(scope);
+  msgOpts2.SetMsgsPerSec(20u);
+
   advMsg.Publisher().SetTopic(topic);
   EXPECT_EQ(advMsg.Publisher().Topic(), topic);
   advMsg.Publisher().SetAddr(addr);
@@ -283,10 +286,10 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
   EXPECT_EQ(advMsg.Publisher().Ctrl(), ctrl);
   advMsg.Publisher().SetNUuid(nodeUuid);
   EXPECT_EQ(advMsg.Publisher().NUuid(), nodeUuid);
-  // advMsg.Publisher().SetScope(scope);
-  EXPECT_EQ(advMsg.Publisher().Options().Scope(), scope);
   advMsg.Publisher().SetMsgTypeName(typeName);
   EXPECT_EQ(advMsg.Publisher().MsgTypeName(), typeName);
+  advMsg.Publisher().SetOptions(msgOpts2);
+  EXPECT_EQ(advMsg.Publisher().Options(), msgOpts2);
 
   // Check << operator
   std::ostringstream output;
@@ -303,13 +306,17 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tAddress: inproc://local\n"
     "\tProcess UUID: procUUID\n"
     "\tNode UUID: nodeUUID2\n"
-    "\tTopic Scope: Host\n"
     "\tControl address: inproc://control\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "Advertise options:\n"
+    "\tScope: Host\n"
+    "\tThrottled? Yes\n"
+    "\tRate: 20 msgs/sec\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 
-  // advMsg.Publisher().SetScope(Scope_t::PROCESS);
+  msgOpts2.SetScope(Scope_t::PROCESS);
+  advMsg.Publisher().SetOptions(msgOpts2);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -324,14 +331,18 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tAddress: inproc://local\n"
     "\tProcess UUID: procUUID\n"
     "\tNode UUID: nodeUUID2\n"
-    "\tTopic Scope: Process\n"
     "\tControl address: inproc://control\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "Advertise options:\n"
+    "\tScope: Process\n"
+    "\tThrottled? Yes\n"
+    "\tRate: 20 msgs/sec\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 
   // Check << operator
-  // advMsg.Publisher().SetScope(Scope_t::ALL);
+  msgOpts2.SetScope(Scope_t::ALL);
+  advMsg.Publisher().SetOptions(msgOpts2);
   output.str("");
   output << advMsg;
   expectedOutput =
@@ -346,9 +357,12 @@ TEST(PacketTest, BasicAdvertiseMsgAPI)
     "\tAddress: inproc://local\n"
     "\tProcess UUID: procUUID\n"
     "\tNode UUID: nodeUUID2\n"
-    "\tTopic Scope: All\n"
     "\tControl address: inproc://control\n"
-    "\tMessage type: Int\n";
+    "\tMessage type: Int\n"
+    "Advertise options:\n"
+    "\tScope: All\n"
+    "\tThrottled? Yes\n"
+    "\tRate: 20 msgs/sec\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 }
@@ -490,9 +504,9 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     sizeof(uint16_t) + id.size() +
     sizeof(uint16_t) + pUuid.size() +
     sizeof(uint16_t) + nodeUuid.size() +
-    sizeof(uint8_t)  +
     sizeof(uint16_t) + advSrv.Publisher().ReqTypeName().size() +
-    sizeof(uint16_t) + advSrv.Publisher().RepTypeName().size();
+    sizeof(uint16_t) + advSrv.Publisher().RepTypeName().size() +
+    advSrv.Publisher().Options().MsgLength();
   EXPECT_EQ(advSrv.MsgLength(), msgLength);
 
   pUuid = "Different-process-UUID-1";
@@ -518,6 +532,8 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   scope = Scope_t::HOST;
   reqType = "Type1";
   repType = "Type2";
+  AdvertiseServiceOptions opts2;
+  opts2.SetScope(scope);
   advSrv.Publisher().SetTopic(topic);
   EXPECT_EQ(advSrv.Publisher().Topic(), topic);
   advSrv.Publisher().SetAddr(addr);
@@ -528,12 +544,12 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
   EXPECT_EQ(advSrv.Publisher().PUuid(), pUuid);
   advSrv.Publisher().SetNUuid(nodeUuid);
   EXPECT_EQ(advSrv.Publisher().NUuid(), nodeUuid);
-  // advSrv.Publisher().SetScope(scope);
-  EXPECT_EQ(advSrv.Publisher().Options().Scope(), scope);
   advSrv.Publisher().SetReqTypeName(reqType);
   EXPECT_EQ(advSrv.Publisher().ReqTypeName(), reqType);
   advSrv.Publisher().SetRepTypeName(repType);
   EXPECT_EQ(advSrv.Publisher().RepTypeName(), repType);
+  advSrv.Publisher().SetOptions(opts2);
+  EXPECT_EQ(advSrv.Publisher().Options().Scope(), scope);
 
   // Check << operator
   std::ostringstream output;
@@ -550,10 +566,11 @@ TEST(PacketTest, BasicAdvertiseSrvAPI)
     "\tAddress: inproc://local\n"
     "\tProcess UUID: procUUID\n"
     "\tNode UUID: nodeUUID2\n"
-    "\tTopic Scope: Host\n"
     "\tSocket ID: aSocketID\n"
     "\tRequest type: Type1\n"
-    "\tResponse type: Type2\n";
+    "\tResponse type: Type2\n"
+    "Advertise options:\n"
+    "\tScope: Host\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
 }
@@ -617,8 +634,7 @@ TEST(PacketTest, AdvertiseSrvIO)
   EXPECT_EQ(otherAdvSrv.Publisher().Addr(), advSrv.Publisher().Addr());
   EXPECT_EQ(otherAdvSrv.Publisher().SocketId(), advSrv.Publisher().SocketId());
   EXPECT_EQ(otherAdvSrv.Publisher().NUuid(), advSrv.Publisher().NUuid());
-  EXPECT_EQ(otherAdvSrv.Publisher().Options().Scope(),
-    advSrv.Publisher().Options().Scope());
+  EXPECT_EQ(otherAdvSrv.Publisher().Options(), advSrv.Publisher().Options());
   EXPECT_EQ(otherAdvSrv.Publisher().ReqTypeName(),
     advSrv.Publisher().ReqTypeName());
   EXPECT_EQ(otherAdvSrv.Publisher().RepTypeName(),

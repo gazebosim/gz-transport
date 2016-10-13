@@ -70,7 +70,7 @@ void init()
 
 //////////////////////////////////////////////////
 /// \brief Check the Publisher accessors.
-TEST(PublisherTest, TestPublisher)
+TEST(PublisherTest, Publisher)
 {
   init();
 
@@ -307,7 +307,7 @@ TEST(PublisherTest, ServicePublisher)
 
 //////////////////////////////////////////////////
 /// \brief Check the ServicePublisher Pack()/Unpack().
-TEST(PublisherTest, TestServicePublisherIO)
+TEST(PublisherTest, ServicePublisherIO)
 {
   init();
 

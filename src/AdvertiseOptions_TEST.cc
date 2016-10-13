@@ -86,7 +86,7 @@ TEST(AdvertiseOptionsTest, streamInsertion)
   std::ostringstream output;
   output << opts;
   std::string expectedOutput =
-    "Advertise options:"
+    "Advertise options:\n"
     "\tScope: All\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
@@ -193,7 +193,7 @@ TEST(AdvertiseOptionsTest, msgStreamInsertion)
   std::ostringstream output;
   output << opts;
   std::string expectedOutput =
-    "Advertise options:"
+    "Advertise options:\n"
     "\tScope: All\n"
     "\tThrottled? No\n";
   EXPECT_EQ(output.str(), expectedOutput);
@@ -203,7 +203,7 @@ TEST(AdvertiseOptionsTest, msgStreamInsertion)
   opts.SetMsgsPerSec(10u);
   output << opts;
   expectedOutput =
-    "Advertise options:"
+    "Advertise options:\n"
     "\tScope: All\n"
     "\tThrottled? Yes\n"
     "\tRate: 10 msgs/sec\n";
@@ -299,7 +299,7 @@ TEST(AdvertiseOptionsTest, srvStreamInsertion)
   std::ostringstream output;
   output << opts;
   std::string expectedOutput =
-    "Advertise options:"
+    "Advertise options:\n"
     "\tScope: All\n";
   EXPECT_EQ(output.str(), expectedOutput);
 }

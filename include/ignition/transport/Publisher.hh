@@ -157,11 +157,11 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const Publisher &_msg)
       {
-        _out << "Publisher:" << std::endl
-             << "\tTopic: [" << _msg.Topic() << "]" << std::endl
-             << "\tAddress: " << _msg.Addr() << std::endl
-             << "\tProcess UUID: " << _msg.PUuid() << std::endl
-             << "\tNode UUID: " << _msg.NUuid() << std::endl
+        _out << "Publisher:"                              << std::endl
+             << "\tTopic: ["       << _msg.Topic() << "]" << std::endl
+             << "\tAddress: "      << _msg.Addr()         << std::endl
+             << "\tProcess UUID: " << _msg.PUuid()        << std::endl
+             << "\tNode UUID: "    << _msg.NUuid()        << std::endl
              << _msg.Options();
 
         return _out;
@@ -255,9 +255,14 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const MessagePublisher &_msg)
       {
-        _out << static_cast<Publisher>(_msg)
-             << "\tControl address: " << _msg.Ctrl()        << std::endl
-             << "\tMessage type: "    << _msg.MsgTypeName() << std::endl;
+        _out << "Publisher:"                                  << std::endl
+             << "\tTopic: ["           << _msg.Topic() << "]" << std::endl
+             << "\tAddress: "          << _msg.Addr()         << std::endl
+             << "\tProcess UUID: "     << _msg.PUuid()        << std::endl
+             << "\tNode UUID: "        << _msg.NUuid()        << std::endl
+             << "\tControl address: "  << _msg.Ctrl()         << std::endl
+             << "\tMessage type: "     << _msg.MsgTypeName()  << std::endl
+             << _msg.Options();
         return _out;
       }
 
@@ -359,10 +364,15 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const ServicePublisher &_msg)
       {
-        _out << static_cast<Publisher>(_msg)
-             << "\tSocket ID: "     << _msg.SocketId()       << std::endl
-             << "\tRequest type: "  << _msg.ReqTypeName() << std::endl
-             << "\tResponse type: " << _msg.RepTypeName() << std::endl;
+        _out << "Publisher:"                                  << std::endl
+             << "\tTopic: ["           << _msg.Topic() << "]" << std::endl
+             << "\tAddress: "          << _msg.Addr()         << std::endl
+             << "\tProcess UUID: "     << _msg.PUuid()        << std::endl
+             << "\tNode UUID: "        << _msg.NUuid()        << std::endl
+             << "\tSocket ID: "        << _msg.SocketId()     << std::endl
+             << "\tRequest type: "     << _msg.ReqTypeName()  << std::endl
+             << "\tResponse type: "    << _msg.RepTypeName()  << std::endl
+             << _msg.Options();
 
         return _out;
       }
