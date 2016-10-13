@@ -106,7 +106,7 @@ namespace ignition
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
       public: MessagePublisher Advertise(const std::string &_topic,
-                  const std::string &_msgTypeName,
+                                         const std::string &_msgTypeName,
             const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         std::string fullyQualifiedTopic;

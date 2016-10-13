@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    if (!node.Publish(pubId, msg))
+    if (!pubId.Publish(msg))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;

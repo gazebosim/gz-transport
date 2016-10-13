@@ -18,6 +18,14 @@
 #ifndef IGN_TRANSPORT_PUBLISHER_HH_
 #define IGN_TRANSPORT_PUBLISHER_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
+#include <google/protobuf/message.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <iostream>
 #include <string>
 
@@ -28,6 +36,8 @@ namespace ignition
 {
   namespace transport
   {
+    class NodeShared;
+
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
@@ -280,6 +290,11 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const MessagePublisher &_pub) const;
 
+      /// \brief Publish a message.
+      /// \param[in] _msg protobuf message.
+      /// \return true when success.
+      public: bool Publish(const google::protobuf::Message &_msg);
+
       /// \brief ZeroMQ control address of the publisher.
       protected: std::string ctrl;
 
@@ -288,6 +303,10 @@ namespace ignition
 
       /// \brief Advertise options (e.g.: msgsPerSec).
       protected: AdvertiseMessageOptions msgOpts;
+
+      /// \brief Pointer to the object shared between all the nodes within the
+      /// same process.
+      private: NodeShared *shared;
     };
 
     /// \class ServicePublisher Publisher.hh
