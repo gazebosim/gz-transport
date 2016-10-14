@@ -380,3 +380,116 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_TRUE(test.AddPublisher(publisher8));
   EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
 }
+
+//////////////////////////////////////////////////
+/// \brief Check PublishersByProc().
+TEST(TopicStorageTest, PublishersByProc)
+{
+  std::string topic  = "foo";
+  std::string topic2 = "foo2";
+
+  std::string nUuid1 = "node-UUID-1";
+  transport::Scope_t scope1 = transport::Scope_t::ALL;
+  AdvertiseOptions opts1 = AdvertiseOptions();
+  opts1.SetScope(scope1);
+
+  std::string nUuid2  = "node-UUID-2";
+  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
+  AdvertiseOptions opts2 = AdvertiseOptions();
+  opts2.SetScope(scope2);
+
+  std::string nUuid3  = "node-UUID-3";
+  transport::Scope_t scope3 = transport::Scope_t::HOST;
+  AdvertiseOptions opts3 = AdvertiseOptions();
+  opts3.SetScope(scope3);
+
+  std::string nUuid4  = "node-UUID-4";
+  AdvertiseOptions opts4 = AdvertiseOptions();
+  transport::Scope_t scope4 = transport::Scope_t::ALL;
+  opts4.SetScope(scope4);
+
+  std::string pUuid1 = "process-UUID-1";
+  std::string addr1  = "tcp://10.0.0.1:6001";
+  std::string pUuid2  = "process-UUID-2";
+  std::string addr2  = "tcp://10.0.0.1:6002";
+
+  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, opts1);
+  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, opts2);
+  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, opts3);
+
+  transport::TopicStorage<transport::Publisher> test;
+
+  EXPECT_TRUE(test.AddPublisher(publisher1));
+  EXPECT_TRUE(test.AddPublisher(publisher2));
+  EXPECT_TRUE(test.AddPublisher(publisher3));
+
+  // Checking a PUUID that does not exist.
+  std::map<std::string, std::vector<Publisher>> pubs;
+  test.PublishersByProc("unknown_puuid", pubs);
+  EXPECT_TRUE(pubs.empty());
+
+  // Checking an existent PUUID with multiple publishers.
+  test.PublishersByProc(pUuid1, pubs);
+  EXPECT_EQ(pubs.size(), 2u);
+  EXPECT_TRUE(pubs.find(nUuid1) != pubs.end());
+  EXPECT_EQ(pubs[nUuid1].at(0).Addr(), addr1);
+  EXPECT_TRUE(pubs.find(nUuid2) != pubs.end());
+  EXPECT_EQ(pubs[nUuid2].at(0).Addr(), addr1);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check PublishersByNode().
+TEST(TopicStorageTest, PublishersByNode)
+{
+  std::string topic  = "foo";
+  std::string topic2 = "foo2";
+
+  std::string nUuid1 = "node-UUID-1";
+  transport::Scope_t scope1 = transport::Scope_t::ALL;
+  AdvertiseOptions opts1 = AdvertiseOptions();
+  opts1.SetScope(scope1);
+
+  std::string nUuid2  = "node-UUID-2";
+  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
+  AdvertiseOptions opts2 = AdvertiseOptions();
+  opts2.SetScope(scope2);
+
+  std::string nUuid3  = "node-UUID-3";
+  transport::Scope_t scope3 = transport::Scope_t::HOST;
+  AdvertiseOptions opts3 = AdvertiseOptions();
+  opts3.SetScope(scope3);
+
+  std::string nUuid4  = "node-UUID-4";
+  AdvertiseOptions opts4 = AdvertiseOptions();
+  transport::Scope_t scope4 = transport::Scope_t::ALL;
+  opts4.SetScope(scope4);
+
+  std::string pUuid1 = "process-UUID-1";
+  std::string addr1  = "tcp://10.0.0.1:6001";
+  std::string pUuid2  = "process-UUID-2";
+  std::string addr2  = "tcp://10.0.0.1:6002";
+
+  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, opts1);
+  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, opts2);
+  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, opts3);
+
+  transport::TopicStorage<transport::Publisher> test;
+
+  EXPECT_TRUE(test.AddPublisher(publisher1));
+  EXPECT_TRUE(test.AddPublisher(publisher2));
+  EXPECT_TRUE(test.AddPublisher(publisher3));
+
+  // Checking a PUUID that does not exist.
+  std::vector<Publisher> pubs;
+  test.PublishersByNode("unknown_puuid", nUuid1, pubs);
+  EXPECT_TRUE(pubs.empty());
+
+  // Checking a NUUID that does not exist.
+  test.PublishersByNode(pUuid1, "unknown_nuuid", pubs);
+  EXPECT_TRUE(pubs.empty());
+
+  // Checking an existent NUUID with multiple publishers.
+  test.PublishersByNode(pUuid1, nUuid1, pubs);
+  EXPECT_EQ(pubs.size(), 1u);
+  EXPECT_EQ(pubs.at(0).Addr(), addr1);
+}
