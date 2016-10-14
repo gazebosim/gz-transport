@@ -260,7 +260,35 @@ namespace ignition
             auto &v = m.at(_pUuid);
             for (auto &pub : v)
             {
-              _pubs[topic.first].push_back(T(pub));
+              _pubs[pub.NUuid()].push_back(T(pub));
+            }
+          }
+        }
+      }
+
+      /// \brief Given a process UUID and the node UUID, the function returns
+      /// the list of publishers contained in the node.
+      /// \param[in] _pUuid Process UUID.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[out] _pubs Vector of publishers.
+      public: void PublishersByNode(const std::string &_pUuid,
+                                    const std::string &_nUuid,
+                                    std::vector<T> &_pubs) const
+      {
+        _pubs.clear();
+
+        // Iterate over all the topics.
+        for (auto &topic : this->data)
+        {
+          // m is {pUUID=>Publisher}.
+          auto &m = topic.second;
+          if (m.find(_pUuid) != m.end())
+          {
+            auto &v = m.at(_pUuid);
+            for (auto &pub : v)
+            {
+              if (pub.NUuid() == _nUuid)
+                _pubs.push_back(T(pub));
             }
           }
         }

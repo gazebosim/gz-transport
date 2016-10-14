@@ -573,9 +573,12 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
   transport::Node node1;
   transport::Node node2;
 
-  EXPECT_TRUE(node1.Advertise<ignition::msgs::Int32>(g_topic));
-  EXPECT_FALSE(node1.Advertise<ignition::msgs::StringMsg>(g_topic));
-  EXPECT_TRUE(node2.Advertise<ignition::msgs::StringMsg>(g_topic));
+  auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub1);
+  auto pub2 = node1.Advertise<ignition::msgs::StringMsg>(g_topic);
+  EXPECT_FALSE(pub2);
+  auto pub3 = node2.Advertise<ignition::msgs::StringMsg>(g_topic);
+  EXPECT_TRUE(pub3);
 }
 
 //////////////////////////////////////////////////
@@ -1699,8 +1702,8 @@ TEST(NodeTest, TopicList)
   transport::Node node1;
   transport::Node node2;
 
-  node1.Advertise<ignition::msgs::Int32>("topic1");
-  node2.Advertise<ignition::msgs::Int32>("topic2");
+  auto pub1 = node1.Advertise<ignition::msgs::Int32>("topic1");
+  auto pub2 = node2.Advertise<ignition::msgs::Int32>("topic2");
 
   node1.TopicList(topics);
   EXPECT_EQ(topics.size(), 2u);

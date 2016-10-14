@@ -98,7 +98,8 @@ Node::PublisherId::PublisherId()
 //////////////////////////////////////////////////
 Node::PublisherId::~PublisherId()
 {
-// Notify the discovery service to unregister and unadvertise my topic.
+  std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+  // Notify the discovery service to unregister and unadvertise my topic.
   if (!this->shared->msgDiscovery->Unadvertise(
         this->publisher.Topic(), this->publisher.NUuid()))
   {
@@ -256,7 +257,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::vector<std::string> v;
   std::unordered_set<std::string> result;
-  std::map<std::string, std::vector<MessagePublisher>> pubs;
+  std::vector<MessagePublisher> pubs;
 
   {
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
@@ -264,21 +265,18 @@ std::vector<std::string> Node::AdvertisedTopics() const
     auto pUUID = this->dataPtr->shared->pUuid;
     auto &info = this->dataPtr->shared->msgDiscovery->Info();
 
-    info.PublishersByProc(pUUID, pubs);
+    info.PublishersByNode(pUUID, this->NodeUuid(), pubs);
   }
 
-  if (pubs.find(this->NodeUuid()) != pubs.end())
-  {
-    auto &allPubs = pubs.at(this->NodeUuid());
-    for (auto const &pub : allPubs)
-      result.insert(pub.Topic());
+  // Copy the topics to a std::set for removing duplications.
+  for (auto const &pub : pubs)
+    result.insert(pub.Topic());
 
-    // Remove the partition information and convert to std::vector.
-    for (auto topic : result)
-    {
-      topic.erase(0, topic.find_last_of("@") + 1);
-      v.push_back(topic);
-    }
+  // Remove the partition information and convert to std::vector.
+  for (auto topic : result)
+  {
+    topic.erase(0, topic.find_last_of("@") + 1);
+    v.push_back(topic);
   }
 
   return v;
