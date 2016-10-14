@@ -15,14 +15,6 @@
  *
 */
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -299,7 +291,6 @@ MessagePublisher::MessagePublisher(const std::string &_topic,
     msgTypeName(_msgTypeName),
     msgOpts(_opts)
 {
-  this->shared = NodeShared::Instance();
 }
 
 //////////////////////////////////////////////////
@@ -447,74 +438,6 @@ bool MessagePublisher::operator==(const MessagePublisher &_pub) const
 bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 {
   return !(*this == _pub);
-}
-
-//////////////////////////////////////////////////
-bool MessagePublisher::Publish(const google::protobuf::Message &_msg)
-{
-  // Check that the msg type matches the ropic type previously advertised.
-  if (this->MsgTypeName() != _msg.GetTypeName())
-  {
-    std::cerr << "MessagePublisher::Publish() Type mismatch." << std::endl
-              << "\t* Type advertised: " << this->MsgTypeName() << std::endl
-              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
-    return false;
-  }
-
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-
-  {
-    std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
-
-    hasLocalSubscribers = this->shared->localSubscriptions.Handlers(
-      this->Topic(), handlers);
-    hasRemoteSubscribers =
-      this->shared->remoteSubscribers.HasTopic(this->Topic());
-  }
-
-  // Local subscribers.
-  if (hasLocalSubscribers)
-  {
-    for (auto &node : handlers)
-    {
-      for (auto &handler : node.second)
-      {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-        if (subscriptionHandlerPtr)
-        {
-          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
-            continue;
-
-          subscriptionHandlerPtr->RunLocalCallback(_msg);
-        }
-        else
-        {
-          std::cerr << "MessagePublisher::Publish(): NULL subscription handler"
-                    << std::endl;
-        }
-      }
-    }
-  }
-
-  // Remote subscribers.
-  if (hasRemoteSubscribers)
-  {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
-    {
-      std::cerr << "MessagePublisher::Publish(): Error serializing data"
-                << std::endl;
-      return false;
-    }
-
-    if (!this->shared->Publish(this->Topic(), data, _msg.GetTypeName()))
-      return false;
-  }
-
-  return true;
 }
 
 //////////////////////////////////////////////////

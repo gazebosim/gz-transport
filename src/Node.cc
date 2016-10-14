@@ -91,6 +91,115 @@ void ignition::transport::waitForShutdown()
 }
 
 //////////////////////////////////////////////////
+Node::PublisherId::PublisherId()
+{
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::~PublisherId()
+{
+// Notify the discovery service to unregister and unadvertise my topic.
+  if (!this->shared->msgDiscovery->Unadvertise(
+        this->publisher.Topic(), this->publisher.NUuid()))
+  {
+    std::cerr << "MessagePublisher::~MessagePublisher() Error unadvertising "
+              << " topic [" << this->publisher.Topic() << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::PublisherId(const MessagePublisher &_publisher)
+  : publisher(_publisher)
+{
+}
+
+//////////////////////////////////////////////////
+Node::PublisherId::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Node::PublisherId::Valid() const
+{
+  return !this->publisher.Topic().empty();
+}
+
+//////////////////////////////////////////////////
+bool Node::PublisherId::Publish(const google::protobuf::Message &_msg)
+{
+  if (!this->Valid())
+    return false;
+
+  // Check that the msg type matches the ropic type previously advertised.
+  if (this->publisher.MsgTypeName() != _msg.GetTypeName())
+  {
+    std::cerr << "MessagePublisher::Publish() Type mismatch.\n"
+              << "\t* Type advertised: " << this->publisher.MsgTypeName()
+              << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
+    return false;
+  }
+
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
+
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+
+    hasLocalSubscribers = this->shared->localSubscriptions.Handlers(
+      this->publisher.Topic(), handlers);
+    hasRemoteSubscribers =
+      this->shared->remoteSubscribers.HasTopic(this->publisher.Topic());
+  }
+
+  // Local subscribers.
+  if (hasLocalSubscribers)
+  {
+    for (auto &node : handlers)
+    {
+      for (auto &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+        if (subscriptionHandlerPtr)
+        {
+          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+            continue;
+
+          subscriptionHandlerPtr->RunLocalCallback(_msg);
+        }
+        else
+        {
+          std::cerr << "MessagePublisher::Publish(): NULL subscription handler"
+                    << std::endl;
+        }
+      }
+    }
+  }
+
+  // Remote subscribers.
+  if (hasRemoteSubscribers)
+  {
+    std::string data;
+    if (!_msg.SerializeToString(&data))
+    {
+      std::cerr << "MessagePublisher::Publish(): Error serializing data"
+                << std::endl;
+      return false;
+    }
+
+    if (!this->shared->Publish(this->publisher.Topic(), data,
+          _msg.GetTypeName()))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
   : dataPtr(new NodePrivate())
 {
@@ -114,15 +223,15 @@ Node::~Node()
   assert(this->SubscribedTopics().empty());
 
   // Unadvertise all my topics.
-  auto advTopics = this->AdvertisedTopics();
-  for (auto const &topic : advTopics)
-  {
-    if (!this->Unadvertise(topic))
-    {
-      std::cerr << "Node::~Node(): Error unadvertising topic ["
-                << topic << "]" << std::endl;
-    }
-  }
+  //auto advTopics = this->AdvertisedTopics();
+  //for (auto const &topic : advTopics)
+  //{
+  //  if (!this->Unadvertise(topic))
+  //  {
+  //    std::cerr << "Node::~Node(): Error unadvertising topic ["
+  //              << topic << "]" << std::endl;
+  //  }
+  //}
 
   // The list of advertised topics should be empty.
   assert(this->AdvertisedTopics().empty());
@@ -146,44 +255,60 @@ Node::~Node()
 std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::vector<std::string> v;
+  std::unordered_set<std::string> result;
+  std::map<std::string, std::vector<MessagePublisher>> pubs;
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  for (auto topic : this->dataPtr->topicsAdvertised)
   {
-    // Remove the partition information.
-    topic.erase(0, topic.find_last_of("@") + 1);
-    v.push_back(topic);
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    auto pUUID = this->dataPtr->shared->pUuid;
+    auto &info = this->dataPtr->shared->msgDiscovery->Info();
+
+    info.PublishersByProc(pUUID, pubs);
+  }
+
+  if (pubs.find(this->NodeUuid()) != pubs.end())
+  {
+    auto &allPubs = pubs.at(this->NodeUuid());
+    for (auto const &pub : allPubs)
+      result.insert(pub.Topic());
+
+    // Remove the partition information and convert to std::vector.
+    for (auto topic : result)
+    {
+      topic.erase(0, topic.find_last_of("@") + 1);
+      v.push_back(topic);
+    }
   }
 
   return v;
 }
 
 //////////////////////////////////////////////////
-bool Node::Unadvertise(const std::string &_topic)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
-
-  // Notify the discovery service to unregister and unadvertise my topic.
-  if (!this->dataPtr->shared->msgDiscovery->Unadvertise(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
-  {
-    return false;
-  }
-
-  return true;
-}
+//bool Node::Unadvertise(const std::string &_topic)
+//{
+//  std::string fullyQualifiedTopic;
+//  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+//    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+//  {
+//    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+//    return false;
+//  }
+//
+//  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+//
+//  // Remove the topic from the list of advertised topics in this node.
+//  this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
+//
+//  // Notify the discovery service to unregister and unadvertise my topic.
+//  if (!this->dataPtr->shared->msgDiscovery->Unadvertise(fullyQualifiedTopic,
+//    this->dataPtr->nUuid))
+//  {
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 //////////////////////////////////////////////////
 //bool Node::Publish(const MessagePublisher &_pub, const ProtoMsg &_msg)
@@ -206,92 +331,92 @@ bool Node::Unadvertise(const std::string &_topic)
 //}
 
 //////////////////////////////////////////////////
-bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
-{
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-  {
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-    // Topic not advertised before.
-    if (this->dataPtr->topicsAdvertised.find(_topic) ==
-        this->dataPtr->topicsAdvertised.end())
-    {
-      return false;
-    }
-
-    hasLocalSubscribers =
-      this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
-    hasRemoteSubscribers =
-      this->dataPtr->shared->remoteSubscribers.HasTopic(_topic);
-  }
-
-  // Check that the msg type matches the type previously advertised
-  // for topic '_topic'.
-  MessagePublisher pub;
-  auto &info = this->dataPtr->shared->msgDiscovery->Info();
-  std::string procUuid = this->dataPtr->shared->pUuid;
-  std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.Publisher(_topic, procUuid, nodeUuid, pub))
-  {
-    std::cerr << "Node::Publish() I cannot find the msgType registered for "
-              << "topic [" << _topic << "]" << std::endl;
-    return false;
-  }
-
-  if (pub.MsgTypeName() != _msg.GetTypeName())
-  {
-    std::cerr << "Node::Publish() Type mismatch." << std::endl
-              << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
-              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
-    return false;
-  }
-
-  // Local subscribers.
-  if (hasLocalSubscribers)
-  {
-    for (auto &node : handlers)
-    {
-      for (auto &handler : node.second)
-      {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-        if (subscriptionHandlerPtr)
-        {
-          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
-            continue;
-
-          subscriptionHandlerPtr->RunLocalCallback(_msg);
-        }
-        else
-        {
-          std::cerr << "Node::Publish(): Subscription handler is NULL"
-                    << std::endl;
-        }
-      }
-    }
-  }
-
-  // Remote subscribers.
-  if (hasRemoteSubscribers)
-  {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
-    {
-      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
-      return false;
-    }
-
-    if (!this->dataPtr->shared->Publish(_topic, data, _msg.GetTypeName()))
-      return false;
-  }
-  // Debug output.
-  // else
-  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
-
-  return true;
-}
+//bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
+//{
+//  std::map<std::string, ISubscriptionHandler_M> handlers;
+//  bool hasLocalSubscribers;
+//  bool hasRemoteSubscribers;
+//  {
+//    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+//
+//    // Topic not advertised before.
+//    if (this->dataPtr->topicsAdvertised.find(_topic) ==
+//        this->dataPtr->topicsAdvertised.end())
+//    {
+//      return false;
+//    }
+//
+//    hasLocalSubscribers =
+//      this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
+//    hasRemoteSubscribers =
+//      this->dataPtr->shared->remoteSubscribers.HasTopic(_topic);
+//  }
+//
+//  // Check that the msg type matches the type previously advertised
+//  // for topic '_topic'.
+//  MessagePublisher pub;
+//  auto &info = this->dataPtr->shared->msgDiscovery->Info();
+//  std::string procUuid = this->dataPtr->shared->pUuid;
+//  std::string nodeUuid = this->dataPtr->nUuid;
+//  if (!info.Publisher(_topic, procUuid, nodeUuid, pub))
+//  {
+//    std::cerr << "Node::Publish() I cannot find the msgType registered for "
+//              << "topic [" << _topic << "]" << std::endl;
+//    return false;
+//  }
+//
+//  if (pub.MsgTypeName() != _msg.GetTypeName())
+//  {
+//    std::cerr << "Node::Publish() Type mismatch." << std::endl
+//              << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
+//              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
+//    return false;
+//  }
+//
+//  // Local subscribers.
+//  if (hasLocalSubscribers)
+//  {
+//    for (auto &node : handlers)
+//    {
+//      for (auto &handler : node.second)
+//      {
+//        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+//
+//        if (subscriptionHandlerPtr)
+//        {
+//          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+//            continue;
+//
+//          subscriptionHandlerPtr->RunLocalCallback(_msg);
+//        }
+//        else
+//        {
+//          std::cerr << "Node::Publish(): Subscription handler is NULL"
+//                    << std::endl;
+//        }
+//      }
+//    }
+//  }
+//
+//  // Remote subscribers.
+//  if (hasRemoteSubscribers)
+//  {
+//    std::string data;
+//    if (!_msg.SerializeToString(&data))
+//    {
+//      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
+//      return false;
+//    }
+//
+//    if (!this->dataPtr->shared->Publish(_topic, data, _msg.GetTypeName()))
+//      return false;
+//  }
+//  // Debug output.
+//  // else
+//  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
+//
+//  return true;
+//}
 
 //////////////////////////////////////////////////
 std::vector<std::string> Node::SubscribedTopics() const
@@ -500,10 +625,10 @@ const std::string &Node::NodeUuid() const
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string> &Node::TopicsAdvertised() const
-{
-  return this->dataPtr->topicsAdvertised;
-}
+//std::unordered_set<std::string> &Node::TopicsAdvertised() const
+//{
+//  return this->dataPtr->topicsAdvertised;
+//}
 
 //////////////////////////////////////////////////
 std::unordered_set<std::string> &Node::TopicsSubscribed() const

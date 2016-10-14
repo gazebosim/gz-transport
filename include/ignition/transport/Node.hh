@@ -55,6 +55,8 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
+
+
 namespace ignition
 {
   namespace transport
@@ -72,6 +74,54 @@ namespace ignition
     /// calls.
     class IGNITION_TRANSPORT_VISIBLE Node
     {
+      /// \brief A class that is used to store information about an
+      /// advertised publisher. An instance of this class is returned
+      /// from Node::Advertise, and should be used in subsequent
+      /// Node::Publish calls.
+      ///
+      /// ## Pseudo code example ##
+      ///
+      ///    auto pubId = myNode.Advertise<MsgType>("topic_name");
+      ///
+      ///    MsgType msg;
+      ///    myNode.Publish(pubId, msg);
+      ///
+      public: class PublisherId
+      {
+        /// \brief Default constructor.
+        public: PublisherId();
+
+        /// \brief Destructor.
+        public: virtual ~PublisherId();
+
+        /// \brief Constructor
+        /// \param[in] _publisher ToDo.
+        public: explicit PublisherId(const MessagePublisher &_publisher);
+
+        /// \brief Allows this class to be evaluated as a boolean.
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool();
+
+        /// \brief Return true if valid information, such as
+        /// a non-empty topic name, is present.
+        /// \return True if this object can be used in Node::Publish
+        /// calls.
+        public: bool Valid() const;
+
+        /// \brief Publish a message.
+        /// \param[in] _msg protobuf message.
+        /// \return true when success.
+        public: bool Publish(const google::protobuf::Message &_msg);
+
+        /// \brief ToDo.
+        private: MessagePublisher publisher;
+
+        /// \brief Pointer to the object shared between all the nodes within the
+        /// same process.
+        private: NodeShared *shared = NodeShared::Instance();
+      };
+
       /// \brief Constructor.
       /// \param[in] _options Node options.
       public: explicit Node(const NodeOptions &_options = NodeOptions());
@@ -87,7 +137,7 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> MessagePublisher Advertise(
+      public: template<typename T> PublisherId Advertise(
                   const std::string &_topic,
             const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
@@ -105,8 +155,8 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: MessagePublisher Advertise(const std::string &_topic,
-                                         const std::string &_msgTypeName,
+      public: PublisherId Advertise(const std::string &_topic,
+                                    const std::string &_msgTypeName,
             const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         std::string fullyQualifiedTopic;
@@ -114,24 +164,26 @@ namespace ignition
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return MessagePublisher();
+          return PublisherId();
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
-        auto currentTopics = this->TopicsAdvertised();
+        auto currentTopics = this->AdvertisedTopics();
 
-        if (currentTopics.find(fullyQualifiedTopic) != currentTopics.end())
+        if (std::find(currentTopics.begin(), currentTopics.end(),
+              fullyQualifiedTopic) != currentTopics.end())
+        //if (currentTopics.find(fullyQualifiedTopic) != currentTopics.end())
         {
           std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
                     << " advertise the same topic twice on the same node."
                     << " If you want to advertise the same topic with different"
                     << " types, use separate nodes" << std::endl;
-          return MessagePublisher();
+          return PublisherId();
         }
 
         // Add the topic to the list of advertised topics (if it was not before)
-        this->TopicsAdvertised().insert(fullyQualifiedTopic);
+        //this->TopicsAdvertised().insert(fullyQualifiedTopic);
 
         // Notify the discovery service to register and advertise my topic.
         MessagePublisher publisher(fullyQualifiedTopic,
@@ -144,10 +196,10 @@ namespace ignition
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return MessagePublisher();
+          return PublisherId();
         }
 
-        return publisher;
+        return PublisherId(publisher);
       }
 
       /// \brief Get the list of topics advertised by this node.
@@ -157,7 +209,7 @@ namespace ignition
       /// \brief Unadvertise a topic.
       /// \param[in] _topic Topic name to be unadvertised.
       /// \return true if the topic was unadvertised.
-      public: bool Unadvertise(const std::string &_topic);
+      //public: bool Unadvertise(const std::string &_topic);
 
       /// \brief Publish a message.
       /// \param[in] _topic Topic to be published.
@@ -941,7 +993,7 @@ namespace ignition
 
       /// \brief Get the set of topics advertised by this node.
       /// \return The set of advertised topics.
-      private: std::unordered_set<std::string> &TopicsAdvertised() const;
+      //private: std::unordered_set<std::string> &TopicsAdvertised() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
