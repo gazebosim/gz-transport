@@ -15,7 +15,10 @@
  *
 */
 
+#include <algorithm>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
@@ -25,399 +28,408 @@
 using namespace ignition;
 using namespace transport;
 
+// Global variables.
+static const std::string      g_topic1 = "foo";
+static const std::string      g_topic2 = "foo2";
+
+static const std::string      g_pUuid1 = "process-UUID-1";
+static const std::string      g_addr1  = "tcp://10.0.0.1:6001";
+static const std::string      g_nUuid1 = "node-UUID-1";
+static const Scope_t          g_scope1 = Scope_t::ALL;
+static       AdvertiseOptions g_opts1  = AdvertiseOptions();
+
+static const std::string      g_pUuid2 = "process-UUID-2";
+static const std::string      g_addr2  = "tcp://10.0.0.1:6002";
+static const std::string      g_nUuid2 = "node-UUID-2";
+static const Scope_t          g_scope2 = Scope_t::PROCESS;
+static       AdvertiseOptions g_opts2  = AdvertiseOptions();
+
+static const std::string      g_nUuid3 = "node-UUID-3";
+static const Scope_t          g_scope3 = Scope_t::HOST;
+static       AdvertiseOptions g_opts3  = AdvertiseOptions();
+
+static const std::string      g_nUuid4 = "node-UUID-4";
+static const Scope_t          g_scope4 = Scope_t::ALL;
+static       AdvertiseOptions g_opts4  = AdvertiseOptions();
+
+//////////////////////////////////////////////////
+/// \brief Initialize global variables.
+void init()
+{
+  g_opts1.SetScope(g_scope1);
+  g_opts2.SetScope(g_scope2);
+  g_opts3.SetScope(g_scope3);
+  g_opts4.SetScope(g_scope4);
+}
+
 //////////////////////////////////////////////////
 /// \brief Check all the methods of the TopicStorage helper class.
 TEST(TopicStorageTest, TopicStorageAPI)
 {
-  std::string topic  = "foo";
-  std::string topic2 = "foo2";
+  init();
 
-  std::string nUuid1 = "node-UUID-1";
-  transport::Scope_t scope1 = transport::Scope_t::ALL;
-  AdvertiseOptions opts1 = AdvertiseOptions();
-  opts1.SetScope(scope1);
-
-  std::string nUuid2  = "node-UUID-2";
-  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
-  AdvertiseOptions opts2 = AdvertiseOptions();
-  opts2.SetScope(scope2);
-
-  std::string nUuid3  = "node-UUID-3";
-  transport::Scope_t scope3 = transport::Scope_t::HOST;
-  AdvertiseOptions opts3 = AdvertiseOptions();
-  opts3.SetScope(scope3);
-
-  std::string nUuid4  = "node-UUID-4";
-  AdvertiseOptions opts4 = AdvertiseOptions();
-  transport::Scope_t scope4 = transport::Scope_t::ALL;
-  opts4.SetScope(scope4);
-
-  std::string pUuid1 = "process-UUID-1";
-  std::string addr1  = "tcp://10.0.0.1:6001";
-  std::string pUuid2  = "process-UUID-2";
-  std::string addr2  = "tcp://10.0.0.1:6002";
-
-  std::map<std::string, std::vector<transport::Publisher>> m;
-  transport::Publisher info;
-  transport::TopicStorage<transport::Publisher> test;
+  std::map<std::string, std::vector<Publisher>> m;
+  Publisher info;
+  TopicStorage<Publisher> test;
 
   // Check HasTopic.
-  EXPECT_FALSE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic(g_topic1));
 
   // Check HasAnyPublishers.
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid1));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid1));
   // Check HasPublisher.
-  EXPECT_FALSE(test.HasPublisher(addr1));
+  EXPECT_FALSE(test.HasPublisher(g_addr1));
   // Check Publisher.
-  EXPECT_FALSE(test.Publisher(topic, pUuid1, nUuid1, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
   // Check Publishers.
-  EXPECT_FALSE(test.Publishers(topic, m));
+  EXPECT_FALSE(test.Publishers(g_topic1, m));
   // Try to remove a entry not stored yet.
-  EXPECT_FALSE(test.DelPublisherByNode(topic, pUuid2, nUuid4));
+  EXPECT_FALSE(test.DelPublisherByNode(g_topic1, g_pUuid2, g_nUuid4));
   // Try to remove a set of entries within a process not stored.
-  EXPECT_FALSE(test.DelPublishersByProc(pUuid1));
+  EXPECT_FALSE(test.DelPublishersByProc(g_pUuid1));
 
   // Insert one node address.
-  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, opts1);
+  Publisher publisher1(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
   EXPECT_TRUE(test.AddPublisher(publisher1));
 
   // Insert an existing publisher.
   EXPECT_FALSE(test.AddPublisher(publisher1));
 
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
 
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_FALSE(test.HasPublisher(addr2));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_FALSE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_FALSE(test.Publisher(topic, "wrong pUuid", nUuid1, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid1, "wrong nUuid", info));
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_FALSE(test.Publisher(g_topic1, "wrong pUuid", g_nUuid1, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid1, "wrong nUuid", info));
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
 
   // Insert one node address on the same process.
-  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, opts2);
+  Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
   EXPECT_TRUE(test.AddPublisher(publisher2));
   EXPECT_FALSE(test.AddPublisher(publisher2));
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_FALSE(test.HasPublisher(addr2));
-  EXPECT_FALSE(test.Publisher(topic, "wrong pUuid", nUuid2, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid1, "wrong nUuid", info));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_FALSE(test.HasPublisher(g_addr2));
+  EXPECT_FALSE(test.Publisher(g_topic1, "wrong pUuid", g_nUuid2, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid1, "wrong nUuid", info));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid2);
-  EXPECT_EQ(info.Options().Scope(), scope2);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid2);
+  EXPECT_EQ(info.Options().Scope(), g_scope2);
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
-  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).Options().Scope(), scope2);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
+  EXPECT_EQ(m[g_pUuid1].at(1).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(1).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(1).NUuid(), g_nUuid2);
+  EXPECT_EQ(m[g_pUuid1].at(1).Options().Scope(), g_scope2);
 
   // Insert a node address on a second process.
-  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, opts3);
+  Publisher publisher3(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
   EXPECT_TRUE(test.AddPublisher(publisher3));
   EXPECT_FALSE(test.AddPublisher(publisher3));
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_TRUE(test.HasPublisher(addr2));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_TRUE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid2);
-  EXPECT_EQ(info.Options().Scope(), scope2);
-  EXPECT_TRUE(test.Publisher(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.Addr(), addr2);
-  EXPECT_EQ(info.PUuid(), pUuid2);
-  EXPECT_EQ(info.NUuid(), nUuid3);
-  EXPECT_EQ(info.Options().Scope(), scope3);
-  EXPECT_FALSE(test.Publisher(topic, "wrong pUuid", nUuid3, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid2, "wrong nUuid", info));
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid2);
+  EXPECT_EQ(info.Options().Scope(), g_scope2);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid2, g_nUuid3, info));
+  EXPECT_EQ(info.Addr(), g_addr2);
+  EXPECT_EQ(info.PUuid(), g_pUuid2);
+  EXPECT_EQ(info.NUuid(), g_nUuid3);
+  EXPECT_EQ(info.Options().Scope(), g_scope3);
+  EXPECT_FALSE(test.Publisher(g_topic1, "wrong pUuid", g_nUuid3, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid2, "wrong nUuid", info));
 
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 2u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
-  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).Options().Scope(), scope2);
-  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
-  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
-  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).Options().Scope(), scope3);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
+  EXPECT_EQ(m[g_pUuid1].at(1).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(1).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(1).NUuid(), g_nUuid2);
+  EXPECT_EQ(m[g_pUuid1].at(1).Options().Scope(), g_scope2);
+  EXPECT_EQ(m[g_pUuid2].at(0).Addr(), g_addr2);
+  EXPECT_EQ(m[g_pUuid2].at(0).PUuid(), g_pUuid2);
+  EXPECT_EQ(m[g_pUuid2].at(0).NUuid(), g_nUuid3);
+  EXPECT_EQ(m[g_pUuid2].at(0).Options().Scope(), g_scope3);
 
   // Insert another node on process2.
-  transport::Publisher publisher4(topic, addr2, pUuid2, nUuid4, opts4);
+  Publisher publisher4(g_topic1, g_addr2, g_pUuid2, g_nUuid4, g_opts4);
   EXPECT_TRUE(test.AddPublisher(publisher4));
   EXPECT_FALSE(test.AddPublisher(publisher4));
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_TRUE(test.HasPublisher(addr2));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_TRUE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid2);
-  EXPECT_EQ(info.Options().Scope(), scope2);
-  EXPECT_TRUE(test.Publisher(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.Addr(), addr2);
-  EXPECT_EQ(info.PUuid(), pUuid2);
-  EXPECT_EQ(info.NUuid(), nUuid3);
-  EXPECT_EQ(info.Options().Scope(), scope3);
-  EXPECT_TRUE(test.Publisher(topic, pUuid2, nUuid4, info));
-  EXPECT_EQ(info.Addr(), addr2);
-  EXPECT_EQ(info.PUuid(), pUuid2);
-  EXPECT_EQ(info.NUuid(), nUuid4);
-  EXPECT_EQ(info.Options().Scope(), scope4);
-  EXPECT_FALSE(test.Publisher(topic, "wrong pUuid", nUuid4, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid2, "wrong nUuid", info));
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid2);
+  EXPECT_EQ(info.Options().Scope(), g_scope2);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid2, g_nUuid3, info));
+  EXPECT_EQ(info.Addr(), g_addr2);
+  EXPECT_EQ(info.PUuid(), g_pUuid2);
+  EXPECT_EQ(info.NUuid(), g_nUuid3);
+  EXPECT_EQ(info.Options().Scope(), g_scope3);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid2, g_nUuid4, info));
+  EXPECT_EQ(info.Addr(), g_addr2);
+  EXPECT_EQ(info.PUuid(), g_pUuid2);
+  EXPECT_EQ(info.NUuid(), g_nUuid4);
+  EXPECT_EQ(info.Options().Scope(), g_scope4);
+  EXPECT_FALSE(test.Publisher(g_topic1, "wrong pUuid", g_nUuid4, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid2, "wrong nUuid", info));
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 2u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
-  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).Options().Scope(), scope2);
-  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
-  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
-  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).Options().Scope(), scope3);
-  EXPECT_EQ(m[pUuid2].at(1).Addr(), addr2);
-  EXPECT_EQ(m[pUuid2].at(1).PUuid(), pUuid2);
-  EXPECT_EQ(m[pUuid2].at(1).NUuid(), nUuid4);
-  EXPECT_EQ(m[pUuid2].at(1).Options().Scope(), scope4);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
+  EXPECT_EQ(m[g_pUuid1].at(1).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(1).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(1).NUuid(), g_nUuid2);
+  EXPECT_EQ(m[g_pUuid1].at(1).Options().Scope(), g_scope2);
+  EXPECT_EQ(m[g_pUuid2].at(0).Addr(), g_addr2);
+  EXPECT_EQ(m[g_pUuid2].at(0).PUuid(), g_pUuid2);
+  EXPECT_EQ(m[g_pUuid2].at(0).NUuid(), g_nUuid3);
+  EXPECT_EQ(m[g_pUuid2].at(0).Options().Scope(), g_scope3);
+  EXPECT_EQ(m[g_pUuid2].at(1).Addr(), g_addr2);
+  EXPECT_EQ(m[g_pUuid2].at(1).PUuid(), g_pUuid2);
+  EXPECT_EQ(m[g_pUuid2].at(1).NUuid(), g_nUuid4);
+  EXPECT_EQ(m[g_pUuid2].at(1).Options().Scope(), g_scope4);
 
   // Check that Print() does not break anything.
   test.Print();
 
   // Remove the node4's address advertised for topic.
-  EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid2, nUuid4));
+  EXPECT_TRUE(test.DelPublisherByNode(g_topic1, g_pUuid2, g_nUuid4));
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_TRUE(test.HasPublisher(addr2));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_TRUE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid2);
-  EXPECT_EQ(info.Options().Scope(), scope2);
-  EXPECT_TRUE(test.Publisher(topic, pUuid2, nUuid3, info));
-  EXPECT_EQ(info.Addr(), addr2);
-  EXPECT_EQ(info.PUuid(), pUuid2);
-  EXPECT_EQ(info.NUuid(), nUuid3);
-  EXPECT_EQ(info.Options().Scope(), scope3);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid2);
+  EXPECT_EQ(info.Options().Scope(), g_scope2);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid2, g_nUuid3, info));
+  EXPECT_EQ(info.Addr(), g_addr2);
+  EXPECT_EQ(info.PUuid(), g_pUuid2);
+  EXPECT_EQ(info.NUuid(), g_nUuid3);
+  EXPECT_EQ(info.Options().Scope(), g_scope3);
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 2u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
-  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).Options().Scope(), scope2);
-  EXPECT_EQ(m[pUuid2].at(0).Addr(), addr2);
-  EXPECT_EQ(m[pUuid2].at(0).PUuid(), pUuid2);
-  EXPECT_EQ(m[pUuid2].at(0).NUuid(), nUuid3);
-  EXPECT_EQ(m[pUuid2].at(0).Options().Scope(), scope3);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
+  EXPECT_EQ(m[g_pUuid1].at(1).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(1).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(1).NUuid(), g_nUuid2);
+  EXPECT_EQ(m[g_pUuid1].at(1).Options().Scope(), g_scope2);
+  EXPECT_EQ(m[g_pUuid2].at(0).Addr(), g_addr2);
+  EXPECT_EQ(m[g_pUuid2].at(0).PUuid(), g_pUuid2);
+  EXPECT_EQ(m[g_pUuid2].at(0).NUuid(), g_nUuid3);
+  EXPECT_EQ(m[g_pUuid2].at(0).Options().Scope(), g_scope3);
 
   // Remove the node3's address advertised for topic.
-  EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid2, nUuid3));
+  EXPECT_TRUE(test.DelPublisherByNode(g_topic1, g_pUuid2, g_nUuid3));
   // Check HasTopic.
-  EXPECT_TRUE(test.HasTopic(topic));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_TRUE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_TRUE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_TRUE(test.HasPublisher(addr1));
-  EXPECT_FALSE(test.HasPublisher(addr2));
+  EXPECT_TRUE(test.HasPublisher(g_addr1));
+  EXPECT_FALSE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid1);
-  EXPECT_EQ(info.Options().Scope(), scope1);
-  EXPECT_TRUE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_EQ(info.Addr(), addr1);
-  EXPECT_EQ(info.PUuid(), pUuid1);
-  EXPECT_EQ(info.NUuid(), nUuid2);
-  EXPECT_EQ(info.Options().Scope(), scope2);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid1);
+  EXPECT_EQ(info.Options().Scope(), g_scope1);
+  EXPECT_TRUE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_EQ(info.Addr(), g_addr1);
+  EXPECT_EQ(info.PUuid(), g_pUuid1);
+  EXPECT_EQ(info.NUuid(), g_nUuid2);
+  EXPECT_EQ(info.Options().Scope(), g_scope2);
   // Check Publishers.
-  EXPECT_TRUE(test.Publishers(topic, m));
+  EXPECT_TRUE(test.Publishers(g_topic1, m));
   EXPECT_EQ(m.size(), 1u);
-  EXPECT_EQ(m.begin()->first, pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(0).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).NUuid(), nUuid1);
-  EXPECT_EQ(m[pUuid1].at(0).Options().Scope(), scope1);
-  EXPECT_EQ(m[pUuid1].at(1).Addr(), addr1);
-  EXPECT_EQ(m[pUuid1].at(1).PUuid(), pUuid1);
-  EXPECT_EQ(m[pUuid1].at(1).NUuid(), nUuid2);
-  EXPECT_EQ(m[pUuid1].at(1).Options().Scope(), scope2);
+  EXPECT_EQ(m.begin()->first, g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(0).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).NUuid(), g_nUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(0).Options().Scope(), g_scope1);
+  EXPECT_EQ(m[g_pUuid1].at(1).Addr(), g_addr1);
+  EXPECT_EQ(m[g_pUuid1].at(1).PUuid(), g_pUuid1);
+  EXPECT_EQ(m[g_pUuid1].at(1).NUuid(), g_nUuid2);
+  EXPECT_EQ(m[g_pUuid1].at(1).Options().Scope(), g_scope2);
 
-  // Insert another publisher on topic2.
-  transport::Publisher publisher9(topic2, addr2, pUuid2, nUuid2, opts2);
+  // Insert another publisher on g_topic2.
+  Publisher publisher9(g_topic2, g_addr2, g_pUuid2, g_nUuid2, g_opts2);
   EXPECT_TRUE(test.AddPublisher(publisher9));
 
   // Remove all the addresses of process1.
-  EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
+  EXPECT_TRUE(test.DelPublishersByProc(g_pUuid1));
 
-  EXPECT_TRUE(test.DelPublisherByNode(topic2, pUuid2, nUuid2));
+  EXPECT_TRUE(test.DelPublisherByNode(g_topic2, g_pUuid2, g_nUuid2));
 
   // Check HasTopic.
-  EXPECT_FALSE(test.HasTopic(topic));
+  EXPECT_FALSE(test.HasTopic(g_topic1));
   EXPECT_FALSE(test.HasTopic("Unknown topic"));
   // Check HasAnyPublishers.
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid1));
-  EXPECT_FALSE(test.HasAnyPublishers(topic, pUuid2));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid1));
+  EXPECT_FALSE(test.HasAnyPublishers(g_topic1, g_pUuid2));
   // Check HasPublishers.
-  EXPECT_FALSE(test.HasPublisher(addr1));
-  EXPECT_FALSE(test.HasPublisher(addr2));
+  EXPECT_FALSE(test.HasPublisher(g_addr1));
+  EXPECT_FALSE(test.HasPublisher(g_addr2));
   // Check Publisher.
-  EXPECT_FALSE(test.Publisher(topic, pUuid1, nUuid1, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid1, nUuid2, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid2, nUuid3, info));
-  EXPECT_FALSE(test.Publisher(topic, pUuid2, nUuid4, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid1, g_nUuid1, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid1, g_nUuid2, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid2, g_nUuid3, info));
+  EXPECT_FALSE(test.Publisher(g_topic1, g_pUuid2, g_nUuid4, info));
   // Check Publishers.
-  EXPECT_FALSE(test.Publishers(topic, m));
+  EXPECT_FALSE(test.Publishers(g_topic1, m));
 
   // Insert a topic, remove it, and check that the map is empty.
-  transport::Publisher publisher5(topic, addr1, pUuid1, nUuid1, opts1);
+  Publisher publisher5(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
   EXPECT_TRUE(test.AddPublisher(publisher5));
-  EXPECT_TRUE(test.DelPublisherByNode(topic, pUuid1, nUuid1));
-  EXPECT_FALSE(test.HasTopic(topic));
+  EXPECT_TRUE(test.DelPublisherByNode(g_topic1, g_pUuid1, g_nUuid1));
+  EXPECT_FALSE(test.HasTopic(g_topic1));
 
   // Insert some topics, and remove all the topics from a process but keeping
   // the same topics from other proccesses.
-  transport::Publisher publisher6(topic, addr1, pUuid1, nUuid1, opts1);
-  transport::Publisher publisher7(topic, addr1, pUuid1, nUuid2, opts2);
-  transport::Publisher publisher8(topic, addr2, pUuid2, nUuid3, opts3);
+  Publisher publisher6(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
+  Publisher publisher7(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
+  Publisher publisher8(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
   EXPECT_TRUE(test.AddPublisher(publisher6));
   EXPECT_TRUE(test.AddPublisher(publisher7));
   EXPECT_TRUE(test.AddPublisher(publisher8));
-  EXPECT_TRUE(test.DelPublishersByProc(pUuid1));
+  EXPECT_TRUE(test.DelPublishersByProc(g_pUuid1));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check TopicList().
+TEST(TopicStorageTest, TopicList)
+{
+  init();
+
+  Publisher publisher1(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
+  Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
+  Publisher publisher3(g_topic2, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
+
+  TopicStorage<Publisher> test;
+
+  EXPECT_TRUE(test.AddPublisher(publisher1));
+  EXPECT_TRUE(test.AddPublisher(publisher2));
+  EXPECT_TRUE(test.AddPublisher(publisher3));
+
+  std::vector<std::string> topics;
+  test.TopicList(topics);
+
+  EXPECT_EQ(topics.size(), 2u);
+  EXPECT_TRUE(std::find(topics.begin(), topics.end(), g_topic1) !=
+    topics.end());
+  EXPECT_TRUE(std::find(topics.begin(), topics.end(), g_topic2) !=
+    topics.end());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check PublishersByProc().
 TEST(TopicStorageTest, PublishersByProc)
 {
-  std::string topic  = "foo";
-  std::string topic2 = "foo2";
+  init();
 
-  std::string nUuid1 = "node-UUID-1";
-  transport::Scope_t scope1 = transport::Scope_t::ALL;
-  AdvertiseOptions opts1 = AdvertiseOptions();
-  opts1.SetScope(scope1);
+  Publisher publisher1(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
+  Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
+  Publisher publisher3(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
 
-  std::string nUuid2  = "node-UUID-2";
-  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
-  AdvertiseOptions opts2 = AdvertiseOptions();
-  opts2.SetScope(scope2);
 
-  std::string nUuid3  = "node-UUID-3";
-  transport::Scope_t scope3 = transport::Scope_t::HOST;
-  AdvertiseOptions opts3 = AdvertiseOptions();
-  opts3.SetScope(scope3);
-
-  std::string nUuid4  = "node-UUID-4";
-  AdvertiseOptions opts4 = AdvertiseOptions();
-  transport::Scope_t scope4 = transport::Scope_t::ALL;
-  opts4.SetScope(scope4);
-
-  std::string pUuid1 = "process-UUID-1";
-  std::string addr1  = "tcp://10.0.0.1:6001";
-  std::string pUuid2  = "process-UUID-2";
-  std::string addr2  = "tcp://10.0.0.1:6002";
-
-  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, opts1);
-  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, opts2);
-  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, opts3);
-
-  transport::TopicStorage<transport::Publisher> test;
+  TopicStorage<Publisher> test;
 
   EXPECT_TRUE(test.AddPublisher(publisher1));
   EXPECT_TRUE(test.AddPublisher(publisher2));
@@ -429,51 +441,25 @@ TEST(TopicStorageTest, PublishersByProc)
   EXPECT_TRUE(pubs.empty());
 
   // Checking an existent PUUID with multiple publishers.
-  test.PublishersByProc(pUuid1, pubs);
+  test.PublishersByProc(g_pUuid1, pubs);
   EXPECT_EQ(pubs.size(), 2u);
-  EXPECT_TRUE(pubs.find(nUuid1) != pubs.end());
-  EXPECT_EQ(pubs[nUuid1].at(0).Addr(), addr1);
-  EXPECT_TRUE(pubs.find(nUuid2) != pubs.end());
-  EXPECT_EQ(pubs[nUuid2].at(0).Addr(), addr1);
+  EXPECT_TRUE(pubs.find(g_nUuid1) != pubs.end());
+  EXPECT_EQ(pubs[g_nUuid1].at(0).Addr(), g_addr1);
+  EXPECT_TRUE(pubs.find(g_nUuid2) != pubs.end());
+  EXPECT_EQ(pubs[g_nUuid2].at(0).Addr(), g_addr1);
 }
 
 //////////////////////////////////////////////////
 /// \brief Check PublishersByNode().
 TEST(TopicStorageTest, PublishersByNode)
 {
-  std::string topic  = "foo";
-  std::string topic2 = "foo2";
+  init();
 
-  std::string nUuid1 = "node-UUID-1";
-  transport::Scope_t scope1 = transport::Scope_t::ALL;
-  AdvertiseOptions opts1 = AdvertiseOptions();
-  opts1.SetScope(scope1);
+  Publisher publisher1(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
+  Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
+  Publisher publisher3(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
 
-  std::string nUuid2  = "node-UUID-2";
-  transport::Scope_t scope2 = transport::Scope_t::PROCESS;
-  AdvertiseOptions opts2 = AdvertiseOptions();
-  opts2.SetScope(scope2);
-
-  std::string nUuid3  = "node-UUID-3";
-  transport::Scope_t scope3 = transport::Scope_t::HOST;
-  AdvertiseOptions opts3 = AdvertiseOptions();
-  opts3.SetScope(scope3);
-
-  std::string nUuid4  = "node-UUID-4";
-  AdvertiseOptions opts4 = AdvertiseOptions();
-  transport::Scope_t scope4 = transport::Scope_t::ALL;
-  opts4.SetScope(scope4);
-
-  std::string pUuid1 = "process-UUID-1";
-  std::string addr1  = "tcp://10.0.0.1:6001";
-  std::string pUuid2  = "process-UUID-2";
-  std::string addr2  = "tcp://10.0.0.1:6002";
-
-  transport::Publisher publisher1(topic, addr1, pUuid1, nUuid1, opts1);
-  transport::Publisher publisher2(topic, addr1, pUuid1, nUuid2, opts2);
-  transport::Publisher publisher3(topic, addr2, pUuid2, nUuid3, opts3);
-
-  transport::TopicStorage<transport::Publisher> test;
+  TopicStorage<Publisher> test;
 
   EXPECT_TRUE(test.AddPublisher(publisher1));
   EXPECT_TRUE(test.AddPublisher(publisher2));
@@ -481,15 +467,15 @@ TEST(TopicStorageTest, PublishersByNode)
 
   // Checking a PUUID that does not exist.
   std::vector<Publisher> pubs;
-  test.PublishersByNode("unknown_puuid", nUuid1, pubs);
+  test.PublishersByNode("unknown_puuid", g_nUuid1, pubs);
   EXPECT_TRUE(pubs.empty());
 
   // Checking a NUUID that does not exist.
-  test.PublishersByNode(pUuid1, "unknown_nuuid", pubs);
+  test.PublishersByNode(g_pUuid1, "unknown_nuuid", pubs);
   EXPECT_TRUE(pubs.empty());
 
   // Checking an existent NUUID with multiple publishers.
-  test.PublishersByNode(pUuid1, nUuid1, pubs);
+  test.PublishersByNode(g_pUuid1, g_nUuid1, pubs);
   EXPECT_EQ(pubs.size(), 1u);
-  EXPECT_EQ(pubs.at(0).Addr(), addr1);
+  EXPECT_EQ(pubs.at(0).Addr(), g_addr1);
 }
