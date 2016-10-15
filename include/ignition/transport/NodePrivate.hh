@@ -43,9 +43,6 @@ namespace ignition
       /// \brief The list of topics subscribed by this node.
       public: std::unordered_set<std::string> topicsSubscribed;
 
-      /// \brief The list of topics advertised by this node.
-      //public: std::unordered_set<std::string> topicsAdvertised;
-
       /// \brief The list of service calls advertised by this node.
       public: std::unordered_set<std::string> srvsAdvertised;
 

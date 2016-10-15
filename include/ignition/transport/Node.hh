@@ -160,10 +160,9 @@ namespace ignition
         }
 
         auto currentTopics = this->AdvertisedTopics();
-//
+
         if (std::find(currentTopics.begin(), currentTopics.end(),
               fullyQualifiedTopic) != currentTopics.end())
-        //if (currentTopics.find(fullyQualifiedTopic) != currentTopics.end())
         {
           std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
                     << " advertise the same topic twice on the same node."
@@ -171,11 +170,8 @@ namespace ignition
                     << " types, use separate nodes" << std::endl;
           return Node::Publisher();
         }
-//
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
-        // Add the topic to the list of advertised topics (if it was not before)
-        //this->TopicsAdvertised().insert(fullyQualifiedTopic);
+        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Notify the discovery service to register and advertise my topic.
         MessagePublisher publisher(fullyQualifiedTopic,
@@ -191,34 +187,12 @@ namespace ignition
           return Node::Publisher();
         }
 
-        //std::unique_ptr<PublisherId> p(new PublisherId(publisher));
-        //return std::move(p);
         return Node::Publisher(publisher);
       }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
       public: std::vector<std::string> AdvertisedTopics() const;
-
-      /// \brief Unadvertise a topic.
-      /// \param[in] _topic Topic name to be unadvertised.
-      /// \return true if the topic was unadvertised.
-      //public: bool Unadvertise(const std::string &_topic);
-
-      /// \brief Publish a message.
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      //public: bool Publish(const std::string &_topic,
-      //                     const ProtoMsg &_msg);
-
-      /// \brief Publish a message.
-      /// \param[in] _id Id of the publisher, which encapsulates the topic
-      /// on which to send the message.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      //public: bool Publish(const MessagePublisher &_pub,
-      //                     const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
@@ -1000,14 +974,6 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
-
-      /// \brief Publish a message helper.
-      /// \sa Publish
-      /// \param[in] _topic Fully qualified topic to be published.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      //private: bool PublishHelper(const std::string &_topic,
-      //                            const ProtoMsg &_msg);
 
       /// \internal
       /// \brief Smart pointer to private data.
