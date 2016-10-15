@@ -219,7 +219,8 @@ class MyTestClass
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    EXPECT_FALSE(this->node.Advertise<ignition::msgs::Int32>("invalid topic"));
+    auto pub = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
+    EXPECT_FALSE(pub);
 
     auto pubId = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
     EXPECT_FALSE(pubId);
@@ -433,9 +434,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
   auto pub1 = node1.Advertise(g_topic, msg.GetTypeName());
+  std::cout << "After Advertise()" << std::endl;
   EXPECT_TRUE(pub1);
 
   auto advertisedTopics = node1.AdvertisedTopics();
+
+  for (auto t : advertisedTopics)
+    std::cout << t << std::endl;
+
+  std::cout << "After AdvertiseTopics()" << std::endl;
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
 

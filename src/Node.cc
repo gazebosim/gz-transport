@@ -29,6 +29,7 @@
 #include <condition_variable>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -76,6 +77,40 @@ namespace ignition
         g_shutdown_cv.notify_all();
       }
     }
+
+    //////////////////////////////////////////////////
+    class Node::PublisherPrivate
+    {
+      /// \brief Default constructor.
+      public: PublisherPrivate() = default;
+
+      /// \brief Constructor
+      /// \param[in] _publisher ToDo.
+      public: explicit PublisherPrivate(const MessagePublisher &_publisher)
+        : publisher(_publisher)
+      {
+      }
+
+       /// \brief Destructor.
+      public: virtual ~PublisherPrivate()
+      {
+        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+        // Notify the discovery service to unregister and unadvertise my topic.
+        if (!this->shared->msgDiscovery->Unadvertise(
+              this->publisher.Topic(), this->publisher.NUuid()))
+        {
+          std::cerr << "~PublisherPrivate() Error unadvertising topic ["
+                    << this->publisher.Topic() << "]" << std::endl;
+        }
+      }
+
+      /// \brief ToDo.
+      public: MessagePublisher publisher;
+
+      /// \brief Pointer to the object shared between all the nodes within the
+      /// same process.
+      public: NodeShared *shared = NodeShared::Instance();
+    };
   }
 }
 
@@ -91,52 +126,46 @@ void ignition::transport::waitForShutdown()
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::PublisherId()
+Node::Publisher::Publisher()
+  : dataPtr(std::make_shared<PublisherPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::~PublisherId()
-{
-  std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
-  // Notify the discovery service to unregister and unadvertise my topic.
-  if (!this->shared->msgDiscovery->Unadvertise(
-        this->publisher.Topic(), this->publisher.NUuid()))
-  {
-    std::cerr << "MessagePublisher::~MessagePublisher() Error unadvertising "
-              << " topic [" << this->publisher.Topic() << "]" << std::endl;
-  }
-}
-
-//////////////////////////////////////////////////
-Node::PublisherId::PublisherId(const MessagePublisher &_publisher)
-  : publisher(_publisher)
+Node::Publisher::Publisher(const MessagePublisher &_publisher)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
 {
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::operator bool()
+Node::Publisher::~Publisher()
+{
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::operator bool()
 {
   return this->Valid();
 }
 
 //////////////////////////////////////////////////
-bool Node::PublisherId::Valid() const
+bool Node::Publisher::Valid() const
 {
-  return !this->publisher.Topic().empty();
+  return !this->dataPtr->publisher.Topic().empty();
 }
 
 //////////////////////////////////////////////////
-bool Node::PublisherId::Publish(const google::protobuf::Message &_msg)
+bool Node::Publisher::Publish(const google::protobuf::Message &_msg)
 {
   if (!this->Valid())
     return false;
 
   // Check that the msg type matches the ropic type previously advertised.
-  if (this->publisher.MsgTypeName() != _msg.GetTypeName())
+  if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
   {
     std::cerr << "MessagePublisher::Publish() Type mismatch.\n"
-              << "\t* Type advertised: " << this->publisher.MsgTypeName()
+              << "\t* Type advertised: "
+              << this->dataPtr->publisher.MsgTypeName()
               << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
     return false;
   }
@@ -146,12 +175,12 @@ bool Node::PublisherId::Publish(const google::protobuf::Message &_msg)
   bool hasRemoteSubscribers;
 
   {
-    std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-    hasLocalSubscribers = this->shared->localSubscriptions.Handlers(
-      this->publisher.Topic(), handlers);
-    hasRemoteSubscribers =
-      this->shared->remoteSubscribers.HasTopic(this->publisher.Topic());
+    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
+      this->dataPtr->publisher.Topic(), handlers);
+    hasRemoteSubscribers =this->dataPtr->shared->remoteSubscribers.HasTopic(
+      this->dataPtr->publisher.Topic());
   }
 
   // Local subscribers.
@@ -190,7 +219,7 @@ bool Node::PublisherId::Publish(const google::protobuf::Message &_msg)
       return false;
     }
 
-    if (!this->shared->Publish(this->publisher.Topic(), data,
+    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
           _msg.GetTypeName()))
     {
       return false;
@@ -264,7 +293,6 @@ std::vector<std::string> Node::AdvertisedTopics() const
 
     auto pUUID = this->dataPtr->shared->pUuid;
     auto &info = this->dataPtr->shared->msgDiscovery->Info();
-
     info.PublishersByNode(pUUID, this->NodeUuid(), pubs);
   }
 

@@ -288,7 +288,9 @@ namespace ignition
             for (auto const &pub : v)
             {
               if (pub.NUuid() == _nUuid)
+              {
                 _pubs.push_back(T(pub));
+              }
             }
           }
         }
