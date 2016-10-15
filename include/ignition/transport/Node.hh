@@ -17,14 +17,6 @@
 #ifndef IGN_TRANSPORT_NODE_HH_
 #define IGN_TRANSPORT_NODE_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <algorithm>
 #include <functional>
 #include <map>
@@ -89,18 +81,36 @@ namespace ignition
       ///
       public: class Publisher
       {
+        /// \brief Constructor.
         public: Publisher();
 
+        /// \brief Constructor.
+        /// \param[in] _publisher A message publisher.
         public: explicit Publisher(const MessagePublisher &_publisher);
 
+        /// \brief Destructor.
         public: virtual ~Publisher();
 
+        /// \brief Allows this class to be evaluated as a boolean.
+        /// \return True if valid
+        /// \sa Valid
         public: operator bool();
 
+        /// \brief Return true if valid information, such as a non-empty
+        /// topic name, is present.
+        /// \return True if this object can be used in Publish() calls.
         public: bool Valid() const;
 
-        public: bool Publish(const google::protobuf::Message &_msg);
+        /// \brief Publish a message.
+        /// \param[in] _msg A google::protobuf message.
+        /// \return true when success.
+        public: bool Publish(const ProtoMsg &_msg);
 
+        /// \internal
+        /// \brief Smart pointer to private data.
+        /// This is std::shared_ptr because we want to trigger the destructor
+        /// only once when all references to PublisherPrivate are out of scope.
+        /// The destructor of PublisherPrivate unadvertise the topic.
         private: std::shared_ptr<PublisherPrivate> dataPtr;
       };
 
@@ -996,12 +1006,12 @@ namespace ignition
       /// \param[in] _topic Fully qualified topic to be published.
       /// \param[in] _msg protobuf message.
       /// \return true when success.
-      private: bool PublishHelper(const std::string &_topic,
-                                  const ProtoMsg &_msg);
+      //private: bool PublishHelper(const std::string &_topic,
+      //                            const ProtoMsg &_msg);
 
       /// \internal
       /// \brief Smart pointer to private data.
-      protected: std::unique_ptr<transport::NodePrivate> dataPtr;
+      private: std::unique_ptr<transport::NodePrivate> dataPtr;
     };
   }
 }
