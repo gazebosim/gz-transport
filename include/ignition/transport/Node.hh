@@ -70,15 +70,16 @@ namespace ignition
       /// \brief A class that is used to store information about an
       /// advertised publisher. An instance of this class is returned
       /// from Node::Advertise, and should be used in subsequent
-      /// Node::Publish calls.
+      /// Node::Publisher::Publish calls.
       ///
       /// ## Pseudo code example ##
       ///
       ///    auto pub = myNode.Advertise<MsgType>("topic_name");
-      ///
-      ///    MsgType msg;
-      ///    pub.Publish(msg);
-      ///
+      ///    if (pub)
+      ///    {
+      ///      MsgType msg;
+      ///      pub.Publish(msg);
+      ///    }
       public: class Publisher
       {
         /// \brief Constructor.

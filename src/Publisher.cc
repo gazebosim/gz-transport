@@ -41,7 +41,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
 }
 
 //////////////////////////////////////////////////
-Publisher::Publisher::operator bool()
+Publisher::operator bool()
 {
   return this->Valid();
 }
