@@ -41,15 +41,10 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
 }
 
 //////////////////////////////////////////////////
-Publisher::operator bool()
+Publisher::Publisher(const Publisher &_other)
+  : Publisher()
 {
-  return this->Valid();
-}
-
-//////////////////////////////////////////////////
-bool Publisher::Valid() const
-{
-  return !this->Topic().empty();
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -186,7 +181,7 @@ size_t Publisher::PackInternal(char *_buffer) const
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::Unpack(char *_buffer)
+size_t Publisher::Unpack(const char *_buffer)
 {
   size_t len = this->UnpackInternal(_buffer);
   if (len == 0)
@@ -203,7 +198,7 @@ size_t Publisher::Unpack(char *_buffer)
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::UnpackInternal(char *_buffer)
+size_t Publisher::UnpackInternal(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -272,13 +267,24 @@ bool Publisher::operator==(const Publisher &_pub) const
 {
   return this->topic == _pub.topic && this->addr == _pub.addr &&
     this->pUuid == _pub.pUuid && this->nUuid == _pub.nUuid &&
-    this->opts == _pub.Options();
+    this->Options() == _pub.Options();
 }
 
 //////////////////////////////////////////////////
 bool Publisher::operator!=(const Publisher &_pub) const
 {
   return !(*this == _pub);
+}
+
+//////////////////////////////////////////////////
+Publisher &Publisher::operator=(const Publisher &_other)
+{
+  this->SetTopic(_other.Topic());
+  this->SetAddr(_other.Addr());
+  this->SetPUuid(_other.PUuid());
+  this->SetNUuid(_other.NUuid());
+  this->SetOptions(_other.Options());
+  return *this;
 }
 
 //////////////////////////////////////////////////
@@ -291,6 +297,13 @@ MessagePublisher::MessagePublisher(const std::string &_topic,
     msgTypeName(_msgTypeName),
     msgOpts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+MessagePublisher::MessagePublisher(const MessagePublisher &_other)
+  : MessagePublisher()
+{
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -338,7 +351,7 @@ size_t MessagePublisher::Pack(char *_buffer) const
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::Unpack(char *_buffer)
+size_t MessagePublisher::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -429,8 +442,8 @@ void MessagePublisher::SetOptions(const AdvertiseMessageOptions &_opts)
 //////////////////////////////////////////////////
 bool MessagePublisher::operator==(const MessagePublisher &_pub) const
 {
-  return Publisher::operator==(_pub) &&
-    this->ctrl == _pub.ctrl &&
+  return Publisher::operator==(_pub)      &&
+    this->ctrl == _pub.ctrl               &&
     this->msgTypeName == _pub.msgTypeName;
 }
 
@@ -441,17 +454,34 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 }
 
 //////////////////////////////////////////////////
+MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other)
+{
+  Publisher::operator=(_other);
+  this->SetCtrl(_other.Ctrl());
+  this->SetMsgTypeName(_other.MsgTypeName());
+  this->SetOptions(_other.Options());
+  return *this;
+}
+
+//////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_socketId,
   const std::string &_pUuid, const std::string &_nUuid,
   const std::string &_reqType, const std::string &_repType,
   const AdvertiseServiceOptions &_opts)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, opts),
+  : Publisher(_topic, _addr, _pUuid, _nUuid, _opts),
     socketId(_socketId),
     reqTypeName(_reqType),
     repTypeName(_repType),
     srvOpts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+ServicePublisher::ServicePublisher(const ServicePublisher &_other)
+  : ServicePublisher()
+{
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -508,7 +538,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::Unpack(char *_buffer)
+size_t ServicePublisher::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -607,10 +637,22 @@ void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
 }
 
 //////////////////////////////////////////////////
+const AdvertiseServiceOptions& ServicePublisher::Options() const
+{
+  return this->srvOpts;
+}
+
+//////////////////////////////////////////////////
+void ServicePublisher::SetOptions(const AdvertiseServiceOptions &_opts)
+{
+  this->srvOpts = _opts;
+}
+
+//////////////////////////////////////////////////
 bool ServicePublisher::operator==(const ServicePublisher &_srv) const
 {
-  return Publisher::operator==(_srv) &&
-    this->socketId == _srv.socketId &&
+  return Publisher::operator==(_srv)      &&
+    this->socketId == _srv.socketId       &&
     this->reqTypeName == _srv.reqTypeName &&
     this->repTypeName == _srv.repTypeName;
 }

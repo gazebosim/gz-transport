@@ -28,6 +28,8 @@ namespace ignition
 {
   namespace transport
   {
+    class MessagePublisherPrivate;
+
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
@@ -49,19 +51,12 @@ namespace ignition
                         const std::string &_nUuid,
                         const AdvertiseOptions &_opts);
 
+      /// \brief Copy constructor.
+      /// \param[in] _other Other Publisher object.
+      public: Publisher(const Publisher &_other);
+
       /// \brief Destructor.
       public: virtual ~Publisher() = default;
-
-      /// \brief Allows this class to be evaluated as a boolean.
-      /// \return True if valid
-      /// \sa Valid
-      public: operator bool();
-
-      /// \brief Return true if valid information, such as
-      /// a non-empty topic name, is present.
-      /// \return True if this object can be used in Node::Publish
-      /// calls.
-      public: bool Valid() const;
 
       /// \brief Get the topic published by this publisher.
       /// \return Topic name.
@@ -86,7 +81,7 @@ namespace ignition
       /// \brief Get the advertised options.
       /// \return The advertised options.
       /// \sa SetOptions.
-      public: const AdvertiseOptions& Options() const;
+      public: virtual const AdvertiseOptions& Options() const;
 
       /// \brief Set the topic name published by this publisher.
       /// \param[in] _topic New topic name.
@@ -120,22 +115,13 @@ namespace ignition
       /// \return Number of bytes serialized.
       public: virtual size_t Pack(char *_buffer) const;
 
-      ///
-      protected: size_t PackInternal(char *_buffer) const;
-
       /// \brief Unserialize the publisher.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: virtual size_t Unpack(char *_buffer);
-
-      ///
-      protected: size_t UnpackInternal(char *_buffer);
+      public: virtual size_t Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
       public: virtual size_t MsgLength() const;
-
-      ///
-      protected: size_t MsgLengthInternal() const;
 
       /// \brief Equality operator. This function checks if the given
       /// publisher has identical Topic, Addr, PUuid, NUuid, and Scope
@@ -150,6 +136,11 @@ namespace ignition
       /// \param[in] _pub The publisher to compare against.
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const Publisher &_pub) const;
+
+      /// \brief Assignment operator.
+      /// \param[in] _other The other Publisher.
+      /// \return A reference to this instance.
+      public: Publisher &operator=(const Publisher &_other);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -167,6 +158,23 @@ namespace ignition
         return _out;
       }
 
+      /// \brief Serialize all fields except the advertise options. This is
+      /// useful when we are serializing a derived class that contains its own
+      /// advertise options.
+      protected: size_t PackInternal(char *_buffer) const;
+
+      /// \brief Unserialize all fields except the advertise options. This is
+      /// useful when we are unserializing a derived class that contains its own
+      /// advertise options.
+      protected: size_t UnpackInternal(const char *_buffer);
+
+      /// \brief Get the total length of the message without counting the
+      /// advertised options. This is useful when [un]serializing a derived
+      /// publisher because we want to ignore the advertised options in the base
+      /// publisher.
+      /// \return Return the length of the message in bytes.
+      protected: size_t MsgLengthInternal() const;
+
       /// \brief Topic name.
       protected: std::string topic;
 
@@ -180,7 +188,8 @@ namespace ignition
       protected: std::string nUuid;
 
       /// \brief Advertised options.
-      protected: AdvertiseOptions opts;
+      /// This member is not used when we have a derived publisher.
+      private: AdvertiseOptions opts;
     };
 
     /// \class MessagePublisher Publisher.hh
@@ -207,6 +216,10 @@ namespace ignition
                                         const std::string &_msgTypeName,
                                         const AdvertiseMessageOptions &_opts);
 
+      /// \brief Copy constructor.
+      /// \param[in] _other Other MessagePublisher object.
+      public: MessagePublisher(const MessagePublisher &_other);
+
       /// \brief Destructor.
       public: virtual ~MessagePublisher() = default;
 
@@ -214,7 +227,7 @@ namespace ignition
       public: virtual size_t Pack(char *_buffer) const;
 
       // Documentation inherited.
-      public: virtual size_t Unpack(char *_buffer);
+      public: virtual size_t Unpack(const char *_buffer);
 
       // Documentation inherited.
       public: virtual size_t MsgLength() const;
@@ -242,7 +255,7 @@ namespace ignition
       /// \brief Get the advertised options.
       /// \return The advertised options.
       /// \sa SetOptions.
-      public: const AdvertiseMessageOptions& Options() const;
+      public: virtual const AdvertiseMessageOptions& Options() const;
 
       /// \brief Set the advertised options.
       /// \param[in] _opts New advertised options.
@@ -280,14 +293,19 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const MessagePublisher &_pub) const;
 
+      /// \brief Assignment operator.
+      /// \param[in] _other The other MessagePublisher.
+      /// \return A reference to this instance.
+      public: MessagePublisher &operator=(const MessagePublisher &_other);
+
       /// \brief ZeroMQ control address of the publisher.
-      protected: std::string ctrl;
+      private: std::string ctrl;
 
       /// \brief Message type advertised by this publisher.
-      protected: std::string msgTypeName;
+      private: std::string msgTypeName;
 
       /// \brief Advertise options (e.g.: msgsPerSec).
-      protected: AdvertiseMessageOptions msgOpts;
+      private: AdvertiseMessageOptions msgOpts;
     };
 
     /// \class ServicePublisher Publisher.hh
@@ -304,9 +322,9 @@ namespace ignition
       /// \param[in] _id ZeroMQ socket ID.
       /// \param[in] _pUuid Process UUID.
       /// \param[in] _nUUID node UUID.
-      /// \param[in] _scope Scope.
       /// \param[in] _reqType Message type used in the service request.
       /// \param[in] _repType Message type used in the service response.
+      /// \param[in] _opts Advertise options.
       public: ServicePublisher(const std::string &_topic,
                                const std::string &_addr,
                                const std::string &_id,
@@ -316,6 +334,10 @@ namespace ignition
                                const std::string &_repType,
                                const AdvertiseServiceOptions &_opts);
 
+      /// \brief Copy constructor.
+      /// \param[in] _other Other ServicePublisher object.
+      public: ServicePublisher(const ServicePublisher &_other);
+
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
 
@@ -323,7 +345,7 @@ namespace ignition
       public: size_t Pack(char *_buffer) const;
 
       // Documentation inherited.
-      public: size_t Unpack(char *_buffer);
+      public: size_t Unpack(const char *_buffer);
 
       // Documentation inherited.
       public: size_t MsgLength() const;
@@ -357,6 +379,16 @@ namespace ignition
       /// \param[in] _repTypeName The protobuf message type.
       /// \sa RepTypeName.
       public: void SetRepTypeName(const std::string &_repTypeName);
+
+      /// \brief Get the advertised options.
+      /// \return The advertised options.
+      /// \sa SetOptions.
+      public: virtual const AdvertiseServiceOptions& Options() const;
+
+      /// \brief Set the advertised options.
+      /// \param[in] _opts New advertised options.
+      /// \sa Options.
+      public: void SetOptions(const AdvertiseServiceOptions &_opts);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -392,7 +424,7 @@ namespace ignition
       public: bool operator!=(const ServicePublisher &_srv) const;
 
       /// ZeroMQ socket ID used by this publisher.
-      protected: std::string socketId;
+      private: std::string socketId;
 
       /// \brief The name of the request's protobuf message advertised.
       private: std::string reqTypeName;

@@ -142,7 +142,7 @@ namespace ignition
       /// \brief Discovery protocol version.
       private: uint16_t version = 0;
 
-      /// \brief Global identifier. Every process has a unique guid.
+      /// \brief Global identifier. Every process has a unique UUID.
       private: std::string pUuid = "";
 
       /// \brief Message type (ADVERTISE, SUBSCRIPTION, ...).
@@ -211,7 +211,7 @@ namespace ignition
       /// \brief Unserialize a stream of bytes into a Sub.
       /// \param[out] _buffer Unpack the body from the buffer.
       /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer);
+      public: size_t Unpack(const char *_buffer);
 
       /// \brief Message header.
       private: transport::Header header;
@@ -303,7 +303,7 @@ namespace ignition
       /// \brief Unserialize a stream of bytes into an AdvertiseMessage.
       /// \param[out] _buffer Unpack the body from the buffer.
       /// \return The number of bytes from the body.
-      public: size_t Unpack(char *_buffer)
+      public: size_t Unpack(const char *_buffer)
       {
         // Unpack the message publisher.
         if (this->publisher.Unpack(_buffer) == 0)
