@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -64,7 +63,6 @@ namespace ignition
     /// calls.
     class IGNITION_TRANSPORT_VISIBLE Node
     {
-
       class PublisherPrivate;
 
       /// \brief A class that is used to store information about an
@@ -959,10 +957,6 @@ namespace ignition
       /// \brief Get the UUID of this node.
       /// \return The node UUID.
       private: const std::string &NodeUuid() const;
-
-      /// \brief Get the set of topics advertised by this node.
-      /// \return The set of advertised topics.
-      //private: std::unordered_set<std::string> &TopicsAdvertised() const;
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.

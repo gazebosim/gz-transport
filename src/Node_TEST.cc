@@ -434,15 +434,9 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
   auto pub1 = node1.Advertise(g_topic, msg.GetTypeName());
-  std::cout << "After Advertise()" << std::endl;
   EXPECT_TRUE(pub1);
 
   auto advertisedTopics = node1.AdvertisedTopics();
-
-  for (auto t : advertisedTopics)
-    std::cout << t << std::endl;
-
-  std::cout << "After AdvertiseTopics()" << std::endl;
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
@@ -520,21 +514,6 @@ TEST(NodeTest, PubSubSameThread)
   EXPECT_TRUE(cbExecuted);
 
   reset();
-
-  // Unadvertise an illegal topic.
-  //EXPECT_FALSE(node.Unadvertise("invalid topic"));
-
-  //EXPECT_TRUE(node.Unadvertise(g_topic));
-
-  // Publish a third message.
-  //EXPECT_FALSE(pub.Publish(msg));
-
-  // Give some time to the subscribers.
-  //std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  //EXPECT_FALSE(cbExecuted);
-
-  //reset();
 }
 
 //////////////////////////////////////////////////
@@ -688,17 +667,8 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
     reset();
   }
 
-  //EXPECT_TRUE(node1.Unadvertise(g_topic));
-
-  // Publish a third message.
-  //EXPECT_FALSE(pub1.Publish(msg));
-
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  // Anybody should have received the message.
-  //EXPECT_FALSE(cbExecuted);
-  //EXPECT_FALSE(cb2Executed);
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_TRUE(advertisedTopics.empty());

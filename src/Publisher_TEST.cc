@@ -168,6 +168,7 @@ TEST(PublisherTest, PublisherIO)
 TEST(PublisherTest, PublisherStreamInsertion)
 {
   init();
+
   Publisher publisher(g_topic, g_addr, g_puuid, g_nuuid, g_opts2);
 
   std::ostringstream output;
@@ -252,8 +253,8 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
-  MessagePublisher publisher(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid, g_msgTypeName,
-    g_msgOpts2);
+  MessagePublisher publisher(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid,
+    g_msgTypeName, g_msgOpts2);
 
   buffer.resize(publisher.MsgLength());
   size_t bytes = publisher.Pack(&buffer[0]);
@@ -284,7 +285,9 @@ TEST(PublisherTest, MessagePublisherIO)
 TEST(PublisherTest, MessagePublisherStreamInsertion)
 {
   init();
-  MessagePublisher pub(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid, g_msgTypeName, g_msgOpts2);
+
+  MessagePublisher pub(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid, g_msgTypeName,
+    g_msgOpts2);
 
   std::ostringstream output;
   output << pub;
@@ -410,6 +413,7 @@ TEST(PublisherTest, ServicePublisherIO)
 TEST(PublisherTest, ServicePublisherStreamInsertion)
 {
   init();
+
   ServicePublisher pub(g_topic, g_addr, g_socketId, g_puuid, g_nuuid,
     g_reqTypeName, g_repTypeName, g_srvOpts1);
 

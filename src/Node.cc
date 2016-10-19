@@ -79,26 +79,26 @@ namespace ignition
       public: PublisherPrivate() = default;
 
       /// \brief Constructor
-      /// \param[in] _publisher ToDo.
+      /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
         : publisher(_publisher)
       {
       }
 
-       /// \brief Destructor.
+      /// \brief Destructor.
       public: virtual ~PublisherPrivate()
       {
         std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
         // Notify the discovery service to unregister and unadvertise my topic.
         if (!this->shared->msgDiscovery->Unadvertise(
-              this->publisher.Topic(), this->publisher.NUuid()))
+               this->publisher.Topic(), this->publisher.NUuid()))
         {
           std::cerr << "~PublisherPrivate() Error unadvertising topic ["
                     << this->publisher.Topic() << "]" << std::endl;
         }
       }
 
-      /// \brief ToDo.
+      /// \brief The message publisher.
       public: MessagePublisher publisher;
 
       /// \brief Pointer to the object shared between all the nodes within the

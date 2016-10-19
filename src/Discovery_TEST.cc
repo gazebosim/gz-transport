@@ -40,7 +40,7 @@ static const int Nap = 10;
 // Global variables used for multiple tests.
 static const int g_msgPort = 11319;
 static const int g_srvPort = 11320;
-static std::string g_topic   = testing::getRandomNumber();
+static std::string g_topic = testing::getRandomNumber();
 static std::string service = testing::getRandomNumber();
 static std::string addr1   = "tcp://127.0.0.1:12345";
 static std::string ctrl1   = "tcp://127.0.0.1:12346";
@@ -52,7 +52,6 @@ static std::string ctrl2   = "tcp://127.0.0.1:12348";
 static std::string id2     = "identity2";
 static std::string pUuid2  = transport::Uuid().ToString();
 static std::string nUuid2  = transport::Uuid().ToString();
-// static transport::Scope_t scope = transport::Scope_t::ALL;
 static bool connectionExecuted = false;
 static bool disconnectionExecuted = false;
 static int g_counter = 0;
