@@ -31,7 +31,9 @@ source:
  - mercurial
  - C++ compiler with c++11 support (eg. GCC>=4.8).
 
+    ```
     sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev cmake pkg-config ruby-ronn mercurial
+    ```
 
 1. Setup your computer to accept software from packages.osrfoundation.org.
 
