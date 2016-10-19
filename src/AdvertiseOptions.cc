@@ -161,7 +161,7 @@ size_t AdvertiseOptions::MsgLength() const
   return sizeof(uint8_t);
 }
 
-//////////////////////////////////////////////////
+/// \brief Constant to be used when we do not want to throttle messages.
 const uint64_t AdvertiseMessageOptions::kUnthrottled =
   std::numeric_limits<uint64_t>::max();
 
@@ -218,6 +218,8 @@ bool AdvertiseMessageOptions::Throttled() const
 //////////////////////////////////////////////////
 uint64_t AdvertiseMessageOptions::MsgsPerSec() const
 {
+  // ToDo: Remove warning message when implementing message throttling.
+  std::cout << "Warning: This feature hasn't been enabled yet" << std::endl;
   return this->dataPtr->msgsPerSec;
 }
 
@@ -226,7 +228,6 @@ void AdvertiseMessageOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }
-
 
 //////////////////////////////////////////////////
 size_t AdvertiseMessageOptions::Pack(char *_buffer) const

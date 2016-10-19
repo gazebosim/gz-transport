@@ -16,9 +16,10 @@
 */
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/test_config.h"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -68,17 +69,6 @@ TEST(AdvertiseOptionsTest, equalityOp)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the accessors.
-TEST(AdvertiseOptionsTest, accessors)
-{
-  // Scope.
-  AdvertiseOptions opts;
-  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
-  opts.SetScope(Scope_t::HOST);
-  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
-}
-
-//////////////////////////////////////////////////
 /// \brief Check the << operator
 TEST(AdvertiseOptionsTest, streamInsertion)
 {
@@ -90,6 +80,17 @@ TEST(AdvertiseOptionsTest, streamInsertion)
     "\tScope: All\n";
 
   EXPECT_EQ(output.str(), expectedOutput);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the accessors.
+TEST(AdvertiseOptionsTest, accessors)
+{
+  // Scope.
+  AdvertiseOptions opts;
+  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
+  opts.SetScope(Scope_t::HOST);
+  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
@@ -168,24 +169,6 @@ TEST(AdvertiseOptionsTest, msgEqualityOp)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the accessors.
-TEST(AdvertiseOptionsTest, msgAccessors)
-{
-  // Scope.
-  AdvertiseMessageOptions opts;
-  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
-  opts.SetScope(Scope_t::HOST);
-  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
-
-  // MsgsPerSec
-  EXPECT_FALSE(opts.Throttled());
-  EXPECT_EQ(opts.MsgsPerSec(), AdvertiseMessageOptions::kUnthrottled);
-  opts.SetMsgsPerSec(10u);
-  EXPECT_EQ(opts.MsgsPerSec(), 10u);
-  EXPECT_TRUE(opts.Throttled());
-}
-
-//////////////////////////////////////////////////
 /// \brief Check the << operator
 TEST(AdvertiseOptionsTest, msgStreamInsertion)
 {
@@ -208,6 +191,24 @@ TEST(AdvertiseOptionsTest, msgStreamInsertion)
     "\tThrottled? Yes\n"
     "\tRate: 10 msgs/sec\n";
   EXPECT_EQ(output.str(), expectedOutput);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the accessors.
+TEST(AdvertiseOptionsTest, msgAccessors)
+{
+  // Scope.
+  AdvertiseMessageOptions opts;
+  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
+  opts.SetScope(Scope_t::HOST);
+  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
+
+  // MsgsPerSec
+  EXPECT_FALSE(opts.Throttled());
+  EXPECT_EQ(opts.MsgsPerSec(), AdvertiseMessageOptions::kUnthrottled);
+  opts.SetMsgsPerSec(10u);
+  EXPECT_EQ(opts.MsgsPerSec(), 10u);
+  EXPECT_TRUE(opts.Throttled());
 }
 
 //////////////////////////////////////////////////
@@ -281,17 +282,6 @@ TEST(AdvertiseOptionsTest, srvEqualityOp)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the accessors.
-TEST(AdvertiseOptionsTest, srvAccessors)
-{
-  // Scope.
-  AdvertiseServiceOptions opts;
-  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
-  opts.SetScope(Scope_t::HOST);
-  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
-}
-
-//////////////////////////////////////////////////
 /// \brief Check the << operator
 TEST(AdvertiseOptionsTest, srvStreamInsertion)
 {
@@ -302,6 +292,17 @@ TEST(AdvertiseOptionsTest, srvStreamInsertion)
     "Advertise options:\n"
     "\tScope: All\n";
   EXPECT_EQ(output.str(), expectedOutput);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the accessors.
+TEST(AdvertiseOptionsTest, srvAccessors)
+{
+  // Scope.
+  AdvertiseServiceOptions opts;
+  EXPECT_EQ(opts.Scope(), Scope_t::ALL);
+  opts.SetScope(Scope_t::HOST);
+  EXPECT_EQ(opts.Scope(), Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
@@ -329,7 +330,6 @@ TEST(PacketTest, srvOptionsIO)
   // Try to unpack passing a NULL buffer.
   EXPECT_EQ(opts2.Unpack(nullptr), 0u);
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
