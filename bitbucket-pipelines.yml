@@ -18,4 +18,5 @@ pipelines:
           - make -j4
           - make test ARGS="-VV"
           - make doc
+          - cd ..
           - sh tools/code_check.sh
