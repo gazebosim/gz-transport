@@ -62,7 +62,7 @@ source:
 
     ```
     sudo apt-get update
-    sudo apt-get install libzmq3-dev libignition-msgs-dev
+    sudo apt-get install libzmq3-dev
     ```
 
 ## Installation
