@@ -75,11 +75,10 @@ namespace ignition
       public: bool operator==(const AdvertiseOptions &_other) const;
 
       /// \brief Inequality operator. This function checks if the given
-      /// options does not have identical values to this object.
+      /// options do not have identical values to this object.
       /// \param[in] _other The options to compare against.
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const AdvertiseOptions &_other) const;
-
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -147,7 +146,7 @@ namespace ignition
       public: virtual ~AdvertiseMessageOptions();
 
       /// \brief Assignment operator.
-      /// \param[in] _other The new AdvertiseMessageOptions.
+      /// \param[in] _other The other AdvertiseMessageOptions.
       /// \return A reference to this instance.
       public: AdvertiseMessageOptions &operator=(
         const AdvertiseMessageOptions &_other);
@@ -159,14 +158,14 @@ namespace ignition
       public: bool operator==(const AdvertiseMessageOptions &_other) const;
 
       /// \brief Inequality operator. This function checks if the given
-      /// options does not have identical values to this object.
+      /// options do not have identical values to this object.
       /// \param[in] _other The options to compare against.
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const AdvertiseMessageOptions &_other) const;
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] __other AdvertiseOptions to write to the stream.
+      /// \param[in] _other AdvertiseMessageOptions to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                           const AdvertiseMessageOptions &_other)
       {
@@ -238,7 +237,7 @@ namespace ignition
       public: virtual ~AdvertiseServiceOptions();
 
       /// \brief Assignment operator.
-      /// \param[in] _other The new AdvertiseServiceOptions.
+      /// \param[in] _other The other AdvertiseServiceOptions.
       /// \return A reference to this instance.
       public: AdvertiseServiceOptions &operator=(
         const AdvertiseServiceOptions &_other);
@@ -250,7 +249,7 @@ namespace ignition
       public: bool operator==(const AdvertiseServiceOptions &_other) const;
 
       /// \brief Inequality operator. This function checks if the given
-      /// options does not have identical values to this object.
+      /// options do not have identical values to this object.
       /// \param[in] _other The options to compare against.
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const AdvertiseServiceOptions &_other) const;

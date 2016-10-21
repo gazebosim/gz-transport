@@ -1,5 +1,8 @@
 ## Ignition Transport 3.0.0
 
+1. Create AdvertiseMessageOptions and AdvertiseServiceOptions classes.
+    * [Pull request 184](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/184)
+
 1. Subscription options added. The first option is to provide the ability to
    set the received message rate on the subscriber side.
     * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/174)
