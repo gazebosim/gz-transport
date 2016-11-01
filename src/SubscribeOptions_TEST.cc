@@ -15,20 +15,22 @@
  *
 */
 
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/test_config.h"
 #include "gtest/gtest.h"
 
 using namespace ignition;
+using namespace transport;
 
 //////////////////////////////////////////////////
 /// \brief Check the copy constructor.
 TEST(SubscribeOptionsTest, copyConstructor)
 {
-  transport::SubscribeOptions opts1;
+  SubscribeOptions opts1;
   opts1.SetMsgsPerSec(2u);
   EXPECT_EQ(opts1.MsgsPerSec(), 2u);
-  transport::SubscribeOptions opts2(opts1);
+  SubscribeOptions opts2(opts1);
   EXPECT_EQ(opts2.MsgsPerSec(), opts1.MsgsPerSec());
 }
 
@@ -37,8 +39,8 @@ TEST(SubscribeOptionsTest, copyConstructor)
 TEST(SubscribeOptionsTest, accessors)
 {
   // MsgsPerSec.
-  transport::SubscribeOptions opts;
-  EXPECT_EQ(opts.MsgsPerSec(), transport::SubscribeOptions::kUnthrottled);
+  SubscribeOptions opts;
+  EXPECT_EQ(opts.MsgsPerSec(), kUnthrottled);
   opts.SetMsgsPerSec(3u);
   EXPECT_EQ(opts.MsgsPerSec(), 3u);
 }
@@ -47,7 +49,7 @@ TEST(SubscribeOptionsTest, accessors)
 /// \brief Check Throttled().
 TEST(SubscribeOptionsTest, throttled)
 {
-  transport::SubscribeOptions opts;
+  SubscribeOptions opts;
   EXPECT_FALSE(opts.Throttled());
   opts.SetMsgsPerSec(3u);
   EXPECT_TRUE(opts.Throttled());

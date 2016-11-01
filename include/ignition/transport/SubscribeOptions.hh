@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
 #define IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
 
+#include <cstdint>
 #include <memory>
 
 #include "ignition/transport/Helpers.hh"
@@ -60,9 +61,6 @@ namespace ignition
       /// topic.
       /// \return The maximum number of messages per second.
       public: uint64_t MsgsPerSec() const;
-
-      /// \brief Constant used when not interested in throttling.
-      public: static const uint64_t kUnthrottled;
 
       /// \internal
       /// \brief Shared pointer to private data.

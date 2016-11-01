@@ -213,9 +213,6 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
-      /// \brief Constant used when not interested in throttling.
-      public: static const uint64_t kUnthrottled;
-
       /// \internal
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;

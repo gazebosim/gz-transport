@@ -18,9 +18,9 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <limits>
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -54,7 +54,7 @@ namespace ignition
       public: virtual ~AdvertiseMessageOptionsPrivate() = default;
 
       /// \brief Default message publication rate.
-      public: uint64_t msgsPerSec = AdvertiseMessageOptions::kUnthrottled;
+      public: uint64_t msgsPerSec = kUnthrottled;
     };
 
     /// \internal
@@ -161,10 +161,6 @@ size_t AdvertiseOptions::MsgLength() const
   return sizeof(uint8_t);
 }
 
-/// \brief Constant to be used when we do not want to throttle messages.
-const uint64_t AdvertiseMessageOptions::kUnthrottled =
-  std::numeric_limits<uint64_t>::max();
-
 //////////////////////////////////////////////////
 AdvertiseMessageOptions::AdvertiseMessageOptions()
   : AdvertiseOptions(),
@@ -212,7 +208,7 @@ bool AdvertiseMessageOptions::operator!=(
 //////////////////////////////////////////////////
 bool AdvertiseMessageOptions::Throttled() const
 {
-  return this->MsgsPerSec() != this->kUnthrottled;
+  return this->MsgsPerSec() != kUnthrottled;
 }
 
 //////////////////////////////////////////////////
