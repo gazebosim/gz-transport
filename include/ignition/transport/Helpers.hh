@@ -20,6 +20,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <string>
 
 /// \def IGNITION_TRANSPORT_VISIBLE
@@ -59,19 +60,22 @@
 // BUILDING_STATIC_LIBS
 #endif
 
- namespace ignition
- {
-   namespace transport
-   {
-     /// \brief Find the environment variable '_name' and return its value.
-     /// \param[in] _name Name of the environment variable.
-     /// \param[out] _value Value if the variable was found.
-     /// \return True if the variable was found or false otherwise.
-     IGNITION_TRANSPORT_VISIBLE
-     bool env(const std::string &_name,
-              std::string &_value);
-   }
- }
+namespace ignition
+{
+  namespace transport
+  {
+    /// \brief Constant used when not interested in throttling.
+    static const uint64_t kUnthrottled = std::numeric_limits<uint64_t>::max();
+
+    /// \brief Find the environment variable '_name' and return its value.
+    /// \param[in] _name Name of the environment variable.
+    /// \param[out] _value Value if the variable was found.
+    /// \return True if the variable was found or false otherwise.
+    IGNITION_TRANSPORT_VISIBLE
+    bool env(const std::string &_name,
+             std::string &_value);
+  }
+}
 
 // Use safer functions on Windows
 #ifdef _MSC_VER

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -126,7 +127,7 @@ TEST(AdvertiseOptionsTest, msgDefConstructor)
   AdvertiseMessageOptions opts;
   EXPECT_EQ(opts.Scope(), Scope_t::ALL);
   EXPECT_FALSE(opts.Throttled());
-  EXPECT_EQ(opts.MsgsPerSec(), AdvertiseMessageOptions::kUnthrottled);
+  EXPECT_EQ(opts.MsgsPerSec(), kUnthrottled);
 }
 
 //////////////////////////////////////////////////
@@ -205,7 +206,7 @@ TEST(AdvertiseOptionsTest, msgAccessors)
 
   // MsgsPerSec
   EXPECT_FALSE(opts.Throttled());
-  EXPECT_EQ(opts.MsgsPerSec(), AdvertiseMessageOptions::kUnthrottled);
+  EXPECT_EQ(opts.MsgsPerSec(), kUnthrottled);
   opts.SetMsgsPerSec(10u);
   EXPECT_EQ(opts.MsgsPerSec(), 10u);
   EXPECT_TRUE(opts.Throttled());

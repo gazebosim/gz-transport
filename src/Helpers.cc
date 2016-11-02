@@ -20,11 +20,11 @@
 
 #include "ignition/transport/Helpers.hh"
 
-//////////////////////////////////////////////////
 namespace ignition
 {
   namespace transport
   {
+    //////////////////////////////////////////////////
     bool env(const std::string &_name, std::string &_value)
     {
       char *v;

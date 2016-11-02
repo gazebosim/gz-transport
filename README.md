@@ -9,10 +9,7 @@ of libraries designed to rapidly develop robot applications.
 
 ## Continuous integration
 
-Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
-
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/default)
+Please refer to the [Bitbucket Pipelines](https://bitbucket.org/ignitionrobotics/ign-transport/addon/pipelines/home#!/).
 
 [![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=latest)](https://readthedocs.org/projects/ignition-transport/?badge=latest)
 
@@ -26,13 +23,19 @@ source:
  - libzmq3-dev
  - libprotobuf-dev
  - protobuf-compiler
+ - libprotoc-dev
  - libignition-msgs-dev
  - cmake
+ - pkg-config
  - ruby-ronn
  - mercurial
  - C++ compiler with c++11 support (eg. GCC>=4.8).
 
-    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libzmq3-dev cmake ruby-ronn mercurial
+1. Install the build dependencies:
+
+    ```
+    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev cmake pkg-config ruby-ronn mercurial
+    ```
 
 1. Setup your computer to accept software from packages.osrfoundation.org.
 
@@ -59,7 +62,7 @@ source:
 
     ```
     sudo apt-get update
-    sudo apt-get install libzmq3-dev libignition-msgs-dev
+    sudo apt-get install libzmq3-dev
     ```
 
 ## Installation
