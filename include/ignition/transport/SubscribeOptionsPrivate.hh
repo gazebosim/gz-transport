@@ -20,6 +20,7 @@
 
 #include <cstdint>
 
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 
 namespace ignition
@@ -38,7 +39,7 @@ namespace ignition
       public: virtual ~SubscribeOptionsPrivate() = default;
 
       /// \brief Default message subscription rate.
-      public: uint64_t msgsPerSec = SubscribeOptions::kUnthrottled;
+      public: uint64_t msgsPerSec = kUnthrottled;
     };
   }
 }

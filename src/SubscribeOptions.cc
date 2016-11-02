@@ -16,17 +16,12 @@
 */
 
 #include <cstdint>
-#include <limits>
 
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscribeOptionsPrivate.hh"
 
 using namespace ignition;
 using namespace transport;
-
-//////////////////////////////////////////////////
-const uint64_t SubscribeOptions::kUnthrottled =
-  std::numeric_limits<uint64_t>::max();
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
