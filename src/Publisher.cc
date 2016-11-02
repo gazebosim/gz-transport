@@ -20,20 +20,31 @@
 #include <iostream>
 #include <string>
 
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Publisher.hh"
+#include "ignition/transport/NodeShared.hh"
+#include "ignition/transport/SubscriptionHandler.hh"
 
 using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
 Publisher::Publisher(const std::string &_topic, const std::string &_addr,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope)
+  const std::string &_pUuid, const std::string &_nUuid,
+  const AdvertiseOptions &_opts)
   : topic(_topic),
     addr(_addr),
     pUuid(_pUuid),
     nUuid(_nUuid),
-    scope(_scope)
+    opts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+Publisher::Publisher(const Publisher &_other)
+  : Publisher()
+{
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -61,9 +72,9 @@ std::string Publisher::NUuid() const
 }
 
 //////////////////////////////////////////////////
-Scope_t Publisher::Scope() const
+const AdvertiseOptions& Publisher::Options() const
 {
-  return this->scope;
+  return this->opts;
 }
 
 //////////////////////////////////////////////////
@@ -91,13 +102,30 @@ void Publisher::SetNUuid(const std::string &_nUuid)
 }
 
 //////////////////////////////////////////////////
-void Publisher::SetScope(const Scope_t &_scope)
+void Publisher::SetOptions(const AdvertiseOptions &_opts)
 {
-  this->scope = _scope;
+  this->opts = _opts;
 }
 
 //////////////////////////////////////////////////
 size_t Publisher::Pack(char *_buffer) const
+{
+  size_t len = this->PackInternal(_buffer);
+  if (len == 0)
+    return 0;
+
+  _buffer += len;
+
+  // Pack the options.
+  size_t optsLen = this->opts.Pack(_buffer);
+  if (optsLen == 0)
+    return 0;
+
+  return this->MsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t Publisher::PackInternal(char *_buffer) const
 {
   if (this->topic.empty() || this->addr.empty() ||
       this->pUuid.empty() || this->nUuid.empty())
@@ -148,17 +176,29 @@ size_t Publisher::Pack(char *_buffer) const
 
   // Pack the node UUID.
   memcpy(_buffer, this->nUuid.data(), static_cast<size_t>(nUuidLength));
-  _buffer += nUuidLength;
 
-  // Pack the topic scope.
-  uint8_t intscope = static_cast<uint8_t>(this->scope);
-  memcpy(_buffer, &intscope, sizeof(intscope));
+  return this->MsgLengthInternal();
+}
+
+//////////////////////////////////////////////////
+size_t Publisher::Unpack(const char *_buffer)
+{
+  size_t len = this->UnpackInternal(_buffer);
+  if (len == 0)
+    return 0;
+
+  _buffer += len;
+
+  // Unpack the options.
+  size_t optsLen = this->opts.Unpack(_buffer);
+  if (optsLen == 0)
+    return 0;
 
   return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t Publisher::Unpack(char *_buffer)
+size_t Publisher::UnpackInternal(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -202,24 +242,24 @@ size_t Publisher::Unpack(char *_buffer)
 
   // Unpack the node UUID.
   this->nUuid = std::string(_buffer, _buffer + nUuidLength);
-  _buffer += nUuidLength;
 
-  // Unpack the topic scope.
-  uint8_t intscope;
-  memcpy(&intscope, _buffer, sizeof(intscope));
-  this->scope = static_cast<Scope_t>(intscope);
-
-  return this->MsgLength();
+  return this->MsgLengthInternal();
 }
 
 //////////////////////////////////////////////////
 size_t Publisher::MsgLength() const
 {
+  return this->MsgLengthInternal() +
+         this->opts.MsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t Publisher::MsgLengthInternal() const
+{
   return sizeof(uint16_t) + this->topic.size() +
-         sizeof(uint16_t) + this->addr.size() +
+         sizeof(uint16_t) + this->addr.size()  +
          sizeof(uint16_t) + this->pUuid.size() +
-         sizeof(uint16_t) + this->nUuid.size() +
-         sizeof(uint8_t);
+         sizeof(uint16_t) + this->nUuid.size();
 }
 
 //////////////////////////////////////////////////
@@ -227,7 +267,7 @@ bool Publisher::operator==(const Publisher &_pub) const
 {
   return this->topic == _pub.topic && this->addr == _pub.addr &&
     this->pUuid == _pub.pUuid && this->nUuid == _pub.nUuid &&
-    this->scope == _pub.scope;
+    this->Options() == _pub.Options();
 }
 
 //////////////////////////////////////////////////
@@ -237,14 +277,33 @@ bool Publisher::operator!=(const Publisher &_pub) const
 }
 
 //////////////////////////////////////////////////
+Publisher &Publisher::operator=(const Publisher &_other)
+{
+  this->SetTopic(_other.Topic());
+  this->SetAddr(_other.Addr());
+  this->SetPUuid(_other.PUuid());
+  this->SetNUuid(_other.NUuid());
+  this->SetOptions(_other.Options());
+  return *this;
+}
+
+//////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
-  const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_msgTypeName)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
+  const std::string &_nUuid, const std::string &_msgTypeName,
+  const AdvertiseMessageOptions &_opts)
+  : Publisher(_topic, _addr, _pUuid, _nUuid, _opts),
     ctrl(_ctrl),
-    msgTypeName(_msgTypeName)
+    msgTypeName(_msgTypeName),
+    msgOpts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+MessagePublisher::MessagePublisher(const MessagePublisher &_other)
+  : MessagePublisher()
+{
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -257,8 +316,8 @@ size_t MessagePublisher::Pack(char *_buffer) const
     return 0;
   }
 
-  // Pack the common part of any Publisher message.
-  size_t len = Publisher::Pack(_buffer);
+  // Pack the common part of any Publisher message except the options.
+  size_t len = Publisher::PackInternal(_buffer);
   if (len == 0)
     return 0;
 
@@ -281,12 +340,18 @@ size_t MessagePublisher::Pack(char *_buffer) const
   // Pack the type name.
   memcpy(_buffer, this->msgTypeName.data(),
     static_cast<size_t>(typeNameLength));
+  _buffer += typeNameLength;
+
+  // Pack the options.
+  size_t optsLen = this->msgOpts.Pack(_buffer);
+  if (optsLen == 0)
+    return 0;
 
   return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t MessagePublisher::Unpack(char *_buffer)
+size_t MessagePublisher::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -296,8 +361,8 @@ size_t MessagePublisher::Unpack(char *_buffer)
     return 0;
   }
 
-  // Unpack the common part of any Publisher message.
-  size_t len = Publisher::Unpack(_buffer);
+  // Unpack the common part of any Publisher message except the options.
+  size_t len = Publisher::UnpackInternal(_buffer);
   if (len == 0)
     return 0;
 
@@ -319,6 +384,12 @@ size_t MessagePublisher::Unpack(char *_buffer)
 
   // Unpack the type name.
   this->msgTypeName = std::string(_buffer, _buffer + typeNameLength);
+  _buffer += typeNameLength;
+
+  // Unpack the options.
+  size_t optsLen = this->msgOpts.Unpack(_buffer);
+  if (optsLen == 0)
+    return 0;
 
   return this->MsgLength();
 }
@@ -326,9 +397,10 @@ size_t MessagePublisher::Unpack(char *_buffer)
 //////////////////////////////////////////////////
 size_t MessagePublisher::MsgLength() const
 {
-  return Publisher::MsgLength() +
-         sizeof(uint16_t) + this->ctrl.size() +
-         sizeof(uint16_t) + this->msgTypeName.size();
+  return Publisher::MsgLengthInternal()              +
+         sizeof(uint16_t) + this->ctrl.size()        +
+         sizeof(uint16_t) + this->msgTypeName.size() +
+         this->msgOpts.MsgLength();
 }
 
 //////////////////////////////////////////////////
@@ -356,10 +428,22 @@ void MessagePublisher::SetMsgTypeName(const std::string &_msgTypeName)
 }
 
 //////////////////////////////////////////////////
+const AdvertiseMessageOptions& MessagePublisher::Options() const
+{
+  return this->msgOpts;
+}
+
+//////////////////////////////////////////////////
+void MessagePublisher::SetOptions(const AdvertiseMessageOptions &_opts)
+{
+  this->msgOpts = _opts;
+}
+
+//////////////////////////////////////////////////
 bool MessagePublisher::operator==(const MessagePublisher &_pub) const
 {
-  return Publisher::operator==(_pub) &&
-    this->ctrl == _pub.ctrl &&
+  return Publisher::operator==(_pub)      &&
+    this->ctrl == _pub.ctrl               &&
     this->msgTypeName == _pub.msgTypeName;
 }
 
@@ -370,15 +454,34 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 }
 
 //////////////////////////////////////////////////
+MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other)
+{
+  Publisher::operator=(_other);
+  this->SetCtrl(_other.Ctrl());
+  this->SetMsgTypeName(_other.MsgTypeName());
+  this->SetOptions(_other.Options());
+  return *this;
+}
+
+//////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_socketId,
-  const std::string &_pUuid, const std::string &_nUuid, const Scope_t &_scope,
-  const std::string &_reqType, const std::string &_repType)
-  : Publisher(_topic, _addr, _pUuid, _nUuid, _scope),
+  const std::string &_pUuid, const std::string &_nUuid,
+  const std::string &_reqType, const std::string &_repType,
+  const AdvertiseServiceOptions &_opts)
+  : Publisher(_topic, _addr, _pUuid, _nUuid, _opts),
     socketId(_socketId),
     reqTypeName(_reqType),
-    repTypeName(_repType)
+    repTypeName(_repType),
+    srvOpts(_opts)
 {
+}
+
+//////////////////////////////////////////////////
+ServicePublisher::ServicePublisher(const ServicePublisher &_other)
+  : ServicePublisher()
+{
+  (*this) = _other;
 }
 
 //////////////////////////////////////////////////
@@ -393,7 +496,7 @@ size_t ServicePublisher::Pack(char *_buffer) const
   }
 
   // Pack the common part of any Publisher message.
-  size_t len = Publisher::Pack(_buffer);
+  size_t len = Publisher::PackInternal(_buffer);
   if (len == 0)
     return 0;
 
@@ -424,12 +527,18 @@ size_t ServicePublisher::Pack(char *_buffer) const
 
   // Pack the response.
   memcpy(_buffer, this->repTypeName.data(), static_cast<size_t>(repTypeLength));
+  _buffer += repTypeLength;
+
+  // Pack the options.
+  size_t optsLen = this->srvOpts.Pack(_buffer);
+  if (optsLen == 0)
+    return 0;
 
   return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
-size_t ServicePublisher::Unpack(char *_buffer)
+size_t ServicePublisher::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)
@@ -440,7 +549,7 @@ size_t ServicePublisher::Unpack(char *_buffer)
   }
 
   // Unpack the common part of any Publisher message.
-  size_t len = Publisher::Unpack(_buffer);
+  size_t len = Publisher::UnpackInternal(_buffer);
   if (len == 0)
     return 0;
 
@@ -473,16 +582,22 @@ size_t ServicePublisher::Unpack(char *_buffer)
   this->repTypeName = std::string(_buffer, _buffer + repTypeLength);
   _buffer += repTypeLength;
 
+  // Unpack the options.
+  size_t optsLen = this->srvOpts.Unpack(_buffer);
+  if (optsLen == 0)
+    return 0;
+
   return this->MsgLength();
 }
 
 //////////////////////////////////////////////////
 size_t ServicePublisher::MsgLength() const
 {
-  return Publisher::MsgLength() +
-         sizeof(uint16_t) + this->socketId.size() +
+  return Publisher::MsgLengthInternal() +
+         sizeof(uint16_t) + this->socketId.size()    +
          sizeof(uint16_t) + this->reqTypeName.size() +
-         sizeof(uint16_t) + this->repTypeName.size();
+         sizeof(uint16_t) + this->repTypeName.size() +
+         this->srvOpts.MsgLength();
 }
 
 //////////////////////////////////////////////////
@@ -522,10 +637,22 @@ void ServicePublisher::SetRepTypeName(const std::string &_repTypeName)
 }
 
 //////////////////////////////////////////////////
+const AdvertiseServiceOptions& ServicePublisher::Options() const
+{
+  return this->srvOpts;
+}
+
+//////////////////////////////////////////////////
+void ServicePublisher::SetOptions(const AdvertiseServiceOptions &_opts)
+{
+  this->srvOpts = _opts;
+}
+
+//////////////////////////////////////////////////
 bool ServicePublisher::operator==(const ServicePublisher &_srv) const
 {
-  return Publisher::operator==(_srv) &&
-    this->socketId == _srv.socketId &&
+  return Publisher::operator==(_srv)      &&
+    this->socketId == _srv.socketId       &&
     this->reqTypeName == _srv.reqTypeName &&
     this->repTypeName == _srv.repTypeName;
 }

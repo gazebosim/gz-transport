@@ -47,7 +47,7 @@ TEST(ScopedTopicTest, ProcessTest)
   msg.set_data(data);
 
   transport::Node node;
-  transport::AdvertiseOptions opts;
+  transport::AdvertiseMessageOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
   EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic, opts));

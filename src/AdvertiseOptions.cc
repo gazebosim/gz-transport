@@ -214,8 +214,6 @@ bool AdvertiseMessageOptions::Throttled() const
 //////////////////////////////////////////////////
 uint64_t AdvertiseMessageOptions::MsgsPerSec() const
 {
-  // ToDo: Remove warning message when implementing message throttling.
-  std::cout << "Warning: This feature hasn't been enabled yet" << std::endl;
   return this->dataPtr->msgsPerSec;
 }
 
