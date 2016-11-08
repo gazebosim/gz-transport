@@ -151,7 +151,7 @@ namespace ignition
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return Node::Publisher();
+          return Publisher();
         }
 
         auto currentTopics = this->AdvertisedTopics();
@@ -163,7 +163,7 @@ namespace ignition
                     << " advertise the same topic twice on the same node."
                     << " If you want to advertise the same topic with different"
                     << " types, use separate nodes" << std::endl;
-          return Node::Publisher();
+          return Publisher();
         }
 
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -179,10 +179,10 @@ namespace ignition
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return Node::Publisher();
+          return Publisher();
         }
 
-        return Node::Publisher(publisher);
+        return Publisher(publisher);
       }
 
       /// \brief Get the list of topics advertised by this node.

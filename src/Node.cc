@@ -76,12 +76,16 @@ namespace ignition
     class Node::PublisherPrivate
     {
       /// \brief Default constructor.
-      public: PublisherPrivate() = default;
+      public: PublisherPrivate()
+        : shared(NodeShared::Instance())
+      {
+      }
 
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
-        : publisher(_publisher)
+        : shared(NodeShared::Instance()),
+          publisher(_publisher)
       {
       }
 
@@ -98,12 +102,12 @@ namespace ignition
         }
       }
 
-      /// \brief The message publisher.
-      public: MessagePublisher publisher;
-
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+      public: NodeShared *shared = nullptr;
+
+      /// \brief The message publisher.
+      public: MessagePublisher publisher;
     };
   }
 }
@@ -157,7 +161,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Check that the msg type matches the topic type previously advertised.
   if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
   {
-    std::cerr << "MessagePublisher::Publish() Type mismatch.\n"
+    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
               << "\t* Type advertised: "
               << this->dataPtr->publisher.MsgTypeName()
               << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
@@ -195,7 +199,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         }
         else
         {
-          std::cerr << "MessagePublisher::Publish(): NULL subscription handler"
+          std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
                     << std::endl;
         }
       }
@@ -208,7 +212,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     std::string data;
     if (!_msg.SerializeToString(&data))
     {
-      std::cerr << "MessagePublisher::Publish(): Error serializing data"
+      std::cerr << "Node::Publisher::Publish(): Error serializing data"
                 << std::endl;
       return false;
     }
