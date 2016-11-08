@@ -154,7 +154,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (!this->Valid())
     return false;
 
-  // Check that the msg type matches the ropic type previously advertised.
+  // Check that the msg type matches the topic type previously advertised.
   if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
   {
     std::cerr << "MessagePublisher::Publish() Type mismatch.\n"
