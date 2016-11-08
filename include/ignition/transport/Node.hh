@@ -25,6 +25,15 @@
 #include <unordered_set>
 #include <vector>
 
+// ToDo: Remove after fixing the warnings
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
+#include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
@@ -39,11 +48,6 @@
 
 namespace ignition
 {
-  namespace msgs
-  {
-    class Empty;
-  }
-
   namespace transport
   {
     class NodePrivate;
