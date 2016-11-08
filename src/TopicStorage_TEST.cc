@@ -428,7 +428,6 @@ TEST(TopicStorageTest, PublishersByProc)
   Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
   Publisher publisher3(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
 
-
   TopicStorage<Publisher> test;
 
   EXPECT_TRUE(test.AddPublisher(publisher1));
@@ -443,9 +442,9 @@ TEST(TopicStorageTest, PublishersByProc)
   // Checking an existent PUUID with multiple publishers.
   test.PublishersByProc(g_pUuid1, pubs);
   EXPECT_EQ(pubs.size(), 2u);
-  EXPECT_TRUE(pubs.find(g_nUuid1) != pubs.end());
+  ASSERT_TRUE(pubs.find(g_nUuid1) != pubs.end());
   EXPECT_EQ(pubs[g_nUuid1].at(0).Addr(), g_addr1);
-  EXPECT_TRUE(pubs.find(g_nUuid2) != pubs.end());
+  ASSERT_TRUE(pubs.find(g_nUuid2) != pubs.end());
   EXPECT_EQ(pubs[g_nUuid2].at(0).Addr(), g_addr1);
 }
 

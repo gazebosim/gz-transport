@@ -116,8 +116,9 @@ namespace ignition
       /// \return Number of bytes serialized.
       public: size_t Pack(char *_buffer) const;
 
-      /// \brief Unserialize the options.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
+      /// \brief Deserialize and set the options. The input buffer is
+      /// unpacked and used to set this object's options.
+      /// \param[in] _buffer Input buffer with the data to be deserialized.
       public: size_t Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
@@ -187,7 +188,7 @@ namespace ignition
       /// \sa MsgsPerSec
       public: bool Throttled() const;
 
-      /// \brief Get the maximum number of messages per seconds to be published.
+      /// \brief Get the maximum number of messages per second to be published.
       /// \return The maximum number of messages per second.
       public: uint64_t MsgsPerSec() const;
 
@@ -275,7 +276,6 @@ namespace ignition
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
-
 
       /// \internal
       /// \brief Smart pointer to private data.

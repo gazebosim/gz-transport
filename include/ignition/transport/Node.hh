@@ -76,7 +76,7 @@ namespace ignition
       ///    }
       public: class Publisher
       {
-        /// \brief Constructor.
+        /// \brief Default constructor.
         public: Publisher();
 
         /// \brief Constructor.

@@ -81,7 +81,7 @@ namespace ignition
       /// \brief Get the advertised options.
       /// \return The advertised options.
       /// \sa SetOptions.
-      public: virtual const AdvertiseOptions& Options() const;
+      public: virtual const AdvertiseOptions &Options() const;
 
       /// \brief Set the topic name published by this publisher.
       /// \param[in] _topic New topic name.
@@ -255,7 +255,7 @@ namespace ignition
       /// \brief Get the advertised options.
       /// \return The advertised options.
       /// \sa SetOptions.
-      public: virtual const AdvertiseMessageOptions& Options() const;
+      public: virtual const AdvertiseMessageOptions &Options() const;
 
       /// \brief Set the advertised options.
       /// \param[in] _opts New advertised options.
