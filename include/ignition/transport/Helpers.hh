@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_HELPERS_HH_
 #define IGN_TRANSPORT_HELPERS_HH_
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>

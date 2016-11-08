@@ -40,6 +40,7 @@
 #pragma warning(pop)
 #endif
 
+#include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -366,8 +367,8 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Register that we have another remote subscriber.
-    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, Scope_t::ALL,
-      "");
+    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, "",
+      AdvertiseMessageOptions());
     this->remoteSubscribers.AddPublisher(remoteNode);
   }
   else if (std::stoi(data) == EndConnection)
