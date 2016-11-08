@@ -1,5 +1,13 @@
 ## Ignition Transport 3.0.0
 
+1. Node::Unadvertise(), Node::Publish() and Node::TopicsAdvertised() removed.
+   Node::Advertise() returns a Node::Publisher object that can be used for
+   publishing messages. When this object runs out of scope the topic is
+   unadvertised.
+    * [Pull request 186](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/186)
+    * [Pull request 185](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/185)
+    * [Pull request 184](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/184)
+
 1. Create AdvertiseMessageOptions and AdvertiseServiceOptions classes.
     * [Pull request 184](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/184)
 
