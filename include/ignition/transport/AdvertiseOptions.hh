@@ -166,7 +166,7 @@ namespace ignition
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
-      /// \param[in] __other AdvertiseMessageOptions to write to the stream.
+      /// \param[in] _other AdvertiseMessageOptions to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                           const AdvertiseMessageOptions &_other)
       {

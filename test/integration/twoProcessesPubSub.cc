@@ -78,12 +78,13 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_z(3.0);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 20; ++i)
   {
-    EXPECT_TRUE(node.Publish(g_topic, msg));
+    EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 

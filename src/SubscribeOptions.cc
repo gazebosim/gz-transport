@@ -17,6 +17,7 @@
 
 #include <cstdint>
 
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscribeOptionsPrivate.hh"
 

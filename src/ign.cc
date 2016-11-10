@@ -161,15 +161,15 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
   {
     // Create the node and advertise the topic
     ignition::transport::Node node;
-    auto pubId = node.Advertise(_topic, msg->GetTypeName());
+    auto pub = node.Advertise(_topic, msg->GetTypeName());
 
     // Publish the message
-    if (pubId)
+    if (pub)
     {
       // \todo Change this sleep to a WaitForSubscribers() call.
       // See issue #xxx
       std::this_thread::sleep_for(std::chrono::milliseconds(800));
-      node.Publish(pubId, *msg);
+      pub.Publish(*msg);
     }
     else
     {

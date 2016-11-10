@@ -447,3 +447,34 @@ TEST(TopicStorageTest, PublishersByProc)
   ASSERT_TRUE(pubs.find(g_nUuid2) != pubs.end());
   EXPECT_EQ(pubs[g_nUuid2].at(0).Addr(), g_addr1);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check PublishersByNode().
+TEST(TopicStorageTest, PublishersByNode)
+{
+  init();
+
+  Publisher publisher1(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
+  Publisher publisher2(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
+  Publisher publisher3(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);
+
+  TopicStorage<Publisher> test;
+
+  EXPECT_TRUE(test.AddPublisher(publisher1));
+  EXPECT_TRUE(test.AddPublisher(publisher2));
+  EXPECT_TRUE(test.AddPublisher(publisher3));
+
+  // Checking a PUUID that does not exist.
+  std::vector<Publisher> pubs;
+  test.PublishersByNode("unknown_puuid", g_nUuid1, pubs);
+  EXPECT_TRUE(pubs.empty());
+
+  // Checking a NUUID that does not exist.
+  test.PublishersByNode(g_pUuid1, "unknown_nuuid", pubs);
+  EXPECT_TRUE(pubs.empty());
+
+  // Checking an existent NUUID with multiple publishers.
+  test.PublishersByNode(g_pUuid1, g_nUuid1, pubs);
+  EXPECT_EQ(pubs.size(), 1u);
+  EXPECT_EQ(pubs.at(0).Addr(), g_addr1);
+}
