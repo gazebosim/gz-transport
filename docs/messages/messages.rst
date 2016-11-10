@@ -15,7 +15,7 @@ nodes will be running on different processes within the same machine.
 Publisher
 ======================
 
-Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
+Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -133,7 +133,7 @@ The method *Publish()* sends a message to all the subscribers.
 Subscriber
 ==========
 
-Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
+Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -218,7 +218,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
 
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
