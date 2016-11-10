@@ -281,10 +281,10 @@ namespace ignition
         for (auto const &topic : this->data)
         {
           // m is {pUUID=>Publisher}.
-          auto &m = topic.second;
+          auto const &m = topic.second;
           if (m.find(_pUuid) != m.end())
           {
-            auto &v = m.at(_pUuid);
+            auto const &v = m.at(_pUuid);
             for (auto const &pub : v)
             {
               if (pub.NUuid() == _nUuid)
