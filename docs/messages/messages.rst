@@ -15,7 +15,7 @@ nodes will be running on different processes within the same machine.
 Publisher
 ======================
 
-Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
+Download the `publisher.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -53,8 +53,8 @@ folder and open it with your favorite editor:
       ignition::transport::Node node;
       std::string topic = "/foo";
 
-      auto pubId = node.Advertise<ignition::msgs::StringMsg>(topic);
-      if (!pubId)
+      auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+      if (!pub)
       {
         std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
         return -1;
@@ -67,7 +67,7 @@ folder and open it with your favorite editor:
       // Publish messages at 1Hz.
       while (!g_terminatePub)
       {
-        if (!node.Publish(pubId, msg))
+        if (!pub.Publish(msg))
           break;
 
         std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
@@ -97,17 +97,18 @@ for our messages. We are going to publish ``StringMsg`` type protobuf messages.
     ignition::transport::Node node;
     std::string topic = "/foo";
 
-    auto pubId = node.Advertise<ignition::msgs::StringMsg>(topic);
-    if (!pubId)
+    auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+    if (!pub)
     {
       std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
       return -1;
     }
 
-First of all we declare a *Node* that will offer all the transport
+First of all we declare a *Node* that will offer some of the transport
 functionality. In our case, we are interested on publishing topic updates, so
 the first step is to announce our topic name and its type. Once a topic name is
-advertised, we can start publishing periodic messages.
+advertised, we can start publishing periodic messages using the publisher
+object.
 
 .. code-block:: cpp
 
@@ -118,7 +119,7 @@ advertised, we can start publishing periodic messages.
     // Publish messages at 1Hz.
     while (!g_terminatePub)
     {
-      if (!node.Publish(pubId, msg))
+      if (!pub.Publish(msg))
         break;
 
       std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
@@ -132,7 +133,7 @@ The method *Publish()* sends a message to all the subscribers.
 Subscriber
 ==========
 
-Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
+Download the `subscriber.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -217,7 +218,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
 
 Once you have all your files, go ahead and create a ``build/`` directory within
 the ``ign_transport_tutorial`` directory.
