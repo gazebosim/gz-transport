@@ -15,9 +15,9 @@
  *
 */
 
+#include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <google/protobuf/message.h>
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
