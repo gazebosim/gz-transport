@@ -63,7 +63,11 @@ COMMANDS = {  'topic' =>
                        "                             Requires -t and -m.\n"    +
                        "                                                    \n"+
                        "  -e [ --echo ] arg          Output data to screen.\n" +
-                       "                             arg is the topic name.\n" +
+                       "                             arg is the topic name. "  +
+                       " E.g.:\n\n"                                            +
+                       "                               ign topic -e -t /foo\n" +
+                       "                                                    \n"+
+                       "                             Requires -t.\n"           +
                        "                                                    \n"+
                        "  -d [--duration] arg        Duration (seconds) to run"+
                        ". Applicable with echo.\n"                             +
