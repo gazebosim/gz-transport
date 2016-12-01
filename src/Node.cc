@@ -192,8 +192,11 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
         if (subscriptionHandlerPtr)
         {
-          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+          if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
+              subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+          {
             continue;
+          }
 
           subscriptionHandlerPtr->RunLocalCallback(_msg);
         }

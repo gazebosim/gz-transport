@@ -118,6 +118,9 @@ namespace ignition
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;
+
+    /// \brief The string type used for generic messages.
+    const std::string kGenericMessageType = "google.protobug.Message";
   }
 }
 #endif
