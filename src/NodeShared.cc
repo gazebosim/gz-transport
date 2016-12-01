@@ -302,7 +302,9 @@ void NodeShared::RecvMsgUpdate()
   if (handlersFound && firstHandlerFound)
   {
     // Create the message.
-    auto recvMsg = firstSubscriberPtr->CreateMsg(data);
+    auto recvMsg = firstSubscriberPtr->CreateMsg(data, msgType);
+    if (!recvMsg)
+      return;
 
     for (const auto &node : handlers)
     {
@@ -311,8 +313,11 @@ void NodeShared::RecvMsgUpdate()
         ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
         if (subscriptionHandlerPtr)
         {
-          if (subscriptionHandlerPtr->TypeName() == msgType)
+          if (subscriptionHandlerPtr->TypeName() == msgType ||
+              subscriptionHandlerPtr->TypeName() == "google.protobuf.Message")
+          {
             subscriptionHandlerPtr->RunLocalCallback(*recvMsg);
+          }
         }
         else
           std::cerr << "Subscription handler is NULL" << std::endl;
@@ -814,8 +819,11 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         {
           for (auto const &handler : node.second)
           {
-            if (handler.second->TypeName() != _pub.MsgTypeName())
+            if (handler.second->TypeName() != "google.protobuf.Message" &&
+                handler.second->TypeName() != _pub.MsgTypeName())
+            {
               continue;
+            }
 
             std::string nodeUuid = handler.second->NodeUuid();
 

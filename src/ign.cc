@@ -247,6 +247,43 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
     std::cerr << "Service call timed out" << std::endl;
 }
 
+//////////////////////////////////////////////////
+void cb(const ignition::transport::ProtoMsg &_msg)
+{
+  std::cout << _msg.DebugString() << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
+  const double _duration)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+
+  Node node;
+
+  std::cout << "Subscribing to topic [" << _topic << "]" << std::endl;
+
+  std::string topic = "/foo";
+  if (!node.Subscribe(topic, cb))
+  {
+    std::cerr << "Invalid topic [" << _topic << "]" << std::endl;
+    return;
+  }
+
+  if (_duration >= 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      static_cast<int64_t>(_duration * 1000)));
+    return;
+  }
+
+  // Wait forever.
+  ignition::transport::waitForShutdown();
+}
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
