@@ -54,13 +54,19 @@ COMMANDS = {  'topic' =>
                        "                             Required with -p.\n"      +
                        "                                                    \n"+
                        "  -p [ --pub ] arg           Publish a message.\n"     +
-                       "                             Arg is the message data." +
+                       "                             arg is the message data." +
                        " The format expected is\n                            " +
                        " the same used by Protobuf DebugString(). E.g.:\n\n"   +
                        "                               ign topic -t /foo -m "  +
                        "  ignition.msgs.StringMsg\n                          " +
                        "     -p \'data:\"Custom data\"\'\n\n"                  +
                        "                             Requires -t and -m.\n"    +
+                       "                                                    \n"+
+                       "  -e [ --echo ] arg          Output data to screen.\n" +
+                       "                             arg is the topic name.\n" +
+                       "                                                    \n"+
+                       "  -d [--duration] arg        Duration (seconds) to run"+
+                       ". Applicable with echo.\n"                             +
                        "                                                    \n"+
                        COMMON_OPTIONS,
               'service' =>
@@ -174,6 +180,16 @@ class Cmd
         options['reptype'] = t
       end
 
+      opts.on('-e', '--echo', String,
+              'Output topic data to screen') do |e|
+        options['echo'] = e
+      end
+
+      opts.on('-d secs', '--duration', Float,
+              'Duration (seconds) to run') do |d|
+        options['duration'] = d
+      end
+
     end
     begin
       opt_parser.parse!(args)
@@ -254,6 +270,19 @@ class Cmd
             Importer.extern 'void cmdTopicPub(const char *, const char *, const char *)'
             Importer.cmdTopicPub(options['topic'], options['msgtype'],
                                  options['pub'])
+          end
+        elsif options.key?('echo')
+          if not options.key?('topic')
+            puts 'ign topic --echo: missing topic name (-t <topic>)'
+            puts 'Try ign topic --help'
+          else
+            duration = -1.0
+            if options.key?('duration')
+              duration = options['duration']
+            end
+            Importer.extern 'void cmdTopicEcho(const char*, double)'
+            topic = options['topic']
+            Importer.cmdTopicEcho(topic, duration.to_f)
           end
         else
           puts 'Command error: I do not have an implementation '\
