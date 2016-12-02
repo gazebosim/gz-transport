@@ -147,8 +147,12 @@ namespace ignition
     template <typename T> class SubscriptionHandler
       : public ISubscriptionHandler
     {
-      // Inherited constructor.
-      using ISubscriptionHandler::ISubscriptionHandler;
+      // Documentation inherited.
+      public: explicit SubscriptionHandler(const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions())
+        : ISubscriptionHandler(_nUuid, _opts)
+      {
+      }
 
       // Documentation inherited.
       public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
@@ -218,8 +222,12 @@ namespace ignition
     template <> class SubscriptionHandler<ProtoMsg>
       : public ISubscriptionHandler
     {
-      // Inherited constructor.
-      using ISubscriptionHandler::ISubscriptionHandler;
+      // Documentation inherited.
+      public: explicit SubscriptionHandler(const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions())
+        : ISubscriptionHandler(_nUuid, _opts)
+      {
+      }
 
       // Documentation inherited.
       public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
@@ -231,7 +239,7 @@ namespace ignition
             ->FindMessageTypeByName(_type);
         if (!desc)
         {
-          std::cerr << "Unable to find descriptor [" << "/foo" << "]"
+          std::cerr << "Unable to find descriptor [" << _type << "]"
                     << std::endl;
           return nullptr;
         }

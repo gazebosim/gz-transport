@@ -54,7 +54,7 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &_msg)
+void genericCb(const transport::ProtoMsg &/*_msg*/)
 {
   genericCbExecuted = true;
   ++counter;
@@ -73,7 +73,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 /// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
+TEST(twoProcPubSub, PubSubThreeProcsTwoNodes)
 {
   std::string subscriberPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
