@@ -31,6 +31,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <ignition/msgs/Factory.hh>
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
@@ -234,19 +236,27 @@ namespace ignition
         const std::string &_data,
         const std::string &_type) const
       {
+        std::shared_ptr<google::protobuf::Message> msgPtr;
+
         const google::protobuf::Descriptor *desc =
           google::protobuf::DescriptorPool::generated_pool()
             ->FindMessageTypeByName(_type);
-        if (!desc)
+
+        // First, check if we have the descriptor from the generated proto
+        // classes.
+        if (desc)
         {
-          std::cerr << "Unable to find descriptor [" << _type << "]"
-                    << std::endl;
-          return nullptr;
+          msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
+            ->GetPrototype(desc)->New());
+        }
+        else
+        {
+          // Fallback on Ignition Msgs if the message type is not found.
+          msgPtr = ignition::msgs::Factory::New(_type);
         }
 
-        std::shared_ptr<google::protobuf::Message> msgPtr(
-          google::protobuf::MessageFactory::generated_factory()
-            ->GetPrototype(desc)->New());
+        if (!msgPtr)
+          return nullptr;
 
         // Create the message using some serialized data
         if (!msgPtr->ParseFromString(_data))
@@ -255,7 +265,7 @@ namespace ignition
           return nullptr;
         }
 
-        return msgPtr;
+        return std::move(msgPtr);
       }
 
       // Documentation inherited.
