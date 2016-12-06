@@ -234,7 +234,7 @@ namespace ignition
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
         this->SendMsg(ByeType,
-          Publisher("", "", this->pUuid, "", Scope_t::ALL));
+          Publisher("", "", this->pUuid, "", AdvertiseOptions()));
 
         // Close sockets.
         for (const auto &sock : this->sockets)
@@ -295,7 +295,7 @@ namespace ignition
 
         // Only advertise a message outside this process if the scope
         // is not 'Process'
-        if (_publisher.Scope() != Scope_t::PROCESS)
+        if (_publisher.Options().Scope() != Scope_t::PROCESS)
           this->SendMsg(AdvType, _publisher);
 
         return true;
@@ -329,7 +329,6 @@ namespace ignition
         Pub pub;
         pub.SetTopic(_topic);
         pub.SetPUuid(this->pUuid);
-        pub.SetScope(Scope_t::ALL);
 
         // Send a discovery request.
         this->SendMsg(SubType, pub);
@@ -406,7 +405,7 @@ namespace ignition
 
         // Only unadvertise a message outside this process if the scope
         // is not 'Process'.
-        if (inf.Scope() != Scope_t::PROCESS)
+        if (inf.Options().Scope() != Scope_t::PROCESS)
           this->SendMsg(UnadvType, inf);
 
         return true;
@@ -590,7 +589,6 @@ namespace ignition
             // interested in its topics.
             Pub publisher;
             publisher.SetPUuid(it->first);
-            publisher.SetScope(Scope_t::ALL);
             this->disconnectionCb(publisher);
 
             // Remove the activity entry.
@@ -616,7 +614,7 @@ namespace ignition
             return;
         }
 
-        Publisher pub("", "", this->pUuid, "", Scope_t::ALL);
+        Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
         this->SendMsg(HeartbeatType, pub);
 
         std::map<std::string, std::vector<Pub>> nodes;
@@ -799,8 +797,8 @@ namespace ignition
             advMsg.Unpack(pBody);
 
             // Check scope of the topic.
-            if ((advMsg.Publisher().Scope() == Scope_t::PROCESS) ||
-                (advMsg.Publisher().Scope() == Scope_t::HOST &&
+            if ((advMsg.Publisher().Options().Scope() == Scope_t::PROCESS) ||
+                (advMsg.Publisher().Options().Scope() == Scope_t::HOST &&
                  _fromIp != this->hostAddr))
             {
               return;
@@ -844,8 +842,8 @@ namespace ignition
             for (const auto &nodeInfo : addresses[this->pUuid])
             {
               // Check scope of the topic.
-              if ((nodeInfo.Scope() == Scope_t::PROCESS) ||
-                  (nodeInfo.Scope() == Scope_t::HOST &&
+              if ((nodeInfo.Options().Scope() == Scope_t::PROCESS) ||
+                  (nodeInfo.Options().Scope() == Scope_t::HOST &&
                    _fromIp != this->hostAddr))
               {
                 continue;
@@ -874,7 +872,6 @@ namespace ignition
             {
               Pub pub;
               pub.SetPUuid(recvPUuid);
-              pub.SetScope(Scope_t::ALL);
               // Notify the new disconnection.
               disconnectCb(pub);
             }
@@ -894,8 +891,8 @@ namespace ignition
             advMsg.Unpack(pBody);
 
             // Check scope of the topic.
-            if ((advMsg.Publisher().Scope() == Scope_t::PROCESS) ||
-                (advMsg.Publisher().Scope() == Scope_t::HOST &&
+            if ((advMsg.Publisher().Options().Scope() == Scope_t::PROCESS) ||
+                (advMsg.Publisher().Options().Scope() == Scope_t::HOST &&
                  _fromIp != this->hostAddr))
             {
               return;
@@ -1105,7 +1102,7 @@ namespace ignition
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      private: static const uint8_t kWireVersion = 6;
+      private: static const uint8_t kWireVersion = 7;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;

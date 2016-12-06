@@ -78,12 +78,13 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_z(3.0);
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>(g_topic));
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 20; ++i)
   {
-    EXPECT_TRUE(node.Publish(g_topic, msg));
+    EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
@@ -178,7 +179,7 @@ TEST(twoProcPubSub, FastPublisher)
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at higher frequency than the rate set
 /// by the subscriber.
-TEST(NodeTest, PubThrottled)
+TEST(NodeTest, SubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
@@ -199,7 +200,7 @@ TEST(NodeTest, PubThrottled)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-  // Node published 2 messages in ~1.5 sec. We should receive both messages.
+  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
   EXPECT_EQ(counter, 2);
 
   reset();
@@ -209,34 +210,9 @@ TEST(NodeTest, PubThrottled)
 
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber on different
-/// processes. The publisher publishes at throttled frequency lower than the
-/// rate set by the subscriber.
-TEST(NodeTest, SubThrottled)
+/// processes. The publisher publishes at a throttled frequency.
+TEST(NodeTest, PubThrottled)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_pub_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
-
-  reset();
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  transport::Node node;
-  ignition::transport::AdvertiseOptions opts;
-  opts.SetMsgsPerSec(1u);
-
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-
-  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
-  EXPECT_EQ(counter, 2);
-
-  reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

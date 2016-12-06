@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,13 @@
  *
 */
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <csignal>
 #include <condition_variable>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -77,6 +69,53 @@ namespace ignition
         g_shutdown_cv.notify_all();
       }
     }
+
+    //////////////////////////////////////////////////
+    /// \internal
+    /// \brief Private data for Node::Publisher class.
+    class Node::PublisherPrivate
+    {
+      /// \brief Default constructor.
+      public: PublisherPrivate()
+        : shared(NodeShared::Instance())
+      {
+      }
+
+      /// \brief Constructor
+      /// \param[in] _publisher The message publisher.
+      public: explicit PublisherPrivate(const MessagePublisher &_publisher)
+        : shared(NodeShared::Instance()),
+          publisher(_publisher)
+      {
+      }
+
+      /// \brief Destructor.
+      public: virtual ~PublisherPrivate()
+      {
+        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+        // Notify the discovery service to unregister and unadvertise my topic.
+        if (!this->shared->msgDiscovery->Unadvertise(
+               this->publisher.Topic(), this->publisher.NUuid()))
+        {
+          std::cerr << "~PublisherPrivate() Error unadvertising topic ["
+                    << this->publisher.Topic() << "]" << std::endl;
+        }
+      }
+
+      /// \brief Pointer to the object shared between all the nodes within the
+      /// same process.
+      public: NodeShared *shared = nullptr;
+
+      /// \brief The message publisher.
+      public: MessagePublisher publisher;
+
+      /// \brief Timestamp of the last callback executed.
+      public: Timestamp lastCbTimestamp;
+
+      /// \brief If throttling is enabled, the minimum period for receiving a
+      /// message in nanoseconds.
+      public: double periodNs = 0.0;
+    };
   }
 }
 
@@ -92,37 +131,142 @@ void ignition::transport::waitForShutdown()
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::PublisherId()
+Node::Publisher::Publisher()
+  : dataPtr(std::make_shared<PublisherPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::PublisherId(const std::string &_topic) : topic(_topic)
+Node::Publisher::Publisher(const MessagePublisher &_publisher)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
+{
+  if (this->dataPtr->publisher.Options().Throttled())
+  {
+    this->dataPtr->periodNs =
+      1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
+  }
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::~Publisher()
 {
 }
 
 //////////////////////////////////////////////////
-Node::PublisherId::operator bool()
+Node::Publisher::operator bool()
 {
   return this->Valid();
 }
 
 //////////////////////////////////////////////////
-bool Node::PublisherId::Valid() const
+bool Node::Publisher::Valid() const
 {
-  return !this->topic.empty();
+  return !this->dataPtr->publisher.Topic().empty();
 }
 
 //////////////////////////////////////////////////
-std::string Node::PublisherId::Topic() const
+bool Node::Publisher::Publish(const ProtoMsg &_msg)
 {
-  return this->topic;
+  if (!this->Valid())
+    return false;
+
+  // Check that the msg type matches the topic type previously advertised.
+  if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
+  {
+    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
+              << "\t* Type advertised: "
+              << this->dataPtr->publisher.MsgTypeName()
+              << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
+    return false;
+  }
+
+  // Check the publication throttling option.
+  if (!this->UpdateThrottling())
+    return true;
+
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
+
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
+      this->dataPtr->publisher.Topic(), handlers);
+    hasRemoteSubscribers =this->dataPtr->shared->remoteSubscribers.HasTopic(
+      this->dataPtr->publisher.Topic());
+  }
+
+  // Local subscribers.
+  if (hasLocalSubscribers)
+  {
+    for (auto &node : handlers)
+    {
+      for (auto &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+        if (subscriptionHandlerPtr)
+        {
+          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+            continue;
+
+          subscriptionHandlerPtr->RunLocalCallback(_msg);
+        }
+        else
+        {
+          std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
+                    << std::endl;
+        }
+      }
+    }
+  }
+
+  // Remote subscribers.
+  if (hasRemoteSubscribers)
+  {
+    std::string data;
+    if (!_msg.SerializeToString(&data))
+    {
+      std::cerr << "Node::Publisher::Publish(): Error serializing data"
+                << std::endl;
+      return false;
+    }
+
+    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
+          _msg.GetTypeName()))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::UpdateThrottling()
+{
+  if (!this->dataPtr->publisher.Options().Throttled())
+    return true;
+
+  Timestamp now = std::chrono::steady_clock::now();
+
+  // Elapsed time since the last callback execution.
+  auto elapsed = now - this->dataPtr->lastCbTimestamp;
+  if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+        elapsed).count() < this->dataPtr->periodNs)
+  {
+    return false;
+  }
+
+  // Update the last callback execution.
+  this->dataPtr->lastCbTimestamp = now;
+  return true;
 }
 
 //////////////////////////////////////////////////
 Node::Node(const NodeOptions &_options)
-  :  lastMsgTimestamp(std::chrono::seconds{0}),
-     dataPtr(new NodePrivate())
+  : dataPtr(new NodePrivate())
 {
   // Generate the node UUID.
   Uuid uuid;
@@ -142,17 +286,6 @@ Node::~Node()
 
   // The list of subscribed topics should be empty.
   assert(this->SubscribedTopics().empty());
-
-  // Unadvertise all my topics.
-  auto advTopics = this->AdvertisedTopics();
-  for (auto const &topic : advTopics)
-  {
-    if (!this->Unadvertise(topic))
-    {
-      std::cerr << "Node::~Node(): Error unadvertising topic ["
-                << topic << "]" << std::endl;
-    }
-  }
 
   // The list of advertised topics should be empty.
   assert(this->AdvertisedTopics().empty());
@@ -176,155 +309,29 @@ Node::~Node()
 std::vector<std::string> Node::AdvertisedTopics() const
 {
   std::vector<std::string> v;
+  std::unordered_set<std::string> result;
+  std::vector<MessagePublisher> pubs;
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  for (auto topic : this->dataPtr->topicsAdvertised)
   {
-    // Remove the partition information.
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    auto pUUID = this->dataPtr->shared->pUuid;
+    auto &info = this->dataPtr->shared->msgDiscovery->Info();
+    info.PublishersByNode(pUUID, this->NodeUuid(), pubs);
+  }
+
+  // Copy the topics to a std::set for removing duplications.
+  for (auto const &pub : pubs)
+    result.insert(pub.Topic());
+
+  // Remove the partition information and convert to std::vector.
+  for (auto topic : result)
+  {
     topic.erase(0, topic.find_last_of("@") + 1);
     v.push_back(topic);
   }
 
   return v;
-}
-
-//////////////////////////////////////////////////
-bool Node::Unadvertise(const std::string &_topic)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Remove the topic from the list of advertised topics in this node.
-  this->dataPtr->topicsAdvertised.erase(fullyQualifiedTopic);
-
-  // Notify the discovery service to unregister and unadvertise my topic.
-  if (!this->dataPtr->shared->msgDiscovery->Unadvertise(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
-  {
-    return false;
-  }
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Node::Publish(const PublisherId &_id, const ProtoMsg &_msg)
-{
-  return _id.Valid() ? this->PublishHelper(_id.Topic(), _msg) : false;
-}
-
-//////////////////////////////////////////////////
-bool Node::Publish(const std::string &_topic, const ProtoMsg &_msg)
-{
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-  {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-    return false;
-  }
-
-  return this->PublishHelper(fullyQualifiedTopic, _msg);
-}
-
-//////////////////////////////////////////////////
-bool Node::PublishHelper(const std::string &_topic, const ProtoMsg &_msg)
-{
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-  {
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-    // Topic not advertised before.
-    if (this->dataPtr->topicsAdvertised.find(_topic) ==
-        this->dataPtr->topicsAdvertised.end())
-    {
-      return false;
-    }
-
-    // Check the message throttling option.
-    if (this->UpdateThrottling())
-      return false;
-
-    hasLocalSubscribers =
-      this->dataPtr->shared->localSubscriptions.Handlers(_topic, handlers);
-    hasRemoteSubscribers =
-      this->dataPtr->shared->remoteSubscribers.HasTopic(_topic);
-  }
-
-  // Check that the msg type matches the type previously advertised
-  // for topic '_topic'.
-  MessagePublisher pub;
-  auto &info = this->dataPtr->shared->msgDiscovery->Info();
-  std::string procUuid = this->dataPtr->shared->pUuid;
-  std::string nodeUuid = this->dataPtr->nUuid;
-  if (!info.Publisher(_topic, procUuid, nodeUuid, pub))
-  {
-    std::cerr << "Node::Publish() I cannot find the msgType registered for "
-              << "topic [" << _topic << "]" << std::endl;
-    return false;
-  }
-
-  if (pub.MsgTypeName() != _msg.GetTypeName())
-  {
-    std::cerr << "Node::Publish() Type mismatch." << std::endl
-              << "\t* Type advertised: " << pub.MsgTypeName() << std::endl
-              << "\t* Type published: " << _msg.GetTypeName() << std::endl;
-    return false;
-  }
-
-  // Local subscribers.
-  if (hasLocalSubscribers)
-  {
-    for (auto &node : handlers)
-    {
-      for (auto &handler : node.second)
-      {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-        if (subscriptionHandlerPtr)
-        {
-          if (subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
-            continue;
-
-          subscriptionHandlerPtr->RunLocalCallback(_msg);
-        }
-        else
-        {
-          std::cerr << "Node::Publish(): Subscription handler is NULL"
-                    << std::endl;
-        }
-      }
-    }
-  }
-
-  // Remote subscribers.
-  if (hasRemoteSubscribers)
-  {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
-    {
-      std::cerr << "Node::Publish(): Error serializing data" << std::endl;
-      return false;
-    }
-
-    if (!this->dataPtr->shared->Publish(_topic, data, _msg.GetTypeName()))
-      return false;
-  }
-  // Debug output.
-  // else
-  //   std::cout << "There are no remote subscribers...SKIP" << std::endl;
-
-  return true;
 }
 
 //////////////////////////////////////////////////
@@ -534,12 +541,6 @@ const std::string &Node::NodeUuid() const
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string> &Node::TopicsAdvertised() const
-{
-  return this->dataPtr->topicsAdvertised;
-}
-
-//////////////////////////////////////////////////
 std::unordered_set<std::string> &Node::TopicsSubscribed() const
 {
   return this->dataPtr->topicsSubscribed;
@@ -642,27 +643,5 @@ bool Node::ServiceInfo(const std::string &_service,
     }
   }
 
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Node::UpdateThrottling()
-{
-  if (!this->opts.Throttled())
-    return true;
-
-  Timestamp now = std::chrono::steady_clock::now();
-
-  // Elapsed time since the last message publication.
-  auto elapsed = now - this->lastMsgTimestamp;
-
-  if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-        elapsed).count() < this->periodNs)
-  {
-    return false;
-  }
-
-  // Update the last message publication.
-  this->lastMsgTimestamp = now;
   return true;
 }

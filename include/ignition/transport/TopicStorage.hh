@@ -108,11 +108,11 @@ namespace ignition
       /// \return true if the publisher's address is stored.
       public: bool HasPublisher(const std::string &_addr) const
       {
-        for (auto &topic : this->data)
+        for (auto const &topic : this->data)
         {
-          for (auto &proc : topic.second)
+          for (auto const &proc : topic.second)
           {
-            for (auto &pub : proc.second)
+            for (auto const &pub : proc.second)
             {
               if (pub.Addr() == _addr)
                 return true;
@@ -251,16 +251,46 @@ namespace ignition
         _pubs.clear();
 
         // Iterate over all the topics.
-        for (auto &topic : this->data)
+        for (auto const &topic : this->data)
         {
           // m is {pUUID=>Publisher}.
           auto &m = topic.second;
           if (m.find(_pUuid) != m.end())
           {
             auto &v = m.at(_pUuid);
-            for (auto &pub : v)
+            for (auto const &pub : v)
             {
-              _pubs[topic.first].push_back(T(pub));
+              _pubs[pub.NUuid()].push_back(T(pub));
+            }
+          }
+        }
+      }
+
+      /// \brief Given a process UUID and the node UUID, the function returns
+      /// the list of publishers contained in the node.
+      /// \param[in] _pUuid Process UUID.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[out] _pubs Vector of publishers.
+      public: void PublishersByNode(const std::string &_pUuid,
+                                    const std::string &_nUuid,
+                                    std::vector<T> &_pubs) const
+      {
+        _pubs.clear();
+
+        // Iterate over all the topics.
+        for (auto const &topic : this->data)
+        {
+          // m is {pUUID=>Publisher}.
+          auto const &m = topic.second;
+          if (m.find(_pUuid) != m.end())
+          {
+            auto const &v = m.at(_pUuid);
+            for (auto const &pub : v)
+            {
+              if (pub.NUuid() == _nUuid)
+              {
+                _pubs.push_back(T(pub));
+              }
             }
           }
         }
@@ -270,7 +300,7 @@ namespace ignition
       /// \param[out] _topics List of stored topics.
       public: void TopicList(std::vector<std::string> &_topics) const
       {
-        for (auto &topic : this->data)
+        for (auto const &topic : this->data)
           _topics.push_back(topic.first);
       }
 
@@ -278,15 +308,15 @@ namespace ignition
       public: void Print() const
       {
         std::cout << "---" << std::endl;
-        for (auto &topic : this->data)
+        for (auto const &topic : this->data)
         {
           std::cout << "[" << topic.first << "]" << std::endl;
           auto &m = topic.second;
-          for (auto &proc : m)
+          for (auto const &proc : m)
           {
             std::cout << "\tProc. UUID: " << proc.first << std::endl;
             auto &v = proc.second;
-            for (auto &publisher : v)
+            for (auto const &publisher : v)
             {
               std::cout << publisher;
             }

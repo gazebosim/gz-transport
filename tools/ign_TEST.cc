@@ -169,8 +169,9 @@ TEST(ignTest, TopicListSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>("/foo"));
-  EXPECT_TRUE(node.Publish("/foo", msg));
+  auto pub = node.Advertise<ignition::msgs::Vector3d>("/foo");
+  EXPECT_TRUE(pub);
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
@@ -189,8 +190,9 @@ TEST(ignTest, TopicInfoSameProc)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Vector3d>("/foo"));
-  EXPECT_TRUE(node.Publish("/foo", msg));
+  auto pub = node.Advertise<ignition::msgs::Vector3d>("/foo");
+  EXPECT_TRUE(pub);
+  EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";

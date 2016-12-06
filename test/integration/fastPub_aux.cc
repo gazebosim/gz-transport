@@ -36,9 +36,9 @@ void advertiseAndPublish()
 
   transport::Node node;
 
-  node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  node.Publish(g_topic, msg);
+  pub.Publish(msg);
 }
 
 //////////////////////////////////////////////////

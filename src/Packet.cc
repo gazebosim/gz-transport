@@ -235,7 +235,7 @@ size_t SubscriptionMsg::Pack(char *_buffer) const
 }
 
 //////////////////////////////////////////////////
-size_t SubscriptionMsg::Unpack(char *_buffer)
+size_t SubscriptionMsg::Unpack(const char *_buffer)
 {
   // null buffer.
   if (!_buffer)

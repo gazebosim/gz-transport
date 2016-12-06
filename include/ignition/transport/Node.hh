@@ -17,18 +17,8 @@
 #ifndef IGN_TRANSPORT_NODE_HH_
 #define IGN_TRANSPORT_NODE_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <algorithm>
-#include <chrono>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -45,7 +35,6 @@
 #endif
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -74,46 +63,59 @@ namespace ignition
     /// calls.
     class IGNITION_TRANSPORT_VISIBLE Node
     {
+      class PublisherPrivate;
+
       /// \brief A class that is used to store information about an
       /// advertised publisher. An instance of this class is returned
       /// from Node::Advertise, and should be used in subsequent
-      /// Node::Publish calls.
+      /// Node::Publisher::Publish calls.
       ///
       /// ## Pseudo code example ##
       ///
-      ///    auto pubId = myNode.Advertise<MsgType>("topic_name");
-      ///
-      ///    MsgType msg;
-      ///    myNode.Publish(pubId, msg);
-      ///
-      public: class PublisherId
+      ///    auto pub = myNode.Advertise<MsgType>("topic_name");
+      ///    if (pub)
+      ///    {
+      ///      MsgType msg;
+      ///      pub.Publish(msg);
+      ///    }
+      public: class Publisher
       {
-        /// \brief Default constructor
-        public: PublisherId();
+        /// \brief Default constructor.
+        public: Publisher();
 
-        /// \brief Constructor
-        /// \param[in] _topic Name of the topic on which messages
-        /// could be published.
-        public: explicit PublisherId(const std::string &_topic);
+        /// \brief Constructor.
+        /// \param[in] _publisher A message publisher.
+        public: explicit Publisher(const MessagePublisher &_publisher);
+
+        /// \brief Destructor.
+        public: virtual ~Publisher();
 
         /// \brief Allows this class to be evaluated as a boolean.
         /// \return True if valid
         /// \sa Valid
         public: operator bool();
 
-        /// \brief Return true if valid information, such as
-        /// a non-empty topic name, is present.
-        /// \return True if this object can be used in Node::Publish
-        /// calls.
+        /// \brief Return true if valid information, such as a non-empty
+        /// topic name, is present.
+        /// \return True if this object can be used in Publish() calls.
         public: bool Valid() const;
 
-        /// \brief Return the name of the topic.
-        /// \return Name of the topic that message would be
-        /// published on.
-        public: std::string Topic() const;
+        /// \brief Publish a message.
+        /// \param[in] _msg A google::protobuf message.
+        /// \return true when success.
+        public: bool Publish(const ProtoMsg &_msg);
 
-        /// \brief Name of the topic
-        private: std::string topic = "";
+        /// \brief Check if message publication is throttled. If so, verify
+        /// whether the next message should be publisher or not.
+        /// \return true if the message should be publisher or false otherwise.
+        private: bool UpdateThrottling();
+
+        /// \internal
+        /// \brief Smart pointer to private data.
+        /// This is std::shared_ptr because we want to trigger the destructor
+        /// only once when all references to PublisherPrivate are out of scope.
+        /// The destructor of PublisherPrivate unadvertise the topic.
+        private: std::shared_ptr<PublisherPrivate> dataPtr;
       };
 
       /// \brief Constructor.
@@ -131,16 +133,10 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> Node::PublisherId Advertise(
+      public: template<typename T> Node::Publisher Advertise(
                   const std::string &_topic,
-                  const AdvertiseOptions &_options = AdvertiseOptions())
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
-	      this->opts = _options;
-	      this->periodNs = 0.0;
-
-	      if (this->opts.Throttled())
-	        this->periodNs = 1e9 / this->opts.MsgsPerSec();
-
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
 
@@ -155,75 +151,52 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: Node::PublisherId Advertise(const std::string &_topic,
-                  const std::string &_msgTypeName,
-                  const AdvertiseOptions &_options = AdvertiseOptions())
+      public: Node::Publisher Advertise(const std::string &_topic,
+                                        const std::string &_msgTypeName,
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
           this->Options().NameSpace(), _topic, fullyQualifiedTopic))
         {
           std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
-          return PublisherId();
+          return Publisher();
         }
 
-        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+        auto currentTopics = this->AdvertisedTopics();
 
-        auto currentTopics = this->TopicsAdvertised();
-
-        if (currentTopics.find(fullyQualifiedTopic) != currentTopics.end())
+        if (std::find(currentTopics.begin(), currentTopics.end(),
+              fullyQualifiedTopic) != currentTopics.end())
         {
           std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
                     << " advertise the same topic twice on the same node."
                     << " If you want to advertise the same topic with different"
                     << " types, use separate nodes" << std::endl;
-          return PublisherId();
+          return Publisher();
         }
 
-        // Add the topic to the list of advertised topics (if it was not before)
-        this->TopicsAdvertised().insert(fullyQualifiedTopic);
+        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Notify the discovery service to register and advertise my topic.
         MessagePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myAddress,
           this->Shared()->myControlAddress,
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          _msgTypeName);
+          this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
 
         if (!this->Shared()->msgDiscovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a topic. "
                     << "Did you forget to start the discovery service?"
                     << std::endl;
-          return PublisherId();
+          return Publisher();
         }
 
-        return PublisherId(fullyQualifiedTopic);
+        return Publisher(publisher);
       }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
       public: std::vector<std::string> AdvertisedTopics() const;
-
-      /// \brief Unadvertise a topic.
-      /// \param[in] _topic Topic name to be unadvertised.
-      /// \return true if the topic was unadvertised.
-      public: bool Unadvertise(const std::string &_topic);
-
-      /// \brief Publish a message.
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      public: bool Publish(const std::string &_topic,
-                           const ProtoMsg &_msg);
-
-      /// \brief Publish a message.
-      /// \param[in] _id Id of the publisher, which encapsulates the topic
-      /// on which to send the message.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      public: bool Publish(const PublisherId &_id,
-                           const ProtoMsg &_msg);
 
       /// \brief Subscribe to a topic registering a callback.
       /// In this version the callback is a free function.
@@ -348,7 +321,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
@@ -373,7 +346,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         void(*_cb)(T &_rep, bool &_result),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -397,7 +370,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         void(*_cb)(const T &_req),
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
@@ -424,7 +397,7 @@ namespace ignition
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
         std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -457,8 +430,8 @@ namespace ignition
         ServicePublisher publisher(fullyQualifiedTopic,
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
-          this->Shared()->pUuid, this->NodeUuid(), _options.Scope(),
-          T1().GetTypeName(), T2().GetTypeName());
+          this->Shared()->pUuid, this->NodeUuid(),
+          T1().GetTypeName(), T2().GetTypeName(), _options);
 
         if (!this->Shared()->srvDiscovery->Advertise(publisher))
         {
@@ -485,7 +458,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         std::function<void(T &_rep, bool &_result)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -509,7 +482,7 @@ namespace ignition
       public: template<typename T> bool Advertise(
         const std::string &_topic,
         std::function<void(const T &_req)> &_cb,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
@@ -538,7 +511,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T1 &, T2 &, bool &)> f =
           [_cb, _obj](const T1 &_internalReq,
@@ -569,7 +542,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(T &_rep, bool &_result),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const msgs::Empty &, T &, bool &)> f =
           [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep,
@@ -598,7 +571,7 @@ namespace ignition
         const std::string &_topic,
         void(C::*_cb)(const T &_req),
         C *_obj,
-        const AdvertiseOptions &_options = AdvertiseOptions())
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
           [_cb, _obj](const T &_internalReq,
@@ -990,10 +963,6 @@ namespace ignition
       /// \return The node UUID.
       private: const std::string &NodeUuid() const;
 
-      /// \brief Get the set of topics advertised by this node.
-      /// \return The set of advertised topics.
-      private: std::unordered_set<std::string> &TopicsAdvertised() const;
-
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
       private: std::unordered_set<std::string> &TopicsSubscribed() const;
@@ -1006,33 +975,9 @@ namespace ignition
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
 
-      /// \brief Publish a message helper.
-      /// \sa Publish
-      /// \param[in] _topic Fully qualified topic to be published.
-      /// \param[in] _msg protobuf message.
-      /// \return true when success.
-      private: virtual bool PublishHelper(const std::string &_topic,
-                                          const ProtoMsg &_msg);
-
-      /// \brief Advertise options.
-      protected: AdvertiseOptions opts;
-
-      /// \brief Timestamp of the last message published.
-      protected: Timestamp lastMsgTimestamp;
-
-      /// \brief If throttling is enabled, the minimum period for sending a
-      /// message in nanoseconds.
-      protected: double periodNs;
-
-      /// \brief Check if message publication is throttled. If so, verify
-      /// whether the message should be published or not.
-      /// \return true if the message should be published or false
-      /// otherwise.
-      private: bool UpdateThrottling();
-
       /// \internal
       /// \brief Smart pointer to private data.
-      protected: std::unique_ptr<transport::NodePrivate> dataPtr;
+      private: std::unique_ptr<transport::NodePrivate> dataPtr;
     };
   }
 }

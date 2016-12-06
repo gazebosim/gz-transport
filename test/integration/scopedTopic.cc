@@ -47,14 +47,15 @@ TEST(ScopedTopicTest, ProcessTest)
   msg.set_data(data);
 
   transport::Node node;
-  transport::AdvertiseOptions opts;
+  transport::AdvertiseMessageOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  EXPECT_TRUE(node.Advertise<ignition::msgs::Int32>(g_topic, opts));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  EXPECT_TRUE(pub);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_TRUE(node.Publish(g_topic, msg));
+  EXPECT_TRUE(pub.Publish(msg));
 
   testing::waitAndCleanupFork(pi);
 }
