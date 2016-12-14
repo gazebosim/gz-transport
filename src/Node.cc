@@ -153,6 +153,18 @@ bool Node::Publisher::Valid() const
 }
 
 //////////////////////////////////////////////////
+bool Node::Publisher::HasConnections() const
+{
+  if (!this->Valid())
+    return false;
+
+  return this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
+      this->dataPtr->publisher.Topic()) ||
+    this->dataPtr->shared->remoteSubscribers.HasTopic(
+      this->dataPtr->publisher.Topic());
+}
+
+//////////////////////////////////////////////////
 bool Node::Publisher::Publish(const ProtoMsg &_msg)
 {
   if (!this->Valid())
@@ -177,7 +189,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
       this->dataPtr->publisher.Topic(), handlers);
-    hasRemoteSubscribers =this->dataPtr->shared->remoteSubscribers.HasTopic(
+    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
       this->dataPtr->publisher.Topic());
   }
 

@@ -48,7 +48,7 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  ignition::transport::Node::Publisher pub = node.Advertise<ignition::msgs::StringMsg>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;

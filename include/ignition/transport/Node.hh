@@ -78,7 +78,7 @@ namespace ignition
       ///      MsgType msg;
       ///      pub.Publish(msg);
       ///    }
-      public: class Publisher
+      public: class IGNITION_TRANSPORT_VISIBLE Publisher
       {
         /// \brief Default constructor.
         public: Publisher();
@@ -104,6 +104,10 @@ namespace ignition
         /// \param[in] _msg A google::protobuf message.
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
+
+        /// \brief Return true if this publisher has subscribers.
+        /// \return True if subscribers have connected to this publisher.
+        public: bool HasConnections() const;
 
         /// \internal
         /// \brief Smart pointer to private data.
