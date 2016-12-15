@@ -192,7 +192,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
       this->dataPtr->publisher.Topic(), handlers);
     hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
-      this->dataPtr->publisher.Topic());
+      this->dataPtr->publisher.Topic(), _msg.GetTypeName());
   }
 
   // Local subscribers.
@@ -226,7 +226,6 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Remote subscribers.
   if (hasRemoteSubscribers)
   {
-    std::cout << "has remote subscribers" << std::endl;
     std::string data;
     if (!_msg.SerializeToString(&data))
     {
@@ -235,16 +234,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       return false;
     }
 
-    std::cout << "[" << this->dataPtr->publisher.NUuid() << "] Publish!" << std::endl;
-
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
           _msg.GetTypeName()))
     {
       return false;
     }
   }
-  else
-    std::cout << "has remote subscribers" << std::endl;
 
   return true;
 }
@@ -400,6 +395,11 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(this->dataPtr->nUuid.size());
       memcpy(msg.data(), this->dataPtr->nUuid.data(),
              this->dataPtr->nUuid.size());
+      socket.send(msg, ZMQ_SNDMORE);
+
+      msg.rebuild(kGenericMessageType.size());
+      memcpy(msg.data(), kGenericMessageType.data(),
+             kGenericMessageType.size());
       socket.send(msg, ZMQ_SNDMORE);
 
       std::string data = std::to_string(EndConnection);
