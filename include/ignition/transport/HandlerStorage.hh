@@ -117,7 +117,8 @@ namespace ignition
         {
           for (const auto &handler : node.second)
           {
-            if (_msgTypeName == handler.second->TypeName())
+            if (_msgTypeName == handler.second->TypeName() ||
+                handler.second->TypeName() == kGenericMessageType)
             {
               _handler = handler.second;
               return true;

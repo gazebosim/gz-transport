@@ -31,6 +31,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <ignition/msgs/Factory.hh>
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
@@ -57,6 +59,8 @@ namespace ignition
           periodNs(0.0),
           nUuid(_nUuid)
       {
+        if (this->opts.Throttled())
+          this->periodNs = 1e9 / this->opts.MsgsPerSec();
       }
 
       /// \brief Destructor.
@@ -72,9 +76,11 @@ namespace ignition
 
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
+      /// \param[in] _type The data type.
       /// \return Pointer to the specific protobuf message.
       public: virtual const std::shared_ptr<transport::ProtoMsg> CreateMsg(
-        const std::string &_data) const = 0;
+        const std::string &_data,
+        const std::string &_type) const = 0;
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
@@ -93,6 +99,30 @@ namespace ignition
       public: std::string HandlerUuid() const
       {
         return this->hUuid;
+      }
+
+      /// \brief Check if message subscription is throttled. If so, verify
+      /// whether the callback should be executed or not.
+      /// \return true if the callback should be executed or false otherwise.
+      protected: bool UpdateThrottling()
+      {
+        if (!this->opts.Throttled())
+          return true;
+
+        Timestamp now = std::chrono::steady_clock::now();
+
+        // Elapsed time since the last callback execution.
+        auto elapsed = now - this->lastCbTimestamp;
+
+        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() < this->periodNs)
+        {
+          return false;
+        }
+
+        // Update the last callback execution.
+        this->lastCbTimestamp = now;
+        return true;
       }
 
       /// \brief Unique handler's UUID.
@@ -124,13 +154,12 @@ namespace ignition
         const SubscribeOptions &_opts = SubscribeOptions())
         : ISubscriptionHandler(_nUuid, _opts)
       {
-        if (this->opts.Throttled())
-          this->periodNs = 1e9 / this->opts.MsgsPerSec();
       }
 
       // Documentation inherited.
       public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
-        const std::string &_data) const
+        const std::string &_data,
+        const std::string &/*_type*/) const
       {
         // Instantiate a specific protobuf message
         auto msgPtr = std::make_shared<T>();
@@ -159,61 +188,124 @@ namespace ignition
         this->cb = _cb;
       }
 
-      /// \brief Check if message subscription is throttled. If so, verify
-      /// whether the callback should be executed or not.
-      /// \return true if the callback should be executed or false otherwise.
-      private: bool UpdateThrottling()
-      {
-        if (!this->opts.Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-
-        // Elapsed time since the last callback execution.
-        auto elapsed = now - this->lastCbTimestamp;
-
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
-          return false;
-        }
-
-        // Update the last callback execution.
-        this->lastCbTimestamp = now;
-        return true;
-      }
-
       // Documentation inherited.
       public: bool RunLocalCallback(const transport::ProtoMsg &_msg)
       {
-        // Execute the callback (if existing)
-        if (this->cb)
-        {
-          // Check the subscription throttling option.
-          if (!this->UpdateThrottling())
-            return true;
-
-#if GOOGLE_PROTOBUF_VERSION > 2999999
-          auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-#else
-          auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
-#endif
-
-          this->cb(*msgPtr);
-          return true;
-        }
-        else
+        // No callback stored.
+        if (!this->cb)
         {
           std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
           return false;
         }
+
+        // Check the subscription throttling option.
+        if (!this->UpdateThrottling())
+          return true;
+
+#if GOOGLE_PROTOBUF_VERSION > 2999999
+        auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+#else
+        auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
+#endif
+
+        this->cb(*msgPtr);
+        return true;
       }
 
       /// \brief Callback to the function registered for this handler with the
       /// following parameters:
       /// \param[in] _msg Protobuf message containing the topic update.
       private: std::function<void(const T &_msg)> cb;
+    };
+
+    /// \brief Specialized template when the user prefers a callbacks that
+    /// accepts a generic google::protobuf::message instead of a specific type.
+    template <> class SubscriptionHandler<ProtoMsg>
+      : public ISubscriptionHandler
+    {
+      // Documentation inherited.
+      public: explicit SubscriptionHandler(const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions())
+        : ISubscriptionHandler(_nUuid, _opts)
+      {
+      }
+
+      // Documentation inherited.
+      public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+        const std::string &_data,
+        const std::string &_type) const
+      {
+        std::shared_ptr<google::protobuf::Message> msgPtr;
+
+        const google::protobuf::Descriptor *desc =
+          google::protobuf::DescriptorPool::generated_pool()
+            ->FindMessageTypeByName(_type);
+
+        // First, check if we have the descriptor from the generated proto
+        // classes.
+        if (desc)
+        {
+          msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
+            ->GetPrototype(desc)->New());
+        }
+        else
+        {
+          // Fallback on Ignition Msgs if the message type is not found.
+          msgPtr = ignition::msgs::Factory::New(_type);
+        }
+
+        if (!msgPtr)
+          return nullptr;
+
+        // Create the message using some serialized data
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "CreateMsg() error: ParseFromString failed" << std::endl;
+          return nullptr;
+        }
+
+        return std::move(msgPtr);
+      }
+
+      // Documentation inherited.
+      public: std::string TypeName()
+      {
+        return kGenericMessageType;
+      }
+
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _msg Protobuf message containing the topic update.
+      public: void SetCallback(
+        const std::function <void(const transport::ProtoMsg &_msg)> &_cb)
+      {
+        this->cb = _cb;
+      }
+
+      // Documentation inherited.
+      public: bool RunLocalCallback(const transport::ProtoMsg &_msg)
+      {
+        // No callback stored.
+        if (!this->cb)
+        {
+          std::cerr << "SubscriptionHandler::RunLocalCallback() "
+                    << "error: Callback is NULL" << std::endl;
+          return false;
+        }
+
+        // Check the subscription throttling option.
+        if (!this->UpdateThrottling())
+          return true;
+
+        this->cb(_msg);
+        return true;
+      }
+
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _msg Protobuf message containing the topic update.
+      private: std::function<void(const ProtoMsg &_msg)> cb;
     };
   }
 }

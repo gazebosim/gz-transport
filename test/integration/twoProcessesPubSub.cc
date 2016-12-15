@@ -20,6 +20,7 @@
 #include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
@@ -29,6 +30,7 @@ static std::string partition;
 static std::string g_topic = "/foo";
 static std::string data = "bar";
 static bool cbExecuted = false;
+static bool genericCbExecuted = false;
 static bool cbVectorExecuted = false;
 static int counter = 0;
 
@@ -38,6 +40,7 @@ void reset()
 {
   counter = 0;
   cbExecuted = false;
+  genericCbExecuted = false;
   cbVectorExecuted = false;
 }
 
@@ -49,6 +52,13 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
   ++counter;
 }
 
+//////////////////////////////////////////////////
+/// \brief A generic callback.
+void genericCb(const transport::ProtoMsg &/*_msg*/)
+{
+  genericCbExecuted = true;
+  ++counter;
+}
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
@@ -63,7 +73,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 /// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
+TEST(twoProcPubSub, PubSubThreeProcsTwoNodes)
 {
   std::string subscriberPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
@@ -120,9 +130,10 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns two subscribers on the same topic. One of the
+/// \brief This test spawns three subscribers on the same topic. One of the
 /// subscribers has a wrong callback (types in the callback does not match the
-/// advertised type). Check that only the good callback is executed.
+/// advertised type).  Another subscriber uses a generic callback.
+/// Check that only the two correct callbacks are executed.
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
@@ -138,8 +149,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
   transport::Node node1;
   transport::Node node2;
+  transport::Node node3;
   EXPECT_TRUE(node1.Subscribe(g_topic, cb));
   EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
+  EXPECT_TRUE(node3.Subscribe(g_topic, genericCb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -147,6 +160,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
+  EXPECT_TRUE(genericCbExecuted);
 
   reset();
 

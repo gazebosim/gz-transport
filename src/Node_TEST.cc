@@ -29,6 +29,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
@@ -40,6 +41,7 @@ static std::mutex exitMutex;
 static int data = 5;
 static bool cbExecuted;
 static bool cb2Executed;
+static bool genericCbExecuted;
 static bool cbVectorExecuted;
 static bool srvExecuted;
 static bool responseExecuted;
@@ -53,6 +55,7 @@ void reset()
 {
   cbExecuted = false;
   cb2Executed = false;
+  genericCbExecuted = false;
   srvExecuted = false;
   cbVectorExecuted = false;
   responseExecuted = false;
@@ -76,6 +79,15 @@ void cb2(const ignition::msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief A generic callback.
+void genericCb(const transport::ProtoMsg &_msg)
+{
+  std::string content = _msg.DebugString();
+  EXPECT_TRUE(content.find(std::to_string(data)) != std::string::npos);
+  genericCbExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -519,6 +531,48 @@ TEST(NodeTest, PubSubSameThread)
 }
 
 //////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
+TEST(NodeTest, PubSubSameThreadGenericCb)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, genericCb));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(genericCbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(genericCbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
 TEST(NodeTest, PubSubSameThreadLambda)
 {
@@ -602,7 +656,7 @@ TEST(NodeTest, ScopeAll)
 }
 
 //////////////////////////////////////////////////
-/// \brief Use two different transport node on the same thread. Check that
+/// \brief Use two different transport nodes on the same thread. Check that
 /// both receive the updates when they are subscribed to the same topic. Check
 /// also that when one of the nodes unsubscribes, no longer receives updates.
 TEST(NodeTest, PubSubOneThreadTwoSubs)
