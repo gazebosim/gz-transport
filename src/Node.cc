@@ -163,7 +163,8 @@ bool Node::Publisher::HasConnections() const
   return this->Valid() &&
     (this->dataPtr->shared->localSubscriptions.FirstHandler(
        publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||
-     this->dataPtr->shared->remoteSubscribers.HasTopic(publisher.Topic()));
+     this->dataPtr->shared->remoteSubscribers.HasTopic(
+       publisher.Topic(), publisher.MsgTypeName()));
 }
 
 //////////////////////////////////////////////////
