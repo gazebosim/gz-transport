@@ -63,6 +63,12 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
                                                          const int _timeout,
                                                          const char *_reqData);
 
+/// \brief External hook to execute 'ign topic -e' from the command line.
+/// \param[in] _topic Topic name.
+/// \param[in] _duration Duration (seconds) to run.
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
+                                                        const double _duration);
+
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
 extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion();
