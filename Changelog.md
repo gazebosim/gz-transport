@@ -1,5 +1,8 @@
 ## Ignition Transport 3.0.0
 
+1. Support a generic callback signature for receiving messages of any type.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
+
 1. Node::Unadvertise(), Node::Publish() and Node::TopicsAdvertised() removed.
    Node::Advertise() returns a Node::Publisher object that can be used for
    publishing messages. When this object runs out of scope the topic is
