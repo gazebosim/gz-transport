@@ -1518,11 +1518,39 @@ TEST(NodeTest, SubThrottled)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test creates one publisher and one subscriber. The publisher
-/// publishes at a throttled frequency .
+/// \brief This test creates one publisher and one subscriber. The 
+/// publisher publishes at a throttled frequency .
 TEST(NodeTest, PubThrottled)
 {
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  ignition::transport::AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(1);
+  EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+
+  for (auto i = 0; i < 15; ++i)
+  {
+    EXPECT_TRUE(pub.Publish(msg));
+
+    // Rate: 10 msgs/sec.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+
 }
+
 
 //////////////////////////////////////////////////
 /// \brief This test spawns a service responser and a service requester. The
@@ -1772,3 +1800,5 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+
