@@ -155,13 +155,11 @@ bool Node::Publisher::Valid() const
 //////////////////////////////////////////////////
 bool Node::Publisher::HasConnections() const
 {
-  if (!this->Valid())
-    return false;
-
-  return this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
-      this->dataPtr->publisher.Topic()) ||
-    this->dataPtr->shared->remoteSubscribers.HasTopic(
-      this->dataPtr->publisher.Topic());
+  return this->Valid() &&
+    (this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
+       this->dataPtr->publisher.Topic()) ||
+     this->dataPtr->shared->remoteSubscribers.HasTopic(
+       this->dataPtr->publisher.Topic()));
 }
 
 //////////////////////////////////////////////////
