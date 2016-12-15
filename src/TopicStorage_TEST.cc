@@ -478,3 +478,26 @@ TEST(TopicStorageTest, PublishersByNode)
   EXPECT_EQ(pubs.size(), 1u);
   EXPECT_EQ(pubs.at(0).Addr(), g_addr1);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check HasTopic(<topic>, <type>).
+TEST(TopicStorageTest, HasTopicWithType)
+{
+  init();
+
+  std::string ctrl = "ctrl_address";
+  MessagePublisher publisher1(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid1,
+    "type1", ignition::transport::AdvertiseMessageOptions());
+  MessagePublisher publisher2(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid2,
+    "type2", ignition::transport::AdvertiseMessageOptions());
+
+  TopicStorage<MessagePublisher> test;
+
+  EXPECT_FALSE(test.HasTopic(g_topic1));
+
+  EXPECT_TRUE(test.AddPublisher(publisher1));
+  EXPECT_FALSE(test.HasTopic(g_topic1, "type2"));
+
+  EXPECT_TRUE(test.AddPublisher(publisher2));
+  EXPECT_TRUE(test.HasTopic(g_topic1));
+}

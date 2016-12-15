@@ -55,14 +55,28 @@ int main(int argc, char **argv)
     return -1;
   }
 
+  ignition::transport::Node node2;
+  auto pub2 = node2.Advertise<ignition::msgs::Int32>(topic);
+  if (!pub2)
+  {
+    std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
+    return -1;
+  }
+
   // Prepare the message.
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
+
+  ignition::msgs::Int32 msg2;
+  msg2.set_data(10);
 
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
     if (!pub.Publish(msg))
+      break;
+
+    if (!pub2.Publish(msg2))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;

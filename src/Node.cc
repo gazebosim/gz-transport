@@ -155,11 +155,15 @@ bool Node::Publisher::Valid() const
 //////////////////////////////////////////////////
 bool Node::Publisher::HasConnections() const
 {
+  ISubscriptionHandlerPtr firstSubscriberPtr;
+  auto &publisher = this->dataPtr->publisher;
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
   return this->Valid() &&
-    (this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
-       this->dataPtr->publisher.Topic()) ||
-     this->dataPtr->shared->remoteSubscribers.HasTopic(
-       this->dataPtr->publisher.Topic()));
+    (this->dataPtr->shared->localSubscriptions.FirstHandler(
+       publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||
+     this->dataPtr->shared->remoteSubscribers.HasTopic(publisher.Topic()));
 }
 
 //////////////////////////////////////////////////
@@ -222,6 +226,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Remote subscribers.
   if (hasRemoteSubscribers)
   {
+    std::cout << "has remote subscribers" << std::endl;
     std::string data;
     if (!_msg.SerializeToString(&data))
     {
@@ -230,12 +235,16 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       return false;
     }
 
+    std::cout << "[" << this->dataPtr->publisher.NUuid() << "] Publish!" << std::endl;
+
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
           _msg.GetTypeName()))
     {
       return false;
     }
   }
+  else
+    std::cout << "has remote subscribers" << std::endl;
 
   return true;
 }
