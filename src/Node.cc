@@ -155,11 +155,16 @@ bool Node::Publisher::Valid() const
 //////////////////////////////////////////////////
 bool Node::Publisher::HasConnections() const
 {
+  ISubscriptionHandlerPtr firstSubscriberPtr;
+  auto &publisher = this->dataPtr->publisher;
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
   return this->Valid() &&
-    (this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
-       this->dataPtr->publisher.Topic()) ||
+    (this->dataPtr->shared->localSubscriptions.FirstHandler(
+       publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||
      this->dataPtr->shared->remoteSubscribers.HasTopic(
-       this->dataPtr->publisher.Topic()));
+       publisher.Topic(), publisher.MsgTypeName()));
 }
 
 //////////////////////////////////////////////////
@@ -188,7 +193,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
       this->dataPtr->publisher.Topic(), handlers);
     hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
-      this->dataPtr->publisher.Topic());
+      this->dataPtr->publisher.Topic(), _msg.GetTypeName());
   }
 
   // Local subscribers.
@@ -391,6 +396,11 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(this->dataPtr->nUuid.size());
       memcpy(msg.data(), this->dataPtr->nUuid.data(),
              this->dataPtr->nUuid.size());
+      socket.send(msg, ZMQ_SNDMORE);
+
+      msg.rebuild(kGenericMessageType.size());
+      memcpy(msg.data(), kGenericMessageType.data(),
+             kGenericMessageType.size());
       socket.send(msg, ZMQ_SNDMORE);
 
       std::string data = std::to_string(EndConnection);
