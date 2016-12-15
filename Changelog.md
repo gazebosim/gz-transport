@@ -4,6 +4,9 @@
    check if a Publisher has subscribers.
     * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/190)
 
+1. Add ign topic --echo command line tool.
+    * [Pull request 189](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/189)
+
 1. Support a generic callback signature for receiving messages of any type.
     * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
 

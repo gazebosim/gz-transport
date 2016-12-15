@@ -16,7 +16,9 @@
 */
 
 #include <chrono>
+#include <functional>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -247,6 +249,38 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
     std::cerr << "Service call timed out" << std::endl;
 }
 
+//////////////////////////////////////////////////
+extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
+  const double _duration)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+
+  std::function<void(const ProtoMsg&)> cb = [](const ProtoMsg &_msg)
+  {
+    std::cout << _msg.DebugString() << std::endl;
+  };
+
+  Node node;
+  if (!node.Subscribe(_topic, cb))
+  {
+    std::cerr << "Invalid topic [" << _topic << "]" << std::endl;
+    return;
+  }
+
+  if (_duration >= 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+      static_cast<int64_t>(_duration * 1000)));
+    return;
+  }
+
+  // Wait forever.
+  ignition::transport::waitForShutdown();
+}
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
