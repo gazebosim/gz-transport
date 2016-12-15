@@ -26,6 +26,7 @@
 
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/TopicUtils.hh"
@@ -70,7 +71,7 @@ void cb(const ignition::msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
-  counter++;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -79,6 +80,18 @@ void cb2(const ignition::msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+/// This callback includes message information.
+void cbInfo(const ignition::msgs::Int32 &_msg,
+            const ignition::transport::MessageInfo &_info)
+{
+  EXPECT_EQ(_info.Topic(), g_topic);
+  EXPECT_EQ(_msg.data(), data);
+  cbExecuted = true;
+  ++counter;
 }
 
 //////////////////////////////////////////////////
@@ -169,6 +182,15 @@ class MyTestClass
     EXPECT_TRUE(this->node.Subscribe(g_topic, &MyTestClass::Cb, this));
   }
 
+  /// \brief Create a subscriber with a callback that receives message info.
+  public: void SubscribeWithMessageInfo()
+  {
+    // Subscribe to an illegal topic.
+    EXPECT_FALSE(this->node.Subscribe("Bad Topic", &MyTestClass::CbInfo, this));
+
+    EXPECT_TRUE(this->node.Subscribe(g_topic, &MyTestClass::CbInfo, this));
+  }
+
   /// \brief Member function used as a callback for responding to a service
   /// call.
   public: void Echo(const ignition::msgs::Int32 &_req,
@@ -220,6 +242,16 @@ class MyTestClass
   /// \brief Member function called each time a topic update is received.
   public: void Cb(const ignition::msgs::Int32 &_msg)
   {
+    EXPECT_EQ(_msg.data(), data);
+    this->callbackExecuted = true;
+  };
+
+  /// \brief Member function called each time a topic update is received.
+  /// This callback accepts a parameter with some message information.
+  public: void CbInfo(const ignition::msgs::Int32 &_msg,
+                      const ignition::transport::MessageInfo &_info)
+  {
+    EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
   };
@@ -571,6 +603,49 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 }
 
 //////////////////////////////////////////////////
+/// \brief A thread can create a node, and send and receive messages.
+/// This test uses a callback that accepts a parameter with the message
+/// information.
+TEST(NodeTest, PubSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
 TEST(NodeTest, PubSubSameThreadLambda)
 {
@@ -588,6 +663,46 @@ TEST(NodeTest, PubSubSameThreadLambda)
   std::function<void(const ignition::msgs::Int32&)> subCb =
     [&executed](const ignition::msgs::Int32 &_msg)
   {
+    EXPECT_EQ(_msg.data(), data);
+    executed = true;
+  };
+
+  EXPECT_TRUE(node.Subscribe(g_topic, subCb));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  EXPECT_TRUE(executed);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Subscribe to a topic using a lambda function.
+/// This test uses a callback that accepts a parameter with the message
+/// information.
+TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  bool executed = false;
+  std::function<void(const ignition::msgs::Int32&,
+                     const ignition::transport::MessageInfo &)> subCb =
+    [&executed](const ignition::msgs::Int32 &_msg,
+                const ignition::transport::MessageInfo &_info)
+  {
+    EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
     executed = true;
   };
@@ -737,6 +852,24 @@ TEST(NodeTest, ClassMemberCallbackMessage)
 {
   MyTestClass client;
   client.Subscribe();
+
+  // Wait for the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  client.SendSomeData();
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_TRUE(client.callbackExecuted);
+}
+
+//////////////////////////////////////////////////
+/// \brief Use the transport inside a class and check advertise, subscribe and
+/// publish. This test uses a callback that accepts message information.
+TEST(NodeTest, ClassMemberCallbackMessageInfo)
+{
+  MyTestClass client;
+  client.SubscribeWithMessageInfo();
 
   // Wait for the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));

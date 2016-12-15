@@ -42,6 +42,7 @@ namespace ignition
     class IRepHandler;
     class IReqHandler;
     class ISubscriptionHandler;
+    class MessageInfo;
 
     /// \def Addresses_M
     /// \brief Map that stores all generic publishers.
@@ -114,6 +115,14 @@ namespace ignition
     /// publisher.
     using SrvDiscoveryCallback =
       std::function<void(const ServicePublisher &_publisher)>;
+
+    /// \def MsgCallback
+    /// \brief User callback used for receiving messages:
+    ///   \param[in] _msg Protobuf message containing the topic update.
+    ///   \param[in] _info Message information (e.g.: topic name).
+    template <typename T>
+    using MsgCallback =
+      std::function<void(const T &_msg, const MessageInfo &_info)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

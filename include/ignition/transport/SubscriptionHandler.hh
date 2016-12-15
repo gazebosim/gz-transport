@@ -27,7 +27,6 @@
 #endif
 
 #include <chrono>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -35,6 +34,7 @@
 #include <ignition/msgs/Factory.hh>
 
 #include "ignition/transport/Helpers.hh"
+#include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -70,15 +70,16 @@ namespace ignition
 
       /// \brief Executes the local callback registered for this handler.
       /// \param[in] _msg Protobuf message received.
+      /// \param[in] _info Message information (e.g.: topic name).
       /// \return True when success, false otherwise.
-      public: virtual bool RunLocalCallback(
-                                           const transport::ProtoMsg &_msg) = 0;
+      public: virtual bool RunLocalCallback(const ProtoMsg &_msg,
+                                            const MessageInfo &_info) = 0;
 
       /// \brief Create a specific protobuf message given its serialized data.
       /// \param[in] _data The serialized data.
       /// \param[in] _type The data type.
       /// \return Pointer to the specific protobuf message.
-      public: virtual const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+      public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &_type) const = 0;
 
@@ -157,7 +158,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+      public: const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &/*_type*/) const
       {
@@ -182,14 +183,14 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _msg Protobuf message containing the topic update.
-      public: void SetCallback(const std::function <void(const T &_msg)> &_cb)
+      public: void SetCallback(const MsgCallback<T> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: bool RunLocalCallback(const transport::ProtoMsg &_msg)
+      public: bool RunLocalCallback(const ProtoMsg &_msg,
+                                    const MessageInfo &_info)
       {
         // No callback stored.
         if (!this->cb)
@@ -209,14 +210,12 @@ namespace ignition
         auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
 #endif
 
-        this->cb(*msgPtr);
+        this->cb(*msgPtr, _info);
         return true;
       }
 
-      /// \brief Callback to the function registered for this handler with the
-      /// following parameters:
-      /// \param[in] _msg Protobuf message containing the topic update.
-      private: std::function<void(const T &_msg)> cb;
+      /// \brief Callback to the function registered for this handler.
+      private: MsgCallback<T> cb;
     };
 
     /// \brief Specialized template when the user prefers a callbacks that
@@ -232,7 +231,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: const std::shared_ptr<transport::ProtoMsg> CreateMsg(
+      public: const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &_type) const
       {
@@ -275,16 +274,15 @@ namespace ignition
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _msg Protobuf message containing the topic update.
-      public: void SetCallback(
-        const std::function <void(const transport::ProtoMsg &_msg)> &_cb)
+      /// \param[in] _cb The callback.
+      public: void SetCallback(const MsgCallback<ProtoMsg> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: bool RunLocalCallback(const transport::ProtoMsg &_msg)
+      public: bool RunLocalCallback(const ProtoMsg &_msg,
+                                    const MessageInfo &_info)
       {
         // No callback stored.
         if (!this->cb)
@@ -298,14 +296,12 @@ namespace ignition
         if (!this->UpdateThrottling())
           return true;
 
-        this->cb(_msg);
+        this->cb(_msg, _info);
         return true;
       }
 
-      /// \brief Callback to the function registered for this handler with the
-      /// following parameters:
-      /// \param[in] _msg Protobuf message containing the topic update.
-      private: std::function<void(const ProtoMsg &_msg)> cb;
+      /// \brief Callback to the function registered for this handler.
+      private: MsgCallback<ProtoMsg> cb;
     };
   }
 }

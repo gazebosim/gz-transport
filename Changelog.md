@@ -1,5 +1,10 @@
 ## Ignition Transport 3.0.0
 
+1. Support for an optional MessageInfo parameter in the user callbacks for
+   receiving messages. This parameter provides some information about the
+   message received (e.g.: topic name).
+    * [Pull request 191](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/191)
+
 1. Support a generic callback signature for receiving messages of any type.
     * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
 

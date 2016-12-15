@@ -24,8 +24,10 @@
 /// \brief Function called each time a topic update is received.
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
-void cb(const google::protobuf::Message &_msg)
+void cb(const google::protobuf::Message &_msg,
+        const ignition::transport::MessageInfo &_info)
 {
+  std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
 }
 

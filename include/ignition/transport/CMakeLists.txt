@@ -6,6 +6,7 @@ set (headers
   HandlerStorage.hh
   Helpers.hh
   ign.hh
+  MessageInfo.hh
   NetUtils.hh
   Node.hh
   NodeOptions.hh
