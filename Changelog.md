@@ -1,5 +1,9 @@
 ## Ignition Transport 3.0.0
 
+1. Added `Node::Publisher::HasConnections` function that can be used to
+   check if a Publisher has subscribers.
+    * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/190)
+
 1. Support a generic callback signature for receiving messages of any type.
     * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
 
