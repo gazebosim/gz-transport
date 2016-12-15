@@ -5,6 +5,9 @@
    message received (e.g.: topic name).
     * [Pull request 191](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/191)
 
+1. Add ign topic --echo command line tool.
+    * [Pull request 189](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/189)
+
 1. Support a generic callback signature for receiving messages of any type.
     * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
 
