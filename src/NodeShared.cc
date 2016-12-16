@@ -331,6 +331,7 @@ void NodeShared::RecvControlUpdate()
   std::string topic;
   std::string procUuid;
   std::string nodeUuid;
+  std::string type;
   std::string data;
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
@@ -348,6 +349,10 @@ void NodeShared::RecvControlUpdate()
     if (!this->control->recv(&msg, 0))
       return;
     nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+    if (!this->control->recv(&msg, 0))
+      return;
+    type = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
     if (!this->control->recv(&msg, 0))
       return;
@@ -370,7 +375,7 @@ void NodeShared::RecvControlUpdate()
     }
 
     // Register that we have another remote subscriber.
-    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, "",
+    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, type,
       AdvertiseMessageOptions());
     this->remoteSubscribers.AddPublisher(remoteNode);
   }
@@ -771,6 +776,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   std::string addr = _pub.Addr();
   std::string ctrl = _pub.Ctrl();
   std::string procUuid = _pub.PUuid();
+  std::string type = _pub.MsgTypeName();
 
   if (this->verbose)
   {
@@ -836,6 +842,10 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 
             msg.rebuild(nodeUuid.size());
             memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+            socket.send(msg, ZMQ_SNDMORE);
+
+            msg.rebuild(type.size());
+            memcpy(msg.data(), type.data(), type.size());
             socket.send(msg, ZMQ_SNDMORE);
 
             std::string data = std::to_string(NewConnection);

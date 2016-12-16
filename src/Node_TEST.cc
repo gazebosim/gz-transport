@@ -233,6 +233,7 @@ class MyTestClass
     // Advertise an illegal topic.
     auto pub = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
     EXPECT_FALSE(pub);
+    EXPECT_FALSE(pub.HasConnections());
 
     auto pubId = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
     EXPECT_FALSE(pubId);
@@ -241,6 +242,7 @@ class MyTestClass
     pubId = this->node.Advertise<ignition::msgs::Int32>(g_topic);
     EXPECT_TRUE(pubId);
     EXPECT_TRUE(pubId.Valid());
+    EXPECT_TRUE(pubId.HasConnections());
     EXPECT_TRUE(pubId.Publish(msg));
   }
 
