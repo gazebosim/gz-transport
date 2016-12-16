@@ -19,9 +19,9 @@
 #include <string>
 #include <ignition/msgs.hh>
 
+#include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TransportTypes.hh"
-#include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
@@ -83,8 +83,15 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 /// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcPubSub, PubSubThreeProcsTwoNodes)
+TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
+
+  // No subscribers yet.
+  EXPECT_FALSE(pub.HasConnections());
+
   std::string subscriberPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
@@ -97,12 +104,13 @@ TEST(twoProcPubSub, PubSubThreeProcsTwoNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
-  EXPECT_TRUE(pub);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // Now, we should have subscribers.
+  EXPECT_TRUE(pub.HasConnections());
 
   // Publish messages for a few seconds
-  for (auto i = 0; i < 20; ++i)
+  for (auto i = 0; i < 10; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

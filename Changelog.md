@@ -5,6 +5,10 @@
    message received (e.g.: topic name).
     * [Pull request 191](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/191)
 
+1. Added `Node::Publisher::HasConnections` function that can be used to
+   check if a Publisher has subscribers.
+    * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/190)
+
 1. Add ign topic --echo command line tool.
     * [Pull request 189](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/189)
 

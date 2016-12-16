@@ -105,6 +105,10 @@ namespace ignition
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
 
+        /// \brief Return true if this publisher has subscribers.
+        /// \return True if subscribers have connected to this publisher.
+        public: bool HasConnections() const;
+
         /// \internal
         /// \brief Smart pointer to private data.
         /// This is std::shared_ptr because we want to trigger the destructor

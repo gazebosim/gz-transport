@@ -88,6 +88,40 @@ namespace ignition
       }
 
       /// \brief Return if there is any publisher stored for the given topic and
+      /// type.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _type Topic type.
+      /// \return True if there is at least one entry stored for the topic and
+      /// type.
+      public: bool HasTopic(const std::string &_topic,
+                            const std::string &_type) const
+      {
+        if (!this->HasTopic(_topic))
+          return false;
+
+        // m is {pUUID=>std::vector<Publisher>}.
+        auto &m = this->data.at(_topic);
+
+        for (auto const &procs : m)
+        {
+          // Vector of publishers for a given topic and pUuid.
+          auto &v = procs.second;
+          auto found = std::find_if(v.begin(), v.end(),
+            [&](const T &_pub)
+            {
+              return _pub.MsgTypeName() == _type ||
+                     _pub.MsgTypeName() == kGenericMessageType;
+            });
+
+          // Type found!
+          if (found != v.end())
+            return true;
+        }
+
+        return false;
+      }
+
+      /// \brief Return if there is any publisher stored for the given topic and
       /// process UUID.
       /// \param[in] _topic Topic name.
       /// \param[in] _pUuid Process UUID of the publisher.
@@ -324,7 +358,7 @@ namespace ignition
         }
       }
 
-      /// \brief  The keys are topics. The values are another map, where the key
+      /// \brief The keys are topics. The values are another map, where the key
       /// is the process UUID and the value a vector of publishers.
       private: std::map<std::string,
                         std::map<std::string, std::vector<T>>> data;
