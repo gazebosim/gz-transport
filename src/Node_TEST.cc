@@ -1529,12 +1529,12 @@ TEST(NodeTest, PubThrottled)
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
-  EXPECT_TRUE(pub);
-  
   ignition::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
-  //EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
 
   for (auto i = 0; i < 15; ++i)
