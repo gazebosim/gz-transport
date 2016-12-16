@@ -198,6 +198,7 @@ namespace ignition
       public: std::vector<std::string> AdvertisedTopics() const;
 
       /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback does not include any message information.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
@@ -210,7 +211,8 @@ namespace ignition
           void(*_cb)(const T &_msg),
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &)> f = [_cb](const T & _internalMsg)
+        std::function<void(const T &, const MessageInfo &)> f =
+          [_cb](const T & _internalMsg, const MessageInfo &/*_internalInfo*/)
         {
           (*_cb)(_internalMsg);
         };
@@ -219,6 +221,7 @@ namespace ignition
       }
 
       /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback does not include any message information.
       /// In this version the callback is a lamda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Lambda function with the following parameters:
@@ -228,6 +231,80 @@ namespace ignition
       public: template<typename T> bool Subscribe(
           const std::string &_topic,
           std::function<void(const T &_msg)> &_cb,
+          const SubscribeOptions &_opts = SubscribeOptions())
+      {
+        std::function<void(const T &, const MessageInfo &)> f =
+          [_cb](const T & _internalMsg, const MessageInfo &/*_internalInfo*/)
+        {
+          _cb(_internalMsg);
+        };
+
+        return this->Subscribe<T>(_topic, f, _opts);
+      }
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback does not include any message information.
+      /// In this version the callback is a member function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Pointer to the callback function with the following
+      /// parameters:
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename C, typename T> bool Subscribe(
+          const std::string &_topic,
+          void(C::*_cb)(const T &_msg),
+          C *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions())
+      {
+        std::function<void(const T &, const MessageInfo &)> f =
+          [_cb, _obj](const T & _internalMsg,
+                      const MessageInfo &/*_internalInfo*/)
+        {
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          cb(_internalMsg);
+        };
+
+        return this->Subscribe<T>(_topic, f, _opts);
+      }
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Pointer to the callback function with the following
+      /// parameters:
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   \param[in] _info Message information (e.g.: topic name).
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename T> bool Subscribe(
+          const std::string &_topic,
+          void(*_cb)(const T &_msg, const MessageInfo &_info),
+          const SubscribeOptions &_opts = SubscribeOptions())
+      {
+        std::function<void(const T &, const MessageInfo &)> f =
+          [_cb](const T & _internalMsg, const MessageInfo &_internalInfo)
+        {
+          (*_cb)(_internalMsg, _internalInfo);
+        };
+
+        return this->Subscribe<T>(_topic, f, _opts);
+      }
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
+      /// In this version the callback is a lamda function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _cb Lambda function with the following parameters:
+      ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   \param[in] _info Message information (e.g.: topic name).
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename T> bool Subscribe(
+          const std::string &_topic,
+          std::function<void(const T &_msg, const MessageInfo &_info)> &_cb,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
         std::string fullyQualifiedTopic;
@@ -270,24 +347,28 @@ namespace ignition
       }
 
       /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _cb Pointer to the callback function with the following
       /// parameters:
       ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   \param[in] _info Message information (e.g.: topic name).
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename C, typename T> bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const T &_msg),
+          void(C::*_cb)(const T &_msg, const MessageInfo &_info),
           C *_obj,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &)> f = [_cb, _obj](const T & _internalMsg)
+        std::function<void(const T &, const MessageInfo &)> f =
+          [_cb, _obj](const T & _internalMsg, const MessageInfo &_internalInfo)
         {
-          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-          cb(_internalMsg);
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+            std::placeholders::_2);
+          cb(_internalMsg, _internalInfo);
         };
 
         return this->Subscribe<T>(_topic, f, _opts);

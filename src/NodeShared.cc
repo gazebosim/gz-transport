@@ -306,6 +306,13 @@ void NodeShared::RecvMsgUpdate()
     if (!recvMsg)
       return;
 
+    // Remove the partition name from the topic.
+    topic.erase(0, topic.find_last_of("@") + 1);
+
+    // Create and populate the message information object.
+    MessageInfo info;
+    info.SetTopic(topic);
+
     for (const auto &node : handlers)
     {
       for (const auto &handler : node.second)
@@ -315,7 +322,7 @@ void NodeShared::RecvMsgUpdate()
         {
           if (subscriptionHandlerPtr->TypeName() == msgType ||
               subscriptionHandlerPtr->TypeName() == kGenericMessageType)
-            subscriptionHandlerPtr->RunLocalCallback(*recvMsg);
+            subscriptionHandlerPtr->RunLocalCallback(*recvMsg, info);
         }
         else
           std::cerr << "Subscription handler is NULL" << std::endl;

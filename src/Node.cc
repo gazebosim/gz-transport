@@ -27,6 +27,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodePrivate.hh"
@@ -199,6 +200,14 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local subscribers.
   if (hasLocalSubscribers)
   {
+    // Get the topic and remove the partition name.
+    std::string topic = this->dataPtr->publisher.Topic();
+    topic.erase(0, topic.find_last_of("@") + 1);
+
+    // Create and populate the message information object.
+    MessageInfo info;
+    info.SetTopic(topic);
+
     for (auto &node : handlers)
     {
       for (auto &handler : node.second)
@@ -213,7 +222,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          subscriptionHandlerPtr->RunLocalCallback(_msg);
+          subscriptionHandlerPtr->RunLocalCallback(_msg, info);
         }
         else
         {

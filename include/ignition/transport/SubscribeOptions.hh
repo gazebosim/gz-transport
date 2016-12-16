@@ -63,7 +63,7 @@ namespace ignition
       public: uint64_t MsgsPerSec() const;
 
       /// \internal
-      /// \brief Shared pointer to private data.
+      /// \brief Pointer to private data.
       protected: std::unique_ptr<SubscribeOptionsPrivate> dataPtr;
     };
   }

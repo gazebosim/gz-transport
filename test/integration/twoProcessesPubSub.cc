@@ -53,6 +53,16 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 }
 
 //////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cbInfo(const ignition::msgs::Int32 &/*_msg*/,
+            const ignition::transport::MessageInfo &_info)
+{
+  EXPECT_EQ(_info.Topic(), g_topic);
+  cbExecuted = true;
+  ++counter;
+}
+
+//////////////////////////////////////////////////
 /// \brief A generic callback.
 void genericCb(const transport::ProtoMsg &/*_msg*/)
 {
@@ -224,6 +234,34 @@ TEST(NodeTest, PubThrottled)
 
   // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
   EXPECT_EQ(counter, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a message is received after Advertise->Subscribe->Publish
+/// using a callback that accepts message information.
+TEST(twoProcPubSub, PubSubMessageInfo)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbExecuted);
 
   reset();
 
