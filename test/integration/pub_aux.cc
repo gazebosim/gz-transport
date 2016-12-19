@@ -35,7 +35,7 @@ void advertiseAndPublish()
   msg.set_data(1.0);
 
   transport::Node node;
-
+  
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
