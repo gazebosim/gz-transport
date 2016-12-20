@@ -224,16 +224,13 @@ namespace ignition
         this->reqMsg.CopyFrom(*_reqMsg);
       }
 
-      /// \brief Set the REP protobuf message for this handler.
-      /// This function is only used for compatibility with SetResponse() when
-      /// [REP = google::protobuf::Message]. It shouldn't be executed.
+      /// \brief This function is only used for compatibility with
+      /// SetResponse() when [REP = google::protobuf::Message].
+      /// It shouldn't do anything.
       /// \param[in] _repMsg Protofub message containing the variable where
-      /// the result will be stored. The only purpose of this function is to
-      /// store the type information of _repMsg.
+      /// the result will be stored.
       public: void SetResponse(const Rep * /*_repMsg*/)
       {
-        std::cerr << "ReqHandler::SetResponse() Warning: This function "
-                  << "shouldn't be executing." << std::endl;
       }
 
       // Documentation inherited
