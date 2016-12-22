@@ -213,6 +213,41 @@ TEST(NodeTest, SubThrottled)
 /// processes. The publisher publishes at a throttled frequency.
 TEST(NodeTest, PubThrottled)
 {  
+  std::string subscriberPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_sub_aux");
+  
+  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(1.0);
+  transport::Node node;
+  ignition::transport::AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(1u);
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  EXPECT_TRUE(pub);
+
+  for (auto i = 0; i < 15; ++i)
+  {
+    EXPECT_TRUE(pub.Publish(msg));
+
+    // Rate: 10 msgs/sec.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

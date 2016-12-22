@@ -24,7 +24,7 @@
 
 using namespace ignition;
 
-static int data = 5;
+static int data = 1;
 static std::string g_topic = "/foo";
 
 /// \brief Function is called everytime a topic update is received.
@@ -36,7 +36,7 @@ void cb(const ignition::msgs::Int32 &_msg)
 //////////////////////////////////////////////////
 //// \brief A Subscriber Node
 int main(int argc, char **argv)
-{
+{	
   ignition::transport::Node node;
   
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
