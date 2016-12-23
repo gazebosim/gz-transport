@@ -212,11 +212,11 @@ TEST(NodeTest, SubThrottled)
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at a throttled frequency.
 TEST(NodeTest, PubThrottled)
-{  
+{
   std::string subscriberPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_sub_aux");
-  
+
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 

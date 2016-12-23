@@ -36,11 +36,11 @@ void cb(const ignition::msgs::Int32 &_msg)
 //////////////////////////////////////////////////
 //// \brief A Subscriber Node
 int main(int argc, char **argv)
-{	
+{
   ignition::transport::Node node;
-  
+
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  
+
   return 0;
 }
