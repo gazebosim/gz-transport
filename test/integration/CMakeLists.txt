@@ -25,6 +25,7 @@ set(auxiliary_files
   fastPub_aux.cc
   pub_aux.cc
   sub_aux.cc
+  pub_aux_throttled.cc
   scopedTopicSubscriber_aux.cc
   twoProcessesPublisher_aux.cc
   twoProcessesPubSubSubscriber_aux.cc
