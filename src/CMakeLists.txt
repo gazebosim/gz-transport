@@ -4,6 +4,7 @@ set (sources
   AdvertiseOptions.cc
   Helpers.cc
   ign.cc
+  MessageInfo.cc
   NetUtils.cc
   Node.cc
   NodeOptions.cc
@@ -20,6 +21,7 @@ set (gtest_sources
   Discovery_TEST.cc
   Helpers_TEST.cc
   HandlerStorage_TEST.cc
+  MessageInfo_TEST.cc
   NetUtils_TEST.cc
   Node_TEST.cc
   NodeOptions_TEST.cc

@@ -17,6 +17,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber.cc")
   target_link_libraries(subscriber ${IGNITION-TRANSPORT_LIBRARIES})
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_generic.cc")
+  add_executable(subscriber_generic subscriber_generic.cc)
+  target_link_libraries(subscriber_generic ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/responser.cc")
   add_executable(responser responser.cc)
   target_link_libraries(responser ${IGNITION-TRANSPORT_LIBRARIES})

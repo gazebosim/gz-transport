@@ -19,8 +19,9 @@
 #include <string>
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Node.hh"
 #include "gtest/gtest.h"
+#include "ignition/transport/Node.hh"
+#include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
@@ -29,6 +30,7 @@ static std::string partition;
 static std::string g_topic = "/foo";
 static std::string data = "bar";
 static bool cbExecuted = false;
+static bool genericCbExecuted = false;
 static bool cbVectorExecuted = false;
 static int counter = 0;
 
@@ -38,6 +40,7 @@ void reset()
 {
   counter = 0;
   cbExecuted = false;
+  genericCbExecuted = false;
   cbVectorExecuted = false;
 }
 
@@ -49,6 +52,23 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
   ++counter;
 }
 
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cbInfo(const ignition::msgs::Int32 &/*_msg*/,
+            const ignition::transport::MessageInfo &_info)
+{
+  EXPECT_EQ(_info.Topic(), g_topic);
+  cbExecuted = true;
+  ++counter;
+}
+
+//////////////////////////////////////////////////
+/// \brief A generic callback.
+void genericCb(const transport::ProtoMsg &/*_msg*/)
+{
+  genericCbExecuted = true;
+  ++counter;
+}
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
@@ -63,8 +83,15 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 /// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
+TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
+
+  // No subscribers yet.
+  EXPECT_FALSE(pub.HasConnections());
+
   std::string subscriberPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
      "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
@@ -77,12 +104,13 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
-  EXPECT_TRUE(pub);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // Now, we should have subscribers.
+  EXPECT_TRUE(pub.HasConnections());
 
   // Publish messages for a few seconds
-  for (auto i = 0; i < 20; ++i)
+  for (auto i = 0; i < 10; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -120,9 +148,10 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns two subscribers on the same topic. One of the
+/// \brief This test spawns three subscribers on the same topic. One of the
 /// subscribers has a wrong callback (types in the callback does not match the
-/// advertised type). Check that only the good callback is executed.
+/// advertised type).  Another subscriber uses a generic callback.
+/// Check that only the two correct callbacks are executed.
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
@@ -138,8 +167,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
   transport::Node node1;
   transport::Node node2;
+  transport::Node node3;
   EXPECT_TRUE(node1.Subscribe(g_topic, cb));
   EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
+  EXPECT_TRUE(node3.Subscribe(g_topic, genericCb));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -147,6 +178,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
+  EXPECT_TRUE(genericCbExecuted);
 
   reset();
 
@@ -232,6 +264,34 @@ TEST(NodeTest, PubThrottled)
 
   // Node published 25 messages in ~2.5 sec. We should only receive 2 messages.
   EXPECT_EQ(counter, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a message is received after Advertise->Subscribe->Publish
+/// using a callback that accepts message information.
+TEST(twoProcPubSub, PubSubMessageInfo)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbExecuted);
 
   reset();
 

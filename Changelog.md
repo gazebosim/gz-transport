@@ -1,5 +1,20 @@
 ## Ignition Transport 3.0.0
 
+1. Support for an optional MessageInfo parameter in the user callbacks for
+   receiving messages. This parameter provides some information about the
+   message received (e.g.: topic name).
+    * [Pull request 191](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/191)
+
+1. Added `Node::Publisher::HasConnections` function that can be used to
+   check if a Publisher has subscribers.
+    * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/190)
+
+1. Add ign topic --echo command line tool.
+    * [Pull request 189](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/189)
+
+1. Support a generic callback signature for receiving messages of any type.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
+
 1. Node::Unadvertise(), Node::Publish() and Node::TopicsAdvertised() removed.
    Node::Advertise() returns a Node::Publisher object that can be used for
    publishing messages. When this object runs out of scope the topic is

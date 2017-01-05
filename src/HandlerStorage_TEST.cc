@@ -20,6 +20,7 @@
 #include <ignition/msgs.hh>
 
 #include "ignition/transport/HandlerStorage.hh"
+#include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -224,7 +225,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   transport::ISubscriptionHandlerPtr h;
   std::string handlerUuid = sub1HandlerPtr->HandlerUuid();
   EXPECT_TRUE(subs.Handler(topic, nUuid1, handlerUuid, h));
-  EXPECT_FALSE(h->RunLocalCallback(msg));
+  EXPECT_FALSE(h->RunLocalCallback(msg, transport::MessageInfo()));
 
   // Try to retrieve the first callback with an incorrect type.
   transport::ISubscriptionHandlerPtr handler;
