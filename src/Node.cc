@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,9 @@ namespace ignition
       /// \brief If throttling is enabled, the minimum period for receiving a
       /// message in nanoseconds.
       public: double periodNs = 0.0;
+
+      /// \brief Mutex to protect the node::publisher from race conditions.
+      public: std::mutex mutex;
     };
   }
 }
@@ -273,6 +276,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 //////////////////////////////////////////////////
 bool Node::Publisher::UpdateThrottling()
 {
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
   if (!this->dataPtr->publisher.Options().Throttled())
     return true;
 

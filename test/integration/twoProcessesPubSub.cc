@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,7 +259,7 @@ TEST(NodeTest, PubThrottled)
   transport::Node node;
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  // Wait some time before publishing.
+  // Wait for receive some messages.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   // Node published 25 messages in ~2.5 sec. We should only receive 2 messages.

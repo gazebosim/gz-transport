@@ -333,16 +333,6 @@ TEST(PacketTest, srvOptionsIO)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check Throttled().
-TEST(AdvertiseOptionsTest, throttled)
-{
-  transport::AdvertiseMessageOptions opts;
-  EXPECT_FALSE(opts.Throttled());
-  opts.SetMsgsPerSec(3u);
-  EXPECT_TRUE(opts.Throttled());
-}
-
-//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
