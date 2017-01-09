@@ -105,6 +105,11 @@ namespace ignition
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
 
+        /// \brief Check if message publication is throttled. If so, verify
+        /// whether the next message should be published or not.
+        /// \return true if the message should be published or false otherwise.
+        private: bool UpdateThrottling();
+
         /// \brief Return true if this publisher has subscribers.
         /// \return True if subscribers have connected to this publisher.
         public: bool HasConnections() const;

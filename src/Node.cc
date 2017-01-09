@@ -109,6 +109,16 @@ namespace ignition
 
       /// \brief The message publisher.
       public: MessagePublisher publisher;
+
+      /// \brief Timestamp of the last callback executed.
+      public: Timestamp lastCbTimestamp;
+
+      /// \brief If throttling is enabled, the minimum period for receiving a
+      /// message in nanoseconds.
+      public: double periodNs = 0.0;
+
+      /// \brief Mutex to protect the node::publisher from race conditions.
+      public: std::mutex mutex;
     };
   }
 }
@@ -134,6 +144,11 @@ Node::Publisher::Publisher()
 Node::Publisher::Publisher(const MessagePublisher &_publisher)
   : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
 {
+  if (this->dataPtr->publisher.Options().Throttled())
+  {
+    this->dataPtr->periodNs =
+      1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -183,6 +198,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
               << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
     return false;
   }
+
+  // Check the publication throttling option.
+  if (!this->UpdateThrottling())
+    return true;
 
   std::map<std::string, ISubscriptionHandler_M> handlers;
   bool hasLocalSubscribers;
@@ -251,6 +270,28 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     }
   }
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::UpdateThrottling()
+{
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  if (!this->dataPtr->publisher.Options().Throttled())
+    return true;
+
+  Timestamp now = std::chrono::steady_clock::now();
+
+  // Elapsed time since the last callback execution.
+  auto elapsed = now - this->dataPtr->lastCbTimestamp;
+  if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+        elapsed).count() < this->dataPtr->periodNs)
+  {
+    return false;
+  }
+
+  // Update the last callback execution.
+  this->dataPtr->lastCbTimestamp = now;
   return true;
 }
 
