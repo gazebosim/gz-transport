@@ -84,7 +84,7 @@ namespace testing
   {
 #ifdef _WIN32
     std::tr2::sys::path base_path(str1);
-    return base_path /= str2;
+    return (base_path /= str2).string();
 #else
     // Ugly as hell but trying to avoid boost::filesystem
     return str1 + "/" + str2;
