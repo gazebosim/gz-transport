@@ -1676,7 +1676,7 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber. The publisher
 /// publishes at higher frequency than the rate set by the subscriber.
-TEST(NodeTest, PubThrottled)
+TEST(NodeTest, SubThrottled)
 {
   reset();
 
@@ -1691,6 +1691,40 @@ TEST(NodeTest, PubThrottled)
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+
+  for (auto i = 0; i < 15; ++i)
+  {
+    EXPECT_TRUE(pub.Publish(msg));
+
+    // Rate: 10 msgs/sec.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates one publisher and one subscriber. The publisher
+/// publishes at a throttled frequency .
+TEST(NodeTest, PubThrottled)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  ignition::transport::AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(1u);
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
 
   for (auto i = 0; i < 15; ++i)
   {

@@ -211,7 +211,7 @@ TEST(twoProcPubSub, FastPublisher)
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at higher frequency than the rate set
 /// by the subscriber.
-TEST(NodeTest, PubThrottled)
+TEST(NodeTest, SubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
      PROJECT_BINARY_PATH,
@@ -233,6 +233,36 @@ TEST(NodeTest, PubThrottled)
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
   // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
+  EXPECT_EQ(counter, 2);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates one publisher and one subscriber on different
+/// processes. The publisher publishes at a throttled frequency.
+TEST(NodeTest, PubThrottled)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_pub_aux_throttled");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  // Wait for receive some messages.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  // Node published 25 messages in ~2.5 sec. We should only receive 2 messages.
   EXPECT_EQ(counter, 2);
 
   reset();
