@@ -1,5 +1,8 @@
 ## Ignition Transport 3.0.0
 
+1. Added optional message throttling when publishing messages.
+    * [Pull request 194](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/194)
+
 1. Support for an optional MessageInfo parameter in the user callbacks for
    receiving messages. This parameter provides some information about the
    message received (e.g.: topic name).
