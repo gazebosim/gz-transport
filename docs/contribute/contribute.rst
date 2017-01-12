@@ -122,7 +122,7 @@ check must pass before continuing to the next step.
 Style
 -----
 
-In general, we follow `Google's style guide <https://google-styleguide.googlecode.com/svn/trunk/cppguide.html>`_. However, we add in some extras.
+In general, we follow `Google's style guide <https://google.github.io/styleguide/cppguide.html>`_. However, we add in some extras.
 
 **``this`` pointer**
    All class attributes and member functions must be accessed using the ``this->``  pointer. Here is an `example <https://bitbucket.org/osrf/gazebo/src/default/ gazebo/physics/Base.cc#cl-40>`_.
