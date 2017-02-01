@@ -209,7 +209,7 @@ Install prerequisites. A clean Ubuntu system will need:
 
 .. code-block:: bash
 
-        sudo apt-get install cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
+        sudo apt-get install mercurial cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
 
 Clone the repository into a directory and go into it:
 
