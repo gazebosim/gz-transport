@@ -328,7 +328,6 @@ We can declare the throttling option using the following code :
 .. code-block:: cpp
  
   // Create a transport node and subscribe to a topic with throttling enabled.
-
   ignition::transport::Node node;
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
@@ -343,10 +342,7 @@ Walkthrough
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 
-In this section of code, we declare an *SubscribeOptions* object and use it 
+In this section of code, we declare a *SubscribeOptions* object and use it 
 to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
 name is opts and message rate specified is 1 msg/sec. Then, we subscribe to the topic
-using *Subscribe()* method with opts passed as arguments to it. 
-
-
-
+using *Subscribe()* method with opts passed as arguments to it.
