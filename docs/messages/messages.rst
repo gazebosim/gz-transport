@@ -315,5 +315,38 @@ Next, we advertise the topic with message throttling enabled. To do it, we pass 
 as argument to *Advertise()* method.
       
 
+Subscribe Options
+=================
+
+A similar option has also been provided to the Subscriber node which enables it 
+to control the rate of incoming messages from a specific topic. While subscribing
+to a topic, we can use this option to control the number of messages received per
+second from that particular topic.
+
+We can declare the throttling option using the following code :
+
+.. code-block:: cpp
+ 
+  // Create a transport node and subscribe to a topic with throttling enabled.
+
+  ignition::transport::Node node;
+  ignition::transport::SubscribeOptions opts;
+  opts.SetMsgsPerSec(1u);
+  node.Subscribe(topic, cb, opts); 
+
+Walkthrough
+-----------
+
+.. code-block:: cpp
+
+  ignition::transport::SubscribeOptions opts;
+  opts.SetMsgsPerSec(1u);
+  node.Subscribe(topic, cb, opts);
+
+In this section of code, we declare an *SubscribeOptions* object and use it 
+to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
+name is opts and message rate specified is 1 msg/sec. Then, we subscribe to the topic
+using *Subscribe()* method with opts passed as arguments to it. 
+
 
 
