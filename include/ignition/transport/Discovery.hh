@@ -514,7 +514,7 @@ namespace ignition
                   << "ms." << std::endl;
         std::cout << "\tSilence: " << this->silenceInterval
                   << " ms." << std::endl;
-        std::cout << "Known information: " << std::endl;
+        std::cout << "Known information:" << std::endl;
         this->info.Print();
 
         // Used to calculate the elapsed time.
