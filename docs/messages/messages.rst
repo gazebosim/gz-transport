@@ -415,9 +415,11 @@ Walkthrough
     }
 
 Here, we use the generic callback function signature. Note the use of
-``google::protobuf::Message`` as the message type in the subscription callback function ``cb()``. It enables us to receive topic updates with different message
+``google::protobuf::Message`` as the message type in the subscription callback
+function ``cb()``. It enables us to receive topic updates with different message
 types, such as ``Int32``, ``String`` from the subscribed topic.
-Furthermore, we don't need to worry about the type of the topic advertised while specifying the callback function. The parameter
+Furthermore, we don't need to worry about the type of the topic advertised while
+specifying the callback function. The parameter
 ``ignition::transport::MessageInfo &_info`` provides some information about the
 message received (e.g.: the topic name).
 
@@ -443,7 +445,8 @@ message received (e.g.: the topic name).
     }
 
 Similar to the previous examples, we use the ``Subscribe()`` function to
-subscribe to a given topic name by specifying the callback function. In our example, the topic name subscribed is ``/foo``.
+subscribe to a given topic name by specifying the callback function. In our
+example, the topic name subscribed is ``/foo``.
 
 Follow the next instructions to compile and run the generic subscriber example:
 
