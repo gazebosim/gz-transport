@@ -434,6 +434,7 @@ topic updates with different types for eg. ``Int32``, ``String`` from the subscr
 Further, we need not worry about the type of topic advertised while specifying the callback 
 function. The other parameter ``ignition::transport::MessageInfo &_info`` helps to output topic
 name.
+
 .. code-block:: cpp
 
     //////////////////////////////////////////////////
