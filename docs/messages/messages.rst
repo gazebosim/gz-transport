@@ -346,3 +346,114 @@ In this section of code, we declare a *SubscribeOptions* object and use it
 to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
 name is opts and message rate specified is 1 msg/sec. Then, we subscribe to the topic
 using *Subscribe()* method with opts passed as arguments to it.
+
+Subscriber_generic
+==================
+
+As the name suggests, it is a generic subscriber which means it can receive messages of different types unlike the above specified 
+*Subscriber*. We may use it with above example by running something like this :
+
+Run ``cmake`` and build the file
+
+.. code-block:: bash
+
+    cmake ..
+    make subscriber_generic
+
+From terminal 1:
+
+.. code-block:: bash
+
+    ./publisher
+
+From terminal 2:
+
+.. code-block:: bash
+
+    ./subscriber_generic
+
+Download the `subscriber_generic.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber_generic.cc>`_ file within the ``ign_transport_tutorial``
+folder and open it with your favorite editor:
+
+.. code-block:: cpp
+
+    #include <google/protobuf/message.h>
+    #include <iostream>
+    #include <string>
+    #include <ignition/transport.hh>
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    /// Note that this callback uses the generic signature, hence it may receive
+    /// messages with different types.
+    void cb(const google::protobuf::Message &_msg,
+        const ignition::transport::MessageInfo &_info)
+    {
+    std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
+    std::cout << _msg.DebugString() << std::endl;
+    }
+
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+    ignition::transport::Node node;
+    std::string topic = "/foo";
+
+      // Subscribe to a topic by registering a callback.
+      if (!node.Subscribe(topic, cb))
+      {
+      std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+      return -1;
+      }
+
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
+
+      return 0;
+    }
+
+Walkthrough
+-----------
+
+.. code-block:: cpp
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    /// Note that this callback uses the generic signature, hence it may receive
+    /// messages with different types.
+    void cb(const google::protobuf::Message &_msg,
+        const ignition::transport::MessageInfo &_info)
+    {
+    std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
+    std::cout << _msg.DebugString() << std::endl;
+    }
+
+Here, we use a generic callback function signature. Note that we use ``google::protobuf::Message``
+as the message type in the subscription callback function ``cb()``. It enables us to receive
+topic updates with different types for eg. ``Int32``, ``String`` from the subscribed topic.
+Further, we need not worry about the type of topic advertised while specifying the callback 
+function. The other parameter ``ignition::transport::MessageInfo &_info`` helps to output topic
+name.
+.. code-block:: cpp
+
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+    ignition::transport::Node node;
+    std::string topic = "/foo";
+
+      // Subscribe to a topic by registering a callback.
+      if (!node.Subscribe(topic, cb))
+      {
+      std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+      return -1;
+      }
+
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
+
+      return 0;
+    }
+
+Similar to the *Subscriber*, we use the ``Subscribe()`` function to subscribe to a given topic
+name by specifying the callback function. In our example, the topic name subscribed is ``/foo``.
