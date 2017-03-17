@@ -303,9 +303,9 @@ Walkthrough
       ignition::transport::AdvertiseMessageOptions opts;
       opts.SetMsgsPerSec(1u);
 
-In this section of code, we declare an *AdvertiseMessageOptions* object and use it 
+In this section of code, we declare an *AdvertiseMessageOptions* object and use it
 to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
-name is opts and message rate specified is 1 msg/sec. 
+name is opts and message rate specified is 1 msg/sec.
 
 .. code-block:: cpp
 
@@ -313,12 +313,12 @@ name is opts and message rate specified is 1 msg/sec.
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
 as argument to *Advertise()* method.
-      
+
 
 Subscribe Options
 =================
 
-A similar option has also been provided to the Subscriber node which enables it 
+A similar option has also been provided to the Subscriber node which enables it
 to control the rate of incoming messages from a specific topic. While subscribing
 to a topic, we can use this option to control the number of messages received per
 second from that particular topic.
@@ -326,12 +326,12 @@ second from that particular topic.
 We can declare the throttling option using the following code :
 
 .. code-block:: cpp
- 
+
   // Create a transport node and subscribe to a topic with throttling enabled.
   ignition::transport::Node node;
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
-  node.Subscribe(topic, cb, opts); 
+  node.Subscribe(topic, cb, opts);
 
 Walkthrough
 -----------
@@ -342,7 +342,130 @@ Walkthrough
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 
-In this section of code, we declare a *SubscribeOptions* object and use it 
+In this section of code, we declare a *SubscribeOptions* object and use it
 to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
 name is opts and message rate specified is 1 msg/sec. Then, we subscribe to the topic
 using *Subscribe()* method with opts passed as arguments to it.
+
+Generic subscribers
+===================
+
+As you have seen in the previous examples so far, the callbacks used by the
+subscribers contain a specific protobuf parameter, such as
+``ignition::msgs::StringMsg``. As the name of this section suggests, it is also
+possible to create a generic subscriber callback that can receive messages of
+different types. This use case might be interesting if you are building a bridge
+between Ignition Transport and other protocol or if you want to just print the
+content of a generic protobuf message using ``DebugString()``, among other use
+cases.
+
+Download the `subscriber_generic.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber_generic.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
+
+.. code-block:: cpp
+
+    #include <google/protobuf/message.h>
+    #include <iostream>
+    #include <string>
+    #include <ignition/transport.hh>
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    /// Note that this callback uses the generic signature, hence it may receive
+    /// messages with different types.
+    void cb(const google::protobuf::Message &_msg,
+            const ignition::transport::MessageInfo &_info)
+    {
+      std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
+      std::cout << _msg.DebugString() << std::endl;
+    }
+
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      ignition::transport::Node node;
+      std::string topic = "/foo";
+
+      // Subscribe to a topic by registering a callback.
+      if (!node.Subscribe(topic, cb))
+      {
+        std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+        return -1;
+      }
+
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
+
+      return 0;
+    }
+
+Walkthrough
+-----------
+
+.. code-block:: cpp
+
+    //////////////////////////////////////////////////
+    /// \brief Function called each time a topic update is received.
+    /// Note that this callback uses the generic signature, hence it may receive
+    /// messages with different types.
+    void cb(const google::protobuf::Message &_msg,
+            const ignition::transport::MessageInfo &_info)
+    {
+      std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
+      std::cout << _msg.DebugString() << std::endl;
+    }
+
+Here, we use the generic callback function signature. Note the use of
+``google::protobuf::Message`` as the message type in the subscription callback
+function ``cb()``. It enables us to receive topic updates with different message
+types, such as ``Int32``, ``String`` from the subscribed topic.
+Furthermore, we don't need to worry about the type of the topic advertised while
+specifying the callback function. The parameter
+``ignition::transport::MessageInfo &_info`` provides some information about the
+message received (e.g.: the topic name).
+
+.. code-block:: cpp
+
+    //////////////////////////////////////////////////
+    int main(int argc, char **argv)
+    {
+      ignition::transport::Node node;
+      std::string topic = "/foo";
+
+      // Subscribe to a topic by registering a callback.
+      if (!node.Subscribe(topic, cb))
+      {
+        std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+        return -1;
+      }
+
+      // Zzzzzz.
+      ignition::transport::waitForShutdown();
+
+      return 0;
+    }
+
+Similar to the previous examples, we use the ``Subscribe()`` function to
+subscribe to a given topic name by specifying the callback function. In our
+example, the topic name subscribed is ``/foo``.
+
+Follow the next instructions to compile and run the generic subscriber example:
+
+Run ``cmake`` and build the example:
+
+.. code-block:: bash
+
+    cd build
+    cmake ..
+    make subscriber_generic
+
+From terminal 1:
+
+.. code-block:: bash
+
+    ./publisher
+
+From terminal 2:
+
+.. code-block:: bash
+
+    ./subscriber_generic
