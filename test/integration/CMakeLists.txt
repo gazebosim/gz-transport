@@ -27,6 +27,7 @@ set(auxiliary_files
   pub_aux_throttled.cc
   scopedTopicSubscriber_aux.cc
   twoProcessesPublisher_aux.cc
+  twoProcessesEmptyTopic_aux.cc
   twoProcessesPubSubSubscriber_aux.cc
   twoProcessesSrvCallReplier_aux.cc
   twoProcessesSrvCallReplierIncreasing_aux.cc

@@ -91,12 +91,12 @@ TEST(ignTest, TopicList)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -i' running the advertiser on a different process.
-TEST(ignTest, TopicInfo)
+TEST(ignTest, emTopicInfo)
 {
-  // Launch a new publisher process that advertises a topic.
+   //Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
     PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    "test/integration/INTEGRATION_twoProcessesPublisherEmpty_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
@@ -105,13 +105,12 @@ TEST(ignTest, TopicInfo)
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -t /foo -i " +
     g_ignVersion);
-  ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
-      != std::string::npos);
-
+  ASSERT_GT(output.size(), 20u);
+  EXPECT_EQ(output,"No publishers on topic [/foo]\n");
+      
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
-}
+} 
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -l' running the advertiser on a different

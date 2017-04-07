@@ -24,7 +24,6 @@
 using namespace ignition;
 
 static std::string g_topic = "/foo";
-
 //////////////////////////////////////////////////
 /// \brief A publisher node.
 void advertiseAndPublish()
