@@ -3,7 +3,8 @@ Installation
 ============
 
 Instructions to install Ignition Transport on all the platforms supported: major Linux distributions, Mac OS X and Windows.
-Next you can see the major Ignition Transport versions, their availability and lifetime in the following table.
+
+Next, you can see the major Ignition Transport versions, their availability and lifetime.
 
 +---------+------------------------------+------------------------------+-------------------------------------+--------------+-------------+
 | Version | Available on Ubuntu directly | Available on Ubuntu via OSRF | Available on MacOS via Homebrew tab | Since        | EOL         |
