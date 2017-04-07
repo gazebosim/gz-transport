@@ -7,7 +7,8 @@ Instructions to install Ignition Transport on all the platforms supported: major
 Next, you can see the major Ignition Transport versions, their availability and lifetime.
 
 +---------+-----------------+------------------+-------------------------+---------------+--------------+
-| Version | Available on    | Available on     |   Available on MacOS    |     Since     |     EOL      |
+|         |  Available on   |   Available on   |  Available on MacOS     |               |              |
+| Version |                 |                  |                         |     Since     |     EOL      |
 |         | Ubuntu directly | Ubuntu via OSRF  |   via Homebrew tab      |               |              |
 +=========+=================+==================+=========================+===============+==============+
 |  *0.y*  | ``Ubuntu X``    | ``Ubuntu T``     |           --            | February 2015 |  April 2021  |
