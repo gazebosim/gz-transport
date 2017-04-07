@@ -10,7 +10,7 @@ Next, you can see the major Ignition Transport versions, their availability and 
 | Version | Available on    | Available on    | Available on MacOS     |     Since    |    EOL      |
 |         | Ubuntu directly | Ubuntu via OSRF | via Homebrew tab       |              |             |
 +=========+=================+=================+========================+==============+=============+
-|  *0.y*  |  `Ubuntu X``    | ``Ubuntu T``    |           --           | February 2015| April 2021  |
+|  *0.y*  | ``Ubuntu X``    | ``Ubuntu T``    |           --           | February 2015| April 2021  |
 +---------+-----------------+-----------------+------------------------+--------------+-------------+
 |  *1.y*  | ``Ubuntu Y,Z``  | ``Ubuntu T,X``  | ``Yosemite,El Capitan``| February 2016| January 2018|
 +---------+-----------------+------------------------------+-----------+--------------+-------------+
