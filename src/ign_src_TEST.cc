@@ -31,7 +31,7 @@ static const std::string  g_topic     = "/topic";
 static std::string g_partition;
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -i' running the advertiser on a different process.
+/// \brief Check cmdTopicInfo running the advertiser on a the same process.
 TEST(ignTest, cmdTopicInfo)
 {
   transport::Node node;
