@@ -20,6 +20,7 @@ set (gtest_sources
   AdvertiseOptions_TEST.cc
   Discovery_TEST.cc
   Helpers_TEST.cc
+  ign_src_TEST.cc
   HandlerStorage_TEST.cc
   MessageInfo_TEST.cc
   NetUtils_TEST.cc
