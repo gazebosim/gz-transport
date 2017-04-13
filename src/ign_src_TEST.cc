@@ -98,6 +98,54 @@ TEST(ignTest, cmdTopicPub)
   // Restore stdout.
   std::cout.rdbuf(old);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq running the advertiser on a the same process.
+TEST(ignTest, cmdServiceReq)
+{
+  std::string req_type = "/reqType";
+  std::string rep_type = "/repType";
+  std::string req_data = "/reqData";
+  const int timeout = 10;
+
+  transport::Node node;
+  
+  // Redirect stdout.
+  std::stringstream buffer;
+  auto old = std::cout.rdbuf(buffer.rdbuf());
+
+  cmdServiceReq(nullptr,req_type.c_str(),rep_type.c_str(),timeout,req_data.c_str());
+  cmdServiceReq(service.c_str(),nullptr,rep_type.c_str(),timeout,req_data.c_str());
+  cmdServiceReq(service.c_str(),req_type.c_str(),nullptr,timeout,req_data.c_str());
+  cmdServiceReq(service.c_str(),req_type.c_str(),rep_type.c_str(),timeout,nullptr);
+  cmdServiceReq(service.c_str(),req_type.c_str(),rep_type.c_str(),timeout,req_data.c_str());
+  //ToDo: cover few more lines
+
+  // Verify that the stdout matches the expected output.
+  EXPECT_EQ(buffer.str(), "");
+
+  // Restore stdout.
+  std::cout.rdbuf(old);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdTopicEcho running the advertiser on a the same process.
+TEST(ignTest, cmdTopicEcho)
+{
+  transport::Node node;
+  //auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  //EXPECT_TRUE(pub);
+
+  // Redirect stdout.
+  std::stringstream buffer;
+  auto old = std::cout.rdbuf(buffer.rdbuf());
+
+  cmdTopicEcho(nullptr, 10.00);
+  //cmdTopicEcho(g_topic.c_str(), 10.00);
+  
+  // Restore stdout.
+  std::cout.rdbuf(old);
+}
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
