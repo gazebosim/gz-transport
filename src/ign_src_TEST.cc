@@ -26,7 +26,8 @@ using namespace ignition;
 
 // Global constants.
 static const std::string  g_topic = "/topic";
-static const char* _topic = g_topic.c_str();
+static const std::string  service = "/service";
+//static const char* _topic = g_topic.c_str();
 
 // Global variables.
 static std::string g_partition;
@@ -44,7 +45,7 @@ TEST(ignTest, cmdTopicInfo)
   auto old = std::cout.rdbuf(buffer.rdbuf());
 
   cmdTopicInfo(nullptr);
-  cmdTopicInfo(_topic);
+  cmdTopicInfo(g_topic.c_str());
 
   // Verify that the stdout matches the expected output.
   EXPECT_EQ(buffer.str(), "No publishers on topic [/topic]\n");
@@ -53,6 +54,25 @@ TEST(ignTest, cmdTopicInfo)
   std::cout.rdbuf(old);
 }
 
+//////////////////////////////////////////////////
+/// \brief Check cmdTopicInfo running the advertiser on a the same process.
+TEST(ignTest, cmdServiceList)
+{
+  transport::Node node;
+  
+  // Redirect stdout.
+  std::stringstream buffer;
+  auto old = std::cout.rdbuf(buffer.rdbuf());
+
+  cmdServiceInfo(nullptr);
+  cmdServiceInfo(service.c_str());
+
+  // Verify that the stdout matches the expected output.
+  EXPECT_EQ(buffer.str(), "No service providers on service [/service]\n");
+
+  // Restore stdout.
+  std::cout.rdbuf(old);
+}
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
