@@ -55,8 +55,8 @@ TEST(ignTest, cmdTopicInfo)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check cmdTopicInfo running the advertiser on a the same process.
-TEST(ignTest, cmdServiceList)
+/// \brief Check cmdServiceInfo running the advertiser on a the same process.
+TEST(ignTest, cmdServiceInfo)
 {
   transport::Node node;
   
@@ -69,6 +69,31 @@ TEST(ignTest, cmdServiceList)
 
   // Verify that the stdout matches the expected output.
   EXPECT_EQ(buffer.str(), "No service providers on service [/service]\n");
+
+  // Restore stdout.
+  std::cout.rdbuf(old);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdTopicPub running the advertiser on a the same process.
+TEST(ignTest, cmdTopicPub)
+{
+  std::string topic = "/topic";
+  std::string msg_type = "/msgType";
+  std::string msg_data = "/msgData";
+
+  transport::Node node;
+  
+  // Redirect stdout.
+  std::stringstream buffer;
+  auto old = std::cout.rdbuf(buffer.rdbuf());
+
+  cmdTopicPub(nullptr,msg_type.c_str(),msg_data.c_str());
+  cmdTopicPub(topic.c_str(),nullptr,msg_data.c_str());
+  cmdTopicPub(topic.c_str(),msg_type.c_str(),nullptr);
+  
+  // Verify that the stdout matches the expected output.
+  EXPECT_EQ(buffer.str(), "");
 
   // Restore stdout.
   std::cout.rdbuf(old);
