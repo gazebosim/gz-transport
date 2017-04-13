@@ -132,16 +132,17 @@ TEST(ignTest, cmdServiceReq)
 /// \brief Check cmdTopicEcho running the advertiser on a the same process.
 TEST(ignTest, cmdTopicEcho)
 {
+  std::string invalid_topic ="/"; 
   transport::Node node;
-  //auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
-  //EXPECT_TRUE(pub);
+  //auto pub = node.Advertise<ignition::msgs::Int32>(invalid_topic);
+  //EXPECT_FALSE(pub);
 
   // Redirect stdout.
   std::stringstream buffer;
   auto old = std::cout.rdbuf(buffer.rdbuf());
 
   cmdTopicEcho(nullptr, 10.00);
-  //cmdTopicEcho(g_topic.c_str(), 10.00);
+  cmdTopicEcho(invalid_topic.c_str(), 5.00);
   
   // Restore stdout.
   std::cout.rdbuf(old);
