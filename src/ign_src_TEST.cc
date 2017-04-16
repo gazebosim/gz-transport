@@ -26,20 +26,25 @@ using namespace ignition;
 
 // Global constants.
 static const std::string  g_topic = "/topic";
-static const std::string  service = "/service";
-//static const char* _topic = g_topic.c_str();
+static const std::string  service = "/echo";
 
 // Global variables.
 static std::string g_partition;
+
+/// \brief Provide a service.
+void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
+  bool &_result)
+{
+  _rep.set_data(_req.data());
+  _result = false;
+}
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicInfo running the advertiser on a the same process.
 TEST(ignTest, cmdTopicInfo)
 {
   transport::Node node;
-  //auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
-  //EXPECT_TRUE(pub);
-
+  
   // Redirect stdout.
   std::stringstream buffer;
   auto old = std::cout.rdbuf(buffer.rdbuf());
@@ -68,7 +73,7 @@ TEST(ignTest, cmdServiceInfo)
   cmdServiceInfo(service.c_str());
 
   // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "No service providers on service [/service]\n");
+  EXPECT_EQ(buffer.str(), "No service providers on service [/echo]\n");
 
   // Restore stdout.
   std::cout.rdbuf(old);
@@ -106,9 +111,18 @@ TEST(ignTest, cmdServiceReq)
   std::string req_type = "/reqType";
   std::string rep_type = "/repType";
   std::string req_data = "/reqData";
-  const int timeout = 10;
 
+  std::string rreq_type = "ign_msgs.Int32";
+  std::string rrep_type = "ign_msgs.Int32";
+  std::string rreq_data = "10";
+  
+  const int timeout = 10;
+    
   transport::Node node;
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(10);
   
   // Redirect stdout.
   std::stringstream buffer;
@@ -119,10 +133,11 @@ TEST(ignTest, cmdServiceReq)
   cmdServiceReq(service.c_str(),req_type.c_str(),nullptr,timeout,req_data.c_str());
   cmdServiceReq(service.c_str(),req_type.c_str(),rep_type.c_str(),timeout,nullptr);
   cmdServiceReq(service.c_str(),req_type.c_str(),rep_type.c_str(),timeout,req_data.c_str());
-  //ToDo: cover few more lines
-
+  cmdServiceReq(service.c_str(),rreq_type.c_str(),rep_type.c_str(),timeout,rreq_data.c_str());
+  cmdServiceReq(service.c_str(),rreq_type.c_str(),rrep_type.c_str(),timeout,rreq_data.c_str());
+ 
   // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "");
+  EXPECT_EQ(buffer.str(), "Service call failed\n");
 
   // Restore stdout.
   std::cout.rdbuf(old);
@@ -134,9 +149,7 @@ TEST(ignTest, cmdTopicEcho)
 {
   std::string invalid_topic ="/"; 
   transport::Node node;
-  //auto pub = node.Advertise<ignition::msgs::Int32>(invalid_topic);
-  //EXPECT_FALSE(pub);
-
+  
   // Redirect stdout.
   std::stringstream buffer;
   auto old = std::cout.rdbuf(buffer.rdbuf());
@@ -147,6 +160,7 @@ TEST(ignTest, cmdTopicEcho)
   // Restore stdout.
   std::cout.rdbuf(old);
 }
+
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
