@@ -16,6 +16,9 @@
 */
 
 #include <ignition/msgs.hh>
+#include <string>
+#include <iostream>
+#include <sstream>
 #include "gtest/gtest.h"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
@@ -26,6 +29,7 @@ using namespace ignition;
 // Global constants.
 static const std::string  g_topic = "/topic";
 static const std::string  service = "/echo";
+static const std::string  service2 = "/timeout";
 
 // Global variables.
 static std::string g_partition;
@@ -46,9 +50,15 @@ TEST(ignTest, cmdTopicInfo)
 
   // Redirect stdout.
   std::stringstream buffer;
+  std::stringstream buffer2;
   auto old = std::cout.rdbuf(buffer.rdbuf());
+  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
 
   cmdTopicInfo(nullptr);
+
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Invalid topic. Topic must not be empty.\n");
+
   cmdTopicInfo(g_topic.c_str());
 
   // Verify that the stdout matches the expected output.
@@ -56,6 +66,7 @@ TEST(ignTest, cmdTopicInfo)
 
   // Restore stdout.
   std::cout.rdbuf(old);
+  std::cerr.rdbuf(old2);
 }
 
 //////////////////////////////////////////////////
@@ -66,9 +77,15 @@ TEST(ignTest, cmdServiceInfo)
 
   // Redirect stdout.
   std::stringstream buffer;
+  std::stringstream buffer2;
   auto old = std::cout.rdbuf(buffer.rdbuf());
+  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
 
   cmdServiceInfo(nullptr);
+
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Invalid service. Service must not be empty.\n");
+
   cmdServiceInfo(service.c_str());
 
   // Verify that the stdout matches the expected output.
@@ -76,6 +93,7 @@ TEST(ignTest, cmdServiceInfo)
 
   // Restore stdout.
   std::cout.rdbuf(old);
+  std::cerr.rdbuf(old2);
 }
 
 //////////////////////////////////////////////////
@@ -89,18 +107,28 @@ TEST(ignTest, cmdTopicPub)
   transport::Node node;
 
   // Redirect stdout.
-  std::stringstream buffer;
-  auto old = std::cout.rdbuf(buffer.rdbuf());
+  std::stringstream buffer2;
+
+  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
 
   cmdTopicPub(nullptr, msg_type.c_str(), msg_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Topic name is null\n");
+
+  buffer2.str(std::string());
+
   cmdTopicPub(topic.c_str(), nullptr, msg_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Message type is null\n");
+
+  buffer2.str(std::string());
+
   cmdTopicPub(topic.c_str(), msg_type.c_str(), nullptr);
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Message data is null\n");
 
-  // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "");
-
-  // Restore stdout.
-  std::cout.rdbuf(old);
+  // Restore stderr
+  std::cerr.rdbuf(old2);
 }
 
 //////////////////////////////////////////////////
@@ -125,25 +153,45 @@ TEST(ignTest, cmdServiceReq)
 
   // Redirect stdout.
   std::stringstream buffer;
+  std::stringstream buffer2;
   auto old = std::cout.rdbuf(buffer.rdbuf());
+  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
 
   cmdServiceReq(nullptr, req_type.c_str(), rep_type.c_str(),
     timeout, req_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Service name is null\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), nullptr, rep_type.c_str(),
     timeout, req_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Request type is null\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), req_type.c_str(), nullptr,
     timeout, req_data.c_str());
+  EXPECT_EQ(buffer2.str(), "Response type is null\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), req_type.c_str(),
     rep_type.c_str(), timeout, nullptr);
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Request data is null\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), req_type.c_str(),
     rep_type.c_str(), timeout, req_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(),
+    "Unable to create request of type[/reqType] with data[/reqData].\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), rreq_type.c_str(),
     rep_type.c_str(), timeout, rreq_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Unable to create response of type[/repType].\n");
+  buffer2.str(std::string());
 
   cmdServiceReq(service.c_str(), rreq_type.c_str(),
     rrep_type.c_str(), timeout, rreq_data.c_str());
@@ -151,8 +199,14 @@ TEST(ignTest, cmdServiceReq)
   // Verify that the stdout matches the expected output.
   EXPECT_EQ(buffer.str(), "Service call failed\n");
 
+  cmdServiceReq(service2.c_str(), rreq_type.c_str(),
+    rrep_type.c_str(), timeout, rreq_data.c_str());
+  // Verify that the stderr matches the expected output.
+  EXPECT_EQ(buffer2.str(), "Service call timed out\n");
+
   // Restore stdout.
   std::cout.rdbuf(old);
+  std::cerr.rdbuf(old2);
 }
 
 //////////////////////////////////////////////////
@@ -164,13 +218,18 @@ TEST(ignTest, cmdTopicEcho)
 
   // Redirect stdout.
   std::stringstream buffer;
+  std::stringstream buffer2;
   auto old = std::cout.rdbuf(buffer.rdbuf());
+  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
 
   cmdTopicEcho(nullptr, 10.00);
+  EXPECT_EQ(buffer2.str(), "Invalid topic. Topic must not be empty.\n");
+
   cmdTopicEcho(invalid_topic.c_str(), 5.00);
 
   // Restore stdout.
   std::cout.rdbuf(old);
+  std::cerr.rdbuf(old2);
 }
 
 /////////////////////////////////////////////////
