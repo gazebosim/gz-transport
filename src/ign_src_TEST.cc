@@ -15,10 +15,11 @@
  *
 */
 
-#include <ignition/msgs.hh>
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <ignition/msgs.hh>
+
 #include "gtest/gtest.h"
 #include "ignition/transport/ign.hh"
 #include "ignition/transport/Node.hh"
@@ -27,12 +28,40 @@
 using namespace ignition;
 
 // Global constants.
-static const std::string  g_topic = "/topic";
-static const std::string  service = "/echo";
-static const std::string  service2 = "/timeout";
+static const std::string g_topic   = "/topic";
+static const std::string g_service = "/echo";
+static const std::string g_intType = "ign_msgs.Int32";
+static const std::string g_reqData = "10";
 
 // Global variables.
-static std::string g_partition;
+static std::string     g_partition;
+static std::streambuf *g_stdOutFile;
+static std::streambuf *g_stdErrFile;
+
+// \brief Redirect stdout and stderr to streams.
+void redirectIO(std::stringstream &_stdOutBuffer,
+                std::stringstream &_stdErrBuffer)
+{
+  g_stdOutFile = std::cout.rdbuf(_stdOutBuffer.rdbuf());
+  g_stdErrFile = std::cerr.rdbuf(_stdErrBuffer.rdbuf());
+}
+
+// \brief Clear all streams (including state flags).
+void clearIOStreams(std::stringstream &_stdOutBuffer,
+                    std::stringstream &_stdErrBuffer)
+{
+  _stdOutBuffer.str("");
+  _stdOutBuffer.clear();
+  _stdErrBuffer.str("");
+  _stdErrBuffer.clear();
+}
+
+/// \brief Restore stdout and stderr redirections.
+void restoreIO()
+{
+  std::cout.rdbuf(g_stdOutFile);
+  std::cerr.rdbuf(g_stdErrFile);
+}
 
 /// \brief Provide a service.
 void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
@@ -46,190 +75,171 @@ void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
 /// \brief Check cmdTopicInfo running the advertiser on a the same process.
 TEST(ignTest, cmdTopicInfo)
 {
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
   transport::Node node;
 
-  // Redirect stdout.
-  std::stringstream buffer;
-  std::stringstream buffer2;
-  auto old = std::cout.rdbuf(buffer.rdbuf());
-  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
-
+  // A null topic name should generate an error message.
   cmdTopicInfo(nullptr);
+  EXPECT_EQ(stdErrBuffer.str(), "Invalid topic. Topic must not be empty.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Invalid topic. Topic must not be empty.\n");
-
+  // A topic without advertisers should show an empty list of publishers.
   cmdTopicInfo(g_topic.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "No publishers on topic [/topic]\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "No publishers on topic [/topic]\n");
-
-  // Restore stdout.
-  std::cout.rdbuf(old);
-  std::cerr.rdbuf(old2);
+  restoreIO();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check cmdServiceInfo running the advertiser on a the same process.
 TEST(ignTest, cmdServiceInfo)
 {
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
   transport::Node node;
 
-  // Redirect stdout.
-  std::stringstream buffer;
-  std::stringstream buffer2;
-  auto old = std::cout.rdbuf(buffer.rdbuf());
-  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
-
+  // A null service name should generate an error message.
   cmdServiceInfo(nullptr);
+  EXPECT_EQ(stdErrBuffer.str(),
+    "Invalid service. Service must not be empty.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Invalid service. Service must not be empty.\n");
+  // A service without advertisers should show no service providers.
+  cmdServiceInfo(g_service.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "No service providers on service [/echo]\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceInfo(service.c_str());
-
-  // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "No service providers on service [/echo]\n");
-
-  // Restore stdout.
-  std::cout.rdbuf(old);
-  std::cerr.rdbuf(old2);
+  restoreIO();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicPub running the advertiser on a the same process.
 TEST(ignTest, cmdTopicPub)
 {
-  std::string topic = "/topic";
-  std::string msg_type = "/msgType";
-  std::string msg_data = "/msgData";
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
 
   transport::Node node;
 
-  // Redirect stdout.
-  std::stringstream buffer2;
+  // A null topic name should generate an error message.
+  cmdTopicPub(nullptr, g_intType.c_str(), g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Topic name is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
+  // A null msgType name should generate an error message.
+  cmdTopicPub(g_topic.c_str(), nullptr, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Message type is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdTopicPub(nullptr, msg_type.c_str(), msg_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Topic name is null\n");
+  // Null data should generate an error message.
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), nullptr);
+  EXPECT_EQ(stdErrBuffer.str(), "Message data is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  buffer2.str(std::string());
-
-  cmdTopicPub(topic.c_str(), nullptr, msg_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Message type is null\n");
-
-  buffer2.str(std::string());
-
-  cmdTopicPub(topic.c_str(), msg_type.c_str(), nullptr);
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Message data is null\n");
-
-  // Restore stderr
-  std::cerr.rdbuf(old2);
+  restoreIO();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check cmdServiceReq running the advertiser on a the same process.
 TEST(ignTest, cmdServiceReq)
 {
-  std::string req_type = "/reqType";
-  std::string rep_type = "/repType";
-  std::string req_data = "/reqData";
+  std::stringstream  stdOutBuffer;
+  std::stringstream  stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
 
-  std::string rreq_type = "ign_msgs.Int32";
-  std::string rrep_type = "ign_msgs.Int32";
-  std::string rreq_data = "10";
-
-  const int timeout = 10;
+  const std::string kUnknownType = "_unknown_type_";
+  const int         kTimeout     = 10;
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(service, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_service, srvEcho));
 
   ignition::msgs::Int32 msg;
   msg.set_data(10);
 
-  // Redirect stdout.
-  std::stringstream buffer;
-  std::stringstream buffer2;
-  auto old = std::cout.rdbuf(buffer.rdbuf());
-  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
+  // A null service name should generate an error message.
+  cmdServiceReq(nullptr, g_intType.c_str(), g_intType.c_str(),
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Service name is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(nullptr, req_type.c_str(), rep_type.c_str(),
-    timeout, req_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Service name is null\n");
-  buffer2.str(std::string());
+  // A null service request type should generate an error message.
+  cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Request type is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), nullptr, rep_type.c_str(),
-    timeout, req_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Request type is null\n");
-  buffer2.str(std::string());
+  // A null service response type should generate an error message.
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Response type is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), req_type.c_str(), nullptr,
-    timeout, req_data.c_str());
-  EXPECT_EQ(buffer2.str(), "Response type is null\n");
-  buffer2.str(std::string());
+  // Null data should generate an error message.
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(),
+    g_intType.c_str(), kTimeout, nullptr);
+  EXPECT_EQ(stdErrBuffer.str(), "Request data is null\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), req_type.c_str(),
-    rep_type.c_str(), timeout, nullptr);
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Request data is null\n");
-  buffer2.str(std::string());
+  // It's not possible to request a service using a request parameter that is
+  // not part of Ignition Messages.
+  cmdServiceReq(g_service.c_str(), kUnknownType.c_str(),
+    g_intType.c_str(), kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(),
+    "Unable to create request of type[_unknown_type_] with data[10].\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), req_type.c_str(),
-    rep_type.c_str(), timeout, req_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(),
-    "Unable to create request of type[/reqType] with data[/reqData].\n");
-  buffer2.str(std::string());
+  // It's not possible to request a service using a response type that is not
+  // part of Ignition Messages.
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(),
+    kUnknownType.c_str(), kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(),
+    "Unable to create response of type[_unknown_type_].\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), rreq_type.c_str(),
-    rep_type.c_str(), timeout, rreq_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Unable to create response of type[/repType].\n");
-  buffer2.str(std::string());
+  // The service request is valid, received and containing a "false" result.
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(),
+    g_intType.c_str(), kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "Service call failed\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdServiceReq(service.c_str(), rreq_type.c_str(),
-    rrep_type.c_str(), timeout, rreq_data.c_str());
+  // The service request is valid but will expire because there's no service
+  // available.
+  cmdServiceReq("_unknown_service_", g_intType.c_str(),
+    g_intType.c_str(), kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdErrBuffer.str(), "Service call timed out\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // Verify that the stdout matches the expected output.
-  EXPECT_EQ(buffer.str(), "Service call failed\n");
-
-  cmdServiceReq(service2.c_str(), rreq_type.c_str(),
-    rrep_type.c_str(), timeout, rreq_data.c_str());
-  // Verify that the stderr matches the expected output.
-  EXPECT_EQ(buffer2.str(), "Service call timed out\n");
-
-  // Restore stdout.
-  std::cout.rdbuf(old);
-  std::cerr.rdbuf(old2);
+  restoreIO();
 }
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicEcho running the advertiser on a the same process.
 TEST(ignTest, cmdTopicEcho)
 {
-  std::string invalid_topic ="/";
+  std::stringstream  stdOutBuffer;
+  std::stringstream  stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const std::string kInvalidTopic = "/";
   transport::Node node;
 
-  // Redirect stdout.
-  std::stringstream buffer;
-  std::stringstream buffer2;
-  auto old = std::cout.rdbuf(buffer.rdbuf());
-  auto old2 = std::cerr.rdbuf(buffer2.rdbuf());
-
+  // Requesting a null topic should trigger an error message.
   cmdTopicEcho(nullptr, 10.00);
-  EXPECT_EQ(buffer2.str(), "Invalid topic. Topic must not be empty.\n");
+  EXPECT_EQ(stdErrBuffer.str(), "Invalid topic. Topic must not be empty.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdTopicEcho(invalid_topic.c_str(), 5.00);
+  cmdTopicEcho(kInvalidTopic.c_str(), 5.00);
+  EXPECT_EQ(stdErrBuffer.str(), "Topic [/] is not valid.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // Restore stdout.
-  std::cout.rdbuf(old);
-  std::cerr.rdbuf(old2);
+  restoreIO();
 }
 
 /////////////////////////////////////////////////
@@ -241,16 +251,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", g_partition.c_str(), 1);
-
-  // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
-  // is located.
-  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
-
-  // Make sure that we load the library recently built and not the one installed
-  // in your system.
-#ifndef _WIN32
-  setenv("LD_LIBRARY_PATH", IGN_TEST_LIBRARY_PATH, 1);
-#endif
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
