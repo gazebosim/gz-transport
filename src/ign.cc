@@ -266,10 +266,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
 
   Node node;
   if (!node.Subscribe(_topic, cb))
-  {
-    std::cerr << "Invalid topic [" << _topic << "]" << std::endl;
     return;
-  }
 
   if (_duration >= 0)
   {
