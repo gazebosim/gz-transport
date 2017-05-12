@@ -20,6 +20,10 @@ set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
 
 include (${project_cmake_dir}/Utils.cmake)
 
+if (NOT DEFINED BUILD_TESTING)
+  set(BUILD_TESTING ON)
+endif ()
+
 ##########
 # Package Creation:
 
@@ -287,12 +291,18 @@ else (build_errors)
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
   if (BUILD_IGNITION)
+    add_custom_target(tests)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
     add_subdirectory(include)
     add_subdirectory(conf)
-    add_subdirectory(tools)
-    add_subdirectory(test)
+    if (BUILD_TESTING)
+      add_subdirectory(tools)
+      add_subdirectory(test)
+    else ()
+      add_subdirectory(tools EXCLUDE_FROM_ALL)
+      add_subdirectory(test EXCLUDE_FROM_ALL)
+    endif ()
   endif (BUILD_IGNITION)
 
   ########################################
