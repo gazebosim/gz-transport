@@ -77,7 +77,7 @@ namespace ignition
   {
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
-    /// protocol. It uses UDP broadcast for sending/receiving messages and
+    /// protocol. It uses UDP multicast for sending/receiving messages and
     /// stores updated topic information. The discovery clients can request
     /// the discovery of a topic or the advertisement of a local topic. The
     /// discovery uses heartbeats to track the state of other peers in the
@@ -755,7 +755,7 @@ namespace ignition
       }
 
 
-      /// \brief Parse a discovery message received via the UDP broadcast socket
+      /// \brief Parse a discovery message received via the UDP socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
