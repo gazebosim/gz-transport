@@ -163,7 +163,6 @@ size_t Header::Unpack(const char *_buffer)
 
   // Unpack the flags.
   memcpy(&this->flags, _buffer, sizeof(this->flags));
-  _buffer += sizeof(this->flags);
 
   return this->HeaderLength();
 }
