@@ -157,7 +157,7 @@ Node::Publisher::~Publisher()
 }
 
 //////////////////////////////////////////////////
-Node::Publisher::operator bool()
+Node::Publisher::operator bool() const
 {
   return this->Valid();
 }

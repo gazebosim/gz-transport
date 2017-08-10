@@ -93,7 +93,7 @@ namespace ignition
         /// \brief Allows this class to be evaluated as a boolean.
         /// \return True if valid
         /// \sa Valid
-        public: operator bool();
+        public: operator bool() const;
 
         /// \brief Return true if valid information, such as a non-empty
         /// topic name, is present.
