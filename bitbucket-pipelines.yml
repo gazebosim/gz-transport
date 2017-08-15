@@ -10,7 +10,7 @@ pipelines:
     - step:
         script: # Modify the commands below to build your repository.
           - apt-get update
-          - apt-get -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn wget
+          - apt-get -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn wget lsb-release
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
           - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt-get update
