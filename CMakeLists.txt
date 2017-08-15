@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project (ignition-transport)
 
@@ -218,7 +218,7 @@ else()
   list(APPEND WARN_LEVEL -Wunused-variable -Wvolatile-register-var)
 
   # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
-  set(UNFILTERED_FLAGS "-Wc++11-compat")
+  set(UNFILTERED_FLAGS "-Wc++14-compat")
 endif()
 
 filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long

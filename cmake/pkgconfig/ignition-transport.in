@@ -7,4 +7,4 @@ Description: A set of @IGN_PROJECT_NAME@ classes for robot applications
 Version: @PROJECT_VERSION_FULL@
 Requires: ignition-msgs0 protobuf
 Libs: -L${libdir} -l@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@
-CFlags: -I${includedir} -std=c++11
+CFlags: -I${includedir} -std=c++14
