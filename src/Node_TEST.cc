@@ -466,7 +466,8 @@ TEST(NodePubTest, BoolOperatorTest)
   EXPECT_FALSE(pub);
   EXPECT_FALSE(pub_const);
   pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
-  const transport::Node::Publisher pub2_const = node2.Advertise<ignition::msgs::Vector3d>(g_topic);
+  const transport::Node::Publisher pub2_const =
+      node2.Advertise<ignition::msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub2_const);
 }
