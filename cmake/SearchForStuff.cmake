@@ -96,8 +96,8 @@ endif()
 
 #################################################
 # Find ign msgs library
-find_package(ignition-msgs0 QUIET)
-if (NOT ignition-msgs0_FOUND)
+find_package(ignition-msgs1 QUIET)
+if (NOT ignition-msgs1_FOUND)
   message(FATAL_ERROR "Looking for ignition-msgs - not found")
 else()
   message(STATUS "Looking for ignition-msgs - found")
