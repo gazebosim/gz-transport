@@ -391,7 +391,7 @@ TEST(DiscoveryTest, TestNodeBye)
   reset();
 
   // Create two discovery nodes.
-  std::unique_ptr<MsgDiscovery> discovery1(new MsgDiscovery(pUuid1, g_msgPort));
+  auto discovery1 = std::make_unique<MsgDiscovery>(pUuid1, g_msgPort);
   MsgDiscovery discovery2(pUuid2, g_msgPort);
 
   // Register one callback for receiving disconnect notifications.
