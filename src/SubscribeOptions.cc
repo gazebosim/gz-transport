@@ -16,6 +16,7 @@
 */
 
 #include <cstdint>
+#include <memory>
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
@@ -26,13 +27,13 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
-  : dataPtr(new SubscribeOptionsPrivate())
+  : dataPtr(std::make_unique<SubscribeOptionsPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions(const SubscribeOptions &_otherSubscribeOpts)
-  : dataPtr(new SubscribeOptionsPrivate())
+  : dataPtr(std::make_unique<SubscribeOptionsPrivate>())
 {
   this->SetMsgsPerSec(_otherSubscribeOpts.MsgsPerSec());
 }

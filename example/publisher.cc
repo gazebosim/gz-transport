@@ -46,9 +46,9 @@ int main(int argc, char **argv)
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  std::string topic = "/foo";
+  std::string topic = argv[1];
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<ignition::msgs::Int32>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -56,12 +56,14 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
-  msg.set_data("HELLO");
+  int counter = 0;
+  ignition::msgs::Int32 msg;
+
 
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
+    msg.set_data(counter++);
     if (!pub.Publish(msg))
       break;
 

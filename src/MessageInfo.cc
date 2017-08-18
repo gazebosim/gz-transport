@@ -15,6 +15,7 @@
  *
 */
 
+#include <memory>
 #include <string>
 
 #include "ignition/transport/MessageInfo.hh"
@@ -44,7 +45,7 @@ namespace ignition
 
 //////////////////////////////////////////////////
 MessageInfo::MessageInfo()
-  : dataPtr(new MessageInfoPrivate())
+  : dataPtr(std::make_unique<MessageInfoPrivate>())
 {
 }
 

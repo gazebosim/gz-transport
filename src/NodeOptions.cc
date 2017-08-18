@@ -16,6 +16,7 @@
 */
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "ignition/transport/Helpers.hh"
@@ -28,7 +29,7 @@ using namespace transport;
 
 //////////////////////////////////////////////////
 NodeOptions::NodeOptions()
-  : dataPtr(new NodeOptionsPrivate())
+  : dataPtr(std::make_unique<NodeOptionsPrivate>())
 {
   // Check if the environment variable IGN_PARTITION is present.
   std::string ignPartition;
@@ -38,7 +39,7 @@ NodeOptions::NodeOptions()
 
 //////////////////////////////////////////////////
 NodeOptions::NodeOptions(const NodeOptions &_other)
-  : dataPtr(new NodeOptionsPrivate())
+  : dataPtr(std::make_unique<NodeOptionsPrivate>())
 {
   (*this) = _other;
 }
