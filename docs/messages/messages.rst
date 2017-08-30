@@ -480,13 +480,19 @@ offen the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
 custom Probofuf message integrated with CMake.
 
-Download the `publisher_custom_msg.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher_custom_msg.cc>`_ and the
-`subscriber_custom_msg.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber_custom_msg.cc>`_files within the ``ign_transport_tutorial``. Then, create a `msgs` folder and download the
-`stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ and the `CMakeLists.txt
-<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_files within the ``msgs`` folder. Finally,
-we'll need the main `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_ file. You should have this
-file from the previous examples. Otherwise, download and place it within the
-``ign_transport_tutorial`` folder.
+Download the `publisher_custom_msg.cc
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher_custom_msg.cc>`_
+and the `subscriber_custom_msg.cc
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber_custom_msg.cc>`_
+files within the ``ign_transport_tutorial``. Then, create a `msgs` folder and
+download the `stringmsg.proto
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_
+and the `CMakeLists.txt
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_
+files within the ``msgs`` folder. Finally, we'll need the main `CMakeLists.txt
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_
+file. You should have this file from the previous examples. Otherwise,
+download and place it within the ``ign_transport_tutorial`` folder.
 
 Walkthrough
 -----------
@@ -553,7 +559,8 @@ Finally, this is the content of the ``msgs/CMakeLists.txt`` file:
     add_custom_target(protobuf_compilation DEPENDS ${PROTO_SRC})
 
 The macro ``PROTOBUF_GENERATE_CPP`` will use `protoc` to generate the ``.pb.h``
-and ``.pb.cc`` files from your ``.proto`` files. Follow the next instructions to compile and run the generic subscriber example:
+and ``.pb.cc`` files from your ``.proto`` files. Follow the next instructions to
+compile and run the generic subscriber example:
 
 Run ``cmake`` and build the example:
 
