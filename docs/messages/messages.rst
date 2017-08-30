@@ -473,10 +473,10 @@ From terminal 2:
 Using custom Protobuf messages
 ==============================
 
-We use Ignition Msgs in most of our examples and tests. This is decision what we
+We use Ignition Msgs in most of our examples and tests. This decision was
 made just for convenience but Ignition Transport supports the use of Protobuf
 messages directly. The most common problem with custom Protobuf messages is
-offen the integration of the message generation into the build system of your
+often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
 custom Probofuf message integrated with CMake.
 
