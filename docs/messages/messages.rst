@@ -478,7 +478,7 @@ made just for convenience but Ignition Transport supports the use of Protobuf
 messages directly. The most common problem with custom Protobuf messages is
 often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
-custom Probofuf message integrated with CMake.
+custom Protobuf message integrated with CMake.
 
 Download the `publisher_custom_msg.cc
 <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher_custom_msg.cc>`_
