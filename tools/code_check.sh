@@ -81,6 +81,7 @@ SUPPRESS=/tmp/cpp_check.suppress
 # time consuming. See CPPCHECK_CMD3.
 #echo "missingIncludeSystem" >> $SUPPRESS
 echo "*:include/ignition/transport/TransportTypes.hh:64" > $SUPPRESS
+echo "*:example/build/msgs/stringmsg.pb.h:12" > $SUPPRESS
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
