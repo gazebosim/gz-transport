@@ -111,7 +111,7 @@ Namespace  Topic name    Fully qualified topic  Validity  Comment
 *ns1*      */topicA*     */topicA*              Valid     Absolute topic
 \          */topicA*     */topicA*              Valid     Absolute topic
 *ns1*      *topicA*      */ns1/topicA*          Valid
-\          *topicA*      */ns1/topicA*              Valid
+\          *topicA*      */ns1/topicA*          Valid
 *ns1*      *topic A*     \                      Invalid   Topic contains white space
 \          *topic A*     \                      Invalid   Topic contains white space
 *my ns*    *topicA*      \                      Invalid   Namespace contains white space
