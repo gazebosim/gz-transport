@@ -26,8 +26,7 @@ Setup your computer to accept software from *packages.osrfoundation.org*:
 
 .. code-block:: bash
 
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
-    `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 
 Setup keys:
 
