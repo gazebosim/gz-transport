@@ -103,7 +103,8 @@ A namespace is any alphanumeric string with a few exceptions.
 The symbol ``/`` is allowed as part of a namespace but just ``/`` is not
 allowed. The symbols ``@``, ``~`` or white spaces are not allowed as
 part of a namespace. Two or more consecutive slashes (``//``) are not allowed.
-If topic name or namespace is invalid than fully qualified topic name is invalid too.
+If topic name or namespace is invalid than fully qualified topic name is
+invalid too.
 
 =========  ============  =====================  ========  =======
 Namespace  Topic name    Fully qualified topic  Validity  Comment
@@ -111,7 +112,7 @@ Namespace  Topic name    Fully qualified topic  Validity  Comment
 *ns1*      */topicA*     */topicA*              Valid     Absolute topic
 \          */topicA*     */topicA*              Valid     Absolute topic
 *ns1*      *topicA*      */ns1/topicA*          Valid
-\          *topicA*      */ns1/topicA*          Valid
+\          *topicA*      */topicA*              Valid
 *ns1*      *topic A*     \                      Invalid   Topic contains white space
 \          *topic A*     \                      Invalid   Topic contains white space
 *my ns*    *topicA*      \                      Invalid   Namespace contains white space
