@@ -12,7 +12,7 @@ pipelines:
           - apt update
           - apt -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn wget lsb-release curl mercurial lcov
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
-          - wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+          - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt update
           - apt install -y libignition-msgs-dev
           - mkdir build
