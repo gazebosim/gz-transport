@@ -17,7 +17,7 @@ pipelines:
           - apt install -y libignition-msgs-dev
           - mkdir build
           - cd build
-          - cmake .. -DCMAKE_BUILD_TYPE=coverage
+          - cmake .. -DCMAKE_BUILD_TYPE=Coverage
           - make -j4
           - make test ARGS="-VV"
           - make doc
