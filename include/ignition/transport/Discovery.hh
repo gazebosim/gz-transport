@@ -64,6 +64,7 @@
 #include <thread>
 #include <vector>
 
+#include "ignition/transport/DiscoveryOptions.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"
@@ -93,7 +94,7 @@ namespace ignition
       /// \param[in] _verbose true for enabling verbose mode.
       public: Discovery(const std::string &_pUuid,
                         const int _port,
-                        const bool _verbose = false)
+                        const DiscoveryOptions &_options = DiscoveryOptions())
         : port(_port),
           hostAddr(determineHost()),
           pUuid(_pUuid),
@@ -102,10 +103,10 @@ namespace ignition
           heartbeatInterval(kDefHeartbeatInterval),
           connectionCb(nullptr),
           disconnectionCb(nullptr),
-          verbose(_verbose),
           initialized(false),
           numHeartbeatsUninitialized(0),
           exit(false),
+          options(_options),
           enabled(false)
       {
         std::string ignIp;
@@ -197,7 +198,17 @@ namespace ignition
           inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
-        if (this->verbose)
+        // Set 'relayAddrs' to the list of unicast relays.
+        for (auto const relayAddr : this->options.Relays())
+        {
+          sockaddr_in addr;
+          memset(&addr, 0, sizeof(addr));
+          addr.sin_family = AF_INET;
+          addr.sin_addr.s_addr = inet_addr(relayAddr.c_str());
+          addr.sin_port = htons(static_cast<u_short>(this->port));
+        }
+
+        if (this->options.Verbose())
           this->PrintCurrentState();
       }
 
@@ -703,7 +714,7 @@ namespace ignition
           {
             this->RecvDiscoveryUpdate();
 
-            if (this->verbose)
+            if (this->options.Verbose())
               this->PrintCurrentState();
           }
 
@@ -745,7 +756,7 @@ namespace ignition
         srcAddr = inet_ntoa(clntAddr.sin_addr);
         srcPort = ntohs(clntAddr.sin_port);
 
-        if (this->verbose)
+        if (this->options.Verbose())
         {
           std::cout << "\nReceived discovery update from " << srcAddr << ": "
                     << srcPort << std::endl;
@@ -994,7 +1005,7 @@ namespace ignition
           }
         }
 
-        if (this->Verbose())
+        if (this->options.Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
                     << " msg [" << topic << "]" << std::endl;
@@ -1013,13 +1024,6 @@ namespace ignition
       private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
-      }
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enabled or false otherwise.
-      private: bool Verbose() const
-      {
-        return this->verbose;
       }
 
       /// \brief Get the discovery protocol version.
@@ -1155,6 +1159,9 @@ namespace ignition
       /// \brief Internet socket address for sending to the multicast group.
       private: sockaddr_in mcastAddr;
 
+      /// \brief Collection of sockets addresses used for the relays.
+      private: std::vector<sockaddr_in> relayAddrs;
+
       /// \brief Mutex to guarantee exclusive access between the threads.
       private: mutable std::mutex mutex;
 
@@ -1184,6 +1191,9 @@ namespace ignition
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
+
+      /// \brief Discovery options.
+      private: DiscoveryOptions options;
 
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.

@@ -24,6 +24,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/DiscoveryOptions.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -63,8 +64,8 @@ template<typename T> class DiscoveryDerived : public transport::Discovery<T>
   // Documentation inherited.
   public: DiscoveryDerived(const std::string &_pUuid,
                            const int _port,
-                           const bool _verbose = false)
-    : transport::Discovery<T>(_pUuid, _port, _verbose)
+                           const DiscoveryOptions _options = DiscoveryOptions())
+    : transport::Discovery<T>(_pUuid, _port, _options)
   {
   }
 
@@ -213,7 +214,10 @@ TEST(DiscoveryTest, TestAdvertise)
 
   // Create two discovery nodes simulating they are in different processes.
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
-  transport::Discovery<MessagePublisher> Discovery2(pUuid2, g_msgPort, true);
+
+  transport::DiscoveryOptions options;
+  options.SetVerbose(true);
+  transport::Discovery<MessagePublisher> Discovery2(pUuid2, g_msgPort, options);
 
   // Register one callback for receiving notifications.
   Discovery2.ConnectionsCb(onDiscoveryResponse);
