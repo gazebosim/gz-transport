@@ -104,6 +104,7 @@ namespace ignition
         /// \param[in] _msg A google::protobuf message.
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
+        public: bool Publish(const std::string &_type,const std::string &_data);
 
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.

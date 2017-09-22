@@ -7,6 +7,22 @@ include_directories(${IGNITION-TRANSPORT_INCLUDE_DIRS})
 link_directories(${IGNITION-TRANSPORT_LIBRARY_DIRS})
 
 # Generate examples
+if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
+  ########################################
+  # GFlags
+  find_library(gflags_LIBRARIES NAMES gflags)
+  find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
+  if (NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
+    BUILD_ERROR("GFlags package is missing.")
+  endif()
+
+  include_directories(SYSTEM ${gflags_INCLUDE_DIRS})
+
+  add_executable(bench bench.cc)
+  target_link_libraries(bench ${IGNITION-TRANSPORT_LIBRARIES}
+                        ${gflags_LIBRARIES})
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   add_executable(publisher publisher.cc)
   target_link_libraries(publisher ${IGNITION-TRANSPORT_LIBRARIES})

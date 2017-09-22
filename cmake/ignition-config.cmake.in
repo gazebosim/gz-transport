@@ -110,3 +110,15 @@ endif()
 list(APPEND @PKG_NAME@_INCLUDE_DIRS ${IGNITION-MSGS_INCLUDE_DIRS})
 list(APPEND @PKG_NAME@_LIBRARY_DIRS ${IGNITION-MSGS_LIBRARY_DIRS})
 list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-MSGS_LIBRARIES})
+
+#################################################
+# Find ign common library
+find_package(ignition-common1 QUIET)
+if (NOT ignition-common1_FOUND)
+  message(FATAL "Looking for ignition-common - not found")
+else()
+  message(STATUS "Looking for ignition-common - found")
+endif()
+list(APPEND @PKG_NAME@_INCLUDE_DIRS ${IGNITION-COMMON_INCLUDE_DIRS})
+list(APPEND @PKG_NAME@_LIBRARY_DIRS ${IGNITION-COMMON_LIBRARY_DIRS})
+list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-COMMON_LIBRARIES})

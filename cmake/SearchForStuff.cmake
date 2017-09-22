@@ -105,6 +105,15 @@ else()
   link_directories(${IGNITION-MSGS_LIBRARY_DIRS})
 endif()
 
+find_package(ignition-common1 QUIET)
+if (NOT ignition-common1_FOUND)
+  message(FATAL_ERROR "Looking for ignition-common1 - not found")
+else()
+  message(STATUS "Looking for ignition-common1 - found")
+  include_directories(${IGNITION-COMMON_INCLUDE_DIRS})
+  link_directories(${IGNITION-COMMON_LIBRARY_DIRS})
+endif()
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)

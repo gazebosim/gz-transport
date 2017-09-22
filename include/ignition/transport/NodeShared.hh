@@ -32,6 +32,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <ignition/common/WorkerPool.hh>
 
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
@@ -185,6 +186,10 @@ namespace ignition
       /// \brief My pub/sub address.
       public: std::string myAddress;
 
+      /// \brief A set of ZMQ messages that don't change when a new message
+      /// is published.
+      public: std::map<std::string, std::array<zmq::message_t, 3>> constMsgs;
+
       /// \brief My pub/sub control address.
       public: std::string myControlAddress;
 
@@ -226,6 +231,9 @@ namespace ignition
 
       /// \brief ZMQ socket to receive service call requests.
       public: std::unique_ptr<zmq::socket_t> replier;
+
+      /// \brief A thread pool.
+      public: ignition::common::WorkerPool workerPool;
 
       //////////////////////////////////////////////////
       /////// Declare here the discovery object  ///////

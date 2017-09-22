@@ -184,6 +184,96 @@ bool Node::Publisher::HasConnections() const
 }
 
 //////////////////////////////////////////////////
+bool Node::Publisher::Publish(const std::string &_type, const std::string &_data)
+{
+  if (!this->Valid())
+    return false;
+
+  // Check that the msg type matches the topic type previously advertised.
+  if (this->dataPtr->publisher.MsgTypeName() != _type)
+  {
+    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
+              << "\t* Type advertised: "
+              << this->dataPtr->publisher.MsgTypeName()
+              << "\n\t* Type published: " << _type << std::endl;
+    return false;
+  }
+
+  // Check the publication throttling option.
+  if (!this->UpdateThrottling())
+    return true;
+
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
+
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
+      this->dataPtr->publisher.Topic(), handlers);
+    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
+      this->dataPtr->publisher.Topic(), _type);
+  }
+
+  // Local subscribers.
+  /*if (hasLocalSubscribers)
+  {
+    // Get the topic and remove the partition name.
+    std::string topic = this->dataPtr->publisher.Topic();
+    topic.erase(0, topic.find_last_of("@") + 1);
+
+    // Create and populate the message information object.
+    MessageInfo info;
+    info.SetTopic(topic);
+
+    for (auto &node : handlers)
+    {
+      for (auto &handler : node.second)
+      {
+        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+        if (subscriptionHandlerPtr)
+        {
+          if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
+              subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+          {
+            continue;
+          }
+
+          subscriptionHandlerPtr->RunLocalCallback(_msg, info);
+        }
+        else
+        {
+          std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
+                    << std::endl;
+        }
+      }
+    }
+  }*/
+
+  // Remote subscribers.
+  //if (hasRemoteSubscribers)
+  {
+    /*std::string data;
+    if (!_msg.SerializeToString(&data))
+    {
+      std::cerr << "Node::Publisher::Publish(): Error serializing data"
+                << std::endl;
+      return false;
+    }*/
+
+    if (!this->dataPtr->shared->Publish(
+          this->dataPtr->publisher.Topic(), _data, _type))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool Node::Publisher::Publish(const ProtoMsg &_msg)
 {
   if (!this->Valid())
@@ -241,7 +331,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          subscriptionHandlerPtr->RunLocalCallback(_msg, info);
+          // Add local callback to worker pool
+          this->dataPtr->shared->workerPool.AddWork(
+              [subHandler = subscriptionHandlerPtr.get(), &_msg, &info] ()
+              {
+                subHandler->RunLocalCallback(_msg, info);
+              });
         }
         else
         {

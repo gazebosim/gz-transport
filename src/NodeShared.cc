@@ -225,22 +225,44 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 {
   try
   {
+    auto iter = this->constMsgs.find(_topic);
+
+    // Create the constMsgs if they don't currently exist
+    if (iter == this->constMsgs.end())
+    {
+      this->constMsgs[_topic][0].rebuild(_topic.size());
+      memcpy(this->constMsgs[_topic][0].data(), _topic.data(), _topic.size());
+
+      this->constMsgs[_topic][1].rebuild(this->myAddress.size());
+      memcpy(this->constMsgs[_topic][1].data(), this->myAddress.data(),
+             this->myAddress.size());
+
+      this->constMsgs[_topic][2].rebuild(_msgType.size());
+      memcpy(this->constMsgs[_topic][2].data(), _msgType.data(),
+             _msgType.size());
+
+      iter = this->constMsgs.find(_topic);
+    }
+
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
     zmq::message_t msg;
-    msg.rebuild(_topic.size());
-    memcpy(msg.data(), _topic.data(), _topic.size());
+
+    // Send topic name
+    msg.copy(&(iter->second[0]));
     this->publisher->send(msg, ZMQ_SNDMORE);
 
-    msg.rebuild(this->myAddress.size());
-    memcpy(msg.data(), this->myAddress.data(), this->myAddress.size());
+    // Send my address
+    msg.copy(&(iter->second[1]));
     this->publisher->send(msg, ZMQ_SNDMORE);
 
+    // Send the data
     msg.rebuild(_data.size());
     memcpy(msg.data(), _data.data(), _data.size());
     this->publisher->send(msg, ZMQ_SNDMORE);
 
-    msg.rebuild(_msgType.size());
-    memcpy(msg.data(), _msgType.data(), _msgType.size());
+    // Send the message type
+    msg.copy(&(iter->second[2]));
     this->publisher->send(msg, 0);
   }
   catch(const zmq::error_t& ze)
