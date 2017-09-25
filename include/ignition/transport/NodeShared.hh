@@ -187,7 +187,12 @@ namespace ignition
       public: std::string myAddress;
 
       /// \brief A set of ZMQ messages that don't change when a new message
-      /// is published.
+      /// is published on a topic. The map's key is the name of a topic. The
+      /// three messages are:
+      ///
+      ///   1. Name of the topic
+      ///   2. Node address
+      ///   3. Message type name
       public: std::map<std::string, std::array<zmq::message_t, 3>> constMsgs;
 
       /// \brief My pub/sub control address.
@@ -232,7 +237,7 @@ namespace ignition
       /// \brief ZMQ socket to receive service call requests.
       public: std::unique_ptr<zmq::socket_t> replier;
 
-      /// \brief A thread pool.
+      /// \brief A thread pool used to deliver local (in-process) messages.
       public: ignition::common::WorkerPool workerPool;
 
       //////////////////////////////////////////////////

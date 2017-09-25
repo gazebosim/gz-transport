@@ -33,10 +33,21 @@ DEFINE_bool(p, false, "Publishing node");
 std::condition_variable gCondition;
 std::mutex gMutex;
 
+/// \brief The ReplyTester subscribes to the benchmark topics, and relays
+/// incoming messages on a corresponding "reply" topic.
+///
+/// A publisher should send messages on either:
+///
+///   1. /benchmark/latency/request For latency testing
+///   2. /benchmark/throughput/request For throughput testing.
+///
+/// The incoming and outgoing message types are ignition::msgs::Bytes.
 class ReplyTester
 {
+  /// Constructor that creates the publishers and subscribers.
   public: ReplyTester()
   {
+    // Advertise on the throughput reply topic
     this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
         "/benchmark/throughput/reply");
     if (!this->throughputPub)
@@ -46,6 +57,7 @@ class ReplyTester
       return;
     }
 
+    // Advertise on the latency reply topic
     this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
         "/benchmark/latency/reply");
     if (!this->latencyPub)
@@ -55,7 +67,7 @@ class ReplyTester
       return;
     }
 
-    // Subscribe to the subTopic by registering a callback.
+    // Subscribe to the throughput request topic.
     if (!node.Subscribe("/benchmark/throughput/request",
           &ReplyTester::ThroughputCb, this))
     {
@@ -64,43 +76,70 @@ class ReplyTester
       return;
     }
 
-    // Subscribe to the subTopic by registering a callback.
+    // Subscribe to the latency request topic.
     if (!node.Subscribe("/benchmark/latency/request",
           &ReplyTester::LatencyCb, this))
     {
-      std::cerr << "Error subscribing to topic /benchmark/throughput/request"
+      std::cerr << "Error subscribing to topic /benchmark/latency/request"
                 << std::endl;
       return;
     }
 
-    // Kick discovery. Need to fix this..
+    // Kick discovery.
+    // \todo: Improve discovery so that this is not required.
     std::vector<std::string> topics;
     this->node.TopicList(topics);
   }
 
-  /// \brief Function called each time a topic update is received.
+  /// \brief Function called each time a throughput message is received.
   private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
   {
     this->throughputPub.Publish(_msg);
   }
 
-  /// \brief Function called each time a topic update is received.
+  /// \brief Function called each time a latency message is received.
   private: void LatencyCb(const ignition::msgs::Bytes &_msg)
   {
     this->latencyPub.Publish(_msg);
   }
 
-
+  /// \brief The transport node
   private: ignition::transport::Node node;
+
+  /// \brief The throughput publisher
   private: ignition::transport::Node::Publisher throughputPub;
+
+  /// \brief The latency publisher
   private: ignition::transport::Node::Publisher latencyPub;
 };
 
+/// \brief The PubTester is used to collect data on latency or throughput.
+/// Latency is the measure of time from message publication to message
+/// reception. Latency is calculated by dividing the complete roundtrip
+/// time of a message in half. This avoids time synchronization issues.
+///
+/// Throughput is measured by sending N messages, and measuring the time
+/// required to send those messages. Again, half of the complete roundtrip
+/// time is used to avoid time synchronization issues.
+///
+/// The latency topics are:
+///
+///   1. /benchmark/latency/request Outbound data, sent by this class.
+///   2. /benchmark/latency/reply Inbound data, sent by ReplyTester.
+///
+/// The throughput topics are:
+///
+///   1. /benchmark/throughput/request Outbound data, sent by this class.
+///   2. /benchmark/throughput/reply Inbound data, sent by ReplyTester.
 class PubTester
 {
-  /// \brief Constructor
-  public: PubTester()
+  /// \brief Default constructor.
+  public: PubTester() = default;
+
+  /// \brief Create the publishers and subscribers.
+  public: void Init()
   {
+    // Throughput publisher
     this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
         "/benchmark/throughput/request");
     if (!this->throughputPub)
@@ -110,6 +149,7 @@ class PubTester
       return;
     }
 
+    // Latency publisher
     this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
         "/benchmark/latency/request");
     if (!this->latencyPub)
@@ -119,7 +159,7 @@ class PubTester
       return;
     }
 
-    // Subscribe to the subTopic by registering a callback.
+    // Subscribe to the throughput reply topic.
     if (!node.Subscribe("/benchmark/throughput/reply",
                         &PubTester::ThroughputCb, this))
     {
@@ -128,7 +168,7 @@ class PubTester
       return;
     }
 
-    // Subscribe to the subTopic by registering a callback.
+    // Subscribe to the latency reply topic.
     if (!node.Subscribe("/benchmark/latency/reply",
                         &PubTester::LatencyCb, this))
     {
@@ -137,96 +177,158 @@ class PubTester
       return;
     }
 
-    // Kick discovery. Need to fix this..
+    // Kick discovery.
+    // \todo: Improve discovery so that this is not required.
     std::vector<std::string> topics;
     this->node.TopicList(topics);
   }
 
-  /// \brief Measure throughput.
+  /// \brief Used to stop the test.
+  public: void Stop()
+  {
+    std::unique_lock<std::mutex> lk(this->mutex);
+    this->stop = true;
+    this->condition.notify_all();
+  }
+
+  /// \brief Measure throughput. The output contains three columns:
+  ///    1. Message size in bytes
+  ///    2. Throughput in megabytes per second
+  ///    3. Throughput in thousounds of messages per second
   public: void Throughput()
   {
+    // Column headers.
     std::cout << "Msg Size\tMB/s\tKmsg/s\n";
 
+    // Iterate over each of the message sizes
     for (auto msgSize : this->msgSizes)
     {
+      if (this->stop)
+        return;
+
+      // Reset counters
       this->totalBytes = 0;
       this->msgCount = 0;
 
+      // Create the message of the given size
       this->PrepMsg(msgSize);
 
+      // Start the clock
       auto timeStart = std::chrono::high_resolution_clock::now();
-      for (int i = 0; i < this->sentMsgs; ++i)
+
+      // Send all the messages as fast as possible
+      for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
         this->throughputPub.Publish(this->msg);
       }
 
+      // Wait for all the reply messages. This will add little overhead
+      // to the time, but should be negligible.
       std::unique_lock<std::mutex> lk(this->mutex);
       if (this->msgCount < this->sentMsgs)
         this->condition.wait(lk);
+
+      // End the clock.
       auto timeEnd = std::chrono::high_resolution_clock::now();
 
+      // Computer the number of microseconds
       uint64_t duration =
         std::chrono::duration_cast<std::chrono::microseconds>(
             timeEnd - timeStart).count();
 
+      // Conver to seconds
       double seconds = (duration * 1e-6);
+
+      // Output the data
       std::cout << this->dataSize << "\t\t"
         << (this->totalBytes * 1e-6) / seconds << "\t"
         << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
   }
 
-  /// \brief Measure latency.
+  /// \brief Measure latency. The output containes two columns:
+  ///    1. Message size in bytes.
+  ///    2. Latency in microseconds.
   public: void Latency()
   {
+    // Column headers.
     std::cout << "Msg Size\tLatency (us)\n";
 
+    // Iterate over each of the message sizes
     for (auto msgSize : this->msgSizes)
     {
+      if (this->stop)
+        return;
+
+      // Create the message of the given size
       this->PrepMsg(msgSize);
 
       uint64_t sum = 0;
 
-      for (int i = 0; i < this->sentMsgs; ++i)
+      // Send each message.
+      for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
+        // Lock so that we wait on a condition variable.
         std::unique_lock<std::mutex> lk(this->mutex);
 
+        // Start the clock
         auto timeStart = std::chrono::high_resolution_clock::now();
 
+        // Send the message.
         this->latencyPub.Publish(this->msg);
+
+        // Wait for the response. This adds a bit of overhead, but it should
+        // be negligible.
         this->condition.wait(lk);
+
+        // End the time.
         auto timeEnd = std::chrono::high_resolution_clock::now();
 
+        // Compute the number of microseconds
         uint64_t duration =
           std::chrono::duration_cast<std::chrono::microseconds>(
               timeEnd - timeStart).count();
 
+        // Add to the sum of microseconds
         sum += duration;
       }
 
+      // Output data.
       std::cout << this->dataSize << "\t\t"
                 << (sum / (double)this->sentMsgs) * 0.5 << std::endl;
     }
   }
 
-  /// \brief Function called each time a topic update is received.
+  /// \brief Callback that handles throughput replies
+  /// \param[in] _msg The reply message
   private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
   {
+    // Lock
     std::unique_lock<std::mutex> lk(this->mutex);
+
+    // Add to the total bytes received.
     this->totalBytes += this->dataSize;
+
+    // Add to the total messages received.
     this->msgCount++;
+
+    // Notify Throughput() when all messages have been received.
     if (this->msgCount >= this->sentMsgs)
       condition.notify_all();
   }
 
-  /// \brief Function called each time a topic update is received.
+  /// \brief Callback that handles latency replies
+  /// \param[in] _msg The reply message
   private: void LatencyCb(const ignition::msgs::Bytes &_msg)
   {
+    // Lock and notify
     std::unique_lock<std::mutex> lk(this->mutex);
     this->condition.notify_all();
   }
 
-  private: void PrepMsg(int _size)
+  /// \brief Create a new message of a give size.
+  /// \param[in] _size Size (bytes) of the message to create.
+  private: void PrepMsg(const int _size)
   {
     // Prepare the message.
     char *byteData = new char[_size];
@@ -234,50 +336,82 @@ class PubTester
       byteData[i] = '0';
     msg.set_data(byteData);
 
+
+    // Serialize so that we know how big the message is
     std::string data;
     this->msg.SerializeToString(&data);
     this->dataSize = data.size();
   }
 
+  /// \brief Set of messages sizes to test.
   private: std::vector<int> msgSizes =
     {
       256, 512, 1000, 2000, 4000, 8000, 16000, 32000, 64000,
       128000, 256000, 512000, 1000000, 2000000, 4000000
     };
 
+  /// \brief Condition variable used for synchronization.
   private: std::condition_variable condition;
+
+  /// \brief Mutex used for synchronization.
   private: std::mutex mutex;
 
+  /// \brief Message that is sent.
   private: ignition::msgs::Bytes msg;
+
+  /// \brief Size of the message currently under test
   private: uint64_t dataSize = 0;
+
+  /// \brief Total bytes received, used for throughput testing
   private: uint64_t totalBytes = 0;
+
+  /// \brief Total messages received, used for throughput testing
   private: uint64_t msgCount = 0;
+
+  /// \brief Number of test iterations.
   private: uint64_t sentMsgs = 1000;
 
+  /// \brief Communication node
   private: ignition::transport::Node node;
+
+  /// \brief Throughput publisher
   private: ignition::transport::Node::Publisher throughputPub;
+
+  /// \brief Latency publisher
   private: ignition::transport::Node::Publisher latencyPub;
+
+  /// \brief Used to stop the test.
+  private: bool stop = false;
 };
 
+// The PubTester is global so that the signal handler can easily kill it.
+// Ugly, but fine for this example.
+PubTester gPubTester;
+
 //////////////////////////////////////////////////
-void signal_handler(int _signal)
+void signalHandler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
+  {
     gCondition.notify_all();
+    gPubTester.Stop();
+  }
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Install a signal handler for SIGINT and SIGTERM.
-  std::signal(SIGINT,  signal_handler);
-  std::signal(SIGTERM, signal_handler);
+  std::signal(SIGINT,  signalHandler);
+  std::signal(SIGTERM, signalHandler);
 
+  // Simple usage.
   std::string usage("Benchmark testing program.");
   usage += " Usage:\n ./benchmark -t";
 
   gflags::SetUsageMessage(usage);
 
+  // Parse command line arguments
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
 
   std::vector<gflags::CommandLineFlagInfo> flags;
@@ -293,22 +427,22 @@ int main(int argc, char **argv)
   // Run the publisher
   else if (FLAGS_p)
   {
-    PubTester pubTester;
+    gPubTester.Init();
     if (FLAGS_t)
-      pubTester.Throughput();
+      gPubTester.Throughput();
     else
-      pubTester.Latency();
+      gPubTester.Latency();
   }
   // Single process with both publisher and responder
   else
   {
     ReplyTester replyTester;
-    PubTester pubTester;
+    gPubTester.Init();
 
     if (FLAGS_t)
-      pubTester.Throughput();
+      gPubTester.Throughput();
     else
-      pubTester.Latency();
+      gPubTester.Latency();
   }
   return 0;
 }
