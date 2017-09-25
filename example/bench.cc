@@ -225,7 +225,7 @@ class PubTester
     }
 
     // Column headers.
-    (*stream) << "Test_Num\tMsg_Size\tMB/s\tKmsg/s\n";
+    (*stream) << "Test\tSize(B)\t\tMB/s\tKmsg/s\n";
 
     int testNum = 1;
     // Iterate over each of the message sizes
@@ -265,9 +265,9 @@ class PubTester
       double seconds = (duration * 1e-6);
 
       // Output the data
-      (*stream) << testNum++ << "\t\t" << this->dataSize << "\t\t"
-        << (this->totalBytes * 1e-6) / seconds << "\t"
-        << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
+      (*stream) << testNum++ << "\t" << this->dataSize << "\t\t"
+                << (this->totalBytes * 1e-6) / seconds << "\t"
+                << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
 
     if (!this->filename.empty())
@@ -289,8 +289,10 @@ class PubTester
     }
 
     // Column headers.
-    (*stream) << "Test_Num\tMsg_Size\tLatency (us)\n";
+    (*stream) << "Test\tSize(B)\tAvg_(us)\tMin_(us)\tMax_(us)\n";
 
+    uint64_t maxLatency = 0;
+    uint64_t minLatency = std::numeric_limits<uint64_t>::max();
     int testNum = 1;
     // Iterate over each of the message sizes
     for (auto msgSize : this->msgSizes)
@@ -325,13 +327,20 @@ class PubTester
           std::chrono::duration_cast<std::chrono::microseconds>(
               this->timeEnd - timeStart).count();
 
+        if (duration > maxLatency)
+          maxLatency = duration;
+        if (duration < minLatency)
+          minLatency = duration;
+
         // Add to the sum of microseconds
         sum += duration;
       }
 
       // Output data.
-      (*stream) << testNum++ << "\t\t" << this->dataSize << "\t\t"
-                << (sum / (double)this->sentMsgs) * 0.5 << std::endl;
+      (*stream) << testNum++ << "\t" << this->dataSize << "\t"
+                << (sum / (double)this->sentMsgs) * 0.5 << "\t\t"
+                << minLatency * 0.5 << "\t\t"
+                << maxLatency * 0.5 << std::endl;
     }
 
     if (!this->filename.empty())

@@ -225,49 +225,18 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 {
   try
   {
-    // Find the set of constant messages based on the topic name.
-    auto iter = this->constMsgs.find(_topic);
+    // Create the messages
+    zmq::message_t msg0(_topic.data(), _topic.size()),
+                   msg1(this->myAddress.data(), this->myAddress.size()),
+                   msg2(_data.data(), _data.size()),
+                   msg3(_msgType.data(), _msgType.size());
 
-    // Create the constMsgs if they don't currently exist
-    if (iter == this->constMsgs.end())
-    {
-      // Create the zmq message for the topic name
-      this->constMsgs[_topic][0].rebuild(_topic.size());
-      memcpy(this->constMsgs[_topic][0].data(), _topic.data(), _topic.size());
-
-      // Create the zmq message for the node's address
-      this->constMsgs[_topic][1].rebuild(this->myAddress.size());
-      memcpy(this->constMsgs[_topic][1].data(), this->myAddress.data(),
-             this->myAddress.size());
-
-      // Create the zmq message for the topic's message type
-      this->constMsgs[_topic][2].rebuild(_msgType.size());
-      memcpy(this->constMsgs[_topic][2].data(), _msgType.data(),
-             _msgType.size());
-
-      iter = this->constMsgs.find(_topic);
-    }
-
+    // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-    zmq::message_t msg;
-
-    // Send topic name
-    msg.copy(&(iter->second[0]));
-    this->publisher->send(msg, ZMQ_SNDMORE);
-
-    // Send my address
-    msg.copy(&(iter->second[1]));
-    this->publisher->send(msg, ZMQ_SNDMORE);
-
-    // Send the data
-    msg.rebuild(_data.size());
-    memcpy(msg.data(), _data.data(), _data.size());
-    this->publisher->send(msg, ZMQ_SNDMORE);
-
-    // Send the message type
-    msg.copy(&(iter->second[2]));
-    this->publisher->send(msg, 0);
+    this->publisher->send(msg0, ZMQ_SNDMORE);
+    this->publisher->send(msg1, ZMQ_SNDMORE);
+    this->publisher->send(msg2, ZMQ_SNDMORE);
+    this->publisher->send(msg3, 0);
   }
   catch(const zmq::error_t& ze)
   {
