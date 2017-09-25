@@ -236,13 +236,10 @@ class PubTester
       if (this->msgCount < this->sentMsgs)
         this->condition.wait(lk);
 
-      // End the clock.
-      auto timeEnd = std::chrono::high_resolution_clock::now();
-
       // Computer the number of microseconds
       uint64_t duration =
         std::chrono::duration_cast<std::chrono::microseconds>(
-            timeEnd - timeStart).count();
+            this->timeEnd - timeStart).count();
 
       // Conver to seconds
       double seconds = (duration * 1e-6);
@@ -286,17 +283,15 @@ class PubTester
         // Send the message.
         this->latencyPub.Publish(this->msg);
 
-        // Wait for the response. This adds a bit of overhead, but it should
-        // be negligible.
+        // Wait for the response.
         this->condition.wait(lk);
 
-        // End the time.
-        auto timeEnd = std::chrono::high_resolution_clock::now();
+        //auto timeEnd = std::chrono::high_resolution_clock::now();
 
         // Compute the number of microseconds
         uint64_t duration =
           std::chrono::duration_cast<std::chrono::microseconds>(
-              timeEnd - timeStart).count();
+              this->timeEnd - timeStart).count();
 
         // Add to the sum of microseconds
         sum += duration;
@@ -323,13 +318,20 @@ class PubTester
 
     // Notify Throughput() when all messages have been received.
     if (this->msgCount >= this->sentMsgs)
+    {
+      // End the clock.
+      this->timeEnd = std::chrono::high_resolution_clock::now();
       condition.notify_all();
+    }
   }
 
   /// \brief Callback that handles latency replies
   /// \param[in] _msg The reply message
   private: void LatencyCb(const ignition::msgs::Bytes &_msg)
   {
+    // End the time.
+    this->timeEnd = std::chrono::high_resolution_clock::now();
+
     // Lock and notify
     std::unique_lock<std::mutex> lk(this->mutex);
     this->condition.notify_all();
@@ -391,6 +393,8 @@ class PubTester
 
   /// \brief Used to stop the test.
   private: bool stop = false;
+
+  private: std::chrono::time_point<std::chrono::high_resolution_clock> timeEnd;
 };
 
 // The PubTester is global so that the signal handler can easily kill it.
