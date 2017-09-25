@@ -15,7 +15,29 @@
  *
 */
 
+//////////////////////////////////////////////////
+/// Usage: ./bench <options>
+///
+/// Options:
+///
+/// -h Help
+/// -l Latency test
+/// -t Throughput test
+/// -p Publish node
+/// -r Reply node
+///
+/// Choose one of [-l, -t], and one (or none for in-process
+/// testing) [-p,-r].
+///
+/// See `latency.gp` and `throughput.gp` to plot output.
+//////////////////////////////////////////////////
+
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
+
 #include <gflags/gflags.h>
+#include <iomanip>
 #include <chrono>
 #include <csignal>
 #include <iostream>
@@ -209,6 +231,26 @@ class PubTester
     this->condition.notify_all();
   }
 
+  /// \brief Output header information
+  /// \param[in] _stream Stream pointer
+  private: void OutputHeader(std::ostream *_stream)
+  {
+    std::time_t t =  std::time(NULL);
+    std::tm tm = *std::localtime(&t);
+
+    (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
+    (*_stream) << "# Ignition Transport Version "
+              << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
+
+#ifdef __linux__
+    struct utsname unameData;
+    uname(&unameData);
+    (*_stream) << "# " << unameData.sysname << " " << unameData.release
+              << " " << unameData.version << " " << unameData.machine
+              << std::endl;
+#endif
+  }
+
   /// \brief Measure throughput. The output contains three columns:
   ///    1. Message size in bytes
   ///    2. Throughput in megabytes per second
@@ -224,8 +266,10 @@ class PubTester
       stream = &fstream;
     }
 
+    this->OutputHeader(stream);
+
     // Column headers.
-    (*stream) << "Test\tSize(B)\t\tMB/s\tKmsg/s\n";
+    (*stream) << "# Test\tSize(B)\t\tMB/s\t\tKmsg/s\n";
 
     int testNum = 1;
     // Iterate over each of the message sizes
@@ -265,7 +309,7 @@ class PubTester
       double seconds = (duration * 1e-6);
 
       // Output the data
-      (*stream) << testNum++ << "\t" << this->dataSize << "\t\t"
+      (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t\t"
                 << (this->totalBytes * 1e-6) / seconds << "\t"
                 << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
@@ -288,8 +332,10 @@ class PubTester
       stream = &fstream;
     }
 
+    this->OutputHeader(stream);
+
     // Column headers.
-    (*stream) << "Test\tSize(B)\tAvg_(us)\tMin_(us)\tMax_(us)\n";
+    (*stream) << "# Test\tSize(B)\tAvg_(us)\tMin_(us)\tMax_(us)\n";
 
     uint64_t maxLatency = 0;
     uint64_t minLatency = std::numeric_limits<uint64_t>::max();
@@ -337,9 +383,9 @@ class PubTester
       }
 
       // Output data.
-      (*stream) << testNum++ << "\t" << this->dataSize << "\t"
-                << (sum / (double)this->sentMsgs) * 0.5 << "\t\t"
-                << minLatency * 0.5 << "\t\t"
+      (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t"
+                << (sum / (double)this->sentMsgs) * 0.5 << "\t"
+                << minLatency * 0.5 << "\t"
                 << maxLatency * 0.5 << std::endl;
     }
 
@@ -402,7 +448,7 @@ class PubTester
   private: std::vector<int> msgSizes =
     {
       256, 512, 1000, 2000, 4000, 8000, 16000, 32000, 64000,
-      128000, 256000, 512000, 1000000, 2000000, 4000000
+      128000, 256000, 512000, 1000000, 2000000, 4000000, 8000000
     };
 
   /// \brief Condition variable used for synchronization.
@@ -460,18 +506,6 @@ void signalHandler(int _signal)
 }
 
 //////////////////////////////////////////////////
-/// Usage: ./bench <options>
-///
-/// Options:
-///
-/// -h Help
-/// -l Latency test
-/// -t Throughput test
-/// -p Publish node
-/// -r Reply node
-///
-/// Choose one of [-l, -t], and one (or none for in-process
-/// testing) [-p,-r].
 int main(int argc, char **argv)
 {
   // Install a signal handler for SIGINT and SIGTERM.
