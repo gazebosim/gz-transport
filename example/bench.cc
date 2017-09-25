@@ -25,6 +25,7 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+DEFINE_bool(h, false, "Show help");
 DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
@@ -399,6 +400,18 @@ void signalHandler(int _signal)
 }
 
 //////////////////////////////////////////////////
+/// Usage: ./bench <options>
+///
+/// Options:
+///
+/// -h Help
+/// -l Latency test
+/// -t Throughput test
+/// -p Publish node
+/// -r Reply node
+///
+/// Choose one of [-l, -t], and one (or none for in-process
+/// testing) [-p,-r].
 int main(int argc, char **argv)
 {
   // Install a signal handler for SIGINT and SIGTERM.
@@ -407,15 +420,30 @@ int main(int argc, char **argv)
 
   // Simple usage.
   std::string usage("Benchmark testing program.");
-  usage += " Usage:\n ./benchmark -t";
+  usage += " Usage:\n ./bench <options>\n\n";
+  usage += " Example intraprocess latency:\n\t./bench -l\n";
+  usage += " Example interprocess latency:\n";
+  usage += " \tTerminal 1: ./bench -l -r\n";
+  usage += " \tTerminal 2: ./bench -l -p\n";
+  usage += " Example intraprocess throughput:\n\t./bench -t\n";
+  usage += " Example interprocess throuhgput:\n";
+  usage += " \tTerminal 1: ./bench -t -r\n";
+  usage += " \tTerminal 2: ./bench -t -p\n";
 
   gflags::SetUsageMessage(usage);
 
   // Parse command line arguments
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
 
-  std::vector<gflags::CommandLineFlagInfo> flags;
-  gflags::GetAllFlags(&flags);
+  // Show help, if specified
+  if (FLAGS_h)
+  {
+    gflags::SetCommandLineOptionWithMode("help", "false",
+        gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode("helpshort", "true",
+        gflags::SET_FLAGS_DEFAULT);
+  }
+  gflags::HandleCommandLineHelpFlags();
 
   // Run the responder
   if (FLAGS_r)
