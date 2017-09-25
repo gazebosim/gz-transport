@@ -31,6 +31,7 @@ DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
 DEFINE_bool(p, false, "Publishing node");
 DEFINE_uint64(i, 1000, "Number of iterations");
+DEFINE_string(o, "", "Output filename");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
@@ -138,6 +139,16 @@ class PubTester
   /// \brief Default constructor.
   public: PubTester() = default;
 
+  /// \brief Set the output filename. Use empty string to output to the
+  /// console.
+  /// \param[in] _filename Output filename
+  public: void SetOutputFilename(const std::string &_filename)
+  {
+    this->filename = _filename;
+  }
+
+  /// \brief Set the number of iterations.
+  /// \param[in] _iters Number of iterations.
   public: void SetIterations(const uint64_t _iters)
   {
     this->sentMsgs = _iters;
@@ -204,8 +215,17 @@ class PubTester
   ///    3. Throughput in thousounds of messages per second
   public: void Throughput()
   {
+    std::ostream *stream = &std::cout;
+    std::ofstream fstream;
+
+    if (!this->filename.empty())
+    {
+      fstream.open(this->filename);
+      stream = &fstream;
+    }
+
     // Column headers.
-    std::cout << "Test Num\tMsg Size\tMB/s\tKmsg/s\n";
+    (*stream) << "Test_Num\tMsg_Size\tMB/s\tKmsg/s\n";
 
     int testNum = 1;
     // Iterate over each of the message sizes
@@ -245,10 +265,13 @@ class PubTester
       double seconds = (duration * 1e-6);
 
       // Output the data
-      std::cout << testNum++ << "\t\t" << this->dataSize << "\t\t"
+      (*stream) << testNum++ << "\t\t" << this->dataSize << "\t\t"
         << (this->totalBytes * 1e-6) / seconds << "\t"
         << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
+
+    if (!this->filename.empty())
+      fstream.close();
   }
 
   /// \brief Measure latency. The output containes two columns:
@@ -256,8 +279,17 @@ class PubTester
   ///    2. Latency in microseconds.
   public: void Latency()
   {
+    std::ostream *stream = &std::cout;
+    std::ofstream fstream;
+
+    if (!this->filename.empty())
+    {
+      fstream.open(this->filename);
+      stream = &fstream;
+    }
+
     // Column headers.
-    std::cout << "Test Num\tMsg Size\tLatency (us)\n";
+    (*stream) << "Test_Num\tMsg_Size\tLatency (us)\n";
 
     int testNum = 1;
     // Iterate over each of the message sizes
@@ -298,9 +330,12 @@ class PubTester
       }
 
       // Output data.
-      std::cout << testNum++ << "\t\t" << this->dataSize << "\t\t"
+      (*stream) << testNum++ << "\t\t" << this->dataSize << "\t\t"
                 << (sum / (double)this->sentMsgs) * 0.5 << std::endl;
     }
+
+    if (!this->filename.empty())
+      fstream.close();
   }
 
   /// \brief Callback that handles throughput replies
@@ -394,7 +429,11 @@ class PubTester
   /// \brief Used to stop the test.
   private: bool stop = false;
 
+  /// \brief End time point.
   private: std::chrono::time_point<std::chrono::high_resolution_clock> timeEnd;
+
+  /// \brief Output filename or empty string for console output.
+  private: std::string filename = "";
 };
 
 // The PubTester is global so that the signal handler can easily kill it.
@@ -459,6 +498,7 @@ int main(int argc, char **argv)
 
   // Set the number of iterations.
   gPubTester.SetIterations(FLAGS_i);
+  gPubTester.SetOutputFilename(FLAGS_o);
 
   // Run the responder
   if (FLAGS_r)
