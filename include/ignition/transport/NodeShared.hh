@@ -235,6 +235,8 @@ namespace ignition
       /// \brief A thread pool.
       public: ignition::common::WorkerPool workerPool;
 
+      public: void *zapThread;
+
       //////////////////////////////////////////////////
       /////// Declare here the discovery object  ///////
       //////////////////////////////////////////////////

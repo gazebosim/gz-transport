@@ -58,6 +58,19 @@
 using namespace ignition;
 using namespace transport;
 
+#define streq(s1,s2)    (!strcmp ((s1), (s2)))
+#define strneq(s1,s2)   (strcmp ((s1), (s2)))
+//  Sends string as 0MQ string, as multipart non-terminal
+int
+s_sendmore (void *socket, const char *string) {
+    int size = zmq_send (socket, string, strlen (string), ZMQ_SNDMORE);
+    return size;
+}
+int
+s_send (void *socket, const char *string) {
+    int size = zmq_send (socket, string, strlen (string), 0);
+    return size;
+}
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -819,6 +832,17 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   {
     try
     {
+      // Set username and pass if they exist
+      std::string username, password;
+      if (ignition::common::env("IGNITION_TRANSPORT_USERNAME", username) &&
+          ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password))
+      {
+        this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
+            username.c_str(), username.size());
+        this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
+            password.c_str(), password.size());
+      }
+
       // I am not connected to the process.
       if (!this->connections.HasPublisher(addr))
         this->subscriber->connect(addr.c_str());
@@ -990,17 +1014,114 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::cout << _pub;
   }
 }
+char *
+s_recv (void *socket) {
+    char buffer [256];
+    int size = zmq_recv (socket, buffer, 255, 0);
+    if (size == -1)
+        return NULL;
+    if (size > 255)
+        size = 255;
+    buffer [size] = 0;
+    return strdup (buffer);
+}
+
+//////////////////////////////////////////////////
+void zapHandler(void *ctx)
+{
+  void *zap = zmq_socket(ctx, ZMQ_REP);
+  zmq_bind(zap, "inproc://zeromq.zap.01");
+
+  std::string username, password;
+  ignition::common::env("IGNITION_TRANSPORT_USERNAME", username);
+  ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password);
+
+  while (true)
+  {
+    char *version = s_recv (zap);
+    if (!version)
+      break;
+
+    char *sequence = s_recv (zap);
+    char *domain = s_recv (zap);
+    char *address = s_recv (zap);
+    char *routing_id = s_recv (zap);
+    char *mechanism = s_recv (zap);
+    char *givenUsername = s_recv (zap);
+    char *givenPassword = s_recv (zap);
+
+    // std::cout << "Username[" << givenUsername << "]\n";
+    // std::cout << "Pass[" << givenPassword << "]\n";
+    // std::cout << "Sequence[" << sequence << "]\n";
+    // std::cout << "domain[" << domain << "]\n";
+    // std::cout << "address[" << address << "]\n";
+    // std::cout << "mechanism[" << mechanism << "]\n";
+    // std::cout << "routing id[" << routing_id << "]\n";
+
+    // assert (streq (version, "1.0"));
+    // assert (streq (mechanism, "PLAIN"));
+    // assert (streq (routing_id, "IDENT"));
+
+    s_sendmore (zap, version);
+    s_sendmore (zap, sequence);
+    // if (streq (username, "admin")
+    //    &&  streq (password, "pass")) {
+    if (username == std::string(givenUsername) &&
+        password == std::string(givenPassword))
+    {
+
+    s_sendmore (zap, "200");
+      s_sendmore (zap, "OK");
+      s_sendmore (zap, "anonymous");
+      s_send (zap, "");
+    }
+    else {
+      s_sendmore (zap, "400");
+      s_sendmore (zap, "Invalid username or password");
+      s_sendmore (zap, "");
+      s_send (zap, "");
+    }
+    free (version);
+    free (sequence);
+    free (domain);
+    free (mechanism);
+    free (address);
+    free (mechanism);
+    free (givenUsername);
+    free (givenPassword);
+  }
+
+  zmq_close (zap);
+}
 
 //////////////////////////////////////////////////
 bool NodeShared::InitializeSockets()
 {
   try
   {
+
     // Set the hostname's ip address.
     this->hostAddr = this->msgDiscovery->HostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+
+
+    // Check if a username and password has been set. If so,  then
+    // setup a PLAIN authentication server.
+    std::string username, password;
+    if (ignition::common::env("IGNITION_TRANSPORT_USERNAME", username) &&
+        ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password))
+    {
+      int asServer = 1;
+      this->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer,
+                                  sizeof(asServer));
+
+      std::string zapDomain = "ign-zap";
+      this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, zapDomain.c_str(),
+          zapDomain.size());
+      this->zapThread = zmq_threadstart(&zapHandler, this->context->ptr);
+    }
 
     char bindEndPoint[1024];
     int lingerVal = 0;
