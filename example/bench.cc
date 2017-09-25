@@ -30,6 +30,7 @@ DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
 DEFINE_bool(p, false, "Publishing node");
+DEFINE_uint64(i, 1000, "Number of iterations");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
@@ -137,6 +138,11 @@ class PubTester
   /// \brief Default constructor.
   public: PubTester() = default;
 
+  public: void SetIterations(const uint64_t _iters)
+  {
+    this->sentMsgs = _iters;
+  }
+
   /// \brief Create the publishers and subscribers.
   public: void Init()
   {
@@ -199,8 +205,9 @@ class PubTester
   public: void Throughput()
   {
     // Column headers.
-    std::cout << "Msg Size\tMB/s\tKmsg/s\n";
+    std::cout << "Test Num\tMsg Size\tMB/s\tKmsg/s\n";
 
+    int testNum = 1;
     // Iterate over each of the message sizes
     for (auto msgSize : this->msgSizes)
     {
@@ -241,7 +248,7 @@ class PubTester
       double seconds = (duration * 1e-6);
 
       // Output the data
-      std::cout << this->dataSize << "\t\t"
+      std::cout << testNum++ << "\t\t" << this->dataSize << "\t\t"
         << (this->totalBytes * 1e-6) / seconds << "\t"
         << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
@@ -253,8 +260,9 @@ class PubTester
   public: void Latency()
   {
     // Column headers.
-    std::cout << "Msg Size\tLatency (us)\n";
+    std::cout << "Test Num\tMsg Size\tLatency (us)\n";
 
+    int testNum = 1;
     // Iterate over each of the message sizes
     for (auto msgSize : this->msgSizes)
     {
@@ -295,7 +303,7 @@ class PubTester
       }
 
       // Output data.
-      std::cout << this->dataSize << "\t\t"
+      std::cout << testNum++ << "\t\t" << this->dataSize << "\t\t"
                 << (sum / (double)this->sentMsgs) * 0.5 << std::endl;
     }
   }
@@ -370,7 +378,7 @@ class PubTester
   private: uint64_t msgCount = 0;
 
   /// \brief Number of test iterations.
-  private: uint64_t sentMsgs = 1000;
+  private: uint64_t sentMsgs = 100;
 
   /// \brief Communication node
   private: ignition::transport::Node node;
@@ -444,6 +452,9 @@ int main(int argc, char **argv)
         gflags::SET_FLAGS_DEFAULT);
   }
   gflags::HandleCommandLineHelpFlags();
+
+  // Set the number of iterations.
+  gPubTester.SetIterations(FLAGS_i);
 
   // Run the responder
   if (FLAGS_r)
