@@ -138,8 +138,8 @@ namespace ignition
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
       public: template<typename T> Node::Publisher Advertise(
-                  const std::string &_topic,
-            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
+          const std::string &_topic,
+          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
@@ -155,10 +155,10 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: Node::Publisher Advertise(const std::string &_topic,
-            const std::string &_msgTypeName,
-            const AdvertiseMessageOptions &_options =
-              AdvertiseMessageOptions());
+      public: Node::Publisher Advertise(
+          const std::string &_topic,
+          const std::string &_msgTypeName,
+          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -737,7 +737,7 @@ namespace ignition
           else
           {
             // Discover the service responser.
-            if (!this->Shared()->Discover(fullyQualifiedTopic))
+            if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
             {
               std::cerr << "Node::Request(): Error discovering a service. "
                         << "Did you forget to start the discovery service?"
@@ -873,7 +873,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->Discover(fullyQualifiedTopic))
+          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
                       << "Did you forget to start the discovery service?"

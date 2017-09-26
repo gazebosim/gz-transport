@@ -76,11 +76,12 @@ namespace ignition
   {
     /// \internal
     /// \brief Discovery helper function to poll sockets.
-    /// \param[in] _sockets Sockets on which to listen
-    /// \param[in] _timeout Length of time to poll
-    /// \return True if the sockets received a reply
+    /// \param[in] _sockets Sockets on which to listen.
+    /// \param[in] _timeout Length of time to poll (milliseconds).
+    /// \return True if the sockets received a reply.
     IGNITION_TRANSPORT_VISIBLE
-    bool pollSockets(const std::vector<int> &_sockets, int _timeout);
+    bool pollSockets(const std::vector<int> &_sockets,
+                     const int _timeout);
 
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery

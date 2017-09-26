@@ -22,7 +22,6 @@
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#include <zmq.hpp>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -33,7 +32,6 @@
 #include <thread>
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
@@ -115,6 +113,10 @@ namespace ignition
 
       /// \brief Pass through to bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const
+      /// \param[in] _topic Service name.
+      /// \param[out] _publishers Collection of service publishers.
+      /// \return True if the service is found and
+      //  there is at least one publisher.
       /// \sa bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const
       public: bool TopicPublishers(const std::string &_topic,
@@ -122,10 +124,16 @@ namespace ignition
 
       /// \brief Pass through to bool Discovery::Discover(const std::string
       /// &_topic) const
+      /// \param[in] _topic Service name.
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
       /// \sa bool Discovery::Discover(const std::string &_topic) const
-      public: bool Discover(const std::string &_topic) const;
+      public: bool DiscoverService(const std::string &_topic) const;
 
       /// \brief Pass through to bool Advertise(const Pub &_publisher)
+      /// \param[in] _publisher Publisher's information to advertise.
+      /// \return True if the method succeed or false otherwise
+      /// (e.g. if the discovery has not been started).
       /// \sa Pass through to bool Advertise(const Pub &_publisher)
       public: bool AdvertisePublisher(const ServicePublisher &_publisher);
 
@@ -218,8 +226,9 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-      /// \brief Data pointer
+      /// \brief Internal data pointer.
       private: std::unique_ptr<NodeSharedPrivate> dataPtr;
+
       private: friend Node;
     };
   }
