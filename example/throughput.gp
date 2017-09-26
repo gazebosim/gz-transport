@@ -28,25 +28,25 @@ set xtics (0, '256' 1, '512' 2, "1K" 3, "2K" 4, "4K" 5, "8K" 6, "16K" 7,\
 set linetype 1 lw 2
 set linetype 2 lw 2
 
-set output "throughput-all.png"
+set output sprintf("throughput-%s-all.png", prefix)
 set title sprintf("%s Throughput", prefix)
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
      filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
 
-set output "throughput-small.png"
+set output sprintf("throughput-%s-small.png", prefix)
 set title sprintf("%s Throughput with Small Message", prefix)
 set xrange [0:8]
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
      filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
 
-set output "throughput-medium.png"
+set output sprintf("throughput-%s-medium.png", prefix)
 set title sprintf("%s Throughput with Medium Message", prefix)
 set title 'Throughput with Medium Messages'
 set xrange [7:13]
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
      filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
 
-set output "throughput-large.png"
+set output sprintf("throughput-%s-large.png", prefix)
 set title sprintf("%s Throughput with Large Message", prefix)
 set xrange [12:15]
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
