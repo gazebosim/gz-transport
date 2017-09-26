@@ -1,9 +1,8 @@
-# Produces four PNG graphs of latency results from the "bench" example program.
+# Produces three PNG graphs of latency results from the "bench" example program.
 #
 # Output filenames:
 #
 #     latency-small.png : Graph of small message payloads
-#     latency-medium.png : Graph of medium message payloads
 #     latency-large.png : Graph of large message payloads
 #     latency-all.png : Graph of all the data
 #
@@ -12,7 +11,6 @@
 #
 #   where prefix is a string that will be prepended to the title. This can
 #   be used to describe the test scenario.
-
 
 set terminal png size 1920,1080 enhanced font 'Verdana, 20'
 set ylabel 'microseconds'
@@ -28,15 +26,10 @@ plot filename using 1:3 with linespoints title 'Avg' lw 2
 
 set output sprintf("latency-%s-small.png", prefix)
 set title sprintf("%s Latency with Small Messages", prefix)
-set xrange [0:8]
-plot filename using 1:3 with linespoints title 'Avg' lw 2
-
-set output sprintf("latency-%s-medium.png", prefix)
-set title sprintf("%s Latency with Medium Messages", prefix)
-set xrange [7:13]
+set xrange [1:9]
 plot filename using 1:3 with linespoints title 'Avg' lw 2
 
 set output sprintf("latency-%s-large.png", prefix)
 set title sprintf("%s Latency with Large Messages", prefix)
-set xrange [12:15]
+set xrange [7:15]
 plot filename using 1:3 with linespoints title 'Avg' lw 2

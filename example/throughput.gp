@@ -1,11 +1,10 @@
-# Produces fourc PNG graphs of throughput results from the "bench" example
+# Produces three PNG graphs of throughput results from the "bench" example
 # program.
 #
 # Output filenames:
 #
 #     throughput-all.png : Graph of all the data
 #     throughput-small.png : Graph of small message payloads
-#     throughput-medium.png : Graph of medium message payloads
 #     throughput-large.png : Graph of large message payloads
 #
 # Usage:
@@ -35,19 +34,12 @@ plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
 
 set output sprintf("throughput-%s-small.png", prefix)
 set title sprintf("%s Throughput with Small Message", prefix)
-set xrange [0:8]
-plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
-     filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
-
-set output sprintf("throughput-%s-medium.png", prefix)
-set title sprintf("%s Throughput with Medium Message", prefix)
-set title 'Throughput with Medium Messages'
-set xrange [7:13]
+set xrange [1:9]
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
      filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
 
 set output sprintf("throughput-%s-large.png", prefix)
 set title sprintf("%s Throughput with Large Message", prefix)
-set xrange [12:15]
+set xrange [7:15]
 plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
      filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
