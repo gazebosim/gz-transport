@@ -384,8 +384,6 @@ class PubTester
         // Wait for the response.
         this->condition.wait(lk);
 
-        //auto timeEnd = std::chrono::high_resolution_clock::now();
-
         // Compute the number of microseconds
         uint64_t duration =
           std::chrono::duration_cast<std::chrono::microseconds>(
@@ -402,7 +400,7 @@ class PubTester
 
       // Output data.
       (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t"
-                << (sum / (double)this->sentMsgs) * 0.5 << "\t"
+                << (sum / static_cast<double>(this->sentMsgs)) * 0.5 << "\t"
                 << minLatency * 0.5 << "\t"
                 << maxLatency * 0.5 << std::endl;
     }
