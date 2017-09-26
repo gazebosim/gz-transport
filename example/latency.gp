@@ -20,7 +20,7 @@ set xlabel 'Message size (bytes)'
 set grid
 set xtics (0, '256' 1, '512' 2, "1K" 3, "2K" 4, "4K" 5, "8K" 6, "16K" 7,\
            "32K" 8, "64K" 9, "128K" 10, "256K" 11, "512K" 12, "1MB" 13,\
-           "2MB" 14, "4MB" 15, "8MB" 16)
+           "2MB" 14, "4MB" 15)
 
 set output "latency-all.png"
 set title sprintf("%s Latency", prefix)
@@ -38,5 +38,5 @@ plot filename using 1:3 with linespoints title 'Avg' lw 2
 
 set output "latency-large.png"
 set title sprintf("%s Latency with Large Messages", prefix)
-set xrange [12:16]
+set xrange [12:15]
 plot filename using 1:3 with linespoints title 'Avg' lw 2

@@ -257,6 +257,15 @@ class PubTester
   ///    3. Throughput in thousounds of messages per second
   public: void Throughput()
   {
+    // Wait for subscriber
+    while (!this->throughputPub.HasConnections() && !this->stop)
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Short circuit in case this test was stopped while waiting for
+    // a subscriber
+    if (this->stop)
+      return;
+
     std::ostream *stream = &std::cout;
     std::ofstream fstream;
 
@@ -323,6 +332,15 @@ class PubTester
   ///    2. Latency in microseconds.
   public: void Latency()
   {
+    // Wait for subscriber
+    while (!this->latencyPub.HasConnections() && !this->stop)
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Short circuit in case this test was stopped while waiting for
+    // a subscriber
+    if (this->stop)
+      return;
+
     std::ostream *stream = &std::cout;
     std::ofstream fstream;
 
@@ -448,7 +466,7 @@ class PubTester
   private: std::vector<int> msgSizes =
     {
       256, 512, 1000, 2000, 4000, 8000, 16000, 32000, 64000,
-      128000, 256000, 512000, 1000000, 2000000, 4000000, 8000000
+      128000, 256000, 512000, 1000000, 2000000, 4000000
     };
 
   /// \brief Condition variable used for synchronization.
