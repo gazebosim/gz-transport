@@ -105,6 +105,8 @@ else()
   link_directories(${IGNITION-MSGS_LIBRARY_DIRS})
 endif()
 
+#################################################
+# Find ign common library
 find_package(ignition-common0 QUIET)
 if (NOT ignition-common0_FOUND)
   message(FATAL_ERROR "Looking for ignition-common0 - not found")
