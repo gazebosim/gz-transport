@@ -24,6 +24,9 @@
 #endif
 
 #include <memory>
+
+#include "ignition/transport/Discovery.hh"
+
 using namespace ignition;
 using namespace transport;
 

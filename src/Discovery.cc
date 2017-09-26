@@ -15,12 +15,14 @@
  *
 */
 
+#include <vector>
 #include <zmq.hpp>
-#include <ignition/transport/Discovery.hh>
+
+#include "ignition/transport/Discovery.hh"
 
 /////////////////////////////////////////////////
 bool ignition::transport::pollSockets(const std::vector<int> &_sockets,
-                                      int _timeout)
+                                      const int _timeout)
 {
   zmq::pollitem_t items[] =
   {

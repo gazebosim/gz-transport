@@ -732,15 +732,15 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 /////////////////////////////////////////////////
 bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
-  // Add the topic to the list of subscribed topics (if it was not before)
+  // Add the topic to the list of subscribed topics (if it was not before).
   this->TopicsSubscribed().insert(_fullyQualifiedTopic);
 
   // Discover the list of nodes that publish on the topic.
   if (!this->Shared()->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
   {
     std::cerr << "Node::Subscribe(): Error discovering a topic. "
-      << "Did you forget to start the discovery service?"
-      << std::endl;
+              << "Did you forget to start the discovery service?"
+              << std::endl;
     return false;
   }
 

@@ -1040,7 +1040,7 @@ bool NodeShared::TopicPublishers(const std::string &_topic,
 }
 
 /////////////////////////////////////////////////
-bool NodeShared::Discover(const std::string &_topic) const
+bool NodeShared::DiscoverService(const std::string &_topic) const
 {
   return this->dataPtr->srvDiscovery->Discover(_topic);
 }
