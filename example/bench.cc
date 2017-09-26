@@ -536,7 +536,7 @@ int main(int argc, char **argv)
   usage += " \tTerminal 1: ./bench -l -r\n";
   usage += " \tTerminal 2: ./bench -l -p\n";
   usage += " Example intraprocess throughput:\n\t./bench -t\n";
-  usage += " Example interprocess throuhgput:\n";
+  usage += " Example interprocess throughput:\n";
   usage += " \tTerminal 1: ./bench -t -r\n";
   usage += " \tTerminal 2: ./bench -t -p\n";
 
