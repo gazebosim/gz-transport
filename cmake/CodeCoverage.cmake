@@ -111,9 +111,11 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
       ${_outputname}.info
   COMMAND ${LCOV_PATH} -q --no-checksum --directory ${PROJECT_BINARY_DIR}
     --capture --output-file ${_outputname}.info 2>/dev/null
+  COMMENT "---- cat coverage.info before cleaning"
   COMMAND cat ${_outputname}.info
   COMMAND ${LCOV_PATH} -q --remove ${_outputname}.info
     'build/*' 'test/*' '/usr/*' '*_TEST*' --output-file ${_outputname}.info.cleaned
+  COMMENT "---- cat coverage.info.cleaned before genhtml"
   COMMAND cat ${_outputname}.info.cleaned
   COMMAND ${GENHTML_PATH} -q --legend -o ${_outputname}
     ${_outputname}.info.cleaned
