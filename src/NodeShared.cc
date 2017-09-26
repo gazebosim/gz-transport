@@ -44,13 +44,14 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/NodeSharedPrivate.hh"
 #include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
+
+#include "NodeSharedPrivate.hh"
 
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)
