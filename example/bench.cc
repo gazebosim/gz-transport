@@ -37,13 +37,17 @@
 #endif
 
 #include <gflags/gflags.h>
+
+#include <cstdint>
 #include <iomanip>
 #include <chrono>
+#include <condition_variable>
 #include <csignal>
 #include <iostream>
 #include <string>
 #include <thread>
 #include <mutex>
+#include <vector>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
@@ -117,12 +121,14 @@ class ReplyTester
   }
 
   /// \brief Function called each time a throughput message is received.
+  /// \param[in] _msg Incoming message of variable size.
   private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
   {
     this->throughputPub.Publish(_msg);
   }
 
   /// \brief Function called each time a latency message is received.
+  /// \param[in] _msg Incoming message of variable size.
   private: void LatencyCb(const ignition::msgs::Bytes &_msg)
   {
     this->latencyPub.Publish(_msg);
@@ -235,19 +241,19 @@ class PubTester
   /// \param[in] _stream Stream pointer
   private: void OutputHeader(std::ostream *_stream)
   {
-    std::time_t t =  std::time(NULL);
+    std::time_t t = std::time(NULL);
     std::tm tm = *std::localtime(&t);
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Ignition Transport Version "
-              << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
+               << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
 
 #ifdef __linux__
     struct utsname unameData;
     uname(&unameData);
     (*_stream) << "# " << unameData.sysname << " " << unameData.release
-              << " " << unameData.version << " " << unameData.machine
-              << std::endl;
+               << " " << unameData.version << " " << unameData.machine
+               << std::endl;
 #endif
   }
 
@@ -314,7 +320,7 @@ class PubTester
         std::chrono::duration_cast<std::chrono::microseconds>(
             this->timeEnd - timeStart).count();
 
-      // Conver to seconds
+      // Convert to seconds
       double seconds = (duration * 1e-6);
 
       // Output the data
@@ -327,7 +333,7 @@ class PubTester
       fstream.close();
   }
 
-  /// \brief Measure latency. The output containes two columns:
+  /// \brief Measure latency. The output contains two columns:
   ///    1. Message size in bytes.
   ///    2. Latency in microseconds.
   public: void Latency()
@@ -460,7 +466,7 @@ class PubTester
     this->dataSize = data.size();
   }
 
-  /// \brief Set of messages sizes to test.
+  /// \brief Set of messages sizes to test (bytes).
   private: std::vector<int> msgSizes =
     {
       256, 512, 1000, 2000, 4000, 8000, 16000, 32000, 64000,
