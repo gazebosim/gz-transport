@@ -33,7 +33,7 @@
 #include <utility>
 #include <ignition/msgs/Factory.hh>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/TransportTypes.hh"

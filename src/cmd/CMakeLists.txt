@@ -1,5 +1,3 @@
-include (${project_cmake_dir}/Utils.cmake)
-
 # Generate a the ruby script.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb

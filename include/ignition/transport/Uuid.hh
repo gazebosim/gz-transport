@@ -21,7 +21,7 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 
 #ifdef _WIN32
   #include <Rpc.h>

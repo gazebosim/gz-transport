@@ -20,7 +20,7 @@
 
 #include <cstring>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 
 /// \brief External hook to execute 'ign topic -i' from the command line.
 /// \param[in] _topic Topic name.

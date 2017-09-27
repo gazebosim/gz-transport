@@ -64,6 +64,7 @@
 #include <thread>
 #include <vector>
 
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/Packet.hh"

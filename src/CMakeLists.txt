@@ -1,71 +1,32 @@
-include (${project_cmake_dir}/Utils.cmake)
+# Turn on C++11 support for the library.
+set(CMAKE_CXX_STANDARD 11)
 
-set (sources
-  AdvertiseOptions.cc
-  Helpers.cc
-  ign.cc
-  MessageInfo.cc
-  NetUtils.cc
-  Node.cc
-  NodeOptions.cc
-  NodeShared.cc
-  Packet.cc
-  Publisher.cc
-  SubscribeOptions.cc
-  TopicUtils.cc
-  Uuid.cc
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable.
+ign_get_libsources_and_unittests(sources gtest_sources)
+
+# Create the library target.
+ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
+
+# Include the interface directories that we always need.
+ign_target_interface_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
+  ignition-msgs${IGN_MSGS_VER})
+
+# Link the libraries that we always need.
+target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+  PUBLIC
+    ignition-msgs${IGN_MSGS_VER}
+    UUID::UUID
+    zmq
+  PRIVATE
 )
 
-set (gtest_sources
-  AdvertiseOptions_TEST.cc
-  Discovery_TEST.cc
-  ign_src_TEST.cc
-  Helpers_TEST.cc
-  HandlerStorage_TEST.cc
-  MessageInfo_TEST.cc
-  NetUtils_TEST.cc
-  Node_TEST.cc
-  NodeOptions_TEST.cc
-  Packet_TEST.cc
-  Publisher_TEST.cc
-  SubscribeOptions_TEST.cc
-  TopicStorage_TEST.cc
-  TopicUtils_TEST.cc
-  Uuid_TEST.cc
-)
+# Create installation instructions for the library target. This must be called
+# in the same scope that the target is created.
+ign_install_library()
 
-include_directories(${CMAKE_BINARY_DIR}/ ${CMAKE_BINARY_DIR}/test/)
+# Build the unit tests.
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
-ign_build_tests(${gtest_sources})
-
-if (UNIX)
-  ign_add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${sources})
-elseif(WIN32)
-  # Probotuf compilation is recommended and configured for a STATIC .lib
-  # Not mixing static and shared and just build ignition transport as STATIC
-  # on Windows
-  add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} STATIC ${sources})
-endif()
-
-# Protobuf module does not have LIBRARIES but LIBRARY
-target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                      ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES}
-                      ${IGNITION-MSGS_LIBRARIES})
-
-if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-    ws2_32 Iphlpapi
-    optimized
-      ${PROTOBUF_LIBRARY}
-      ${PROTOBUF_PROTOC_LIBRARY}
-    debug
-      ${PROTOBUF_LIBRARY_DEBUG})
-else()
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-    ${PROTOBUF_LIBRARY})
-endif()
-
-ign_install_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
-
+# Command line support.
 add_subdirectory(cmd)
