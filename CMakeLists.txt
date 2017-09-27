@@ -52,10 +52,20 @@ set(IGN_MSGS_VER 0)
 ign_find_package(ignition-msgs${IGN_MSGS_VER}
                  REQUIRED)
 
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED)
+
 #============================================================================
 # Configure the build
 #============================================================================
 ign_configure_build(QUIT_IF_BUILD_ERRORS)
+
+#============================================================================
+# ign command line support
+#============================================================================
+add_subdirectory(conf)
 
 #============================================================================
 # Test the command line commands
