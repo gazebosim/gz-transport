@@ -510,10 +510,10 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(pub1.Publish(msg));
 
   // Wait for the messages to arrive.
-  cbCondition.wait(lk);
+  cbCondition.wait(lk, []{return counter >= 1;});
 
   EXPECT_TRUE(pub2.Publish(msg));
-  cbCondition.wait(lk);
+  cbCondition.wait(lk, []{return counter >= 2;});
 
   // Check that the msg was received twice.
   EXPECT_TRUE(cbExecuted);
@@ -677,8 +677,8 @@ TEST(NodeTest, PubSubSameThreadLambda)
     [&executed, &mutex, &condition](const ignition::msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
-    executed = true;
     std::lock_guard<std::mutex> lk(mutex);
+    executed = true;
     condition.notify_all();
   };
 
@@ -693,7 +693,7 @@ TEST(NodeTest, PubSubSameThreadLambda)
   // The local publish is asynchronous, which means we need to wait
   // for the callback.
   std::unique_lock<std::mutex> lk(mutex);
-  condition.wait(lk);
+  condition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 
@@ -724,8 +724,8 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
-    executed = true;
     std::lock_guard<std::mutex> lk(cbMutex);
+    executed = true;
     cbCondition.notify_all();
   };
 
@@ -737,7 +737,7 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   // Publish a first message.
   std::unique_lock<std::mutex> lk(cbMutex);
   EXPECT_TRUE(pub.Publish(msg));
-  cbCondition.wait(lk);
+  cbCondition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 

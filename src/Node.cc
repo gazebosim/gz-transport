@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_set>
 #include <vector>
 
@@ -224,8 +225,11 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     topic.erase(0, topic.find_last_of("@") + 1);
 
     // Create and populate the message information object.
-    MessageInfo info;
-    info.SetTopic(topic);
+    // This must be a shared pointer so that we can pass it to
+    // multiple threads below, and then allow this function to go
+    // out of scope.
+    std::shared_ptr<MessageInfo> info(new MessageInfo);
+    info->SetTopic(topic);
 
     for (auto &node : handlers)
     {
@@ -241,17 +245,26 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          // Add local callback to worker pool. We get the raw pointer to
+          // Launch local callback in a thread. We get the raw pointer to
           // the subscription handler because the object itself will change
           // in this loop.
           //
-          // This worker pool supports asynchronous intraprocess callbacks,
+          // This supports asynchronous intraprocess callbacks,
           // which has the same behavior as interprocess callbacks.
-          this->dataPtr->shared->workerPool.AddWork(
-              [subHandler = subscriptionHandlerPtr.get(), &_msg, &info] ()
+          std::thread(
+              [subHandler = subscriptionHandlerPtr.get(), &_msg, info] ()
               {
-                subHandler->RunLocalCallback(_msg, info);
-              });
+                try
+                {
+                  subHandler->RunLocalCallback(_msg, *(info.get()));
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occured in a local callback "
+                    << "on topic[" << info->Topic() << "] with message ["
+                    << _msg.DebugString() << "]" << std::endl;
+                }
+              }).detach();
         }
         else
         {

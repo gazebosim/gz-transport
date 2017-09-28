@@ -57,6 +57,7 @@ DEFINE_string(o, "", "Output filename");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
+bool gStop = false;
 
 /// \brief The ReplyTester subscribes to the benchmark topics, and relays
 /// incoming messages on a corresponding "reply" topic.
@@ -306,8 +307,8 @@ class PubTester
       // Wait for all the reply messages. This will add little overhead
       // to the time, but should be negligible.
       std::unique_lock<std::mutex> lk(this->mutex);
-      if (this->msgCount < this->sentMsgs)
-        this->condition.wait(lk);
+      this->condition.wait(lk, [this] {
+          return gStop || this->msgCount >= this->sentMsgs;});
 
       // Computer the number of microseconds
       uint64_t duration =
@@ -322,9 +323,6 @@ class PubTester
                 << (this->totalBytes * 1e-6) / seconds << "\t"
                 << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
-
-    if (!this->filename.empty())
-      fstream.close();
   }
 
   /// \brief Measure latency. The output containes two columns:
@@ -377,12 +375,14 @@ class PubTester
 
         // Start the clock
         auto timeStart = std::chrono::high_resolution_clock::now();
+        this->timeEnd = timeStart;
 
         // Send the message.
         this->latencyPub.Publish(this->msg);
 
         // Wait for the response.
-        this->condition.wait(lk);
+        this->condition.wait(lk, [this, &timeStart] {
+            return gStop || this->timeEnd > timeStart;});
 
         // Compute the number of microseconds
         uint64_t duration =
@@ -404,9 +404,6 @@ class PubTester
                 << minLatency * 0.5 << "\t"
                 << maxLatency * 0.5 << std::endl;
     }
-
-    if (!this->filename.empty())
-      fstream.close();
   }
 
   /// \brief Callback that handles throughput replies
@@ -440,6 +437,7 @@ class PubTester
 
     // Lock and notify
     std::unique_lock<std::mutex> lk(this->mutex);
+
     this->condition.notify_all();
   }
 
@@ -516,6 +514,7 @@ void signalHandler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
   {
+    gStop = true;
     gCondition.notify_all();
     gPubTester.Stop();
   }
@@ -564,7 +563,7 @@ int main(int argc, char **argv)
   {
     ReplyTester replyTester;
     std::unique_lock<std::mutex> lk(gMutex);
-    gCondition.wait(lk);
+    gCondition.wait(lk, []{return gStop;});
   }
   // Run the publisher
   else if (FLAGS_p)

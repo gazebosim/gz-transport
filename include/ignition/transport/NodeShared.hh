@@ -32,7 +32,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <ignition/common/WorkerPool.hh>
 
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/HandlerStorage.hh"
@@ -227,9 +226,6 @@ namespace ignition
 
       /// \brief ZMQ socket to receive service call requests.
       public: std::unique_ptr<zmq::socket_t> replier;
-
-      /// \brief A thread pool used to deliver local (in-process) messages.
-      public: ignition::common::WorkerPool workerPool;
 
       //////////////////////////////////////////////////
       /////// Declare here the discovery object  ///////
