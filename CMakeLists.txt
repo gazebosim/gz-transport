@@ -55,7 +55,7 @@ ign_find_package(ignition-msgs${IGN_MSGS_VER}
 #--------------------------------------
 # Find ignition-tools
 ign_find_package(ignition-tools
-                 REQUIRED)
+                 QUIET)
 
 #============================================================================
 # Configure the build

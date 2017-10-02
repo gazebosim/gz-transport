@@ -18,7 +18,7 @@
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <ignition/transport/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
