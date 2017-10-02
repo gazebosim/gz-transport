@@ -13,8 +13,6 @@ set(tests
   twoProcessesSrvCallWithoutOutputStress.cc
 )
 
-link_directories(${PROJECT_BINARY_DIR}/test)
-
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
 
 set(auxiliary_files
