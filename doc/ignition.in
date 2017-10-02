@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = Ignition@IGN_PROJECT_NAME@
+PROJECT_NAME           = Ignition@IGN_DESIGNATION@
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -744,7 +744,7 @@ WARN_LOGFILE           = /tmp/@PROJECT_NAME_LOWER@_dox.warn
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @CMAKE_SOURCE_DIR@/doc/mainpage.html \
-                         @CMAKE_SOURCE_DIR@/include/ignition/@IGN_PROJECT_NAME@
+                         @CMAKE_SOURCE_DIR@/include/ignition/@IGN_DESIGNATION@
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1162,7 +1162,7 @@ GENERATE_DOCSET        = NO
 # The default value is: Doxygen generated docs.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_FEEDNAME        = "Ignition ${IGN_PROJECT_NAME} API Documentation"
+DOCSET_FEEDNAME        = "Ignition ${IGN_DESIGNATION} API Documentation"
 
 # This tag specifies a string that should uniquely identify the documentation
 # set bundle. This should be a reverse domain-name style string, e.g.
