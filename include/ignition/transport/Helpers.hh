@@ -40,21 +40,21 @@ namespace ignition
     IGNITION_TRANSPORT_VISIBLE
     bool env(const std::string &_name,
              std::string &_value);
+
+    // Use safer functions on Windows
+    #ifdef _MSC_VER
+      #define ign_strcat strcat_s
+      #define ign_strcpy strcpy_s
+      #define ign_sprintf sprintf_s
+      #define ign_strdup _strdup
+    #else
+      #define ign_strcat std::strcat
+      #define ign_strcpy std::strcpy
+      #define ign_sprintf std::sprintf
+      #define ign_strdup strdup
+    #endif
   }
 }
 
-// Use safer functions on Windows
-#ifdef _MSC_VER
-  #define ign_strcat strcat_s
-  #define ign_strcpy strcpy_s
-  #define ign_sprintf sprintf_s
-  #define ign_strdup _strdup
-#else
-  #define ign_strcat std::strcat
-  #define ign_strcpy std::strcpy
-  #define ign_sprintf std::sprintf
-  #define ign_strdup strdup
-#endif
-
-// __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
+// IGN_TRANSPORT_HELPERS_HH_
 #endif
