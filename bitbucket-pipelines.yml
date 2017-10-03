@@ -19,4 +19,11 @@ pipelines:
           - make test ARGS="-VV"
           - make doc
           - cd ..
+          # Build examples
+          - cd example
+          - mkdir build && cd build
+          - cmake ..
+          - make -j4
+          - cd ../..
+          # Static checker
           - sh tools/code_check.sh
