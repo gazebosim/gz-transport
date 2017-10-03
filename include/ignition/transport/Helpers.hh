@@ -37,8 +37,7 @@ namespace ignition
     /// \param[in] _name Name of the environment variable.
     /// \param[out] _value Value if the variable was found.
     /// \return True if the variable was found or false otherwise.
-    IGNITION_TRANSPORT_VISIBLE
-    bool env(const std::string &_name,
+    bool IGNITION_TRANSPORT_VISIBLE env(const std::string &_name,
              std::string &_value);
 
     // Use safer functions on Windows

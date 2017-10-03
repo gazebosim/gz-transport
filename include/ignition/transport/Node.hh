@@ -55,7 +55,7 @@ namespace ignition
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
-    IGNITION_TRANSPORT_VISIBLE void waitForShutdown();
+    void IGNITION_TRANSPORT_VISIBLE waitForShutdown();
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
