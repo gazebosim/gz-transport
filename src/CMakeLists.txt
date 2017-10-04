@@ -2,6 +2,7 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (sources
   AdvertiseOptions.cc
+  Discovery.cc
   Helpers.cc
   ign.cc
   MessageInfo.cc

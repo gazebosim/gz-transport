@@ -51,6 +51,8 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
+#include "NodeSharedPrivate.hh"
+
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)
 #endif
@@ -70,13 +72,7 @@ NodeShared::NodeShared()
   : timeout(Timeout),
     exit(false),
     verbose(false),
-    context(new zmq::context_t(1)),
-    publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-    subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-    control(new zmq::socket_t(*context, ZMQ_DEALER)),
-    requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
-    responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
-    replier(new zmq::socket_t(*context, ZMQ_ROUTER))
+    dataPtr(new NodeSharedPrivate)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
   std::string ignVerbose;
@@ -87,8 +83,10 @@ NodeShared::NodeShared()
   this->pUuid = uuid.ToString();
 
   // Initialize my discovery services.
-  this->msgDiscovery.reset(new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
-  this->srvDiscovery.reset(new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
+  this->dataPtr->msgDiscovery.reset(
+      new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
+  this->dataPtr->srvDiscovery.reset(
+      new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
@@ -116,24 +114,25 @@ NodeShared::NodeShared()
 #endif
 
   // Set the callback to notify discovery updates (new topics).
-  msgDiscovery->ConnectionsCb(std::bind(&NodeShared::OnNewConnection,
-    this, std::placeholders::_1));
+  this->dataPtr->msgDiscovery->ConnectionsCb(
+      std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
 
   // Set the callback to notify discovery updates (invalid topics).
-  msgDiscovery->DisconnectionsCb(std::bind(&NodeShared::OnNewDisconnection,
-    this, std::placeholders::_1));
+  this->dataPtr->msgDiscovery->DisconnectionsCb(
+      std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
 
   // Set the callback to notify svc discovery updates (new services).
-  srvDiscovery->ConnectionsCb(std::bind(&NodeShared::OnNewSrvConnection,
-    this, std::placeholders::_1));
+  this->dataPtr->srvDiscovery->ConnectionsCb(
+      std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
   // Set the callback to notify svc discovery updates (invalid services).
-  srvDiscovery->DisconnectionsCb(std::bind(&NodeShared::OnNewSrvDisconnection,
-    this, std::placeholders::_1));
+  this->dataPtr->srvDiscovery->DisconnectionsCb(
+      std::bind(&NodeShared::OnNewSrvDisconnection,
+        this, std::placeholders::_1));
 
   // Start the discovery services.
-  msgDiscovery->Start();
-  srvDiscovery->Start();
+  this->dataPtr->msgDiscovery->Start();
+  this->dataPtr->srvDiscovery->Start();
 }
 
 //////////////////////////////////////////////////
@@ -180,10 +179,10 @@ void NodeShared::RunReceptionTask()
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {static_cast<void*>(*this->subscriber), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->control), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->replier), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->responseReceiver), 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->dataPtr->control), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
     try
     {
@@ -265,20 +264,20 @@ void NodeShared::RecvMsgUpdate()
 
     try
     {
-      if (!this->subscriber->recv(&msg, 0))
+      if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
       // ToDo(caguero): Use this as extra metadata for the subscriber.
-      if (!this->subscriber->recv(&msg, 0))
+      if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->subscriber->recv(&msg, 0))
+      if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->subscriber->recv(&msg, 0))
+      if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     }
@@ -340,23 +339,23 @@ void NodeShared::RecvControlUpdate()
 
   try
   {
-    if (!this->control->recv(&msg, 0))
+    if (!this->dataPtr->control->recv(&msg, 0))
       return;
     topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&msg, 0))
+    if (!this->dataPtr->control->recv(&msg, 0))
       return;
     procUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&msg, 0))
+    if (!this->dataPtr->control->recv(&msg, 0))
       return;
     nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&msg, 0))
+    if (!this->dataPtr->control->recv(&msg, 0))
       return;
     type = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-    if (!this->control->recv(&msg, 0))
+    if (!this->dataPtr->control->recv(&msg, 0))
       return;
     data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
   }
@@ -421,38 +420,38 @@ void NodeShared::RecvSrvRequest()
 
     try
     {
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       dstId = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       req = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       reqType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->replier->recv(&msg, 0))
+      if (!this->dataPtr->replier->recv(&msg, 0))
         return;
       repType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     }
@@ -492,7 +491,7 @@ void NodeShared::RecvSrvRequest()
       if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
             sender) == this->srvConnections.end())
       {
-        this->replier->connect(sender.c_str());
+        this->dataPtr->replier->connect(sender.c_str());
         this->srvConnections.push_back(sender);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -512,27 +511,27 @@ void NodeShared::RecvSrvRequest()
 
       response.rebuild(dstId.size());
       memcpy(response.data(), dstId.data(), dstId.size());
-      this->replier->send(response, ZMQ_SNDMORE);
+      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
 
       response.rebuild(topic.size());
       memcpy(response.data(), topic.data(), topic.size());
-      this->replier->send(response, ZMQ_SNDMORE);
+      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
 
       response.rebuild(nodeUuid.size());
       memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
-      this->replier->send(response, ZMQ_SNDMORE);
+      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
 
       response.rebuild(reqUuid.size());
       memcpy(response.data(), reqUuid.data(), reqUuid.size());
-      this->replier->send(response, ZMQ_SNDMORE);
+      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
 
       response.rebuild(rep.size());
       memcpy(response.data(), rep.data(), rep.size());
-      this->replier->send(response, ZMQ_SNDMORE);
+      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
 
       response.rebuild(resultStr.size());
       memcpy(response.data(), resultStr.data(), resultStr.size());
-      this->replier->send(response, 0);
+      this->dataPtr->replier->send(response, 0);
     }
     catch(const zmq::error_t &_error)
     {
@@ -568,26 +567,26 @@ void NodeShared::RecvSrvResponse()
 
     try
     {
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
 
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
       rep = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->responseReceiver->recv(&msg, 0))
+      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
         return;
       resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
       result = resultStr == "1";
@@ -632,7 +631,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->srvDiscovery->Publishers(_topic, addresses);
+  this->dataPtr->srvDiscovery->Publishers(_topic, addresses);
   if (addresses.empty())
     return;
 
@@ -671,7 +670,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
         responserAddr) == this->srvConnections.end())
   {
-    this->requester->connect(responserAddr.c_str());
+    this->dataPtr->requester->connect(responserAddr.c_str());
     this->srvConnections.push_back(responserAddr);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (this->verbose)
@@ -717,41 +716,41 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
         msg.rebuild(responserId.size());
         memcpy(msg.data(), responserId.data(), responserId.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(_topic.size());
         memcpy(msg.data(), _topic.data(), _topic.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(this->myRequesterAddress.size());
         memcpy(msg.data(), this->myRequesterAddress.data(),
           this->myRequesterAddress.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         std::string myId = this->responseReceiverId.ToString();
         msg.rebuild(myId.size());
         memcpy(msg.data(), myId.data(), myId.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(nodeUuid.size());
         memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(reqUuid.size());
         memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(_reqType.size());
         memcpy(msg.data(), _reqType.data(), _reqType.size());
-        this->requester->send(msg, ZMQ_SNDMORE);
+        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 
         msg.rebuild(_repType.size());
         memcpy(msg.data(), _repType.data(), _repType.size());
-        this->requester->send(msg, 0);
+        this->dataPtr->requester->send(msg, 0);
       }
       catch(const zmq::error_t& /*ze*/)
       {
@@ -794,17 +793,18 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     {
       // I am not connected to the process.
       if (!this->connections.HasPublisher(addr))
-        this->subscriber->connect(addr.c_str());
+        this->dataPtr->subscriber->connect(addr.c_str());
 
       // Add a new filter for the topic.
-      this->subscriber->setsockopt(ZMQ_SUBSCRIBE, topic.data(), topic.size());
+      this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
+          topic.data(), topic.size());
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
 
       // Send a message to the publisher's control socket to notify it
       // about all my remoteSubscribers.
-      zmq::socket_t socket(*this->context, ZMQ_DEALER);
+      zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
 
       if (this->verbose)
       {
@@ -925,7 +925,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
         addr) == this->srvConnections.end())
   {
-    this->requester->connect(addr.c_str());
+    this->dataPtr->requester->connect(addr.c_str());
     this->srvConnections.push_back(addr);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (this->verbose)
@@ -970,43 +970,50 @@ bool NodeShared::InitializeSockets()
   try
   {
     // Set the hostname's ip address.
-    this->hostAddr = this->msgDiscovery->HostAddr();
+    this->hostAddr = this->dataPtr->msgDiscovery->HostAddr();
 
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
 
     char bindEndPoint[1024];
     int lingerVal = 0;
-    this->publisher->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->publisher->bind(anyTcpEp.c_str());
+    this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
+        &lingerVal, sizeof(lingerVal));
+    this->dataPtr->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
-    this->publisher->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->dataPtr->publisher->getsockopt(ZMQ_LAST_ENDPOINT,
+        &bindEndPoint, &size);
     this->myAddress = bindEndPoint;
 
     // Control socket listening in a random port.
-    this->control->bind(anyTcpEp.c_str());
-    this->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->dataPtr->control->bind(anyTcpEp.c_str());
+    this->dataPtr->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myControlAddress = bindEndPoint;
 
     // ResponseReceiver socket listening in a random port.
     std::string id = this->responseReceiverId.ToString();
-    this->responseReceiver->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
-    this->responseReceiver->bind(anyTcpEp.c_str());
-    this->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->dataPtr->responseReceiver->setsockopt(ZMQ_IDENTITY,
+        id.c_str(), id.size());
+    this->dataPtr->responseReceiver->bind(anyTcpEp.c_str());
+    this->dataPtr->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT,
+        &bindEndPoint, &size);
     this->myRequesterAddress = bindEndPoint;
 
     // Replier socket listening in a random port.
     id = this->replierId.ToString();
-    this->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
+    this->dataPtr->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
     int RouteOn = 1;
-    this->replier->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->replier->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn, sizeof(RouteOn));
-    this->replier->bind(anyTcpEp.c_str());
-    this->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
+    this->dataPtr->replier->setsockopt(ZMQ_LINGER,
+        &lingerVal, sizeof(lingerVal));
+    this->dataPtr->replier->setsockopt(ZMQ_ROUTER_MANDATORY,
+        &RouteOn, sizeof(RouteOn));
+    this->dataPtr->replier->bind(anyTcpEp.c_str());
+    this->dataPtr->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
     this->myReplierAddress = bindEndPoint;
 
-    this->requester->setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-    this->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
+    this->dataPtr->requester->setsockopt(ZMQ_LINGER,
+        &lingerVal, sizeof(lingerVal));
+    this->dataPtr->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
       sizeof(RouteOn));
   }
   catch(const zmq::error_t& ze)
@@ -1018,4 +1025,23 @@ bool NodeShared::InitializeSockets()
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////
+bool NodeShared::TopicPublishers(const std::string &_topic,
+                                 SrvAddresses_M &_publishers) const
+{
+  return this->dataPtr->srvDiscovery->Publishers(_topic, _publishers);
+}
+
+/////////////////////////////////////////////////
+bool NodeShared::DiscoverService(const std::string &_topic) const
+{
+  return this->dataPtr->srvDiscovery->Discover(_topic);
+}
+
+/////////////////////////////////////////////////
+bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
+{
+  return this->dataPtr->srvDiscovery->Advertise(_publisher);
 }
