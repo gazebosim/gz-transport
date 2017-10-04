@@ -221,7 +221,7 @@ class Cmd
     # puts options
 
     # Read the plugin that handles the command.
-    # We're assuming that the library is relative paths to the current
+    # We're assuming that the library path is relative to the current
     # location of this script.
     plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
     conf_version = LIBRARY_VERSION
