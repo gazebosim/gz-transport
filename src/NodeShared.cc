@@ -232,10 +232,10 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 
     // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
-    this->publisher->send(msg0, ZMQ_SNDMORE);
-    this->publisher->send(msg1, ZMQ_SNDMORE);
-    this->publisher->send(msg2, ZMQ_SNDMORE);
-    this->publisher->send(msg3, 0);
+    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg3, 0);
   }
   catch(const zmq::error_t& ze)
   {

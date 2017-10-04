@@ -253,8 +253,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
           //
           // This supports asynchronous intraprocess callbacks,
           // which has the same behavior as interprocess callbacks.
-          this->dataPtr->shared->workerPool.AddWork(
-              [subHandler = subscriptionHandlerPtr.get(), &_msg, &info] ()
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [subHandler = subscriptionHandlerPtr.get(), &_msg, info] ()
               {
                 try
                 {
