@@ -1,6 +1,6 @@
 include (${project_cmake_dir}/Utils.cmake)
 
-set(ign_library_path "${CMAKE_BINARY_DIR}/src/cmd/cmdtransport${PROJECT_MAJOR_VERSION}")
+set(ign_library_path "${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}")
 
 # Generate a configuration file for internal testing.
 # Note that the major version of the library is included in the name.

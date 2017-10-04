@@ -21,7 +21,7 @@ set(IGN_LIBRARY_NAME ../../${IGN_LIBRARY_NAME})
 
 configure_file(
   "cmdtransport.rb.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmdtransport${PROJECT_MAJOR_VERSION}.rb" @ONLY)
+    "${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}.rb" @ONLY)
 
 # Install the ruby command line library in an unversioned location.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmdtransport${PROJECT_MAJOR_VERSION}.rb DESTINATION lib/ruby/ignition)
+install(FILES ${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}.rb DESTINATION lib/ruby/ignition)
