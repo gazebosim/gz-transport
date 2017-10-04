@@ -10,9 +10,14 @@ else()
   set(IGN_LIBRARY_NAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.so)
 endif()
 
-# Specify the full library path.
-set(LIB_DIR ${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR})
-set(IGN_LIBRARY_NAME ${LIB_DIR}/${IGN_LIBRARY_NAME})
+# Specify the library relative to the location of the .rb script.
+# E.g.: cmdtransport3.rb is installed in:
+#   /home/caguero/local/lib/ruby/ignition/cmdtransport3.rb
+# The Ignition Transport library is installed in:
+#   /home/caguero/local/lib/libignition-transport3.so
+# The value of IGN_LIBRARY_NAME should be:
+#   ../../libignition-transport3.so
+set(IGN_LIBRARY_NAME ../../${IGN_LIBRARY_NAME})
 
 configure_file(
   "cmdtransport.rb.in"
