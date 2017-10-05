@@ -1,8 +1,3 @@
-## Ignition Transport 4.x
-
-1. Hide ZMQ from public interfaces
-    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
-
 ## Ignition Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
@@ -44,6 +39,9 @@
 1. Do not allow to advertise a topic that is currently advertised on the same node.
    See [issue #54](https://bitbucket.org/ignitionrobotics/ign-transport/issues/54)
     * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/169)
+
+1. Hide ZMQ from public interfaces
+    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
 
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
     * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)

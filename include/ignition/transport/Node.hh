@@ -95,6 +95,11 @@ namespace ignition
         /// \sa Valid
         public: operator bool();
 
+        /// \brief Allows this class to be evaluated as a boolean (const).
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool() const;
+
         /// \brief Return true if valid information, such as a non-empty
         /// topic name, is present.
         /// \return True if this object can be used in Publish() calls.

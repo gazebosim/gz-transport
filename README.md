@@ -17,7 +17,6 @@ Check [here](http://ignition-transport.readthedocs.io/en/default/).
 
 [![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=default)](https://readthedocs.org/projects/ignition-transport/?badge=default)
 
-
 ## Roadmap
 
 ### Ignition Transport 4.x.x

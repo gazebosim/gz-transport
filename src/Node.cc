@@ -165,6 +165,12 @@ Node::Publisher::operator bool()
 }
 
 //////////////////////////////////////////////////
+Node::Publisher::operator bool() const
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
 bool Node::Publisher::Valid() const
 {
   return !this->dataPtr->publisher.Topic().empty();
