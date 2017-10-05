@@ -56,7 +56,7 @@ ign_find_package(ignition-msgs${IGN_MSGS_VER}
 # Find ifaddrs
 ign_find_package(IFADDRS
                  QUIET)
-if (ifaddrs_FOUND)
+if (IFADDRS_FOUND)
   set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
 else ()
   set (HAVE_IFADDRS OFF CACHE BOOL "HAVE IFADDRS" FORCE)
