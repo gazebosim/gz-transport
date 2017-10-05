@@ -5,6 +5,13 @@ find_package(ignition-transport4 QUIET REQUIRED)
 include_directories(${ignition-transport4_INCLUDE_DIRS})
 message (STATUS "Include: ${ignition-transport4_INCLUDE_DIRS}")
 
+# Message generation. Only required when using custom Protobuf messages.
+find_package(Protobuf REQUIRED)
+add_subdirectory(msgs)
+set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
+                            PROPERTIES GENERATED TRUE)
+include_directories(${CMAKE_BINARY_DIR})
+
 # Generate examples
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   add_executable(publisher publisher.cc)
@@ -60,6 +67,25 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
   add_executable(requester_async_no_input requester_async_no_input.cc)
   target_link_libraries(requester_async_no_input ignition-transport4::ignition-transport4)
 endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
+  add_executable(publisher_custom_msg publisher_custom_msg.cc)
+  target_link_libraries(publisher_custom_msg
+     ${IGNITION-TRANSPORT_LIBRARIES}
+     ${PROTO_SRC}
+  )
+  add_dependencies(publisher_custom_msg protobuf_compilation)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
+  add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
+  target_link_libraries(subscriber_custom_msg
+    ${IGNITION-TRANSPORT_LIBRARIES}
+    ${PROTO_SRC}
+  )
+  add_dependencies(subscriber_custom_msg protobuf_compilation)
+endif()
+
 
 if (MSVC)
   # Suppress Protobuf message generation warnings.

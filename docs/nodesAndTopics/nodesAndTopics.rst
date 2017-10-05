@@ -104,7 +104,7 @@ The symbol ``/`` is allowed as part of a namespace but just ``/`` is not
 allowed. The symbols ``@``, ``~`` or white spaces are not allowed as
 part of a namespace. Two or more consecutive slashes (``//``) are not allowed.
 If topic name or namespace is invalid than fully qualified topic name is
- invalid too.
+invalid too.
 
 =========  ============  =====================  ========  =======
 Namespace  Topic name    Fully qualified topic  Validity  Comment

@@ -22,7 +22,6 @@
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#include <zmq.hpp>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -33,7 +32,6 @@
 #include <thread>
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Publisher.hh"
@@ -48,6 +46,11 @@ namespace ignition
 {
   namespace transport
   {
+    class Node;
+
+    /// \brief Private data pointer
+    class NodeSharedPrivate;
+
     /// \class NodeShared NodeShared.hh ignition/transport/NodeShared.hh
     /// \brief Private data for the Node class. This class should not be
     /// directly used. You should use the Node class.
@@ -107,6 +110,32 @@ namespace ignition
       /// \brief Callback executed when a service call is no longer available.
       /// \param[in] _pub Information of the publisher in charge of the service.
       public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
+
+      /// \brief Pass through to bool Publishers(const std::string &_topic,
+      /// Addresses_M<Pub> &_publishers) const
+      /// \param[in] _topic Service name.
+      /// \param[out] _publishers Collection of service publishers.
+      /// \return True if the service is found and
+      //  there is at least one publisher.
+      /// \sa bool Publishers(const std::string &_topic,
+      /// Addresses_M<Pub> &_publishers) const
+      public: bool TopicPublishers(const std::string &_topic,
+                                   SrvAddresses_M &_publishers) const;
+
+      /// \brief Pass through to bool Discovery::Discover(const std::string
+      /// &_topic) const
+      /// \param[in] _topic Service name.
+      /// \return True if the method succeeded or false otherwise
+      /// (e.g. if the discovery has not been started).
+      /// \sa bool Discovery::Discover(const std::string &_topic) const
+      public: bool DiscoverService(const std::string &_topic) const;
+
+      /// \brief Pass through to bool Advertise(const Pub &_publisher)
+      /// \param[in] _publisher Publisher's information to advertise.
+      /// \return True if the method succeed or false otherwise
+      /// (e.g. if the discovery has not been started).
+      /// \sa Pass through to bool Advertise(const Pub &_publisher)
+      public: bool AdvertisePublisher(const ServicePublisher &_publisher);
 
       /// \brief Constructor.
       protected: NodeShared();
@@ -197,45 +226,10 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-      //////////////////////////////////////////////////
-      ///////    Declare here the ZMQ Context    ///////
-      //////////////////////////////////////////////////
+      /// \brief Internal data pointer.
+      private: std::unique_ptr<NodeSharedPrivate> dataPtr;
 
-      /// \brief 0MQ context. Always declare this object before any ZMQ socket
-      /// to make sure that the context is destroyed after all sockets.
-      public: std::unique_ptr<zmq::context_t> context;
-
-      //////////////////////////////////////////////////
-      ///////     Declare here all ZMQ sockets   ///////
-      //////////////////////////////////////////////////
-
-      /// \brief ZMQ socket to send topic updates.
-      public: std::unique_ptr<zmq::socket_t> publisher;
-
-      /// \brief ZMQ socket to receive topic updates.
-      public: std::unique_ptr<zmq::socket_t> subscriber;
-
-      /// \brief ZMQ socket to receive control updates (new connections, ...).
-      public: std::unique_ptr<zmq::socket_t> control;
-
-      /// \brief ZMQ socket for sending service call requests.
-      public: std::unique_ptr<zmq::socket_t> requester;
-
-      /// \brief ZMQ socket for receiving service call responses.
-      public: std::unique_ptr<zmq::socket_t> responseReceiver;
-
-      /// \brief ZMQ socket to receive service call requests.
-      public: std::unique_ptr<zmq::socket_t> replier;
-
-      //////////////////////////////////////////////////
-      /////// Declare here the discovery object  ///////
-      //////////////////////////////////////////////////
-
-      /// \brief Discovery service (messages).
-      public: std::unique_ptr<MsgDiscovery> msgDiscovery;
-
-      /// \brief Discovery service (services).
-      public: std::unique_ptr<SrvDiscovery> srvDiscovery;
+      private: friend Node;
     };
   }
 }

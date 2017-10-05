@@ -264,7 +264,7 @@ namespace ignition
           return nullptr;
         }
 
-        return std::move(msgPtr);
+        return msgPtr;
       }
 
       // Documentation inherited.
