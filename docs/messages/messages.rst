@@ -469,3 +469,115 @@ From terminal 2:
 .. code-block:: bash
 
     ./subscriber_generic
+
+Using custom Protobuf messages
+==============================
+
+We use Ignition Msgs in most of our examples and tests. This decision was
+made just for convenience but Ignition Transport supports the use of Protobuf
+messages directly. The most common problem with custom Protobuf messages is
+often the integration of the message generation into the build system of your
+project. Next, you can find an example of a publisher and subscriber using a
+custom Protobuf message integrated with CMake.
+
+Download the `publisher_custom_msg.cc
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/publisher_custom_msg.cc>`_
+and the `subscriber_custom_msg.cc
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/subscriber_custom_msg.cc>`_
+files within the ``ign_transport_tutorial``. Then, create a `msgs` folder and
+download the `stringmsg.proto
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_
+and the `CMakeLists.txt
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_
+files within the ``msgs`` folder. Finally, we'll need the main `CMakeLists.txt
+<https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_
+file. You should have this file from the previous examples. Otherwise,
+download and place it within the ``ign_transport_tutorial`` folder.
+
+Walkthrough
+-----------
+
+There's nothing new to show in the ``publisher_custom_msg.cc`` or
+``subscriber_custom_msg.cc`` besides the use of your custom Protobuf message
+instead of Ignition Msgs. The only relevant parts are in the ``CMakeLists.txt``
+files.
+
+.. code-block:: cpp
+
+    # Message generation. Only required when using custom Protobuf messages.
+    find_package(Protobuf REQUIRED)
+    add_subdirectory(msgs)
+    set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
+                                PROPERTIES GENERATED TRUE)
+    include_directories(${CMAKE_BINARY_DIR})
+
+This is how we find the Protobuf CMake config file, to make sure that the
+macro for Protobuf message generation is available. We also let CMake know that
+there is a new subdirectory to inspect containing our custom messages.
+
+.. code-block:: cpp
+
+    if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
+      add_executable(publisher_custom_msg publisher_custom_msg.cc)
+      target_link_libraries(publisher_custom_msg
+         ${IGNITION-TRANSPORT_LIBRARIES}
+         ${PROTO_SRC}
+      )
+      add_dependencies(publisher_custom_msg protobuf_compilation)
+    endif()
+
+    if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
+      add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
+      target_link_libraries(subscriber_custom_msg
+        ${IGNITION-TRANSPORT_LIBRARIES}
+        ${PROTO_SRC}
+      )
+      add_dependencies(subscriber_custom_msg protobuf_compilation)
+    endif()
+
+In the previous snippet we can see how the binaries are generated. The relevant
+part is to add a new dependency. We're telling CMake that these two
+binaries depend on the ``protobuf_compilation`` target. This will trigger the
+recompilation of the binaries if there is any change in our Protobuf messages.
+Also, we have to link our binaries with the generated Protobuf messages. The
+list of generated messages are contained in the ``${PROTO_SRC}`` variable.
+Finally, this is the content of the ``msgs/CMakeLists.txt`` file:
+
+.. code-block:: cpp
+
+    PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER
+      stringmsg.proto
+    )
+
+    # Variables needed to propagate through modules
+    # If more than one layer of cmake use CACHE INTERNAL ...
+    set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
+    set(PROTOBUF_LIBRARIES ${PROTOBUF_LIBRARIES} PARENT_SCOPE)
+    set(PROTO_SRC ${PROTO_SRC} PARENT_SCOPE)
+    set(PROTO_HEADER ${PROTO_HEADER} PARENT_SCOPE)
+
+    add_custom_target(protobuf_compilation DEPENDS ${PROTO_SRC})
+
+The macro ``PROTOBUF_GENERATE_CPP`` will use `protoc` to generate the ``.pb.h``
+and ``.pb.cc`` files from your ``.proto`` files. Follow the next instructions to
+compile and run the generic subscriber example:
+
+Run ``cmake`` and build the example:
+
+.. code-block:: bash
+
+    cd build
+    cmake ..
+    make
+
+From terminal 1:
+
+.. code-block:: bash
+
+    ./publisher_custom_msg
+
+From terminal 2:
+
+.. code-block:: bash
+
+    ./subscriber_custom_msg
