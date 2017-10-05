@@ -2,11 +2,23 @@ include (${project_cmake_dir}/Utils.cmake)
 
 # Set the library name.
 if (APPLE)
-  set(IGN_LIBRARY_NAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.dylib)
+  set(IGN_LIB_BASENAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.dylib)
 else()
-  set(IGN_LIBRARY_NAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.so)
+  set(IGN_LIB_BASENAME lib${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.so)
 endif()
 
+# Used only for internal testing.
+set(IGN_LIBRARY_NAME ../../../../src/${IGN_LIB_BASENAME})
+
+# Generate the ruby script for internal testing.
+# Note that the major version of the library is included in the name.
+# Ex: cmdtransport0.rb
+configure_file(
+  "cmdtransport.rb.in"
+    "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}.rb" @ONLY)
+
+# Used for the installed version.
+#
 # Specify the library path relative to the location of the .rb script.
 # E.g.: cmdtransport3.rb is installed in:
 #   /home/caguero/local/lib/ruby/ignition/cmdtransport3.rb
@@ -14,14 +26,14 @@ endif()
 #   /home/caguero/local/lib/libignition-transport3.so
 # The value of IGN_LIBRARY_NAME should be:
 #   ../../libignition-transport3.so
-set(IGN_LIBRARY_NAME ../../${IGN_LIBRARY_NAME})
+set(IGN_LIBRARY_NAME ../../../${LIB_INSTALL_DIR}/${IGN_LIB_BASENAME})
 
-# Generate a the ruby script.
+# Generate the ruby script that is installed.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb
 configure_file(
   "cmdtransport.rb.in"
-    "${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}.rb" @ONLY)
+    "${CMAKE_CURRENT_BINARY_DIR}/cmdtransport${PROJECT_MAJOR_VERSION}.rb" @ONLY)
 
 # Install the ruby command line library in an unversioned location.
-install(FILES ${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}.rb DESTINATION lib/ruby/ignition)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmdtransport${PROJECT_MAJOR_VERSION}.rb DESTINATION lib/ruby/ignition)

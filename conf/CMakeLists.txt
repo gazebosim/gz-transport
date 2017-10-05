@@ -1,6 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
 
-set(ign_library_path "${CMAKE_BINARY_DIR}/src/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}")
+# Used only for internal testing.
+set(ign_library_path "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}")
 
 # Generate a configuration file for internal testing.
 # Note that the major version of the library is included in the name.
@@ -9,9 +10,10 @@ configure_file(
   "transport.yaml.in"
     "${CMAKE_BINARY_DIR}/test/conf/transport${PROJECT_MAJOR_VERSION}.yaml" @ONLY)
 
+# Used for the installed version.
 set(ign_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdtransport${PROJECT_MAJOR_VERSION}")
 
-# Generate a configuration file.
+# Generate the configuration file that is installed.
 # Note that the major version of the library is included in the name.
 # Ex: transport0.yaml
 configure_file(
