@@ -37,5 +37,4 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/ign_auto_headers.hh.in
 
 ign_install_includes("${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition"
                      ${CMAKE_CURRENT_BINARY_DIR}/${IGN_PROJECT_NAME}.hh)
-ign_install_includes("${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}"
-                     ${headers})
+ign_install_includes("${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}" ${headers})

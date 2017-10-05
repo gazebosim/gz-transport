@@ -102,13 +102,6 @@ macro (ign_setup_windows)
   # Don't pull in the Windows min/max macros
   add_definitions(-DNOMINMAX)
 
-  # And force linking to MSVC dynamic runtime
-  if ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "DEBUG")
-    add_definitions("/MDd")
-  else()
-    add_definitions("/MD")
-  endif()
-
   # And we want exceptions
   add_definitions("/EHsc")
 
