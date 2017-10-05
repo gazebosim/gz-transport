@@ -53,6 +53,16 @@ ign_find_package(ignition-msgs${IGN_MSGS_VER}
                  REQUIRED)
 
 #--------------------------------------
+# Find ifaddrs
+ign_find_package(IFADDRS
+                 QUIET)
+if (ifaddrs_FOUND)
+  set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
+else ()
+  set (HAVE_IFADDRS OFF CACHE BOOL "HAVE IFADDRS" FORCE)
+endif()
+
+#--------------------------------------
 # Find ignition-tools
 ign_find_package(ignition-tools
                  QUIET)
