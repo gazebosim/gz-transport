@@ -1,8 +1,3 @@
-## Ignition Transport 4.x
-
-1. Hide ZMQ from public interfaces
-    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
-
 ## Ignition Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
