@@ -238,6 +238,9 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     std::shared_ptr<MessageInfo> info(new MessageInfo);
     info->SetTopic(topic);
 
+    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
+    msgCopy->CopyFrom(_msg);
+
     for (auto &node : handlers)
     {
       for (auto &handler : node.second)
@@ -259,17 +262,17 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
           // This supports asynchronous intraprocess callbacks,
           // which has the same behavior as interprocess callbacks.
           this->dataPtr->shared->dataPtr->workerPool.AddWork(
-              [subHandler = subscriptionHandlerPtr.get(), &_msg, info] ()
+              [subHandler = subscriptionHandlerPtr.get(), msgCopy, info] ()
               {
                 try
                 {
-                  subHandler->RunLocalCallback(_msg, *(info.get()));
+                  subHandler->RunLocalCallback(*(msgCopy.get()), *(info.get()));
                 }
                 catch (...)
                 {
                   std::cerr << "Exception occured in a local callback "
                     << "on topic[" << info->Topic() << "] with message ["
-                    << _msg.DebugString() << "]" << std::endl;
+                    << msgCopy->DebugString() << "]" << std::endl;
                 }
               });
         }

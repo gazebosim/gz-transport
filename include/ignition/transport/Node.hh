@@ -76,6 +76,7 @@ namespace ignition
       ///    if (pub)
       ///    {
       ///      MsgType msg;
+      ///      // Note that this version of Publish will copy the message.
       ///      pub.Publish(msg);
       ///    }
       public: class Publisher
@@ -105,7 +106,7 @@ namespace ignition
         /// \return True if this object can be used in Publish() calls.
         public: bool Valid() const;
 
-        /// \brief Publish a message.
+        /// \brief Publish a message. This function will copy the message.
         /// \param[in] _msg A google::protobuf message.
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
