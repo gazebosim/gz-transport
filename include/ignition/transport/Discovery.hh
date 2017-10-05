@@ -46,6 +46,7 @@
 #ifdef _WIN32
   #pragma warning(push, 0)
 #endif
+#include <zmq.hpp>
 #ifdef _WIN32
   #pragma warning(pop)
   // Suppress "decorated name length exceed" warning in STL.
@@ -74,15 +75,6 @@ namespace ignition
 {
   namespace transport
   {
-    /// \internal
-    /// \brief Discovery helper function to poll sockets.
-    /// \param[in] _sockets Sockets on which to listen.
-    /// \param[in] _timeout Length of time to poll (milliseconds).
-    /// \return True if the sockets received a reply.
-    IGNITION_TRANSPORT_VISIBLE
-    bool pollSockets(const std::vector<int> &_sockets,
-                     const int _timeout);
-
     /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
     /// protocol. It uses UDP multicast for sending/receiving messages and
@@ -688,10 +680,26 @@ namespace ignition
         bool timeToExit = false;
         while (!timeToExit)
         {
+          // Poll socket for a reply, with timeout.
+          zmq::pollitem_t items[] =
+          {
+            {0, this->sockets.at(0), ZMQ_POLLIN, 0},
+          };
+
           // Calculate the timeout.
           int timeout = this->NextTimeout();
 
-          if (pollSockets(this->sockets, timeout))
+          try
+          {
+            zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), timeout);
+          }
+          catch(...)
+          {
+            continue;
+          }
+
+          //  If we got a reply, process it.
+          if (items[0].revents & ZMQ_POLLIN)
           {
             this->RecvDiscoveryUpdate();
 
@@ -709,10 +717,10 @@ namespace ignition
               timeToExit = true;
           }
         }
-      #ifdef _WIN32
+#ifdef _WIN32
         std::lock_guard<std::mutex> lock(this->exitMutex);
         this->threadReceptionExiting = true;
-      #endif
+#endif
       }
 
       /// \brief Method in charge of receiving the discovery updates.

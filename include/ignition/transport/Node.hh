@@ -95,6 +95,11 @@ namespace ignition
         /// \sa Valid
         public: operator bool();
 
+        /// \brief Allows this class to be evaluated as a boolean (const).
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool() const;
+
         /// \brief Return true if valid information, such as a non-empty
         /// topic name, is present.
         /// \return True if this object can be used in Publish() calls.
@@ -138,8 +143,8 @@ namespace ignition
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
       public: template<typename T> Node::Publisher Advertise(
-          const std::string &_topic,
-          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
+                  const std::string &_topic,
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
         return this->Advertise(_topic, T().GetTypeName(), _options);
       }
@@ -155,10 +160,48 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: Node::Publisher Advertise(
-          const std::string &_topic,
-          const std::string &_msgTypeName,
-          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
+      public: Node::Publisher Advertise(const std::string &_topic,
+                                        const std::string &_msgTypeName,
+            const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
+      {
+        std::string fullyQualifiedTopic;
+        if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+        {
+          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          return Publisher();
+        }
+
+        auto currentTopics = this->AdvertisedTopics();
+
+        if (std::find(currentTopics.begin(), currentTopics.end(),
+              fullyQualifiedTopic) != currentTopics.end())
+        {
+          std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
+                    << " advertise the same topic twice on the same node."
+                    << " If you want to advertise the same topic with different"
+                    << " types, use separate nodes" << std::endl;
+          return Publisher();
+        }
+
+        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+        // Notify the discovery service to register and advertise my topic.
+        MessagePublisher publisher(fullyQualifiedTopic,
+          this->Shared()->myAddress,
+          this->Shared()->myControlAddress,
+          this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
+
+        if (!this->Shared()->msgDiscovery->Advertise(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return Publisher();
+        }
+
+        return Publisher(publisher);
+      }
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -298,7 +341,19 @@ namespace ignition
         this->Shared()->localSubscriptions.AddHandler(
           fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
-        return this->SubscribeHelper(fullyQualifiedTopic);
+        // Add the topic to the list of subscribed topics (if it was not before)
+        this->TopicsSubscribed().insert(fullyQualifiedTopic);
+
+        // Discover the list of nodes that publish on the topic.
+        if (!this->Shared()->msgDiscovery->Discover(fullyQualifiedTopic))
+        {
+          std::cerr << "Node::Subscribe(): Error discovering a topic. "
+                    << "Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
+
+        return true;
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -468,7 +523,7 @@ namespace ignition
           this->Shared()->pUuid, this->NodeUuid(),
           T1().GetTypeName(), T2().GetTypeName(), _options);
 
-        if (!this->Shared()->AdvertisePublisher(publisher))
+        if (!this->Shared()->srvDiscovery->Advertise(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising a service. "
                     << "Did you forget to start the discovery service?"
@@ -729,7 +784,8 @@ namespace ignition
 
           // If the responser's address is known, make the request.
           SrvAddresses_M addresses;
-          if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+          if (this->Shared()->srvDiscovery->Publishers(
+            fullyQualifiedTopic, addresses))
           {
             this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
               T1().GetTypeName(), T2().GetTypeName());
@@ -737,7 +793,7 @@ namespace ignition
           else
           {
             // Discover the service responser.
-            if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+            if (!this->Shared()->srvDiscovery->Discover(fullyQualifiedTopic))
             {
               std::cerr << "Node::Request(): Error discovering a service. "
                         << "Did you forget to start the discovery service?"
@@ -865,7 +921,8 @@ namespace ignition
 
         // If the responser's address is known, make the request.
         SrvAddresses_M addresses;
-        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+        if (this->Shared()->srvDiscovery->Publishers(
+          fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
             _req.GetTypeName(), _rep.GetTypeName());
@@ -873,7 +930,7 @@ namespace ignition
         else
         {
           // Discover the service responser.
-          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+          if (!this->Shared()->srvDiscovery->Discover(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering a service. "
                       << "Did you forget to start the discovery service?"
@@ -1007,11 +1064,6 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       private: NodeOptions &Options() const;
-
-      /// \brief Helper function for Subscribe.
-      /// \param[in] _fullyQualifiedTopic Fully qualified topic name
-      /// \return True on success.
-      private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
       /// \internal
       /// \brief Smart pointer to private data.
