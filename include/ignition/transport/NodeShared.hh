@@ -70,7 +70,9 @@ namespace ignition
       /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
-                           const std::string &_data,
+                           //void *_data,
+                           //const size_t size,
+                           std::string &_data,
                            const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.

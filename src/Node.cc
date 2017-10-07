@@ -288,16 +288,22 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Remote subscribers.
   if (hasRemoteSubscribers)
   {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
+    // Option 1 (SerializeToArray).
+    //int size = _msg.ByteSize();
+    //void *buffer = malloc(size);
+
+    // Option 2 (SerializeToString).
+    std::string *buffer = new std::string[_msg.ByteSize()];
+    if (!_msg.SerializeToString(buffer))
+    // if (!_msg.SerializeToArray(buffer, size))
     {
       std::cerr << "Node::Publisher::Publish(): Error serializing data"
                 << std::endl;
       return false;
     }
 
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
-          _msg.GetTypeName()))
+    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+          *buffer, /*size,*/ _msg.GetTypeName()))
     {
       return false;
     }

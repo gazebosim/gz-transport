@@ -219,15 +219,25 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
-  const std::string &_msgType)
+//bool NodeShared::Publish(const std::string &_topic, void *_data,
+bool NodeShared::Publish(const std::string &_topic, std::string &_data,
+  /*const size_t _size,*/ const std::string &_msgType)
 {
+  // Zmq will deallocate the buffer using this lambda function.
+  // auto myFree = [](void *_buffer, void *_hint) { free(_buffer); };
+
+  auto myFree = [](void *_buffer, void *_hint)
+  {
+    delete[] static_cast<std::string *>(_buffer);
+  };
+
   try
   {
     // Create the messages
     zmq::message_t msg0(_topic.data(), _topic.size()),
                    msg1(this->myAddress.data(), this->myAddress.size()),
-                   msg2(_data.data(), _data.size()),
+                   //msg2(_data, _size, myFree, nullptr),
+                   msg2(&_data[0], _data.size(), myFree, nullptr),
                    msg3(_msgType.data(), _msgType.size());
 
     // Send the messages
