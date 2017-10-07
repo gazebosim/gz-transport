@@ -128,6 +128,10 @@ namespace ignition
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;
 
+    /// \def DeallocFunc
+    /// \brief Used when passing data to be published using zmq.
+    using DeallocFunc = void(void *data, void *hint);
+
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobug.Message";
   }

@@ -66,13 +66,15 @@ namespace ignition
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
-      /// \param[in] _data Data to publish.
+      /// \param[in, out] _data Serialized data.
+      /// \param[in] _dataSize Data size (bytes).
+      /// \param[in] _deallocation function.
       /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
-                           //void *_data,
-                           //const size_t size,
-                           std::string &_data,
+                           char *_data,
+                           const size_t dataSize,
+                           const DeallocFunc *_ffn,
                            const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.

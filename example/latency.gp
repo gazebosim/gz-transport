@@ -22,14 +22,20 @@ set xtics (0, '256' 1, '512' 2, "1K" 3, "2K" 4, "4K" 5, "8K" 6, "16K" 7,\
 
 set output sprintf("latency-%s-all.png", prefix)
 set title sprintf("%s Latency", prefix)
-plot filename using 1:3 with linespoints title 'Avg' lw 2
+plot filename using 1:3 with linespoints title 'current Avg' lw 2,  \
+     filename2 using 1:3 with linespoints title 'noalloc Avg' lw 2, \
+     filename3 using 1:3 with linespoints title 'zerocopy Avg' lw 2
 
 set output sprintf("latency-%s-small.png", prefix)
 set title sprintf("%s Latency with Small Messages", prefix)
 set xrange [1:9]
-plot filename using 1:3 with linespoints title 'Avg' lw 2
+plot filename using 1:3 with linespoints title 'current Avg' lw 2,  \
+     filename2 using 1:3 with linespoints title 'noalloc Avg' lw 2, \
+     filename3 using 1:3 with linespoints title 'zerocopy Avg' lw 2
 
 set output sprintf("latency-%s-large.png", prefix)
 set title sprintf("%s Latency with Large Messages", prefix)
 set xrange [7:15]
-plot filename using 1:3 with linespoints title 'Avg' lw 2
+plot filename using 1:3 with linespoints title 'current Avg' lw 2,  \
+     filename2 using 1:3 with linespoints title 'noalloc Avg' lw 2, \
+     filename3 using 1:3 with linespoints title 'zerocopy Avg' lw 2

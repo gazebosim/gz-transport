@@ -29,17 +29,29 @@ set linetype 2 lw 2
 
 set output sprintf("throughput-%s-all.png", prefix)
 set title sprintf("%s Throughput", prefix)
-plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
-     filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
+plot filename using 1:3 linetype 1 with linespoints title 'current MB/s', \
+     filename using 1:4 linetype 2 with linespoints title 'current Kmsgs/s' axes x1y2, \
+     filename2 using 1:3 linetype 3 with linespoints title 'noalloc MB/s', \
+     filename2 using 1:4 linetype 4 with linespoints title 'noalloc Kmsgs/s' axes x1y2, \
+     filename3 using 1:3 linetype 5 with linespoints title 'zerocopy MB/s', \
+     filename3 using 1:4 linetype 6 with linespoints title 'zerocopy Kmsgs/s' axes x1y2
 
 set output sprintf("throughput-%s-small.png", prefix)
 set title sprintf("%s Throughput with Small Message", prefix)
 set xrange [1:9]
-plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
-     filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
+plot filename using 1:3 linetype 1 with linespoints title 'current MB/s', \
+     filename using 1:4 linetype 2 with linespoints title 'current Kmsgs/s' axes x1y2, \
+     filename2 using 1:3 linetype 3 with linespoints title 'noalloc MB/s', \
+     filename2 using 1:4 linetype 4 with linespoints title 'noalloc Kmsgs/s' axes x1y2, \
+     filename3 using 1:3 linetype 5 with linespoints title 'zerocopy MB/s', \
+     filename3 using 1:4 linetype 6 with linespoints title 'zerocopy Kmsgs/s' axes x1y2
 
 set output sprintf("throughput-%s-large.png", prefix)
 set title sprintf("%s Throughput with Large Message", prefix)
 set xrange [7:15]
-plot filename using 1:3 linetype 1 with linespoints title 'MB/s', \
-     filename using 1:4 linetype 2 with linespoints title 'Kmsgs/s' axes x1y2
+plot filename using 1:3 linetype 1 with linespoints title 'current MB/s', \
+     filename using 1:4 linetype 2 with linespoints title 'current Kmsgs/s' axes x1y2, \
+     filename2 using 1:3 linetype 3 with linespoints title 'noalloc MB/s', \
+     filename2 using 1:4 linetype 4 with linespoints title 'noalloc Kmsgs/s' axes x1y2, \
+     filename3 using 1:3 linetype 5 with linespoints title 'zerocopy MB/s', \
+     filename3 using 1:4 linetype 6 with linespoints title 'zerocopy Kmsgs/s' axes x1y2

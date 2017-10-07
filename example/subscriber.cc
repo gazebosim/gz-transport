@@ -20,6 +20,8 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+int counter = 0;
+
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const ignition::msgs::StringMsg &_msg)

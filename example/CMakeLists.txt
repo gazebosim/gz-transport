@@ -29,6 +29,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
   endif()
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/serializer.cc")
+  add_executable(serializer serializer.cc)
+  target_link_libraries(serializer ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   add_executable(publisher publisher.cc)
   target_link_libraries(publisher ${IGNITION-TRANSPORT_LIBRARIES})
