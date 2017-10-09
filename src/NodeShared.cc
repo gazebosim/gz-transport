@@ -809,15 +809,16 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   {
     try
     {
+      char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+      char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
+
       // Set username and pass if they exist
-      std::string username, password;
-      if (ignition::common::env("IGNITION_TRANSPORT_USERNAME", username) &&
-          ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password))
+      if (username && password)
       {
         this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
-            username.c_str(), username.size());
+            username, strlen(username));
         this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
-            password.c_str(), password.size());
+            password, strlen(password));
       }
 
       // I am not connected to the process.
@@ -1010,9 +1011,8 @@ void zapHandler(void *ctx)
   void *zap = zmq_socket(ctx, ZMQ_REP);
   zmq_bind(zap, "inproc://zeromq.zap.01");
 
-  std::string username, password;
-  ignition::common::env("IGNITION_TRANSPORT_USERNAME", username);
-  ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password);
+  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
 
   while (true)
   {
@@ -1042,10 +1042,8 @@ void zapHandler(void *ctx)
 
     s_sendmore (zap, version);
     s_sendmore (zap, sequence);
-    // if (streq (username, "admin")
-    //    &&  streq (password, "pass")) {
-    if (username == std::string(givenUsername) &&
-        password == std::string(givenPassword))
+    if (std::strcmp(username, givenUsername) == 0 &&
+        std::strcmp(password, givenPassword) == 0)
     {
 
     s_sendmore (zap, "200");
