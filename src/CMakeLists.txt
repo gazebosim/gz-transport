@@ -15,6 +15,7 @@ set (sources
   SubscribeOptions.cc
   TopicUtils.cc
   Uuid.cc
+  WorkerPool.cc
 )
 
 set (gtest_sources

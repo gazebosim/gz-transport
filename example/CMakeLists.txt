@@ -20,14 +20,13 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
   find_library(gflags_LIBRARIES NAMES gflags)
   find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
   if (NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
-    BUILD_ERROR("GFlags package is missing.")
+    message (STATUS "Unable to compile 'bench.cc', missing GFLags library")
+  else()
+    include_directories(SYSTEM ${gflags_INCLUDE_DIRS})
+    add_executable(bench bench.cc)
+    target_link_libraries(bench ${IGNITION-TRANSPORT_LIBRARIES}
+                          ${gflags_LIBRARIES})
   endif()
-
-  include_directories(SYSTEM ${gflags_INCLUDE_DIRS})
-
-  add_executable(bench bench.cc)
-  target_link_libraries(bench ${IGNITION-TRANSPORT_LIBRARIES}
-                        ${gflags_LIBRARIES})
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")

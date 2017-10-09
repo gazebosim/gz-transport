@@ -28,7 +28,7 @@ list(APPEND @PKG_NAME@_LIBRARY_DIRS
 
 # Visual Studio enables c++11 support by default
 if (NOT MSVC)
-  list(APPEND @PKG_NAME@_CXX_FLAGS -std=c++11)
+  list(APPEND @PKG_NAME@_CXX_FLAGS -std=c++14)
 endif()
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
@@ -101,8 +101,8 @@ list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
 
 #################################################
 # Find ign msgs library
-find_package(ignition-msgs0 QUIET)
-if (NOT ignition-msgs0_FOUND)
+find_package(ignition-msgs1 QUIET)
+if (NOT ignition-msgs1_FOUND)
   message(FATAL "Looking for ignition-msgs - not found")
 else()
   message(STATUS "Looking for ignition-msgs - found")
@@ -113,8 +113,8 @@ list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-MSGS_LIBRARIES})
 
 #################################################
 # Find ign common library
-find_package(ignition-common1 QUIET)
-if (NOT ignition-common1_FOUND)
+find_package(ignition-common0 QUIET)
+if (NOT ignition-common0_FOUND)
   message(FATAL "Looking for ignition-common - not found")
 else()
   message(STATUS "Looking for ignition-common - found")
