@@ -461,6 +461,23 @@ void CreatePubSubTwoThreads(
 }
 
 //////////////////////////////////////////////////
+/// \brief Test the bool operator of the Node::Publisher class
+TEST(NodePubTest, BoolOperatorTest)
+{
+  transport::Node node;
+  transport::Node node2;
+  transport::Node::Publisher pub;
+  const transport::Node::Publisher pub_const;
+  EXPECT_FALSE(pub);
+  EXPECT_FALSE(pub_const);
+  pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  const transport::Node::Publisher pub2_const =
+      node2.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
+  EXPECT_TRUE(pub2_const);
+}
+
+//////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
 TEST(NodeTest, PubWithoutAdvertise)
 {
