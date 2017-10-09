@@ -79,6 +79,10 @@ class ignition::transport::NodeSharedPrivate
   /// \brief ZMQ socket to receive service call requests.
   public: std::unique_ptr<zmq::socket_t> replier;
 
+  public: void *zapThread;
+
+  public: std::thread *accessControlThread;
+
   //////////////////////////////////////////////////
   /////// Declare here the discovery object  ///////
   //////////////////////////////////////////////////
