@@ -810,9 +810,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       // Set username and pass if they exist
       if (username && password)
       {
-        this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
+        this->dataPtr->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
             username, strlen(username));
-        this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
+        this->dataPtr->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
             password, strlen(password));
       }
 
@@ -1018,13 +1018,13 @@ void zapHandler(void *ctx)
     char *sequence = s_recv (zap);
     char *domain = s_recv (zap);
     char *address = s_recv (zap);
-    char *routing_id = s_recv (zap);
+    // char *routing_id = s_recv (zap);
     char *mechanism = s_recv (zap);
     char *givenUsername = s_recv (zap);
     char *givenPassword = s_recv (zap);
 
-    // std::cout << "Username[" << givenUsername << "]\n";
-    // std::cout << "Pass[" << givenPassword << "]\n";
+    std::cout << "Username[" << givenUsername << "] [" << username << "]\n";
+    std::cout << "Pass[" << givenPassword << "] [" << password << "]\n";
     // std::cout << "Sequence[" << sequence << "]\n";
     // std::cout << "domain[" << domain << "]\n";
     // std::cout << "address[" << address << "]\n";
@@ -1062,6 +1062,7 @@ void zapHandler(void *ctx)
     free (givenPassword);
   }
 
+  std::cerr << "Exited" << std::endl;
   zmq_close (zap);
 }
 
@@ -1079,18 +1080,21 @@ bool NodeShared::InitializeSockets()
 
     // Check if a username and password has been set. If so,  then
     // setup a PLAIN authentication server.
-    std::string username, password;
-    if (ignition::common::env("IGNITION_TRANSPORT_USERNAME", username) &&
-        ignition::common::env("IGNITION_TRANSPORT_PASSWORD", password))
+    //std::string username, password;
+    char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+    char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
+
+
+    if (username && password)
     {
       int asServer = 1;
-      this->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer,
+      this->dataPtr->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer,
                                   sizeof(asServer));
 
       std::string zapDomain = "ign-zap";
-      this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, zapDomain.c_str(),
+      this->dataPtr->publisher->setsockopt(ZMQ_ZAP_DOMAIN, zapDomain.c_str(),
           zapDomain.size());
-      this->zapThread = zmq_threadstart(&zapHandler, this->context->ptr);
+      this->dataPtr->zapThread = zmq_threadstart(&zapHandler, this->dataPtr->context.get());
     }
 
     char bindEndPoint[1024];
