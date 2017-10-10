@@ -53,8 +53,7 @@ endif()
 target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
                       ${ZeroMQ_LIBRARIES}
                       ${uuid_LIBRARIES}
-                      ${IGNITION-MSGS_LIBRARIES}
-                      ${IGNITION-COMMON_LIBRARIES})
+                      ${IGNITION-MSGS_LIBRARIES})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
