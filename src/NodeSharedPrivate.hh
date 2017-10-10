@@ -80,6 +80,9 @@ class ignition::transport::NodeSharedPrivate
   public: std::unique_ptr<zmq::socket_t> replier;
 
   public: void *zapThread;
+
+  public: std::thread *accessControlThread;
+
   //////////////////////////////////////////////////
   /////// Declare here the discovery object  ///////
   //////////////////////////////////////////////////
