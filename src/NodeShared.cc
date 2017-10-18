@@ -219,28 +219,24 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
-  const std::string &_msgType)
+bool NodeShared::Publish(const std::string &_topic, char *_data,
+  const size_t dataSize, const DeallocFunc *_ffn, const std::string &_msgType)
 {
   try
   {
+    // Create the messages.
+    // Note that we use zero copy for passing the message data (msg2).
+    zmq::message_t msg0(_topic.data(), _topic.size()),
+                   msg1(this->myAddress.data(), this->myAddress.size()),
+                   msg2(_data, dataSize, _ffn, nullptr),
+                   msg3(_msgType.data(), _msgType.size());
+
+    // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
-    zmq::message_t msg;
-    msg.rebuild(_topic.size());
-    memcpy(msg.data(), _topic.data(), _topic.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(this->myAddress.size());
-    memcpy(msg.data(), this->myAddress.data(), this->myAddress.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(_data.size());
-    memcpy(msg.data(), _data.data(), _data.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(_msgType.size());
-    memcpy(msg.data(), _msgType.data(), _msgType.size());
-    this->dataPtr->publisher->send(msg, 0);
+    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg3, 0);
   }
   catch(const zmq::error_t& ze)
   {
