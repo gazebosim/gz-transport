@@ -39,7 +39,7 @@ Install Ignition Transport:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install libignition-transport3-dev
+    sudo apt-get install libignition-transport4-dev
 
 Mac OS X
 ========
@@ -64,7 +64,7 @@ Run the following commands:
 .. code-block:: bash
 
     brew tap osrf/simulation
-    brew install ignition-transport3
+    brew install ignition-transport4
 
 Windows
 =======
@@ -217,7 +217,7 @@ from source:
 
 .. code-block:: bash
 
-        sudo apt-get remove libignition-transport3-dev
+        sudo apt-get remove libignition-transport4-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 
