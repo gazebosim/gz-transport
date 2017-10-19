@@ -130,7 +130,7 @@ namespace ignition
 
     /// \def DeallocFunc
     /// \brief Used when passing data to be published using ZMQ.
-    using DeallocFunc = void(void *data, void *hint);
+    using DeallocFunc = void(void *_data, void */*_hint*/);
 
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobug.Message";

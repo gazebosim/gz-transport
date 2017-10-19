@@ -69,13 +69,13 @@ namespace ignition
       /// \param[in, out] _data Serialized data. Note that this buffer will be
       /// automatically deallocated by ZMQ when all data has been published.
       /// \param[in] _dataSize Data size (bytes).
-      /// \param[in] _ffn Deallocation function.
+      /// \param[in, out] _ffn Deallocation function.
       /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
                            char *_data,
                            const size_t dataSize,
-                           const DeallocFunc *_ffn,
+                           DeallocFunc *_ffn,
                            const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.

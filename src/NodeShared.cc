@@ -220,7 +220,7 @@ void NodeShared::RunReceptionTask()
 
 //////////////////////////////////////////////////
 bool NodeShared::Publish(const std::string &_topic, char *_data,
-  const size_t dataSize, const DeallocFunc *_ffn, const std::string &_msgType)
+  const size_t dataSize, DeallocFunc *_ffn, const std::string &_msgType)
 {
   try
   {
