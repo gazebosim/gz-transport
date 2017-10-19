@@ -360,13 +360,13 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        bool(*_cb)(const T1 &_req, T2 &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const T1 &, T2 &, bool &)> f =
-          [_cb](const T1 &_internalReq, T2 &_internalRep, bool &_internalResult)
+        std::function<bool(const T1 &, T2 &)> f =
+          [_cb](const T1 &_internalReq, T2 &_internalRep)
         {
-          (*_cb)(_internalReq, _internalRep, _internalResult);
+          return (*_cb)(_internalReq, _internalRep);
         };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
@@ -385,14 +385,13 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename T> bool Advertise(
         const std::string &_topic,
-        void(*_cb)(T &_rep, bool &_result),
+        bool(*_cb)(T &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
-                bool &_internalResult)
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
         {
-          (*_cb)(_internalRep, _internalResult);
+          return (*_cb)(_internalRep);
         };
         return this->Advertise<msgs::Empty, T>(_topic, f, _options);
       }
@@ -412,11 +411,11 @@ namespace ignition
         void(*_cb)(const T &_req),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
-          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
-                bool &/*_internalResult*/)
+        std::function<bool(const T &, ignition::msgs::Empty &)> f =
+          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/)
         {
           (*_cb)(_internalReq);
+          return true;
         };
 
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
@@ -436,7 +435,7 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
+        std::function<bool(const T1 &_req, T2 &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::string fullyQualifiedTopic;
@@ -497,14 +496,13 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename T> bool Advertise(
         const std::string &_topic,
-        std::function<void(T &_rep, bool &_result)> &_cb,
+        std::function<bool(T &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep,
-                bool &_internalResult)
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
         {
-          (_cb)(_internalRep, _internalResult);
+          return (_cb)(_internalRep);
         };
         return this->Advertise<msgs::Empty, T>(_topic, f, _options);
       }
@@ -524,11 +522,11 @@ namespace ignition
         std::function<void(const T &_req)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
-          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/,
-                bool &/*_internalResult*/)
+        std::function<bool(const T &, ignition::msgs::Empty &)> f =
+          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/)
         {
           (_cb)(_internalReq);
+          return true;
         };
 
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
@@ -549,18 +547,17 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename C, typename T1, typename T2> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        bool(C::*_cb)(const T1 &_req, T2 &_rep),
         C *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const T1 &, T2 &, bool &)> f =
+        std::function<bool(const T1 &, T2 &)> f =
           [_cb, _obj](const T1 &_internalReq,
-                      T2 &_internalRep,
-                      bool &_internalResult)
+                      T2 &_internalRep)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-            std::placeholders::_2, std::placeholders::_3);
-          cb(_internalReq, _internalRep, _internalResult);
+            std::placeholders::_2);
+          return cb(_internalReq, _internalRep);
         };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
@@ -580,17 +577,15 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename C, typename T> bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(T &_rep, bool &_result),
+        bool(C::*_cb)(T &_rep),
         C *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const msgs::Empty &, T &, bool &)> f =
-          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep,
-                      bool &_internalResult)
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep)
         {
-          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-            std::placeholders::_2);
-          cb(_internalRep, _internalResult);
+          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
+          return cb(_internalRep);
         };
 
         return this->Advertise<msgs::Empty, T>(_topic, f, _options);
@@ -613,13 +608,13 @@ namespace ignition
         C *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<void(const T &, ignition::msgs::Empty &, bool &)> f =
+        std::function<bool(const T &, ignition::msgs::Empty &)> f =
           [_cb, _obj](const T &_internalReq,
-             ignition::msgs::Empty &/*_internalRep*/,
-             bool &/*_internalResult*/)
+             ignition::msgs::Empty &/*_internalRep*/)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1);
           cb(_internalReq);
+          return true;
         };
 
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
@@ -708,8 +703,7 @@ namespace ignition
         {
           // There is a responser in my process, let's use it.
           T2 rep;
-          bool result;
-          repHandler->RunLocalCallback(_req, rep, result);
+          bool result = repHandler->RunLocalCallback(_req, rep);
 
           _cb(rep, result);
           return true;
@@ -860,7 +854,7 @@ namespace ignition
           _req.GetTypeName(), _rep.GetTypeName(), repHandler))
         {
           // There is a responser in my process, let's use it.
-          repHandler->RunLocalCallback(_req, _rep, _result);
+          _result = repHandler->RunLocalCallback(_req, _rep);
           return true;
         }
 
