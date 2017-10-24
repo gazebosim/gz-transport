@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport/transport.hh>
+#include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 void srvOneway(const ignition::msgs::StringMsg &_req)

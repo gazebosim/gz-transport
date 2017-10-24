@@ -48,7 +48,7 @@ ign_find_package(UUID
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 0)
+set(IGN_MSGS_VER 1)
 ign_find_package(ignition-msgs${IGN_MSGS_VER}
                  REQUIRED)
 
