@@ -21,6 +21,8 @@ Check [here](http://ignition-transport.readthedocs.io/en/default/).
 
 ### Ignition Transport 4.x.x
 
+* Updated callback signature when advertising service calls
+* Zero copy
 * Benchmarking
 * Allow `ign topic --pub` and `ign topic --echo` to work with custom messages
 * Allow communication among nodes outside of the same LAN
