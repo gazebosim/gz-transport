@@ -101,8 +101,8 @@ list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
 
 #################################################
 # Find ign msgs library
-find_package(ignition-msgs1 QUIET)
-if (NOT ignition-msgs1_FOUND)
+find_package(ignition-msgs@IGNITION-MSGS_REQUIRED_MAJOR_VERSION@ QUIET)
+if (NOT ignition-msgs@IGNITION-MSGS_REQUIRED_MAJOR_VERSION@_FOUND)
   message(FATAL "Looking for ignition-msgs - not found")
 else()
   message(STATUS "Looking for ignition-msgs - found")
@@ -110,3 +110,9 @@ endif()
 list(APPEND @PKG_NAME@_INCLUDE_DIRS ${IGNITION-MSGS_INCLUDE_DIRS})
 list(APPEND @PKG_NAME@_LIBRARY_DIRS ${IGNITION-MSGS_LIBRARY_DIRS})
 list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-MSGS_LIBRARIES})
+
+# Specify the doxygen tag file
+set(@PKG_NAME@_DOXYGEN_TAGFILE "@CMAKE_INSTALL_PREFIX@/share/ignition/@PROJECT_NAME_LOWER@@PROJECT_MAJOR_VERSION@_@PROJECT_MINOR_VERSION@/@PROJECT_NAME_LOWER@.tag.xml")
+
+# Specify the API url. This is where the doxygen tag file will resolve URLS to.
+set(@PKG_NAME@_API_URL "https://ignitionrobotics.org/api/@IGN_PROJECT_NAME@/@PROJECT_MAJOR_VERSION@.@PROJECT_MINOR_VERSION@")
