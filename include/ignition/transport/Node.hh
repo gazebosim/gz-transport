@@ -115,6 +115,45 @@ namespace ignition
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
 
+        /// \brief ToDo.
+        public: bool Publish(std::unique_ptr<ProtoMsg> _msg,
+                          void(*_cb)(std::unique_ptr<ProtoMsg> _msg,
+                                     const bool _result) = nullptr)
+        {
+          std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+            [_cb](std::unique_ptr<ProtoMsg> _internalMsg,
+                 const bool _internalResult)
+            {
+              (*_cb)(std::move(_internalMsg), _internalResult);
+            };
+
+            return this->Publish(std::move(_msg), f);
+        }
+
+        /// \brief ToDo.
+        public: bool Publish(std::unique_ptr<ProtoMsg> _msg,
+                             std::function<void(std::unique_ptr<ProtoMsg> _msg,
+                                                const bool _result)> &_cb);
+
+        /// \brief ToDo.
+        public: template<typename C>
+        bool Publish(std::unique_ptr<ProtoMsg> _msg,
+                     void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg,
+                                   const bool _result),
+                     C *_obj)
+        {
+          std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+            [_cb, _obj](std::unique_ptr<ProtoMsg> _internalMsg,
+                        const bool _internalResult)
+            {
+              auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+                std::placeholders::_2);
+              cb(std::move(_internalMsg), _internalResult);
+            };
+
+            return this->Publish(std::move(_msg), f);
+        }
+
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
         /// \return true if the message should be published or false otherwise.

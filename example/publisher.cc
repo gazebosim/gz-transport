@@ -24,8 +24,13 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+#include <memory>
+
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
+
+/// \brief Declare a global message.
+auto g_msg = std::make_unique<ignition::msgs::StringMsg>();
 
 //////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -35,6 +40,28 @@ void signal_handler(int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
     g_terminatePub = true;
+}
+
+//////////////////////////////////////////////////
+template<typename TO, typename FROM>
+std::unique_ptr<TO> static_unique_ptr_cast (std::unique_ptr<FROM>&& _old)
+{
+  return std::unique_ptr<TO>{static_cast<TO*>(_old.release())};
+}
+
+//////////////////////////////////////////////////
+void onPublishFinished(std::unique_ptr<google::protobuf::Message> _msg,
+  const bool _result)
+{
+  auto p = static_unique_ptr_cast<ignition::msgs::StringMsg>(std::move(_msg));
+  g_msg.swap(p);
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cb(const ignition::msgs::StringMsg &_msg)
+{
+  std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -55,14 +82,41 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // Prepare the message.
-  ignition::msgs::StringMsg msg;
-  msg.set_data("HELLO");
+  if (!node.Subscribe(topic, cb))
+  {
+    std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    return -1;
+  }
 
-  // Publish messages at 1Hz.
+  // Prepare the message.
+  g_msg->set_data("HELLO");
+
+  // Option 1: Publish messages at 1Hz copying the message each time.
   while (!g_terminatePub)
   {
-    if (!pub.Publish(msg))
+    if (!pub.Publish((*g_msg)))
+      break;
+
+    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
+
+  // Option 2: Publish messages at 1Hz allocating a message each time.
+  while (!g_terminatePub)
+  {
+    auto msg = std::make_unique<ignition::msgs::StringMsg>();
+    if (!pub.Publish(std::move(msg)))
+      break;
+
+    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
+
+  // Option 3: Publish messages at 1Hz recycling the message.
+  while (!g_terminatePub)
+  {
+
+    if (!pub.Publish(std::move(g_msg), onPublishFinished))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;

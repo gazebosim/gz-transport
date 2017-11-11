@@ -27,6 +27,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include <future>
+#include <thread>
+
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
@@ -302,6 +305,113 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       return false;
     }
   }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::Publish(std::unique_ptr<ProtoMsg> _msg,
+  std::function<void(std::unique_ptr<ProtoMsg> _msg, const bool _result)> &_cb)
+{
+  if (!this->Valid())
+    return false;
+
+  // Check that the msg type matches the topic type previously advertised.
+  if (this->dataPtr->publisher.MsgTypeName() != _msg->GetTypeName())
+  {
+    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
+              << "\t* Type advertised: "
+              << this->dataPtr->publisher.MsgTypeName()
+              << "\n\t* Type published: " << _msg->GetTypeName() << std::endl;
+    return false;
+  }
+
+  // Check the publication throttling option.
+  if (!this->UpdateThrottling())
+    return true;
+
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
+
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
+      this->dataPtr->publisher.Topic(), handlers);
+    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
+      this->dataPtr->publisher.Topic(), _msg->GetTypeName());
+  }
+
+  auto f = std::thread(
+    [handlers,
+     _cb,
+     msg = std::move(_msg),
+     hasLocalSubscribers,
+     hasRemoteSubscribers,
+     this] () mutable
+    {
+      // Local subscribers.
+      if (hasLocalSubscribers)
+      {
+        // Get the topic and remove the partition name.
+        std::string topic = this->dataPtr->publisher.Topic();
+        topic.erase(0, topic.find_last_of("@") + 1);
+
+        // Create and populate the message information object.
+        // This must be a shared pointer so that we can pass it to
+        // multiple threads below, and then allow this function to go
+        // out of scope.
+        MessageInfo info;
+        info.SetTopic(topic);
+
+        for (auto &node : handlers)
+        {
+          for (auto &handler : node.second)
+          {
+            ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+            if (subscriptionHandlerPtr)
+            {
+              if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
+                  subscriptionHandlerPtr->TypeName() != msg->GetTypeName())
+              {
+                continue;
+              }
+              subscriptionHandlerPtr->RunLocalCallback(*msg, info);
+            }
+            else
+            {
+              std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
+                        << std::endl;
+            }
+          }
+        }
+      }
+
+      // Remote subscribers.
+      if (hasRemoteSubscribers)
+      {
+        std::string data;
+        if (!msg->SerializeToString(&data))
+        {
+          std::cerr << "Node::Publisher::Publish(): Error serializing data"
+                    << std::endl;
+          _cb(std::move(msg), false);
+          return;
+        }
+
+        if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
+              msg->GetTypeName()))
+        {
+          _cb(std::move(msg), false);
+          return;
+        }
+      }
+
+      _cb(std::move(msg), true);
+    });
+  f.detach();
 
   return true;
 }

@@ -51,6 +51,8 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+#include <functional>
+
 DEFINE_bool(h, false, "Show help");
 DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
@@ -186,6 +188,8 @@ class PubTester
   /// \brief Create the publishers and subscribers.
   public: void Init()
   {
+    this->msg.reset(new ignition::msgs::Bytes());
+
     // Throughput publisher
     this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
         "/benchmark/throughput/request");
@@ -307,7 +311,7 @@ class PubTester
       // Send all the messages as fast as possible
       for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
-        this->throughputPub.Publish(this->msg);
+        this->throughputPub.Publish(std::move(this->msg), nullptr);
       }
 
       // Wait for all the reply messages. This will add little overhead
@@ -330,6 +334,27 @@ class PubTester
                 << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
     }
   }
+
+  //////////////////////////////////////////////////
+  template<typename TO, typename FROM>
+  std::unique_ptr<TO> static_unique_ptr_cast (std::unique_ptr<FROM>&& _old)
+  {
+    return std::unique_ptr<TO>{static_cast<TO*>(_old.release())};
+  }
+
+  //////////////////////////////////////////////////
+  private: void OnMsgPublished(
+    std::unique_ptr<google::protobuf::Message> _msg,
+    const bool _result)
+  {
+    // Lock
+    std::unique_lock<std::mutex> lk(this->mutex);
+
+    auto p = static_unique_ptr_cast<ignition::msgs::Bytes>(std::move(_msg));
+    this->msg.swap(p);
+
+    this->conditionMsgRecycled.notify_all();
+  };
 
   /// \brief Measure latency. The output contains two columns:
   ///    1. Message size in bytes.
@@ -384,11 +409,18 @@ class PubTester
         this->timeEnd = timeStart;
 
         // Send the message.
-        this->latencyPub.Publish(this->msg);
+        this->latencyPub.Publish(std::move(this->msg),
+          &PubTester::OnMsgPublished, this);
 
         // Wait for the response.
         this->condition.wait(lk, [this, &timeStart] {
             return gStop || this->timeEnd > timeStart;});
+
+        if (!this->msg)
+        {
+          this->conditionMsgRecycled.wait(lk, [this] {
+            return this->msg != nullptr;});
+        }
 
         // Compute the number of microseconds
         uint64_t duration =
@@ -454,11 +486,11 @@ class PubTester
     // Prepare the message.
     char *byteData = new char[_size];
     std::memset(byteData, '0', _size);
-    msg.set_data(byteData);
+    msg->set_data(byteData);
 
     // Serialize so that we know how big the message is
     std::string data;
-    this->msg.SerializeToString(&data);
+    this->msg->SerializeToString(&data);
     this->dataSize = data.size();
   }
 
@@ -472,11 +504,13 @@ class PubTester
   /// \brief Condition variable used for synchronization.
   private: std::condition_variable condition;
 
+  private: std::condition_variable conditionMsgRecycled;
+
   /// \brief Mutex used for synchronization.
   private: std::mutex mutex;
 
   /// \brief Message that is sent.
-  private: ignition::msgs::Bytes msg;
+  private: std::unique_ptr<ignition::msgs::Bytes> msg;
 
   /// \brief Size of the message currently under test
   private: uint64_t dataSize = 0;

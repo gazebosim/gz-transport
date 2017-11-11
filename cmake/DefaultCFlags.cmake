@@ -59,7 +59,7 @@ if (UNIX)
     endif()
 endif()
 
-# Compiler-specific C++11 activation.
+# Compiler-specific C++14 activation.
 if ("${CMAKE_CXX_COMPILER_ID} " MATCHES "GNU ")
     execute_process(
         COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
