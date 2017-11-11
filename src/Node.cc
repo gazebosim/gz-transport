@@ -397,19 +397,21 @@ bool Node::Publisher::Publish(std::unique_ptr<ProtoMsg> _msg,
         {
           std::cerr << "Node::Publisher::Publish(): Error serializing data"
                     << std::endl;
-          _cb(std::move(msg), false);
+          if (_cb != nullptr)
+            _cb(std::move(msg), false);
           return;
         }
 
         if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
               msg->GetTypeName()))
         {
-          _cb(std::move(msg), false);
+          if (_cb != nullptr)
+            _cb(std::move(msg), false);
           return;
         }
       }
-
-      _cb(std::move(msg), true);
+      if (_cb != nullptr)
+        _cb(std::move(msg), true);
     });
   f.detach();
 

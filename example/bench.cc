@@ -134,7 +134,18 @@ class ReplyTester
   /// \param[in] _msg Incoming message of variable size.
   private: void LatencyCb(const ignition::msgs::Bytes &_msg)
   {
-    this->latencyPub.Publish(_msg);
+    std::function<void(
+      std::unique_ptr<google::protobuf::Message>, const bool)> f =
+        [](std::unique_ptr<google::protobuf::Message>, const bool) {};
+
+    // Prepare the message.
+    auto msg = std::make_unique<ignition::msgs::Bytes>();
+    int payloadSize = 1;
+    char *byteData = new char[payloadSize];
+    std::memset(byteData, '0', payloadSize);
+    msg->set_data(byteData);
+
+    this->latencyPub.Publish(std::move(msg), f);
   }
 
   /// \brief The transport node
