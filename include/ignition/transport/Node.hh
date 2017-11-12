@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -108,7 +109,11 @@ namespace ignition
         /// \return True if this object can be used in Publish() calls.
         public: bool Valid() const;
 
-        /// \brief Publish a message. This function will copy the message
+        /// \brief Return true if this publisher has subscribers.
+        /// \return True if subscribers have connected to this publisher.
+        public: bool HasConnections() const;
+
+        /// \brief Publish a message. This ffunction will copy the message
         /// when publishing to interprocess subscribers. This copy is
         /// necessary to facilitate asynchronous publication.
         /// \param[in] _msg A google::protobuf message.
@@ -116,52 +121,56 @@ namespace ignition
         public: bool Publish(const ProtoMsg &_msg);
 
         /// \brief ToDo.
-        public: bool Publish(std::unique_ptr<ProtoMsg> _msg,
-                          void(*_cb)(std::unique_ptr<ProtoMsg> _msg,
-                                     const bool _result) = nullptr)
-        {
-          std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
-            [_cb](std::unique_ptr<ProtoMsg> _internalMsg,
-                 const bool _internalResult)
-            {
-              (*_cb)(std::move(_internalMsg), _internalResult);
-            };
-
-            return this->Publish(std::move(_msg), f);
-        }
+        public: bool Publish(
+            std::unique_ptr<ProtoMsg> _msg,
+            std::function<void(std::unique_ptr<ProtoMsg> _msg,
+                               const bool _result)> &_cb);
 
         /// \brief ToDo.
         public: bool Publish(std::unique_ptr<ProtoMsg> _msg,
-                             std::function<void(std::unique_ptr<ProtoMsg> _msg,
-                                                const bool _result)> &_cb);
+                          void(*_cb)(std::unique_ptr<ProtoMsg> _msg,
+                                     const bool _result) = nullptr);
 
         /// \brief ToDo.
         public: template<typename C>
-        bool Publish(std::unique_ptr<ProtoMsg> _msg,
-                     void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg,
-                                   const bool _result),
-                     C *_obj)
-        {
-          std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
-            [_cb, _obj](std::unique_ptr<ProtoMsg> _internalMsg,
-                        const bool _internalResult)
-            {
-              auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-                std::placeholders::_2);
-              cb(std::move(_internalMsg), _internalResult);
-            };
-
-            return this->Publish(std::move(_msg), f);
-        }
+        bool Publish(
+            std::unique_ptr<ProtoMsg> _msg,
+            void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg,
+                          const bool _result),
+            C *_obj);
 
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
         /// \return true if the message should be published or false otherwise.
         private: bool UpdateThrottling();
 
-        /// \brief Return true if this publisher has subscribers.
-        /// \return True if subscribers have connected to this publisher.
-        public: bool HasConnections() const;
+        /// \brief Verify whether we have to skip the publication or not.
+        /// A message can be skipped if throttling is enabled, or the types
+        /// advertised and published do not match.
+        private: bool Precheck(const ProtoMsg &_msg) const;
+
+        /// \brief ToDo.
+        private: bool CheckSubscribers(
+          const ProtoMsg &_msg,
+          bool &_hasLocalSubscribers,
+          std::map<std::string, ISubscriptionHandler_M> &_handlers,
+          bool &_hasRemoteSubscribers) const;
+
+        /// \brief ToDo.
+        private: void SendToLocalSubscribers(
+          const std::map<std::string, ISubscriptionHandler_M> &_handlers,
+          const ProtoMsg &_msg) const;
+
+        /// \brief ToDo.
+        private: bool SendToRemoteSubscribers(const ProtoMsg &_msg) const;
+
+        /// \brief ToDo.
+        private: bool PrePublish(
+          const ProtoMsg &_msg,
+          bool &_hasLocalSubscribers,
+          std::map<std::string, ISubscriptionHandler_M> &_handlers,
+          bool &_hasRemoteSubscribers,
+          bool &_publishResult);
 
         /// \internal
         /// \brief Smart pointer to private data.

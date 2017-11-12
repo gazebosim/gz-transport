@@ -122,6 +122,9 @@ namespace ignition
       /// message in nanoseconds.
       public: double periodNs = 0.0;
 
+      /// \brief The topic name without the partition part.
+      public: std::string topicWithoutPartition = "";
+
       /// \brief Mutex to protect the node::publisher from race conditions.
       public: std::mutex mutex;
     };
@@ -149,6 +152,14 @@ Node::Publisher::Publisher()
 Node::Publisher::Publisher(const MessagePublisher &_publisher)
   : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
 {
+  if (!this->Valid())
+    return;
+
+  // Get the topic and remove the partition name.
+  std::string topic = this->dataPtr->publisher.Topic();
+  topic.erase(0, topic.find_last_of("@") + 1);
+  this->dataPtr->topicWithoutPartition = topic;
+
   if (this->dataPtr->publisher.Options().Throttled())
   {
     this->dataPtr->periodNs =
@@ -195,7 +206,7 @@ bool Node::Publisher::HasConnections() const
 }
 
 //////////////////////////////////////////////////
-bool Node::Publisher::Publish(const ProtoMsg &_msg)
+bool Node::Publisher::Precheck(const ProtoMsg &_msg) const
 {
   if (!this->Valid())
     return false;
@@ -203,108 +214,141 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Check that the msg type matches the topic type previously advertised.
   if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
   {
-    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
+    std::cerr << "Node::Publisher::Precheck() Type mismatch.\n"
               << "\t* Type advertised: "
               << this->dataPtr->publisher.MsgTypeName()
               << "\n\t* Type published: " << _msg.GetTypeName() << std::endl;
     return false;
   }
 
-  // Check the publication throttling option.
-  if (!this->UpdateThrottling())
-    return true;
+  return true;
+}
 
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-
+//////////////////////////////////////////////////
+bool Node::Publisher::CheckSubscribers(
+  const ProtoMsg &_msg, bool &_hasLocalSubscribers,
+  std::map<std::string, ISubscriptionHandler_M> &_handlers,
+  bool &_hasRemoteSubscribers) const
+{
   {
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
-      this->dataPtr->publisher.Topic(), handlers);
-    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
+    _hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
+      this->dataPtr->publisher.Topic(), _handlers);
+    _hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
       this->dataPtr->publisher.Topic(), _msg.GetTypeName());
   }
 
-  // Local subscribers.
-  if (hasLocalSubscribers)
+  return _hasLocalSubscribers || _hasRemoteSubscribers;
+}
+
+//////////////////////////////////////////////////
+void Node::Publisher::SendToLocalSubscribers(
+  const std::map<std::string, ISubscriptionHandler_M> &_handlers,
+  const ProtoMsg &_msg) const
+{
+  MessageInfo info;
+  info.SetTopic(this->dataPtr->topicWithoutPartition);
+
+  for (auto &node : _handlers)
   {
-    // Get the topic and remove the partition name.
-    std::string topic = this->dataPtr->publisher.Topic();
-    topic.erase(0, topic.find_last_of("@") + 1);
-
-    // Create and populate the message information object.
-    // This must be a shared pointer so that we can pass it to
-    // multiple threads below, and then allow this function to go
-    // out of scope.
-    std::shared_ptr<MessageInfo> info(new MessageInfo);
-    info->SetTopic(topic);
-
-    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
-    msgCopy->CopyFrom(_msg);
-
-    for (auto &node : handlers)
+    for (auto &handler : node.second)
     {
-      for (auto &handler : node.second)
+      ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+
+      if (subscriptionHandlerPtr)
       {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-        if (subscriptionHandlerPtr)
+        if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
+            subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
         {
-          if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
-              subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
-          {
-            continue;
-          }
-
-          // Launch local callback in a thread. We get the raw pointer to
-          // the subscription handler because the object itself will change
-          // in this loop.
-          //
-          // This supports asynchronous intraprocess callbacks,
-          // which has the same behavior as interprocess callbacks.
-          this->dataPtr->shared->dataPtr->workerPool.AddWork(
-              [subHandler = subscriptionHandlerPtr.get(), msgCopy, info] ()
-              {
-                try
-                {
-                  subHandler->RunLocalCallback(*(msgCopy.get()), *(info.get()));
-                }
-                catch (...)
-                {
-                  std::cerr << "Exception occured in a local callback "
-                    << "on topic[" << info->Topic() << "] with message ["
-                    << msgCopy->DebugString() << "]" << std::endl;
-                }
-              });
+          continue;
         }
-        else
-        {
-          std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
-                    << std::endl;
-        }
+        subscriptionHandlerPtr->RunLocalCallback(_msg, info);
+      }
+      else
+      {
+        std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
+                  << std::endl;
       }
     }
   }
+}
 
-  // Remote subscribers.
-  if (hasRemoteSubscribers)
+//////////////////////////////////////////////////
+bool Node::Publisher::SendToRemoteSubscribers(const ProtoMsg &_msg) const
+{
+  std::string data;
+  if (!_msg.SerializeToString(&data))
   {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
-    {
-      std::cerr << "Node::Publisher::Publish(): Error serializing data"
-                << std::endl;
-      return false;
-    }
-
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
-          _msg.GetTypeName()))
-    {
-      return false;
-    }
+    std::cerr << "Node::Publisher::SendToRemoteSubscribers(): "
+              << "Error serializing data" << std::endl;
+    return false;
   }
+
+  return this->dataPtr->shared->Publish(
+    this->dataPtr->publisher.Topic(), data, _msg.GetTypeName());
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::PrePublish(
+    const ProtoMsg &_msg, bool &_hasLocalSubscribers,
+    std::map<std::string, ISubscriptionHandler_M> &_handlers,
+    bool &_hasRemoteSubscribers, bool &_publishResult)
+{
+  // Sanity check.
+  if (!this->Precheck(_msg))
+  {
+    _publishResult = false;
+    return false;
+  }
+
+  // Check the publication throttling option.
+  if (!this->UpdateThrottling())
+  {
+    _publishResult = true;
+    return false;
+  }
+
+  if (!this->CheckSubscribers(_msg, _hasLocalSubscribers, _handlers,
+         _hasRemoteSubscribers))
+  {
+    // No subscribers at all, nothing to do.
+    _publishResult = true;
+    return false;
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::Publish(const ProtoMsg &_msg)
+{
+  std::map<std::string, ISubscriptionHandler_M> handlers;
+  bool hasLocalSubscribers;
+  bool hasRemoteSubscribers;
+  bool res;
+  if (!this->PrePublish(_msg, hasLocalSubscribers, handlers,
+         hasRemoteSubscribers, res))
+  {
+    return res;
+  }
+
+  // We need to create a copy of the original message because the message is
+  // going to be published in a separate thread. If we don't have exclusive
+  // ownership of the message, the caller might destroy or modify the message
+  // while it's being published in the separate thread.
+  std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
+  msgCopy->CopyFrom(_msg);
+
+  this->dataPtr->shared->dataPtr->workerPool.AddWork(
+    [handlers, msgCopy, hasLocalSubscribers, hasRemoteSubscribers, this] ()
+    {
+      if (hasLocalSubscribers)
+        this->SendToLocalSubscribers(handlers, *msgCopy);
+
+      if (hasRemoteSubscribers)
+        this->SendToRemoteSubscribers(*msgCopy);
+    });
 
   return true;
 }
@@ -313,109 +357,76 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 bool Node::Publisher::Publish(std::unique_ptr<ProtoMsg> _msg,
   std::function<void(std::unique_ptr<ProtoMsg> _msg, const bool _result)> &_cb)
 {
-  if (!this->Valid())
-    return false;
-
-  // Check that the msg type matches the topic type previously advertised.
-  if (this->dataPtr->publisher.MsgTypeName() != _msg->GetTypeName())
-  {
-    std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
-              << "\t* Type advertised: "
-              << this->dataPtr->publisher.MsgTypeName()
-              << "\n\t* Type published: " << _msg->GetTypeName() << std::endl;
-    return false;
-  }
-
-  // Check the publication throttling option.
-  if (!this->UpdateThrottling())
-    return true;
-
   std::map<std::string, ISubscriptionHandler_M> handlers;
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
-
+  bool res;
+  if (!this->PrePublish(*_msg, hasLocalSubscribers, handlers,
+         hasRemoteSubscribers, res))
   {
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
-      this->dataPtr->publisher.Topic(), handlers);
-    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
-      this->dataPtr->publisher.Topic(), _msg->GetTypeName());
+    // Notify the caller and transfer back the ownership of the message..
+    if (_cb)
+      _cb(std::move(_msg), res);
+    return res;
   }
 
-  auto f = std::thread(
-    [handlers,
-     _cb,
-     msg = std::move(_msg),
-     hasLocalSubscribers,
-     hasRemoteSubscribers,
-     this] () mutable
+  // We transfer the ownership of the original message because the message is
+  // going to be published in a separate thread. If we don't have exclusive
+  // ownership of the message, the caller might destroy or modify the message
+  // while it's being published in the separate thread. When we are done with
+  // the message, we'll notify the caller and transfer back the ownership.
+  auto t = std::thread(
+    [handlers, _cb, msg = std::move(_msg), hasLocalSubscribers,
+     hasRemoteSubscribers, this] () mutable
     {
-      // Local subscribers.
       if (hasLocalSubscribers)
-      {
-        // Get the topic and remove the partition name.
-        std::string topic = this->dataPtr->publisher.Topic();
-        topic.erase(0, topic.find_last_of("@") + 1);
+        this->SendToLocalSubscribers(handlers, *msg);
 
-        // Create and populate the message information object.
-        // This must be a shared pointer so that we can pass it to
-        // multiple threads below, and then allow this function to go
-        // out of scope.
-        MessageInfo info;
-        info.SetTopic(topic);
-
-        for (auto &node : handlers)
-        {
-          for (auto &handler : node.second)
-          {
-            ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-            if (subscriptionHandlerPtr)
-            {
-              if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
-                  subscriptionHandlerPtr->TypeName() != msg->GetTypeName())
-              {
-                continue;
-              }
-              subscriptionHandlerPtr->RunLocalCallback(*msg, info);
-            }
-            else
-            {
-              std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
-                        << std::endl;
-            }
-          }
-        }
-      }
-
-      // Remote subscribers.
+      bool result = true;
       if (hasRemoteSubscribers)
-      {
-        std::string data;
-        if (!msg->SerializeToString(&data))
-        {
-          std::cerr << "Node::Publisher::Publish(): Error serializing data"
-                    << std::endl;
-          if (_cb != nullptr)
-            _cb(std::move(msg), false);
-          return;
-        }
+        result = this->SendToRemoteSubscribers(*msg);
 
-        if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
-              msg->GetTypeName()))
-        {
-          if (_cb != nullptr)
-            _cb(std::move(msg), false);
-          return;
-        }
-      }
-      if (_cb != nullptr)
-        _cb(std::move(msg), true);
+      // Notify the caller and transfer back the ownership of the message..
+      if (_cb)
+        _cb(std::move(msg), result);
     });
-  f.detach();
+  t.detach();
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::Publish(
+    std::unique_ptr<ProtoMsg> _msg,
+    void(*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result))
+{
+  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+    [_cb](std::unique_ptr<ProtoMsg> _internalMsg,
+         const bool _internalResult)
+    {
+      (*_cb)(std::move(_internalMsg), _internalResult);
+    };
+
+    return this->Publish(std::move(_msg), f);
+}
+
+//////////////////////////////////////////////////
+template<typename C>
+bool Node::Publisher::Publish(
+    std::unique_ptr<ProtoMsg> _msg,
+    void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result),
+    C *_obj)
+{
+  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+    [_cb, _obj](std::unique_ptr<ProtoMsg> _internalMsg,
+                const bool _internalResult)
+    {
+      auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+        std::placeholders::_2);
+      cb(std::move(_internalMsg), _internalResult);
+    };
+
+    return this->Publish(std::move(_msg), f);
 }
 
 //////////////////////////////////////////////////

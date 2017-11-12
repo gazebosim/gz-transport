@@ -65,6 +65,87 @@ std::condition_variable gCondition;
 std::mutex gMutex;
 bool gStop = false;
 
+/// \brief A common class ...
+class Tester
+{
+  /// \brief Default constructor.
+  public: Tester()
+  {
+    // Initialize the messages.
+    for (auto const size : this->msgSizes)
+    {
+      // Create the message.
+      auto msg = std::make_unique<ignition::msgs::Bytes>();
+
+      // Fill the message and get its serialized size.
+      unsigned int dataSize;
+      this->PrepMsg(size, *msg, dataSize);
+
+      // Store it.
+      this->msgs[size] = std::move(msg);
+      this->dataSizes[size] = dataSize;
+    }
+  };
+
+  /// \brief Default destructor.
+  public: virtual ~Tester()
+  {
+  };
+
+  /// \brief Create a new message of a give size.
+  /// \param[in] _size Size (bytes) of the message to create.
+  /// \param[out] _msg The message.
+  /// \param[out] _dataSize The length of the serialized msg in bytes.
+  private: void PrepMsg(const unsigned int _size, ignition::msgs::Bytes &_msg,
+    unsigned int &_dataSize)
+  {
+    // Prepare the message.
+    char *byteData = new char[_size];
+    std::memset(byteData, '0', _size);
+    _msg.set_data(byteData);
+
+    // Serialize so that we know how big the message is.
+    std::string data;
+    _msg.SerializeToString(&data);
+    _dataSize = data.size();
+  }
+
+  /// \brief Set of messages sizes to test (bytes).
+  protected: std::vector<unsigned int> msgSizes =
+  {
+    256u, 512u, 1000u, 2000u, 4000u, 8000u, 16000u, 32000u, 64000u,
+    128000u, 256000u, 512000u, 1000000u, 2000000u, 4000000u
+  };
+
+  /// \brief A map that stores the messages.
+  /// The key is the payload size.
+  /// The value is a unique pointer to the message.
+  protected: std::map<unsigned int,
+                      std::unique_ptr<ignition::msgs::Bytes>> msgs;
+
+  /// \brief A map that stores the serialized message sizes.
+  /// The key is the payload size.
+  /// The value is the serialized size in bytes.
+  protected: std::map<unsigned int, unsigned int> dataSizes;
+
+  /// \brief The transport node.
+  protected: ignition::transport::Node node;
+
+  /// \brief The throughput publisher.
+  protected: ignition::transport::Node::Publisher throughputPub;
+
+  /// \brief The latency publisher.
+  protected: ignition::transport::Node::Publisher latencyPub;
+
+  protected: std::condition_variable conditionThroughputDataReceived;
+
+  protected: std::condition_variable conditionLatencyDataReceived;
+
+  protected: std::mutex mutex;
+
+  protected: unsigned int sizeReceived = 0u;
+};
+
 /// \brief The ReplyTester subscribes to the benchmark topics, and relays
 /// incoming messages on a corresponding "reply" topic.
 ///
@@ -74,47 +155,82 @@ bool gStop = false;
 ///   2. /benchmark/throughput/request For throughput testing.
 ///
 /// The incoming and outgoing message types are ignition::msgs::Bytes.
-class ReplyTester
+class ReplyTester : public Tester
 {
   /// Constructor that creates the publishers and subscribers.
-  public: ReplyTester()
+  public: void Start()
   {
-    // Advertise on the throughput reply topic
-    this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
-        "/benchmark/throughput/reply");
-    if (!this->throughputPub)
+    for (auto const &size : this->msgSizes)
     {
-      std::cerr << "Error advertising topic /benchmark/throughput/reply"
-                << std::endl;
-      return;
-    }
+      std::string throughputTopicReply =
+          "/benchmark/throughput/" + std::to_string(size) + "reply";
+      std::string latencyTopicReply =
+          "/benchmark/latency/"    + std::to_string(size) + "reply";
 
-    // Advertise on the latency reply topic
-    this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
-        "/benchmark/latency/reply");
-    if (!this->latencyPub)
-    {
-      std::cerr << "Error advertising topic /benchmark/latency/reply"
-                << std::endl;
-      return;
-    }
+      // Advertise on the throughput reply topic
+      this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
+          throughputTopicReply);
+      if (!this->throughputPub)
+      {
+        std::cerr << "Error advertising topic [" << throughputTopicReply << "]"
+                  << std::endl;
+        return;
+      }
 
-    // Subscribe to the throughput request topic.
-    if (!node.Subscribe("/benchmark/throughput/request",
-          &ReplyTester::ThroughputCb, this))
-    {
-      std::cerr << "Error subscribing to topic /benchmark/throughput/request"
-                << std::endl;
-      return;
-    }
+      // Advertise on the latency reply topic
+      this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
+          latencyTopicReply);
+      if (!this->latencyPub)
+      {
+        std::cerr << "Error advertising topic [" << latencyTopicReply << "]"
+                  << std::endl;
+        return;
+      }
 
-    // Subscribe to the latency request topic.
-    if (!node.Subscribe("/benchmark/latency/request",
-          &ReplyTester::LatencyCb, this))
-    {
-      std::cerr << "Error subscribing to topic /benchmark/latency/request"
-                << std::endl;
-      return;
+      std::string throughputTopicRequest =
+          "/benchmark/throughput/" + std::to_string(size) + "request";
+      std::string latencyTopicRequest =
+          "/benchmark/latency/"    + std::to_string(size) + "request";
+
+      std::function<void(const ignition::msgs::Bytes&)> throughputCb =
+        [size, this](const ignition::msgs::Bytes &_msg)
+        {
+          std::cout << "Received throughput cb for size " << size << std::endl;
+          this->sizeReceived = size;
+        };
+
+      // Subscribe to the throughput request topic.
+      if (!node.Subscribe(throughputTopicRequest, throughputCb))
+      {
+        std::cerr << "Error subscribing to topic [" << throughputTopicRequest
+                  << "]" << std::endl;
+        return;
+      }
+
+      std::function<void(const ignition::msgs::Bytes&)> latencyCb =
+        [size, this](const ignition::msgs::Bytes &_msg)
+        {
+          std::cout << "Received latency cb for size " << size << std::endl;
+          this->sizeReceived = size;
+        };
+
+      // Subscribe to the latency request topic.
+      if (!node.Subscribe(latencyTopicRequest, latencyCb))
+      {
+        std::cerr << "Error subscribing to topic [" << latencyTopicRequest
+                  << "]" << std::endl;
+        return;
+      }
+
+      while (true)
+      {
+        std::unique_lock<std::mutex> lk(this->mutex);
+        this->conditionDataReceived.wait(lk, [this] {
+          return this->sizeReceived > 0u;});
+        this->sizeReceived = 0;
+
+        this->
+      }
     }
 
     // Kick discovery.
@@ -147,15 +263,6 @@ class ReplyTester
 
     this->latencyPub.Publish(std::move(msg), f);
   }
-
-  /// \brief The transport node
-  private: ignition::transport::Node node;
-
-  /// \brief The throughput publisher
-  private: ignition::transport::Node::Publisher throughputPub;
-
-  /// \brief The latency publisher
-  private: ignition::transport::Node::Publisher latencyPub;
 };
 
 /// \brief The PubTester is used to collect data on latency or throughput.
@@ -473,7 +580,7 @@ class PubTester
     {
       // End the clock.
       this->timeEnd = std::chrono::high_resolution_clock::now();
-      condition.notify_all();
+      this->condition.notify_all();
     }
   }
 

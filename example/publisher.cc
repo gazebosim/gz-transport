@@ -44,7 +44,7 @@ void signal_handler(int _signal)
 
 //////////////////////////////////////////////////
 template<typename TO, typename FROM>
-std::unique_ptr<TO> static_unique_ptr_cast (std::unique_ptr<FROM>&& _old)
+std::unique_ptr<TO> staticUniquePtrCast(std::unique_ptr<FROM> &&_old)
 {
   return std::unique_ptr<TO>{static_cast<TO*>(_old.release())};
 }
@@ -53,7 +53,7 @@ std::unique_ptr<TO> static_unique_ptr_cast (std::unique_ptr<FROM>&& _old)
 void onPublishFinished(std::unique_ptr<google::protobuf::Message> _msg,
   const bool _result)
 {
-  auto p = static_unique_ptr_cast<ignition::msgs::StringMsg>(std::move(_msg));
+  auto p = staticUniquePtrCast<ignition::msgs::StringMsg>(std::move(_msg));
   g_msg.swap(p);
 }
 
@@ -115,7 +115,6 @@ int main(int argc, char **argv)
   // Option 3: Publish messages at 1Hz recycling the message.
   while (!g_terminatePub)
   {
-
     if (!pub.Publish(std::move(g_msg), onPublishFinished))
       break;
 
