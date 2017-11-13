@@ -241,7 +241,7 @@ class ReplyTester : public Tester
 
   /// \brief Function called each time a throughput message is received.
   /// \param[in] _msg Incoming message of variable size.
-  private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
+  private: void ThroughputReply(const ignition::msgs::Bytes &_msg)
   {
     this->throughputPub.Publish(_msg);
   }

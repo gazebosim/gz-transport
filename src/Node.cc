@@ -354,80 +354,80 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-bool Node::Publisher::Publish(std::unique_ptr<ProtoMsg> _msg,
-  std::function<void(std::unique_ptr<ProtoMsg> _msg, const bool _result)> &_cb)
-{
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-  bool res;
-  if (!this->PrePublish(*_msg, hasLocalSubscribers, handlers,
-         hasRemoteSubscribers, res))
-  {
-    // Notify the caller and transfer back the ownership of the message..
-    if (_cb)
-      _cb(std::move(_msg), res);
-    return res;
-  }
-
-  // We transfer the ownership of the original message because the message is
-  // going to be published in a separate thread. If we don't have exclusive
-  // ownership of the message, the caller might destroy or modify the message
-  // while it's being published in the separate thread. When we are done with
-  // the message, we'll notify the caller and transfer back the ownership.
-  auto t = std::thread(
-    [handlers, _cb, msg = std::move(_msg), hasLocalSubscribers,
-     hasRemoteSubscribers, this] () mutable
-    {
-      if (hasLocalSubscribers)
-        this->SendToLocalSubscribers(handlers, *msg);
-
-      bool result = true;
-      if (hasRemoteSubscribers)
-        result = this->SendToRemoteSubscribers(*msg);
-
-      // Notify the caller and transfer back the ownership of the message..
-      if (_cb)
-        _cb(std::move(msg), result);
-    });
-  t.detach();
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Node::Publisher::Publish(
-    std::unique_ptr<ProtoMsg> _msg,
-    void(*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result))
-{
-  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
-    [_cb](std::unique_ptr<ProtoMsg> _internalMsg,
-         const bool _internalResult)
-    {
-      (*_cb)(std::move(_internalMsg), _internalResult);
-    };
-
-    return this->Publish(std::move(_msg), f);
-}
-
-//////////////////////////////////////////////////
-template<typename C>
-bool Node::Publisher::Publish(
-    std::unique_ptr<ProtoMsg> _msg,
-    void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result),
-    C *_obj)
-{
-  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
-    [_cb, _obj](std::unique_ptr<ProtoMsg> _internalMsg,
-                const bool _internalResult)
-    {
-      auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-        std::placeholders::_2);
-      cb(std::move(_internalMsg), _internalResult);
-    };
-
-    return this->Publish(std::move(_msg), f);
-}
+//bool Node::Publisher::Publish(std::unique_ptr<ProtoMsg> _msg,
+//  std::function<void(std::unique_ptr<ProtoMsg> _msg, const bool _result)> &_cb)
+//{
+//  std::map<std::string, ISubscriptionHandler_M> handlers;
+//  bool hasLocalSubscribers;
+//  bool hasRemoteSubscribers;
+//  bool res;
+//  if (!this->PrePublish(*_msg, hasLocalSubscribers, handlers,
+//         hasRemoteSubscribers, res))
+//  {
+//    // Notify the caller and transfer back the ownership of the message..
+//    if (_cb)
+//      _cb(std::move(_msg), res);
+//    return res;
+//  }
+//
+//  // We transfer the ownership of the original message because the message is
+//  // going to be published in a separate thread. If we don't have exclusive
+//  // ownership of the message, the caller might destroy or modify the message
+//  // while it's being published in the separate thread. When we are done with
+//  // the message, we'll notify the caller and transfer back the ownership.
+//  auto t = std::thread(
+//    [handlers, _cb, msg = std::move(_msg), hasLocalSubscribers,
+//     hasRemoteSubscribers, this] () mutable
+//    {
+//      if (hasLocalSubscribers)
+//        this->SendToLocalSubscribers(handlers, *msg);
+//
+//      bool result = true;
+//      if (hasRemoteSubscribers)
+//        result = this->SendToRemoteSubscribers(*msg);
+//
+//      // Notify the caller and transfer back the ownership of the message..
+//      if (_cb)
+//        _cb(std::move(msg), result);
+//    });
+//  t.detach();
+//
+//  return true;
+//}
+//
+////////////////////////////////////////////////////
+//bool Node::Publisher::Publish(
+//    std::unique_ptr<ProtoMsg> _msg,
+//    void(*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result))
+//{
+//  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+//    [_cb](std::unique_ptr<ProtoMsg> _internalMsg,
+//         const bool _internalResult)
+//    {
+//      (*_cb)(std::move(_internalMsg), _internalResult);
+//    };
+//
+//    return this->Publish(std::move(_msg), f);
+//}
+//
+////////////////////////////////////////////////////
+//template<typename C>
+//bool Node::Publisher::Publish(
+//    std::unique_ptr<ProtoMsg> _msg,
+//    void(C::*_cb)(std::unique_ptr<ProtoMsg> _msg, const bool _result),
+//    C *_obj)
+//{
+//  std::function<void(std::unique_ptr<ProtoMsg>, const bool)> f =
+//    [_cb, _obj](std::unique_ptr<ProtoMsg> _internalMsg,
+//                const bool _internalResult)
+//    {
+//      auto cb = std::bind(_cb, _obj, std::placeholders::_1,
+//        std::placeholders::_2);
+//      cb(std::move(_internalMsg), _internalResult);
+//    };
+//
+//    return this->Publish(std::move(_msg), f);
+//}
 
 //////////////////////////////////////////////////
 bool Node::Publisher::UpdateThrottling()

@@ -43,18 +43,10 @@ void signal_handler(int _signal)
 }
 
 //////////////////////////////////////////////////
-template<typename TO, typename FROM>
-std::unique_ptr<TO> staticUniquePtrCast(std::unique_ptr<FROM> &&_old)
-{
-  return std::unique_ptr<TO>{static_cast<TO*>(_old.release())};
-}
-
-//////////////////////////////////////////////////
-void onPublishFinished(std::unique_ptr<google::protobuf::Message> _msg,
+void onPublishFinished(std::unique_ptr<ignition::msgs::StringMsg> _msg,
   const bool _result)
 {
-  auto p = staticUniquePtrCast<ignition::msgs::StringMsg>(std::move(_msg));
-  g_msg.swap(p);
+  g_msg.swap(_msg);
 }
 
 //////////////////////////////////////////////////
@@ -92,19 +84,20 @@ int main(int argc, char **argv)
   g_msg->set_data("HELLO");
 
   // Option 1: Publish messages at 1Hz copying the message each time.
-  while (!g_terminatePub)
-  {
-    if (!pub.Publish((*g_msg)))
-      break;
-
-    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  }
-
+//  while (!g_terminatePub)
+//  {
+//    if (!pub.Publish((*g_msg)))
+//      break;
+//
+//    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//  }
+//
   // Option 2: Publish messages at 1Hz allocating a message each time.
   while (!g_terminatePub)
   {
     auto msg = std::make_unique<ignition::msgs::StringMsg>();
+    msg->set_data("HELLO");
     if (!pub.Publish(std::move(msg)))
       break;
 
@@ -113,14 +106,14 @@ int main(int argc, char **argv)
   }
 
   // Option 3: Publish messages at 1Hz recycling the message.
-  while (!g_terminatePub)
-  {
-    if (!pub.Publish(std::move(g_msg), onPublishFinished))
-      break;
-
-    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  }
+//  while (!g_terminatePub)
+//  {
+//    if (!pub.Publish(std::move(g_msg), onPublishFinished))
+//      break;
+//
+//    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//  }
 
   return 0;
 }
