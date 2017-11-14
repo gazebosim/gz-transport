@@ -152,10 +152,10 @@ int main(int argc, char **argv)
   //      std::unique_lock<std::mutex> lk(g_mutex);
   //      if (!g_cv.wait_until(lk, std::chrono::system_clock::now() + 100ms,
   //        []{return g_msg != nullptr;}))
-  //      {
-  //         std::cerr << "I didn't get the message back. Leaving" << std::endl;
-  //         g_terminatePub = true;
-  //      }
+  //        {
+  //           std::cerr << "I didn't get the message back." << std::endl;
+  //           g_terminatePub = true;
+  //        }
   //   }
   //
   //   std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
