@@ -153,7 +153,7 @@ int main(int argc, char **argv)
   //      if (!g_cv.wait_until(lk, std::chrono::system_clock::now() + 100ms,
   //        []{return g_msg != nullptr;}))
   //      {
-  //         std::cerr << "We didn't get the message back. Leaving" << std::endl;
+  //         std::cerr << "I didn't get the message back. Leaving" << std::endl;
   //         g_terminatePub = true;
   //      }
   //   }

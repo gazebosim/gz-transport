@@ -134,11 +134,12 @@ namespace ignition
             return res;
           }
 
-          // We transfer the ownership of the original message because the message is
-          // going to be published in a separate thread. If we don't have exclusive
-          // ownership of the message, the caller might destroy or modify the message
-          // while it's being published in the separate thread. When we are done with
-          // the message, we'll notify the caller and transfer back the ownership.
+          // We transfer the ownership of the original message because the
+          // message is going to be published in a separate thread. If we don't
+          // have exclusive ownership of the message, the caller might destroy
+          // or modify the message while it's being published in the separate
+          // thread. When we are done with the message, we'll notify the caller
+          // and transfer back the ownership.
           auto t = std::thread(
             [handlers, msg = std::move(_msg), hasLocalSubscribers,
              hasRemoteSubscribers, this] () mutable
@@ -146,9 +147,8 @@ namespace ignition
               if (hasLocalSubscribers)
                 this->SendToLocalSubscribers(handlers, *msg);
 
-              bool result = true;
               if (hasRemoteSubscribers)
-                result = this->SendToRemoteSubscribers(*msg);
+                this->SendToRemoteSubscribers(*msg);
             });
           t.detach();
 
