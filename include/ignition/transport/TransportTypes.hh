@@ -124,13 +124,6 @@ namespace ignition
     using MsgCallback =
       std::function<void(const T &_msg, const MessageInfo &_info)>;
 
-      /// \def MsgCallback
-    /// \brief User callback used for receiving messages:
-    ///   \param[in] _msg Protobuf message containing the topic update.
-    ///   \param[in] _info Message information (e.g.: topic name).
-    template <typename T>
-    using PublisherCallback = std::function<void(std::unique_ptr<T> _msg)>;
-
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;

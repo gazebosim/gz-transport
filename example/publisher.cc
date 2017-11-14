@@ -17,20 +17,42 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <csignal>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
-#include <memory>
+using namespace std::chrono_literals;
+
+/// \brief Forward declaration
+void onDestroy(ignition::msgs::StringMsg *_msg);
+
+/////////////////////
+/// Global variables.
+/////////////////////
+
+/// \brief Mutex used with the condition variable.
+static std::mutex g_mutex;
+
+/// \brief Condition variable for waiting until the message is recycled.
+static std::condition_variable g_cv;
 
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
 
 /// \brief Declare a global message.
-auto g_msg = std::make_unique<ignition::msgs::StringMsg>();
+static std::unique_ptr<
+  ignition::msgs::StringMsg, void(*)(ignition::msgs::StringMsg*)> g_msg(
+    new ignition::msgs::StringMsg, onDestroy);
+
+///////////////////
+/// Free functions.
+///////////////////
 
 //////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
@@ -43,10 +65,21 @@ void signal_handler(int _signal)
 }
 
 //////////////////////////////////////////////////
-void onPublishFinished(std::unique_ptr<ignition::msgs::StringMsg> _msg,
-  const bool _result)
+/// \brief Custom deallocation function.
+void onDestroy(ignition::msgs::StringMsg *_msg)
 {
-  g_msg.swap(_msg);
+  // Recycle the message.
+  if (!g_terminatePub)
+  {
+    std::unique_lock<std::mutex> lk(g_mutex);
+    g_msg.reset(_msg);
+    g_cv.notify_all();
+    return;
+  }
+
+  // It's time to leave, deallocate the message.
+  if (_msg)
+    delete _msg;
 }
 
 //////////////////////////////////////////////////
@@ -57,6 +90,7 @@ void cb(const ignition::msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief Main program.
 int main(int argc, char **argv)
 {
   // Install a signal handler for SIGINT and SIGTERM.
@@ -80,40 +114,66 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // Prepare the message.
-  g_msg->set_data("HELLO");
-
   // Option 1: Publish messages at 1Hz copying the message each time.
-//  while (!g_terminatePub)
-//  {
-//    if (!pub.Publish((*g_msg)))
-//      break;
-//
-//    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
-//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//  }
-//
-  // Option 2: Publish messages at 1Hz allocating a message each time.
+  ignition::msgs::StringMsg msg;
+  msg.set_data("HELLO");
+
   while (!g_terminatePub)
   {
-    auto msg = std::make_unique<ignition::msgs::StringMsg>();
-    msg->set_data("HELLO");
-    if (!pub.Publish(std::move(msg)))
+    if (!pub.Publish((msg)))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
+  // Option 2: Publish messages at 1Hz allocating a message each time.
+  // while (!g_terminatePub)
+  // {
+  //   auto msg = std::make_unique<ignition::msgs::StringMsg>();
+  //   msg->set_data("HELLO");
+  //   if (!pub.Publish(std::move(msg)))
+  //     break;
+  //
+  //   std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  // }
+
   // Option 3: Publish messages at 1Hz recycling the message.
-//  while (!g_terminatePub)
-//  {
-//    if (!pub.Publish(std::move(g_msg), onPublishFinished))
-//      break;
-//
-//    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
-//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//  }
+  // g_msg->set_data("HELLO");
+  //
+  // while (!g_terminatePub)
+  // {
+  //   if (!pub.Publish(std::move(g_msg)))
+  //     break;
+  //
+  //   // Wait until we get the ownership of the message back.
+  //   {
+  //      std::unique_lock<std::mutex> lk(g_mutex);
+  //      if (!g_cv.wait_until(lk, std::chrono::system_clock::now() + 100ms,
+  //        []{return g_msg != nullptr;}))
+  //      {
+  //         std::cerr << "We didn't get the message back. Leaving" << std::endl;
+  //         g_terminatePub = true;
+  //      }
+  //   }
+  //
+  //   std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  // }
+
+  // Option 4: Publish messages at 1Hz synchronously.
+  // ignition::msgs::StringMsg msg;
+  // msg.set_data("HELLO");
+  //
+  // while (!g_terminatePub)
+  // {
+  //   if (!pub.PublishSync((msg)))
+  //     break;
+  //
+  //   std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  // }
 
   return 0;
 }

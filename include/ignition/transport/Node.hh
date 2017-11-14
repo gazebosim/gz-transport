@@ -121,10 +121,8 @@ namespace ignition
         public: bool Publish(const ProtoMsg &_msg);
 
         /// \brief ToDo.
-        public: template<typename T> bool Publish(
-            std::unique_ptr<T> _msg,
-            const std::function<void(std::unique_ptr<T> _msg,
-                                     const bool _result)> &_cb = nullptr)
+        public: template<typename T, typename Deleter> bool Publish(
+            std::unique_ptr<T, Deleter> _msg)
         {
           std::map<std::string, ISubscriptionHandler_M> handlers;
           bool hasLocalSubscribers;
@@ -133,9 +131,6 @@ namespace ignition
           if (!this->PrePublish(*_msg, hasLocalSubscribers, handlers,
                  hasRemoteSubscribers, res))
           {
-            // Notify the caller and transfer back the ownership of the message..
-            if (_cb)
-              _cb(std::move(_msg), res);
             return res;
           }
 
@@ -145,7 +140,7 @@ namespace ignition
           // while it's being published in the separate thread. When we are done with
           // the message, we'll notify the caller and transfer back the ownership.
           auto t = std::thread(
-            [handlers, _cb, msg = std::move(_msg), hasLocalSubscribers,
+            [handlers, msg = std::move(_msg), hasLocalSubscribers,
              hasRemoteSubscribers, this] () mutable
             {
               if (hasLocalSubscribers)
@@ -154,10 +149,6 @@ namespace ignition
               bool result = true;
               if (hasRemoteSubscribers)
                 result = this->SendToRemoteSubscribers(*msg);
-
-              // Notify the caller and transfer back the ownership of the message..
-              if (_cb)
-                _cb(std::move(msg), result);
             });
           t.detach();
 
@@ -165,41 +156,7 @@ namespace ignition
         }
 
         /// \brief ToDo.
-        public: template<typename T> bool Publish(
-            std::unique_ptr<T> _msg,
-            void(*_cb)(std::unique_ptr<T> _msg,
-                       const bool _result))
-        {
-          std::cout << "Pub" << std::endl;
-          std::function<void(std::unique_ptr<T>, const bool)> f =
-            [_cb](std::unique_ptr<T> _internalMsg,
-                 const bool _internalResult)
-            {
-              (*_cb)(std::move(_internalMsg), _internalResult);
-            };
-
-            return this->Publish(std::move(_msg), f);
-        }
-
-        /// \brief ToDo.
-        public: template<typename T, typename C>
-        bool Publish(
-            std::unique_ptr<T> _msg,
-            void(C::*_cb)(std::unique_ptr<T> _msg,
-                          const bool _result),
-            C *_obj)
-        {
-          std::function<void(std::unique_ptr<T>, const bool)> f =
-            [_cb, _obj](std::unique_ptr<T> _internalMsg,
-                        const bool _internalResult)
-            {
-              auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-                std::placeholders::_2);
-              cb(std::move(_internalMsg), _internalResult);
-            };
-
-            return this->Publish(std::move(_msg), f);
-        }
+        public: bool PublishSync(const ProtoMsg &_msg);
 
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
