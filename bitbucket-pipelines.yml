@@ -4,6 +4,8 @@ pipelines:
   default:
     - step:
         script:
+          - apt-get update
+          - apt-get install -y lsb-release
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
           - lsb_release -cs
