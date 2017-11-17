@@ -453,10 +453,8 @@ class PubTester
   {
     // Prepare the message.
     char *byteData = new char[_size];
-    for (auto i = 0; i < _size; ++i)
-      byteData[i] = '0';
+    std::memset(byteData, '0', _size);
     msg.set_data(byteData);
-
 
     // Serialize so that we know how big the message is
     std::string data;
