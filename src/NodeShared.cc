@@ -60,19 +60,133 @@
 using namespace ignition;
 using namespace transport;
 
-#define streq(s1,s2)    (!strcmp ((s1), (s2)))
-#define strneq(s1,s2)   (strcmp ((s1), (s2)))
-//  Sends string as 0MQ string, as multipart non-terminal
-int
-s_sendmore (void *socket, const char *string) {
-    int size = zmq_send (socket, string, strlen (string), ZMQ_SNDMORE);
-    return size;
+const std::string kZapDomain = "ign-zap";
+
+//////////////////////////////////////////////////
+int sendHelper(zmq::socket_t *_pub, const std::string &_data, int _type)
+{
+  zmq::message_t msg(_data.data(), _data.size());
+  return _pub->send(msg, _type);
 }
-int
-s_send (void *socket, const char *string) {
-    int size = zmq_send (socket, string, strlen (string), 0);
-    return size;
+
+//////////////////////////////////////////////////
+std::string receiveHelper(zmq::socket_t *socket)
+{
+  zmq::message_t msg(0);
+
+  if (!socket->recv(&msg, 0))
+    return std::string();
+
+  return std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 }
+
+//////////////////////////////////////////////////
+void zapHandler(zmq::socket_t *_zap)
+{
+  // Check the socket
+  if (!_zap)
+  {
+    std::cerr << "Null socket in security handler. Security not enabled.\n";
+    return;
+  }
+
+  // Bind to the zap address
+  _zap->bind("inproc://zeromq.zap.01");
+
+  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
+
+  std::string sequence;
+  std::string domain;
+  std::string address;
+  std::string routingId;
+  std::string mechanism;
+  std::string givenUsername;
+  std::string givenPassword;
+  std::string version;
+
+  while (true)
+  {
+    version = receiveHelper (_zap);
+    if (version.empty())
+      break;
+
+    sequence = receiveHelper (_zap);
+    domain = receiveHelper (_zap);
+    address = receiveHelper (_zap);
+    routingId = receiveHelper (_zap);
+    mechanism = receiveHelper (_zap);
+    givenUsername = receiveHelper (_zap);
+    givenPassword = receiveHelper (_zap);
+
+    std::cout << "Version[" << version << "]\n";
+    std::cout << "Sequence[" << sequence << "]\n";
+    std::cout << "Domain[" << domain << "]\n";
+    std::cout << "Address[" << address << "]\n";
+    std::cout << "Routing Id[" << routingId << "]\n";
+    std::cout << "Mechanism[" << mechanism << "]\n";
+    std::cout << "Username[" << givenUsername << "] [" << username << "]\n";
+    std::cout << "Pass[" << givenPassword << "] [" << password << "]\n";
+
+    // Check the version
+    if (version != "1.0")
+    {
+      std::string err = "Invalid version";
+      std::cerr << err << std::endl;
+      sendHelper(_zap, "400", ZMQ_SNDMORE);
+      sendHelper(_zap, err, ZMQ_SNDMORE);
+      sendHelper(_zap, "", ZMQ_SNDMORE);
+      sendHelper(_zap, "", 0);
+      continue;
+    }
+
+    // Check the mechanism
+    if (mechanism != "PLAIN")
+    {
+      std::string err = "Invalid mechanism";
+      std::cerr << err << std::endl;
+      sendHelper(_zap, "400", ZMQ_SNDMORE);
+      sendHelper(_zap, err, ZMQ_SNDMORE);
+      sendHelper(_zap, "", ZMQ_SNDMORE);
+      sendHelper(_zap, "", 0);
+      continue;
+    }
+
+    // Check the domain
+    if (domain != kZapDomain)
+    {
+      std::string err = "Invalid  domain\n";
+      std::cerr << err << std::endl;
+      sendHelper(_zap, "400", ZMQ_SNDMORE);
+      sendHelper(_zap, err, ZMQ_SNDMORE);
+      sendHelper(_zap, "", ZMQ_SNDMORE);
+      sendHelper(_zap, "", 0);
+      continue;
+    }
+
+    sendHelper(_zap, version, ZMQ_SNDMORE);
+    sendHelper(_zap, sequence, ZMQ_SNDMORE);
+
+    // Check the username and password
+    if (givenUsername == username && givenPassword == password)
+    {
+      sendHelper(_zap, "200", ZMQ_SNDMORE);
+      sendHelper(_zap, "OK", ZMQ_SNDMORE);
+      sendHelper(_zap, "anonymous", ZMQ_SNDMORE);
+      sendHelper(_zap, "", 0);
+    }
+    else
+    {
+      sendHelper(_zap, "400", ZMQ_SNDMORE);
+      sendHelper(_zap, "Invalid username or password", ZMQ_SNDMORE);
+      sendHelper(_zap, "", ZMQ_SNDMORE);
+      sendHelper(_zap, "", 0);
+    }
+  }
+
+  _zap->close();
+}
+
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -988,149 +1102,6 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::cout << _pub;
   }
 }
-char *
-s_recv (void *socket) {
-    char buffer [256];
-    int size = zmq_recv (socket, buffer, 255, 0);
-    if (size == -1)
-        return NULL;
-    if (size > 255)
-        size = 255;
-    buffer [size] = 0;
-    return strdup (buffer);
-}
-
-/////////////////////////////////////////////////
-//void NodeShared::AccessControlHandler(void *ctx)
-void AccessControlHandler(void *ctx)
-{
-  void *zap = zmq_socket(ctx, ZMQ_REP);
-  zmq_bind(zap, "inproc://zeromq.zap.01");
-
-  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
-  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
-
-  while (true)
-  {
-    char *version = s_recv (zap);
-    if (!version)
-      break;
-
-    char *sequence = s_recv (zap);
-    char *domain = s_recv (zap);
-    char *address = s_recv (zap);
-    // char *routing_id = s_recv (zap);
-    char *mechanism = s_recv (zap);
-    char *givenUsername = s_recv (zap);
-    char *givenPassword = s_recv (zap);
-
-    // std::cout << "Username[" << givenUsername << "]\n";
-    // std::cout << "Pass[" << givenPassword << "]\n";
-    // std::cout << "Sequence[" << sequence << "]\n";
-    // std::cout << "domain[" << domain << "]\n";
-    // std::cout << "address[" << address << "]\n";
-    // std::cout << "mechanism[" << mechanism << "]\n";
-    // std::cout << "routing id[" << routing_id << "]\n";
-
-    // assert (streq (version, "1.0"));
-    // assert (streq (mechanism, "PLAIN"));
-    // assert (streq (routing_id, "IDENT"));
-
-    s_sendmore (zap, version);
-    s_sendmore (zap, sequence);
-    if (std::strcmp(username, givenUsername) == 0 &&
-        std::strcmp(password, givenPassword) == 0)
-    {
-
-    s_sendmore (zap, "200");
-      s_sendmore (zap, "OK");
-      s_sendmore (zap, "anonymous");
-      s_send (zap, "");
-    }
-    else {
-      s_sendmore (zap, "400");
-      s_sendmore (zap, "Invalid username or password");
-      s_sendmore (zap, "");
-      s_send (zap, "");
-    }
-    free (version);
-    free (sequence);
-    free (domain);
-    free (mechanism);
-    free (address);
-    free (mechanism);
-    free (givenUsername);
-    free (givenPassword);
-  }
-
-  zmq_close (zap);
-}
-
-//////////////////////////////////////////////////
-static void zapHandler(void *ctx)
-{
-  void *zap = zmq_socket(ctx, ZMQ_REP);
-  zmq_bind(zap, "inproc://zeromq.zap.01");
-
-  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
-  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
-
-  while (true)
-  {
-    char *version = s_recv (zap);
-    if (!version)
-      break;
-
-    char *sequence = s_recv (zap);
-    char *domain = s_recv (zap);
-    char *address = s_recv (zap);
-    // char *routing_id = s_recv (zap);
-    char *mechanism = s_recv (zap);
-    char *givenUsername = s_recv (zap);
-    char *givenPassword = s_recv (zap);
-
-    std::cout << "Username[" << givenUsername << "] [" << username << "]\n";
-    std::cout << "Pass[" << givenPassword << "] [" << password << "]\n";
-    // std::cout << "Sequence[" << sequence << "]\n";
-    // std::cout << "domain[" << domain << "]\n";
-    // std::cout << "address[" << address << "]\n";
-    // std::cout << "mechanism[" << mechanism << "]\n";
-    // std::cout << "routing id[" << routing_id << "]\n";
-
-    // assert (streq (version, "1.0"));
-    // assert (streq (mechanism, "PLAIN"));
-    // assert (streq (routing_id, "IDENT"));
-
-    s_sendmore (zap, version);
-    s_sendmore (zap, sequence);
-    if (std::strcmp(username, givenUsername) == 0 &&
-        std::strcmp(password, givenPassword) == 0)
-    {
-
-    s_sendmore (zap, "200");
-      s_sendmore (zap, "OK");
-      s_sendmore (zap, "anonymous");
-      s_send (zap, "");
-    }
-    else {
-      s_sendmore (zap, "400");
-      s_sendmore (zap, "Invalid username or password");
-      s_sendmore (zap, "");
-      s_send (zap, "");
-    }
-    free (version);
-    free (sequence);
-    free (domain);
-    free (mechanism);
-    free (address);
-    free (mechanism);
-    free (givenUsername);
-    free (givenPassword);
-  }
-
-  std::cerr << "Exited" << std::endl;
-  zmq_close (zap);
-}
 
 //////////////////////////////////////////////////
 bool NodeShared::InitializeSockets()
@@ -1145,24 +1116,21 @@ bool NodeShared::InitializeSockets()
 
     // Check if a username and password has been set. If so,  then
     // setup a PLAIN authentication server.
-    //std::string username, password;
     char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
     char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
 
     if (username && password)
     {
+      // Create the access control thread.
+      this->dataPtr->accessControlThread = new std::thread(
+          &zapHandler, new zmq::socket_t(*this->dataPtr->context, ZMQ_REP));
+
       int asServer = 1;
       this->dataPtr->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer,
-                                  sizeof(asServer));
+                                           sizeof(asServer));
 
-      std::string zapDomain = "ign-zap";
-      this->dataPtr->publisher->setsockopt(ZMQ_ZAP_DOMAIN, zapDomain.c_str(),
-          zapDomain.size());
-      /*this->dataPtr->accessControlThread = new std::thread(
-          &zapHandler, this->dataPtr->context.get());
-          */
-      this->dataPtr->zapThread = zmq_threadstart(
-          &zapHandler, this->dataPtr->context.get());
+      this->dataPtr->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kZapDomain.c_str(),
+          kZapDomain.size());
     }
 
     char bindEndPoint[1024];

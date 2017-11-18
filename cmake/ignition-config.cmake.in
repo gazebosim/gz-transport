@@ -119,8 +119,8 @@ set(@PKG_NAME@_API_URL "https://ignitionrobotics.org/api/@IGN_PROJECT_NAME@/@PRO
 
 #################################################
 # Find ign common library
-find_package(ignition-common0 QUIET)
-if (NOT ignition-common0_FOUND)
+find_package(ignition-common1 QUIET)
+if (NOT ignition-common1_FOUND)
   message(FATAL "Looking for ignition-common - not found")
 else()
   message(STATUS "Looking for ignition-common - found")
