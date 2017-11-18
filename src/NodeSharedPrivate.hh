@@ -46,6 +46,12 @@ class ignition::transport::NodeSharedPrivate
   {
   }
 
+  /// \brief Initialize security
+  public: void SecurityInit();
+
+  /// \brief Handle new secure connections
+  public: void SecurityOnNewConnection();
+
   /// A thread pool
   public: WorkerPool workerPool;
 
@@ -78,8 +84,6 @@ class ignition::transport::NodeSharedPrivate
 
   /// \brief ZMQ socket to receive service call requests.
   public: std::unique_ptr<zmq::socket_t> replier;
-
-  public: void *zapThread;
 
   public: std::thread *accessControlThread;
 

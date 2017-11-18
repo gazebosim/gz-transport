@@ -116,15 +116,3 @@ set(@PKG_NAME@_DOXYGEN_TAGFILE "@CMAKE_INSTALL_PREFIX@/share/ignition/@PROJECT_N
 
 # Specify the API url. This is where the doxygen tag file will resolve URLS to.
 set(@PKG_NAME@_API_URL "https://ignitionrobotics.org/api/@IGN_PROJECT_NAME@/@PROJECT_MAJOR_VERSION@.@PROJECT_MINOR_VERSION@")
-
-#################################################
-# Find ign common library
-find_package(ignition-common1 QUIET)
-if (NOT ignition-common1_FOUND)
-  message(FATAL "Looking for ignition-common - not found")
-else()
-  message(STATUS "Looking for ignition-common - found")
-endif()
-list(APPEND @PKG_NAME@_INCLUDE_DIRS ${IGNITION-COMMON_INCLUDE_DIRS})
-list(APPEND @PKG_NAME@_LIBRARY_DIRS ${IGNITION-COMMON_LIBRARY_DIRS})
-list(APPEND @PKG_NAME@_LIBRARIES ${IGNITION-COMMON_LIBRARIES})

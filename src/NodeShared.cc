@@ -63,6 +63,7 @@ using namespace transport;
 const std::string kZapDomain = "ign-zap";
 
 //////////////////////////////////////////////////
+// Helper to send messages
 int sendHelper(zmq::socket_t *_pub, const std::string &_data, int _type)
 {
   zmq::message_t msg(_data.data(), _data.size());
@@ -70,6 +71,7 @@ int sendHelper(zmq::socket_t *_pub, const std::string &_data, int _type)
 }
 
 //////////////////////////////////////////////////
+// Helper to receive messages
 std::string receiveHelper(zmq::socket_t *socket)
 {
   zmq::message_t msg(0);
@@ -81,6 +83,8 @@ std::string receiveHelper(zmq::socket_t *socket)
 }
 
 //////////////////////////////////////////////////
+// Zap handler for plain security. This function is designed to be run
+// in a thread.
 void zapHandler(zmq::socket_t *_zap)
 {
   // Check the socket
@@ -93,6 +97,7 @@ void zapHandler(zmq::socket_t *_zap)
   // Bind to the zap address
   _zap->bind("inproc://zeromq.zap.01");
 
+  // Get the username and password
   char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
   char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
 
@@ -105,12 +110,15 @@ void zapHandler(zmq::socket_t *_zap)
   std::string givenPassword;
   std::string version;
 
+  // Process
   while (true)
   {
+    // Get the version.
     version = receiveHelper (_zap);
     if (version.empty())
       break;
 
+    // Get remaining data
     sequence = receiveHelper (_zap);
     domain = receiveHelper (_zap);
     address = receiveHelper (_zap);
@@ -119,14 +127,15 @@ void zapHandler(zmq::socket_t *_zap)
     givenUsername = receiveHelper (_zap);
     givenPassword = receiveHelper (_zap);
 
-    std::cout << "Version[" << version << "]\n";
-    std::cout << "Sequence[" << sequence << "]\n";
-    std::cout << "Domain[" << domain << "]\n";
-    std::cout << "Address[" << address << "]\n";
-    std::cout << "Routing Id[" << routingId << "]\n";
-    std::cout << "Mechanism[" << mechanism << "]\n";
-    std::cout << "Username[" << givenUsername << "] [" << username << "]\n";
-    std::cout << "Pass[" << givenPassword << "] [" << password << "]\n";
+    // Debug statements
+    // std::cout << "Version[" << version << "]\n";
+    // std::cout << "Sequence[" << sequence << "]\n";
+    // std::cout << "Domain[" << domain << "]\n";
+    // std::cout << "Address[" << address << "]\n";
+    // std::cout << "Routing Id[" << routingId << "]\n";
+    // std::cout << "Mechanism[" << mechanism << "]\n";
+    // std::cout << "Username[" << givenUsername << "] [" << username << "]\n";
+    // std::cout << "Pass[" << givenPassword << "] [" << password << "]\n";
 
     // Check the version
     if (version != "1.0")
@@ -918,17 +927,8 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   {
     try
     {
-      char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
-      char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
-
-      // Set username and pass if they exist
-      if (username && password)
-      {
-        this->dataPtr->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
-            username, strlen(username));
-        this->dataPtr->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
-            password, strlen(password));
-      }
+      // Handle security
+      this->dataPtr->SecurityOnNewConnection();
 
       // I am not connected to the process.
       if (!this->connections.HasPublisher(addr))
@@ -1103,6 +1103,8 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
   }
 }
 
+
+
 //////////////////////////////////////////////////
 bool NodeShared::InitializeSockets()
 {
@@ -1114,24 +1116,8 @@ bool NodeShared::InitializeSockets()
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
 
-    // Check if a username and password has been set. If so,  then
-    // setup a PLAIN authentication server.
-    char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
-    char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
-
-    if (username && password)
-    {
-      // Create the access control thread.
-      this->dataPtr->accessControlThread = new std::thread(
-          &zapHandler, new zmq::socket_t(*this->dataPtr->context, ZMQ_REP));
-
-      int asServer = 1;
-      this->dataPtr->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer,
-                                           sizeof(asServer));
-
-      this->dataPtr->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kZapDomain.c_str(),
-          kZapDomain.size());
-    }
+    // Initialize security
+    this->dataPtr->SecurityInit();
 
     char bindEndPoint[1024];
     int lingerVal = 0;
@@ -1202,4 +1188,42 @@ bool NodeShared::DiscoverService(const std::string &_topic) const
 bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 {
   return this->dataPtr->srvDiscovery->Advertise(_publisher);
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityOnNewConnection()
+{
+  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
+
+  // Set username and pass if they exist
+  if (username && password)
+  {
+    this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME,
+        username, strlen(username));
+    this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD,
+        password, strlen(password));
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityInit()
+{
+  // Check if a username and password has been set. If so,  then
+  // setup a PLAIN authentication server.
+  char *username = std::getenv("IGNITION_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGNITION_TRANSPORT_PASSWORD");
+
+  if (username && password)
+  {
+    // Create the access control thread.
+    this->accessControlThread = new std::thread(&zapHandler,
+        new zmq::socket_t(*this->context, ZMQ_REP));
+
+    int asServer = 1;
+    this->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer, sizeof(asServer));
+
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kZapDomain.c_str(),
+        kZapDomain.size());
+  }
 }
