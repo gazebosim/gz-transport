@@ -110,107 +110,115 @@ void accessControlHandler(zmq::socket_t *_zap)
     return;
   }
 
-  // Bind to the zap address
-  _zap->bind("inproc://zeromq.zap.01");
-
-  // Get the username and password
-  std::string user, pass;
-  if (!userPass(user, pass))
+  try
   {
-    std::cerr << "Username and password not set. Authentication is disabled\n";
-    return;
+    // Bind to the zap address
+    _zap->bind("inproc://zeromq.zap.01");
+
+    // Get the username and password
+    std::string user, pass;
+    if (!userPass(user, pass))
+    {
+      std::cerr << "Username and password not set. Authentication is disabled\n";
+      return;
+    }
+
+    std::string sequence;
+    std::string domain;
+    std::string address;
+    std::string routingId;
+    std::string mechanism;
+    std::string givenUsername;
+    std::string givenPassword;
+    std::string version;
+
+    // Process
+    while (true)
+    {
+      // Get the version.
+      version = receiveHelper(_zap);
+      if (version.empty())
+        break;
+
+      // Get remaining data
+      sequence = receiveHelper(_zap);
+      domain = receiveHelper(_zap);
+      address = receiveHelper(_zap);
+      routingId = receiveHelper(_zap);
+      mechanism = receiveHelper(_zap);
+      givenUsername = receiveHelper(_zap);
+      givenPassword = receiveHelper(_zap);
+
+      // Debug statements
+      // std::cout << "Version[" << version << "]\n";
+      // std::cout << "Sequence[" << sequence << "]\n";
+      // std::cout << "Domain[" << domain << "]\n";
+      // std::cout << "Address[" << address << "]\n";
+      // std::cout << "Routing Id[" << routingId << "]\n";
+      // std::cout << "Mechanism[" << mechanism << "]\n";
+      // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
+      // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
+
+      // Check the version
+      if (version != "1.0")
+      {
+        std::string err = "Invalid version";
+        std::cerr << err << std::endl;
+        sendHelper(_zap, "400", ZMQ_SNDMORE);
+        sendHelper(_zap, err, ZMQ_SNDMORE);
+        sendHelper(_zap, "", ZMQ_SNDMORE);
+        sendHelper(_zap, "", 0);
+        continue;
+      }
+
+      // Check the mechanism
+      if (mechanism != "PLAIN")
+      {
+        std::string err = "Invalid mechanism";
+        std::cerr << err << std::endl;
+        sendHelper(_zap, "400", ZMQ_SNDMORE);
+        sendHelper(_zap, err, ZMQ_SNDMORE);
+        sendHelper(_zap, "", ZMQ_SNDMORE);
+        sendHelper(_zap, "", 0);
+        continue;
+      }
+
+      // Check the domain
+      if (domain != kZapDomain)
+      {
+        std::string err = "Invalid domain\n";
+        std::cerr << err << std::endl;
+        sendHelper(_zap, "400", ZMQ_SNDMORE);
+        sendHelper(_zap, err, ZMQ_SNDMORE);
+        sendHelper(_zap, "", ZMQ_SNDMORE);
+        sendHelper(_zap, "", 0);
+        continue;
+      }
+
+      sendHelper(_zap, version, ZMQ_SNDMORE);
+      sendHelper(_zap, sequence, ZMQ_SNDMORE);
+
+      // Check the username and password
+      if (givenUsername == user && givenPassword == pass)
+      {
+        sendHelper(_zap, "200", ZMQ_SNDMORE);
+        sendHelper(_zap, "OK", ZMQ_SNDMORE);
+        sendHelper(_zap, "anonymous", ZMQ_SNDMORE);
+        sendHelper(_zap, "", 0);
+      }
+      else
+      {
+        sendHelper(_zap, "400", ZMQ_SNDMORE);
+        sendHelper(_zap, "Invalid username or password", ZMQ_SNDMORE);
+        sendHelper(_zap, "", ZMQ_SNDMORE);
+        sendHelper(_zap, "", 0);
+      }
+    }
   }
-
-  std::string sequence;
-  std::string domain;
-  std::string address;
-  std::string routingId;
-  std::string mechanism;
-  std::string givenUsername;
-  std::string givenPassword;
-  std::string version;
-
-  // Process
-  while (true)
+  catch (...)
   {
-    // Get the version.
-    version = receiveHelper (_zap);
-    if (version.empty())
-      break;
-
-    // Get remaining data
-    sequence = receiveHelper (_zap);
-    domain = receiveHelper (_zap);
-    address = receiveHelper (_zap);
-    routingId = receiveHelper (_zap);
-    mechanism = receiveHelper (_zap);
-    givenUsername = receiveHelper (_zap);
-    givenPassword = receiveHelper (_zap);
-
-    // Debug statements
-    // std::cout << "Version[" << version << "]\n";
-    // std::cout << "Sequence[" << sequence << "]\n";
-    // std::cout << "Domain[" << domain << "]\n";
-    // std::cout << "Address[" << address << "]\n";
-    // std::cout << "Routing Id[" << routingId << "]\n";
-    // std::cout << "Mechanism[" << mechanism << "]\n";
-    // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
-    // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
-
-    // Check the version
-    if (version != "1.0")
-    {
-      std::string err = "Invalid version";
-      std::cerr << err << std::endl;
-      sendHelper(_zap, "400", ZMQ_SNDMORE);
-      sendHelper(_zap, err, ZMQ_SNDMORE);
-      sendHelper(_zap, "", ZMQ_SNDMORE);
-      sendHelper(_zap, "", 0);
-      continue;
-    }
-
-    // Check the mechanism
-    if (mechanism != "PLAIN")
-    {
-      std::string err = "Invalid mechanism";
-      std::cerr << err << std::endl;
-      sendHelper(_zap, "400", ZMQ_SNDMORE);
-      sendHelper(_zap, err, ZMQ_SNDMORE);
-      sendHelper(_zap, "", ZMQ_SNDMORE);
-      sendHelper(_zap, "", 0);
-      continue;
-    }
-
-    // Check the domain
-    if (domain != kZapDomain)
-    {
-      std::string err = "Invalid  domain\n";
-      std::cerr << err << std::endl;
-      sendHelper(_zap, "400", ZMQ_SNDMORE);
-      sendHelper(_zap, err, ZMQ_SNDMORE);
-      sendHelper(_zap, "", ZMQ_SNDMORE);
-      sendHelper(_zap, "", 0);
-      continue;
-    }
-
-    sendHelper(_zap, version, ZMQ_SNDMORE);
-    sendHelper(_zap, sequence, ZMQ_SNDMORE);
-
-    // Check the username and password
-    if (givenUsername == user && givenPassword == pass)
-    {
-      sendHelper(_zap, "200", ZMQ_SNDMORE);
-      sendHelper(_zap, "OK", ZMQ_SNDMORE);
-      sendHelper(_zap, "anonymous", ZMQ_SNDMORE);
-      sendHelper(_zap, "", 0);
-    }
-    else
-    {
-      sendHelper(_zap, "400", ZMQ_SNDMORE);
-      sendHelper(_zap, "Invalid username or password", ZMQ_SNDMORE);
-      sendHelper(_zap, "", ZMQ_SNDMORE);
-      sendHelper(_zap, "", 0);
-    }
+    // This catch can be triggered when ctrl-c is pressed and the context is
+    // deleted. Capture this case, and quit gracefully.
   }
 
   _zap->close();
@@ -1208,13 +1216,16 @@ bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
   return this->dataPtr->srvDiscovery->Advertise(_publisher);
 }
 
-
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityOnNewConnection()
 {
   std::string user, pass;
 
   // Set username and pass if they exist
+  // \todo: This will cause the subscriber to connect only to secure
+  // connections. World be nice if the subscriber could still connect to
+  // unsecure connections. This might require an unsecure and secure
+  // subscriber.
   if (userPass(user, pass))
   {
     this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME, user.c_str(), user.size());

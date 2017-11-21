@@ -184,6 +184,9 @@ bool Node::Publisher::HasConnections() const
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
+  /// \todo: Checking "remoteSubscribers.HasTopic()" will return true even
+  /// if the subscriber has not successfully authenticated with the
+  /// publisher.
   return this->Valid() &&
     (this->dataPtr->shared->localSubscriptions.FirstHandler(
        publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||

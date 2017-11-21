@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  authPubSub.cc
   scopedTopic.cc
   twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
@@ -22,6 +23,7 @@ ign_build_tests(${tests})
 set(IGN_SKIP_IN_TESTSUITE True)
 
 set(auxiliary_files
+  authPubSubSubscriberInvalid_aux.cc
   fastPub_aux.cc
   pub_aux.cc
   pub_aux_throttled.cc

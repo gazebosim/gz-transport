@@ -139,6 +139,58 @@ namespace testing
 #endif
   }
 
+  /// \brief create a new process and run command on it. This function is
+  /// implementing the creation of a new process on both Linux (fork) and
+  /// Windows (CreateProcess) and the execution of the command provided.
+  /// \param[in] _command The full system path to the binary to run into the
+  /// new process.
+  /// \param[in] _partition Name of the ignition partition (IGN_PARTITION)
+  /// \param[in] _username Username for authentication
+  /// (IGN_TRANSPORT_USERNAME)
+  /// \param[in] _password Password for authentication
+  /// (IGN_TRANSPORT_PASSWORD)
+  /// \return On success, the PID of the child process is returned in the
+  /// parent, an 0 is returned in the child. On failure, -1 is returned in the
+  /// parent and no child process is created.
+  forkHandlerType forkAndRunAuth(const char *_command, const char *_partition,
+      const char *_username, const char *_password)
+  {
+#ifdef _WIN32
+    STARTUPINFO info= {sizeof(info)};
+    PROCESS_INFORMATION processInfo;
+
+    char cmd[500];
+    ign_strcpy(cmd, _command);
+    ign_strcat(cmd, " ");
+    ign_strcat(cmd, _partition);
+    ign_strcat(cmd, " ");
+    ign_strcat(cmd, _username);
+    ign_strcat(cmd, " ");
+    ign_strcat(cmd, _password);
+
+    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
+          TRUE, 0, NULL, NULL, &info, &processInfo))
+    {
+      std::cerr << "CreateProcess call failed" << std::endl;
+    }
+
+    return processInfo;
+#else
+    pid_t pid = fork();
+
+    if (pid == 0)
+    {
+      if (execl(_command, _command, _partition, _username, _password,
+            reinterpret_cast<char *>(0)) == -1)
+      {
+        std::cerr << "Error running execl call: " << _command << std::endl;
+      }
+    }
+
+    return pid;
+#endif
+  }
+
   /// \brief Wait for the end of a process and handle the termination
   /// \param[in] pi Process handler of the process to wait for
   /// (PROCESS_INFORMATION in windows or forkHandlerType in UNIX).
