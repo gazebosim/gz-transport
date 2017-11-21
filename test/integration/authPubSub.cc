@@ -48,7 +48,7 @@ TEST(authPubSub, InvalidAuth)
      "test/integration/INTEGRATION_authPubSubSubscriberInvalid_aux");
 
   // Start the subscriber in another process with incorrect credentials.
-  testing::forkHandlerType pi = testing::forkAndRunAuth(subscriberPath.c_str(),
+  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str(), "bad", "invalid");
 
   ignition::msgs::Int32 msg;
