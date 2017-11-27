@@ -72,6 +72,7 @@ bool userPass(std::string &_user, std::string &_pass)
   if (!username || !password)
     return false;
 
+  std::cout << "userPass valid\n";
   _user = username;
   _pass = password;
   return true;
@@ -119,7 +120,8 @@ void accessControlHandler(zmq::socket_t *_sock)
     std::string user, pass;
     if (!userPass(user, pass))
     {
-      std::cerr << "Username and password not set. Authentication is disabled\n";
+      std::cerr << "Username and password not set. "
+                << "Authentication is disabled\n";
       return;
     }
 
@@ -150,14 +152,14 @@ void accessControlHandler(zmq::socket_t *_sock)
       givenPassword = receiveHelper(_sock);
 
       // Debug statements
-      // std::cout << "Version[" << version << "]\n";
-      // std::cout << "Sequence[" << sequence << "]\n";
-      // std::cout << "Domain[" << domain << "]\n";
-      // std::cout << "Address[" << address << "]\n";
-      // std::cout << "Routing Id[" << routingId << "]\n";
-      // std::cout << "Mechanism[" << mechanism << "]\n";
-      // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
-      // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
+      std::cout << "Version[" << version << "]\n";
+      std::cout << "Sequence[" << sequence << "]\n";
+      std::cout << "Domain[" << domain << "]\n";
+      std::cout << "Address[" << address << "]\n";
+      std::cout << "Routing Id[" << routingId << "]\n";
+      std::cout << "Mechanism[" << mechanism << "]\n";
+      std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
+      std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
 
       // Check the version
       if (version != "1.0")

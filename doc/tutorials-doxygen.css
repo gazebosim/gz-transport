@@ -115,6 +115,14 @@ h1, h2, h3 {
   font-weight: 300!important;
 }
 
+h2 {
+  font-size: 26px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
 .ign-navigation {
     flex-grow: 1;
 }
@@ -250,10 +258,6 @@ div.summary a:hover
   border: 1px solid #ff7043;
 }
 
-h2 {
-  font-size: 26px;
-}
-
 h2.groupheader:first-of-type {
   margin-top: 0px;
 }
@@ -344,8 +348,15 @@ table.mlabels {
 
 /* @group Code Colorization */
 
+code {
+	font-family: "Roboto Mono","Ubuntu Mono",Courier,monospace, fixed;
+  background: #f5f5f5;
+  border-radius: 3px;
+  padding: 1px 3px;
+}
+
 .fragment {
-	font-family: monospace, fixed;
+	font-family: "Roboto Mono","Ubuntu Mono",Courier,monospace, fixed;
 	font-size: 90%;
   border: 1px solid #bdbdbd;
   padding: 10px;

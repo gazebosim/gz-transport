@@ -265,7 +265,7 @@ table.mlabels {
 /* @group Code Colorization */
 
 .fragment {
-	font-family: monospace, fixed;
+	font-family: "Roboto Mono","Ubuntu Mono",Courier,monospace, fixed;
 	font-size: 105%;
   border: 1px solid #bdbdbd;
   padding: 10px;
