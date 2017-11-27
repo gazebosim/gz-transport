@@ -157,11 +157,6 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
     return;
   }
 
-  char *username = std::getenv("IGN_TRANSPORT_USERNAME");
-  char *password = std::getenv("IGN_TRANSPORT_PASSWORD");
-
-  std::cout << "U[" << username << "] P[" << password << "]\n";
-
   // Create the message, and populate the field with _msgData
   auto msg = ignition::msgs::Factory::New(_msgType, _msgData);
   if (msg)

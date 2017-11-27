@@ -152,14 +152,14 @@ void accessControlHandler(zmq::socket_t *_sock)
       givenPassword = receiveHelper(_sock);
 
       // Debug statements
-      std::cout << "Version[" << version << "]\n";
-      std::cout << "Sequence[" << sequence << "]\n";
-      std::cout << "Domain[" << domain << "]\n";
-      std::cout << "Address[" << address << "]\n";
-      std::cout << "Routing Id[" << routingId << "]\n";
-      std::cout << "Mechanism[" << mechanism << "]\n";
-      std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
-      std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
+      // std::cout << "Version[" << version << "]\n";
+      // std::cout << "Sequence[" << sequence << "]\n";
+      // std::cout << "Domain[" << domain << "]\n";
+      // std::cout << "Address[" << address << "]\n";
+      // std::cout << "Routing Id[" << routingId << "]\n";
+      // std::cout << "Mechanism[" << mechanism << "]\n";
+      // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
+      // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
 
       // Check the version
       if (version != "1.0")
@@ -1230,9 +1230,10 @@ void NodeSharedPrivate::SecurityOnNewConnection()
 
   // Set username and pass if they exist
   // \todo: This will cause the subscriber to connect only to secure
-  // connections. World be nice if the subscriber could still connect to
+  // connections. Would be nice if the subscriber could still connect to
   // unsecure connections. This might require an unsecure and secure
   // subscriber.
+  // See issue #74
   if (userPass(user, pass))
   {
     this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME, user.c_str(), user.size());

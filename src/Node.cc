@@ -187,6 +187,7 @@ bool Node::Publisher::HasConnections() const
   /// \todo: Checking "remoteSubscribers.HasTopic()" will return true even
   /// if the subscriber has not successfully authenticated with the
   /// publisher.
+  /// See Issue #73
   return this->Valid() &&
     (this->dataPtr->shared->localSubscriptions.FirstHandler(
        publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||
