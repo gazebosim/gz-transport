@@ -4,7 +4,7 @@
 
 
 
-### Ignition Transport 3.X.X
+### Ignition Transport 3.1.0 (2017-11-29)
 
 1. Documentation improvements
     * [Pull request 199](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/199)
