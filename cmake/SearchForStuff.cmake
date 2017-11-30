@@ -98,7 +98,7 @@ endif()
 # Find ign msgs library
 find_package(ignition-msgs1 QUIET)
 if (NOT ignition-msgs1_FOUND)
-  message(FATAL_ERROR "Looking for libignition-msgs1 - not found")
+  message(FATAL_ERROR "Looking for libignition-msgs-dev - not found")
 else()
   message(STATUS "Looking for ignition-msgs 1 - found")
   include_directories(${IGNITION-MSGS_INCLUDE_DIRS})
