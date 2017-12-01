@@ -18,6 +18,10 @@
 #ifndef IGN_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
 #define IGN_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
 
+#include <cstdint>
+
+#include "ignition/transport/Helpers.hh"
+
 namespace ignition
 {
   namespace transport
