@@ -11,6 +11,7 @@ pipelines:
           - apt-get update
           - apt-get -y install cmake pkg-config cppcheck
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
+            libignition-cmake-dev
             libignition-msgs-dev
           # Ignition Transport
           - mkdir build
