@@ -41,11 +41,13 @@ ign_find_package(IgnProtobuf
 
 #--------------------------------------
 # Find ZeroMQ
-ign_find_package(ZeroMQ VERSION 4.1.0 REQUIRED)
+ign_find_package(ZeroMQ VERSION 4.1.0 REQUIRED PRIVATE)
 
 #--------------------------------------
 # Find cppzmq
-ign_find_package(CPPZMQ REQUIRED)
+ign_find_package(CPPZMQ REQUIRED PRIVATE
+  PKGCONFIG_IGNORE # NOTE: cppzmq does not seem to offer a pkg-config file
+  PRETTY CppZMQ)
 
 #--------------------------------------
 # Find uuid
@@ -67,8 +69,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools
-                 QUIET)
+ign_find_package(ignition-tools QUIET)
 
 #============================================================================
 # Configure the build
