@@ -40,6 +40,9 @@
    See [issue #54](https://bitbucket.org/ignitionrobotics/ign-transport/issues/54)
     * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/169)
 
+1. Hide ZMQ from public interfaces
+    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
+
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
     * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)
 

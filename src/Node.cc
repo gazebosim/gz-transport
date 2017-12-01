@@ -36,6 +36,8 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
+#include "NodeSharedPrivate.hh"
+
 #ifdef _MSC_VER
 #pragma warning(disable: 4503)
 #endif
@@ -95,7 +97,7 @@ namespace ignition
       {
         std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
         // Notify the discovery service to unregister and unadvertise my topic.
-        if (!this->shared->msgDiscovery->Unadvertise(
+        if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
                this->publisher.Topic(), this->publisher.NUuid()))
         {
           std::cerr << "~PublisherPrivate() Error unadvertising topic ["
@@ -158,6 +160,12 @@ Node::Publisher::~Publisher()
 
 //////////////////////////////////////////////////
 Node::Publisher::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::operator bool() const
 {
   return this->Valid();
 }
@@ -347,7 +355,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
     auto pUUID = this->dataPtr->shared->pUuid;
-    auto &info = this->dataPtr->shared->msgDiscovery->Info();
+    auto &info = this->dataPtr->shared->dataPtr->msgDiscovery->Info();
     info.PublishersByNode(pUUID, this->NodeUuid(), pubs);
   }
 
@@ -406,13 +414,14 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
     fullyQualifiedTopic))
   {
-    this->dataPtr->shared->subscriber->setsockopt(
+    this->dataPtr->shared->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
   MsgAddresses_M addresses;
-  if (!this->dataPtr->shared->msgDiscovery->Publishers(fullyQualifiedTopic,
+  if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
+        fullyQualifiedTopic,
     addresses))
   {
     return false;
@@ -422,7 +431,8 @@ bool Node::Unsubscribe(const std::string &_topic)
   {
     for (auto &node : proc.second)
     {
-      zmq::socket_t socket(*this->dataPtr->shared->context, ZMQ_DEALER);
+      zmq::socket_t socket(*this->dataPtr->shared->dataPtr->context,
+          ZMQ_DEALER);
 
       // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
       // discarded immediately when the socket is closed. That avoids infinite
@@ -501,8 +511,8 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  if (!this->dataPtr->shared->srvDiscovery->Unadvertise(fullyQualifiedTopic,
-    this->dataPtr->nUuid))
+  if (!this->dataPtr->shared->dataPtr->srvDiscovery->Unadvertise(
+        fullyQualifiedTopic, this->dataPtr->nUuid))
   {
     return false;
   }
@@ -516,7 +526,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   std::vector<std::string> allTopics;
   _topics.clear();
 
-  this->dataPtr->shared->msgDiscovery->TopicList(allTopics);
+  this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
 
   for (auto &topic : allTopics)
   {
@@ -543,7 +553,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   std::vector<std::string> allServices;
   _services.clear();
 
-  this->dataPtr->shared->srvDiscovery->TopicList(allServices);
+  this->dataPtr->shared->dataPtr->srvDiscovery->TopicList(allServices);
 
   for (auto &service : allServices)
   {
@@ -598,7 +608,7 @@ NodeOptions &Node::Options() const
 bool Node::TopicInfo(const std::string &_topic,
                      std::vector<MessagePublisher> &_publishers) const
 {
-  this->dataPtr->shared->msgDiscovery->WaitForInit();
+  this->dataPtr->shared->dataPtr->msgDiscovery->WaitForInit();
 
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
@@ -612,7 +622,7 @@ bool Node::TopicInfo(const std::string &_topic,
 
   // Get all the publishers on the given topics
   MsgAddresses_M pubs;
-  if (!this->dataPtr->shared->msgDiscovery->Publishers(
+  if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
         fullyQualifiedTopic, pubs))
   {
     return false;
@@ -642,7 +652,7 @@ bool Node::TopicInfo(const std::string &_topic,
 bool Node::ServiceInfo(const std::string &_service,
                        std::vector<ServicePublisher> &_publishers) const
 {
-  this->dataPtr->shared->srvDiscovery->WaitForInit();
+  this->dataPtr->shared->dataPtr->srvDiscovery->WaitForInit();
 
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
@@ -656,7 +666,7 @@ bool Node::ServiceInfo(const std::string &_service,
 
   // Get all the publishers on the given service.
   SrvAddresses_M pubs;
-  if (!this->dataPtr->shared->srvDiscovery->Publishers(
+  if (!this->dataPtr->shared->dataPtr->srvDiscovery->Publishers(
         fullyQualifiedTopic, pubs))
   {
     return false;
@@ -677,6 +687,67 @@ bool Node::ServiceInfo(const std::string &_service,
         _publishers.push_back(*pubIter);
       }
     }
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
+Node::Publisher Node::Advertise(const std::string &_topic,
+    const std::string &_msgTypeName, const AdvertiseMessageOptions &_options)
+{
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return Publisher();
+  }
+
+  auto currentTopics = this->AdvertisedTopics();
+
+  if (std::find(currentTopics.begin(), currentTopics.end(),
+        fullyQualifiedTopic) != currentTopics.end())
+  {
+    std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
+      << " advertise the same topic twice on the same node."
+      << " If you want to advertise the same topic with different"
+      << " types, use separate nodes" << std::endl;
+    return Publisher();
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+  // Notify the discovery service to register and advertise my topic.
+  MessagePublisher publisher(fullyQualifiedTopic,
+      this->Shared()->myAddress,
+      this->Shared()->myControlAddress,
+      this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
+
+  if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
+  {
+    std::cerr << "Node::Advertise(): Error advertising a topic. "
+      << "Did you forget to start the discovery service?"
+      << std::endl;
+    return Publisher();
+  }
+
+  return Publisher(publisher);
+}
+
+/////////////////////////////////////////////////
+bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
+{
+  // Add the topic to the list of subscribed topics (if it was not before).
+  this->TopicsSubscribed().insert(_fullyQualifiedTopic);
+
+  // Discover the list of nodes that publish on the topic.
+  if (!this->Shared()->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
+  {
+    std::cerr << "Node::Subscribe(): Error discovering a topic. "
+              << "Did you forget to start the discovery service?"
+              << std::endl;
+    return false;
   }
 
   return true;
