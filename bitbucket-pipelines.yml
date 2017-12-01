@@ -27,6 +27,7 @@ pipelines:
           - make -j4
           - make test ARGS="-VV"
           - make doc
+          - make install
           - cd ..
           # Build examples
           - cd example
