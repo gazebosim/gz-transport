@@ -11,8 +11,15 @@ pipelines:
           - apt-get update
           - apt-get -y install cmake pkg-config cppcheck
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
-            libignition-cmake-dev
             libignition-msgs-dev
+          # Ignition cmake
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b CMakeRefactor_zmq
+          - cd ign-cmake
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make install
+          - cd ../..
           # Ignition Transport
           - mkdir build
           - cd build
