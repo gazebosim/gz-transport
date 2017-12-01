@@ -24,38 +24,41 @@ message(STATUS "\n\n-- ====== Finding Dependencies ======")
 
 #--------------------------------------
 # Find Protobuf
-ign_find_package(Protobuf
-                 VERSION 2.3.0
-                 PKGCONFIG_VER_COMPARISON >=
-                 REQUIRED)
+if(MSVC)
+  # On Windows we require version 3+ in order to have proper support for
+  # shared libraries.
+  set(REQ_PROTOBUF_VER 3)
+  set(PROTOBUF_PURPOSE "Windows requires version 3+ to ensure proper support for DLLs")
+else()
+  set(REQ_PROTOBUF_VER 2.3.0)
+  set(PROTOBUF_PURPOSE)
+endif()
+ign_find_package(IgnProtobuf
+                 VERSION ${REQ_PROTOBUF_VER}
+                 REQUIRED
+                 PRETTY Protobuf
+                 PURPOSE ${PROTOBUF_PURPOSE})
 
 #--------------------------------------
 # Find ZeroMQ
-ign_find_package(ZeroMQ
-                 VERSION 4.1.0
-                 PKGCONFIG_VER_COMPARISON >=
-                 REQUIRED)
+ign_find_package(ZeroMQ VERSION 4.1.0 REQUIRED)
 
 #--------------------------------------
 # Find cppzmq
-ign_find_package(CPPZMQ
-                 REQUIRED)
+ign_find_package(CPPZMQ REQUIRED)
 
 #--------------------------------------
 # Find uuid
-ign_find_package(UUID
-                 REQUIRED)
+ign_find_package(UUID REQUIRED)
 
 #--------------------------------------
 # Find ignition-msgs
 set(IGN_MSGS_VER 1)
-ign_find_package(ignition-msgs${IGN_MSGS_VER}
-                 REQUIRED)
+ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
 # Find ifaddrs
-ign_find_package(IFADDRS
-                 QUIET)
+ign_find_package(IFADDRS QUIET)
 if (IFADDRS_FOUND)
   set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
 else ()

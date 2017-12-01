@@ -8,17 +8,14 @@ ign_get_libsources_and_unittests(sources gtest_sources)
 # Create the library target.
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-# Include the interface directories that we always need.
-ign_target_interface_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER})
-
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
     UUID::UUID
-    zmq
   PRIVATE
+    ZeroMQ::ZeroMQ
+    CPPZMQ::CPPZMQ
 )
 
 # Create installation instructions for the library target. This must be called
