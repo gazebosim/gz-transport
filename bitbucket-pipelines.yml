@@ -9,7 +9,7 @@ pipelines:
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
-          - apt-get -y install cmake pkg-config cppcheck
+          - apt-get -y install cmake pkg-config cppcheck mercurial build-essential cmake
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
             libignition-msgs-dev
           # Ignition cmake
