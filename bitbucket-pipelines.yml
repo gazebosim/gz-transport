@@ -23,7 +23,7 @@ pipelines:
           # Ignition Transport
           - mkdir build
           - cd build
-          - cmake ..
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4
           - make test ARGS="-VV"
           - make coverage
@@ -34,7 +34,7 @@ pipelines:
           # Build examples
           - cd example
           - mkdir build && cd build
-          - cmake .. -DCMAKE_BUILD_TYPE=coverage
+          - cmake ..
           - make -j4
           - cd ../..
           # Static checker
