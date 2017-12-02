@@ -21,7 +21,7 @@ pipelines:
           - make -j4
           - make test ARGS="-VV"
           - make doc
-          - make coverage
+          - make coverage VERBOSE=1
           - bash <(curl -s https://codecov.io/bash)
           - cd ..
           - sh tools/code_check.sh

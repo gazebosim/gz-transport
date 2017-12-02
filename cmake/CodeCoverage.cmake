@@ -112,7 +112,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
   COMMAND ${LCOV_PATH} -q --no-checksum --directory ${PROJECT_BINARY_DIR}
     --capture --output-file ${_outputname}.info 2>/dev/null
   COMMAND cat ${_outputname}.info
-  COMMAND sed '/,-/d' ${_outputname}.info
+  COMMAND sed -i '/,-/d' ${_outputname}.info
   COMMAND ${LCOV_PATH} -q --remove ${_outputname}.info
     'build/*' 'test/*' '/usr/*' '*_TEST*' --output-file ${_outputname}.info.cleaned
   COMMAND ${GENHTML_PATH} -q --legend -o ${_outputname}
