@@ -111,11 +111,9 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
       ${_outputname}.info
   COMMAND ${LCOV_PATH} -q --no-checksum --directory ${PROJECT_BINARY_DIR}
     --capture --output-file ${_outputname}.info 2>/dev/null
-  COMMAND cat ${_outputname}.info
   COMMAND sed -i '/,-/d' ${_outputname}.info
   COMMAND ${LCOV_PATH} -q --remove ${_outputname}.info
     'test/*' '/usr/*' '*_TEST*' --output-file ${_outputname}.info.cleaned
-  COMMAND cat ${_outputname}.info.cleaned
   COMMAND ${GENHTML_PATH} -q --legend -o ${_outputname}
     ${_outputname}.info.cleaned
   COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "lines" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/lines.txt
