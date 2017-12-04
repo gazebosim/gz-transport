@@ -11,7 +11,7 @@ of libraries designed to rapidly develop robot applications.
 
 Please refer to the [Bitbucket Pipelines](https://bitbucket.org/ignitionrobotics/ign-transport/addon/pipelines/home#!/).
 
-Test coverage: [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
+Test coverage: [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/ign-transport3/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
 
 ## Documentation
 
