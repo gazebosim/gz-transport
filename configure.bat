@@ -18,7 +18,12 @@ cd /d %~dp0
 :: Create a build directory and configure
 md build
 cd build
-cmake .. -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX="%WORKSPACE_INSTALL_DIR%" -DCMAKE_BUILD_TYPE="%build_type%" -DBUILD_TESTING:BOOL=False
+cmake .. ^
+  -G "NMake Makefiles" ^
+  -DCMAKE_INSTALL_PREFIX="%WORKSPACE_INSTALL_DIR%" ^
+  -DCMAKE_PREFIX_PATH="%WORKSPACE_INSTALL_DIR%" ^
+  -DCMAKE_BUILD_TYPE="%build_type%" ^
+  -DBUILD_TESTING:BOOL=False
 :: Note: We disable testing by default. If the intention is for the CI to build and test
 :: this project, then the CI script will turn it back on.
 
