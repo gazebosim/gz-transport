@@ -42,16 +42,6 @@ CREATE TABLE message_types (
   proto_descriptor TEXT
 );
 
-/* Contains AdvertiserOptions for a topic */
-CREATE TABLE connections (
-  /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* If throttled this is maximum number of messages to publish per second, else NULL */
-  msgs_per_sec REAL,
-  /* One of: PROCESS, HOST, ALL */
-  scope TEXT NOT NULL
-);
-
 /* Contains every topic logged */
 CREATE TABLE topics (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
@@ -59,9 +49,7 @@ CREATE TABLE topics (
   /* Name of the message (e.g. /car/roof/scan) */
   name TEXT NOT NULL,
   /* A message type in the message_types table */
-  message_type_id NOT NULL REFERENCES message_types (id) ON DELETE CASCADE,
-  /* A connection in the connections table */
-  connection_id NOT NULL REFERENCES connections (id) ON DELETE CASCADE
+  message_type_id NOT NULL REFERENCES message_types (id) ON DELETE CASCADE
 );
 
 /* Contains every message received on every topic recorded */
