@@ -56,7 +56,11 @@ ign_find_package(CPPZMQ REQUIRED PRIVATE
 
 #--------------------------------------
 # Find uuid
-ign_find_package(UUID REQUIRED)
+if (MSVC)
+  message (STATUS "UUID: Using Windows RPC UuidCreate function")
+else()
+  ign_find_package(UUID REQUIRED)
+endif()
 
 #--------------------------------------
 # Find ignition-msgs
