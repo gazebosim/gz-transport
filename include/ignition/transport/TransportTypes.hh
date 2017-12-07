@@ -129,7 +129,7 @@ namespace ignition
     using Timestamp = std::chrono::steady_clock::time_point;
 
     /// \brief The string type used for generic messages.
-    const std::string kGenericMessageType = "google.protobug.Message";
+    const std::string kGenericMessageType = "google.protobuf.Message";
   }
 }
 #endif
