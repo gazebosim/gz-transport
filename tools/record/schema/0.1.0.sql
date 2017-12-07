@@ -46,7 +46,7 @@ CREATE TABLE message_types (
 CREATE TABLE topics (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* Name of the message (e.g. /car/roof/scan) */
+  /* Name of the topic (e.g. /car/roof/scan) */
   name TEXT NOT NULL,
   /* A message type in the message_types table */
   message_type_id NOT NULL REFERENCES message_types (id) ON DELETE CASCADE
