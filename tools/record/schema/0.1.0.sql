@@ -66,4 +66,3 @@ CREATE TABLE messages (
 
 /* Lots of queries are done by time received, so add an index to speed it up */
 CREATE INDEX idx_time_recv_utc ON messages (time_recv_utc);
-
