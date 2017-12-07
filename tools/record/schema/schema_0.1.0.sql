@@ -53,7 +53,7 @@ CREATE TABLE topics (
 );
 
 /* Contains every message received on every topic recorded */
-CREATE TABLE messages(
+CREATE TABLE messages (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   /* Timestamp the message was received */
