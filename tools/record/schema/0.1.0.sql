@@ -52,6 +52,9 @@ CREATE TABLE topics (
   message_type_id NOT NULL REFERENCES message_types (id) ON DELETE CASCADE
 );
 
+/* There is at most 1 row in topics for each name/message_type combo */
+CREATE UNIQUE INDEX idx_topic ON topics (name, message_type_id);
+
 /* Contains every message received on every topic recorded */
 CREATE TABLE messages (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
