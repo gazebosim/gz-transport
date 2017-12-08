@@ -90,6 +90,8 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(_msg.data(), data);
+  EXPECT_EQ(partition, _info.Partition());
+  EXPECT_EQ(_msg.GetTypeName(), _info.Type());
   cbExecuted = true;
   ++counter;
 }
@@ -253,6 +255,8 @@ class MyTestClass
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(partition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
     this->callbackExecuted = true;
   };
 
@@ -723,6 +727,8 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(partition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
     executed = true;
   };
 
