@@ -171,6 +171,7 @@ bool writeToDatabase(sqlite3 *db)
     // Reset for another round
     sqlite3_reset(prepared_statement);
   }
+  g_message_buffer.clear();
 
   // End transaction
   return_code = sqlite3_exec(db, end_transaction, NULL, 0, &errMsg);
