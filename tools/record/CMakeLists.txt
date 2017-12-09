@@ -17,6 +17,7 @@ target_include_directories(record PRIVATE
   ${IGNITION-TRANSPORT_INCLUDE_DIRS}
   ${SQLite3_INCLUD_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_compile_options(record PRIVATE
   ${IGNITION-TRANSPORT_CXX_FLAGS}

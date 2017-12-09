@@ -26,7 +26,7 @@
 #include <sqlite3.h>
 
 #include "config.hh"
-
+#include "src/raii-sqlite3.hh"
 
 typedef struct
 {
@@ -42,27 +42,9 @@ std::mutex g_buffer_mutex;
 
 
 // Create a brand new database
-sqlite3 * createDatabase(const char * path)
+bool initDatabase(raii_sqlite3::Database &db)
 {
-  sqlite3 *db = nullptr;
   int return_code;
-  char *errMsg;
-
-  return_code = sqlite3_open(path, &db);
-  if (return_code != SQLITE_OK)
-  {
-    std::cerr << "Failed to open database\n";
-    sqlite3_close(db);
-    return nullptr;
-  }
-
-  return_code = sqlite3_extended_result_codes(db, 1);
-  if (return_code != SQLITE_OK)
-  {
-    std::cerr << "Failed to turn on extended error codes\n";
-    sqlite3_close(db);
-    return nullptr;
-  }
 
   // Assume the file didn't exist before and create a blank schema
   std::cout << "Schema file: " << SCHEMA_PATH "/schema/0.1.0.sql\n";
@@ -71,8 +53,7 @@ sqlite3 * createDatabase(const char * path)
   if (!fin)
   {
     std::cerr << "Failed to open schema file\n";
-    sqlite3_close(db);
-    return nullptr;
+    return false;
   }
 
   // get length of file:
@@ -88,48 +69,43 @@ sqlite3 * createDatabase(const char * path)
   if (!fin)
   {
     std::cerr << "Failed to read file in one go\n";
-    sqlite3_close(db);
-    return nullptr;
+    return false;
   }
 
   // Apply the schema to the database
-  return_code = sqlite3_exec(db, schema.c_str(), NULL, 0, &errMsg);
+  return_code = sqlite3_exec(db.Handle(), schema.c_str(), NULL, 0, NULL);
   if (return_code != SQLITE_OK)
   {
-    std::cerr << "Failed to initialize schema: " << errMsg << "\n";
-    sqlite3_free(errMsg);
-    sqlite3_close(db);
-    return nullptr;
+    std::cerr << "Failed to initialize schema: " << sqlite3_errmsg(db.Handle()) << "\n";
+    return false;
   }
 
-  return db;
+  return true;
 }
 
 
 /// \brief Write all buffered messages to the database
-bool writeToDatabase(sqlite3 *db)
+bool writeToDatabase(raii_sqlite3::Database &db)
 {
   int return_code;
-  char *errMsg;
 
   const char *begin_transaction = "BEGIN;";
   const char *insert_message = "INSERT OR ROLLBACK INTO messages (time_recv_utc, message, topic_id) SELECT ?001, ?002, id FROM topics WHERE name LIKE ?003 LIMIT 1;";
   const char *end_transaction = "END;";
 
   // Begin transaction
-  return_code = sqlite3_exec(db, begin_transaction, NULL, 0, &errMsg);
+  return_code = sqlite3_exec(db.Handle(), begin_transaction, NULL, 0, nullptr);
   if (return_code != SQLITE_OK)
   {
-    std::cerr << "Failed to begin transaction" << return_code << "\n";
+    std::cerr << "Failed to begin transaction" << sqlite3_errmsg(db.Handle()) << "\n";
     return false;
   }
 
   // Compile the statements 
-  sqlite3_stmt *prepared_statement;
-  return_code = sqlite3_prepare_v2(db, insert_message, -1, &prepared_statement, NULL);
-  if (return_code != SQLITE_OK)
+  raii_sqlite3::Statement statement(db, insert_message);
+  if (!statement)
   {
-    std::cerr << "Failed to compile statement: " << return_code << "\n";
+    std::cerr << "Failed to compile statement\n";
     return false;
   }
 
@@ -137,60 +113,53 @@ bool writeToDatabase(sqlite3 *db)
   for (auto msg : g_message_buffer)
   {
     // Bind parameters
-    return_code = sqlite3_bind_int(prepared_statement, 1, msg.time_rx);
+    return_code = sqlite3_bind_int(statement.Handle(), 1, msg.time_rx);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind time received: " << return_code << "\n";
-      sqlite3_finalize(prepared_statement);
       return false;
     }
-    return_code = sqlite3_bind_blob(prepared_statement, 2, msg.message.c_str(), msg.message.size(), nullptr);
+    return_code = sqlite3_bind_blob(statement.Handle(), 2, msg.message.c_str(), msg.message.size(), nullptr);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind message data: " << return_code << "\n";
-      sqlite3_finalize(prepared_statement);
       return false;
     }
-    return_code = sqlite3_bind_text(prepared_statement, 3, msg.topic.c_str(), msg.topic.size(), nullptr);
+    return_code = sqlite3_bind_text(statement.Handle(), 3, msg.topic.c_str(), msg.topic.size(), nullptr);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind topic name: " << return_code << "\n";
-      sqlite3_finalize(prepared_statement);
       return false;
     }
 
     // Execute the statement
-    return_code = sqlite3_step(prepared_statement);
+    return_code = sqlite3_step(statement.Handle());
     if (return_code != SQLITE_DONE)
     {
       std::cerr << "Unexpected return code while stepping(1): " << return_code << "\n";
-      sqlite3_finalize(prepared_statement);
       return false;
     }
 
     // Reset for another round
-    sqlite3_reset(prepared_statement);
+    sqlite3_reset(statement.Handle());
   }
   g_message_buffer.clear();
 
   // End transaction
-  return_code = sqlite3_exec(db, end_transaction, NULL, 0, &errMsg);
+  return_code = sqlite3_exec(db.Handle(), end_transaction, NULL, 0, nullptr);
   if (return_code != SQLITE_OK)
   {
     std::cerr << "Failed to end transaction" << return_code << "\n";
-    sqlite3_finalize(prepared_statement);
     return false;
   }
 
-  sqlite3_finalize(prepared_statement);
   return true;
 }
 
 // Add a topic and message type into the database
-bool insertTopic(sqlite3 *db, std::string topic, std::string msg_type)
+bool insertTopic(raii_sqlite3::Database &db, std::string topic, std::string msg_type)
 {
   int return_code;
-  char *errMsg;
 
   const char *begin_transaction = "BEGIN;";
   const char *insert_message_type = "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
@@ -198,86 +167,68 @@ bool insertTopic(sqlite3 *db, std::string topic, std::string msg_type)
   const char *end_transaction = "END;";
 
   // Begin transaction
-  return_code = sqlite3_exec(db, begin_transaction, NULL, 0, &errMsg);
+  return_code = sqlite3_exec(db.Handle(), begin_transaction, NULL, 0, nullptr);
   if (return_code != SQLITE_OK)
   {
-    std::cerr << "Failed to begin transaction" << return_code << "\n";
+    std::cerr << "Failed to begin transaction" << sqlite3_errmsg(db.Handle()) << "\n";
     return false;
   }
 
   // Compile the statements 
-  sqlite3_stmt *message_type_statement;
-  return_code = sqlite3_prepare_v2(db, insert_message_type, -1, &message_type_statement, NULL);
-  if (return_code != SQLITE_OK)
+  raii_sqlite3::Statement message_type_statement(db, insert_message_type);
+  if (!message_type_statement)
   {
-    std::cerr << "Failed to compile statement(1): " << return_code << "\n";
+    std::cerr << "Failed to compile statement(1)\n";
     return false;
   }
-  sqlite3_stmt *topic_statement;
-  return_code = sqlite3_prepare_v2(db, insert_topic, -1, &topic_statement, NULL);
-  if (return_code != SQLITE_OK)
+  raii_sqlite3::Statement topic_statement(db, insert_topic);
+  if (!topic_statement)
   {
-    std::cerr << "Failed to compile statement(2): " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
+    std::cerr << "Failed to compile statement(2)\n";
     return false;
   }
 
   // Bind parameters
-  return_code = sqlite3_bind_text(message_type_statement, 1, msg_type.c_str(), msg_type.size(), nullptr);
+  return_code = sqlite3_bind_text(message_type_statement.Handle(), 1, msg_type.c_str(), msg_type.size(), nullptr);
   if (return_code != SQLITE_OK)
   {
     std::cerr << "Failed to bind message type name(1): " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
-  return_code = sqlite3_bind_text(topic_statement, 1, msg_type.c_str(), msg_type.size(), nullptr);
+  return_code = sqlite3_bind_text(topic_statement.Handle(), 1, msg_type.c_str(), msg_type.size(), nullptr);
   if (return_code != SQLITE_OK)
   {
     std::cerr << "Failed to bind message type name(2): " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
-  return_code = sqlite3_bind_text(topic_statement, 2, topic.c_str(), topic.size(), nullptr);
+  return_code = sqlite3_bind_text(topic_statement.Handle(), 2, topic.c_str(), topic.size(), nullptr);
   if (return_code != SQLITE_OK)
   {
     std::cerr << "Failed to bind topic name: " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
 
   // Execute the statements
-  return_code = sqlite3_step(message_type_statement);
+  return_code = sqlite3_step(message_type_statement.Handle());
   if (return_code != SQLITE_DONE)
   {
     std::cerr << "Unexpected return code while stepping(1): " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
-  return_code = sqlite3_step(topic_statement);
+  return_code = sqlite3_step(topic_statement.Handle());
   if (return_code != SQLITE_DONE)
   {
     std::cerr << "Unexpected return code while stepping(2): " << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
 
   // End transaction
-  return_code = sqlite3_exec(db, end_transaction, NULL, 0, &errMsg);
+  return_code = sqlite3_exec(db.Handle(), end_transaction, NULL, 0, nullptr);
   if (return_code != SQLITE_OK)
   {
     std::cerr << "Failed to end transaction" << return_code << "\n";
-    sqlite3_finalize(message_type_statement);
-    sqlite3_finalize(topic_statement);
     return false;
   }
-
-  sqlite3_finalize(message_type_statement);
-  sqlite3_finalize(topic_statement);
   return true;
 }
 
@@ -320,9 +271,16 @@ int main(int argc, char **argv)
   std::cout << "Recording " << all_topics.size() << " topics\n";
 
   // Assume database doesn't exist already and create it
-  sqlite3 *db = createDatabase(argv[1]);
-  if (nullptr == db)
+  raii_sqlite3::Database raiidb(argv[1], SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+  if (!raiidb)
   {
+    std::cerr << "Failed to open database\n";
+    return 1;
+  }
+
+  if (!initDatabase(raiidb))
+  {
+    std::cerr << "Failed to init database\n";
     return 1;
   }
 
@@ -333,7 +291,7 @@ int main(int argc, char **argv)
 
     // Insert a row for the message in the database
     // TODO how to determine type of a published topic?
-    if (!insertTopic(db, topic, ".unknown.message.type"))
+    if (!insertTopic(raiidb, topic, ".unknown.message.type"))
     {
       return 1;
     }
@@ -349,16 +307,13 @@ int main(int argc, char **argv)
   std::cout << "Recording for 30 seconds\n";
   for (int i = 0; i < 30; ++i)
   {
-    if (!writeToDatabase(db))
+    if (!writeToDatabase(raiidb))
     {
-      sqlite3_close(db);
       return 1;
     }
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   std::cout << "Finished recording\n";
 
-  // Sure would be nice to have a destructor
-  sqlite3_close(db);
   return 0;
 }
