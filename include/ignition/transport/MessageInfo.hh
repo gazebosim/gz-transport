@@ -54,7 +54,7 @@ namespace ignition
       public: void SetType(const std::string &_type);
 
       /// \brief Get the name of the partition.
-      /// \return The parition name.
+      /// \return The partition name.
       public: std::string Partition() const;
 
       /// \brief Set the partition of the topic the message was on.
