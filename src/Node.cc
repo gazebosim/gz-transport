@@ -231,10 +231,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     // Create and populate the message information object.
     MessageInfo info;
-    const std::size_t first_at = 0;
-    const std::size_t last_at = topic.find_last_of("@");
+    const std::size_t firstAt = 0;
+    const std::size_t lastAt = topic.find_last_of("@");
     // Set partition excluding '@/' at start and '@' at end
-    info.SetPartition(topic.substr(first_at + 2, last_at - first_at - 2));
+    info.SetPartition(topic.substr(firstAt + 2, lastAt - firstAt - 2));
     // remove the partition name.
     topic.erase(0, topic.find_last_of("@") + 1);
     info.SetTopic(topic);
