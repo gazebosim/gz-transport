@@ -256,10 +256,6 @@ void NodeShared::RunReceptionTask()
     if (items[3].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
 
-    /*if (items.size() > 4 && (items[4].revents & ZMQ_POLLIN))
-      this->dataPtr->AccessControlHandler(sock);
-      */
-
     // Is it time to exit?
     {
       std::lock_guard<std::mutex> lock(this->dataPtr->exitMutex);
