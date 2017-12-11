@@ -35,6 +35,10 @@ namespace ignition
       /// \brief Default constructor.
       public: MessageInfo();
 
+      /// \brief Explicit copy constructor (The copy constructor is deleted by
+      /// default due to the use of std::unique_ptr member).
+      public: MessageInfo(const MessageInfo &_other);
+
       /// \brief Destructor.
       public: ~MessageInfo();
 

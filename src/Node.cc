@@ -80,7 +80,8 @@ namespace ignition
     {
       /// \brief Default constructor.
       public: PublisherPrivate()
-        : shared(NodeShared::Instance())
+        : shared(NodeShared::Instance()),
+          advanced(this)
       {
       }
 
@@ -88,8 +89,40 @@ namespace ignition
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
         : shared(NodeShared::Instance()),
-          publisher(_publisher)
+          publisher(_publisher),
+          advanced(this)
       {
+      }
+
+      /// \brief Check if this Publisher is ready to send an update based on
+      /// publication settings and the clock.
+      /// \return True if it is okay to publish, false otherwise.
+      public: bool UpdateThrottling()
+      {
+        std::lock_guard<std::mutex> lk(this->mutex);
+        if (!this->publisher.Options().Throttled())
+          return true;
+
+        Timestamp now = std::chrono::steady_clock::now();
+
+        // Elapsed time since the last callback execution.
+        auto elapsed = now - this->lastCbTimestamp;
+        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() < this->periodNs)
+        {
+          return false;
+        }
+
+        // Update the last callback execution.
+        this->lastCbTimestamp = now;
+        return true;
+      }
+
+      /// \brief Check if this Publisher is valid
+      /// \return True if we have a topic to publish to, otherwise false.
+      public: bool Valid()
+      {
+        return !this->publisher.Topic().empty();
       }
 
       /// \brief Destructor.
@@ -103,6 +136,61 @@ namespace ignition
           std::cerr << "~PublisherPrivate() Error unadvertising topic ["
                     << this->publisher.Topic() << "]" << std::endl;
         }
+      }
+
+      /// \brief This struct provides information about the Subscribers of a
+      /// Publisher. It should only be retrieved using CheckSubscriberInfo().
+      public: struct SubscriberInfo
+      {
+        /// \brief A map of subscription handlers for the local subscribers
+        public: std::map<std::string, ISubscriptionHandler_M> localHandlers;
+
+        /// \brief True iff this Publisher has any local subscribers
+        public: bool haveLocal;
+
+        /// \brief True iff this Publisher has any remote subscribers
+        public: bool haveRemote;
+
+        // Friendship declaration
+        friend class PublisherPrivate;
+
+        /// \brief Default constructor
+        private: SubscriberInfo()
+        {
+          // Do nothing. CheckSubscriberInfo will fill this in. We make the
+          // constructor private to prevent us from having incorrectly
+          // initialized SubscriberInfo objects.
+        }
+      };
+
+      /// \brief Get information about the nodes that are subscribed to this
+      /// Publisher.
+      /// \return Information about subscribers.
+      SubscriberInfo CheckSubscriberInfo()
+      {
+        SubscriberInfo info;
+
+        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+
+        info.haveLocal = this->shared->localSubscriptions.Handlers(
+              this->publisher.Topic(), info.localHandlers);
+
+        info.haveRemote = this->shared->remoteSubscribers.HasTopic(
+              this->publisher.Topic(), publisher.MsgTypeName());
+
+        return info;
+      }
+
+      MessageInfo CreateMessageInfo()
+      {
+        MessageInfo info;
+
+        std::string topic = this->publisher.Topic();
+        topic.erase(0, topic.find_last_of("@") + 1);
+
+        info.SetTopic(topic);
+
+        return info;
       }
 
       /// \brief Pointer to the object shared between all the nodes within the
@@ -121,6 +209,8 @@ namespace ignition
 
       /// \brief Mutex to protect the node::publisher from race conditions.
       public: std::mutex mutex;
+
+      public: Node::Publisher::Advanced advanced;
     };
   }
 }
@@ -173,7 +263,7 @@ Node::Publisher::operator bool() const
 //////////////////////////////////////////////////
 bool Node::Publisher::Valid() const
 {
-  return !this->dataPtr->publisher.Topic().empty();
+  return this->dataPtr->Valid();
 }
 
 //////////////////////////////////////////////////
@@ -211,36 +301,15 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (!this->UpdateThrottling())
     return true;
 
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  bool hasLocalSubscribers;
-  bool hasRemoteSubscribers;
-
-  {
-    std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-    hasLocalSubscribers = this->dataPtr->shared->localSubscriptions.Handlers(
-      this->dataPtr->publisher.Topic(), handlers);
-    hasRemoteSubscribers = this->dataPtr->shared->remoteSubscribers.HasTopic(
-      this->dataPtr->publisher.Topic(), _msg.GetTypeName());
-  }
+  const PublisherPrivate::SubscriberInfo &subscribers =
+      this->dataPtr->CheckSubscriberInfo();
 
   // Local subscribers.
-  if (hasLocalSubscribers)
+  if (subscribers.haveLocal)
   {
-    std::string topic = this->dataPtr->publisher.Topic();
+    MessageInfo info = this->dataPtr->CreateMessageInfo();
 
-    // Create and populate the message information object.
-    MessageInfo info;
-    const std::size_t firstAt = 0;
-    const std::size_t lastAt = topic.find_last_of("@");
-    // Set partition excluding '@' at start and '@' at end
-    info.SetPartition(topic.substr(firstAt + 1, lastAt - firstAt - 1));
-    // remove the partition name.
-    topic.erase(0, topic.find_last_of("@") + 1);
-    info.SetTopic(topic);
-    info.SetType(_msg.GetTypeName());
-
-    for (auto &node : handlers)
+    for (auto &node : subscribers.localHandlers)
     {
       for (auto &handler : node.second)
       {
@@ -266,7 +335,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
 
   // Remote subscribers.
-  if (hasRemoteSubscribers)
+  if (subscribers.haveRemote)
   {
     std::string data;
     if (!_msg.SerializeToString(&data))
@@ -287,25 +356,107 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-bool Node::Publisher::UpdateThrottling()
+bool Node::Publisher::Advanced::RawPublish(
+    const std::string &_msgData,
+    const std::string &_msgType)
 {
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  if (!this->dataPtr->publisher.Options().Throttled())
-    return true;
+  if (!this->dataPtr->Valid())
+    return false;
 
-  Timestamp now = std::chrono::steady_clock::now();
-
-  // Elapsed time since the last callback execution.
-  auto elapsed = now - this->dataPtr->lastCbTimestamp;
-  if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-        elapsed).count() < this->dataPtr->periodNs)
+  if (this->dataPtr->publisher.MsgTypeName() != _msgType)
   {
+    std::cerr << "Node::Publisher::Advanced::RawPublish() type mismatch.\n"
+              << "\t* Type advertised: "
+              << this->dataPtr->publisher.MsgTypeName()
+              << "\n\t* Type published: " << _msgType << std::endl;
     return false;
   }
 
-  // Update the last callback execution.
-  this->dataPtr->lastCbTimestamp = now;
+  if (!this->dataPtr->UpdateThrottling())
+    return true;
+
+  const PublisherPrivate::SubscriberInfo &subscribers =
+      this->dataPtr->CheckSubscriberInfo();
+
+  // Local subscribers. Note that we need to deserialize the message for local
+  // subscribers.
+  if (subscribers.haveLocal)
+  {
+    // Dev Note (MXG): This block is mostly lifted from RecvMsgUpdate. If
+    // possible, we should consider merging their implementations for maximum
+    // DRYness.
+
+    MessageInfo info = this->dataPtr->CreateMessageInfo();
+
+    ISubscriptionHandlerPtr firstSubscriberPtr;
+    const bool firstHandlerFound =
+        this->dataPtr->shared->localSubscriptions.FirstHandler(
+          info.Topic(), _msgType, firstSubscriberPtr);
+
+    if (firstHandlerFound)
+    {
+      auto deserializedMsg = firstSubscriberPtr->CreateMsg(_msgData, _msgType);
+      if (deserializedMsg)
+      {
+        for (const auto &node : subscribers.localHandlers)
+        {
+          for (const auto &handler : node.second)
+          {
+            ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
+            if (subscriptionHandlerPtr)
+            {
+              if (subscriptionHandlerPtr->TypeName() == _msgType ||
+                  subscriptionHandlerPtr->TypeName() == kGenericMessageType)
+              {
+                subscriptionHandlerPtr->RunLocalCallback(
+                      *deserializedMsg, info);
+              }
+            }
+            else
+              std::cerr << "Subscription handler is NULL" << std::endl;
+          }
+        }
+      }
+    }
+  }
+
+  // Remote subscribers. Note that the data is already presumed to be
+  // serialized, so we just pass it along for publication.
+  if (subscribers.haveRemote)
+  {
+    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+                                        _msgData, _msgType))
+    {
+      return false;
+    }
+  }
+
   return true;
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::Advanced::Advanced(Node::PublisherPrivate * const _dataPtr)
+  : dataPtr(_dataPtr)
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::Advanced &Node::Publisher::UseAdvancedFeatures()
+{
+  return this->dataPtr->advanced;
+}
+
+//////////////////////////////////////////////////
+const Node::Publisher::Advanced &Node::Publisher::UseAdvancedFeatures() const
+{
+  return this->dataPtr->advanced;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::UpdateThrottling()
+{
+  return this->dataPtr->UpdateThrottling();
 }
 
 //////////////////////////////////////////////////
