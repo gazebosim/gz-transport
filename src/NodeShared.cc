@@ -309,8 +309,8 @@ void NodeShared::RecvMsgUpdate()
     MessageInfo info;
     const std::size_t firstAt = 0;
     const std::size_t lastAt = topic.find_last_of("@");
-    // Set partition excluding '@/' at start and '@' at end
-    info.SetPartition(topic.substr(firstAt + 2, lastAt - firstAt - 2));
+    // Set partition excluding '@' at start and '@' at end
+    info.SetPartition(topic.substr(firstAt + 1, lastAt - firstAt - 1));
     // Remove the partition name from the topic.
     topic.erase(firstAt, lastAt + 1);
     info.SetTopic(topic);
