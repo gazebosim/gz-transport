@@ -45,7 +45,7 @@ namespace ignition
   {
     /// \class ISubscriptionHandler SubscriptionHandler.hh
     /// ignition/transport/SubscriptionHandler.hh
-    /// \brief Interface class used to manage generic protobub messages.
+    /// \brief Interface class used to manage generic protobuf messages.
     class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
     {
       /// \brief Constructor.

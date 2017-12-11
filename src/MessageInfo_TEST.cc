@@ -35,6 +35,30 @@ TEST(MessageInfoTest, topic)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check [Set]Type().
+TEST(MessageInfoTest, type)
+{
+  transport::MessageInfo info;
+  EXPECT_TRUE(info.Type().empty());
+
+  std::string aType = ".msg.foo";
+  info.SetType(aType);
+  EXPECT_EQ(aType, info.Type());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check [Set]Partition().
+TEST(MessageInfoTest, partition)
+{
+  transport::MessageInfo info;
+  EXPECT_TRUE(info.Partition().empty());
+
+  std::string aPartition = "some_partition";
+  info.SetPartition(aPartition);
+  EXPECT_EQ(aPartition, info.Partition());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
