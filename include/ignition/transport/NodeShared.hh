@@ -148,9 +148,6 @@ namespace ignition
       /// return false if any operation on a ZMQ socket triggered an exception.
       private: bool InitializeSockets();
 
-      /// \brief Timeout used for receiving messages (ms.).
-      public: static const int Timeout = 250;
-
       //////////////////////////////////////////////////
       /////// Declare here other member variables //////
       //////////////////////////////////////////////////
@@ -164,17 +161,11 @@ namespace ignition
       /// \brief Process UUID.
       public: std::string pUuid;
 
-      /// \brief Timeout used for receiving requests.
-      public: int timeout;
-
       /// \brief thread in charge of receiving and handling incoming messages.
       public: std::thread threadReception;
 
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: std::recursive_mutex mutex;
-
-      /// \brief When true, the reception thread will finish.
-      public: bool exit;
 
 #ifdef _WIN32
       /// \brief True when the reception thread is finishing.
@@ -186,9 +177,6 @@ namespace ignition
 
       /// \brief Port used by the service discovery layer.
       private: const int kSrvDiscPort = 11318;
-
-      /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
-      private: std::mutex exitMutex;
 
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage<MessagePublisher> connections;
