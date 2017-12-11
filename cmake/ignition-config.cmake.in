@@ -101,8 +101,8 @@ list(APPEND @PKG_NAME@_LDFLAGS -L"@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
 
 #################################################
 # Find ign msgs library
-find_package(ignition-msgs@IGNITION-MSGS_REQUIRED_MAJOR_VERSION@ QUIET)
-if (NOT ignition-msgs@IGNITION-MSGS_REQUIRED_MAJOR_VERSION@_FOUND)
+find_package(ignition-msgs1 QUIET)
+if (NOT ignition-msgs1_FOUND)
   message(FATAL "Looking for ignition-msgs - not found")
 else()
   message(STATUS "Looking for ignition-msgs - found")
