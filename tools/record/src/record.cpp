@@ -30,7 +30,8 @@
 
 typedef struct
 {
-  time_t time_rx;
+  int64_t time_rx_sec;
+  int64_t time_rx_nano;
   std::string topic;
   std::string message;
 } ReceivedMessage;
@@ -39,6 +40,9 @@ typedef struct
 // Global RAM buffer for messages
 std::vector<ReceivedMessage> g_message_buffer;
 std::mutex g_buffer_mutex;
+
+// Variable when added to steady_clock gives UTC time in nanoseconds
+std::chrono::nanoseconds g_wallMinusMonoNS;
 
 
 // Create a brand new database
@@ -90,7 +94,7 @@ bool writeToDatabase(raii_sqlite3::Database &db)
   int return_code;
 
   const char *begin_transaction = "BEGIN;";
-  const char *insert_message = "INSERT OR ROLLBACK INTO messages (time_recv_utc, message, topic_id) SELECT ?001, ?002, id FROM topics WHERE name LIKE ?003 LIMIT 1;";
+  const char *insert_message = "INSERT OR ROLLBACK INTO messages (time_recv_sec, time_recv_nano, message, topic_id) SELECT ?001, ?002, ?003, id FROM topics WHERE name LIKE ?004 LIMIT 1;";
   const char *end_transaction = "END;";
 
   // Begin transaction
@@ -113,19 +117,25 @@ bool writeToDatabase(raii_sqlite3::Database &db)
   for (auto msg : g_message_buffer)
   {
     // Bind parameters
-    return_code = sqlite3_bind_int(statement.Handle(), 1, msg.time_rx);
+    return_code = sqlite3_bind_int(statement.Handle(), 1, msg.time_rx_sec);
     if (return_code != SQLITE_OK)
     {
-      std::cerr << "Failed to bind time received: " << return_code << "\n";
+      std::cerr << "Failed to bind time received(s): " << return_code << "\n";
       return false;
     }
-    return_code = sqlite3_bind_blob(statement.Handle(), 2, msg.message.c_str(), msg.message.size(), nullptr);
+    return_code = sqlite3_bind_int(statement.Handle(), 2, msg.time_rx_nano);
+    if (return_code != SQLITE_OK)
+    {
+      std::cerr << "Failed to bind time received(ns): " << return_code << "\n";
+      return false;
+    }
+    return_code = sqlite3_bind_blob(statement.Handle(), 3, msg.message.c_str(), msg.message.size(), nullptr);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind message data: " << return_code << "\n";
       return false;
     }
-    return_code = sqlite3_bind_text(statement.Handle(), 3, msg.topic.c_str(), msg.topic.size(), nullptr);
+    return_code = sqlite3_bind_text(statement.Handle(), 4, msg.topic.c_str(), msg.topic.size(), nullptr);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind topic name: " << return_code << "\n";
@@ -238,8 +248,14 @@ void onMessageReceived(
     const google::protobuf::Message &_msg,
     const ignition::transport::MessageInfo &_info)
 {
+  std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+  std::chrono::nanoseconds nowNS(now.time_since_epoch());
+  std::chrono::nanoseconds utcNS = g_wallMinusMonoNS + nowNS;
+  std::chrono::seconds utcS = std::chrono::duration_cast<std::chrono::seconds>(
+      utcNS);
   ReceivedMessage m;
-  m.time_rx = time(NULL);
+  m.time_rx_sec = utcS.count();
+  m.time_rx_nano = (utcNS - std::chrono::nanoseconds(utcS)).count();
   m.topic = _info.Topic();
   _msg.SerializeToString(&(m.message));
   std::cout << "Received message on " << m.topic << "\n";
@@ -255,6 +271,20 @@ int main(int argc, char **argv)
     std::cerr << "Usage: ./record test.db\n";
     return 1;
   }
+
+  // Record the start time to sync system and steady clock
+  // Use std::time() since on most systems it is UTC
+  // Not sure if std::chrono::system_clock::now() is UTC on osx/windows
+  // https://stackoverflow.com/questions/14504870
+  std::chrono::seconds wallStart = std::chrono::seconds(std::time(NULL));
+  // Monotonic clock
+  std::chrono::steady_clock::time_point monoStart
+    = std::chrono::steady_clock::now();
+
+  // Get a value to sync the two clocks
+  std::chrono::nanoseconds wallStartNS(wallStart);
+  std::chrono::nanoseconds monoStartNS(monoStart.time_since_epoch());
+  g_wallMinusMonoNS = wallStartNS - monoStartNS;
 
   std::cout << "Record proof-of-concept\n";
   ignition::transport::Node node;
