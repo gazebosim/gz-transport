@@ -1151,7 +1151,7 @@ void NodeSharedPrivate::SecurityInit()
 //////////////////////////////////////////////////
 // Access control handler for plain security.
 // This function is designed to be run in a thread.
-void NodeSharedPrivate::AccessControlHandler()//zmq::socket_t *sock)
+void NodeSharedPrivate::AccessControlHandler()
 {
   zmq::socket_t *sock = new zmq::socket_t(*this->context, ZMQ_REP);
 
@@ -1202,7 +1202,7 @@ void NodeSharedPrivate::AccessControlHandler()//zmq::socket_t *sock)
         // Get the version.
         version = receiveHelper(*sock);
         if (version.empty())
-          return;
+          break;
 
         // Get remaining data
         sequence = receiveHelper(*sock);
@@ -1227,21 +1227,21 @@ void NodeSharedPrivate::AccessControlHandler()//zmq::socket_t *sock)
         if (version != "1.0")
         {
           sendAuthErrorHelper(*sock, "Invalid version");
-          return;
+          continue;
         }
 
         // Check the mechanism
         if (mechanism != "PLAIN")
         {
           sendAuthErrorHelper(*sock, "Invalid mechanism");
-          return;
+          continue;
         }
 
         // Check the domain
         if (domain != kIgnAuthDomain)
         {
           sendAuthErrorHelper(*sock, "Invalid domain");
-          return;
+          continue;
         }
 
         sendHelper(*sock, version, ZMQ_SNDMORE);

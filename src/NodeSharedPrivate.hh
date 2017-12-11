@@ -53,9 +53,7 @@ class ignition::transport::NodeSharedPrivate
 
   /// \brief Access control handler for plain security.
   /// This function is designed to be run in a thread.
-  /// \param[in] _sock Pointer to a socket that is use for
-  /// authentication.
-  public: void AccessControlHandler();//zmq::socket_t *sock);
+  public: void AccessControlHandler();
 
   //////////////////////////////////////////////////
   ///////    Declare here the ZMQ Context    ///////
