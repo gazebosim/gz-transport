@@ -119,10 +119,52 @@ namespace ignition
         /// \return True if subscribers have connected to this publisher.
         public: bool HasConnections() const;
 
+        /// \brief The Advanced nested class provides features that may be
+        /// useful for advanced users but are not recommended for most use
+        /// cases. Call the UseAdvancedFeatures() function to get access to the
+        /// advanced API.
+        class Advanced
+        {
+          /// \brief Publish a raw pre-serialized message.
+          ///
+          /// NOTE: This function needs to deserialize the message in order to
+          /// send it to local (intraprocess) subscribers.
+          ///
+          /// \param[in] _msgData A std::string that represents an
+          /// already-serialized google::protobuf message.
+          /// \param[in] _msgType A std::string that contains the fully-qualified
+          /// message type name.
+          /// \return true when success.
+          public: bool RawPublish(const std::string &_msgData,
+                                  const std::string &_msgType);
+
+          // Friendship
+          friend class PublisherPrivate;
+
+          /// \internal
+          /// Constructor which takes
+          private: Advanced(PublisherPrivate * const _dataPtr);
+
+          /// \internal
+          /// \brief Pointer to the enclosing Publisher object of this Advanced
+          /// API.
+          private: PublisherPrivate * const dataPtr;
+        };
+
+        /// \brief Get a reference to the Advanced API for the Node::Publisher.
+        /// This is not recommended for most users.
+        /// \return Advanced API
+        Advanced &UseAdvancedFeatures();
+
+        /// \brief Get a const reference to the Advanced API for the
+        /// Node::Publisher. This is not recommended for most users.
+        /// \return Advanced API
+        const Advanced &UseAdvancedFeatures() const;
+
         /// \internal
         /// \brief Smart pointer to private data.
         /// This is std::shared_ptr because we want to trigger the destructor
-        /// only once when all references to PublisherPrivate are out of scope.
+        /// only once: when all references to PublisherPrivate are out of scope.
         /// The destructor of PublisherPrivate unadvertise the topic.
         private: std::shared_ptr<PublisherPrivate> dataPtr;
       };

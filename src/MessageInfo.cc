@@ -49,6 +49,12 @@ MessageInfo::MessageInfo()
 }
 
 //////////////////////////////////////////////////
+MessageInfo::MessageInfo(const MessageInfo &_other)
+{
+  *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
 MessageInfo::~MessageInfo()
 {
 }
