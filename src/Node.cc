@@ -227,13 +227,18 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local subscribers.
   if (hasLocalSubscribers)
   {
-    // Get the topic and remove the partition name.
     std::string topic = this->dataPtr->publisher.Topic();
-    topic.erase(0, topic.find_last_of("@") + 1);
 
     // Create and populate the message information object.
     MessageInfo info;
+    const std::size_t firstAt = 0;
+    const std::size_t lastAt = topic.find_last_of("@");
+    // Set partition excluding '@' at start and '@' at end
+    info.SetPartition(topic.substr(firstAt + 1, lastAt - firstAt - 1));
+    // remove the partition name.
+    topic.erase(0, topic.find_last_of("@") + 1);
     info.SetTopic(topic);
+    info.SetType(_msg.GetTypeName());
 
     for (auto &node : handlers)
     {
