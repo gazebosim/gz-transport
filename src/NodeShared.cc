@@ -72,7 +72,6 @@ bool userPass(std::string &_user, std::string &_pass)
   if (!username || !password)
     return false;
 
-  std::cout << "userPass valid\n";
   _user = username;
   _pass = password;
   return true;
@@ -80,19 +79,19 @@ bool userPass(std::string &_user, std::string &_pass)
 
 //////////////////////////////////////////////////
 // Helper to send messages
-int sendHelper(zmq::socket_t *_pub, const std::string &_data, int _type)
+int sendHelper(zmq::socket_t &_pub, const std::string &_data, int _type)
 {
   zmq::message_t msg(_data.data(), _data.size());
-  return _pub->send(msg, _type);
+  return _pub.send(msg, _type);
 }
 
 //////////////////////////////////////////////////
 // Helper to receive messages
-std::string receiveHelper(zmq::socket_t *socket)
+std::string receiveHelper(zmq::socket_t &_socket)
 {
   zmq::message_t msg(0);
 
-  if (!socket->recv(&msg, 0))
+  if (!_socket.recv(&msg, 0))
     return std::string();
 
   return std::string(reinterpret_cast<char *>(msg.data()), msg.size());
@@ -138,18 +137,18 @@ void accessControlHandler(zmq::socket_t *_sock)
     while (true)
     {
       // Get the version.
-      version = receiveHelper(_sock);
+      version = receiveHelper(*_sock);
       if (version.empty())
         break;
 
       // Get remaining data
-      sequence = receiveHelper(_sock);
-      domain = receiveHelper(_sock);
-      address = receiveHelper(_sock);
-      routingId = receiveHelper(_sock);
-      mechanism = receiveHelper(_sock);
-      givenUsername = receiveHelper(_sock);
-      givenPassword = receiveHelper(_sock);
+      sequence = receiveHelper(*_sock);
+      domain = receiveHelper(*_sock);
+      address = receiveHelper(*_sock);
+      routingId = receiveHelper(*_sock);
+      mechanism = receiveHelper(*_sock);
+      givenUsername = receiveHelper(*_sock);
+      givenPassword = receiveHelper(*_sock);
 
       // Debug statements
       // std::cout << "Version[" << version << "]\n";
@@ -166,10 +165,10 @@ void accessControlHandler(zmq::socket_t *_sock)
       {
         std::string err = "Invalid version";
         std::cerr << err << std::endl;
-        sendHelper(_sock, "400", ZMQ_SNDMORE);
-        sendHelper(_sock, err, ZMQ_SNDMORE);
-        sendHelper(_sock, "", ZMQ_SNDMORE);
-        sendHelper(_sock, "", 0);
+        sendHelper(*_sock, "400", ZMQ_SNDMORE);
+        sendHelper(*_sock, err, ZMQ_SNDMORE);
+        sendHelper(*_sock, "", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", 0);
         continue;
       }
 
@@ -178,10 +177,10 @@ void accessControlHandler(zmq::socket_t *_sock)
       {
         std::string err = "Invalid mechanism";
         std::cerr << err << std::endl;
-        sendHelper(_sock, "400", ZMQ_SNDMORE);
-        sendHelper(_sock, err, ZMQ_SNDMORE);
-        sendHelper(_sock, "", ZMQ_SNDMORE);
-        sendHelper(_sock, "", 0);
+        sendHelper(*_sock, "400", ZMQ_SNDMORE);
+        sendHelper(*_sock, err, ZMQ_SNDMORE);
+        sendHelper(*_sock, "", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", 0);
         continue;
       }
 
@@ -190,30 +189,30 @@ void accessControlHandler(zmq::socket_t *_sock)
       {
         std::string err = "Invalid domain\n";
         std::cerr << err << std::endl;
-        sendHelper(_sock, "400", ZMQ_SNDMORE);
-        sendHelper(_sock, err, ZMQ_SNDMORE);
-        sendHelper(_sock, "", ZMQ_SNDMORE);
-        sendHelper(_sock, "", 0);
+        sendHelper(*_sock, "400", ZMQ_SNDMORE);
+        sendHelper(*_sock, err, ZMQ_SNDMORE);
+        sendHelper(*_sock, "", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", 0);
         continue;
       }
 
-      sendHelper(_sock, version, ZMQ_SNDMORE);
-      sendHelper(_sock, sequence, ZMQ_SNDMORE);
+      sendHelper(*_sock, version, ZMQ_SNDMORE);
+      sendHelper(*_sock, sequence, ZMQ_SNDMORE);
 
       // Check the username and password
       if (givenUsername == user && givenPassword == pass)
       {
-        sendHelper(_sock, "200", ZMQ_SNDMORE);
-        sendHelper(_sock, "OK", ZMQ_SNDMORE);
-        sendHelper(_sock, "anonymous", ZMQ_SNDMORE);
-        sendHelper(_sock, "", 0);
+        sendHelper(*_sock, "200", ZMQ_SNDMORE);
+        sendHelper(*_sock, "OK", ZMQ_SNDMORE);
+        sendHelper(*_sock, "anonymous", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", 0);
       }
       else
       {
-        sendHelper(_sock, "400", ZMQ_SNDMORE);
-        sendHelper(_sock, "Invalid username or password", ZMQ_SNDMORE);
-        sendHelper(_sock, "", ZMQ_SNDMORE);
-        sendHelper(_sock, "", 0);
+        sendHelper(*_sock, "400", ZMQ_SNDMORE);
+        sendHelper(*_sock, "Invalid username or password", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", ZMQ_SNDMORE);
+        sendHelper(*_sock, "", 0);
       }
     }
   }
@@ -1250,7 +1249,7 @@ void NodeSharedPrivate::SecurityInit()
   if (userPass(user, pass))
   {
     // Create the access control thread.
-    this->accessControlThread = new std::thread(&accessControlHandler,
+    this->accessControlThread = std::thread(&accessControlHandler,
         new zmq::socket_t(*this->context, ZMQ_REP));
 
     int asServer = 1;
