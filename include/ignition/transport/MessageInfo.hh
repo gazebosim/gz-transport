@@ -49,7 +49,7 @@ namespace ignition
       /// \return The message type name.
       public: std::string Type() const;
 
-      /// \brief Set the topic name associated to the message.
+      /// \brief Set the name of the message type.
       /// \param[in] _type the type name to set.
       public: void SetType(const std::string &_type);
 
