@@ -21,6 +21,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include <ignition/transport.hh>
 #include <sqlite3.h>
@@ -30,11 +31,35 @@
 
 typedef struct
 {
+  std::string topic;
+  std::string messageType;
+} KnownTopic;
+
+
+typedef struct
+{
   int64_t time_rx_sec;
   int64_t time_rx_nano;
-  std::string topic;
+  KnownTopic topic;
   std::string message;
 } ReceivedMessage;
+
+
+/// \brief topics that have been added to the database
+std::vector<KnownTopic> g_knownTopics;
+/// \brief topics that have not yet been added to the database
+std::vector<KnownTopic> g_newTopics;
+std::mutex g_topic_mutex;
+
+
+/// \brief Return true if two KnownTopic's are identical
+bool operator==(const KnownTopic &_lhs, const KnownTopic &_rhs)
+{
+  return _lhs.topic == _rhs.topic && _lhs.messageType == _rhs.messageType;
+}
+
+
+bool insertTopic(raii_sqlite3::Database &db, std::string topic, std::string msg_type);
 
 
 // Global RAM buffer for messages
@@ -94,7 +119,10 @@ bool writeToDatabase(raii_sqlite3::Database &db)
   int return_code;
 
   const char *begin_transaction = "BEGIN;";
-  const char *insert_message = "INSERT OR ROLLBACK INTO messages (time_recv_sec, time_recv_nano, message, topic_id) SELECT ?001, ?002, ?003, id FROM topics WHERE name LIKE ?004 LIMIT 1;";
+  // TODO(sloretz) cache the topic id rather than quering the topic ID on every message insert;
+  const char *insert_message = "INSERT OR ROLLBACK INTO messages (time_recv_sec, time_recv_nano, message, topic_id)"
+    " SELECT ?001, ?002, ?003, topics.id FROM topics JOIN message_types ON topics.message_type_id = message_types.id"
+    " WHERE topics.name = ?004 AND message_types.name = ?005 LIMIT 1;";
   const char *end_transaction = "END;";
 
   // Begin transaction
@@ -105,6 +133,22 @@ bool writeToDatabase(raii_sqlite3::Database &db)
     return false;
   }
 
+  // Insert topics and messages types
+  {
+    std::lock_guard<std::mutex> guard(g_topic_mutex);
+    for (auto topic : g_newTopics)
+    {
+      if (!insertTopic(db, topic.topic, topic.messageType))
+      {
+        std::cerr << "Failed to insert topic\n";
+        return false;
+      }
+    }
+    g_knownTopics.insert(g_knownTopics.end(), g_newTopics.begin(), g_newTopics.end());
+    g_newTopics.clear();
+  }
+
+  // Insert messages
   // Compile the statements 
   raii_sqlite3::Statement statement(db, insert_message);
   if (!statement)
@@ -135,10 +179,16 @@ bool writeToDatabase(raii_sqlite3::Database &db)
       std::cerr << "Failed to bind message data: " << return_code << "\n";
       return false;
     }
-    return_code = sqlite3_bind_text(statement.Handle(), 4, msg.topic.c_str(), msg.topic.size(), nullptr);
+    return_code = sqlite3_bind_text(statement.Handle(), 4, msg.topic.topic.c_str(), msg.topic.topic.size(), nullptr);
     if (return_code != SQLITE_OK)
     {
       std::cerr << "Failed to bind topic name: " << return_code << "\n";
+      return false;
+    }
+    return_code = sqlite3_bind_text(statement.Handle(), 5, msg.topic.messageType.c_str(), msg.topic.messageType.size(), nullptr);
+    if (return_code != SQLITE_OK)
+    {
+      std::cerr << "Failed to bind message type name: " << return_code << "\n";
       return false;
     }
 
@@ -171,18 +221,8 @@ bool insertTopic(raii_sqlite3::Database &db, std::string topic, std::string msg_
 {
   int return_code;
 
-  const char *begin_transaction = "BEGIN;";
   const char *insert_message_type = "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
-  const char *insert_topic = "INSERT OR ROLLBACK INTO topics (name, message_type_id) SELECT ?002, id FROM message_types WHERE name LIKE ?001 LIMIT 1;";
-  const char *end_transaction = "END;";
-
-  // Begin transaction
-  return_code = sqlite3_exec(db.Handle(), begin_transaction, NULL, 0, nullptr);
-  if (return_code != SQLITE_OK)
-  {
-    std::cerr << "Failed to begin transaction" << sqlite3_errmsg(db.Handle()) << "\n";
-    return false;
-  }
+  const char *insert_topic = "INSERT OR IGNORE INTO topics (name, message_type_id) SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
 
   // Compile the statements 
   raii_sqlite3::Statement message_type_statement(db, insert_message_type);
@@ -231,14 +271,6 @@ bool insertTopic(raii_sqlite3::Database &db, std::string topic, std::string msg_
     std::cerr << "Unexpected return code while stepping(2): " << return_code << "\n";
     return false;
   }
-
-  // End transaction
-  return_code = sqlite3_exec(db.Handle(), end_transaction, NULL, 0, nullptr);
-  if (return_code != SQLITE_OK)
-  {
-    std::cerr << "Failed to end transaction" << return_code << "\n";
-    return false;
-  }
   return true;
 }
 
@@ -253,12 +285,30 @@ void onMessageReceived(
   std::chrono::nanoseconds utcNS = g_wallMinusMonoNS + nowNS;
   std::chrono::seconds utcS = std::chrono::duration_cast<std::chrono::seconds>(
       utcNS);
+
+  KnownTopic newTopic;
+  newTopic.topic = _info.Topic();
+  newTopic.messageType = _info.Type();
+
   ReceivedMessage m;
   m.time_rx_sec = utcS.count();
   m.time_rx_nano = (utcNS - std::chrono::nanoseconds(utcS)).count();
-  m.topic = _info.Topic();
+  m.topic = newTopic;
   _msg.SerializeToString(&(m.message));
-  std::cout << "Received message on " << m.topic << "\n";
+  std::cout << "Received message on " << newTopic.topic << " type " << newTopic.messageType << "\n";
+
+  {
+    std::lock_guard<std::mutex> guard(g_topic_mutex);
+    if(g_knownTopics.end() == std::find(g_knownTopics.begin(), g_knownTopics.end(), newTopic))
+    {
+      if(g_newTopics.end() == std::find(g_newTopics.begin(), g_newTopics.end(), newTopic))
+      {
+        std::cout << "New topic " << newTopic.topic << " type " << newTopic.messageType << "\n";
+        g_newTopics.push_back(newTopic);
+      }
+    }
+  }
+
   std::lock_guard<std::mutex> guard(g_buffer_mutex);
   g_message_buffer.push_back(m);
 }
@@ -318,14 +368,6 @@ int main(int argc, char **argv)
   for (auto topic : all_topics)
   {
     std::cout << "Recording " << topic << "\n";
-
-    // Insert a row for the message in the database
-    // TODO how to determine type of a published topic?
-    if (!insertTopic(raiidb, topic, ".unknown.message.type"))
-    {
-      return 1;
-    }
-
     if (!node.Subscribe(topic, onMessageReceived))
     {
       std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
