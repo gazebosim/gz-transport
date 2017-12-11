@@ -46,18 +46,23 @@ CREATE TABLE message_types (
 CREATE TABLE topics (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* Name of the message (e.g. /car/roof/scan) */
+  /* Name of the topic (e.g. /car/roof/scan) */
   name TEXT NOT NULL,
   /* A message type in the message_types table */
   message_type_id NOT NULL REFERENCES message_types (id) ON DELETE CASCADE
 );
 
+/* There is at most 1 row in topics for each name/message_type combo */
+CREATE UNIQUE INDEX idx_topic ON topics (name, message_type_id);
+
 /* Contains every message received on every topic recorded */
 CREATE TABLE messages (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* Timestamp the message was received */
-  time_recv_utc INTEGER NOT NULL,
+  /* Timestamp the message was received (utc) */
+  time_recv_sec INTEGER NOT NULL,
+  /* Nanoseconds component of the time the message was received */
+  time_recv_nano INTEGER NOT NULL,
   /* Topic the message was received on */
   topic_id REFERENCES topics (id) ON DELETE CASCADE,
   /* Serialized protobuf message */
@@ -65,4 +70,4 @@ CREATE TABLE messages (
 );
 
 /* Lots of queries are done by time received, so add an index to speed it up */
-CREATE INDEX idx_time_recv_utc ON messages (time_recv_utc);
+CREATE INDEX idx_time_recv ON messages (time_recv_sec, time_recv_nano);
