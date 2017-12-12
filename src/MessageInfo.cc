@@ -38,6 +38,12 @@ namespace ignition
 
       /// \brief Topic name.
       public: std::string topic = "";
+
+      /// \brief Message type name.
+      public: std::string type = "";
+
+      /// \brief Partition name.
+      public: std::string partition = "";
     };
   }
 }
@@ -63,4 +69,28 @@ std::string MessageInfo::Topic() const
 void MessageInfo::SetTopic(const std::string &_topic)
 {
   this->dataPtr->topic = _topic;
+}
+
+//////////////////////////////////////////////////
+std::string MessageInfo::Type() const
+{
+  return this->dataPtr->type;
+}
+
+//////////////////////////////////////////////////
+void MessageInfo::SetType(const std::string &_type)
+{
+  this->dataPtr->type = _type;
+}
+
+//////////////////////////////////////////////////
+std::string MessageInfo::Partition() const
+{
+  return this->dataPtr->partition;
+}
+
+//////////////////////////////////////////////////
+void MessageInfo::SetPartition(const std::string &_partition)
+{
+  this->dataPtr->partition = _partition;
 }
