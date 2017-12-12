@@ -31,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <map>
 
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Helpers.hh"
