@@ -342,13 +342,9 @@ void NodeShared::TriggerSubscriberCallbacks(
   if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
     return;
 
-  // TODO(MXG): Replace this with some kind of info.SetTopicAndPartition(~)
-  // function
-  std::string topic = _topic;
-  topic.erase(0, topic.find_last_of("@") + 1);
-
   MessageInfo info;
-  info.SetTopic(_topic);
+  info.SetTopicAndPartition(_topic);
+  info.SetType(_msgType);
 
   if (_handlerInfo.haveRaw)
   {

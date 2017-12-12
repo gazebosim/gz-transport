@@ -49,6 +49,27 @@ namespace ignition
       /// \brief Set the topic name associated to the message.
       public: void SetTopic(const std::string &_topic);
 
+      /// \brief Get the name of the message type.
+      /// \return The message type name.
+      public: std::string Type() const;
+
+      /// \brief Set the name of the message type.
+      /// \param[in] _type the type name to set.
+      public: void SetType(const std::string &_type);
+
+      /// \brief Get the name of the partition.
+      /// \return The partition name.
+      public: std::string Partition() const;
+
+      /// \brief Set the partition of the topic the message was on.
+      /// \param[in] _partition of the topic.
+      public: void SetPartition(const std::string &_partition);
+
+      /// \brief Set both the topic and the partition from a single string.
+      /// \param[in] _topicWithPartition The topic string with the partition
+      /// information included.
+      public: void SetTopicAndPartition(std::string _topicWithPartition);
+
       /// \internal
       /// \brief Pointer to private data.
       protected: std::unique_ptr<MessageInfoPrivate> dataPtr;
