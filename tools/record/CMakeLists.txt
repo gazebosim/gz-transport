@@ -29,6 +29,23 @@ target_link_libraries(talker PRIVATE ${IGNITION-TRANSPORT_LIBRARIES} ${ignition-
 target_include_directories(talker PRIVATE ${IGNITION-TRANSPORT_INCLUDE_DIRS})
 target_compile_options(talker PRIVATE ${IGNITION-TRANSPORT_CXX_FLAGS})
 
+add_executable(playback src/playback.cpp)
+target_link_libraries(playback PRIVATE
+  ${IGNITION-TRANSPORT_LIBRARIES}
+  ${SQLite3_LIBRARIES}
+)
+target_include_directories(playback PRIVATE
+  ${IGNITION-TRANSPORT_INCLUDE_DIRS}
+  ${SQLite3_INCLUD_DIRS}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+target_compile_options(playback PRIVATE
+  ${IGNITION-TRANSPORT_CXX_FLAGS}
+  ${SQLite3_CFLAGS}
+)
+
+
 set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/share)
 configure_file(src/config.hh.in ${CMAKE_CURRENT_BINARY_DIR}/config.hh)
 install(DIRECTORY schema DESTINATION ${SCHEMA_INSTALL_PATH})
