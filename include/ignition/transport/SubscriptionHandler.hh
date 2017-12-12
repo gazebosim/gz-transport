@@ -94,7 +94,7 @@ namespace ignition
 
     /// \class ISubscriptionHandler SubscriptionHandler.hh
     /// ignition/transport/SubscriptionHandler.hh
-    /// \brief Interface class used to manage generic protobub messages.
+    /// \brief Interface class used to manage generic protobuf messages.
     ///
     /// This extends SubscriptionHandlerBase by defining virtual functions for
     /// deserializing protobuf message data, and for receiving deserialized

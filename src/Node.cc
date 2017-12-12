@@ -143,10 +143,11 @@ namespace ignition
       {
         MessageInfo info;
 
-        std::string topic = this->publisher.Topic();
-        topic.erase(0, topic.find_last_of("@") + 1);
+        // Set the topic and the partition at the same time
+        info.SetTopicAndPartition(this->publisher.Topic());
 
-        info.SetTopic(topic);
+        // Set the message type name
+        info.SetType(this->publisher.MsgTypeName());
 
         return info;
       }
