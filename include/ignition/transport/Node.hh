@@ -132,17 +132,18 @@ namespace ignition
           ///
           /// \param[in] _msgData A std::string that represents an
           /// already-serialized google::protobuf message.
-          /// \param[in] _msgType A std::string that contains the fully-qualified
-          /// message type name.
+          /// \param[in] _msgType A std::string that contains the
+          /// fully-qualified message type name.
           /// \return true when success.
-          public: bool RawPublish(const std::string &_msgData,
-                                  const std::string &_msgType);
+          public: bool RawPublish(
+            const std::string &_msgData,
+            const std::string &_msgType);
 
           // Friendship
           friend class PublisherPrivate;
 
           /// \internal
-          /// Constructor which takes
+          /// Constructor which sets the dataPtr
           private: Advanced(PublisherPrivate * const _dataPtr);
 
           /// \internal
@@ -151,8 +152,8 @@ namespace ignition
           private: PublisherPrivate * const dataPtr;
         };
 
-        /// \brief Get a reference to the Advanced API for the Node::Publisher.
-        /// This is not recommended for most users.
+        /// \brief Get a reference to the Advanced API for the Node::Publisher
+        /// object. This is not recommended for most users.
         /// \return Advanced API
         Advanced &UseAdvancedFeatures();
 
@@ -1025,6 +1026,42 @@ namespace ignition
       /// \return False if unable to get service info.
       public: bool ServiceInfo(const std::string &_service,
                               std::vector<ServicePublisher> &_publishers) const;
+
+      /// \brief The Advanced nested class provides features that may be useful
+      /// for advanced users but are not recommended for most use cases. Call
+      /// the UseAdvancedFeatures() function to get access to the advanced API.
+      public: class Advanced
+      {
+        /// \brief Subscribe to a topic registering a callback. The callback
+        /// must accept a std::string to represent the message data, and a
+        /// MessageInfo which provides metadata about the message.
+        public: bool RawSubscribe(
+          const std::string &_topic,
+          const RawCallback &_callback,
+          const std::string &_msgType = kGenericMessageType,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+        // Friendship
+        friend class NodePrivate;
+
+        /// \internal
+        /// Constructor which sets the dataPtr
+        private: Advanced(NodePrivate * const _dataPtr);
+
+        /// \internal
+        /// \brief Pointer to the enclosing Node object of this Advanced API.
+        private: NodePrivate * const dataPtr;
+      };
+
+      /// \brief Get a reference to the Advanced API for the Node object. This
+      /// is not recommended for most users.
+      /// \return Advanced API
+      public: Advanced &UseAdvancedFeatures();
+
+      /// \brief Get a reference to the Advanced API for the Node object. This
+      /// is not recommended for most users.
+      /// \return Advanced API
+      public: const Advanced &UseAdvancedFeatures() const;
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.

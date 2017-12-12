@@ -43,45 +43,19 @@ namespace ignition
 {
   namespace transport
   {
-    /// \class ISubscriptionHandler SubscriptionHandler.hh
-    /// ignition/transport/SubscriptionHandler.hh
-    /// \brief Interface class used to manage generic protobuf messages.
-    class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
+    /// \brief SubscriptionHandlerBase contains functions and data which are
+    /// common to all SubscriptionHandler types.
+    class IGNITION_TRANSPORT_VISIBLE SubscriptionHandlerBase
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
-      public: explicit ISubscriptionHandler(const std::string &_nUuid,
-        const SubscribeOptions &_opts = SubscribeOptions())
-        : hUuid(Uuid().ToString()),
-          opts(_opts),
-          lastCbTimestamp(std::chrono::seconds{0}),
-          periodNs(0.0),
-          nUuid(_nUuid)
-      {
-        if (this->opts.Throttled())
-          this->periodNs = 1e9 / this->opts.MsgsPerSec();
-      }
+      public: explicit SubscriptionHandlerBase(
+        const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Destructor.
-      public: virtual ~ISubscriptionHandler()
-      {
-      }
-
-      /// \brief Executes the local callback registered for this handler.
-      /// \param[in] _msg Protobuf message received.
-      /// \param[in] _info Message information (e.g.: topic name).
-      /// \return True when success, false otherwise.
-      public: virtual bool RunLocalCallback(const ProtoMsg &_msg,
-                                            const MessageInfo &_info) = 0;
-
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \param[in] _type The data type.
-      /// \return Pointer to the specific protobuf message.
-      public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
-        const std::string &_data,
-        const std::string &_type) const = 0;
+      public: virtual ~SubscriptionHandlerBase() = default;
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
@@ -90,41 +64,16 @@ namespace ignition
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid() const
-      {
-        return this->nUuid;
-      }
+      public: std::string NodeUuid() const;
 
       /// \brief Get the unique UUID of this handler.
       /// \return A string representation of the handler UUID.
-      public: std::string HandlerUuid() const
-      {
-        return this->hUuid;
-      }
+      public: std::string HandlerUuid() const;
 
       /// \brief Check if message subscription is throttled. If so, verify
       /// whether the callback should be executed or not.
       /// \return true if the callback should be executed or false otherwise.
-      protected: bool UpdateThrottling()
-      {
-        if (!this->opts.Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-
-        // Elapsed time since the last callback execution.
-        auto elapsed = now - this->lastCbTimestamp;
-
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
-          return false;
-        }
-
-        // Update the last callback execution.
-        this->lastCbTimestamp = now;
-        return true;
-      }
+      protected: bool UpdateThrottling();
 
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
@@ -141,6 +90,44 @@ namespace ignition
 
       /// \brief Node UUID.
       private: std::string nUuid;
+    };
+
+    /// \class ISubscriptionHandler SubscriptionHandler.hh
+    /// ignition/transport/SubscriptionHandler.hh
+    /// \brief Interface class used to manage generic protobuf messages.
+    ///
+    /// This extends SubscriptionHandlerBase by defining virtual functions for
+    /// deserializing protobuf message data, and for receiving deserialized
+    /// messages. Those functions are not needed by the RawSubscriptionHandler
+    /// class.
+    class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
+        : public SubscriptionHandlerBase
+    {
+      /// \brief Constructor.
+      /// \param[in] _nUuid UUID of the node registering the handler.
+      /// \param[in] _opts Subscription options.
+      public: explicit ISubscriptionHandler(
+        const std::string &_nUuid,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Destructor.
+      public: virtual ~ISubscriptionHandler() = default;
+
+      /// \brief Executes the local callback registered for this handler.
+      /// \param[in] _msg Protobuf message received.
+      /// \param[in] _info Message information (e.g.: topic name).
+      /// \return True when success, false otherwise.
+      public: virtual bool RunLocalCallback(
+        const ProtoMsg &_msg,
+        const MessageInfo &_info) = 0;
+
+      /// \brief Create a specific protobuf message given its serialized data.
+      /// \param[in] _data The serialized data.
+      /// \param[in] _type The data type.
+      /// \return Pointer to the specific protobuf message.
+      public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
+        const std::string &_data,
+        const std::string &_type) const = 0;
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -302,6 +289,47 @@ namespace ignition
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<ProtoMsg> cb;
+    };
+
+    //////////////////////////////////////////////////
+    /// RawSubscriptionHandler is used to manage the callback of a raw
+    /// subscription.
+    class RawSubscriptionHandler : public SubscriptionHandlerBase
+    {
+      /// \brief Constructor
+      /// \param[in] _nUuid UUID of the node registering the handler
+      /// \param[in] _msgType Name of message type that this handler should
+      /// listen for. Setting this to kGenericMessageType will tell this handler
+      /// to listen for all message types.
+      /// \param[in] _opts Subscription options.
+      public: explicit RawSubscriptionHandler(
+        const std::string &_nUuid,
+        const std::string &_msgType = kGenericMessageType,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+      // Documentation inherited
+      public: std::string TypeName() override;
+
+      /// \brief Set the callback of this handler.
+      /// \param[in] _callback The callback function that will be triggered when
+      /// a message is received.
+      public: void SetCallback(const RawCallback &_callback);
+
+      /// \brief Executes the raw callback registered for this handler.
+      /// \param[in] _msgData Serialized string of message data
+      /// \param[in] _info Meta-data for the message
+      /// \return True if the callback was triggered, false if the callback was
+      /// not set.
+      public: bool RunRawCallback(const std::string &_msgData,
+                                  const MessageInfo &_info);
+
+      /// \brief Destructor
+      public: ~RawSubscriptionHandler();
+
+      private: class Implementation;
+      /// \internal
+      /// \brief Pointer to the implementation of the class
+      private: std::unique_ptr<Implementation> pimpl;
     };
   }
 }
