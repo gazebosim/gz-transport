@@ -737,6 +737,25 @@ bool Node::Advanced::RawSubscribe(
 }
 
 //////////////////////////////////////////////////
+Node::Advanced::Advanced(NodePrivate * const _dataPtr)
+  : dataPtr(_dataPtr)
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+Node::Advanced &Node::UseAdvancedFeatures()
+{
+  return this->dataPtr->advanced;
+}
+
+//////////////////////////////////////////////////
+const Node::Advanced &Node::UseAdvancedFeatures() const
+{
+  return this->dataPtr->advanced;
+}
+
+//////////////////////////////////////////////////
 // FIXME: Node::Partition() and Node::NameSpace() appear to be undefined
 
 //////////////////////////////////////////////////
@@ -898,6 +917,13 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   }
 
   return Publisher(publisher);
+}
+
+//////////////////////////////////////////////////
+NodePrivate::NodePrivate()
+  : advanced(this)
+{
+  // Do nothing
 }
 
 //////////////////////////////////////////////////

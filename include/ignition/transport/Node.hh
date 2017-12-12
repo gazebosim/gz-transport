@@ -1041,6 +1041,9 @@ namespace ignition
           const std::string &_msgType = kGenericMessageType,
           const SubscribeOptions &_opts = SubscribeOptions());
 
+        // TODO(MXG): Implement this
+        public: bool RawUnsubscribe(const std::string &_topic);
+
         // Friendship
         friend class NodePrivate;
 
