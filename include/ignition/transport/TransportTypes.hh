@@ -42,6 +42,7 @@ namespace ignition
     class IRepHandler;
     class IReqHandler;
     class ISubscriptionHandler;
+    class RawSubscriptionHandler;
     class MessageInfo;
 
     /// \def Addresses_M
@@ -72,6 +73,10 @@ namespace ignition
     /// \brief Shared pointer to ISubscriptionHandler.
     using ISubscriptionHandlerPtr = std::shared_ptr<ISubscriptionHandler>;
 
+    /// \def RawSubscriptionHandlerPtr
+    /// \brief Shared pointer to RawSubscriptionHandler
+    using RawSubscriptionHandlerPtr = std::shared_ptr<RawSubscriptionHandler>;
+
     /// \def ISubscriptionHandler_M
     /// \brief Map to store the different subscription handlers for a topic.
     /// Each node can have its own subscription handler. The node id
@@ -79,6 +84,13 @@ namespace ignition
     /// value.
     using ISubscriptionHandler_M =
       std::map<std::string, ISubscriptionHandlerPtr>;
+
+    /// \def RawSubscriptionHandler_M
+    /// \brief Map to store the raw subscription handlers for a topic.
+    /// Each node can have its own raw subscription handler. The node id is used
+    /// as the key and a pointer to a raw subscription handler is the value.
+    using RawSubscriptionHandler_M =
+      std::map<std::string, RawSubscriptionHandlerPtr>;
 
     /// \def IRepHandlerPtr
     /// \brief Shared pointer to IRepHandler.
@@ -123,6 +135,14 @@ namespace ignition
     template <typename T>
     using MsgCallback =
       std::function<void(const T &_msg, const MessageInfo &_info)>;
+
+    /// \def RawCallback
+    /// \brief User callback used for receiving raw message data:
+    ///   \param[in] _msgData string of a serialized protobuf message
+    ///   \param[in] _info Message information
+    using RawCallback =
+        std::function<void(const std::string &_msgData,
+                           const MessageInfo &_info)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.

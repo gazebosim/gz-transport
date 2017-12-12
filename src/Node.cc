@@ -138,49 +138,7 @@ namespace ignition
         }
       }
 
-      /// \brief This struct provides information about the Subscribers of a
-      /// Publisher. It should only be retrieved using CheckSubscriberInfo().
-      public: struct SubscriberInfo
-      {
-        /// \brief A map of subscription handlers for the local subscribers
-        public: std::map<std::string, ISubscriptionHandler_M> localHandlers;
-
-        /// \brief True iff this Publisher has any local subscribers
-        public: bool haveLocal;
-
-        /// \brief True iff this Publisher has any remote subscribers
-        public: bool haveRemote;
-
-        // Friendship declaration
-        friend class PublisherPrivate;
-
-        /// \brief Default constructor
-        private: SubscriberInfo()
-        {
-          // Do nothing. CheckSubscriberInfo will fill this in. We make the
-          // constructor private to prevent us from having incorrectly
-          // initialized SubscriberInfo objects.
-        }
-      };
-
-      /// \brief Get information about the nodes that are subscribed to this
-      /// Publisher.
-      /// \return Information about subscribers.
-      SubscriberInfo CheckSubscriberInfo()
-      {
-        SubscriberInfo info;
-
-        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
-
-        info.haveLocal = this->shared->localSubscriptions.Handlers(
-              this->publisher.Topic(), info.localHandlers);
-
-        info.haveRemote = this->shared->remoteSubscribers.HasTopic(
-              this->publisher.Topic(), publisher.MsgTypeName());
-
-        return info;
-      }
-
+      /// \brief Create a MessageInfo object for this Publisher
       MessageInfo CreateMessageInfo()
       {
         MessageInfo info;
@@ -287,8 +245,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (!this->Valid())
     return false;
 
+  const std::string &publisherMsgType = this->dataPtr->publisher.MsgTypeName();
+
   // Check that the msg type matches the topic type previously advertised.
-  if (this->dataPtr->publisher.MsgTypeName() != _msg.GetTypeName())
+  if (publisherMsgType != _msg.GetTypeName())
   {
     std::cerr << "Node::Publisher::Publish() Type mismatch.\n"
               << "\t* Type advertised: "
@@ -301,34 +261,78 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (!this->UpdateThrottling())
     return true;
 
-  const PublisherPrivate::SubscriberInfo &subscribers =
-      this->dataPtr->CheckSubscriberInfo();
+  const std::string &publisherTopic = this->dataPtr->publisher.Topic();
 
-  // Local subscribers.
-  if (subscribers.haveLocal)
+  const NodeShared::SubscriberInfo &subscribers =
+      this->dataPtr->shared->CheckSubscriberInfo(
+        publisherTopic, publisherMsgType);
+
+  // These variables ensure that serialization only happens once (at most), and
+  // that it only happens if necessary.
+  bool haveSerialized = false;
+  bool failedToSerialize = false;
+  std::string msgData;
+
+  // Local and raw subscribers.
+  if (subscribers.haveLocal || subscribers.haveRaw)
   {
     MessageInfo info = this->dataPtr->CreateMessageInfo();
 
-    for (auto &node : subscribers.localHandlers)
+    if (subscribers.haveRaw)
     {
-      for (auto &handler : node.second)
+      for (auto &node : subscribers.rawHandlers)
       {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-
-        if (subscriptionHandlerPtr)
+        for (auto &handler : node.second)
         {
-          if (subscriptionHandlerPtr->TypeName() != kGenericMessageType &&
-              subscriptionHandlerPtr->TypeName() != _msg.GetTypeName())
+          const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+
+          if (rawHandler->TypeName() != kGenericMessageType &&
+              rawHandler->TypeName() != _msg.GetTypeName())
           {
             continue;
           }
 
-          subscriptionHandlerPtr->RunLocalCallback(_msg, info);
+          if (!haveSerialized)
+          {
+            failedToSerialize = !_msg.SerializeToString(&msgData);
+
+            if (failedToSerialize)
+              break;
+
+            haveSerialized = true;
+          }
+
+          rawHandler->RunRawCallback(msgData, info);
         }
-        else
+
+        if (failedToSerialize)
+          break;
+      }
+    }
+
+    if (subscribers.haveLocal)
+    {
+      for (auto &node : subscribers.localHandlers)
+      {
+        for (auto &handler : node.second)
         {
-          std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
-                    << std::endl;
+          const ISubscriptionHandlerPtr &localHandler = handler.second;
+
+          if (localHandler)
+          {
+            if (localHandler->TypeName() != kGenericMessageType &&
+                localHandler->TypeName() != _msg.GetTypeName())
+            {
+              continue;
+            }
+
+            localHandler->RunLocalCallback(_msg, info);
+          }
+          else
+          {
+            std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
+                      << std::endl;
+          }
         }
       }
     }
@@ -337,19 +341,24 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Remote subscribers.
   if (subscribers.haveRemote)
   {
-    std::string data;
-    if (!_msg.SerializeToString(&data))
+    if (!haveSerialized)
     {
-      std::cerr << "Node::Publisher::Publish(): Error serializing data"
-                << std::endl;
-      return false;
+      failedToSerialize = !_msg.SerializeToString(&msgData);
+      haveSerialized = true;
     }
 
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(), data,
-          _msg.GetTypeName()))
+    if (!this->dataPtr->shared->Publish(
+          publisherTopic, msgData, publisherMsgType))
     {
       return false;
     }
+  }
+
+  if (failedToSerialize)
+  {
+    std::cerr << "Node::Publisher::Publish(): Error serializing data"
+              << std::endl;
+    return false;
   }
 
   return true;
@@ -363,7 +372,10 @@ bool Node::Publisher::Advanced::RawPublish(
   if (!this->dataPtr->Valid())
     return false;
 
-  if (this->dataPtr->publisher.MsgTypeName() != _msgType)
+  const std::string &publisherMsgType = this->dataPtr->publisher.MsgTypeName();
+
+  if (publisherMsgType  != _msgType
+      && publisherMsgType != kGenericMessageType)
   {
     std::cerr << "Node::Publisher::Advanced::RawPublish() type mismatch.\n"
               << "\t* Type advertised: "
@@ -375,50 +387,14 @@ bool Node::Publisher::Advanced::RawPublish(
   if (!this->dataPtr->UpdateThrottling())
     return true;
 
-  const PublisherPrivate::SubscriberInfo &subscribers =
-      this->dataPtr->CheckSubscriberInfo();
+  const std::string &topic = this->dataPtr->publisher.Topic();
 
-  // Local subscribers. Note that we need to deserialize the message for local
-  // subscribers.
-  if (subscribers.haveLocal)
-  {
-    // Dev Note (MXG): This block is mostly lifted from RecvMsgUpdate. If
-    // possible, we should consider merging their implementations for maximum
-    // DRYness.
+  const NodeShared::SubscriberInfo &subscribers =
+      this->dataPtr->shared->CheckSubscriberInfo(topic, _msgType);
 
-    MessageInfo info = this->dataPtr->CreateMessageInfo();
-
-    ISubscriptionHandlerPtr firstSubscriberPtr;
-    const bool firstHandlerFound =
-        this->dataPtr->shared->localSubscriptions.FirstHandler(
-          info.Topic(), _msgType, firstSubscriberPtr);
-
-    if (firstHandlerFound)
-    {
-      auto deserializedMsg = firstSubscriberPtr->CreateMsg(_msgData, _msgType);
-      if (deserializedMsg)
-      {
-        for (const auto &node : subscribers.localHandlers)
-        {
-          for (const auto &handler : node.second)
-          {
-            ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-            if (subscriptionHandlerPtr)
-            {
-              if (subscriptionHandlerPtr->TypeName() == _msgType ||
-                  subscriptionHandlerPtr->TypeName() == kGenericMessageType)
-              {
-                subscriptionHandlerPtr->RunLocalCallback(
-                      *deserializedMsg, info);
-              }
-            }
-            else
-              std::cerr << "Subscription handler is NULL" << std::endl;
-          }
-        }
-      }
-    }
-  }
+  // Trigger local subscribers.
+  this->dataPtr->shared->TriggerSubscriberCallbacks(
+        topic, _msgData, _msgType, subscribers);
 
   // Remote subscribers. Note that the data is already presumed to be
   // serialized, so we just pass it along for publication.
@@ -731,6 +707,39 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
+bool Node::Advanced::RawSubscribe(
+    const std::string &_topic,
+    const RawCallback &_callback,
+    const std::string &_msgType,
+    const SubscribeOptions &_opts)
+{
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->dataPtr->options.Partition(),
+                                      this->dataPtr->options.NameSpace(),
+                                      _topic, fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
+
+  const std::shared_ptr<RawSubscriptionHandler> handlerPtr =
+      std::make_shared<RawSubscriptionHandler>(
+        this->dataPtr->nUuid, _msgType, _opts);
+
+  handlerPtr->SetCallback(_callback);
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  this->dataPtr->shared->rawSubscriptions.AddHandler(
+        fullyQualifiedTopic, this->dataPtr->nUuid, handlerPtr);
+
+  return this->dataPtr->SubscribeHelper(fullyQualifiedTopic);
+}
+
+//////////////////////////////////////////////////
+// FIXME: Node::Partition() and Node::NameSpace() appear to be undefined
+
+//////////////////////////////////////////////////
 NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;
@@ -891,14 +900,14 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   return Publisher(publisher);
 }
 
-/////////////////////////////////////////////////
-bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
+//////////////////////////////////////////////////
+bool NodePrivate::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
   // Add the topic to the list of subscribed topics (if it was not before).
-  this->TopicsSubscribed().insert(_fullyQualifiedTopic);
+  this->topicsSubscribed.insert(_fullyQualifiedTopic);
 
   // Discover the list of nodes that publish on the topic.
-  if (!this->Shared()->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
+  if (!this->shared->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
   {
     std::cerr << "Node::Subscribe(): Error discovering a topic. "
               << "Did you forget to start the discovery service?"
@@ -907,4 +916,10 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////
+bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
+{
+  return this->dataPtr->SubscribeHelper(_fullyQualifiedTopic);
 }
