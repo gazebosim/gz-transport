@@ -81,7 +81,7 @@ namespace ignition
     /////////////////////////////////////////////////
     class RawSubscriptionHandler::Implementation
     {
-      public: Implementation(const std::string &_msgType)
+      public: explicit Implementation(const std::string &_msgType)
         : msgType(_msgType)
       {
         // Do nothing

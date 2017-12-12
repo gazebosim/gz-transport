@@ -17,9 +17,10 @@
 #ifndef IGNITION_TRANSPORT_TOOLS_RECORD_RAIISQLITE3_HH_
 #define IGNITION_TRANSPORT_TOOLS_RECORD_RAIISQLITE3_HH_
 
-#include <iostream>
-
 #include <sqlite3.h>
+
+#include <iostream>
+#include <string>
 
 /// \internal
 /// \remarks Not using PIMPL because these classes are for internal use only
@@ -31,7 +32,7 @@ namespace raii_sqlite3
   class Database
   {
     /// \brief move constructor
-    public: Database(Database &&_other)
+    public: Database(Database && _other)
     {
       this->handle = _other.handle;
       _other.handle = nullptr;
