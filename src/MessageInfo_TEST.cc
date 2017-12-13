@@ -59,6 +59,39 @@ TEST(MessageInfoTest, partition)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check SetTopicAndPartition().
+TEST(MessageInfoTest, SetTopicAndPartition)
+{
+  {
+    transport::MessageInfo info;
+    info.SetTopicAndPartition("@/a_partition@/b_topic");
+    EXPECT_EQ("/a_partition", info.Partition());
+    EXPECT_EQ("/b_topic", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    info.SetTopicAndPartition("/a_partition@/b_topic");
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    info.SetTopicAndPartition("@/a_partition/b_topic");
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    info.SetTopicAndPartition("/a_partition/b_topic@");
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
