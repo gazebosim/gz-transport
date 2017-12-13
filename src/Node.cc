@@ -274,11 +274,25 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   bool failedToSerialize = false;
   std::string msgData;
 
-  // Local and raw subscribers.
+  // Try to serialize first, and fail early. If a message can't be
+  // serialzed, then we don't want to send a pointer to the bad message to
+  // local subscribers.
+  if (subscribers.haveRaw || subscribers.haveRemote)
+  {
+    if (!_msg.SerializeToString(&msgData))
+    {
+      std::cerr << "Node::Publisher::Publish(): Error serializing data"
+                << std::endl;
+      return false;
+    }
+  }
+
+  // Process Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
     MessageInfo info = this->dataPtr->CreateMessageInfo();
 
+    // Send serialized message to raw subscribers
     if (subscribers.haveRaw)
     {
       for (auto &node : subscribers.rawHandlers)
@@ -287,30 +301,24 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         {
           const RawSubscriptionHandlerPtr &rawHandler = handler.second;
 
-          if (rawHandler->TypeName() != kGenericMessageType &&
-              rawHandler->TypeName() != _msg.GetTypeName())
+          if (rawHandler)
           {
-            continue;
+            if (rawHandler->TypeName() == kGenericMessageType ||
+                rawHandler->TypeName() == _msg.GetTypeName())
+            {
+              rawHandler->RunRawCallback(msgData, info);
+            }
           }
-
-          if (!haveSerialized)
+          else
           {
-            failedToSerialize = !_msg.SerializeToString(&msgData);
-
-            if (failedToSerialize)
-              break;
-
-            haveSerialized = true;
+            std::cerr << "Node::Publisher::Publish(): NULL raw subscription "
+              << "handler" << std::endl;
           }
-
-          rawHandler->RunRawCallback(msgData, info);
         }
-
-        if (failedToSerialize)
-          break;
       }
     }
 
+    // Send message pointer to local subscribers
     if (subscribers.haveLocal)
     {
       for (auto &node : subscribers.localHandlers)
@@ -321,13 +329,11 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
           if (localHandler)
           {
-            if (localHandler->TypeName() != kGenericMessageType &&
-                localHandler->TypeName() != _msg.GetTypeName())
+            if (localHandler->TypeName() == kGenericMessageType ||
+                localHandler->TypeName() == _msg.GetTypeName())
             {
-              continue;
+              localHandler->RunLocalCallback(_msg, info);
             }
-
-            localHandler->RunLocalCallback(_msg, info);
           }
           else
           {
@@ -339,26 +345,14 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     }
   }
 
-  // Remote subscribers.
+  // Send the serialized message to remote subscribers.
   if (subscribers.haveRemote)
   {
-    if (!haveSerialized)
-    {
-      failedToSerialize = !_msg.SerializeToString(&msgData);
-    }
-
     if (!this->dataPtr->shared->Publish(
           publisherTopic, msgData, publisherMsgType))
     {
       return false;
     }
-  }
-
-  if (failedToSerialize)
-  {
-    std::cerr << "Node::Publisher::Publish(): Error serializing data"
-              << std::endl;
-    return false;
   }
 
   return true;
