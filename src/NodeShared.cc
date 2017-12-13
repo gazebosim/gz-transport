@@ -296,7 +296,8 @@ void NodeShared::RecvMsgUpdate()
 }
 
 //////////////////////////////////////////////////
-NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(const std::string &_topic)
+NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(
+    const std::string &_topic) const
 {
   HandlerInfo info;
 
@@ -342,13 +343,9 @@ void NodeShared::TriggerSubscriberCallbacks(
   if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
     return;
 
-  // TODO(MXG): Replace this with some kind of info.SetTopicAndPartition(~)
-  // function
-  std::string topic = _topic;
-  topic.erase(0, topic.find_last_of("@") + 1);
-
   MessageInfo info;
-  info.SetTopic(_topic);
+  info.SetTopicAndPartition(_topic);
+  info.SetType(_msgType);
 
   if (_handlerInfo.haveRaw)
   {

@@ -65,6 +65,11 @@ namespace ignition
       /// \param[in] _partition of the topic.
       public: void SetPartition(const std::string &_partition);
 
+      /// \brief Set both the topic and the partition from a single string.
+      /// \param[in] _topicWithPartition The topic string with the partition
+      /// information included.
+      public: void SetTopicAndPartition(std::string _topicWithPartition);
+
       /// \internal
       /// \brief Pointer to private data.
       protected: std::unique_ptr<MessageInfoPrivate> dataPtr;
