@@ -35,6 +35,10 @@ namespace ignition
       /// \brief Default constructor.
       public: MessageInfo();
 
+      /// \brief Explicit copy constructor (The copy constructor is deleted by
+      /// default due to the use of std::unique_ptr member).
+      public: MessageInfo(const MessageInfo &_other);
+
       /// \brief Destructor.
       public: ~MessageInfo();
 
@@ -60,6 +64,11 @@ namespace ignition
       /// \brief Set the partition of the topic the message was on.
       /// \param[in] _partition of the topic.
       public: void SetPartition(const std::string &_partition);
+
+      /// \brief Set both the topic and the partition from a single string.
+      /// \param[in] _topicWithPartition The topic string with the partition
+      /// information included.
+      public: void SetTopicAndPartition(std::string _topicWithPartition);
 
       /// \internal
       /// \brief Pointer to private data.
