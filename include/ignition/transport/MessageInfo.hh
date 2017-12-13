@@ -37,6 +37,7 @@ namespace ignition
 
       /// \brief Explicit copy constructor (The copy constructor is deleted by
       /// default due to the use of std::unique_ptr member).
+      /// \param[in] _other an instance to copy data from
       public: MessageInfo(const MessageInfo &_other);
 
       /// \brief Destructor.
