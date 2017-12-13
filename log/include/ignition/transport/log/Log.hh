@@ -33,6 +33,7 @@ namespace ignition
         public: Log();
 
         /// \brief move constructor
+        /// \param[in] _old the instance being moved into this one
         public: Log(Log &&_old);
 
         /// \brief destructor
