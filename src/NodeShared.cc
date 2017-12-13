@@ -220,7 +220,7 @@ void NodeShared::RunReceptionTask()
 
 //////////////////////////////////////////////////
 bool NodeShared::Publish(const std::string &_topic, char *_data,
-  const size_t dataSize, DeallocFunc *_ffn, const std::string &_msgType)
+  const size_t _dataSize, DeallocFunc *_ffn, const std::string &_msgType)
 {
   try
   {
@@ -228,7 +228,7 @@ bool NodeShared::Publish(const std::string &_topic, char *_data,
     // Note that we use zero copy for passing the message data (msg2).
     zmq::message_t msg0(_topic.data(), _topic.size()),
                    msg1(this->myAddress.data(), this->myAddress.size()),
-                   msg2(_data, dataSize, _ffn, nullptr),
+                   msg2(_data, _dataSize, _ffn, nullptr),
                    msg3(_msgType.data(), _msgType.size());
 
     // Send the messages
