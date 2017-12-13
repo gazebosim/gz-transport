@@ -42,7 +42,8 @@ namespace ignition
 
       /// \brief Move constructor
       /// \param[in] _other an instance data is moved from
-      public: MessageInfo(MessageInfo &&_other) = default;
+      public: MessageInfo(
+          MessageInfo &&_other) = default;  // NOLINT(whitespace/operators)
 
       /// \brief Destructor.
       public: ~MessageInfo();
