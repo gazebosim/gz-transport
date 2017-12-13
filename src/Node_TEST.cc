@@ -1119,6 +1119,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 
   std::function<bool(const ignition::msgs::Int32 &, ignition::msgs::Int32 &)>
     advCb = [](const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+    -> bool
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
@@ -1155,7 +1156,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
   reset();
 
   std::function<bool(ignition::msgs::Int32 &)> advCb =
-    [](ignition::msgs::Int32 &_rep)
+    [](ignition::msgs::Int32 &_rep) -> bool
   {
     _rep.set_data(data);
     return true;
