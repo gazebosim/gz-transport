@@ -69,7 +69,7 @@ namespace ignition
       /// \param[in] _fullyQualifiedName The topic string with the partition
       /// information included.
       /// \sa TopicUtils::FullyQualifiedName
-      public: void SetTopicAndPartition(std::string _fullyQualifiedName);
+      public: void SetTopicAndPartition(const std::string &_fullyQualifiedName);
 
       /// \internal
       /// \brief Pointer to private data.
