@@ -21,7 +21,7 @@ namespace ignition
 {
   namespace transport
   {
-    namespace logging
+    namespace log
     {
       /// \brief Forward declaration
       class LogPrivate;

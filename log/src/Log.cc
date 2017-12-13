@@ -15,15 +15,15 @@
  *
 */
 
-#include "ignition/transport/logging/Log.hh"
+#include "ignition/transport/log/Log.hh"
 
 /// \brief Private implementation
-class ignition::transport::logging::LogPrivate
+class ignition::transport::log::LogPrivate
 {
 };
 
 using namespace ignition::transport;
-using namespace ignition::transport::logging;
+using namespace ignition::transport::log;
 
 //////////////////////////////////////////////////
 Log::Log()
