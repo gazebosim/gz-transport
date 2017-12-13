@@ -40,6 +40,10 @@ namespace ignition
       /// \param[in] _other an instance to copy data from
       public: MessageInfo(const MessageInfo &_other);
 
+      /// \brief Move constructor
+      /// \param[in] _other an instance data is moved from
+      public: MessageInfo(MessageInfo &&_other) = default;
+
       /// \brief Destructor.
       public: ~MessageInfo();
 
