@@ -56,6 +56,7 @@ MessageInfo::MessageInfo()
 
 //////////////////////////////////////////////////
 MessageInfo::MessageInfo(const MessageInfo &_other)
+  : dataPtr(new MessageInfoPrivate())
 {
   *this->dataPtr = *_other.dataPtr;
 }

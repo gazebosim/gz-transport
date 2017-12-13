@@ -92,6 +92,20 @@ TEST(MessageInfoTest, SetTopicAndPartition)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check Copy constructor.
+TEST(MessageInfoTest, CopyConstructor)
+{
+  transport::MessageInfo info;
+  info.SetTopicAndPartition("@/a_partition@/b_topic");
+  transport::MessageInfo infoCopy(info);
+
+  EXPECT_EQ("/a_partition", info.Partition());
+  EXPECT_EQ("/b_topic", info.Topic());
+  EXPECT_EQ("/a_partition", infoCopy.Partition());
+  EXPECT_EQ("/b_topic", infoCopy.Topic());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
