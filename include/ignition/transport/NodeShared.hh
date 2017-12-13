@@ -77,7 +77,7 @@ namespace ignition
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
                            char *_data,
-                           const size_t dataSize,
+                           const size_t _dataSize,
                            DeallocFunc *_ffn,
                            const std::string &_msgType);
 
