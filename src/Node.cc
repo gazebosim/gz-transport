@@ -278,6 +278,32 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     MessageInfo info = this->dataPtr->CreateMessageInfo();
 
+    if (subscribers.haveLocal)
+    {
+      for (auto &node : subscribers.localHandlers)
+      {
+        for (auto &handler : node.second)
+        {
+          const ISubscriptionHandlerPtr &localHandler = handler.second;
+
+          if (!localHandler)
+          {
+            std::cerr << "Node::Publisher::Publish(): "
+                      << "NULL local subscription handler" << std::endl;
+            continue;
+          }
+
+          if (localHandler->TypeName() != kGenericMessageType &&
+              localHandler->TypeName() != _msg.GetTypeName())
+          {
+            continue;
+          }
+
+          localHandler->RunLocalCallback(_msg, info);
+        }
+      }
+    }
+
     if (subscribers.haveRaw)
     {
       for (auto &node : subscribers.rawHandlers)
@@ -285,6 +311,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         for (auto &handler : node.second)
         {
           const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+
+          if (!rawHandler)
+          {
+            std::cerr << "Node::Publisher::Publish(): "
+                      << "NULL raw subscription handler" << std::endl;
+            continue;
+          }
 
           if (rawHandler->TypeName() != kGenericMessageType &&
               rawHandler->TypeName() != _msg.GetTypeName())
@@ -309,39 +342,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
           break;
       }
     }
-
-    if (subscribers.haveLocal)
-    {
-      for (auto &node : subscribers.localHandlers)
-      {
-        for (auto &handler : node.second)
-        {
-          const ISubscriptionHandlerPtr &localHandler = handler.second;
-
-          if (localHandler)
-          {
-            if (localHandler->TypeName() != kGenericMessageType &&
-                localHandler->TypeName() != _msg.GetTypeName())
-            {
-              continue;
-            }
-
-            localHandler->RunLocalCallback(_msg, info);
-          }
-          else
-          {
-            std::cerr << "Node::Publisher::Publish(): NULL subscription handler"
-                      << std::endl;
-          }
-        }
-      }
-    }
   }
 
   // Remote subscribers.
   if (subscribers.haveRemote)
   {
-    if (!haveSerialized)
+    if (!haveSerialized && !failedToSerialize)
     {
       failedToSerialize = !_msg.SerializeToString(&msgData);
     }

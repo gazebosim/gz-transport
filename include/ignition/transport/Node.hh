@@ -127,7 +127,7 @@ namespace ignition
         {
           /// \brief Publish a raw pre-serialized message.
           ///
-          /// NOTE: This function needs to deserialize the message in order to
+          /// \note This function needs to deserialize the message in order to
           /// send it to local (intraprocess) subscribers.
           ///
           /// \param[in] _msgData A std::string that represents an
