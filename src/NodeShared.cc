@@ -315,7 +315,7 @@ NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(
 //////////////////////////////////////////////////
 NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
     const std::string &_topic,
-    const std::string &_msgType)
+    const std::string &_msgType) const
 {
   SubscriberInfo info;
 

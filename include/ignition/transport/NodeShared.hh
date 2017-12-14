@@ -120,7 +120,7 @@ namespace ignition
       /// \return Information about subscribers.
       SubscriberInfo CheckSubscriberInfo(
           const std::string &_topic,
-          const std::string &_msgType);
+          const std::string &_msgType) const;
 
       /// \brief Call the SubscriptionHandler callbacks (local and raw) for this
       /// NodeShared.
