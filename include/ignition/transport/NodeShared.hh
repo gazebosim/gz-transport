@@ -78,18 +78,32 @@ namespace ignition
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
 
+      /// \brief HandlerInfo contains information about callback handlers which
+      /// is useful for local publishers and message receivers. You should only
+      /// retrieve a HandlerInfo by calling CheckHandlerInfo(const std::string&)
       public: struct HandlerInfo
       {
+        /// \brief This is a map of the standard local callback handlers. The
+        /// key is the topic name, and the value is another map whose key is
+        /// the node UUID and whose value is a smart pointer to the handler.
         public: std::map<std::string, ISubscriptionHandler_M> localHandlers;
 
+        /// \brief This is a map of the raw local callback handlers. The key is
+        /// the topic name, and the value is another map whose key is the node
+        /// UUID and whose value is a smart pointer to the handler.
         public: std::map<std::string, RawSubscriptionHandler_M> rawHandlers;
 
+        /// \brief True iff there are any standard local subscribers.
         public: bool haveLocal;
 
+        /// \brief True iff there are any raw local subscribers
         public: bool haveRaw;
 
+        // Friendship. This allows HandlerInfo to be created by
+        // CheckHandlerInfo()
         friend class NodeShared;
 
+        /// \brief Default constructor
         private: HandlerInfo() = default;
       };
 
@@ -99,6 +113,8 @@ namespace ignition
 
       /// \brief This struct provides information about the Subscribers of a
       /// Publisher. It should only be retrieved using CheckSubscriberInfo().
+      /// The relevant subscriber info is a superset of the relevant HandlerInfo
+      /// so we extend that struct.
       public: struct SubscriberInfo : public HandlerInfo
       {
         /// \brief True iff this Publisher has any remote subscribers
