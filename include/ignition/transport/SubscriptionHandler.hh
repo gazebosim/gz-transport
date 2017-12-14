@@ -31,6 +31,13 @@
 #include <memory>
 #include <string>
 #include <utility>
+
+#include <google/protobuf/stubs/common.h>
+
+#if GOOGLE_PROTOBUF_VERSION >= 3000000
+#include <google/protobuf/stubs/casts.h>
+#endif
+
 #include <ignition/msgs/Factory.hh>
 
 #include "ignition/transport/Helpers.hh"
@@ -191,7 +198,7 @@ namespace ignition
         if (!this->UpdateThrottling())
           return true;
 
-#if GOOGLE_PROTOBUF_VERSION > 2999999
+#if GOOGLE_PROTOBUF_VERSION >= 3000000
         auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 #else
         auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
