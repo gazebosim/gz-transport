@@ -37,7 +37,7 @@ namespace ignition
     class NodePrivate
     {
       /// \brief Constructor.
-      public: NodePrivate();
+      public: NodePrivate() = default;
 
       /// \brief Destructor.
       public: virtual ~NodePrivate() = default;
@@ -68,9 +68,6 @@ namespace ignition
 
       /// \brief Custom options for this node.
       public: NodeOptions options;
-
-      /// \brief Access advanced features of the Node class
-      public: Node::Advanced advanced;
     };
   }
 }

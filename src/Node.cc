@@ -80,8 +80,7 @@ namespace ignition
     {
       /// \brief Default constructor.
       public: PublisherPrivate()
-        : shared(NodeShared::Instance()),
-          advanced(this)
+        : shared(NodeShared::Instance())
       {
       }
 
@@ -89,8 +88,7 @@ namespace ignition
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
         : shared(NodeShared::Instance()),
-          publisher(_publisher),
-          advanced(this)
+          publisher(_publisher)
       {
       }
 
@@ -168,8 +166,6 @@ namespace ignition
 
       /// \brief Mutex to protect the node::publisher from race conditions.
       public: std::mutex mutex;
-
-      public: Node::Publisher::Advanced advanced;
     };
   }
 }
@@ -371,7 +367,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-bool Node::Publisher::Advanced::RawPublish(
+bool Node::Publisher::RawPublish(
     const std::string &_msgData,
     const std::string &_msgType)
 {
@@ -383,7 +379,7 @@ bool Node::Publisher::Advanced::RawPublish(
   if (publisherMsgType  != _msgType
       && publisherMsgType != kGenericMessageType)
   {
-    std::cerr << "Node::Publisher::Advanced::RawPublish() type mismatch.\n"
+    std::cerr << "Node::Publisher::RawPublish() type mismatch.\n"
               << "\t* Type advertised: "
               << this->dataPtr->publisher.MsgTypeName()
               << "\n\t* Type published: " << _msgType << std::endl;
@@ -414,25 +410,6 @@ bool Node::Publisher::Advanced::RawPublish(
   }
 
   return true;
-}
-
-//////////////////////////////////////////////////
-Node::Publisher::Advanced::Advanced(Node::PublisherPrivate * const _dataPtr)
-  : dataPtr(_dataPtr)
-{
-  // Do nothing
-}
-
-//////////////////////////////////////////////////
-Node::Publisher::Advanced &Node::Publisher::UseAdvancedFeatures()
-{
-  return this->dataPtr->advanced;
-}
-
-//////////////////////////////////////////////////
-const Node::Publisher::Advanced &Node::Publisher::UseAdvancedFeatures() const
-{
-  return this->dataPtr->advanced;
 }
 
 //////////////////////////////////////////////////
@@ -713,7 +690,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-bool Node::Advanced::RawSubscribe(
+bool Node::RawSubscribe(
     const std::string &_topic,
     const RawCallback &_callback,
     const std::string &_msgType,
@@ -740,25 +717,6 @@ bool Node::Advanced::RawSubscribe(
         fullyQualifiedTopic, this->dataPtr->nUuid, handlerPtr);
 
   return this->dataPtr->SubscribeHelper(fullyQualifiedTopic);
-}
-
-//////////////////////////////////////////////////
-Node::Advanced::Advanced(NodePrivate * const _dataPtr)
-  : dataPtr(_dataPtr)
-{
-  // Do nothing
-}
-
-//////////////////////////////////////////////////
-Node::Advanced &Node::UseAdvancedFeatures()
-{
-  return this->dataPtr->advanced;
-}
-
-//////////////////////////////////////////////////
-const Node::Advanced &Node::UseAdvancedFeatures() const
-{
-  return this->dataPtr->advanced;
 }
 
 //////////////////////////////////////////////////
@@ -923,13 +881,6 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   }
 
   return Publisher(publisher);
-}
-
-//////////////////////////////////////////////////
-NodePrivate::NodePrivate()
-  : advanced(this)
-{
-  // Do nothing
 }
 
 //////////////////////////////////////////////////
