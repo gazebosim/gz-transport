@@ -95,7 +95,7 @@ namespace ignition
 
       /// \brief Get information about the local and raw subscribers that are
       /// attached to this NodeShared.
-      HandlerInfo CheckHandlerInfo(const std::string &_topic);
+      HandlerInfo CheckHandlerInfo(const std::string &_topic) const;
 
       /// \brief This struct provides information about the Subscribers of a
       /// Publisher. It should only be retrieved using CheckSubscriberInfo().
@@ -230,7 +230,7 @@ namespace ignition
       public: std::thread threadReception;
 
       /// \brief Mutex to guarantee exclusive access between all threads.
-      public: std::recursive_mutex mutex;
+      public: mutable std::recursive_mutex mutex;
 
       /// \brief When true, the reception thread will finish.
       public: bool exit;
