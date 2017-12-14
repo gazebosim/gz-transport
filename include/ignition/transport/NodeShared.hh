@@ -115,6 +115,9 @@ namespace ignition
       /// Publisher. It should only be retrieved using CheckSubscriberInfo().
       /// The relevant subscriber info is a superset of the relevant HandlerInfo
       /// so we extend that struct.
+      ///
+      /// This struct is used internally by publishers to determine what kind of
+      /// subscribers they have.
       public: struct SubscriberInfo : public HandlerInfo
       {
         /// \brief True iff this Publisher has any remote subscribers
