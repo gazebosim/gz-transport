@@ -64,28 +64,28 @@ TEST(MessageInfoTest, SetTopicAndPartition)
 {
   {
     transport::MessageInfo info;
-    info.SetTopicAndPartition("@/a_partition@/b_topic");
+    EXPECT_TRUE(info.SetTopicAndPartition("@/a_partition@/b_topic"));
     EXPECT_EQ("/a_partition", info.Partition());
     EXPECT_EQ("/b_topic", info.Topic());
   }
 
   {
     transport::MessageInfo info;
-    info.SetTopicAndPartition("/a_partition@/b_topic");
+    EXPECT_FALSE(info.SetTopicAndPartition("/a_partition@/b_topic"));
     EXPECT_EQ("", info.Partition());
     EXPECT_EQ("", info.Topic());
   }
 
   {
     transport::MessageInfo info;
-    info.SetTopicAndPartition("@/a_partition/b_topic");
+    EXPECT_FALSE(info.SetTopicAndPartition("@/a_partition/b_topic"));
     EXPECT_EQ("", info.Partition());
     EXPECT_EQ("", info.Topic());
   }
 
   {
     transport::MessageInfo info;
-    info.SetTopicAndPartition("/a_partition/b_topic@");
+    EXPECT_FALSE(info.SetTopicAndPartition("/a_partition/b_topic@"));
     EXPECT_EQ("", info.Partition());
     EXPECT_EQ("", info.Topic());
   }
