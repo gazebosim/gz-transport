@@ -522,12 +522,17 @@ bool Node::Unsubscribe(const std::string &_topic)
   this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
+  this->dataPtr->shared->rawSubscriptions.RemoveHandlersForNode(
+    fullyQualifiedTopic, this->dataPtr->nUuid);
+
   // Remove the topic from the list of subscribed topics in this node.
   this->dataPtr->topicsSubscribed.erase(fullyQualifiedTopic);
 
   // Remove the filter for this topic if I am the last subscriber.
   if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
-    fullyQualifiedTopic))
+        fullyQualifiedTopic) &&
+      !this->dataPtr->shared->rawSubscriptions.HasHandlersForTopic(
+        fullyQualifiedTopic))
   {
     this->dataPtr->shared->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
@@ -536,8 +541,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   // Notify to the publishers that I am no longer interested in the topic.
   MsgAddresses_M addresses;
   if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
-        fullyQualifiedTopic,
-    addresses))
+        fullyQualifiedTopic, addresses))
   {
     return false;
   }
