@@ -311,7 +311,7 @@ bool Log::Open(const std::string &_file, int64_t _mode)
   if (!*(this->dataPtr->db))
   {
     ignerr << "Failed to open sqlite3 database\n";
-    return 1;
+    return false;
   }
 
   const char *schemaFile = SCHEMA_INSTALL_PATH "/0.1.0.sql";
