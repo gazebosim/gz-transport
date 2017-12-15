@@ -25,7 +25,7 @@ generate_export_header(${log_lib_target}
   EXPORT_FILE_NAME "include/ignition/transport/log/Export.hh"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/ignition/transport/log/Export.hh"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ignition/transport/log/")
+  DESTINATION "${INCLUDE_INSTALL_DIR}/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}/log")
 
 # Include directories
 target_include_directories(${log_lib_target} PUBLIC
@@ -63,3 +63,6 @@ configure_file(src/build_config.hh.in build_config.hh @ONLY)
 # Library installation
 set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_MAJOR_VERSION} VERSION ${PROJECT_VERSION_FULL})
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
+
+# header installation
+install(DIRECTORY include/ignition DESTINATION ${INCLUDE_INSTALL_DIR}/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
