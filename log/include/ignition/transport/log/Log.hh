@@ -27,7 +27,7 @@ namespace ignition
   {
     namespace log
     {
-      enum
+      enum OpenMode
       {
         READ = 1,
         READ_WRITE = 2,
@@ -53,7 +53,7 @@ namespace ignition
         /// \brief Open a log file
         /// \param[in] _file path to log file
         /// \param[in] _mode flag indicating read only or read/write
-        public: bool Open(const std::string &_file, int64_t _mode = READ);
+        public: bool Open(const std::string &_file, OpenMode _mode = READ);
 
         /// \brief Insert a message into the log file
         /// \param[in] _time Time the message was received

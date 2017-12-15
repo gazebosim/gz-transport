@@ -33,10 +33,9 @@ namespace ignition
         NO_ERROR = 0,
         FAILED_TO_OPEN = -1,
         FAILED_TO_SUBSCRIBE = -2,
-        BAD_REGEX = -3,
-        ALREADY_RECORDING = -4,
-        INVALID_TOPIC = -5,
-        TOPIC_NOT_FOUND = -6,
+        ALREADY_RECORDING = -3,
+        INVALID_TOPIC = -4,
+        TOPIC_NOT_FOUND = -5,
       };
 
       /// \brief Forward declaration

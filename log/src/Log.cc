@@ -282,7 +282,7 @@ Log::~Log()
 }
 
 //////////////////////////////////////////////////
-bool Log::Open(const std::string &_file, int64_t _mode)
+bool Log::Open(const std::string &_file, OpenMode _mode)
 {
   int returnCode;
 
