@@ -124,6 +124,7 @@ RecordError Record::Start(const std::string &_file)
   if (!this->dataPtr->logFile->Open(_file, log::READ_WRITE_CREATE))
   {
     ignerr << "Failed to open or create file [" << _file << "]\n";
+    this->dataPtr->logFile.reset(nullptr);
     return FAILED_TO_OPEN;
   }
 
