@@ -44,7 +44,7 @@ namespace ignition
       /// \brief Records ignition transport topics
       /// This class makes it easy to record topics to a log file.
       /// Responsibilities: topic name matching, time received tracking,
-      /// multiple thread safety
+      /// multiple thread safety, subscribing to topics
       /// TODO: make it subscribe to newly discovered topics
       class IGNITION_TRANSPORT_LOG_VISIBLE Record
       {
