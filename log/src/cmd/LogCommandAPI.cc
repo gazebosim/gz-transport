@@ -71,7 +71,7 @@ extern "C"
     igndbg << "Shutting down\n";
     recorder.Stop();
 
-    return 0;
+    return NO_ERROR;
   }
 
   /// \brief Playback topics whos name matches the given pattern
@@ -79,6 +79,6 @@ extern "C"
       const char *_file, const char *_pattern)
   {
     // TODO
-    return 0;
+    return NO_ERROR;
   }
 }
