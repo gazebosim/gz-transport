@@ -318,7 +318,6 @@ bool Log::Open(const std::string &_file, int64_t _mode)
 
   // Assume the file didn't exist before and create a blank schema
   igndbg << "Schema file: " << schemaFile << "\n";
-  std::string schema;
   std::ifstream fin(schemaFile, std::ifstream::in);
   if (!fin)
   {
@@ -326,17 +325,15 @@ bool Log::Open(const std::string &_file, int64_t _mode)
     return false;
   }
 
-  // get length of file:
-  fin.seekg(0, fin.end);
-  int length = fin.tellg();
-  fin.seekg(0, fin.beg);
-
-  // Try to read all of the schema at once
-  char *buffer = new char[length];
-  fin.read(buffer, length);
-  schema = buffer;
-  delete [] buffer;
-  if (!fin)
+  // Read the schema file
+  std::string schema;
+  char buffer[4096];
+  while (fin)
+  {
+    fin.read(buffer, sizeof(buffer));
+    schema.insert(schema.size(), buffer, fin.gcount());
+  }
+  if (schema.empty())
   {
     ignerr << "Failed to read schema file [" << schemaFile << "[\n";
     return false;

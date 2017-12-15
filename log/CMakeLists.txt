@@ -54,6 +54,9 @@ target_compile_options(${log_lib_target} PRIVATE
   ${SQLite3_CFLAGS}
 )
 
+# ign_build_tests macro doesn't support building tests in a subflolder
+add_subdirectory(src)
+
 # Configure file with build time info
 set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
 install(DIRECTORY sql DESTINATION ${SCHEMA_INSTALL_BASE})
