@@ -82,7 +82,7 @@ extern "C"
           const google::protobuf::Message &_msg,
           const transport::MessageInfo &_info)
       {
-        // Get time RX using monotonic 
+        // Get time RX using monotonic
         std::chrono::nanoseconds nowNS(
             std::chrono::steady_clock::now().time_since_epoch());
         // monotonic -> utc in nanoseconds

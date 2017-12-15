@@ -142,8 +142,8 @@ int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
   const std::string sql_message_type =
     "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
   const std::string sql_topic =
-    "INSERT INTO topics (name, message_type_id) \
-     SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
+    "INSERT INTO topics (name, message_type_id)"
+    " SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
 
   raii_sqlite3::Statement message_type_statement(
       *(this->db), sql_message_type);
@@ -266,7 +266,7 @@ Log::Log()
 }
 
 //////////////////////////////////////////////////
-Log::Log (Log &&_other)
+Log::Log(Log &&_other)  // NOLINT
   : dataPtr(std::move(_other.dataPtr))
 {
 }
@@ -327,15 +327,15 @@ bool Log::Open(const std::string &_file, int64_t _mode)
   }
 
   // get length of file:
-  fin.seekg (0, fin.end);
+  fin.seekg(0, fin.end);
   int length = fin.tellg();
-  fin.seekg (0, fin.beg);
+  fin.seekg(0, fin.beg);
 
   // Try to read all of the schema at once
-  char *buffer = new char [length];
+  char *buffer = new char[length];
   fin.read(buffer, length);
   schema = buffer;
-  delete buffer;
+  delete [] buffer;
   if (!fin)
   {
     ignerr << "Failed to read schema file [" << schemaFile << "[\n";

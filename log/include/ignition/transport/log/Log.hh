@@ -16,6 +16,7 @@
 */
 
 #include <memory>
+#include <string>
 
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
@@ -44,7 +45,7 @@ namespace ignition
 
         /// \brief move constructor
         /// \param[in] _old the instance being moved into this one
-        public: Log(Log &&_old);
+        public: Log(Log &&_old);  // NOLINT
 
         /// \brief destructor
         public: ~Log();
