@@ -328,7 +328,7 @@ bool Log::Open(const std::string &_file, OpenMode _mode)
   }
   schemaFile += "/0.1.0.sql";
 
-  // Assume the file didn't exist before and create a blank schema
+  // Assume the database is uninitialized; use the schema to initialize it
   igndbg << "Schema file: " << schemaFile << "\n";
   std::ifstream fin(schemaFile, std::ifstream::in);
   if (!fin)
