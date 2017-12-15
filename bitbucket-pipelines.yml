@@ -3,6 +3,7 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
+image: ubuntu:xenial
 
 pipelines:
   default:
@@ -11,7 +12,7 @@ pipelines:
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
           - wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
           - apt-get update
-          - apt-get -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn libignition-msgs-dev libignition-common-dev libignition-math3-dev
+          - apt-get -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn libignition-msgs-dev libignition-common-dev
           - mkdir build
           - cd build
           - cmake ..
