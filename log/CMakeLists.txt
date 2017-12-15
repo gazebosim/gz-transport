@@ -10,6 +10,7 @@ set(logging_sources
   src/cmd/LogCommandAPI.cc
   src/Log.cc
   src/raii-sqlite3.cc
+  src/Record.cc
 )
 
 add_library(${log_lib_target} SHARED
