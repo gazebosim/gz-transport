@@ -32,6 +32,7 @@ target_include_directories(${log_lib_target} PUBLIC
   $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+  ${IGNITION-COMMON_INCLUDE_DIRS}
 )
 target_include_directories(${log_lib_target} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -42,7 +43,7 @@ target_include_directories(${log_lib_target} PRIVATE
 # Library dependencies
 target_link_libraries(${log_lib_target} PUBLIC
   ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-  ${ignition-common0_LIBRARIES}
+  ${IGNITION-COMMON_LIBRARIES}
 )
 target_link_libraries(${log_lib_target} PRIVATE
   ${SQLite3_LIBRARIES}
