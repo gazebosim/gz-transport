@@ -21,7 +21,7 @@ require 'optparse'
 # Constants.
 COMMON_OPTIONS =
   "  -h [ --help ]              Print this help message.                   \n"\
-  "  -v [ --verbose ] LEVEL     Set verbosity level 0-4                    \n"\
+  "  -v [ --verbose ] LEVEL     Set verbosity level 0-4 (default 1)        \n"\
   "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
   "                                                                        \n"\
 
