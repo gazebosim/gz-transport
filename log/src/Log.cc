@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <fstream>
 #include <memory>
@@ -314,7 +315,18 @@ bool Log::Open(const std::string &_file, int64_t _mode)
     return false;
   }
 
-  const char *schemaFile = SCHEMA_INSTALL_PATH "/0.1.0.sql";
+  // Test hook so tests can be run before `make install`
+  std::string schemaFile;
+  const char *envPath = std::getenv("IGN_TRANSPORT_LOG_SQL_PATH");
+  if (envPath)
+  {
+    schemaFile = envPath;
+  }
+  else
+  {
+    schemaFile = SCHEMA_INSTALL_PATH;
+  }
+  schemaFile += "/0.1.0.sql";
 
   // Assume the file didn't exist before and create a blank schema
   igndbg << "Schema file: " << schemaFile << "\n";
@@ -335,7 +347,7 @@ bool Log::Open(const std::string &_file, int64_t _mode)
   }
   if (schema.empty())
   {
-    ignerr << "Failed to read schema file [" << schemaFile << "[\n";
+    ignerr << "Failed to read schema file [" << schemaFile << "]\n";
     return false;
   }
 
