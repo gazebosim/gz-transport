@@ -17,17 +17,27 @@
 
 #include <memory>
 
+#include <ignition/common/Time.hh>
+#include <ignition/transport/log/Export.hh>
+
 namespace ignition
 {
   namespace transport
   {
     namespace log
     {
+      enum
+      {
+        READ = 1,
+        READ_WRITE = 2,
+        READ_WRITE_CREATE = 3,
+      };
+
       /// \brief Forward declaration
       class LogPrivate;
 
       /// \brief Interface to a log file
-      class Log
+      class IGNITION_TRANSPORT_LOG_VISIBLE Log
       {
         /// \brief constructor
         public: Log();
@@ -38,6 +48,22 @@ namespace ignition
 
         /// \brief destructor
         public: ~Log();
+
+        /// \brief Open a log file
+        /// \a
+        public: bool Open(const std::string &_file, int64_t mode = READ);
+
+        /// \brief Insert a message into the log file
+        /// \param[in] _time Time the message was received
+        /// \param[in] _topic Name of the topic the message was on
+        /// \param[in] _type Name of the message type
+        /// \param[in] _data pointer to a buffer containing the message data
+        /// \param[in] _len number of bytes of data
+        /// \return true if the message was successfully inserted
+        public: bool InsertMessage(
+            const common::Time &_time,
+            const std::string &_topic, const std::string &_type,
+            const void *_data, std::size_t _len);
 
         /// \brief Private implementation
         private: std::unique_ptr<LogPrivate> dataPtr;

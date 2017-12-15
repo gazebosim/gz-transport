@@ -74,7 +74,7 @@ class Cmd
     options = {
       'file' => '',
       'pattern' => '.+',
-      'verbose' => 0,
+      'verbose' => 1,
     }
 
     usage = COMMANDS[args[0]]
@@ -139,7 +139,7 @@ class Cmd
       end
 
       if result != 0
-        puts "TODO specific failure message"
+        exit -1
       end
     rescue
       puts "Library error: Problem running [#{options['command']}]()"

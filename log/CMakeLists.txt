@@ -1,4 +1,6 @@
 find_package(ignition-common0 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(SQLite3 REQUIRED sqlite3>=3.6.19)
 
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
@@ -7,12 +9,14 @@ add_subdirectory(src/cmd)
 set(logging_sources
   src/cmd/LogCommandAPI.cc
   src/Log.cc
+  src/raii-sqlite3.cc
 )
 
 add_library(${log_lib_target} SHARED
   ${logging_sources}
 )
 
+# Generate visibility macros
 include(GenerateExportHeader)
 generate_export_header(${log_lib_target}
   EXPORT_MACRO_NAME "IGNITION_TRANSPORT_LOG_VISIBLE"
@@ -22,14 +26,38 @@ generate_export_header(${log_lib_target}
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/ignition/transport/log/Export.hh"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ignition/transport/log/")
 
+# Include directories
 target_include_directories(${log_lib_target} PUBLIC
   $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 )
-target_link_libraries(${log_lib_target} PRIVATE
-  ${ignition-common0_LIBRARIES}
+target_include_directories(${log_lib_target} PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${SQLite3_INCLUDE_DIRS}
 )
 
+# Library dependencies
+target_link_libraries(${log_lib_target} PUBLIC
+  ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+  ${ignition-common0_LIBRARIES}
+)
+target_link_libraries(${log_lib_target} PRIVATE
+  ${SQLite3_LIBRARIES}
+)
+
+# Compile flags
+target_compile_options(${log_lib_target} PRIVATE
+  ${SQLite3_CFLAGS}
+)
+
+# Configure file with build time info
+set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
+install(DIRECTORY sql DESTINATION ${SCHEMA_INSTALL_BASE})
+set(SCHEMA_INSTALL_PATH ${SCHEMA_INSTALL_BASE}/sql)
+configure_file(src/build_config.hh.in build_config.hh @ONLY)
+
+# Library installation
 set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_MAJOR_VERSION} VERSION ${PROJECT_VERSION_FULL})
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
