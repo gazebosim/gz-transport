@@ -127,7 +127,7 @@ RecordError Record::Start(const std::string &_file)
     return FAILED_TO_OPEN;
   }
 
-  ignmsg << "Started recordinng to [" << _file << "]\n";
+  ignmsg << "Started recording to [" << _file << "]\n";
 
   return NO_ERROR;
 }
@@ -142,29 +142,15 @@ void Record::Stop()
 //////////////////////////////////////////////////
 RecordError Record::AddTopic(const std::string &_topic)
 {
-  std::vector<std::string> allTopics;
-  this->dataPtr->node.TopicList(allTopics);
-  for (auto topic : allTopics)
+  igndbg << "Recording [" << _topic << "]\n";
+  // Subscribe to the topic whether it exists or not
+  if (!this->dataPtr->node.Subscribe(
+        _topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
   {
-    if (topic == _topic)
-    {
-      igndbg << "Recording [" << topic << "]\n";
-      // Subscribe to the topic
-      if (!this->dataPtr->node.Subscribe(
-            topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
-      {
-        ignerr << "Failed to subscribe to [" << topic << "]\n";
-        return FAILED_TO_SUBSCRIBE;
-      }
-      return NO_ERROR;
-    }
-    else
-    {
-      igndbg << "Not recording " << topic << "\n";
-    }
+    ignerr << "Failed to subscribe to [" << _topic << "]\n";
+    return FAILED_TO_SUBSCRIBE;
   }
-  // TODO store topic and attempt to subscribe to it when discovered
-  return TOPIC_NOT_FOUND;
+  return NO_ERROR;
 }
 
 //////////////////////////////////////////////////

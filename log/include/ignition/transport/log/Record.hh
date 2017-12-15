@@ -68,8 +68,8 @@ namespace ignition
 
         /// \brief Add a topic to be recorded (exact match only)
         /// \param[in] _topic The exact topic name
-        /// \note This method attempts to subscribe to topics immediately.
-        ///       These subscriptions will be kept until this is destructed.
+        /// \note This method attempts to subscribe to the topic immediately.
+        ///       The subscription will be kept until this is destructed.
         /// \return NO_ERROR if the subscription was created.
         public: RecordError AddTopic(const std::string &_topic);
 
