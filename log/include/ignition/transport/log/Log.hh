@@ -50,8 +50,9 @@ namespace ignition
         public: ~Log();
 
         /// \brief Open a log file
-        /// \a
-        public: bool Open(const std::string &_file, int64_t mode = READ);
+        /// \param[in] _file path to log file
+        /// \param[in] _mode flag indicating read only or read/write
+        public: bool Open(const std::string &_file, int64_t _mode = READ);
 
         /// \brief Insert a message into the log file
         /// \param[in] _time Time the message was received

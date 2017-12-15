@@ -281,7 +281,7 @@ Log::~Log()
 }
 
 //////////////////////////////////////////////////
-bool Log::Open(const std::string &_file, int64_t mode)
+bool Log::Open(const std::string &_file, int64_t _mode)
 {
   int returnCode;
 
@@ -292,7 +292,7 @@ bool Log::Open(const std::string &_file, int64_t mode)
     return false;
   }
   int64_t modeSQL;
-  switch (mode)
+  switch (_mode)
   {
     case READ:
       modeSQL = SQLITE_OPEN_READONLY;
@@ -381,7 +381,7 @@ bool Log::InsertMessage(
     return false;
   }
 
-  // Has enough time has passed since the last transaction ended?
+  // Finish the transaction if enough time has passed
   if (this->dataPtr->TimeForNewTransaction())
   {
     this->dataPtr->EndTransaction();
