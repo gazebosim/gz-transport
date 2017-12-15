@@ -91,7 +91,7 @@ void RecordPrivate::OnMessageReceived(
 Record::Record()
   : dataPtr(new RecordPrivate)
 {
-  // Set the time used to get UTC from steady clock
+  // Set the offset used to get UTC from steady clock
   std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
   std::chrono::nanoseconds monoStartNS(
       std::chrono::steady_clock::now().time_since_epoch());
