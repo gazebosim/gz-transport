@@ -368,7 +368,7 @@ bool Log::InsertMessage(
     return false;
   }
 
-  // Get the topic_id for this name and message type
+  // Get the topics.id for this name and message type
   int64_t topicId = this->dataPtr->TopicId(_topic, _type);
   if (topicId < 0)
   {
