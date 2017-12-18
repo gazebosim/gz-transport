@@ -89,6 +89,13 @@ TEST(MessageInfoTest, SetTopicAndPartition)
     EXPECT_EQ("", info.Partition());
     EXPECT_EQ("", info.Topic());
   }
+
+  {
+    transport::MessageInfo info;
+    EXPECT_TRUE(info.SetTopicAndPartition("@@/topic_with/no_partition"));
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("/topic_with/no_partition", info.Topic());
+  }
 }
 
 //////////////////////////////////////////////////
