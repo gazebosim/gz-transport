@@ -110,7 +110,6 @@ bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
 
   if ( firstAt != 0
     || firstAt == lastAt
-    || lastAt == std::string::npos
     || lastAt == _fullyQualifiedName.size() - 1)
   {
     return false;
