@@ -62,6 +62,12 @@ MessageInfo::MessageInfo(const MessageInfo &_other)
 }
 
 //////////////////////////////////////////////////
+MessageInfo::MessageInfo(MessageInfo &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
+}
+
+//////////////////////////////////////////////////
 MessageInfo::~MessageInfo()
 {
 }
