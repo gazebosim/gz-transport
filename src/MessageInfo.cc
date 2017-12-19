@@ -109,15 +109,20 @@ void MessageInfo::SetPartition(const std::string &_partition)
 }
 
 //////////////////////////////////////////////////
-void MessageInfo::SetTopicAndPartition(
-    std::string _topicWithPartition)
+bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
 {
-  const std::size_t firstAt = 0;
-  const std::size_t lastAt = _topicWithPartition.find_last_of("@");
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
 
-  this->SetPartition(_topicWithPartition.substr(
+  if ( firstAt != 0
+    || firstAt == lastAt
+    || lastAt == _fullyQualifiedName.size() - 1)
+  {
+    return false;
+  }
+
+  this->SetPartition(_fullyQualifiedName.substr(
                        firstAt + 1, lastAt - firstAt - 1));
-
-  _topicWithPartition.erase(0, _topicWithPartition.find_last_of("@") + 1);
-  this->SetTopic(_topicWithPartition);
+  this->SetTopic(_fullyQualifiedName.substr(lastAt + 1));
+  return true;
 }
