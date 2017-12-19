@@ -35,6 +35,10 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 
+/// \brief Nanoseconds Per Second
+const sqlite3_int64 NS_PER_SEC = 1000000000;
+
+
 //////////////////////////////////////////////////
 /// \brief allow pair of strings to be a key in a map
 namespace std {
@@ -211,8 +215,8 @@ bool LogPrivate::InsertMessage(const common::Time _time, int64_t _topic,
 {
   int returnCode;
   const std::string sql_message =
-    "INSERT INTO messages (time_recv_sec, time_recv_nano, message, topic_id)"
-    "VALUES (?001, ?002, ?003, ?004);";
+    "INSERT INTO messages (time_recv, message, topic_id)"
+    "VALUES (?001, ?002, ?003);";
 
   // Compile the statement
   raii_sqlite3::Statement statement(*(this->db), sql_message);
@@ -223,25 +227,20 @@ bool LogPrivate::InsertMessage(const common::Time _time, int64_t _topic,
   }
 
   // Bind parameters
-  returnCode = sqlite3_bind_int(statement.Handle(), 1, _time.sec);
+  returnCode = sqlite3_bind_int64(statement.Handle(), 1,
+      _time.sec * NS_PER_SEC + _time.nsec);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind time received(s): " << returnCode << "\n";
+    ignerr << "Failed to bind time received: " << returnCode << "\n";
     return false;
   }
-  returnCode = sqlite3_bind_int(statement.Handle(), 2, _time.nsec);
-  if (returnCode != SQLITE_OK)
-  {
-    ignerr << "Failed to bind time received(ns): " << returnCode << "\n";
-    return false;
-  }
-  returnCode = sqlite3_bind_blob(statement.Handle(), 3, _data, _len, nullptr);
+  returnCode = sqlite3_bind_blob(statement.Handle(), 2, _data, _len, nullptr);
   if (returnCode != SQLITE_OK)
   {
     ignerr << "Failed to bind message data: " << returnCode << "\n";
     return false;
   }
-  returnCode = sqlite3_bind_int(statement.Handle(), 4, _topic);
+  returnCode = sqlite3_bind_int(statement.Handle(), 3, _topic);
   if (returnCode != SQLITE_OK)
   {
     ignerr << "Failed to bind topic_id: " << returnCode << "\n";

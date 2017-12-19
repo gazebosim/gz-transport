@@ -59,10 +59,8 @@ CREATE UNIQUE INDEX idx_topic ON topics (name, message_type_id);
 CREATE TABLE messages (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* Timestamp the message was received (utc) */
-  time_recv_sec INTEGER NOT NULL,
-  /* Nanoseconds component of the time the message was received */
-  time_recv_nano INTEGER NOT NULL,
+  /* Timestamp the message was received (utc nanoseconds) */
+  time_recv INTEGER NOT NULL,
   /* Topic the message was received on */
   topic_id REFERENCES topics (id) ON DELETE CASCADE,
   /* Serialized protobuf message */
@@ -70,4 +68,4 @@ CREATE TABLE messages (
 );
 
 /* Lots of queries are done by time received, so add an index to speed it up */
-CREATE INDEX idx_time_recv ON messages (time_recv_sec, time_recv_nano);
+CREATE INDEX idx_time_recv ON messages (time_recv);
