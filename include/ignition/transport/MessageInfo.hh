@@ -37,7 +37,12 @@ namespace ignition
 
       /// \brief Explicit copy constructor (The copy constructor is deleted by
       /// default due to the use of std::unique_ptr member).
+      /// \param[in] _other an instance to copy data from
       public: MessageInfo(const MessageInfo &_other);
+
+      /// \brief Move constructor
+      /// \param[in] _other an instance data is moved from
+      public: MessageInfo(MessageInfo &&_other);  // NOLINT
 
       /// \brief Destructor.
       public: ~MessageInfo();
@@ -66,9 +71,11 @@ namespace ignition
       public: void SetPartition(const std::string &_partition);
 
       /// \brief Set both the topic and the partition from a single string.
-      /// \param[in] _topicWithPartition The topic string with the partition
+      /// \param[in] _fullyQualifiedName The topic string with the partition
       /// information included.
-      public: void SetTopicAndPartition(std::string _topicWithPartition);
+      /// \return true if the topic and partition were set
+      /// \sa TopicUtils::FullyQualifiedName
+      public: bool SetTopicAndPartition(const std::string &_fullyQualifiedName);
 
       /// \internal
       /// \brief Pointer to private data.

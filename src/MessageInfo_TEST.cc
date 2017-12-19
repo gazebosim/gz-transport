@@ -59,6 +59,60 @@ TEST(MessageInfoTest, partition)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check SetTopicAndPartition().
+TEST(MessageInfoTest, SetTopicAndPartition)
+{
+  {
+    transport::MessageInfo info;
+    EXPECT_TRUE(info.SetTopicAndPartition("@/a_partition@/b_topic"));
+    EXPECT_EQ("/a_partition", info.Partition());
+    EXPECT_EQ("/b_topic", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    EXPECT_FALSE(info.SetTopicAndPartition("/a_partition@/b_topic"));
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    EXPECT_FALSE(info.SetTopicAndPartition("@/a_partition/b_topic"));
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    EXPECT_FALSE(info.SetTopicAndPartition("/a_partition/b_topic@"));
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("", info.Topic());
+  }
+
+  {
+    transport::MessageInfo info;
+    EXPECT_TRUE(info.SetTopicAndPartition("@@/topic_with/no_partition"));
+    EXPECT_EQ("", info.Partition());
+    EXPECT_EQ("/topic_with/no_partition", info.Topic());
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Check Copy constructor.
+TEST(MessageInfoTest, CopyConstructor)
+{
+  transport::MessageInfo info;
+  info.SetTopicAndPartition("@/a_partition@/b_topic");
+  transport::MessageInfo infoCopy(info);
+
+  EXPECT_EQ("/a_partition", info.Partition());
+  EXPECT_EQ("/b_topic", info.Topic());
+  EXPECT_EQ("/a_partition", infoCopy.Partition());
+  EXPECT_EQ("/b_topic", infoCopy.Topic());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

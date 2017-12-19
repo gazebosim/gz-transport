@@ -56,8 +56,15 @@ MessageInfo::MessageInfo()
 
 //////////////////////////////////////////////////
 MessageInfo::MessageInfo(const MessageInfo &_other)
+  : dataPtr(new MessageInfoPrivate())
 {
   *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
+MessageInfo::MessageInfo(MessageInfo &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
 }
 
 //////////////////////////////////////////////////
