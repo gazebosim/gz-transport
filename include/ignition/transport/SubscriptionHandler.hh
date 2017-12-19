@@ -26,17 +26,17 @@
 #pragma warning(pop)
 #endif
 
-#include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-
 #include <google/protobuf/stubs/common.h>
 
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
 #include <google/protobuf/stubs/casts.h>
 #endif
+
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
 
 #include <ignition/msgs/Factory.hh>
 
