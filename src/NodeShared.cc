@@ -259,10 +259,7 @@ void NodeShared::RecvMsgUpdate()
   // std::string sender;
   std::string data;
   std::string msgType;
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  ISubscriptionHandlerPtr firstSubscriberPtr;
-  bool handlersFound;
-  bool firstHandlerFound;
+  HandlerInfo handlerInfo;
 
   {
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
@@ -292,43 +289,125 @@ void NodeShared::RecvMsgUpdate()
       return;
     }
 
-    handlersFound = this->localSubscriptions.Handlers(topic, handlers);
-    firstHandlerFound = this->localSubscriptions.FirstHandler(topic, msgType,
-      firstSubscriberPtr);
+    handlerInfo = this->CheckHandlerInfo(topic);
   }
 
-  // Execute the callbacks registered.
-  if (handlersFound && firstHandlerFound)
+  this->TriggerSubscriberCallbacks(topic, data, msgType, handlerInfo);
+}
+
+//////////////////////////////////////////////////
+NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(
+    const std::string &_topic) const
+{
+  HandlerInfo info;
+
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+
+  info.haveLocal = this->localSubscriptions.Handlers(
+        _topic, info.localHandlers);
+
+  info.haveRaw = this->rawSubscriptions.Handlers(
+        _topic, info.rawHandlers);
+
+  return info;
+}
+
+//////////////////////////////////////////////////
+NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
+    const std::string &_topic,
+    const std::string &_msgType) const
+{
+  SubscriberInfo info;
+
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+
+  info.haveLocal = this->localSubscriptions.Handlers(
+        _topic, info.localHandlers);
+
+  info.haveRaw = this->rawSubscriptions.Handlers(
+        _topic, info.rawHandlers);
+
+  info.haveRemote = this->remoteSubscribers.HasTopic(
+        _topic, _msgType);
+
+  return info;
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerSubscriberCallbacks(
+    const std::string &_topic,
+    const std::string &_msgData,
+    const std::string &_msgType,
+    const HandlerInfo &_handlerInfo)
+{
+  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
+    return;
+
+  MessageInfo info;
+  info.SetTopicAndPartition(_topic);
+  info.SetType(_msgType);
+
+  if (_handlerInfo.haveRaw)
   {
-    // Create the message.
-    auto recvMsg = firstSubscriberPtr->CreateMsg(data, msgType);
-    if (!recvMsg)
-      return;
-
-    // Create and populate the message information object.
-    MessageInfo info;
-    const std::size_t firstAt = 0;
-    const std::size_t lastAt = topic.find_last_of("@");
-    // Set partition excluding '@' at start and '@' at end
-    info.SetPartition(topic.substr(firstAt + 1, lastAt - firstAt - 1));
-    // Remove the partition name from the topic.
-    topic.erase(firstAt, lastAt + 1);
-    info.SetTopic(topic);
-    info.SetType(msgType);
-
-    for (const auto &node : handlers)
+    for (const auto &node : _handlerInfo.rawHandlers)
     {
       for (const auto &handler : node.second)
       {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-        if (subscriptionHandlerPtr)
+        const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+        if (rawHandler)
         {
-          if (subscriptionHandlerPtr->TypeName() == msgType ||
-              subscriptionHandlerPtr->TypeName() == kGenericMessageType)
-            subscriptionHandlerPtr->RunLocalCallback(*recvMsg, info);
+          if (rawHandler->TypeName() == _msgType ||
+              rawHandler->TypeName() == kGenericMessageType)
+          {
+            rawHandler->RunRawCallback(_msgData, info);
+          }
         }
         else
-          std::cerr << "Subscription handler is NULL" << std::endl;
+          std::cerr << "Raw subscription handler is NULL" << std::endl;
+      }
+    }
+  }
+
+  if (_handlerInfo.haveLocal)
+  {
+    // This will be instantiated by the first suitable handler that we
+    // encounter. If there is no suitable handler, then we can avoid
+    // deserializing the message altogether.
+    std::shared_ptr<ProtoMsg> msg;
+
+    for (const auto &node : _handlerInfo.localHandlers)
+    {
+      for (const auto &handler : node.second)
+      {
+        const ISubscriptionHandlerPtr &localHandler = handler.second;
+        if (localHandler)
+        {
+          if (localHandler->TypeName() == _msgType ||
+              localHandler->TypeName() == kGenericMessageType)
+          {
+            if (!msg)
+            {
+              // If the message has not been deserialized yet, do it now since
+              // we have allegedly found a subscriber which should be able to
+              // do it.
+              msg = localHandler->CreateMsg(_msgData, _msgType);
+
+              if (!msg)
+              {
+                // If the message could not be created, then none of the
+                // handlers in this process will be able to create it, because
+                // protobuf has access to all message types that the current
+                // process is linked to. If CreateMsg(~,~) fails, then we may
+                // as well quit.
+                return;
+              }
+            }
+
+            localHandler->RunLocalCallback(*msg, info);
+          }
+        }
+        else
+          std::cerr << "Local subscription handler is NULL" << std::endl;
       }
     }
   }

@@ -23,6 +23,8 @@
 
 #include "ignition/transport/NetUtils.hh"
 #include "ignition/transport/NodeOptions.hh"
+#include "ignition/transport/Node.hh"
+#include "ignition/transport/NodeShared.hh"
 
 namespace ignition
 {
@@ -39,6 +41,11 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~NodePrivate() = default;
+
+      /// \brief Helper function for Subscribe.
+      /// \param[in] _fullyQualifiedTopic Fully qualified topic name
+      /// \return True on success.
+      public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
       /// \brief The list of topics subscribed by this node.
       public: std::unordered_set<std::string> topicsSubscribed;

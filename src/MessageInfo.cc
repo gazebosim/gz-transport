@@ -55,6 +55,19 @@ MessageInfo::MessageInfo()
 }
 
 //////////////////////////////////////////////////
+MessageInfo::MessageInfo(const MessageInfo &_other)
+  : dataPtr(new MessageInfoPrivate())
+{
+  *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
+MessageInfo::MessageInfo(MessageInfo &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
+}
+
+//////////////////////////////////////////////////
 MessageInfo::~MessageInfo()
 {
 }
@@ -93,4 +106,23 @@ std::string MessageInfo::Partition() const
 void MessageInfo::SetPartition(const std::string &_partition)
 {
   this->dataPtr->partition = _partition;
+}
+
+//////////////////////////////////////////////////
+bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
+{
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
+
+  if ( firstAt != 0
+    || firstAt == lastAt
+    || lastAt == _fullyQualifiedName.size() - 1)
+  {
+    return false;
+  }
+
+  this->SetPartition(_fullyQualifiedName.substr(
+                       firstAt + 1, lastAt - firstAt - 1));
+  this->SetTopic(_fullyQualifiedName.substr(lastAt + 1));
+  return true;
 }

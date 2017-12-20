@@ -110,6 +110,28 @@ namespace ignition
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
 
+        /// \brief Publish a raw pre-serialized message.
+        ///
+        /// \warning This function is only intended for advanced users. The
+        /// standard publishing function, Publish(const ProtoMsg &_msg), will
+        /// ensure that your message is correctly serialized. It is strongly
+        /// recommended that you use the standard publishing function unless
+        /// there is a specific reason for using this one (e.g. you are
+        /// forwarding or playing back data instead of serializing/deserializing
+        /// it). We currently only support the serialization scheme of protobuf.
+        ///
+        /// \note This function will deserialize the message when sending it to
+        /// local (intraprocess) subscribers.
+        ///
+        /// \param[in] _msgData A std::string that represents an
+        /// already-serialized google::protobuf message.
+        /// \param[in] _msgType A std::string that contains the fully-qualified
+        /// message type name.
+        /// \return true when success.
+        public: bool RawPublish(
+          const std::string &_msgData,
+          const std::string &_msgType);
+
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
         /// \return true if the message should be published or false otherwise.
@@ -122,7 +144,7 @@ namespace ignition
         /// \internal
         /// \brief Smart pointer to private data.
         /// This is std::shared_ptr because we want to trigger the destructor
-        /// only once when all references to PublisherPrivate are out of scope.
+        /// only once: when all references to PublisherPrivate are out of scope.
         /// The destructor of PublisherPrivate unadvertise the topic.
         private: std::shared_ptr<PublisherPrivate> dataPtr;
       };
@@ -983,6 +1005,15 @@ namespace ignition
       /// \return False if unable to get service info.
       public: bool ServiceInfo(const std::string &_service,
                               std::vector<ServicePublisher> &_publishers) const;
+
+      /// \brief Subscribe to a topic registering a callback. The callback must
+      /// accept a std::string to represent the message data, and a MessageInfo
+      /// which provides metadata about the message.
+      public: bool RawSubscribe(
+        const std::string &_topic,
+        const RawCallback &_callback,
+        const std::string &_msgType = kGenericMessageType,
+        const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
