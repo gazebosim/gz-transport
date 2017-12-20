@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <mutex>
 
 #include <ignition/common/Console.hh>
