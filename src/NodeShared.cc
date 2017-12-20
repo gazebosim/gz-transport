@@ -363,7 +363,7 @@ void NodeShared::TriggerSubscriberCallbacks(
           }
         }
         else
-          std::cout << "Raw subscription handler is NULL" << std::endl;
+          std::cerr << "Raw subscription handler is NULL" << std::endl;
       }
     }
   }
