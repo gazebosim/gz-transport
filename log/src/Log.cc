@@ -71,7 +71,7 @@ class ignition::transport::log::LogPrivate
   public: int64_t TopicId(const std::string &_name, const std::string &_type);
 
   /// \brief Insert a message into the database
-  public: bool InsertMessage(const common::Time _time, int64_t _topic,
+  public: bool InsertMessage(const common::Time &_time, int64_t _topic,
       const void *_data, std::size_t _len);
 
   /// \brief Return true if enough time has passed since the last transaction
@@ -221,7 +221,7 @@ int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::InsertMessage(const common::Time _time, int64_t _topic,
+bool LogPrivate::InsertMessage(const common::Time &_time, int64_t _topic,
       const void *_data, std::size_t _len)
 {
   int returnCode;
