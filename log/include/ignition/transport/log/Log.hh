@@ -15,6 +15,9 @@
  *
 */
 
+#ifndef IGNITION_TRANSPORT_LOG_LOG_HH_
+#define IGNITION_TRANSPORT_LOG_LOG_HH_
+
 #include <ios>
 #include <memory>
 #include <string>
@@ -69,3 +72,4 @@ namespace ignition
     }
   }
 }
+#endif

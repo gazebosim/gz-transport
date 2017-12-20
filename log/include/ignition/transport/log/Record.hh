@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_TRANSPORT_LOG_MESSAGE_HH_
+#define IGNITION_TRANSPORT_LOG_MESSAGE_HH_
 
 #include <memory>
 #include <regex>
