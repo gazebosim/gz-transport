@@ -765,6 +765,46 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 }
 
 //////////////////////////////////////////////////
+TEST(NodeTest, PubRawSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.RawSubscribe(g_topic, rawCbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
 TEST(NodeTest, PubSubSameThreadLambda)
 {

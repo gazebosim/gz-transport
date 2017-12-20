@@ -277,13 +277,61 @@ namespace ignition
       /// \brief Remote subscribers.
       public: TopicStorage<MessagePublisher> remoteSubscribers;
 
-      /// \brief Ordinary local subscriptions.
-      public: HandlerStorage<ISubscriptionHandler> localSubscriptions;
+      /// \brief This struct wraps up the two different types of subscription
+      /// handlers: normal (deserialized) and raw (serialized). This wrapper
+      /// keeps the two sets of subscription handlers coordinated while allowing
+      /// them to act independently when necessary.
+      struct HandlerWrapper
+      {
+        /// \brief Returns true if this wrapper contains any subscriber that
+        /// matches the given topic name and message type name.
+        /// \param[in] _fullyQualifiedTopic Fully-qualified topic name
+        /// \param[in] _msgType Name of message type
+        /// \return True if this contains a matching subscriber, otherwise false
+        public: bool HasSubscriber(
+            const std::string &_fullyQualifiedTopic,
+            const std::string &_msgType) const;
 
-      /// \brief Raw local subscriptions. Keeping these separate from
-      /// localSubscriptions allows us to avoid an unnecessary deserialization
-      /// followed by an immediate reserialization.
-      public: HandlerStorage<RawSubscriptionHandler> rawSubscriptions;
+        /// \brief Returns true if this wrapper contains any subscriber that
+        /// matches the given fully-qualified topic name. The message type name
+        /// of the subscriber is irrelevant.
+        /// \param[in] _fullyQualifiedTopic Fully-qualified topic name
+        /// \return True if this contains a matching subscriber, otherwise false
+        public: bool HasSubscriber(
+            const std::string &_fullyQualifiedTopic) const;
+
+        /// \brief Get a set of node UUIDs for subscribers in this wrapper that
+        /// match the topic and message type criteria.
+        /// \param[in] _fullyQualifiedTopic Fully-qualified topic name that the
+        /// subscribers must be listening to.
+        /// \param[in] _msgTypeName Name of the message type that the
+        /// subscribers must be listening for.
+        /// \return The node UUIDs of all subscribers that match the criteria
+        public: std::vector<std::string> NodeUuids(
+            const std::string &_fullyQualifiedTopic,
+            const std::string &_msgTypeName) const;
+
+        /// \brief Remove the handlers for the given topic name that belong to
+        /// a specific node.
+        /// \param[in] _fullyQualifiedTopic The fully-qualified name of the
+        /// topic whose subscribers should be removed.
+        /// \param[in] _nUuid The UUID of the node whose subscribers should be
+        /// removed.
+        /// \return True if at least one subscriber was removed.
+        public: bool RemoveHandlersForNode(
+            const std::string &_fullyQualifiedTopic,
+            const std::string &_nUuid);
+
+        /// \brief Normal local subscriptions.
+        public: HandlerStorage<ISubscriptionHandler> normal;
+
+        /// \brief Raw local subscriptions. Keeping these separate from
+        /// localSubscriptions allows us to avoid an unnecessary deserialization
+        /// followed by an immediate reserialization.
+        public: HandlerStorage<RawSubscriptionHandler> raw;
+      };
+
+      public: HandlerWrapper localSubscribers;
 
       /// \brief Service call repliers.
       public: HandlerStorage<IRepHandler> repliers;

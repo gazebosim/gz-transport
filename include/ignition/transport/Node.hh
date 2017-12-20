@@ -322,7 +322,7 @@ namespace ignition
         // associated with a topic. When the receiving thread gets new data,
         // it will recover the subscription handler associated to the topic and
         // will invoke the callback.
-        this->Shared()->localSubscriptions.AddHandler(
+        this->Shared()->localSubscribers.normal.AddHandler(
           fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
         return this->SubscribeHelper(fullyQualifiedTopic);

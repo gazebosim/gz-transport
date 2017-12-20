@@ -224,16 +224,15 @@ bool Node::Publisher::Valid() const
 //////////////////////////////////////////////////
 bool Node::Publisher::HasConnections() const
 {
-  ISubscriptionHandlerPtr firstSubscriberPtr;
   auto &publisher = this->dataPtr->publisher;
+  const std::string &topic = publisher.Topic();
+  const std::string &msgType = publisher.MsgTypeName();
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   return this->Valid() &&
-    (this->dataPtr->shared->localSubscriptions.FirstHandler(
-       publisher.Topic(), publisher.MsgTypeName(), firstSubscriberPtr) ||
-     this->dataPtr->shared->remoteSubscribers.HasTopic(
-       publisher.Topic(), publisher.MsgTypeName()));
+    (this->dataPtr->shared->localSubscribers.HasSubscriber(topic, msgType) ||
+     this->dataPtr->shared->remoteSubscribers.HasTopic(topic, msgType));
 }
 
 //////////////////////////////////////////////////
@@ -522,20 +521,16 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  this->dataPtr->shared->localSubscriptions.RemoveHandlersForNode(
-    fullyQualifiedTopic, this->dataPtr->nUuid);
-
-  this->dataPtr->shared->rawSubscriptions.RemoveHandlersForNode(
-    fullyQualifiedTopic, this->dataPtr->nUuid);
+  // Remove the subscribers for the given topic that belong to this node.
+  this->dataPtr->shared->localSubscribers.RemoveHandlersForNode(
+        fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Remove the topic from the list of subscribed topics in this node.
   this->dataPtr->topicsSubscribed.erase(fullyQualifiedTopic);
 
   // Remove the filter for this topic if I am the last subscriber.
-  if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
-        fullyQualifiedTopic) &&
-      !this->dataPtr->shared->rawSubscriptions.HasHandlersForTopic(
-        fullyQualifiedTopic))
+  if (!this->dataPtr->shared->localSubscribers
+      .HasSubscriber(fullyQualifiedTopic))
   {
     this->dataPtr->shared->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
@@ -720,7 +715,7 @@ bool Node::RawSubscribe(
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  this->dataPtr->shared->rawSubscriptions.AddHandler(
+  this->dataPtr->shared->localSubscribers.raw.AddHandler(
         fullyQualifiedTopic, this->dataPtr->nUuid, handlerPtr);
 
   return this->dataPtr->SubscribeHelper(fullyQualifiedTopic);
