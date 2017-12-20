@@ -347,12 +347,15 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     if (!haveSerialized && !failedToSerialize)
     {
       failedToSerialize = !_msg.SerializeToString(&msgData);
-    }
 
-    if (!this->dataPtr->shared->Publish(
-          publisherTopic, msgData, publisherMsgType))
-    {
-      return false;
+      if (!failedToSerialize)
+      {
+        if (!this->dataPtr->shared->Publish(
+              publisherTopic, msgData, publisherMsgType))
+        {
+          return false;
+        }
+      }
     }
   }
 
