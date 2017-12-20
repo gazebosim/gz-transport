@@ -84,7 +84,7 @@ class ignition::transport::log::LogPrivate
   /// \brief True if a transaction is in progress
   public: bool inTransaction = false;
 
-  /// \brief Map of topic name/type pairs
+  /// \brief Maps topic name/type pairs to an id in the topics table
   public:
     std::unordered_map<std::pair<std::string, std::string>, int64_t> topics;
 
