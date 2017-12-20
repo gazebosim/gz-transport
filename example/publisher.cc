@@ -48,21 +48,36 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<ignition::msgs::Int32>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
     return -1;
   }
 
+  auto pub2 = node.Advertise<ignition::msgs::Int32>("/bar");
+  if (!pub2)
+  {
+    std::cerr << "Error advertising topic [" << "/bar" << "]" << std::endl;
+    return -1;
+  }
+
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
-  msg.set_data("HELLO");
+  ignition::msgs::Int32 msg;
+  int counter = 0;
+  msg.set_data(counter);
 
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
     if (!pub.Publish(msg))
+      break;
+
+    ++counter;
+    msg.set_data(counter);
+
+    msg.set_data(counter - 2);
+    if (!pub2.Publish(msg))
       break;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
