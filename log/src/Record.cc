@@ -37,7 +37,7 @@ class ignition::transport::log::RecordPrivate
 {
   /// \brief Subscriber callback
   public: void OnMessageReceived(
-          const google::protobuf::Message &_msg,
+          const std::string &_msgData,
           const transport::MessageInfo &_info);
 
   /// \brief log file or nullptr if not recording
@@ -55,7 +55,7 @@ class ignition::transport::log::RecordPrivate
 
 //////////////////////////////////////////////////
 void RecordPrivate::OnMessageReceived(
-          const google::protobuf::Message &_msg,
+          const std::string &_msgData,
           const transport::MessageInfo &_info)
 {
   // Get time RX using monotonic
@@ -70,10 +70,6 @@ void RecordPrivate::OnMessageReceived(
   common::Time timeRX(utcS.count(),
       (utcNS - std::chrono::nanoseconds(utcS)).count());
 
-  // TODO use raw bytes subscriber
-  std::string buffer;
-  _msg.SerializeToString(&(buffer));
-
   igndbg << "RX'" << _info.Topic() << "'[" << _info.Type() << "]\n";
 
   std::lock_guard<std::mutex> lock(this->logFileMutex);
@@ -81,8 +77,8 @@ void RecordPrivate::OnMessageReceived(
         timeRX,
         _info.Topic(),
         _info.Type(),
-        reinterpret_cast<const void *>(buffer.c_str()),
-        buffer.size()))
+        reinterpret_cast<const void *>(_msgData.c_str()),
+        _msgData.size()))
   {
     ignwarn << "Failed to insert message into log file\n";
   }
@@ -146,8 +142,11 @@ RecordError Record::AddTopic(const std::string &_topic)
 {
   igndbg << "Recording [" << _topic << "]\n";
   // Subscribe to the topic whether it exists or not
-  if (!this->dataPtr->node.Subscribe(
-        _topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
+  if (!this->dataPtr->node.RawSubscribe(
+        _topic, std::bind(
+          &RecordPrivate::OnMessageReceived,
+          this->dataPtr.get(),
+          std::placeholders::_1, std::placeholders::_2)))
   {
     ignerr << "Failed to subscribe to [" << _topic << "]\n";
     return RecordError::FAILED_TO_SUBSCRIBE;
@@ -167,8 +166,11 @@ int Record::AddTopic(const std::regex &_topic)
     {
       igndbg << "Recording " << topic << "\n";
       // Subscribe to the topic
-      if (!this->dataPtr->node.Subscribe(
-            topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
+      if (!this->dataPtr->node.RawSubscribe(
+            topic, std::bind(
+            &RecordPrivate::OnMessageReceived,
+            this->dataPtr.get(),
+            std::placeholders::_1, std::placeholders::_2)))
       {
         ignerr << "Failed to subscribe to [" << topic << "]\n";
         return static_cast<int>(RecordError::FAILED_TO_SUBSCRIBE);
