@@ -75,7 +75,8 @@ class ignition::transport::log::LogPrivate
       const void *_data, std::size_t _len);
 
   /// \brief Return true if enough time has passed since the last transaction
-  public: bool TimeForNewTransaction();
+  /// \return true if the transaction has lasted long enough
+  public: bool TimeForNewTransaction() const;
 
   /// \brief SQLite3 database pointer wrapper
   public: std::unique_ptr<raii_sqlite3::Database> db;
@@ -135,7 +136,7 @@ bool LogPrivate::BeginTransactionIfNotInOne()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::TimeForNewTransaction()
+bool LogPrivate::TimeForNewTransaction() const
 {
   auto now = std::chrono::steady_clock::now();
   return now - this->transactionPeriod > this->lastTransaction;
