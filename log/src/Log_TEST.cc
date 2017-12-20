@@ -24,21 +24,21 @@ using namespace ignition;
 TEST(Log, OpenMemoryDatabase)
 {
   transport::log::Log logFile;
-  EXPECT_TRUE(logFile.Open(":memory:", transport::log::READ_WRITE_CREATE));
+  EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
 
 //////////////////////////////////////////////////
 TEST(Log, OpenImpossibleFileName)
 {
   transport::log::Log logFile;
-  EXPECT_FALSE(logFile.Open("///////////", transport::log::READ_WRITE_CREATE));
+  EXPECT_FALSE(logFile.Open("///////////", std::ios_base::out));
 }
 
 //////////////////////////////////////////////////
 TEST(Log, InsertMessage)
 {
   transport::log::Log logFile;
-  ASSERT_TRUE(logFile.Open(":memory:", transport::log::READ_WRITE_CREATE));
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   EXPECT_TRUE(logFile.InsertMessage(
       common::Time(),

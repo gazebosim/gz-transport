@@ -15,6 +15,7 @@
  *
 */
 
+#include <ios>
 #include <memory>
 #include <string>
 
@@ -27,13 +28,6 @@ namespace ignition
   {
     namespace log
     {
-      enum OpenMode
-      {
-        READ = 1,
-        READ_WRITE = 2,
-        READ_WRITE_CREATE = 3,
-      };
-
       /// \brief Forward declaration
       class LogPrivate;
 
@@ -53,7 +47,9 @@ namespace ignition
         /// \brief Open a log file
         /// \param[in] _file path to log file
         /// \param[in] _mode flag indicating read only or read/write
-        public: bool Open(const std::string &_file, OpenMode _mode = READ);
+        ///   Can use (in or out)
+        public: bool Open(const std::string &_file,
+            std::ios_base::openmode _mode = std::ios_base::in);
 
         /// \brief Insert a message into the log file
         /// \param[in] _time Time the message was received

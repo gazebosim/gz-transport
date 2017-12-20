@@ -281,7 +281,7 @@ Log::~Log()
 }
 
 //////////////////////////////////////////////////
-bool Log::Open(const std::string &_file, OpenMode _mode)
+bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 {
   int returnCode;
 
@@ -292,21 +292,15 @@ bool Log::Open(const std::string &_file, OpenMode _mode)
     return false;
   }
   int64_t modeSQL;
-  switch (_mode)
+  if (std::ios_base::out & _mode)
   {
-    case READ:
-      modeSQL = SQLITE_OPEN_READONLY;
-      break;
-    case READ_WRITE:
-      modeSQL = SQLITE_OPEN_READWRITE;
-      break;
-    case READ_WRITE_CREATE:
-      modeSQL = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-      break;
-    default:
-      ignerr << "Unknown mode passed to Log::Open()\n";
-      return false;
-  };
+    modeSQL = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+  }
+  else if (std::ios_base::in & _mode)
+  {
+    modeSQL = SQLITE_OPEN_READONLY;
+  }
+
   this->dataPtr->db.reset(new raii_sqlite3::Database(_file, modeSQL));
   if (!*(this->dataPtr->db))
   {
