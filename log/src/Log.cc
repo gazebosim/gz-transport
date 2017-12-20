@@ -56,11 +56,13 @@ namespace std {
 /// \brief Private implementation
 class ignition::transport::log::LogPrivate
 {
-  /// \brief End transaction
-  public: bool EndTransaction();
+  /// \brief End transaction if enough time has passed since it began
+  /// \return false if there is a sqlite error
+  public: bool EndTransactionIfEnoughTimeHasPassed();
 
-  /// \brief Begin transaction
-  public: bool BeginTransaction();
+  /// \brief Begin transaction if one isn't already open
+  /// \return false if there is a sqlite error
+  public: bool BeginTransactionIfNotInOne();
 
   /// \brief Get topic_id associated with a topic name and message type
   /// \param[in] _name the name of the topic
@@ -93,8 +95,13 @@ class ignition::transport::log::LogPrivate
 };
 
 //////////////////////////////////////////////////
-bool LogPrivate::EndTransaction()
+bool LogPrivate::EndTransactionIfEnoughTimeHasPassed()
 {
+  if (!this->TimeForNewTransaction())
+  {
+    return true;
+  }
+
   // End the transaction
   int returnCode = sqlite3_exec(
       this->db->Handle(), "END;", NULL, 0, nullptr);
@@ -109,8 +116,11 @@ bool LogPrivate::EndTransaction()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::BeginTransaction()
+bool LogPrivate::BeginTransactionIfNotInOne()
 {
+  if (this->inTransaction)
+    return true;
+
   int returnCode = sqlite3_exec(
       this->db->Handle(), "BEGIN;", NULL, 0, nullptr);
   if (returnCode != SQLITE_OK)
@@ -276,7 +286,7 @@ Log::~Log()
 {
   if (this->dataPtr->inTransaction)
   {
-    this->dataPtr->EndTransaction();
+    this->dataPtr->EndTransactionIfEnoughTimeHasPassed();
   }
 }
 
@@ -364,8 +374,7 @@ bool Log::InsertMessage(
     const void *_data, std::size_t _len)
 {
   // Need to insert multiple messages pertransaction for best performance
-  if (!this->dataPtr->inTransaction
-      && !this->dataPtr->BeginTransaction())
+  if (!this->dataPtr->BeginTransactionIfNotInOne())
   {
     return false;
   }
@@ -384,9 +393,12 @@ bool Log::InsertMessage(
   }
 
   // Finish the transaction if enough time has passed
-  if (this->dataPtr->TimeForNewTransaction())
+  if (!this->dataPtr->EndTransactionIfEnoughTimeHasPassed())
   {
-    this->dataPtr->EndTransaction();
+    // Something is really busted if this happens
+    ignerr << "Failed to end transcation: "<< sqlite3_errmsg(
+        this->dataPtr->db->Handle()) << "\n";
+    return false;
   }
 
   return true;
