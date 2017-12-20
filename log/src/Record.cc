@@ -51,6 +51,9 @@ class ignition::transport::log::RecordPrivate
 
   /// \brief node used to create subscriptions
   public: ignition::transport::Node node;
+
+  /// \brief callback used on every subscriber
+  public: transport::RawCallback rawCallback;
 };
 
 //////////////////////////////////////////////////
@@ -93,6 +96,13 @@ Record::Record()
   std::chrono::nanoseconds monoStartNS(
       std::chrono::steady_clock::now().time_since_epoch());
   this->dataPtr->wallMinusMono = wallStartNS - monoStartNS;
+
+  // Make a lambda to wrap a member function callback
+  this->dataPtr->rawCallback = [this](
+      const std::string &_data, const transport::MessageInfo &_info)
+  {
+    this->dataPtr->OnMessageReceived(_data, _info);
+  };
 }
 
 //////////////////////////////////////////////////
@@ -142,11 +152,7 @@ RecordError Record::AddTopic(const std::string &_topic)
 {
   igndbg << "Recording [" << _topic << "]\n";
   // Subscribe to the topic whether it exists or not
-  if (!this->dataPtr->node.RawSubscribe(
-        _topic, std::bind(
-          &RecordPrivate::OnMessageReceived,
-          this->dataPtr.get(),
-          std::placeholders::_1, std::placeholders::_2)))
+  if (!this->dataPtr->node.RawSubscribe(_topic, this->dataPtr->rawCallback))
   {
     ignerr << "Failed to subscribe to [" << _topic << "]\n";
     return RecordError::FAILED_TO_SUBSCRIBE;
@@ -166,11 +172,7 @@ int Record::AddTopic(const std::regex &_topic)
     {
       igndbg << "Recording " << topic << "\n";
       // Subscribe to the topic
-      if (!this->dataPtr->node.RawSubscribe(
-            topic, std::bind(
-            &RecordPrivate::OnMessageReceived,
-            this->dataPtr.get(),
-            std::placeholders::_1, std::placeholders::_2)))
+      if (!this->dataPtr->node.RawSubscribe(topic, this->dataPtr->rawCallback))
       {
         ignerr << "Failed to subscribe to [" << topic << "]\n";
         return static_cast<int>(RecordError::FAILED_TO_SUBSCRIBE);
