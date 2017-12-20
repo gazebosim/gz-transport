@@ -303,10 +303,10 @@ NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(
 
   std::lock_guard<std::recursive_mutex> lk(this->mutex);
 
-  info.haveLocal = this->localSubscriptions.Handlers(
+  info.haveLocal = this->localSubscribers.normal.Handlers(
         _topic, info.localHandlers);
 
-  info.haveRaw = this->rawSubscriptions.Handlers(
+  info.haveRaw = this->localSubscribers.raw.Handlers(
         _topic, info.rawHandlers);
 
   return info;
@@ -321,10 +321,10 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
 
   std::lock_guard<std::recursive_mutex> lk(this->mutex);
 
-  info.haveLocal = this->localSubscriptions.Handlers(
+  info.haveLocal = this->localSubscribers.normal.Handlers(
         _topic, info.localHandlers);
 
-  info.haveRaw = this->rawSubscriptions.Handlers(
+  info.haveRaw = this->localSubscribers.raw.Handlers(
         _topic, info.rawHandlers);
 
   info.haveRemote = this->remoteSubscribers.HasTopic(
@@ -874,7 +874,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   }
 
   // Check if we are interested in this topic.
-  if (this->localSubscriptions.HasHandlersForTopic(topic) &&
+  if (this->localSubscribers.HasSubscriber(topic) &&
       this->pUuid.compare(procUuid) != 0)
   {
     try
@@ -906,44 +906,32 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-      std::map<std::string, ISubscriptionHandler_M> handlers;
-      if (this->localSubscriptions.Handlers(topic, handlers))
+      std::vector<std::string> handlerNodeUuids =
+          this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
+
+      for (const std::string &nodeUuid : handlerNodeUuids)
       {
-        for (auto const &node : handlers)
-        {
-          for (auto const &handler : node.second)
-          {
-            if (handler.second->TypeName() != kGenericMessageType &&
-                handler.second->TypeName() != _pub.MsgTypeName())
-            {
-              continue;
-            }
+        zmq::message_t msg;
+        msg.rebuild(topic.size());
+        memcpy(msg.data(), topic.data(), topic.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            std::string nodeUuid = handler.second->NodeUuid();
+        msg.rebuild(this->pUuid.size());
+        memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            zmq::message_t msg;
-            msg.rebuild(topic.size());
-            memcpy(msg.data(), topic.data(), topic.size());
-            socket.send(msg, ZMQ_SNDMORE);
+        msg.rebuild(nodeUuid.size());
+        memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            msg.rebuild(this->pUuid.size());
-            memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
-            socket.send(msg, ZMQ_SNDMORE);
+        msg.rebuild(type.size());
+        memcpy(msg.data(), type.data(), type.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            msg.rebuild(nodeUuid.size());
-            memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-            socket.send(msg, ZMQ_SNDMORE);
-
-            msg.rebuild(type.size());
-            memcpy(msg.data(), type.data(), type.size());
-            socket.send(msg, ZMQ_SNDMORE);
-
-            std::string data = std::to_string(NewConnection);
-            msg.rebuild(data.size());
-            memcpy(msg.data(), data.data(), data.size());
-            socket.send(msg, 0);
-          }
-        }
+        std::string data = std::to_string(NewConnection);
+        msg.rebuild(data.size());
+        memcpy(msg.data(), data.data(), data.size());
+        socket.send(msg, 0);
       }
     }
     // The remote node might not be available when we are connecting.
@@ -1132,4 +1120,76 @@ bool NodeShared::DiscoverService(const std::string &_topic) const
 bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 {
   return this->dataPtr->srvDiscovery->Advertise(_publisher);
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::HasSubscriber(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_msgType) const
+{
+  std::shared_ptr<ISubscriptionHandler> normalSubscriberPtr;
+  std::shared_ptr<RawSubscriptionHandler> rawSubscriberPtr;
+
+  return this->normal.FirstHandler(
+            _fullyQualifiedTopic, _msgType, normalSubscriberPtr)
+         || this->raw.FirstHandler(
+            _fullyQualifiedTopic, _msgType, rawSubscriberPtr);
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::HasSubscriber(
+    const std::string &_fullyQualifiedTopic) const
+{
+  return this->normal.HasHandlersForTopic(_fullyQualifiedTopic)
+      || this->raw.HasHandlersForTopic(_fullyQualifiedTopic);
+}
+
+//////////////////////////////////////////////////
+template <typename HandlerT>
+static void AppendNodeUuids(const HandlerStorage<HandlerT> &_handlerStorage,
+                            const std::string &_fullyQualifiedTopic,
+                            const std::string &_msgTypeName,
+                            std::vector<std::string> &_uuids)
+{
+  using HandlerTPtr = std::shared_ptr<HandlerT>;
+  std::map<std::string, std::map<std::string, HandlerTPtr>> handlers;
+
+  _handlerStorage.Handlers(_fullyQualifiedTopic, handlers);
+  for (const auto &collection : handlers)
+  {
+    for (const auto &collectionEntry : collection.second)
+    {
+      const HandlerTPtr &handler = collectionEntry.second;
+      const std::string &handlerMsgType = handler->TypeName();
+      if (handlerMsgType == _msgTypeName
+          || handlerMsgType == kGenericMessageType)
+      {
+        _uuids.push_back(handler->NodeUuid());
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> NodeShared::HandlerWrapper::NodeUuids(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_msgTypeName) const
+{
+  std::vector<std::string> uuids;
+  AppendNodeUuids(this->normal, _fullyQualifiedTopic, _msgTypeName, uuids);
+  AppendNodeUuids(this->raw, _fullyQualifiedTopic, _msgTypeName, uuids);
+
+  return uuids;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_nUuid)
+{
+  bool removed = false;
+  removed |= this->normal.RemoveHandlersForNode(_fullyQualifiedTopic, _nUuid);
+  removed |= this->raw.RemoveHandlersForNode(_fullyQualifiedTopic, _nUuid);
+
+  return removed;
 }
