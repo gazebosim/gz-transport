@@ -117,7 +117,7 @@ RecordError Record::Start(const std::string &_file)
   if (this->dataPtr->logFile)
   {
     ignwarn << "Recording is already in progress\n";
-    return ALREADY_RECORDING;
+    return RecordError::ALREADY_RECORDING;
   }
 
   this->dataPtr->logFile.reset(new Log());
@@ -125,12 +125,12 @@ RecordError Record::Start(const std::string &_file)
   {
     ignerr << "Failed to open or create file [" << _file << "]\n";
     this->dataPtr->logFile.reset(nullptr);
-    return FAILED_TO_OPEN;
+    return RecordError::FAILED_TO_OPEN;
   }
 
   ignmsg << "Started recording to [" << _file << "]\n";
 
-  return NO_ERROR;
+  return RecordError::NO_ERROR;
 }
 
 //////////////////////////////////////////////////
@@ -149,9 +149,9 @@ RecordError Record::AddTopic(const std::string &_topic)
         _topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
   {
     ignerr << "Failed to subscribe to [" << _topic << "]\n";
-    return FAILED_TO_SUBSCRIBE;
+    return RecordError::FAILED_TO_SUBSCRIBE;
   }
-  return NO_ERROR;
+  return RecordError::NO_ERROR;
 }
 
 //////////////////////////////////////////////////
@@ -170,7 +170,7 @@ int Record::AddTopic(const std::regex &_topic)
             topic, &RecordPrivate::OnMessageReceived, this->dataPtr.get()))
       {
         ignerr << "Failed to subscribe to [" << topic << "]\n";
-        return FAILED_TO_SUBSCRIBE;
+        return static_cast<int>(RecordError::FAILED_TO_SUBSCRIBE);
       }
       ++numSubscriptions;
     }

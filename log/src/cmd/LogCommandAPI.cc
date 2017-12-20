@@ -61,7 +61,7 @@ extern "C"
 
     transport::log::Record recorder;
     recorder.AddTopic(regexPattern);
-    if (recorder.Start(_file) != transport::log::NO_ERROR)
+    if (recorder.Start(_file) != transport::log::RecordError::NO_ERROR)
     {
       return FAILED_TO_OPEN;
     }

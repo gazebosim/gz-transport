@@ -28,7 +28,7 @@ namespace ignition
   {
     namespace log
     {
-      enum RecordError
+      enum class RecordError : int
       {
         NO_ERROR = 0,
         FAILED_TO_OPEN = -1,

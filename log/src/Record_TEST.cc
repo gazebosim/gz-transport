@@ -24,45 +24,48 @@ using namespace ignition;
 TEST(Record, Start)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, StartImpossibleFilename)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::FAILED_TO_OPEN, recorder.Start("//////////"));
+  EXPECT_EQ(transport::log::RecordError::FAILED_TO_OPEN,
+      recorder.Start("//////////"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, DoubleStart)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::NO_ERROR, recorder.Start(":memory:"));
-  EXPECT_EQ(transport::log::ALREADY_RECORDING, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecordError::ALREADY_RECORDING,
+      recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, StartStopStart)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
   recorder.Stop();
-  EXPECT_EQ(transport::log::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, AddValidTopic)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::NO_ERROR, recorder.AddTopic(std::string("/foo")));
+  EXPECT_EQ(transport::log::RecordError::NO_ERROR,
+      recorder.AddTopic(std::string("/foo")));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, AddInvalidTopic)
 {
   transport::log::Record recorder;
-  EXPECT_EQ(transport::log::FAILED_TO_SUBSCRIBE,
+  EXPECT_EQ(transport::log::RecordError::FAILED_TO_SUBSCRIBE,
       recorder.AddTopic(std::string("/////")));
 }
 
