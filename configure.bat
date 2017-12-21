@@ -4,7 +4,7 @@
 
 
 :: Install dependencies
-call %win_lib% :download_unzip_install ZeroMQ-4.2.2-vc15-x64-dll-MD.zip
+call %win_lib% :download_unzip_install ZeroMQ-4.1.6-vc15-x64-dll-MD.zip
 call %win_lib% :install_ign_project ign-cmake default
 call %win_lib% :install_ign_project ign-msgs win_ci_no_build_testing
 
