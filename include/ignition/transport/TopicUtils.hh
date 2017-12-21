@@ -73,7 +73,7 @@ namespace ignition
       ///
       /// Note: Intuitively, you can imagine the fully qualified name as a
       /// UNIX absolute path, where the partition is always sorrounded by "@".
-      /// A namespace, in case of exist, corresponds with the directories of the
+      /// A namespace, if present, corresponds with the directories of the
       /// path, and you can imagine the topic as the filename.
       ///
       /// E.g.:
