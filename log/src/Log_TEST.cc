@@ -40,12 +40,56 @@ TEST(Log, InsertMessage)
   transport::log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
+  std::string data("Hello World");
+
   EXPECT_TRUE(logFile.InsertMessage(
       common::Time(),
       "/some/topic/name",
       "some.message.type",
-      reinterpret_cast<const void *>("Hello World"),
-      sizeof("Hello World")));
+      reinterpret_cast<const void *>(data.c_str()),
+      data.size()));
+}
+
+//////////////////////////////////////////////////
+TEST(Log, AllMessagesNone)
+{
+  transport::log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  EXPECT_EQ(transport::log::MsgIter(), logFile.AllMessages());
+}
+
+//////////////////////////////////////////////////
+TEST(Log, InsertMessageGetMessages)
+{
+  transport::log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  std::string data1("first_data");
+  std::string data2("second_data");
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      common::Time(1, 0),
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data1.c_str()),
+      data1.size()));
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      common::Time(2, 0),
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data2.c_str()),
+      data2.size()));
+
+  auto iter = logFile.AllMessages();
+  ASSERT_NE(transport::log::MsgIter(), iter);
+  EXPECT_EQ(data1, iter->Data());
+  ++iter;
+  ASSERT_NE(transport::log::MsgIter(), iter);
+  EXPECT_EQ(data2, iter->Data());
+  ++iter;
+  EXPECT_EQ(transport::log::MsgIter(), iter);
 }
 
 //////////////////////////////////////////////////

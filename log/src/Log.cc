@@ -27,6 +27,7 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/transport/log/Log.hh"
+#include "src/MsgIterPrivate.hh"
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"
 
@@ -319,6 +320,10 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     return false;
   }
 
+  // Don't need to create a schema if this is read only
+  if (modeSQL == SQLITE_OPEN_READONLY)
+    return true;
+
   // Test hook so tests can be run before `make install`
   std::string schemaFile;
   const char *envPath = std::getenv("IGN_TRANSPORT_LOG_SQL_PATH");
@@ -403,4 +408,24 @@ bool Log::InsertMessage(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+MsgIter Log::AllMessages()
+{
+  const char *sql = "SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id ORDER BY messages.time_recv;";
+  std::unique_ptr<raii_sqlite3::Statement> statement(
+      new raii_sqlite3::Statement(*(this->dataPtr->db), sql));
+  if (!*statement)
+  {
+    ignerr << "Failed to query messages: "<< sqlite3_errmsg(
+        this->dataPtr->db->Handle()) << "\n";
+    return MsgIter();
+  }
+  std::unique_ptr<MsgIterPrivate> msgPriv(new MsgIterPrivate);
+  msgPriv->statement = std::move(statement);
+  return MsgIter(std::move(msgPriv));
 }

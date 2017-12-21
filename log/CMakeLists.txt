@@ -9,6 +9,9 @@ add_subdirectory(src/cmd)
 set(logging_sources
   src/cmd/LogCommandAPI.cc
   src/Log.cc
+  src/Message.cc
+  src/MsgIter.cc
+  src/Playback.cc
   src/raii-sqlite3.cc
   src/Record.cc
 )

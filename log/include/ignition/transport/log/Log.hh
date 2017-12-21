@@ -24,6 +24,7 @@
 
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
+#include <ignition/transport/log/MsgIter.hh>
 
 namespace ignition
 {
@@ -65,6 +66,10 @@ namespace ignition
             const common::Time &_time,
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
+
+        /// \brief Get all messages from the bag file
+        /// \return an iterator through the messages
+        public: MsgIter AllMessages();
 
         /// \brief Private implementation
         private: std::unique_ptr<LogPrivate> dataPtr;
