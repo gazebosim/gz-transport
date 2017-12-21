@@ -125,10 +125,9 @@ namespace ignition
         ///
         /// \param[in] _msgData A std::string that represents a
         /// serialized google::protobuf message.
-        /// \param[in] _msgType A std::string that contains the fully-qualified
-        /// message type name.
+        /// \param[in] _msgType A std::string that contains the message type
+        /// name.
         /// \return true when success.
-        /// \sa TopicUtils::FullyQualifiedName
         public: bool RawPublish(
           const std::string &_msgData,
           const std::string &_msgType);
