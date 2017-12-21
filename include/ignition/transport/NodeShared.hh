@@ -288,6 +288,7 @@ namespace ignition
         /// \param[in] _fullyQualifiedTopic Fully-qualified topic name
         /// \param[in] _msgType Name of message type
         /// \return True if this contains a matching subscriber, otherwise false
+        /// \sa TopicUtils::FullyQualifiedName
         public: bool HasSubscriber(
             const std::string &_fullyQualifiedTopic,
             const std::string &_msgType) const;
