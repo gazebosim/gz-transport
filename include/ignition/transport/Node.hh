@@ -128,6 +128,7 @@ namespace ignition
         /// \param[in] _msgType A std::string that contains the fully-qualified
         /// message type name.
         /// \return true when success.
+        /// \sa TopicUtils::FullyQualifiedName
         public: bool RawPublish(
           const std::string &_msgData,
           const std::string &_msgType);
