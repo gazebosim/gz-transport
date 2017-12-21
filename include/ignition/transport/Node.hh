@@ -123,8 +123,8 @@ namespace ignition
         /// \note This function will deserialize the message when sending it to
         /// local (intraprocess) subscribers.
         ///
-        /// \param[in] _msgData A std::string that represents an
-        /// already-serialized google::protobuf message.
+        /// \param[in] _msgData A std::string that represents a
+        /// serialized google::protobuf message.
         /// \param[in] _msgType A std::string that contains the fully-qualified
         /// message type name.
         /// \return true when success.
