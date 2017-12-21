@@ -1010,6 +1010,16 @@ namespace ignition
       /// \brief Subscribe to a topic registering a callback. The callback must
       /// accept a std::string to represent the message data, and a MessageInfo
       /// which provides metadata about the message.
+      /// \param[in] _topic Name of the topic to subscribe to
+      /// \param[in] _callback A function pointer or std::function object that
+      /// has a void return value and accepts two arguments:
+      /// (const std::string &_msgData, const MessageInfo &_info).
+      /// \param[in] _msgType The type of message to subscribe to. Using
+      /// kGenericMessageType (the default) will allow this subscriber to listen
+      /// to all message types. The callback function can identify the type for
+      /// each message by inspecting its const MessageInfo& input argument.
+      /// \param[in] _opts Options for subscribing.
+      /// \return True if subscribing was successful.
       public: bool RawSubscribe(
         const std::string &_topic,
         const RawCallback &_callback,
