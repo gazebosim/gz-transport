@@ -411,8 +411,15 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscriptions.HasHandlersForTopic(
     fullyQualifiedTopic))
   {
-    this->dataPtr->shared->dataPtr->subscriber->setsockopt(
-      ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
+    try
+    {
+      this->dataPtr->shared->dataPtr->subscriber->setsockopt(
+        ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
+        fullyQualifiedTopic.size());
+    }
+    catch (const std::exception &/*_e*/)
+    {
+    }
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
