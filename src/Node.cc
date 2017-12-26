@@ -215,6 +215,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   bool hasLocalSubscribers;
   bool hasRemoteSubscribers;
 
+  if (this->dataPtr->shared)
   {
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -348,6 +349,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
   std::unordered_set<std::string> result;
   std::vector<MessagePublisher> pubs;
 
+  if (this->dataPtr->shared && this->dataPtr->shared->dataPtr)
   {
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -413,9 +415,13 @@ bool Node::Unsubscribe(const std::string &_topic)
   {
     try
     {
-      this->dataPtr->shared->dataPtr->subscriber->setsockopt(
-        ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
-        fullyQualifiedTopic.size());
+      if (this->dataPtr->shared && this->dataPtr->shared->dataPtr &&
+          this->dataPtr->shared->dataPtr->subscriber)
+      {
+        this->dataPtr->shared->dataPtr->subscriber->setsockopt(
+          ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
+          fullyQualifiedTopic.size());
+      }
     }
     catch (const std::exception &/*_e*/)
     {
@@ -424,9 +430,9 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   // Notify to the publishers that I am no longer interested in the topic.
   MsgAddresses_M addresses;
-  if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
-        fullyQualifiedTopic,
-    addresses))
+  if (!this->dataPtr->shared || !this->dataPtr->shared->dataPtr ||
+      !this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
+      fullyQualifiedTopic, addresses))
   {
     return false;
   }
