@@ -28,7 +28,7 @@ using namespace ignition;
 
 static std::string partition;
 static std::string g_FQNPartition;
-const static std::string g_topic = "/foo";
+static const std::string g_topic = "/foo";
 static std::string data = "bar";
 static bool cbExecuted = false;
 static bool cbInfoExecuted = false;
