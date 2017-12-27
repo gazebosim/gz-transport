@@ -394,7 +394,22 @@ namespace ignition
         bool(*_cb)(const T1 &_req, T2 &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        return this->Advertise<T1, T2>(_topic, _cb, _options);
+        // Dev Note: This overload of Advertise(~) is necessary so that the
+        // compiler can correctly infer the template arguments. We cannot rely
+        // on the compiler to implicitly cast the function pointer to a
+        // std::function object, because the compiler cannot infer the template
+        // parameters T1 and T2 from the signature of the function pointer that
+        // gets passed to Advertise(~).
+
+        // We create a std::function object so that we can explicitly call the
+        // baseline overload of Advertise(~).
+        std::function<bool(const T1&, T2&)> f =
+          [_cb](const T1 &_internalReq, T2 &_internalRep)
+        {
+          return (*_cb)(_internalReq, _internalRep);
+        };
+
+        return this->Advertise<T1, T2>(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
