@@ -346,14 +346,45 @@ namespace ignition
       /// \return true when successfully unsubscribed or false otherwise.
       public: bool Unsubscribe(const std::string &_topic);
 
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the signature
+      /// \code{bool (*_cb)(const T1 &_req, const T2 &_rep)} for advertising a
+      /// service.
+      /// \param[in] _topic Topic name associated with the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep ProtobufMessage containing the response.
+      ///   \param[out] _result Service call result
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or false
+      /// otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T1, typename T2>
+      IGN_DEPRECATED(4.0) bool Advertise(
+          const std::string &_topic,
+          void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const T1 &, T2&)> newCb =
+          [=](const T1 &_internalReq, T2 &_internalRep) -> bool
+        {
+          bool internalResult = false;
+          (*_cb)(_internalReq, _internalRep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<T1, T2>(_topic, newCb, _options);
+      }
+
       /// \brief Advertise a new service.
-      /// In this version the callback is a free function.
+      /// In this version the callback is a plain function pointer.
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
+      ///   \return Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -363,13 +394,7 @@ namespace ignition
         bool(*_cb)(const T1 &_req, T2 &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T1 &, T2 &)> f =
-          [_cb](const T1 &_internalReq, T2 &_internalRep)
-        {
-          return (*_cb)(_internalReq, _internalRep);
-        };
-
-        return this->Advertise<T1, T2>(_topic, f, _options);
+        return this->Advertise<T1, T2>(_topic, _cb, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
