@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_TRANSPORT_LOG_RECORD_HH_
+#define IGNITION_TRANSPORT_LOG_RECORD_HH_
 
 #include <memory>
 #include <regex>
@@ -86,3 +88,4 @@ namespace ignition
     }
   }
 }
+#endif

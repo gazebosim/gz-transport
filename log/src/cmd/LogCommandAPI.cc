@@ -19,6 +19,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Record.hh>
 #include <ignition/transport/log/Export.hh>
 
@@ -78,7 +79,18 @@ extern "C"
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
       const char *_file, const char *_pattern)
   {
-    // TODO
+    // TODO Use pattern
+
+    transport::log::Playback player;
+    if (player.Start(_file) != transport::log::PlaybackError::NO_ERROR)
+    {
+      return FAILED_TO_OPEN;
+    }
+
+    // Wait until signaled (SIGINT, SIGTERM)
+    transport::waitForShutdown();
+    igndbg << "Shutting down\n";
+    player.Stop();
     return NO_ERROR;
   }
 }

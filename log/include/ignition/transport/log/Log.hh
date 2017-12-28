@@ -15,12 +15,16 @@
  *
 */
 
+#ifndef IGNITION_TRANSPORT_LOG_LOG_HH_
+#define IGNITION_TRANSPORT_LOG_LOG_HH_
+
 #include <ios>
 #include <memory>
 #include <string>
 
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
+#include <ignition/transport/log/MsgIter.hh>
 
 namespace ignition
 {
@@ -63,9 +67,14 @@ namespace ignition
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
 
+        /// \brief Get all messages from the bag file
+        /// \return an iterator through the messages
+        public: MsgIter AllMessages();
+
         /// \brief Private implementation
         private: std::unique_ptr<LogPrivate> dataPtr;
       };
     }
   }
 }
+#endif
