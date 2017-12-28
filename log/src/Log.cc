@@ -303,7 +303,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     ignerr << "A database is already open\n";
     return false;
   }
-  int64_t modeSQL;
+  int64_t modeSQL = 0;
   if (std::ios_base::out & _mode)
   {
     modeSQL = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;

@@ -98,8 +98,16 @@ PlaybackError Playback::Start(const std::string &_file)
 
   ignmsg << "Started playing from [" << _file << "]\n";
 
+  // Dev Note: msgIter is being initialized via the move-constructor within the
+  // capture statement, as if it were being declared and constructed as
+  // `auto msgIter{std::move(iter)}`.
+  //
+  // For now, we need to use the move constructor because MsgIter does not yet
+  // support copy construction. Also, the object named `iter` will go out of
+  // scope while this lambda is still in use, so we cannot rely on capturing it
+  // by reference.
   this->dataPtr->playbackThread = std::thread(
-    [this, iter{std::move(iter)}] () mutable
+    [this, msgIter{std::move(iter)}] () mutable
     {
       bool publishedFirstMessage = false;
       // Map of topic names to a map of message types to publisher
@@ -111,20 +119,20 @@ PlaybackError Playback::Start(const std::string &_file)
       ignition::common::Time lastMessageTime;
 
       std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
-      while (!this->dataPtr->stop && MsgIter() != iter)
+      while (!this->dataPtr->stop && MsgIter() != msgIter)
       {
         // Create a publisher when a new topic/type is discovered
         // TODO create all publishers at the start
-        auto firstMapIter = publishers.find(iter->Topic());
+        auto firstMapIter = publishers.find(msgIter->Topic());
         ignition::transport::Node::Publisher *pub = nullptr;
         if (firstMapIter == publishers.end())
         {
           // Create a map for the message topic
-          publishers[iter->Topic()] = std::unordered_map<std::string,
+          publishers[msgIter->Topic()] = std::unordered_map<std::string,
             ignition::transport::Node::Publisher>();
-          firstMapIter = publishers.find(iter->Topic());
+          firstMapIter = publishers.find(msgIter->Topic());
         }
-        auto secondMapIter = firstMapIter->second.find(iter->Type());
+        auto secondMapIter = firstMapIter->second.find(msgIter->Type());
         if (secondMapIter != firstMapIter->second.end())
         {
           pub = &(secondMapIter->second);
@@ -132,18 +140,18 @@ PlaybackError Playback::Start(const std::string &_file)
         else
         {
           // Create a publisher for the topic and type combo
-          firstMapIter->second[iter->Type()] = this->dataPtr->node.Advertise(
-              iter->Topic(), iter->Type());
+          firstMapIter->second[msgIter->Type()] = this->dataPtr->node.Advertise(
+              msgIter->Topic(), msgIter->Type());
           igndbg << "Creating publisher for " <<
-            iter->Topic() << " " << iter->Type() << "\n";
-          pub = &(firstMapIter->second[iter->Type()]);
+            msgIter->Topic() << " " << msgIter->Type() << "\n";
+          pub = &(firstMapIter->second[msgIter->Type()]);
         }
 
         //Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          // TODO use steady_clock to track the time spent publishing the last message
-          // and alter the delay accordingly
+          // TODO use steady_clock to track the time spent publishing the last
+          // message and alter the delay accordingly
           ignition::common::Time delta = nextTime - lastMessageTime;
 
           std::this_thread::sleep_for(std::chrono::nanoseconds(
@@ -157,30 +165,34 @@ PlaybackError Playback::Start(const std::string &_file)
         // Do some stuff that won't be needed with a raw publisher
         // of ignition messages this executable is linked with
         const google::protobuf::Descriptor* descriptor =
-          google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(iter->Type());
+          google::protobuf::DescriptorPool::generated_pool()->
+            FindMessageTypeByName(msgIter->Type());
         if (!descriptor)
         {
-          ignerr << "This message cannot be published until ignition transport has a raw_bytes publisher(1)\n";
+          ignerr << "This message cannot be published until ignition transport "
+                 << "has a raw_bytes publisher(1)\n";
           continue;
         }
         const google::protobuf::Message* prototype = NULL;
-        prototype = google::protobuf::MessageFactory::generated_factory()->GetPrototype(descriptor);
+        prototype = google::protobuf::MessageFactory::generated_factory()->
+            GetPrototype(descriptor);
 
         if (!prototype)
         {
-          ignerr << "This message cannot be published until ignition transport has a raw_bytes publisher(2)\n";
+          ignerr << "This message cannot be published until ignition transport "
+                 << "has a raw_bytes publisher(2)\n";
           continue;
         }
 
         // Actually publish the message
         google::protobuf::Message* payload = prototype->New();
-        payload->ParseFromString(iter->Data());
+        payload->ParseFromString(msgIter->Data());
         igndbg << "publishing\n";
         pub->Publish(*payload);
         lastMessageTime = nextTime;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        ++iter;
+        ++msgIter;
       }
     });
 

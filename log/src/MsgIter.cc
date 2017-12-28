@@ -136,7 +136,7 @@ MsgIter &MsgIter::operator++()
 // TODO
 bool MsgIter::operator==(const MsgIter &_other) const
 {
-  // TODO this won't work once this class has a propper copy constructor
+  // TODO this won't work once this class has a proper copy constructor
   // It's only good enough to compare this with an empty iterator
   return this->dataPtr->statement.get() == _other.dataPtr->statement.get();
 }
