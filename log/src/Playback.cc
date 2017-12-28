@@ -162,33 +162,10 @@ PlaybackError Playback::Start(const std::string &_file)
           publishedFirstMessage = true;
         }
 
-        // Do some stuff that won't be needed with a raw publisher
-        // of ignition messages this executable is linked with
-        const google::protobuf::Descriptor* descriptor =
-          google::protobuf::DescriptorPool::generated_pool()->
-            FindMessageTypeByName(msgIter->Type());
-        if (!descriptor)
-        {
-          ignerr << "This message cannot be published until ignition transport "
-                 << "has a raw_bytes publisher(1)\n";
-          continue;
-        }
-        const google::protobuf::Message* prototype = NULL;
-        prototype = google::protobuf::MessageFactory::generated_factory()->
-            GetPrototype(descriptor);
-
-        if (!prototype)
-        {
-          ignerr << "This message cannot be published until ignition transport "
-                 << "has a raw_bytes publisher(2)\n";
-          continue;
-        }
-
         // Actually publish the message
-        google::protobuf::Message* payload = prototype->New();
-        payload->ParseFromString(msgIter->Data());
+        const Message &msg = *msgIter;
         igndbg << "publishing\n";
-        pub->Publish(*payload);
+        pub->RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
