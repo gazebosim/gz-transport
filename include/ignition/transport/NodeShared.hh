@@ -103,6 +103,8 @@ namespace ignition
         // Friendship. This allows HandlerInfo to be created by
         // CheckHandlerInfo()
         friend class NodeShared;
+
+        // TODO(sloretz) private default constructor (visual studio 2017?)
       };
 
       /// \brief Get information about the local and raw subscribers that are
@@ -128,6 +130,8 @@ namespace ignition
 
         // Friendship declaration
         friend class NodeShared;
+
+        // TODO(sloretz) private default constructor (visual studio 2017?)
       };
 
       /// \brief Get information about the nodes that are subscribed to the
