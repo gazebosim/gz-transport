@@ -22,8 +22,6 @@ require 'optparse'
 COMMON_OPTIONS =
   "  -h [ --help ]              Print this help message.                   \n"\
   "  -v [ --verbose ] LEVEL     Set verbosity level 0-4 (default 1)        \n"\
-  "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
-  "                           (Default match all topics)                   \n"\
   "                                                                        \n"\
 
 COMMANDS = { 'log' =>
@@ -39,7 +37,9 @@ SUBCOMMANDS = { 'record' =>
   "  ign log record [options]                                              \n"\
   "                                                                        \n"\
   "Available Options:                                                      \n"\
-  "  --file FILE              Log file name (default <datetime>.tlog)      \n" +
+  "  --file FILE              Log file name (default <datetime>.tlog)      \n"\
+  "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
+  "                           (Default match all topics)                   \n" +
   COMMON_OPTIONS,
                 'playback' =>
   "Playback previously recorded ignition transport topics.                 \n"\
@@ -48,7 +48,9 @@ SUBCOMMANDS = { 'record' =>
   "Required Flags:                                                         \n"\
   "  --file FILE              Log file name                                \n"\
   "                                                                        \n"\
-  "Available Options:                                                      \n" +
+  "Available Options:                                                      \n"\
+  "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
+  "                           (Default match all topics)                   \n" +
   COMMON_OPTIONS
 }
 
