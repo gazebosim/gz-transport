@@ -103,9 +103,6 @@ namespace ignition
         // Friendship. This allows HandlerInfo to be created by
         // CheckHandlerInfo()
         friend class NodeShared;
-
-        /// \brief Default constructor
-        private: HandlerInfo() = default;
       };
 
       /// \brief Get information about the local and raw subscribers that are
@@ -131,13 +128,6 @@ namespace ignition
 
         // Friendship declaration
         friend class NodeShared;
-
-        /// \brief Default constructor.
-        ///
-        /// We do nothing here. CheckSubscriberInfo will fill this in. We make
-        /// the constructor private to prevent us from having incorrectly
-        /// initialized SubscriberInfo objects.
-        private: SubscriberInfo() = default;
       };
 
       /// \brief Get information about the nodes that are subscribed to the
