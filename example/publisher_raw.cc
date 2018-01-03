@@ -49,10 +49,7 @@ int main(int argc, char **argv)
   std::string topic = "/foo";
 
   ignition::msgs::StringMsg msg;
-  int ss = 900000;
-  char *s = new char[ss];
-  memset(s, ' ', ss);
-  msg.set_data(s);
+  msg.set_data("HELLO");
 
   auto pub = node.Advertise(topic, msg.GetTypeName());
   if (!pub)

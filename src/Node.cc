@@ -269,14 +269,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
   // Only serialize the message if we have a raw subscriber or a remote
   // subscriber.
-  //
-  // Fail out early if we are unable to serialize the message. We do not
-  // want to send a corrupt/bad message to some subscribers and not others.
   if (subscribers.haveRaw || subscribers.haveRemote)
   {
     // Allocate the buffer to store the serialized data.
     msgBuffer = static_cast<char *>(malloc(msgSize));
 
+    // Fail out early if we are unable to serialize the message. We do not
+    // want to send a corrupt/bad message to some subscribers and not others.
     if (!_msg.SerializeToArray(msgBuffer, msgSize))
     {
       free(msgBuffer);

@@ -83,11 +83,16 @@ namespace ignition
                            DeallocFunc *_ffn,
                            const std::string &_msgType);
 
-      /// \brief Publish data. Warning, this function will cause a copy of
-      /// _data to be created.
+      /// \brief Publish data.
+      ///
+      /// \warning This function will cause a copy of _data to be created
+      /// with interprocess subscribers.
+      ///
       /// \param[in] _topic Topic to be published.
       /// \param[in] _data Serialized data. This buffer is copied.
       /// \param[in] _msgType Message type in string format.
+      /// \sa bool Publish(const std::string &, char *, const size_t,
+      /// DeallocFunc *, const std::string &)
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
                            const std::string &_data,

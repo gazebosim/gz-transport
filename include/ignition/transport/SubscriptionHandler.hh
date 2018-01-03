@@ -328,7 +328,7 @@ namespace ignition
       /// \param[in] _info Meta-data for the message
       /// \return True if the callback was triggered, false if the callback was
       /// not set.
-      public: bool RunRawCallback(const char *_msgData, const int _size,
+      public: bool RunRawCallback(const char *_msgData, const size_t _size,
                                   const MessageInfo &_info);
 
       /// \brief Destructor

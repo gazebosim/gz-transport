@@ -225,6 +225,7 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
   try
   {
     // Create the messages.
+    // Warning: this copies the message data.
     zmq::message_t msg0(_topic.data(), _topic.size()),
                    msg1(this->myAddress.data(), this->myAddress.size()),
                    msg2(_data.data(), _data.size()),

@@ -117,7 +117,7 @@ namespace ignition
 
     /////////////////////////////////////////////////
     bool RawSubscriptionHandler::RunRawCallback(
-        const char *_msgData, const int _size,
+        const char *_msgData, const size_t _size,
         const MessageInfo &_info)
     {
       // Make sure we have a callback

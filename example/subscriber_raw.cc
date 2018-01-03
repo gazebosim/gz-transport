@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const char *_data, const int _size,
+void cb(const char *_data, const size_t _size,
         const ignition::transport::MessageInfo &_info)
 {
   ignition::msgs::StringMsg msg;

@@ -143,7 +143,7 @@ namespace ignition
     /// string.
     /// \param[in] _info Message information
     using RawCallback =
-        std::function<void(const char *_msgData, const int _size,
+        std::function<void(const char *_msgData, const size_t _size,
                            const MessageInfo &_info)>;
 
     /// \def Timestamp
