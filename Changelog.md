@@ -3,6 +3,9 @@
 1. Added publishing and receiving messages as raw bytes
     * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
 
+1. Use zero copy when publishing messages.
+    * [Pull request 229](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/229)
+
 ## Ignition Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
