@@ -334,7 +334,12 @@ int main(int argc, char **argv)
   // Make sure that we load the library recently built and not the one installed
   // in your system.
 #ifndef _WIN32
-  setenv("LD_LIBRARY_PATH", IGN_TEST_LIBRARY_PATH, 1);
+  // Save the current value of LD_LIBRARY_PATH.
+  std::string value = "";
+  ignition::transport::env("LD_LIBRARY_PATH", value);
+  // Add the directory where ignition transport has been built.
+  value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
+  setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);

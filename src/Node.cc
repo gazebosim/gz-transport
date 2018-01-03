@@ -227,16 +227,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local subscribers.
   if (hasLocalSubscribers)
   {
-    // Get the topic and remove the partition name.
-    std::string topic = this->dataPtr->publisher.Topic();
-    topic.erase(0, topic.find_last_of("@") + 1);
-
     // Create and populate the message information object.
     // This must be a shared pointer so that we can pass it to
     // multiple threads below, and then allow this function to go
     // out of scope.
     std::shared_ptr<MessageInfo> info(new MessageInfo);
-    info->SetTopic(topic);
+    info->SetTopicAndPartition(this->dataPtr->publisher.Topic());
+    info->SetType(_msg.GetTypeName());
 
     std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
     msgCopy->CopyFrom(_msg);

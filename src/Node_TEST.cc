@@ -36,6 +36,7 @@
 using namespace ignition;
 
 static std::string partition;
+static std::string g_FQNPartition;
 static std::string g_topic = "/foo";
 static std::mutex exitMutex;
 static std::mutex cbMutex;
@@ -95,6 +96,8 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(_msg.data(), data);
+  EXPECT_EQ(g_FQNPartition, _info.Partition());
+  EXPECT_EQ(_msg.GetTypeName(), _info.Type());
   cbExecuted = true;
   ++counter;
 }
@@ -258,6 +261,8 @@ class MyTestClass
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(g_FQNPartition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
     this->callbackExecuted = true;
   };
 
@@ -741,6 +746,8 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(g_FQNPartition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
     std::lock_guard<std::mutex> lk(cbMutex);
     executed = true;
     cbCondition.notify_all();
@@ -2017,6 +2024,7 @@ int main(int argc, char **argv)
 {
   // Get a random partition name.
   partition = testing::getRandomNumber();
+  g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
