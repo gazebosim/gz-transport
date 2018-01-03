@@ -83,6 +83,16 @@ namespace ignition
                            DeallocFunc *_ffn,
                            const std::string &_msgType);
 
+      /// \brief Publish data. Warning, this function will cause a copy of
+      /// _data to be created.
+      /// \param[in] _topic Topic to be published.
+      /// \param[in] _data Serialized data. This buffer is copied.
+      /// \param[in] _msgType Message type in string format.
+      /// \return true when success or false otherwise.
+      public: bool Publish(const std::string &_topic,
+                           const std::string &_data,
+                           const std::string &_msgType);
+
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
 

@@ -98,7 +98,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 }
 
 //////////////////////////////////////////////////
-void rawCbInfo(const std::string &_msgData,
+void rawCbInfo(const char *_msgData, const int _size,
                const ignition::transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
@@ -106,7 +106,7 @@ void rawCbInfo(const std::string &_msgData,
   cbExecuted = true;
 
   ignition::msgs::Int32 msg;
-  EXPECT_TRUE(msg.ParseFromString(_msgData));
+  EXPECT_TRUE(msg.ParseFromArray(_msgData, _size));
   EXPECT_EQ(msg.data(), data);
 
   ++counter;
@@ -702,7 +702,7 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -713,7 +713,7 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -736,13 +736,13 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
-  EXPECT_TRUE(node.RawSubscribe(g_topic, rawCbInfo));
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -753,7 +753,7 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -776,7 +776,7 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
-  EXPECT_TRUE(node.RawSubscribe(g_topic, rawCbInfo));
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));

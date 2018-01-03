@@ -138,10 +138,12 @@ namespace ignition
 
     /// \def RawCallback
     /// \brief User callback used for receiving raw message data:
-    ///   \param[in] _msgData string of a serialized protobuf message
-    ///   \param[in] _info Message information
+    /// \param[in] _msgData string of a serialized protobuf message
+    /// \param[in] _size Number of bytes in the serialized message data
+    /// string.
+    /// \param[in] _info Message information
     using RawCallback =
-        std::function<void(const std::string &_msgData,
+        std::function<void(const char *_msgData, const int _size,
                            const MessageInfo &_info)>;
 
     /// \def Timestamp

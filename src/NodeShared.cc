@@ -219,6 +219,34 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
+bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
+                         const std::string &_msgType)
+{
+  try
+  {
+    // Create the messages.
+    zmq::message_t msg0(_topic.data(), _topic.size()),
+                   msg1(this->myAddress.data(), this->myAddress.size()),
+                   msg2(_data.data(), _data.size()),
+                   msg3(_msgType.data(), _msgType.size());
+
+    // Send the messages
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg3, 0);
+  }
+  catch(const zmq::error_t& ze)
+  {
+     std::cerr << "NodeShared::Publish() Error: " << ze.what() << std::endl;
+     return false;
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool NodeShared::Publish(const std::string &_topic, char *_data,
   const size_t _dataSize, DeallocFunc *_ffn, const std::string &_msgType)
 {
@@ -355,7 +383,7 @@ void NodeShared::TriggerSubscriberCallbacks(
           if (rawHandler->TypeName() == _msgType ||
               rawHandler->TypeName() == kGenericMessageType)
           {
-            rawHandler->RunRawCallback(_msgData, info);
+            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(), info);
           }
         }
         else
