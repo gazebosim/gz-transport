@@ -31,6 +31,6 @@ foreach(source_file ${tests} ${aux})
   target_link_libraries(${BINARY_NAME} ${log_lib_target})
 
   target_compile_definitions(${BINARY_NAME}
-    PRIVATE IGN_LOG_CONFIG_PATH="$<TARGET_FILE_DIR:${BINARY_NAME}>")
+    PRIVATE IGN_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${BINARY_NAME}>")
 
 endforeach()

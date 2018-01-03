@@ -28,21 +28,25 @@ using namespace ignition;
 
 static std::string partition;
 static std::string g_FQNPartition;
-static std::string g_topic = "/foo";
+static const std::string g_topic = "/foo";
 static std::string data = "bar";
 static bool cbExecuted = false;
+static bool cbInfoExecuted = false;
 static bool genericCbExecuted = false;
 static bool cbVectorExecuted = false;
+static bool cbRawExecuted = false;
 static int counter = 0;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
 {
-  counter = 0;
   cbExecuted = false;
+  cbInfoExecuted = false;
   genericCbExecuted = false;
   cbVectorExecuted = false;
+  cbRawExecuted = false;
+  counter = 0;
 }
 
 //////////////////////////////////////////////////
@@ -61,7 +65,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
   EXPECT_EQ(_msg.GetTypeName(), _info.Type());
-  cbExecuted = true;
+  cbInfoExecuted = true;
   ++counter;
 }
 
@@ -78,6 +82,14 @@ void genericCb(const transport::ProtoMsg &/*_msg*/)
 void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
+  ++counter;
+}
+
+//////////////////////////////////////////////////
+void cbRaw(const std::string &/*_msgData*/,
+           const ignition::transport::MessageInfo &/*_info*/)
+{
+  cbRawExecuted = true;
   ++counter;
 }
 
@@ -123,6 +135,45 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 }
 
 //////////////////////////////////////////////////
+/// \brief This is the same as the last test, but we use RawPublish(~) instead
+/// of Publish(~).
+TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
+{
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  EXPECT_TRUE(pub);
+
+  // No subscribers yet.
+  EXPECT_FALSE(pub.HasConnections());
+
+  std::string subscriberPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPubSubSubscriber_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
+    partition.c_str());
+
+  ignition::msgs::Vector3d msg;
+  msg.set_x(1.0);
+  msg.set_y(2.0);
+  msg.set_z(3.0);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // Now, we should have subscribers.
+  EXPECT_TRUE(pub.HasConnections());
+
+  // Publish messages for a few seconds
+  for (auto i = 0; i < 10; ++i)
+  {
+    EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
 /// \brief Check that a message is not received if the callback does not use
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
@@ -151,10 +202,39 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns three subscribers on the same topic. One of the
-/// subscribers has a wrong callback (types in the callback does not match the
-/// advertised type).  Another subscriber uses a generic callback.
-/// Check that only the two correct callbacks are executed.
+/// \brief Same as above, but using a raw subscription.
+TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.RawSubscribe(g_topic, cbRaw,
+                                ignition::msgs::Int32().GetTypeName()));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  // Check that the message was not received.
+  EXPECT_FALSE(cbRawExecuted);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns three subscribers on the same topic. The first
+/// subscriber has a wrong callback (types in the callback does not match the
+/// advertised type). The second subscriber uses the correct callback. The third
+/// uses a generic callback. Check that only two of the callbacks are executed
+/// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
@@ -178,10 +258,72 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
+
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
   EXPECT_TRUE(genericCbExecuted);
+
+  reset();
+
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns three raw subscribers on the same topic. The first
+/// subscriber has the wrong type (the type specified to RawSubscribe does not
+/// match the advertised type). The second subscriber requests the correct type.
+/// The third accepts the generic (default) type. Check that only two of the
+/// callbacks are executed (correct and generic).
+TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
+{
+  std::string publisherPath = testing::portablePathUnion(
+     PROJECT_BINARY_PATH,
+     "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
+    partition.c_str());
+
+  reset();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  bool wrongRawCbExecuted = false;
+  bool correctRawCbExecuted = false;
+  bool genericRawCbExecuted = false;
+
+  auto wrongCb = [&](const std::string &, const transport::MessageInfo &)
+  {
+    wrongRawCbExecuted = true;
+  };
+
+  auto correctCb = [&](const std::string &, const transport::MessageInfo &)
+  {
+    correctRawCbExecuted = true;
+  };
+
+  auto genericCb = [&](const std::string &, const transport::MessageInfo &)
+  {
+    genericRawCbExecuted = true;
+  };
+
+  transport::Node node1;
+  transport::Node node2;
+  transport::Node node3;
+  EXPECT_TRUE(node1.RawSubscribe(g_topic, wrongCb, "wrong.msg.type"));
+  EXPECT_TRUE(node2.RawSubscribe(g_topic, correctCb,
+                                 msgs::Vector3d().GetTypeName()));
+  EXPECT_TRUE(node3.RawSubscribe(g_topic, genericCb));
+
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+
+  // Check that the message was not received.
+  EXPECT_FALSE(wrongRawCbExecuted);
+  EXPECT_TRUE(correctRawCbExecuted);
+  EXPECT_TRUE(genericRawCbExecuted);
 
   reset();
 
@@ -294,7 +436,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
   // Check that the message was not received.
-  EXPECT_FALSE(cbExecuted);
+  EXPECT_FALSE(cbInfoExecuted);
 
   reset();
 

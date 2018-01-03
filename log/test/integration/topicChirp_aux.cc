@@ -15,16 +15,82 @@
  *
 */
 
-#include "ignition/transport/test_config.h"
+#include <ignition/transport/test_config.h>
 
 #include <chrono>
 #include <iostream>
 
 #include <ignition/transport/Node.hh>
 
+#include "ChirpParams.hh"
 
+//////////////////////////////////////////////////
+/// \brief chirp Create publishers to chirp out little messages for testing.
+/// \param _topicNames A list of the topics that we want to chirp to
+/// \param _chirps The number of chirps to set off
+void chirp(const std::vector<std::string> &_topicNames,
+           const int _chirps)
+{
+  ignition::transport::Node node;
 
+  using MsgType = ignition::transport::log::test::ChirpMsgType;
+
+  std::vector<ignition::transport::Node::Publisher> publishers;
+
+  for (const std::string &topic : _topicNames)
+  {
+    publishers.push_back(node.Advertise<MsgType>(topic));
+  }
+
+  ignition::msgs::Int32 integer;
+  integer.set_data(0);
+
+  for (int c = 1; c <= _chirps; ++c)
+  {
+    integer.set_data(c);
+    for (auto &pub : publishers)
+    {
+      pub.Publish(integer);
+    }
+
+    std::this_thread::sleep_for(
+          std::chrono::milliseconds(
+            ignition::transport::log::test::DelayBetweenChirps));
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  std::cout << IGN_LOG_CONFIG_PATH << std::endl;
+  // Argument list:
+  // [0]: Name of current process
+  // [1]: Partition name (used for setting the IGN_PARTITION env variable)
+  // [2]: Number of times that the topics should chirp
+  // [3]-[N]: A name for each topic that should chirp
+
+  if (argc < 2)
+  {
+    std::cerr << "topicChirp_aux.cc: "
+              << "Missing partition name and number of chirps" << std::endl;
+    return -1;
+  }
+
+  if (argc < 3)
+  {
+    std::cout << "topicChirp_aux.cc: "
+              << "Missing number of chirps" << std::endl;
+    return -2;
+  }
+
+  setenv("IGN_PARTITION", argv[1], 1);
+
+  const int chirps = atoi(argv[2]);
+
+  std::vector<std::string> topicNames;
+  for (int t = 3; t < argc; ++t)
+  {
+    topicNames.emplace_back(argv[t]);
+  }
+
+  chirp(topicNames, chirps);
 }

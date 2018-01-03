@@ -45,6 +45,7 @@ namespace ignition
       /// \brief Helper function for Subscribe.
       /// \param[in] _fullyQualifiedTopic Fully qualified topic name
       /// \return True on success.
+      /// \sa TopicUtils::FullyQualifiedName
       public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
       /// \brief The list of topics subscribed by this node.

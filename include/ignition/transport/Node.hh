@@ -123,10 +123,10 @@ namespace ignition
         /// \note This function will deserialize the message when sending it to
         /// local (intraprocess) subscribers.
         ///
-        /// \param[in] _msgData A std::string that represents an
-        /// already-serialized google::protobuf message.
-        /// \param[in] _msgType A std::string that contains the fully-qualified
-        /// message type name.
+        /// \param[in] _msgData A std::string that represents a
+        /// serialized google::protobuf message.
+        /// \param[in] _msgType A std::string that contains the message type
+        /// name.
         /// \return true when success.
         public: bool RawPublish(
           const std::string &_msgData,
@@ -1009,19 +1009,25 @@ namespace ignition
       /// \brief Subscribe to a topic registering a callback. The callback must
       /// accept a std::string to represent the message data, and a MessageInfo
       /// which provides metadata about the message.
+      /// \param[in] _topic Name of the topic to subscribe to
+      /// \param[in] _callback A function pointer or std::function object that
+      /// has a void return value and accepts two arguments:
+      /// (const std::string &_msgData, const MessageInfo &_info).
+      /// \param[in] _msgType The type of message to subscribe to. Using
+      /// kGenericMessageType (the default) will allow this subscriber to listen
+      /// to all message types. The callback function can identify the type for
+      /// each message by inspecting its const MessageInfo& input argument.
+      /// \param[in] _opts Options for subscribing.
+      /// \return True if subscribing was successful.
       public: bool RawSubscribe(
         const std::string &_topic,
         const RawCallback &_callback,
         const std::string &_msgType = kGenericMessageType,
         const SubscribeOptions &_opts = SubscribeOptions());
 
-      /// \brief Get the partition name used by this node.
-      /// \return The partition name.
-      private: const std::string &Partition() const;
-
-      /// \brief Get the namespace used in this node.
-      /// \return The namespace
-      private: const std::string &NameSpace() const;
+      /// \brief Get the reference to the current node options.
+      /// \return Reference to the current node options.
+      public: const NodeOptions &Options() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
@@ -1039,10 +1045,6 @@ namespace ignition
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
       private: std::unordered_set<std::string> &SrvsAdvertised() const;
-
-      /// \brief Get the reference to the current node options.
-      /// \return Reference to the current node options.
-      private: NodeOptions &Options() const;
 
       /// \brief Helper function for Subscribe.
       /// \param[in] _fullyQualifiedTopic Fully qualified topic name

@@ -58,16 +58,68 @@ namespace ignition
 
       /// \brief Get the full topic path given a namespace and a topic name.
       /// A fully qualified topic name's length must not exceed kMaxNameLength.
+      /// The fully qualified name follows the next syntax:
+      /// @<PARTITION>@<NAMESPACE>/<TOPIC>
+      /// where:
+      /// <PARTITION>: The name of the partition or empty string.
+      ///              A "/" will be prefixed to the partition name unless is
+      ///              empty or it already starts with slash. A trailing slash
+      ///              will always be removed.
+      /// <NAMESPACE>: The namespace or empty string. A namespace is a prefix
+      ///              applied to the topic name. If not empty, it will always
+      ///              start with a "/". A trailing slash will always be
+      ///              removed
+      /// <TOPIC>:     The topic name. A trailing slash will always be removed.
+      ///
+      /// Note: Intuitively, you can imagine the fully qualified name as a
+      /// UNIX absolute path, where the partition is always sorrounded by "@".
+      /// A namespace, if present, corresponds with the directories of the
+      /// path, and you can imagine the topic as the filename.
+      ///
+      /// E.g.:
+      ///   Only topic:                @@/topic
+      ///   No partition:              @@/namespace/topic1
+      ///   No namespace:              @/partition@/topic1
+      ///   Partition+namespace+topic: @/my_partition@/name/space/topic
+      ///
       /// \param[in] _partition Partition name.
       /// \param[in] _ns Namespace.
       /// \param[in] _topic Topic name.
       /// \param[out] _name Fully qualified topic name.
       /// \return True if the fully qualified name is valid
       /// (if partition, namespace and topic are correct).
+      /// \sa IsValidPartition
+      /// \sa IsValidNamespace
+      /// \sa IsValidTopic
+      /// \sa DecomposeFullyQualifiedTopic
       public: static bool FullyQualifiedName(const std::string &_partition,
                                              const std::string &_ns,
                                              const std::string &_topic,
                                              std::string &_name);
+
+      /// \brief Decompose a fully qualified topic name into its partition and
+      /// topic strings. Note that if the topic is preceded by a namespace, then
+      /// the namespace and topic name will remain together as one string.
+      ///
+      /// Given a fully qualified topic name with the following syntax:
+      ///
+      /// @<PARTITION>@<NAMESPACE>/<TOPIC>
+      ///
+      /// The _partition output argument will be set to <PARTITION>, and the
+      /// _namespaceAndTopic output argument will be set to <NAMESPACE>/<TOPIC>.
+      ///
+      /// \param[in] _fullyQualifiedName The fully qualified topic name.
+      /// \param[out] _partition The partition component of the fully qualified
+      /// topic name.
+      /// \param[out] _namespaceAndTopic The namespace and topic name component.
+      /// Note that there is no way to distinguish between where a namespace
+      /// ends and a topic name begins, since topic names may contain slashes.
+      /// \return True if the topic and partition were set.
+      /// \sa FullyQualifiedName
+      public: static bool DecomposeFullyQualifiedTopic(
+        const std::string &_fullyQualifiedName,
+        std::string &_partition,
+        std::string &_namespaceAndTopic);
 
       /// \brief The kMaxNameLength specifies the maximum number of characters
       /// allowed in a namespace, a partition name, a topic name, and a fully
