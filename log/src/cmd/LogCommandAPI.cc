@@ -76,13 +76,25 @@ extern "C"
   }
 
   /// \brief Playback topics whos name matches the given pattern
+  /// \param[in] _file Path to the log file to playback
+  /// \param[in] _pattern ECMAScript regular expression to match against topics
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
       const char *_file, const char *_pattern)
   {
-    // TODO Use pattern
+    std::regex regexPattern;
+    try
+    {
+      regexPattern = _pattern;
+    }
+    catch (std::regex_error e)
+    {
+      ignerr << "Regex pattern is invalid\n";
+      return BAD_REGEX;
+    }
 
-    transport::log::Playback player;
-    if (player.Start(_file) != transport::log::PlaybackError::NO_ERROR)
+    transport::log::Playback player(_file);
+    player.AddTopic(regexPattern);
+    if (player.Start() != transport::log::PlaybackError::NO_ERROR)
     {
       return FAILED_TO_OPEN;
     }

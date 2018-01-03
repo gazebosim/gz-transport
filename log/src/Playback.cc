@@ -15,11 +15,13 @@
  *
 */
 
+#include <algorithm>
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
@@ -36,27 +38,73 @@ using namespace ignition::transport::log;
 /// \brief Private implementation
 class ignition::transport::log::PlaybackPrivate
 {
+  /// \brief Create a publisher of a given topic name and type
+  public: bool CreatePublisher(
+              const std::string &_topic, const std::string &_type);
+
   /// \brief True if the thread should stop
   public: bool stop = false;
 
   /// \brief thread running playback
   public: std::thread playbackThread;
 
-  /// \brief log file or nullptr if not playing
-  public: std::unique_ptr<Log> logFile;
+  /// \brief log file to play from
+  public: Log logFile;
 
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
 
   /// \brief node used to create publishers
   public: ignition::transport::Node node;
+
+  /// \brief topics that are being played back
+  public: std::unordered_set<std::string> topicNames;
+
+  /// \brief Map whose key is a topic name and value is another map whose
+  /// key is a message type name and value is a publisher
+  public: std::unordered_map<std::string,
+          std::unordered_map<std::string,
+            ignition::transport::Node::Publisher>> publishers;
 };
 
+//////////////////////////////////////////////////
+bool PlaybackPrivate::CreatePublisher(
+    const std::string &_topic, const std::string &_type)
+{
+  auto firstMapIter = this->publishers.find(_topic);
+  if (firstMapIter == this->publishers.end())
+  {
+    // Create a map for the message topic
+    this->publishers[_topic] = std::unordered_map<std::string,
+      ignition::transport::Node::Publisher>();
+    firstMapIter = publishers.find(_topic);
+  }
+
+  auto secondMapIter = firstMapIter->second.find(_type);
+  if (secondMapIter != firstMapIter->second.end())
+  {
+    return false;
+  }
+
+  // Create a publisher for the topic and type combo
+  firstMapIter->second[_type] = this->node.Advertise(
+      _topic, _type);
+  igndbg << "Creating publisher for " << _topic << " " << _type << "\n";
+  return true;
+}
 
 //////////////////////////////////////////////////
-Playback::Playback()
+Playback::Playback(const std::string &_file)
   : dataPtr(new PlaybackPrivate)
 {
+  if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
+  {
+    ignerr << "Failed to open file [" << _file << "]\n";
+  }
+  else
+  {
+    igndbg << "Playback opened file [" << _file << "]\n";
+  }
 }
 
 //////////////////////////////////////////////////
@@ -72,31 +120,23 @@ Playback::~Playback()
 }
 
 //////////////////////////////////////////////////
-PlaybackError Playback::Start(const std::string &_file)
+PlaybackError Playback::Start()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
-  if (this->dataPtr->logFile)
+  if (!this->dataPtr->logFile.Valid())
   {
-    ignwarn << "Playing is already in progress\n";
-    return PlaybackError::ALREADY_PLAYING;
-  }
-
-  this->dataPtr->logFile.reset(new Log());
-  if (!this->dataPtr->logFile->Open(_file, std::ios_base::in))
-  {
-    ignerr << "Failed to open file [" << _file << "]\n";
-    this->dataPtr->logFile.reset(nullptr);
+    ignerr << "Failed to open log file\n";
     return PlaybackError::FAILED_TO_OPEN;
   }
 
-  auto iter = this->dataPtr->logFile->AllMessages();
+  auto iter = this->dataPtr->logFile.AllMessages();
   if (MsgIter() == iter)
   {
     ignwarn << "There are no messages to play\n";
     return PlaybackError::NO_MESSAGES;
   }
 
-  ignmsg << "Started playing from [" << _file << "]\n";
+  ignmsg << "Started playing\n";
 
   this->dataPtr->playbackThread = std::thread(
     [this, iter{std::move(iter)}] () mutable
@@ -113,32 +153,6 @@ PlaybackError Playback::Start(const std::string &_file)
       std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
       while (!this->dataPtr->stop && MsgIter() != iter)
       {
-        // Create a publisher when a new topic/type is discovered
-        // TODO create all publishers at the start
-        auto firstMapIter = publishers.find(iter->Topic());
-        ignition::transport::Node::Publisher *pub = nullptr;
-        if (firstMapIter == publishers.end())
-        {
-          // Create a map for the message topic
-          publishers[iter->Topic()] = std::unordered_map<std::string,
-            ignition::transport::Node::Publisher>();
-          firstMapIter = publishers.find(iter->Topic());
-        }
-        auto secondMapIter = firstMapIter->second.find(iter->Type());
-        if (secondMapIter != firstMapIter->second.end())
-        {
-          pub = &(secondMapIter->second);
-        }
-        else
-        {
-          // Create a publisher for the topic and type combo
-          firstMapIter->second[iter->Type()] = this->dataPtr->node.Advertise(
-              iter->Topic(), iter->Type());
-          igndbg << "Creating publisher for " <<
-            iter->Topic() << " " << iter->Type() << "\n";
-          pub = &(firstMapIter->second[iter->Type()]);
-        }
-
         //Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
@@ -176,7 +190,7 @@ PlaybackError Playback::Start(const std::string &_file)
         google::protobuf::Message* payload = prototype->New();
         payload->ParseFromString(iter->Data());
         igndbg << "publishing\n";
-        pub->Publish(*payload);
+        this->dataPtr->publishers[iter->Topic()][iter->Type()].Publish(*payload);
         lastMessageTime = nextTime;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -188,9 +202,79 @@ PlaybackError Playback::Start(const std::string &_file)
 }
 
 //////////////////////////////////////////////////
-void Playback::Stop()
+PlaybackError Playback::Stop()
 {
+  if (!this->dataPtr->logFile.Valid())
+  {
+    ignerr << "Failed to open log file\n";
+    return PlaybackError::FAILED_TO_OPEN;
+  }
   this->dataPtr->stop = true;
   this->dataPtr->playbackThread.join();
-  this->dataPtr->logFile.reset(nullptr);
+  return PlaybackError::NO_ERROR;
+}
+
+
+//////////////////////////////////////////////////
+PlaybackError Playback::AddTopic(const std::string &_topic)
+{
+  if (!this->dataPtr->logFile.Valid())
+  {
+    ignerr << "Failed to open log file\n";
+    return PlaybackError::FAILED_TO_OPEN;
+  }
+
+  std::vector<Log::NameTypePair> allTopics = this->dataPtr->logFile.AllTopics();
+  for (const Log::NameTypePair &topicType : allTopics)
+  {
+    if (topicType.first == _topic)
+    {
+      igndbg << "Playing back [" << _topic << "]\n";
+      // Save the topic name for the query in Start
+      this->dataPtr->topicNames.insert(_topic);
+      if (!this->dataPtr->CreatePublisher(topicType.first, topicType.second))
+      {
+        return PlaybackError::FAILED_TO_ADVERTISE;
+      }
+      return PlaybackError::NO_ERROR;
+    }
+  }
+
+  ignerr << "Topic [" << _topic << "] is not in the log\n";
+  return PlaybackError::NO_SUCH_TOPIC;
+}
+
+//////////////////////////////////////////////////
+int Playback::AddTopic(const std::regex &_topic)
+{
+  if (!this->dataPtr->logFile.Valid())
+  {
+    ignerr << "Failed to open log file\n";
+    return static_cast<int>(PlaybackError::FAILED_TO_OPEN);
+  }
+  // for all topics in the log
+  //  if it matches the regex
+  //    this->AddTopic(topicName)
+  int numPublishers = 0;
+  std::vector<Log::NameTypePair> allTopics = this->dataPtr->logFile.AllTopics();
+  for (const Log::NameTypePair &topicType : allTopics)
+  {
+    if (std::regex_match(topicType.first, _topic))
+    {
+      if (this->dataPtr->CreatePublisher(topicType.first, topicType.second))
+      {
+        ++numPublishers;
+      }
+      else
+      {
+        return static_cast<int>(PlaybackError::FAILED_TO_ADVERTISE);
+      }
+    }
+    else
+    {
+      igndbg << "Not playing back " << topicType.first << " " <<
+        topicType.second << "\n";
+    }
+  }
+  return numPublishers;
 }

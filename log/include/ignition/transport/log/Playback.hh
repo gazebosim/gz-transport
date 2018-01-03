@@ -34,9 +34,11 @@ namespace ignition
       {
         NO_ERROR = 0,
         FAILED_TO_OPEN = -1,
-        FAILED_TO_ADVERTIZE = -2,
+        FAILED_TO_ADVERTISE = -2,
         ALREADY_PLAYING = -3,
         NO_MESSAGES = -4,
+        NO_SUCH_TOPIC = -5,
+        NOT_PLAYING = -6,
       };
 
       /// \brief Forward declaration
@@ -49,8 +51,9 @@ namespace ignition
       /// TODO: make it subscribe to newly discovered topics
       class IGNITION_TRANSPORT_LOG_VISIBLE Playback
       {
-        /// \brief Default constructor
-        public: Playback();
+        /// \brief Constructor
+        /// \param[in] _file path to log file
+        public: Playback(const std::string &_file);
 
         /// \brief move constructor
         /// \param[in] _old the instance being moved into this one
@@ -62,10 +65,24 @@ namespace ignition
         /// \brief Begin playing messages
         /// \param[in] _file path to log file
         /// \return NO_ERROR if playing was successfully started
-        public: PlaybackError Start(const std::string &_file);
+        public: PlaybackError Start();
 
         /// \brief Stop playing messages
-        public: void Stop();
+        public: PlaybackError Stop();
+
+        /// \brief Add a topic to be played back (exact match only)
+        /// \param[in] _topic The exact topic name
+        /// \note This method attempts to advertise the topic immediately.
+        ///       The publisher will be kept until this is destructed.
+        /// \return NO_ERROR if the subscription was created.
+        public: PlaybackError AddTopic(const std::string &_topic);
+
+        /// \brief Add a topic to be played back (regex match)
+        /// \param[in] _topic Pattern to match against topic names
+        /// \note This method attempts to advertise topics immediately.
+        ///       These publishers will be kept until this is destructed.
+        /// \return number of topics published or negative number on error
+        public: int AddTopic(const std::regex &_topic);
 
         /// \brief Private implementation
         private: std::unique_ptr<PlaybackPrivate> dataPtr;
