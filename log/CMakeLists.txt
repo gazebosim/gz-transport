@@ -13,7 +13,7 @@ set(logging_sources
   src/MsgIter.cc
   src/Playback.cc
   src/raii-sqlite3.cc
-  src/Record.cc
+  src/Recorder.cc
 )
 
 add_library(${log_lib_target} SHARED
@@ -59,6 +59,7 @@ target_compile_options(${log_lib_target} PRIVATE
 
 # ign_build_tests macro doesn't support building tests in a subflolder
 add_subdirectory(src)
+add_subdirectory(test)
 
 # Configure file with build time info
 set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})

@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/log/Record.hh"
+#include "ignition/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -23,56 +23,56 @@ using namespace ignition;
 //////////////////////////////////////////////////
 TEST(Record, Start)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, StartImpossibleFilename)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::FAILED_TO_OPEN,
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::FAILED_TO_OPEN,
       recorder.Start("//////////"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, DoubleStart)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
-  EXPECT_EQ(transport::log::RecordError::ALREADY_RECORDING,
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecorderError::ALREADY_RECORDING,
       recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, StartStopStart)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
   recorder.Stop();
-  EXPECT_EQ(transport::log::RecordError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, AddValidTopic)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::NO_ERROR,
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::NO_ERROR,
       recorder.AddTopic(std::string("/foo")));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, AddInvalidTopic)
 {
-  transport::log::Record recorder;
-  EXPECT_EQ(transport::log::RecordError::FAILED_TO_SUBSCRIBE,
+  transport::log::Recorder recorder;
+  EXPECT_EQ(transport::log::RecorderError::FAILED_TO_SUBSCRIBE,
       recorder.AddTopic(std::string("/////")));
 }
 
 //////////////////////////////////////////////////
 TEST(Record, AddTopicRegex)
 {
-  transport::log::Record recorder;
+  transport::log::Recorder recorder;
   EXPECT_EQ(0, recorder.AddTopic(std::regex("////")));
 }
 

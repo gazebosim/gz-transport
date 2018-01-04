@@ -20,7 +20,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/Record.hh>
+#include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/log/Export.hh>
 
 using namespace ignition;
@@ -60,9 +60,9 @@ extern "C"
       return BAD_REGEX;
     }
 
-    transport::log::Record recorder;
+    transport::log::Recorder recorder;
     recorder.AddTopic(regexPattern);
-    if (recorder.Start(_file) != transport::log::RecordError::NO_ERROR)
+    if (recorder.Start(_file) != transport::log::RecorderError::NO_ERROR)
     {
       return FAILED_TO_OPEN;
     }

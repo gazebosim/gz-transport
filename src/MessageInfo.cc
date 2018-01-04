@@ -18,6 +18,7 @@
 #include <string>
 
 #include "ignition/transport/MessageInfo.hh"
+#include "ignition/transport/TopicUtils.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -55,12 +56,25 @@ MessageInfo::MessageInfo()
 }
 
 //////////////////////////////////////////////////
+MessageInfo::MessageInfo(const MessageInfo &_other)
+  : dataPtr(new MessageInfoPrivate())
+{
+  *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
+MessageInfo::MessageInfo(MessageInfo &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
+}
+
+//////////////////////////////////////////////////
 MessageInfo::~MessageInfo()
 {
 }
 
 //////////////////////////////////////////////////
-std::string MessageInfo::Topic() const
+const std::string &MessageInfo::Topic() const
 {
   return this->dataPtr->topic;
 }
@@ -72,7 +86,7 @@ void MessageInfo::SetTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-std::string MessageInfo::Type() const
+const std::string &MessageInfo::Type() const
 {
   return this->dataPtr->type;
 }
@@ -84,7 +98,7 @@ void MessageInfo::SetType(const std::string &_type)
 }
 
 //////////////////////////////////////////////////
-std::string MessageInfo::Partition() const
+const std::string &MessageInfo::Partition() const
 {
   return this->dataPtr->partition;
 }
@@ -93,4 +107,13 @@ std::string MessageInfo::Partition() const
 void MessageInfo::SetPartition(const std::string &_partition)
 {
   this->dataPtr->partition = _partition;
+}
+
+//////////////////////////////////////////////////
+bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
+{
+  return TopicUtils::DecomposeFullyQualifiedTopic(
+        _fullyQualifiedName,
+        this->dataPtr->partition,
+        this->dataPtr->topic);
 }

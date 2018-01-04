@@ -15,13 +15,11 @@
  *
 */
 
-#include <algorithm>
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-#include <unordered_set>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
@@ -129,6 +127,7 @@ PlaybackError Playback::Start()
     return PlaybackError::FAILED_TO_OPEN;
   }
 
+  // TODO(sloretz) filter by added topics
   auto iter = this->dataPtr->logFile.AllMessages();
   if (MsgIter() == iter)
   {
@@ -136,10 +135,28 @@ PlaybackError Playback::Start()
     return PlaybackError::NO_MESSAGES;
   }
 
+  if (this->dataPtr->publishers.empty())
+  {
+    igndbg << "No topics added, defaulting to all topics\n";
+    int numTopics = this->AddTopic(std::regex(".*"));
+    if (numTopics < 0)
+    {
+      return static_cast<PlaybackError>(numTopics);
+    }
+  }
+
   ignmsg << "Started playing\n";
 
+  // Dev Note: msgIter is being initialized via the move-constructor within the
+  // capture statement, as if it were being declared and constructed as
+  // `auto msgIter{std::move(iter)}`.
+  //
+  // For now, we need to use the move constructor because MsgIter does not yet
+  // support copy construction. Also, the object named `iter` will go out of
+  // scope while this lambda is still in use, so we cannot rely on capturing it
+  // by reference.
   this->dataPtr->playbackThread = std::thread(
-    [this, iter{std::move(iter)}] () mutable
+    [this, msgIter{std::move(iter)}] () mutable
     {
       bool publishedFirstMessage = false;
       // Map of topic names to a map of message types to publisher
@@ -151,13 +168,13 @@ PlaybackError Playback::Start()
       ignition::common::Time lastMessageTime;
 
       std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
-      while (!this->dataPtr->stop && MsgIter() != iter)
+      while (!this->dataPtr->stop && MsgIter() != msgIter)
       {
         //Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          // TODO use steady_clock to track the time spent publishing the last message
-          // and alter the delay accordingly
+          // TODO use steady_clock to track the time spent publishing the last
+          // message and alter the delay accordingly
           ignition::common::Time delta = nextTime - lastMessageTime;
 
           std::this_thread::sleep_for(std::chrono::nanoseconds(
@@ -168,33 +185,15 @@ PlaybackError Playback::Start()
           publishedFirstMessage = true;
         }
 
-        // Do some stuff that won't be needed with a raw publisher
-        // of ignition messages this executable is linked with
-        const google::protobuf::Descriptor* descriptor =
-          google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(iter->Type());
-        if (!descriptor)
-        {
-          ignerr << "This message cannot be published until ignition transport has a raw_bytes publisher(1)\n";
-          continue;
-        }
-        const google::protobuf::Message* prototype = NULL;
-        prototype = google::protobuf::MessageFactory::generated_factory()->GetPrototype(descriptor);
-
-        if (!prototype)
-        {
-          ignerr << "This message cannot be published until ignition transport has a raw_bytes publisher(2)\n";
-          continue;
-        }
-
         // Actually publish the message
-        google::protobuf::Message* payload = prototype->New();
-        payload->ParseFromString(iter->Data());
+        const Message &msg = *msgIter;
         igndbg << "publishing\n";
-        this->dataPtr->publishers[iter->Topic()][iter->Type()].Publish(*payload);
+        this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        ++iter;
+        // TODO(MXG): Get the timing correct on this
+//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        ++msgIter;
       }
     });
 
@@ -210,10 +209,10 @@ PlaybackError Playback::Stop()
     return PlaybackError::FAILED_TO_OPEN;
   }
   this->dataPtr->stop = true;
-  this->dataPtr->playbackThread.join();
+  if (this->dataPtr->playbackThread.joinable())
+    this->dataPtr->playbackThread.join();
   return PlaybackError::NO_ERROR;
 }
-
 
 //////////////////////////////////////////////////
 PlaybackError Playback::AddTopic(const std::string &_topic)
@@ -252,9 +251,7 @@ int Playback::AddTopic(const std::regex &_topic)
     ignerr << "Failed to open log file\n";
     return static_cast<int>(PlaybackError::FAILED_TO_OPEN);
   }
-  // for all topics in the log
-  //  if it matches the regex
-  //    this->AddTopic(topicName)
+
   int numPublishers = 0;
   std::vector<Log::NameTypePair> allTopics = this->dataPtr->logFile.AllTopics();
   for (const Log::NameTypePair &topicType : allTopics)

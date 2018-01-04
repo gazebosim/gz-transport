@@ -2,7 +2,7 @@
 set(logging_tests
   Log_TEST.cc
   Message_TEST.cc
-  Record_TEST.cc
+  Recorder_TEST.cc
 )
 set(TEST_TYPE "UNIT")
 ign_build_tests(${logging_tests})

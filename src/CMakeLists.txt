@@ -13,6 +13,7 @@ set (sources
   Packet.cc
   Publisher.cc
   SubscribeOptions.cc
+  SubscriptionHandler.cc
   TopicUtils.cc
   Uuid.cc
 )

@@ -115,3 +115,25 @@ bool TopicUtils::FullyQualifiedName(const std::string &_partition,
 
   return true;
 }
+
+//////////////////////////////////////////////////
+bool TopicUtils::DecomposeFullyQualifiedTopic(
+    const std::string &_fullyQualifiedName,
+    std::string &_partition,
+    std::string &_namespaceAndTopic)
+{
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
+
+  if ( firstAt != 0
+    || firstAt == lastAt
+    || lastAt == _fullyQualifiedName.size() - 1)
+  {
+    return false;
+  }
+
+  _partition = _fullyQualifiedName.substr(firstAt + 1, lastAt - firstAt - 1);
+  _namespaceAndTopic = _fullyQualifiedName.substr(lastAt + 1);
+
+  return true;
+}

@@ -98,6 +98,21 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 }
 
 //////////////////////////////////////////////////
+void rawCbInfo(const std::string &_msgData,
+               const ignition::transport::MessageInfo &_info)
+{
+  EXPECT_EQ(_info.Topic(), g_topic);
+  EXPECT_EQ(g_FQNPartition, _info.Partition());
+  cbExecuted = true;
+
+  ignition::msgs::Int32 msg;
+  EXPECT_TRUE(msg.ParseFromString(_msgData));
+  EXPECT_EQ(msg.data(), data);
+
+  ++counter;
+}
+
+//////////////////////////////////////////////////
 /// \brief A generic callback.
 void genericCb(const transport::ProtoMsg &_msg)
 {
@@ -642,6 +657,126 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, RawPubSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.RawSubscribe(g_topic, rawCbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, PubRawSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.RawSubscribe(g_topic, rawCbInfo));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
