@@ -24,7 +24,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Discovery.hh>
 
-#include "ignition/transport/log/Record.hh"
+#include "ignition/transport/log/Recorder.hh"
 #include "ignition/transport/log/Log.hh"
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"

@@ -20,7 +20,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/Record.hh>
+#include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/log/Export.hh>
 
 using namespace ignition;

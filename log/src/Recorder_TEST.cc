@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/log/Record.hh"
+#include "ignition/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;

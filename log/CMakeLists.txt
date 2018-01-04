@@ -13,7 +13,7 @@ set(logging_sources
   src/MsgIter.cc
   src/Playback.cc
   src/raii-sqlite3.cc
-  src/Record.cc
+  src/Recorder.cc
 )
 
 add_library(${log_lib_target} SHARED
