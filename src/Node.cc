@@ -343,25 +343,18 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Remote subscribers.
   if (subscribers.haveRemote)
   {
-    // Allocate the buffer to store the serialized data.
-    auto size = _msg.ByteSize();
-    char *buffer = static_cast<char *>(malloc(size));
-    if (!_msg.SerializeToArray(buffer, size))
+    if (!haveSerialized && !failedToSerialize)
     {
-      free(buffer);
-      std::cerr << "Node::Publisher::Publish(): Error serializing data"
-                << std::endl;
-      return false;
-    }
+      failedToSerialize = !_msg.SerializeToString(&msgData);
 
-    // Zmq will call this lambda when the message is published.
-    // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void */*_hint*/) { free(_buffer); };
-
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-      buffer, size, myDeallocator, _msg.GetTypeName()))
-    {
-      return false;
+      if (!failedToSerialize)
+      {
+        if (!this->dataPtr->shared->Publish(
+              publisherTopic, msgData, publisherMsgType))
+        {
+          return false;
+        }
+      }
     }
   }
 
