@@ -287,7 +287,7 @@ TEST(ignTest, ServiceRequest)
   std::string output = custom_exec_str(ign +
       " service -s " + service + " --reqtype ign_msgs.Int32 " +
       "--reptype ign_msgs.Int32 --timeout 1000 " +
-      "--req 'data: " + value + "'");
+      "--req 'data: " + value + "' " + g_ignVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");
 }
