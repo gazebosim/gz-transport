@@ -60,9 +60,9 @@ extern "C"
       return BAD_REGEX;
     }
 
-    transport::log::Record recorder;
+    transport::log::Recorder recorder;
     recorder.AddTopic(regexPattern);
-    if (recorder.Start(_file) != transport::log::RecordError::NO_ERROR)
+    if (recorder.Start(_file) != transport::log::RecorderError::NO_ERROR)
     {
       return FAILED_TO_OPEN;
     }

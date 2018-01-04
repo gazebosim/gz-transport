@@ -20,6 +20,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <ignition/common/Console.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include "ChirpParams.hh"
@@ -31,6 +33,11 @@
 void chirp(const std::vector<std::string> &_topicNames,
            const int _chirps)
 {
+  igndbg << "Chirping ["<< _chirps << "] times on [" << _topicNames.size()
+         << "] topics:\n";
+  for (const std::string &name : _topicNames)
+    igndbg << " -- " << name << "\n";
+
   ignition::transport::Node node;
 
   using MsgType = ignition::transport::log::test::ChirpMsgType;
@@ -42,6 +49,10 @@ void chirp(const std::vector<std::string> &_topicNames,
     publishers.push_back(node.Advertise<MsgType>(topic));
   }
 
+  std::this_thread::sleep_for(
+        std::chrono::milliseconds(
+          ignition::transport::log::test::DelayBeforePublishing_ms));
+
   ignition::msgs::Int32 integer;
   integer.set_data(0);
 
@@ -50,12 +61,13 @@ void chirp(const std::vector<std::string> &_topicNames,
     integer.set_data(c);
     for (auto &pub : publishers)
     {
+      igndbg << "Chirping [" << c << "] on publisher [" << &pub << "]\n";
       pub.Publish(integer);
     }
 
     std::this_thread::sleep_for(
           std::chrono::milliseconds(
-            ignition::transport::log::test::DelayBetweenChirps));
+            ignition::transport::log::test::DelayBetweenChirps_ms));
   }
 }
 
@@ -70,15 +82,13 @@ int main(int argc, char **argv)
 
   if (argc < 2)
   {
-    std::cerr << "topicChirp_aux.cc: "
-              << "Missing partition name and number of chirps" << std::endl;
+    ignerr << "Missing partition name and number of chirps\n";
     return -1;
   }
 
   if (argc < 3)
   {
-    std::cout << "topicChirp_aux.cc: "
-              << "Missing number of chirps" << std::endl;
+    ignerr << "Missing number of chirps\n";
     return -2;
   }
 

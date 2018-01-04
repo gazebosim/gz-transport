@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_CHIRPPARAMS_HH_
-#define IGNITION_TRANSPORT_LOG_CHIRPPARAMS_HH_
+#ifndef IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
+#define IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
 #include <ignition/msgs/int32.pb.h>
 
@@ -30,7 +30,13 @@ namespace ignition
       {
         /// \brief Parameter used to determine how long the topicChirp_aux
         /// program will wait between emitting message chirps from its topic.
-        const int DelayBetweenChirps = 100;
+        /// Value is in milliseconds.
+        const int DelayBetweenChirps_ms = 1;
+
+        /// \brief Parameter used to determine how long the topicChirp_aux
+        /// program will wait (after it advertises) before it begins publishing
+        /// its message chirps. Value is in milliseconds.
+        const int DelayBeforePublishing_ms = 1000;
 
         /// \brief This is the message type that will be used by the chirping
         /// topics.

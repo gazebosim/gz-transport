@@ -116,7 +116,7 @@ namespace testing
     ign_strcat(cmd, " ");
     ign_strcat(cmd, _partition);
 
-    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
+    if (!CreateProcess(_command, const_cast<LPSTR>(cmd), NULL, NULL,
           TRUE, 0, NULL, NULL, &info, &processInfo))
     {
       std::cerr << "CreateProcess call failed" << std::endl;

@@ -34,7 +34,7 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::RecordPrivate
+class ignition::transport::log::RecorderPrivate
 {
   /// \brief Subscriber callback
   public: void OnMessageReceived(
@@ -45,7 +45,7 @@ class ignition::transport::log::RecordPrivate
   public: void OnAdvertisement(const Publisher &_publisher);
 
   /// \sa Record::AddTopic(const std::string&)
-  public: RecordError AddTopic(const std::string &_topic);
+  public: RecorderError AddTopic(const std::string &_topic);
 
   /// \sa Record::AddTopic(const std::regex&)
   public: int AddTopic(const std::regex &_pattern);
@@ -81,7 +81,7 @@ class ignition::transport::log::RecordPrivate
 };
 
 //////////////////////////////////////////////////
-void RecordPrivate::OnMessageReceived(
+void RecorderPrivate::OnMessageReceived(
           const std::string &_msgData,
           const transport::MessageInfo &_info)
 {
@@ -116,7 +116,7 @@ void RecordPrivate::OnMessageReceived(
 }
 
 //////////////////////////////////////////////////
-void RecordPrivate::OnAdvertisement(const Publisher &_publisher)
+void RecorderPrivate::OnAdvertisement(const Publisher &_publisher)
 {
   std::string partition;
   std::string topic;
@@ -124,8 +124,16 @@ void RecordPrivate::OnAdvertisement(const Publisher &_publisher)
   TopicUtils::DecomposeFullyQualifiedTopic(
         _publisher.Topic(), partition, topic);
 
+  const std::string &nodePartition = this->node.Options().Partition();
+
+  // If the first character in our node's partition is a slash, then we should
+  // start our comparison from index 0 of the incoming publisher's partition.
+  // Otherwise, we should start the comparison from index 1. The incoming
+  // publisher's partition is guaranteed to begin with the forward slash.
+  const std::size_t startCmp = nodePartition[0] == '/' ? 0 : 1;
+
   // If the advertised partition does not match ours, ignore this advertisement
-  if (this->node.Options().Partition() != partition)
+  if (strcmp(nodePartition.c_str(), partition.c_str() + startCmp) != 0)
     return;
 
   // If we are already subscribed to the topic, ignore this advertisement
@@ -142,35 +150,35 @@ void RecordPrivate::OnAdvertisement(const Publisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-RecordError RecordPrivate::AddTopic(const std::string &_topic)
+RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 {
   igndbg << "Recording [" << _topic << "]\n";
   // Subscribe to the topic whether it exists or not
   if (!this->node.RawSubscribe(_topic, this->rawCallback))
   {
     ignerr << "Failed to subscribe to [" << _topic << "]\n";
-    return RecordError::FAILED_TO_SUBSCRIBE;
+    return RecorderError::FAILED_TO_SUBSCRIBE;
   }
 
   this->alreadySubscribed.insert(_topic);
 
-  return RecordError::NO_ERROR;
+  return RecorderError::NO_ERROR;
 }
 
 //////////////////////////////////////////////////
-int RecordPrivate::AddTopic(const std::regex &_topic)
+int RecorderPrivate::AddTopic(const std::regex &_pattern)
 {
   int numSubscriptions = 0;
   std::vector<std::string> allTopics;
   this->node.TopicList(allTopics);
   for (auto topic : allTopics)
   {
-    if (std::regex_match(topic, _topic))
+    if (std::regex_match(topic, _pattern))
     {
       // Subscribe to the topic
-      if (this->AddTopic(topic) == RecordError::FAILED_TO_SUBSCRIBE)
+      if (this->AddTopic(topic) == RecorderError::FAILED_TO_SUBSCRIBE)
       {
-        return static_cast<int>(RecordError::FAILED_TO_SUBSCRIBE);
+        return static_cast<int>(RecorderError::FAILED_TO_SUBSCRIBE);
       }
       ++numSubscriptions;
     }
@@ -180,14 +188,14 @@ int RecordPrivate::AddTopic(const std::regex &_topic)
     }
   }
 
-  this->patterns.push_back(_topic);
+  this->patterns.push_back(_pattern);
 
   return numSubscriptions;
 }
 
 //////////////////////////////////////////////////
-Record::Record()
-  : dataPtr(new RecordPrivate)
+Recorder::Recorder()
+  : dataPtr(new RecorderPrivate)
 {
   // Set the offset used to get UTC from steady clock
   std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
@@ -216,25 +224,25 @@ Record::Record()
 }
 
 //////////////////////////////////////////////////
-Record::Record(Record &&_other)  // NOLINT
+Recorder::Recorder(Recorder &&_other)  // NOLINT
   : dataPtr(std::move(_other.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-Record::~Record()
+Recorder::~Recorder()
 {
   this->Stop();
 }
 
 //////////////////////////////////////////////////
-RecordError Record::Start(const std::string &_file)
+RecorderError Recorder::Start(const std::string &_file)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   if (this->dataPtr->logFile)
   {
     ignwarn << "Recording is already in progress\n";
-    return RecordError::ALREADY_RECORDING;
+    return RecorderError::ALREADY_RECORDING;
   }
 
   this->dataPtr->logFile.reset(new Log());
@@ -242,29 +250,29 @@ RecordError Record::Start(const std::string &_file)
   {
     ignerr << "Failed to open or create file [" << _file << "]\n";
     this->dataPtr->logFile.reset(nullptr);
-    return RecordError::FAILED_TO_OPEN;
+    return RecorderError::FAILED_TO_OPEN;
   }
 
   ignmsg << "Started recording to [" << _file << "]\n";
 
-  return RecordError::NO_ERROR;
+  return RecorderError::NO_ERROR;
 }
 
 //////////////////////////////////////////////////
-void Record::Stop()
+void Recorder::Stop()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   this->dataPtr->logFile.reset(nullptr);
 }
 
 //////////////////////////////////////////////////
-RecordError Record::AddTopic(const std::string &_topic)
+RecorderError Recorder::AddTopic(const std::string &_topic)
 {
   return this->dataPtr->AddTopic(_topic);
 }
 
 //////////////////////////////////////////////////
-int Record::AddTopic(const std::regex &_topic)
+int Recorder::AddTopic(const std::regex &_topic)
 {
   return this->dataPtr->AddTopic(_topic);
 }

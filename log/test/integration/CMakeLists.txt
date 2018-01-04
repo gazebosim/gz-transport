@@ -22,6 +22,9 @@ foreach(source_file ${tests})
   set_tests_properties(${BINARY_NAME} PROPERTIES
     ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
 
+  target_compile_definitions(${BINARY_NAME}
+    PRIVATE IGN_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
+
 endforeach()
 
 foreach(source_file ${tests} ${aux})

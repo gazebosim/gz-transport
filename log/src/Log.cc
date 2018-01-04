@@ -326,7 +326,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 
   // Test hook so tests can be run before `make install`
   std::string schemaFile;
-  const char *envPath = std::getenv("IGN_TRANSPORT_LOG_SQL_PATH");
+  const char *envPath = std::getenv(SchemaLocationEnvVar.c_str());
   if (envPath)
   {
     schemaFile = envPath;
@@ -342,7 +342,11 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
   std::ifstream fin(schemaFile, std::ifstream::in);
   if (!fin)
   {
-    ignerr << "Failed to open schema [" << schemaFile << "]\n";
+    ignerr << "Failed to open schema [" << schemaFile << "].\n"
+           << " -- If the schema file is missing, then either:\n"
+           << " 1. (Re)install ignition-transport-log or\n"
+           << " 2. Set the " << SchemaLocationEnvVar << " environment variable "
+           << "to the correct schema location.\n\n";
     return false;
   }
 
