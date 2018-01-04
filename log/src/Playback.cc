@@ -190,9 +190,6 @@ PlaybackError Playback::Start()
         igndbg << "publishing\n";
         this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
-
-        // TODO(MXG): Get the timing correct on this
-//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         ++msgIter;
       }
     });
