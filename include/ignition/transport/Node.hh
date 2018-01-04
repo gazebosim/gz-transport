@@ -360,6 +360,8 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or false
       /// otherwise.
       /// \sa AdvertiseOptions.
+      /// \deprecated See version where the callback function returns
+      /// a boolean.
       public: template<typename T1, typename T2>
       IGN_DEPRECATED(4.0) bool Advertise(
           const std::string &_topic,
