@@ -20,6 +20,10 @@
 
 #include <ignition/msgs/int32.pb.h>
 
+#include <ignition/transport/Node.hh>
+
+#include <ignition/transport/test_config.h>
+
 namespace ignition
 {
   namespace transport
@@ -41,6 +45,126 @@ namespace ignition
         /// \brief This is the message type that will be used by the chirping
         /// topics.
         using ChirpMsgType = ignition::msgs::Int32;
+
+
+        //////////////////////////////////////////////////
+        /// \brief Similar to testing::forkAndRun(), except this function
+        /// specifically calls the INTEGRATION_topicChirp_aux process and passes
+        /// it arguments to determine how it should chirp out messages over its
+        /// topics.
+        /// \param _topics A list of topic names to chirp on
+        /// \param _chirps The number of messages to chirp out. Each message
+        /// will count up starting from the value 1 and ending with the value
+        /// _chirps.
+        /// \return A handle to the process. This can be used with
+        /// testing::waitAndCleanupFork().
+        testing::forkHandlerType BeginChirps(
+            const std::vector<std::string> &_topics,
+            const int _chirps)
+        {
+          // Set the chirping process name
+          const std::string process =
+              IGN_TRANSPORT_LOG_BUILD_PATH"/INTEGRATION_topicChirp_aux";
+
+          // Get the partition name by creating a temporary Node and checking
+          // its default partition name.
+          std::string partitionName =
+              ignition::transport::Node().Options().Partition();
+
+          // Argument list:
+          // [0]: Executable name
+          // [1]: Partition name
+          // [2]: Number of chirps
+          // [3]-[N]: Each topic name
+          // [N+1]: Null terminator, required by execv
+          const std::size_t numArgs = 3 + _topics.size() + 1;
+
+          std::vector<std::string> strArgs;
+          strArgs.reserve(numArgs-1);
+          strArgs.push_back(process);
+          strArgs.push_back(partitionName);
+          strArgs.push_back(std::to_string(_chirps));
+          strArgs.insert(strArgs.end(), _topics.begin(), _topics.end());
+
+        #ifdef _MSC_VER
+          std::string fullArgs;
+          for (std::size_t i = 0; i < strArgs.size(); ++i)
+          {
+            if (i == 0)
+            {
+              // Windows prefers quotes around the process name
+              fullArgs += "\"";
+            }
+            else
+            {
+              fullArgs += " ";
+            }
+
+            fullArgs += strArgs[i];
+
+            if (i == 0)
+            {
+              fullArgs += "\"";
+            }
+          }
+
+          char * args = new char[fullArgs.size()+1];
+          std::strcpy(args, fullArgs.c_str());
+
+          STARTUPINFO info = {sizeof(info)};
+          PROCESS_INFORMATION processInfo;
+
+          if (!CreateProcess(process.c_str(), args, nullptr, nullptr,
+                             TRUE, 0, nullptr, nullptr, &info, &processInfo))
+          {
+            std::cerr << "Error running the chirp process ["
+                      << process << "]\n";
+          }
+
+          delete[] args;
+
+          return processInfo;
+        #else
+          // Create a raw char* array to pass to execv
+          char * * args = new char*[numArgs];
+
+          // Allocate a char array for each argument and copy the data to it
+          for (std::size_t i = 0; i < strArgs.size(); ++i)
+          {
+            const std::string &arg = strArgs[i];
+            args[i] = new char[arg.size()+1];
+            std::strcpy(args[i], arg.c_str());
+          }
+
+          // The last item in the char array must be a nullptr, according to the
+          // documentation of execv
+          args[numArgs-1] = nullptr;
+
+          testing::forkHandlerType pid = fork();
+
+          if (pid == 0)
+          {
+            if (execv(process.c_str(), args) == -1)
+            {
+              int err = errno;
+              std::cerr << "Error running the chirp process [" << err << "]: "
+                        << strerror(err) << "\n";
+            }
+          }
+
+          // Clean up the array of arguments
+          for (std::size_t i = 0; i < numArgs; ++i)
+          {
+            char *arg = args[i];
+            delete[] arg;
+            arg = nullptr;
+          }
+          delete[] args;
+          args = nullptr;
+
+          return pid;
+        #endif
+        }
       }
     }
   }

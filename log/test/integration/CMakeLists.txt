@@ -1,6 +1,7 @@
 # Integration tests
 set(tests
   recorder.cc
+  playback.cc
 )
 
 set(aux

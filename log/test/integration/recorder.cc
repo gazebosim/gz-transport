@@ -19,130 +19,11 @@
 
 #include <ignition/common/Filesystem.hh>
 
-#include <ignition/transport/test_config.h>
-
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Record.hh>
 #include <ignition/transport/log/Log.hh>
 
 #include "ChirpParams.hh"
-
-//////////////////////////////////////////////////
-/// \brief Similar to testing::forkAndRun(), except this function specifically
-/// calls the INTEGRATION_topicChirp_aux process and passes it arguments to
-/// determine how it should chirp out messages over its topics.
-/// \param _topics A list of topic names to chirp on
-/// \param _chirps The number of messages to chirp out. Each message will count
-/// up starting from the value 1 and ending with the value _chirps.
-/// \return A handle to the process. This can be used with
-/// testing::waitAndCleanupFork().
-testing::forkHandlerType BeginChirps(
-    const std::vector<std::string> &_topics,
-    const int _chirps)
-{
-  // Set the chirping process name
-  const std::string process =
-      IGN_TRANSPORT_LOG_BUILD_PATH"/INTEGRATION_topicChirp_aux";
-
-  // Get the partition name by creating a temporary Node and checking its
-  // default partition name.
-  std::string partitionName =
-      ignition::transport::Node().Options().Partition();
-
-  // Argument list:
-  // [0]: Executable name
-  // [1]: Partition name
-  // [2]: Number of chirps
-  // [3]-[N]: Each topic name
-  // [N+1]: Null terminator, required by execv
-  const std::size_t numArgs = 3 + _topics.size() + 1;
-
-  std::vector<std::string> strArgs;
-  strArgs.reserve(numArgs-1);
-  strArgs.push_back(process);
-  strArgs.push_back(partitionName);
-  strArgs.push_back(std::to_string(_chirps));
-  strArgs.insert(strArgs.end(), _topics.begin(), _topics.end());
-
-#ifdef _MSC_VER
-  std::string fullArgs;
-  for (std::size_t i = 0; i < strArgs.size(); ++i)
-  {
-    if (i == 0)
-    {
-      // Windows prefers quotes around the process name
-      fullArgs += "\"";
-    }
-    else
-    {
-      fullArgs += " ";
-    }
-
-    fullArgs += strArgs[i];
-
-    if (i == 0)
-    {
-      fullArgs += "\"";
-    }
-  }
-
-  char * args = new char[fullArgs.size()+1];
-  std::strcpy(args, fullArgs.c_str());
-
-  STARTUPINFO info = {sizeof(info)};
-  PROCESS_INFORMATION processInfo;
-
-  if (!CreateProcess(process.c_str(), args, nullptr, nullptr,
-                     TRUE, 0, nullptr, nullptr, &info, &processInfo))
-  {
-    std::cerr << "Error running the chirp process ["
-              << process << "]\n";
-  }
-
-  delete[] args;
-
-  return processInfo;
-#else
-  // Create a raw char* array to pass to execv
-  char * * args = new char*[numArgs];
-
-  // Allocate a char array for each argument and copy the data to it
-  for (std::size_t i = 0; i < strArgs.size(); ++i)
-  {
-    const std::string &arg = strArgs[i];
-    args[i] = new char[arg.size()+1];
-    std::strcpy(args[i], arg.c_str());
-  }
-
-  // The last item in the char array must be a nullptr, according to the
-  // documentation of execv
-  args[numArgs-1] = nullptr;
-
-  testing::forkHandlerType pid = fork();
-
-  if (pid == 0)
-  {
-    if (execv(process.c_str(), args) == -1)
-    {
-      int err = errno;
-      std::cerr << "Error running the chirp process [" << err << "]: "
-                << strerror(err) << "\n";
-    }
-  }
-
-  // Clean up the array of arguments
-  for (std::size_t i = 0; i < numArgs; ++i)
-  {
-    char *arg = args[i];
-    delete[] arg;
-    arg = nullptr;
-  }
-  delete[] args;
-  args = nullptr;
-
-  return pid;
-#endif
-}
 
 //////////////////////////////////////////////////
 /// \brief VerifyMessage is intended to be used by the
@@ -160,8 +41,8 @@ void VerifyMessage(const ignition::transport::log::MsgIter &_iter,
 {
   using MsgType = ignition::transport::log::test::ChirpMsgType;
 
-  const std::string data = _iter->Data();
-  const std::string type = _iter->Type();
+  const std::string &data = _iter->Data();
+  const std::string &type = _iter->Type();
   EXPECT_FALSE(data.empty());
   EXPECT_FALSE(type.empty());
 
@@ -183,7 +64,7 @@ void VerifyMessage(const ignition::transport::log::MsgIter &_iter,
 //////////////////////////////////////////////////
 /// \brief Begin recording a set of topics before those topics are advertised
 /// or published to.
-TEST(recordAndPlayback, BeginRecordingTopicsBeforeAdvertisement)
+TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. ign-transport automatically adds a leading slash to
@@ -203,7 +84,8 @@ TEST(recordAndPlayback, BeginRecordingTopicsBeforeAdvertisement)
             ignition::transport::log::RecorderError::NO_ERROR);
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper = BeginChirps(topics, numChirps);
+  testing::forkHandlerType chirper =
+      ignition::transport::log::test::BeginChirps(topics, numChirps);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -255,7 +137,7 @@ TEST(recordAndPlayback, BeginRecordingTopicsBeforeAdvertisement)
 /// \brief Begin recording a set of topics after those topics have been
 /// advertised and published to. Some of the initial messages will be missed,
 /// so we only test to see that we received the very last message.
-TEST(recordAndPlayback, BeginRecordingTopicsAfterAdvertisement)
+TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
 {
   std::vector<std::string> topics = {"/foo", "/bar"};
 
@@ -273,7 +155,8 @@ TEST(recordAndPlayback, BeginRecordingTopicsAfterAdvertisement)
   const int numChirps = static_cast<int>(
         std::ceil(secondsToChirpFor * 1000.0/static_cast<double>(delay_ms)));
 
-  testing::forkHandlerType chirper = BeginChirps(topics, numChirps);
+  testing::forkHandlerType chirper =
+      ignition::transport::log::test::BeginChirps(topics, numChirps);
 
   const int waitBeforeSubscribing_ms =
       ignition::transport::log::test::DelayBeforePublishing_ms
@@ -348,7 +231,8 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
             ignition::transport::log::RecorderError::NO_ERROR);
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper = BeginChirps(topics, numChirps);
+  testing::forkHandlerType chirper =
+      ignition::transport::log::test::BeginChirps(topics, numChirps);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -389,13 +273,13 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 }
 
 //////////////////////////////////////////////////
-TEST(recordAndPlayback, BeginRecordingPatternBeforeAdvertisement)
+TEST(recorder, BeginRecordingPatternBeforeAdvertisement)
 {
   RecordPatternBeforeAdvertisement(std::regex(".*foo.*"));
 }
 
 //////////////////////////////////////////////////
-TEST(recordAndPlayback, BeginRecordingAllBeforeAdvertisement)
+TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 {
   RecordPatternBeforeAdvertisement(std::regex(".*"));
 }

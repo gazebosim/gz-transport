@@ -168,7 +168,8 @@ PlaybackError Playback::Start(const std::string &_file)
         pub->RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        // TODO(MXG): Get the timing correct on this
+//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         ++msgIter;
       }
     });
@@ -180,6 +181,8 @@ PlaybackError Playback::Start(const std::string &_file)
 void Playback::Stop()
 {
   this->dataPtr->stop = true;
-  this->dataPtr->playbackThread.join();
+  if (this->dataPtr->playbackThread.joinable())
+    this->dataPtr->playbackThread.join();
+
   this->dataPtr->logFile.reset(nullptr);
 }
