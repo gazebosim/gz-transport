@@ -144,8 +144,8 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename MessageT>
       Node::Publisher Advertise(
-        const std::string &_topic,
-        const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
+          const std::string &_topic,
+          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
 
       /// \brief Advertise a new topic. If a topic is currently advertised,
       /// you cannot advertise it a second time (regardless of its type).
@@ -159,9 +159,9 @@ namespace ignition
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
       public: Node::Publisher Advertise(
-        const std::string &_topic,
-        const std::string &_msgTypeName,
-        const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
+          const std::string &_topic,
+          const std::string &_msgTypeName,
+          const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
 
       /// \brief Get the list of topics advertised by this node.
       /// \return A vector containing all the topics advertised by this node.
@@ -178,9 +178,9 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        void(*_callback)(const MessageT &_msg),
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          void(*_callback)(const MessageT &_msg),
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback does not include any message information.
@@ -192,9 +192,9 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        std::function<void(const MessageT &_msg)> &_callback,
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg)> &_callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback does not include any message information.
@@ -208,10 +208,10 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename ClassT, typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        void(ClassT::*_callback)(const MessageT &_msg),
-        ClassT *_obj,
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          void(ClassT::*_callback)(const MessageT &_msg),
+          ClassT *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback includes message information.
@@ -225,9 +225,9 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback includes message information.
@@ -240,10 +240,10 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        std::function<void(const MessageT &_msg,
-                           const MessageInfo &_info)> &_callback,
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg,
+                             const MessageInfo &_info)> &_callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback includes message information.
@@ -258,11 +258,11 @@ namespace ignition
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename ClassT, typename MessageT>
       bool Subscribe(
-        const std::string &_topic,
-        void(ClassT::*_callback)(const MessageT &_msg,
-                                 const MessageInfo &_info),
-        ClassT *_obj,
-        const SubscribeOptions &_opts = SubscribeOptions());
+          const std::string &_topic,
+          void(ClassT::*_callback)(const MessageT &_msg,
+                                   const MessageInfo &_info),
+          ClassT *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Get the list of topics subscribed by this node. Note that
       /// we might be interested in one topic but we still don't know the
@@ -293,10 +293,10 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean.
       public: template<typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        void(*_callback)(const RequestT &_request,
-                         ReplyT &_reply, bool &_result),
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(*_callback)(const RequestT &_request,
+                           ReplyT &_reply, bool &_result),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service.
       /// In this version the callback is a plain function pointer.
@@ -312,9 +312,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename RequestT, typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        bool(*_callback)(const RequestT &_request, ReplyT &_reply),
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          bool(*_callback)(const RequestT &_request, ReplyT &_reply),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
@@ -331,9 +331,9 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean
       public: template<typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        void(*_callback)(ReplyT &_reply, bool &_result),
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(*_callback)(ReplyT &_reply, bool &_result),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without input parameter.
       /// In this version the callback is a free function.
@@ -348,9 +348,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        bool(*_callback)(ReplyT &_reply),
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          bool(*_callback)(ReplyT &_reply),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without any output parameter.
       /// In this version the callback is a free function.
@@ -364,9 +364,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename RequestT>
       bool Advertise(
-        const std::string &_topic,
-        void(*_callback)(const RequestT &_request),
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(*_callback)(const RequestT &_request),
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
@@ -385,10 +385,10 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean
       public: template<typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        std::function<void(const RequestT &_request,
-                           ReplyT &_reply, bool &_result)> &_callback,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          std::function<void(const RequestT &_request,
+                             ReplyT &_reply, bool &_result)> &_callback,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
@@ -404,9 +404,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename RequestT, typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        std::function<bool(const RequestT &_request, ReplyT &_reply)> _callback,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          std::function<bool(const RequestT &_request, ReplyT &_reply)> _callback,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
@@ -423,9 +423,9 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean
       public: template<typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        std::function<void(ReplyT &_reply, bool &_result)> &_callback,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          std::function<void(ReplyT &_reply, bool &_result)> &_callback,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without input parameter.
       /// In this version the callback is a lambda function.
@@ -440,9 +440,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        std::function<bool(ReplyT &_reply)> &_callback,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          std::function<bool(ReplyT &_reply)> &_callback,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without any output parameter.
       /// In this version the callback is a lambda function.
@@ -456,9 +456,9 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename RequestT>
       bool Advertise(
-        const std::string &_topic,
-        std::function<void(const RequestT &_request)> &_callback,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          std::function<void(const RequestT &_request)> &_callback,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
@@ -478,11 +478,11 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean
       public: template<typename ClassT, typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        void(ClassT::*_callback)(const RequestT &_request,
-                           ReplyT &_reply, bool &_result),
-        ClassT *_obj,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(ClassT::*_callback)(const RequestT &_request,
+                             ReplyT &_reply, bool &_result),
+          ClassT *_obj,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
@@ -499,10 +499,10 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename ClassT, typename RequestT, typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        bool(ClassT::*_callback)(const RequestT &_request, ReplyT &_reply),
-        ClassT *_obj,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          bool(ClassT::*_callback)(const RequestT &_request, ReplyT &_reply),
+          ClassT *_obj,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
@@ -520,10 +520,10 @@ namespace ignition
       /// \deprecated See version where the callback function returns a boolean
       public: template<typename ClassT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
-        const std::string &_topic,
-        void(ClassT::*_callback)(ReplyT &_reply, bool &_result),
-        ClassT *_obj,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(ClassT::*_callback)(ReplyT &_reply, bool &_result),
+          ClassT *_obj,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without input parameter.
       /// In this version the callback is a member function.
@@ -539,10 +539,10 @@ namespace ignition
       /// \sa AdvertiseOptions.
       public: template<typename ClassT, typename ReplyT>
       bool Advertise(
-        const std::string &_topic,
-        bool(ClassT::*_callback)(ReplyT &_reply),
-        ClassT *_obj,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          bool(ClassT::*_callback)(ReplyT &_reply),
+          ClassT *_obj,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without any output parameter.
       /// In this version the callback is a member function.
@@ -557,10 +557,10 @@ namespace ignition
       /// \sa AdvertiseOptions
       public: template<typename ClassT, typename RequestT>
       bool Advertise(
-        const std::string &_topic,
-        void(ClassT::*_callback)(const RequestT &_request),
-        ClassT *_obj,
-        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+          const std::string &_topic,
+          void(ClassT::*_callback)(const RequestT &_request),
+          ClassT *_obj,
+          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Get the list of services advertised by this node.
       /// \return A vector containing all services advertised by this node.
@@ -579,9 +579,9 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename RequestT, typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        const RequestT &_request,
-        void(*_callback)(const ReplyT &_reply, const bool _result));
+          const std::string &_topic,
+          const RequestT &_request,
+          void(*_callback)(const ReplyT &_reply, const bool _result));
 
       /// \brief Request a new service without input parameter using a
       /// non-blocking call.
@@ -595,8 +595,8 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        void(*_callback)(const ReplyT &_reply, const bool _result));
+          const std::string &_topic,
+          void(*_callback)(const ReplyT &_reply, const bool _result));
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a lambda function.
@@ -611,10 +611,10 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename RequestT, typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        const RequestT &_request,
-        std::function<void(const ReplyT &_reply,
-                           const bool _result)> &_callback);
+          const std::string &_topic,
+          const RequestT &_request,
+          std::function<void(const ReplyT &_reply,
+                             const bool _result)> &_callback);
 
       /// \brief Request a new service without input parameter using a
       /// non-blocking call.
@@ -628,9 +628,9 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        std::function<void(const ReplyT &_reply,
-                           const bool _result)> &_callback);
+          const std::string &_topic,
+          std::function<void(const ReplyT &_reply,
+                             const bool _result)> &_callback);
 
       /// \brief Request a new service using a non-blocking call.
       /// In this version the callback is a member function.
@@ -646,10 +646,10 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename ClassT, typename RequestT, typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        const RequestT &_request,
-        void(ClassT::*_callback)(const ReplyT &_reply, const bool _result),
-        ClassT *_obj);
+          const std::string &_topic,
+          const RequestT &_request,
+          void(ClassT::*_callback)(const ReplyT &_reply, const bool _result),
+          ClassT *_obj);
 
       /// \brief Request a new service without input parameter using a
       /// non-blocking call.
@@ -664,9 +664,9 @@ namespace ignition
       /// \return true when the service call was succesfully requested.
       public: template<typename ClassT, typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        void(ClassT::*_callback)(const ReplyT &_reply, const bool _result),
-        ClassT *_obj);
+          const std::string &_topic,
+          void(ClassT::*_callback)(const ReplyT &_reply, const bool _result),
+          ClassT *_obj);
 
       /// \brief Request a new service using a blocking call.
       /// \param[in] _topic Service name requested.
@@ -679,11 +679,11 @@ namespace ignition
       /// expired.
       public: template<typename RequestT, typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        const RequestT &_request,
-        const unsigned int &_timeout,
-        ReplyT &_reply,
-        bool &_result);
+          const std::string &_topic,
+          const RequestT &_request,
+          const unsigned int &_timeout,
+          ReplyT &_reply,
+          bool &_result);
 
       /// \brief Request a new service without input parameter using a blocking
       /// call.
@@ -695,10 +695,10 @@ namespace ignition
       /// expired.
       public: template<typename ReplyT>
       bool Request(
-        const std::string &_topic,
-        const unsigned int &_timeout,
-        ReplyT &_reply,
-        bool &_result);
+          const std::string &_topic,
+          const unsigned int &_timeout,
+          ReplyT &_reply,
+          bool &_result);
 
       /// \brief Request a new service without waiting for response.
       /// \param[in] _topic Topic requested.
@@ -741,8 +741,8 @@ namespace ignition
       /// \param[out] _publishers List of publishers on the service.
       /// \return False if unable to get service info.
       public: bool ServiceInfo(
-        const std::string &_service,
-        std::vector<ServicePublisher> &_publishers) const;
+          const std::string &_service,
+          std::vector<ServicePublisher> &_publishers) const;
 
       /// \brief Get the partition name used by this node.
       /// \return The partition name.
