@@ -142,11 +142,12 @@ namespace ignition
       /// The PublisherId also acts as boolean, where true occurs if the topic
       /// was succesfully advertised.
       /// \sa AdvertiseOptions.
-      public: template<typename T> Node::Publisher Advertise(
+      public: template<typename MessageT>
+      Node::Publisher Advertise(
           const std::string &_topic,
           const AdvertiseMessageOptions &_options = AdvertiseMessageOptions())
       {
-        return this->Advertise(_topic, T().GetTypeName(), _options);
+        return this->Advertise(_topic, MessageT().GetTypeName(), _options);
       }
 
       /// \brief Advertise a new topic. If a topic is currently advertised,
@@ -178,18 +179,20 @@ namespace ignition
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename T> bool Subscribe(
+      public: template<typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const T &_msg),
+          void(*_cb)(const MessageT &_msg),
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &, const MessageInfo &)> f =
-          [_cb](const T & _internalMsg, const MessageInfo &/*_internalInfo*/)
+        std::function<void(const MessageT &, const MessageInfo &)> f =
+          [_cb](const MessageT & _internalMsg,
+                const MessageInfo &/*_internalInfo*/)
         {
           (*_cb)(_internalMsg);
         };
 
-        return this->Subscribe<T>(_topic, f, _opts);
+        return this->Subscribe<MessageT>(_topic, f, _opts);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -200,18 +203,20 @@ namespace ignition
       ///   \param[in] _msg Protobuf message containing a new topic update.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename T> bool Subscribe(
+      public: template<typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          std::function<void(const T &_msg)> &_cb,
+          std::function<void(const MessageT &_msg)> &_cb,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &, const MessageInfo &)> f =
-          [_cb](const T & _internalMsg, const MessageInfo &/*_internalInfo*/)
+        std::function<void(const MessageT &, const MessageInfo &)> f =
+          [_cb](const MessageT & _internalMsg,
+                const MessageInfo &/*_internalInfo*/)
         {
           _cb(_internalMsg);
         };
 
-        return this->Subscribe<T>(_topic, f, _opts);
+        return this->Subscribe<MessageT>(_topic, f, _opts);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -224,21 +229,22 @@ namespace ignition
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename C, typename T> bool Subscribe(
+      public: template<typename ClassT, typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const T &_msg),
-          C *_obj,
+          void(ClassT::*_cb)(const MessageT &_msg),
+          ClassT *_obj,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &, const MessageInfo &)> f =
-          [_cb, _obj](const T & _internalMsg,
+        std::function<void(const MessageT &, const MessageInfo &)> f =
+          [_cb, _obj](const MessageT & _internalMsg,
                       const MessageInfo &/*_internalInfo*/)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1);
           cb(_internalMsg);
         };
 
-        return this->Subscribe<T>(_topic, f, _opts);
+        return this->Subscribe<MessageT>(_topic, f, _opts);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -251,18 +257,20 @@ namespace ignition
       ///   \param[in] _info Message information (e.g.: topic name).
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename T> bool Subscribe(
+      public: template<typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          void(*_cb)(const T &_msg, const MessageInfo &_info),
+          void(*_cb)(const MessageT &_msg, const MessageInfo &_info),
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &, const MessageInfo &)> f =
-          [_cb](const T & _internalMsg, const MessageInfo &_internalInfo)
+        std::function<void(const MessageT &, const MessageInfo &)> f =
+          [_cb](const MessageT & _internalMsg,
+                const MessageInfo &_internalInfo)
         {
           (*_cb)(_internalMsg, _internalInfo);
         };
 
-        return this->Subscribe<T>(_topic, f, _opts);
+        return this->Subscribe<MessageT>(_topic, f, _opts);
       }
 
       /// \brief Subscribe to a topic registering a callback.
@@ -274,9 +282,11 @@ namespace ignition
       ///   \param[in] _info Message information (e.g.: topic name).
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename T> bool Subscribe(
+      public: template<typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          std::function<void(const T &_msg, const MessageInfo &_info)> &_cb,
+          std::function<void(const MessageT &_msg,
+                             const MessageInfo &_info)> &_cb,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
         std::string fullyQualifiedTopic;
@@ -288,8 +298,8 @@ namespace ignition
         }
 
         // Create a new subscription handler.
-        std::shared_ptr<SubscriptionHandler<T>> subscrHandlerPtr(
-            new SubscriptionHandler<T>(this->NodeUuid(), _opts));
+        std::shared_ptr<SubscriptionHandler<MessageT>> subscrHandlerPtr(
+            new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
         // Insert the callback into the handler.
         subscrHandlerPtr->SetCallback(_cb);
@@ -317,21 +327,23 @@ namespace ignition
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      public: template<typename C, typename T> bool Subscribe(
+      public: template<typename ClassT, typename MessageT>
+      bool Subscribe(
           const std::string &_topic,
-          void(C::*_cb)(const T &_msg, const MessageInfo &_info),
-          C *_obj,
+          void(ClassT::*_cb)(const MessageT &_msg, const MessageInfo &_info),
+          ClassT *_obj,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
-        std::function<void(const T &, const MessageInfo &)> f =
-          [_cb, _obj](const T & _internalMsg, const MessageInfo &_internalInfo)
+        std::function<void(const MessageT &, const MessageInfo &)> f =
+          [_cb, _obj](const MessageT & _internalMsg,
+                      const MessageInfo &_internalInfo)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1,
             std::placeholders::_2);
           cb(_internalMsg, _internalInfo);
         };
 
-        return this->Subscribe<T>(_topic, f, _opts);
+        return this->Subscribe<MessageT>(_topic, f, _opts);
       }
 
       /// \brief Get the list of topics subscribed by this node. Note that
@@ -348,8 +360,8 @@ namespace ignition
 
       /// \brief Old method for advertising a service. This signature is
       /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (*_cb)(const T1 &_req, const T2 &_rep)} for advertising a
-      /// service.
+      /// \code{bool (*_cb)(const Request &_req, const Reply &_rep)} for
+      /// advertising a service.
       /// \param[in] _topic Topic name associated with the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
@@ -361,21 +373,21 @@ namespace ignition
       /// otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean.
-      public: template<typename T1, typename T2>
+      public: template<typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
           const std::string &_topic,
-          void(*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+          void(*_cb)(const RequestT &_req, ReplyT &_rep, bool &_result),
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T1 &, T2&)> newCb =
-          [=](const T1 &_internalReq, T2 &_internalRep) -> bool
+        std::function<bool(const RequestT &, ReplyT&)> newCb =
+          [=](const RequestT &_internalReq, ReplyT &_internalRep) -> bool
         {
           bool internalResult = false;
           (*_cb)(_internalReq, _internalRep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<T1, T2>(_topic, newCb, _options);
+        return this->Advertise(_topic, newCb, _options);
       }
 
       /// \brief Advertise a new service.
@@ -390,9 +402,10 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T1, typename T2> bool Advertise(
+      public: template<typename RequestT, typename ReplyT>
+      bool Advertise(
         const std::string &_topic,
-        bool(*_cb)(const T1 &_req, T2 &_rep),
+        bool(*_cb)(const RequestT &_req, ReplyT &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         // Dev Note: This overload of Advertise(~) is necessary so that the
@@ -404,13 +417,13 @@ namespace ignition
 
         // We create a std::function object so that we can explicitly call the
         // baseline overload of Advertise(~).
-        std::function<bool(const T1&, T2&)> f =
-          [_cb](const T1 &_internalReq, T2 &_internalRep)
+        std::function<bool(const RequestT&, ReplyT&)> f =
+          [_cb](const RequestT &_internalReq, ReplyT &_internalRep)
         {
           return (*_cb)(_internalReq, _internalRep);
         };
 
-        return this->Advertise<T1, T2>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Old method for advertising a service. This signature is
@@ -426,21 +439,21 @@ namespace ignition
       /// false otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean
-      public: template<typename T>
+      public: template<typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
         const std::string &_topic,
-        void(*_cb)(T &_rep, bool &_result),
+        void(*_cb)(ReplyT &_rep, bool &_result),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           bool internalResult = false;
           (*_cb)(_internalRep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
@@ -454,17 +467,18 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(
+      public: template<typename ReplyT>
+      bool Advertise(
         const std::string &_topic,
-        bool(*_cb)(T &_rep),
+        bool(*_cb)(ReplyT &_rep),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           return (*_cb)(_internalRep);
         };
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without any output parameter.
@@ -477,19 +491,21 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(
+      public: template<typename RequestT>
+      bool Advertise(
         const std::string &_topic,
-        void(*_cb)(const T &_req),
+        void(*_cb)(const RequestT &_req),
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T &, ignition::msgs::Empty &)> f =
-          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/)
+        std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+          [_cb](const RequestT &_internalReq,
+                ignition::msgs::Empty &/*_internalRep*/)
         {
           (*_cb)(_internalReq);
           return true;
         };
 
-        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Old method for advertising a service. This signature is
@@ -507,21 +523,22 @@ namespace ignition
       /// false otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean
-      public: template<typename T1, typename T2>
+      public: template<typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
         const std::string &_topic,
-        std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
+        std::function<void(const RequestT &_req,
+                           ReplyT &_rep, bool &_result)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T1&, T2&)> f =
-            [_cb](const T1 &_req, T2 &_rep)
+        std::function<bool(const RequestT&, ReplyT&)> f =
+            [_cb](const RequestT &_req, ReplyT &_rep)
         {
           bool internalResult = false;
           (*_cb)(_req, _rep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<T1, T2>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service.
@@ -536,9 +553,10 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T1, typename T2> bool Advertise(
+      public: template<typename RequestT, typename ReplyT>
+      bool Advertise(
         const std::string &_topic,
-        std::function<bool(const T1 &_req, T2 &_rep)> &_cb,
+        std::function<bool(const RequestT &_req, ReplyT &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
         std::string fullyQualifiedTopic;
@@ -550,8 +568,8 @@ namespace ignition
         }
 
         // Create a new service reply handler.
-        std::shared_ptr<RepHandler<T1, T2>> repHandlerPtr(
-          new RepHandler<T1, T2>());
+        std::shared_ptr<RepHandler<RequestT, ReplyT>> repHandlerPtr(
+          new RepHandler<RequestT, ReplyT>());
 
         // Insert the callback into the handler.
         repHandlerPtr->SetCallback(_cb);
@@ -573,7 +591,7 @@ namespace ignition
           this->Shared()->myReplierAddress,
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(),
-          T1().GetTypeName(), T2().GetTypeName(), _options);
+          RequestT().GetTypeName(), ReplyT().GetTypeName(), _options);
 
         if (!this->Shared()->AdvertisePublisher(publisher))
         {
@@ -599,21 +617,21 @@ namespace ignition
       /// false otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean
-      public: template<typename T>
+      public: template<typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
         const std::string &_topic,
-        std::function<void(T &_rep, bool &_result)> &_cb,
+        std::function<void(ReplyT &_rep, bool &_result)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           bool internalResult = false;
           (_cb)(_internalRep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
@@ -627,18 +645,18 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T>
+      public: template<typename ReplyT>
       bool Advertise(
         const std::string &_topic,
-        std::function<bool(T &_rep)> &_cb,
+        std::function<bool(ReplyT &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           return (_cb)(_internalRep);
         };
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without any output parameter.
@@ -651,19 +669,21 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(
+      public: template<typename RequestT>
+      bool Advertise(
         const std::string &_topic,
-        std::function<void(const T &_req)> &_cb,
+        std::function<void(const RequestT &_req)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T &, ignition::msgs::Empty &)> f =
-          [_cb](const T &_internalReq, ignition::msgs::Empty &/*_internalRep*/)
+        std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+          [_cb](const RequestT &_internalReq,
+                ignition::msgs::Empty &/*_internalRep*/)
         {
           (_cb)(_internalReq);
           return true;
         };
 
-        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Old method for advertising a service. This signature is
@@ -682,23 +702,23 @@ namespace ignition
       /// false otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean
-      public: template<typename C, typename T1, typename T2>
+      public: template<typename ClassT, typename RequestT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
-        C *_obj,
+        void(ClassT::*_cb)(const RequestT &_req, ReplyT &_rep, bool &_result),
+        ClassT *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T1 &, T2 &)> f =
-          [_cb, _obj](const T1 &_internalReq,
-                      T2 &_internalRep)
+        std::function<bool(const RequestT &, ReplyT &)> f =
+          [_cb, _obj](const RequestT &_internalReq,
+                      ReplyT &_internalRep)
         {
           bool internalResult;
           (_obj->*_cb)(_internalReq, _internalRep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<T1, T2>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service.
@@ -714,20 +734,21 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename C, typename T1, typename T2> bool Advertise(
+      public: template<typename ClassT, typename RequestT, typename ReplyT>
+      bool Advertise(
         const std::string &_topic,
-        bool(C::*_cb)(const T1 &_req, T2 &_rep),
-        C *_obj,
+        bool(ClassT::*_cb)(const RequestT &_req, ReplyT &_rep),
+        ClassT *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T1 &, T2 &)> f =
-          [_cb, _obj](const T1 &_internalReq,
-                      T2 &_internalRep)
+        std::function<bool(const RequestT &, ReplyT &)> f =
+          [_cb, _obj](const RequestT &_internalReq,
+                      ReplyT &_internalRep)
         {
           return (_obj->*_cb)(_internalReq, _internalRep);
         };
 
-        return this->Advertise<T1, T2>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Old method for advertising a service. This signature is
@@ -744,22 +765,22 @@ namespace ignition
       /// false otherwise.
       /// \sa AdvertiseOptions.
       /// \deprecated See version where the callback function returns a boolean
-      public: template<typename C, typename T>
+      public: template<typename ClassT, typename ReplyT>
       IGN_DEPRECATED(4.0) bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(T &_rep, bool &_result),
-        C *_obj,
+        void(ClassT::*_cb)(ReplyT &_rep, bool &_result),
+        ClassT *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb, _obj](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           bool internalResult;
           (_obj->*_cb)(_internalRep, internalResult);
           return internalResult;
         };
 
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
@@ -774,19 +795,20 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename C, typename T> bool Advertise(
+      public: template<typename ClassT, typename ReplyT>
+      bool Advertise(
         const std::string &_topic,
-        bool(C::*_cb)(T &_rep),
-        C *_obj,
+        bool(ClassT::*_cb)(ReplyT &_rep),
+        ClassT *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const msgs::Empty &, T &)> f =
-          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        std::function<bool(const msgs::Empty &, ReplyT &)> f =
+          [_cb, _obj](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
         {
           return (_obj->*_cb)(_internalRep);
         };
 
-        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without any output parameter.
@@ -800,14 +822,15 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions
-      public: template<typename C, typename T> bool Advertise(
+      public: template<typename ClassT, typename RequestT>
+      bool Advertise(
         const std::string &_topic,
-        void(C::*_cb)(const T &_req),
-        C *_obj,
+        void(ClassT::*_cb)(const RequestT &_req),
+        ClassT *_obj,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
-        std::function<bool(const T &, ignition::msgs::Empty &)> f =
-          [_cb, _obj](const T &_internalReq,
+        std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+          [_cb, _obj](const RequestT &_internalReq,
              ignition::msgs::Empty &/*_internalRep*/)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1);
@@ -815,7 +838,7 @@ namespace ignition
           return true;
         };
 
-        return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
+        return this->Advertise(_topic, f, _options);
       }
 
       /// \brief Get the list of services advertised by this node.
@@ -832,18 +855,19 @@ namespace ignition
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
-      public: template<typename T1, typename T2> bool Request(
+      public: template<typename RequestT, typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        const T1 &_req,
-        void(*_cb)(const T2 &_rep, const bool _result))
+        const RequestT &_req,
+        void(*_cb)(const ReplyT &_rep, const bool _result))
       {
-        std::function<void(const T2 &, const bool)> f =
-          [_cb](const T2 &_internalRep, const bool _internalResult)
+        std::function<void(const ReplyT &, const bool)> f =
+          [_cb](const ReplyT &_internalRep, const bool _internalResult)
         {
           (*_cb)(_internalRep, _internalResult);
         };
 
-        return this->Request<T1, T2>(_topic, _req, f);
+        return this->Request<RequestT, ReplyT>(_topic, _req, f);
       }
 
       /// \brief Request a new service without input parameter using a
@@ -856,9 +880,10 @@ namespace ignition
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
-      public: template<typename T> bool Request(
+      public: template<typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        void(*_cb)(const T &_rep, const bool _result))
+        void(*_cb)(const ReplyT &_rep, const bool _result))
       {
         msgs::Empty req;
         return this->Request(_topic, req, _cb);
@@ -874,10 +899,11 @@ namespace ignition
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
-      public: template<typename T1, typename T2> bool Request(
+      public: template<typename RequestT, typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        const T1 &_req,
-        std::function<void(const T2 &_rep, const bool _result)> &_cb)
+        const RequestT &_req,
+        std::function<void(const ReplyT &_rep, const bool _result)> &_cb)
       {
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -892,15 +918,17 @@ namespace ignition
         {
           std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
           localResponserFound = this->Shared()->repliers.FirstHandler(
-            fullyQualifiedTopic, T1().GetTypeName(), T2().GetTypeName(),
-              repHandler);
+                fullyQualifiedTopic,
+                RequestT().GetTypeName(),
+                ReplyT().GetTypeName(),
+                repHandler);
         }
 
         // If the responser is within my process.
         if (localResponserFound)
         {
           // There is a responser in my process, let's use it.
-          T2 rep;
+          ReplyT rep;
           bool result = repHandler->RunLocalCallback(_req, rep);
 
           _cb(rep, result);
@@ -908,8 +936,8 @@ namespace ignition
         }
 
         // Create a new request handler.
-        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->NodeUuid()));
+        std::shared_ptr<ReqHandler<RequestT, ReplyT>> reqHandlerPtr(
+          new ReqHandler<RequestT, ReplyT>(this->NodeUuid()));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(&_req);
@@ -929,7 +957,7 @@ namespace ignition
           if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
           {
             this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-              T1().GetTypeName(), T2().GetTypeName());
+              RequestT().GetTypeName(), ReplyT().GetTypeName());
           }
           else
           {
@@ -957,9 +985,10 @@ namespace ignition
       ///   \param[in] _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
-      public: template<typename T> bool Request(
+      public: template<typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        std::function<void(const T &_rep, const bool _result)> &_cb)
+        std::function<void(const ReplyT &_rep, const bool _result)> &_cb)
       {
         msgs::Empty req;
         return this->Request(_topic, req, _cb);
@@ -976,21 +1005,22 @@ namespace ignition
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when the service call was succesfully requested.
-      public: template<typename C, typename T1, typename T2> bool Request(
+      public: template<typename ClassT, typename RequestT, typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        const T1 &_req,
-        void(C::*_cb)(const T2 &_rep, const bool _result),
-        C *_obj)
+        const RequestT &_req,
+        void(ClassT::*_cb)(const ReplyT &_rep, const bool _result),
+        ClassT *_obj)
       {
-        std::function<void(const T2 &, const bool)> f =
-          [_cb, _obj](const T2 &_internalRep, const bool _internalResult)
+        std::function<void(const ReplyT &, const bool)> f =
+          [_cb, _obj](const ReplyT &_internalRep, const bool _internalResult)
         {
           auto cb = std::bind(_cb, _obj, std::placeholders::_1,
             std::placeholders::_2);
           cb(_internalRep, _internalResult);
         };
 
-        return this->Request<T1, T2>(_topic, _req, f);
+        return this->Request<RequestT, ReplyT>(_topic, _req, f);
       }
 
       /// \brief Request a new service without input parameter using a
@@ -1004,10 +1034,11 @@ namespace ignition
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when the service call was succesfully requested.
-      public: template<typename C, typename T> bool Request(
+      public: template<typename ClassT, typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        void(C::*_cb)(const T &_rep, const bool _result),
-        C *_obj)
+        void(ClassT::*_cb)(const ReplyT &_rep, const bool _result),
+        ClassT *_obj)
       {
         msgs::Empty req;
         return this->Request(_topic, req, _cb, _obj);
@@ -1021,11 +1052,12 @@ namespace ignition
       /// \param[out] _result Result of the service call.
       /// \return true when the request was executed or false if the timeout
       /// expired.
-      public: template<typename T1, typename T2> bool Request(
+      public: template<typename RequestT, typename ReplyT>
+      bool Request(
         const std::string &_topic,
-        const T1 &_req,
+        const RequestT &_req,
         const unsigned int &_timeout,
-        T2 &_rep,
+        ReplyT &_rep,
         bool &_result)
       {
         std::string fullyQualifiedTopic;
@@ -1037,8 +1069,8 @@ namespace ignition
         }
 
         // Create a new request handler.
-        std::shared_ptr<ReqHandler<T1, T2>> reqHandlerPtr(
-          new ReqHandler<T1, T2>(this->NodeUuid()));
+        std::shared_ptr<ReqHandler<RequestT, ReplyT>> reqHandlerPtr(
+          new ReqHandler<RequestT, ReplyT>(this->NodeUuid()));
 
         // Insert the request's parameters.
         reqHandlerPtr->SetMessage(&_req);
@@ -1114,10 +1146,11 @@ namespace ignition
       /// \param[out] _result Result of the service call.
       /// \return true when the request was executed or false if the timeout
       /// expired.
-      public: template<typename T> bool Request(
+      public: template<typename ReplyT>
+      bool Request(
         const std::string &_topic,
         const unsigned int &_timeout,
-        T &_rep,
+        ReplyT &_rep,
         bool &_result)
       {
         msgs::Empty req;
@@ -1128,18 +1161,20 @@ namespace ignition
       /// \param[in] _topic Topic requested.
       /// \param[in] _req Protobuf message containing the request's parameters.
       /// \return true when the service call was succesfully requested.
-      public: template<typename T> bool Request(const std::string &_topic,
-                                                const T &_req)
+      public: template<typename RequestT>
+      bool Request(
+          const std::string &_topic,
+          const RequestT &_req)
+      {
+        // This callback is here for reusing the regular Request() call with
+        // input and output parameters.
+        std::function<void(const ignition::msgs::Empty &, const bool)> f =
+          [](const ignition::msgs::Empty &, const bool)
         {
-          // This callback is here for reusing the regular Request() call with
-          // input and output parameters.
-          std::function<void(const ignition::msgs::Empty &, const bool)> f =
-            [](const ignition::msgs::Empty &, const bool)
-          {
-          };
+        };
 
-          return this->Request<T, ignition::msgs::Empty>(_topic, _req, f);
-        }
+        return this->Request<RequestT, ignition::msgs::Empty>(_topic, _req, f);
+      }
 
       /// \brief Unadvertise a service.
       /// \param[in] _topic Service name to be unadvertised.
