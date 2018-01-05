@@ -347,7 +347,7 @@ namespace ignition
       public: bool Unsubscribe(const std::string &_topic);
 
       /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the signature
+      /// considered deprecated. Please migrate to the callback signature
       /// \code{bool (*_cb)(const T1 &_req, const T2 &_rep)} for advertising a
       /// service.
       /// \param[in] _topic Topic name associated with the service.
@@ -360,8 +360,7 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or false
       /// otherwise.
       /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns
-      /// a boolean.
+      /// \deprecated See version where the callback function returns a boolean.
       public: template<typename T1, typename T2>
       IGN_DEPRECATED(4.0) bool Advertise(
           const std::string &_topic,
@@ -414,13 +413,43 @@ namespace ignition
         return this->Advertise<T1, T2>(_topic, f, _options);
       }
 
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the callback signature
+      /// \code{bool (*_cb)(T &_rep)} for advertising a service.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      /// \deprecated See version where the callback function returns a boolean
+      public: template<typename T>
+      IGN_DEPRECATED(4.0) bool Advertise(
+        const std::string &_topic,
+        void(*_cb)(T &_rep, bool &_result),
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        {
+          bool internalResult = false;
+          (*_cb)(_internalRep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service without input parameter.
       /// In this version the callback is a free function.
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
       ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
+      ///   \return Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -463,6 +492,38 @@ namespace ignition
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
       }
 
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the callback signature
+      /// \code{bool (*_cb)(const T1 &_req, T2 &_rep)} for advertising a
+      /// service.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      /// \deprecated See version where the callback function returns a boolean
+      public: template<typename T1, typename T2>
+      IGN_DEPRECATED(4.0) bool Advertise(
+        const std::string &_topic,
+        std::function<void(const T1 &_req, T2 &_rep, bool &_result)> &_cb,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const T1&, T2&)> f =
+            [_cb](const T1 &_req, T2 &_rep)
+        {
+          bool internalResult = false;
+          (*_cb)(_req, _rep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic name associated to the service.
@@ -470,7 +531,7 @@ namespace ignition
       /// following parameters:
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
+      ///   \return Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -525,8 +586,9 @@ namespace ignition
         return true;
       }
 
-      /// \brief Advertise a new service without input parameter.
-      /// In this version the callback is a lambda function.
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the callback signature
+      /// \code{bool (*_cb)(T2 &_rep)} for advertising a service.
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
@@ -536,7 +598,37 @@ namespace ignition
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
       /// \sa AdvertiseOptions.
-      public: template<typename T> bool Advertise(
+      /// \deprecated See version where the callback function returns a boolean
+      public: template<typename T>
+      IGN_DEPRECATED(4.0) bool Advertise(
+        const std::string &_topic,
+        std::function<void(T &_rep, bool &_result)> &_cb,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        {
+          bool internalResult = false;
+          (_cb)(_internalRep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
+      }
+
+      /// \brief Advertise a new service without input parameter.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \return Service call result.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      public: template<typename T>
+      bool Advertise(
         const std::string &_topic,
         std::function<bool(T &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
@@ -574,6 +666,41 @@ namespace ignition
         return this->Advertise<T, ignition::msgs::Empty>(_topic, f, _options);
       }
 
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the callback signature
+      /// \code{bool (C::*_cb)(const T1 &_req, T2 &_rep)} for advertising a
+      /// service.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[in] _req Protobuf message containing the request.
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      /// \deprecated See version where the callback function returns a boolean
+      public: template<typename C, typename T1, typename T2>
+      IGN_DEPRECATED(4.0) bool Advertise(
+        const std::string &_topic,
+        void(C::*_cb)(const T1 &_req, T2 &_rep, bool &_result),
+        C *_obj,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const T1 &, T2 &)> f =
+          [_cb, _obj](const T1 &_internalReq,
+                      T2 &_internalRep)
+        {
+          bool internalResult;
+          (_obj->*_cb)(_internalReq, _internalRep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
@@ -581,7 +708,7 @@ namespace ignition
       /// following parameters:
       ///   \param[in] _req Protobuf message containing the request.
       ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
+      ///   \return Service call result.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
@@ -597,12 +724,42 @@ namespace ignition
           [_cb, _obj](const T1 &_internalReq,
                       T2 &_internalRep)
         {
-          auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-            std::placeholders::_2);
-          return cb(_internalReq, _internalRep);
+          return (_obj->*_cb)(_internalReq, _internalRep);
         };
 
         return this->Advertise<T1, T2>(_topic, f, _options);
+      }
+
+      /// \brief Old method for advertising a service. This signature is
+      /// considered deprecated. Please migrate to the callback signature
+      /// \code{bool (C::*_cb)(T &_rep)} for advertising a service.
+      /// \param[in] _topic Topic name associated to the service.
+      /// \param[in] _cb Callback to handle the service request with the
+      /// following parameters:
+      ///   \param[out] _rep Protobuf message containing the response.
+      ///   \param[out] _result Service call result.
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _options Advertise options.
+      /// \return true when the topic has been successfully advertised or
+      /// false otherwise.
+      /// \sa AdvertiseOptions.
+      /// \deprecated See version where the callback function returns a boolean
+      public: template<typename C, typename T>
+      IGN_DEPRECATED(4.0) bool Advertise(
+        const std::string &_topic,
+        void(C::*_cb)(T &_rep, bool &_result),
+        C *_obj,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
+      {
+        std::function<bool(const msgs::Empty &, T &)> f =
+          [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep)
+        {
+          bool internalResult;
+          (_obj->*_cb)(_internalRep, internalResult);
+          return internalResult;
+        };
+
+        return this->Advertise<msgs::Empty, T>(_topic, f, _options);
       }
 
       /// \brief Advertise a new service without input parameter.
@@ -611,7 +768,7 @@ namespace ignition
       /// \param[in] _cb Callback to handle the service request with the
       /// following parameters:
       ///   \param[out] _rep Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
+      ///   \return Service call result.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
@@ -626,8 +783,7 @@ namespace ignition
         std::function<bool(const msgs::Empty &, T &)> f =
           [_cb, _obj](const msgs::Empty &/*_internalReq*/, T &_internalRep)
         {
-          auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-          return cb(_internalRep);
+          return (_obj->*_cb)(_internalRep);
         };
 
         return this->Advertise<msgs::Empty, T>(_topic, f, _options);
