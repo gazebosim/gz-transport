@@ -405,7 +405,8 @@ namespace ignition
       public: template<typename RequestT, typename ReplyT>
       bool Advertise(
           const std::string &_topic,
-          std::function<bool(const RequestT &_request, ReplyT &_reply)> _callback,
+          std::function<bool(const RequestT &_request,
+                             ReplyT &_reply)> _callback,
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Old method for advertising a service. This signature is
