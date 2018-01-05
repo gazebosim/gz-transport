@@ -31,10 +31,11 @@ static int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
+  bool &_result)
 {
   _rep.set_data(_req.data());
-  return true;
+  _result = true;
 }
 
 //////////////////////////////////////////////////

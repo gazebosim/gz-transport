@@ -30,10 +30,10 @@ static int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
-bool srvWithoutInput(ignition::msgs::Int32 &_rep)
+void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
 {
   _rep.set_data(g_data);
-  return true;
+  _result = true;
 }
 
 //////////////////////////////////////////////////
