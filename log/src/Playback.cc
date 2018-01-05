@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
@@ -127,14 +128,6 @@ PlaybackError Playback::Start()
     return PlaybackError::FAILED_TO_OPEN;
   }
 
-  // TODO(sloretz) filter by added topics
-  auto iter = this->dataPtr->logFile.AllMessages();
-  if (MsgIter() == iter)
-  {
-    ignwarn << "There are no messages to play\n";
-    return PlaybackError::NO_MESSAGES;
-  }
-
   if (this->dataPtr->publishers.empty())
   {
     igndbg << "No topics added, defaulting to all topics\n";
@@ -143,6 +136,13 @@ PlaybackError Playback::Start()
     {
       return static_cast<PlaybackError>(numTopics);
     }
+  }
+
+  auto iter = this->dataPtr->logFile.QueryMessages(this->dataPtr->topicNames);
+  if (MsgIter() == iter)
+  {
+    ignwarn << "There are no messages to play\n";
+    return PlaybackError::NO_MESSAGES;
   }
 
   ignmsg << "Started playing\n";
@@ -255,6 +255,7 @@ int Playback::AddTopic(const std::regex &_topic)
   {
     if (std::regex_match(topicType.first, _topic))
     {
+      this->dataPtr->topicNames.insert(topicType.first);
       if (this->dataPtr->CreatePublisher(topicType.first, topicType.second))
       {
         ++numPublishers;

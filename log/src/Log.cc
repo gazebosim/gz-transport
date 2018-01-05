@@ -441,6 +441,61 @@ MsgIter Log::AllMessages()
 }
 
 //////////////////////////////////////////////////
+MsgIter Log::QueryMessages(const std::unordered_set<std::string> &_topics)
+{
+  if (_topics.empty())
+  {
+    ignwarn << "No topics given\n";
+    return MsgIter();
+  }
+
+  // TODO(sloretz) this could be more efficient by querying the topic ids first
+  // and using those to query the messages.
+  std::string sql("SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id"
+    " WHERE topics.name IN (?");
+
+  // Build a template for the list of topics
+  for (std::size_t i = 1; i < _topics.size(); i++)
+  {
+    sql += ", ?";
+  }
+
+  sql += ") ORDER BY messages.time_recv;";
+
+  std::unique_ptr<raii_sqlite3::Statement> statement(
+      new raii_sqlite3::Statement(*(this->dataPtr->db), sql));
+  if (!*statement)
+  {
+    ignerr << "Failed to query messages: "<< sqlite3_errmsg(
+        this->dataPtr->db->Handle()) << "\n";
+    return MsgIter();
+  }
+
+  // Bind the topic names to the statement
+  int i = 1;
+  int returnCode;
+  for (const std::string &name : _topics)
+  {
+    returnCode = sqlite3_bind_text(
+        statement->Handle(), i, name.c_str(), name.size(), SQLITE_TRANSIENT);
+    if (returnCode != SQLITE_OK)
+    {
+      ignerr << "Failed to query messages: "<< sqlite3_errmsg(
+        this->dataPtr->db->Handle()) << "\n";
+      return MsgIter();
+    }
+    ++i;
+  }
+
+  std::unique_ptr<MsgIterPrivate> msgPriv(new MsgIterPrivate);
+  msgPriv->statement = std::move(statement);
+  return MsgIter(std::move(msgPriv));
+}
+
+//////////////////////////////////////////////////
 std::vector<Log::NameTypePair> Log::AllTopics()
 {
   std::vector<Log::NameTypePair> allTopics;

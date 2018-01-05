@@ -21,6 +21,7 @@
 #include <ios>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/common/Time.hh>
@@ -84,6 +85,12 @@ namespace ignition
         /// \brief Get all messages from the bag file
         /// \return an iterator through the messages
         public: MsgIter AllMessages();
+
+        /// \brief Get messages belonging to the given topics
+        /// \param[in] _topics the list of topics to query
+        /// \return an iterator through the messages
+        public: MsgIter QueryMessages(
+            const std::unordered_set<std::string> &_topics);
 
         /// \brief Private implementation
         private: std::unique_ptr<LogPrivate> dataPtr;
