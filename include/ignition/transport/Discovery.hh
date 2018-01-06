@@ -93,7 +93,7 @@ namespace ignition
     /// network. The discovery clients can register callbacks to detect when
     /// new topics are discovered or topics are no longer available.
     template<typename Pub>
-    class IGNITION_TRANSPORT_VISIBLE Discovery
+    class Discovery
     {
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a

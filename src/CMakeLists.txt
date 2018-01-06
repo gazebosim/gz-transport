@@ -13,7 +13,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
   PRIVATE
-    ZeroMQ::ZeroMQ
+    ${ZeroMQ_TARGET}
     CPPZMQ::CPPZMQ
 )
 
@@ -31,6 +31,15 @@ ign_install_library()
 
 # Build the unit tests.
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+
+if(MSVC)
+  # On Windows, UNIT_Discovery_TEST uses some socket functions and therefore
+  # needs to link to the Windows socket library. An easy, maintainable way to 
+  # do that is to tell it to link to the ZeroMQ target, and let it get the 
+  # socket library dependency transitively.
+  target_link_libraries(UNIT_Discovery_TEST
+    ${ZeroMQ_TARGET})
+endif()
 
 # Command line support.
 add_subdirectory(cmd)

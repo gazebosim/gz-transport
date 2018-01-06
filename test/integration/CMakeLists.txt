@@ -43,6 +43,12 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
     PRIVATE
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
-      pthread
   )
+
+  if(UNIX)
+    # pthread is only available on Unix machines
+    target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+      PRIVATE pthread)
+  endif()
+
 endforeach(AUX_EXECUTABLE)

@@ -78,7 +78,7 @@ namespace ignition
       ///      MsgType msg;
       ///      pub.Publish(msg);
       ///    }
-      public: class Publisher
+      public: class IGNITION_TRANSPORT_VISIBLE Publisher
       {
         /// \brief Default constructor.
         public: Publisher();
