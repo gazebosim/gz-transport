@@ -46,7 +46,7 @@ ign_find_package(IgnProtobuf
 
 #--------------------------------------
 # Find ZeroMQ
-ign_find_package(ZeroMQ VERSION 4.2.3 REQUIRED PRIVATE)
+ign_find_package(ZeroMQ VERSION 4.1.0 REQUIRED PRIVATE)
 
 #--------------------------------------
 # Find cppzmq
