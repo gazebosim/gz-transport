@@ -46,7 +46,7 @@ ign_find_package(IgnProtobuf
 
 #--------------------------------------
 # Find ZeroMQ
-ign_find_package(ZeroMQ VERSION 4.2.3 REQUIRED PRIVATE)
+ign_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
 
 #--------------------------------------
 # Find cppzmq
@@ -57,7 +57,7 @@ ign_find_package(CPPZMQ REQUIRED PRIVATE
 #--------------------------------------
 # Find uuid
 if (MSVC)
-  message (STATUS "UUID: Using Windows RPC UuidCreate function")
+  message (STATUS "UUID: Using Windows RPC UuidCreate function\n")
 else()
   ign_find_package(UUID REQUIRED)
 endif()
