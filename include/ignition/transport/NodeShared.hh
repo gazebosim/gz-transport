@@ -184,11 +184,6 @@ namespace ignition
       /// \brief When true, the reception thread will finish.
       public: bool exit;
 
-#ifdef _WIN32
-      /// \brief True when the reception thread is finishing.
-      public: bool threadReceptionExiting;
-#endif
-
       /// \brief Port used by the message discovery layer.
       private: const int kMsgDiscPort = 11317;
 

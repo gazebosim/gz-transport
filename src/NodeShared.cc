@@ -108,11 +108,6 @@ NodeShared::NodeShared()
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
-#ifdef _WIN32
-  this->threadReceptionExiting = false;
-  this->threadReception.detach();
-#endif
-
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
@@ -143,31 +138,9 @@ NodeShared::~NodeShared()
   this->exit = true;
   this->exitMutex.unlock();
 
-  // Don't join on Windows, because it can hang when this object
-  // is destructed on process exit (e.g., when it's a global static).
-  // I think that it's due to this bug:
-  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
-#ifndef _WIN32
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
-#else
-  bool exitLoop = false;
-  while (!exitLoop)
-  {
-    std::lock_guard<std::mutex> lock(this->exitMutex);
-    {
-      if (this->threadReceptionExiting)
-        exitLoop = true;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-
-  // We intentionally don't destroy the context in Windows.
-  // For some reason, when MATLAB deallocates the MEX file makes the context
-  // destructor to hang (probably waiting for ZMQ sockets to terminate).
-  // ToDo: Fix it.
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -210,12 +183,6 @@ void NodeShared::RunReceptionTask()
         exitLoop = true;
     }
   }
-#ifdef _WIN32
-  std::lock_guard<std::mutex> lock(this->exitMutex);
-  {
-    this->threadReceptionExiting = true;
-  }
-#endif
 }
 
 //////////////////////////////////////////////////

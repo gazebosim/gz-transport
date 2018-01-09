@@ -218,28 +218,10 @@ namespace ignition
         this->exit = true;
         this->exitMutex.unlock();
 
-        // Don't join on Windows, because it can hang when this object
-        // is destructed on process exit (e.g., when it's a global static).
-        // I think that it's due to this bug:
-        // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
-#ifndef _WIN32
         // Wait for the service threads to finish before exit.
         if (this->threadReception.joinable())
           this->threadReception.join();
-#else
-        bool exitLoop = false;
-        while (!exitLoop)
-        {
-          std::lock_guard<std::mutex> lock(this->exitMutex);
-          {
-            if (this->threadReceptionExiting)
-            {
-              exitLoop = true;
-            }
-          }
-          std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-#endif
+
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
         this->SendMsg(ByeType,
@@ -278,11 +260,6 @@ namespace ignition
 
         // Start the thread that receives discovery information.
         this->threadReception = std::thread(&Discovery::RecvMessages, this);
-
-#ifdef _WIN32
-        this->threadReceptionExiting = false;
-        this->threadReception.detach();
-#endif
       }
 
       /// \brief Advertise a new message.
@@ -710,10 +687,6 @@ namespace ignition
               timeToExit = true;
           }
         }
-      #ifdef _WIN32
-        std::lock_guard<std::mutex> lock(this->exitMutex);
-        this->threadReceptionExiting = true;
-      #endif
       }
 
       /// \brief Method in charge of receiving the discovery updates.
@@ -1177,11 +1150,6 @@ namespace ignition
 
       /// \brief When true, the service thread will finish.
       private: bool exit;
-
-#ifdef _WIN32
-      /// \brief True when the reception thread is finishing.
-      private: bool threadReceptionExiting = true;
-#endif
 
       /// \brief When true, the service is enabled.
       private: bool enabled;
