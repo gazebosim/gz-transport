@@ -34,11 +34,13 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
 if(MSVC)
   # On Windows, UNIT_Discovery_TEST uses some socket functions and therefore
-  # needs to link to the Windows socket library. An easy, maintainable way to 
-  # do that is to tell it to link to the ZeroMQ target, and let it get the 
+  # needs to link to the Windows socket library. An easy, maintainable way to
+  # do that is to tell it to link to the ZeroMQ target, and let it get the
   # socket library dependency transitively.
-  target_link_libraries(UNIT_Discovery_TEST
-    ${ZeroMQ_TARGET})
+  if(TARGET UNIT_Discovery_TEST)
+    target_link_libraries(UNIT_Discovery_TEST
+      ${ZeroMQ_TARGET})
+  endif()
 endif()
 
 # Command line support.
