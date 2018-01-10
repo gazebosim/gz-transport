@@ -26,6 +26,8 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 
+/// \brief Private implementation for Batch
+/// \internal
 class ignition::transport::log::BatchPrivate
 {
   /// \brief Create a sqlite3 statement
