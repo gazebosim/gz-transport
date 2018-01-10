@@ -51,15 +51,18 @@ namespace ignition
         /// \brief destructor
         public: ~Batch();
 
+        /// \brief typedef for prettiness
+        public: using iterator = MsgIter;
+
         /// \brief Iterator to first message in batch
         /// \remarks the lowercase function name is required to support
         ///   range-based for loops
-        public: MsgIter begin();
+        public: iterator begin();
 
         /// \brief Iterator to one past the last message in a batch
         /// \remarks the lowercase function name is required to support
         ///   range-based for loops
-        public: MsgIter end();
+        public: iterator end();
 
         /// \brief Private implementation
         private: std::unique_ptr<BatchPrivate> dataPtr;

@@ -46,20 +46,20 @@ Batch::~Batch()
 }
 
 //////////////////////////////////////////////////
-MsgIter Batch::begin()
+Batch::iterator Batch::begin()
 {
   std::unique_ptr<MsgIterPrivate> msgPriv(new MsgIterPrivate);
   auto statementPtr = this->dataPtr->CreateStatement();
   if (!statementPtr)
     return MsgIter();
   msgPriv->statement = std::move(statementPtr);
-  return MsgIter(std::move(msgPriv));
+  return Batch::iterator(std::move(msgPriv));
 }
 
 //////////////////////////////////////////////////
-MsgIter Batch::end()
+Batch::iterator Batch::end()
 {
-  return MsgIter();
+  return Batch::iterator();
 }
 
 //////////////////////////////////////////////////
