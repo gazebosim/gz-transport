@@ -56,7 +56,8 @@ TEST(Log, AllMessagesNone)
   transport::log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
-  EXPECT_EQ(transport::log::MsgIter(), logFile.AllMessages());
+  auto batch = logFile.AllMessages();
+  EXPECT_EQ(transport::log::MsgIter(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -82,7 +83,8 @@ TEST(Log, InsertMessageGetMessages)
       reinterpret_cast<const void *>(data2.c_str()),
       data2.size()));
 
-  auto iter = logFile.AllMessages();
+  auto batch = logFile.AllMessages();
+  auto iter = batch.begin();
   ASSERT_NE(transport::log::MsgIter(), iter);
   EXPECT_EQ(data1, iter->Data());
   ++iter;
@@ -99,7 +101,8 @@ TEST(Log, QueryMessagesByTopicNone)
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   std::unordered_set<std::string> noTopics;
-  EXPECT_EQ(transport::log::MsgIter(), logFile.QueryMessages(noTopics));
+  auto batch = logFile.QueryMessages(noTopics);
+  EXPECT_EQ(transport::log::MsgIter(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -125,7 +128,8 @@ TEST(Log, Insert2Get1MessageByTopic)
       reinterpret_cast<const void *>(data2.c_str()),
       data2.size()));
 
-  auto iter = logFile.QueryMessages({"/some/topic/name"});
+  auto batch = logFile.QueryMessages({"/some/topic/name"});
+  auto iter = batch.begin();
   ASSERT_NE(transport::log::MsgIter(), iter);
   EXPECT_EQ(data1, iter->Data());
   ++iter;

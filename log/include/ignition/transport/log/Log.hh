@@ -25,8 +25,8 @@
 #include <vector>
 
 #include <ignition/common/Time.hh>
+#include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/MsgIter.hh>
 
 namespace ignition
 {
@@ -84,12 +84,12 @@ namespace ignition
 
         /// \brief Get all messages from the bag file
         /// \return an iterator through the messages
-        public: MsgIter AllMessages();
+        public: Batch AllMessages();
 
         /// \brief Get messages belonging to the given topics
         /// \param[in] _topics the list of topics to query
         /// \return an iterator through the messages
-        public: MsgIter QueryMessages(
+        public: Batch QueryMessages(
             const std::unordered_set<std::string> &_topics);
 
         /// \brief Private implementation

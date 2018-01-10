@@ -138,8 +138,8 @@ PlaybackError Playback::Start()
     }
   }
 
-  auto iter = this->dataPtr->logFile.QueryMessages(this->dataPtr->topicNames);
-  if (MsgIter() == iter)
+  Batch batch = this->dataPtr->logFile.QueryMessages(this->dataPtr->topicNames);
+  if (batch.begin() == batch.end())
   {
     ignwarn << "There are no messages to play\n";
     return PlaybackError::NO_MESSAGES;
@@ -156,7 +156,7 @@ PlaybackError Playback::Start()
   // scope while this lambda is still in use, so we cannot rely on capturing it
   // by reference.
   this->dataPtr->playbackThread = std::thread(
-    [this, msgIter{std::move(iter)}] () mutable
+    [this, batch{std::move(batch)}] () mutable
     {
       bool publishedFirstMessage = false;
       // Map of topic names to a map of message types to publisher
@@ -168,8 +168,13 @@ PlaybackError Playback::Start()
       ignition::common::Time lastMessageTime;
 
       std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
-      while (!this->dataPtr->stop && MsgIter() != msgIter)
+      for (const Message &msg : batch)
       {
+        if (this->dataPtr->stop)
+        {
+          break;
+        }
+
         //Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
@@ -186,11 +191,9 @@ PlaybackError Playback::Start()
         }
 
         // Actually publish the message
-        const Message &msg = *msgIter;
         igndbg << "publishing\n";
         this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
-        ++msgIter;
       }
     });
 

@@ -91,8 +91,8 @@ namespace ignition
         /// \internal
         private: MsgIter(std::unique_ptr<MsgIterPrivate> &&_pimpl);
 
-        /// \brief Log can use private constructor
-        friend class Log;
+        /// \brief can use private constructor
+        friend class Batch;
       };
     }
   }

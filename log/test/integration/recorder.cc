@@ -28,25 +28,25 @@
 //////////////////////////////////////////////////
 /// \brief VerifyMessage is intended to be used by the
 /// BeginRecordingXxxxBeforeAdvertisement tests.
-/// \param _iter The message iterator that we are currently verifying
+/// \param _msg The message we are currently verifying
 /// \param _msgCount The number of messages that we have iterated through so far
 /// \param _numTopics The number of topics that we are expecting messages from
 /// \param VerifyTopic A boolean function that can verify that the topic name is
 /// valid.
 /// \return True if the message we are viewing is valid.
-void VerifyMessage(const ignition::transport::log::MsgIter &_iter,
+void VerifyMessage(const ignition::transport::log::Message &_msg,
                    const long int _msgCount,
                    const long int _numTopics,
                    const std::function<bool(const std::string&)> &VerifyTopic)
 {
   using MsgType = ignition::transport::log::test::ChirpMsgType;
 
-  const std::string &data = _iter->Data();
-  const std::string &type = _iter->Type();
+  const std::string &data = _msg.Data();
+  const std::string &type = _msg.Type();
   EXPECT_FALSE(data.empty());
   EXPECT_FALSE(type.empty());
 
-  EXPECT_TRUE(VerifyTopic(_iter->Topic()));
+  EXPECT_TRUE(VerifyTopic(_msg.Topic()));
 
   MsgType msg;
 
@@ -99,8 +99,6 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
 
-  ignition::transport::log::MsgIter iter = log.AllMessages();
-
   auto VerifyTopic = [&](const std::string &_topic)
   {
     for (const std::string &check : topics)
@@ -118,13 +116,11 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
 
   long int count = 0;
 
-  while (iter != ignition::transport::log::MsgIter())
+  for (const ignition::transport::log::Message &msg : log.AllMessages())
   {
-    VerifyMessage(iter, count,
+    VerifyMessage(msg, count,
                   static_cast<long int>(topics.size()),
                   VerifyTopic);
-
-    ++iter;
     ++count;
   }
 
@@ -185,24 +181,22 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
 
-  ignition::transport::log::MsgIter iter = log.AllMessages();
 
   using MsgType = ignition::transport::log::test::ChirpMsgType;
-  MsgType msg;
+  MsgType protoMsg;
 
   std::string data;
   std::string type;
 
-  while (iter != ignition::transport::log::MsgIter())
+  for(const ignition::transport::log::Message &msg : log.AllMessages())
   {
-    data = iter->Data();
-    type = iter->Type();
-    EXPECT_EQ(msg.GetTypeName(), type);
-    ++iter;
+    data = msg.Data();
+    type = msg.Type();
+    EXPECT_EQ(protoMsg.GetTypeName(), type);
   }
 
-  EXPECT_TRUE(msg.ParseFromString(data));
-  EXPECT_EQ(numChirps, msg.data());
+  EXPECT_TRUE(protoMsg.ParseFromString(data));
+  EXPECT_EQ(numChirps, protoMsg.data());
 
   ignition::common::removeFile(logName);
 }
@@ -246,7 +240,6 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
 
-  ignition::transport::log::MsgIter iter = log.AllMessages();
 
   auto VerifyTopic = [&](const std::string &_topic)
   {
@@ -259,11 +252,9 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   long int count = 0;
 
-  while (iter != ignition::transport::log::MsgIter())
+  for (const ignition::transport::log::Message &msg : log.AllMessages())
   {
-    VerifyMessage(iter, count, numMatchingTopics, VerifyTopic);
-
-    ++iter;
+    VerifyMessage(msg, count, numMatchingTopics, VerifyTopic);
     ++count;
   }
 

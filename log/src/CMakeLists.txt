@@ -1,5 +1,6 @@
 # Unit tests
 set(logging_tests
+  Batch_TEST.cc
   Log_TEST.cc
   Message_TEST.cc
   Recorder_TEST.cc
