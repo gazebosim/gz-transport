@@ -63,8 +63,27 @@ using namespace transport;
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
+#ifdef _MSC_VER
+  // If we compile ign-transport as a shared library on Windows, we should
+  // never destruct NodeShared, unfortunately. It seems that WinSock does
+  // not behave well during the DLL teardown phase as a program exits, and
+  // this will confuse the ZeroMQ library into thinking that WinSock
+  // misbehaved, causing an assertion in ZeroMQ to fail and throw an exception
+  // while the program exits. This is a known issue:
+  //
+  // https://github.com/zeromq/libzmq/issues/1144
+  //
+  // An easy way of dodging this issue is to never destruct NodeShared. The
+  // Operating System will take care of cleaning up its resources when the
+  // application exits. We may want to consider a more elegant solution in
+  // the future. The zsys_shutdown() function in the czmq library may be able
+  // to provide some inspiration for solving this more cleanly.
+  static NodeShared *instance = new NodeShared();
+  return instance;
+#else
   static NodeShared instance;
   return &instance;
+#endif
 }
 
 //////////////////////////////////////////////////

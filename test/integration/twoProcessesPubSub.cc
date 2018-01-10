@@ -104,7 +104,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Now, we should have subscribers.
   EXPECT_TRUE(pub.HasConnections());
