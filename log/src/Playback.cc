@@ -171,8 +171,15 @@ PlaybackError Playback::Start()
         std::unordered_map<std::string,
         ignition::transport::Node::Publisher>> publishers;
 
-      ignition::common::Time nextTime;
-      ignition::common::Time lastMessageTime;
+
+      // Get current elapsed on monotonic clock
+      std::chrono::nanoseconds nowNS(
+          std::chrono::steady_clock::now().time_since_epoch());
+      // Round to nearest second
+      std::chrono::seconds nowS =
+          std::chrono::duration_cast<std::chrono::seconds>(nowNS);
+      ignition::common::Time startTime(nowS.count(), nowNS.count());
+      ignition::common::Time firstMsgTime;
 
       std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
       for (const Message &msg : batch)
@@ -185,22 +192,30 @@ PlaybackError Playback::Start()
         //Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          // TODO use steady_clock to track the time spent publishing the last
-          // message and alter the delay accordingly
-          ignition::common::Time delta = nextTime - lastMessageTime;
-
-          std::this_thread::sleep_for(std::chrono::nanoseconds(
-                delta.sec * 1000000000 + delta.nsec));
+          ignition::common::Time target = msg.TimeReceived() - firstMsgTime;
+          nowNS = std::chrono::nanoseconds(
+              std::chrono::steady_clock::now().time_since_epoch());
+          // Round to nearest second
+          nowS = std::chrono::duration_cast<std::chrono::seconds>(nowNS);
+          ignition::common::Time now(nowS.count(), nowNS.count());
+          now -= startTime;
+          if (target > now)
+          {
+            ignition::common::Time delta = target - now;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(
+                  delta.sec * 1000000000 + delta.nsec));
+          }
         }
         else
         {
           publishedFirstMessage = true;
+          firstMsgTime = msg.TimeReceived();
         }
 
         // Actually publish the message
         igndbg << "publishing\n";
-        this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(msg.Data(), msg.Type());
-        lastMessageTime = nextTime;
+        this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(
+            msg.Data(), msg.Type());
       }
       {
         std::lock_guard<std::mutex> lk(this->dataPtr->waitMutex);
