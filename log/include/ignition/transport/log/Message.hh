@@ -41,6 +41,13 @@ namespace ignition
         public: Message();
 
         /// \brief Construct with data
+        /// \brief _timeRecv time the message was received
+        /// \brief _data the serialized message
+        /// \brief _dataLen number of bytes in _data
+        /// \brief _type the name of the message type
+        /// \brief _typeLen the length of _type
+        /// \brief _topic the name of the topic the message was published to
+        /// \brief _topicLen the length of _topic
         public: Message(const common::Time &_timeRecv,
             const void *_data, std::size_t _dataLen,
             const char *_type, std::size_t _typeLen,
@@ -58,6 +65,7 @@ namespace ignition
         /// \brief Get the Topic name as a string
         public: std::string Topic() const;
 
+        // \brief Return the time the message was received
         public: const common::Time &TimeReceived() const;
 
         /// \brief Private Implementation Pointer
