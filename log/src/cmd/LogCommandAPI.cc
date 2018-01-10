@@ -99,10 +99,9 @@ extern "C"
       return FAILED_TO_OPEN;
     }
 
-    // Wait until signaled (SIGINT, SIGTERM)
-    transport::waitForShutdown();
+    // Wait until playback finishes
+    player.WaitUntilFinished();
     igndbg << "Shutting down\n";
-    player.Stop();
     return NO_ERROR;
   }
 }

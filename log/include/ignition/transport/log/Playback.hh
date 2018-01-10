@@ -70,6 +70,9 @@ namespace ignition
         /// \brief Stop playing messages
         public: PlaybackError Stop();
 
+        /// \brief Block until playback runs out of messages to publish
+        public: void WaitUntilFinished();
+
         /// \brief Add a topic to be played back (exact match only)
         /// \param[in] _topic The exact topic name
         /// \note This method attempts to advertise the topic immediately.

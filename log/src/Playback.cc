@@ -41,8 +41,8 @@ class ignition::transport::log::PlaybackPrivate
   public: bool CreatePublisher(
               const std::string &_topic, const std::string &_type);
 
-  /// \brief True if the thread should stop
-  public: bool stop = false;
+  /// \brief True if the thread should be stopped
+  public: bool stop = true;
 
   /// \brief thread running playback
   public: std::thread playbackThread;
@@ -64,6 +64,12 @@ class ignition::transport::log::PlaybackPrivate
   public: std::unordered_map<std::string,
           std::unordered_map<std::string,
             ignition::transport::Node::Publisher>> publishers;
+
+  /// \brief a mutex to use when waiting for playback to finish
+  public: std::mutex waitMutex;
+
+  /// \brief Condition variable to wakeup threads waiting on playback
+  public: std::condition_variable waitConditionVariable;
 };
 
 //////////////////////////////////////////////////
@@ -146,6 +152,7 @@ PlaybackError Playback::Start()
   }
 
   ignmsg << "Started playing\n";
+  this->dataPtr->stop = false;
 
   // Dev Note: msgIter is being initialized via the move-constructor within the
   // capture statement, as if it were being declared and constructed as
@@ -195,6 +202,11 @@ PlaybackError Playback::Start()
         this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(msg.Data(), msg.Type());
         lastMessageTime = nextTime;
       }
+      {
+        std::lock_guard<std::mutex> lk(this->dataPtr->waitMutex);
+        this->dataPtr->stop = true;
+      }
+      this->dataPtr->waitConditionVariable.notify_all();
     });
 
   return PlaybackError::NO_ERROR;
@@ -212,6 +224,17 @@ PlaybackError Playback::Stop()
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
   return PlaybackError::NO_ERROR;
+}
+
+//////////////////////////////////////////////////
+void Playback::WaitUntilFinished()
+{
+  if (this->dataPtr->logFile.Valid() && !this->dataPtr->stop)
+  {
+    std::unique_lock<std::mutex> lk(this->dataPtr->waitMutex);
+    this->dataPtr->waitConditionVariable.wait(
+        lk, [this]{return this->dataPtr->stop;});
+  }
 }
 
 //////////////////////////////////////////////////
