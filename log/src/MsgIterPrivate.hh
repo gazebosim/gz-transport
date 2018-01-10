@@ -31,6 +31,7 @@ class ignition::transport::log::MsgIterPrivate
   /// \brief a statement that is being stepped
   public: std::unique_ptr<raii_sqlite3::Statement> statement;
 
+  /// \brief the message this iterator is at
   public: std::unique_ptr<Message> message;
 
   /// \brief Executes the statement once
