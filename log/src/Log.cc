@@ -327,56 +327,66 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
   }
 
   // Don't need to create a schema if this is read only
-  if (modeSQL == SQLITE_OPEN_READONLY)
-    return true;
+  if (modeSQL != SQLITE_OPEN_READONLY)
+  {
+    // Test hook so tests can be run before `make install`
+    std::string schemaFile;
+    const char *envPath = std::getenv(SchemaLocationEnvVar.c_str());
+    if (envPath)
+    {
+      schemaFile = envPath;
+    }
+    else
+    {
+      schemaFile = SCHEMA_INSTALL_PATH;
+    }
+    schemaFile += "/0.1.0.sql";
 
-  // Test hook so tests can be run before `make install`
-  std::string schemaFile;
-  const char *envPath = std::getenv(SchemaLocationEnvVar.c_str());
-  if (envPath)
-  {
-    schemaFile = envPath;
-  }
-  else
-  {
-    schemaFile = SCHEMA_INSTALL_PATH;
-  }
-  schemaFile += "/0.1.0.sql";
+    // Assume the database is uninitialized; use the schema to initialize it
+    igndbg << "Schema file: " << schemaFile << "\n";
+    std::ifstream fin(schemaFile, std::ifstream::in);
+    if (!fin)
+    {
+      ignerr << "Failed to open schema [" << schemaFile << "].\n"
+             << " -- If the schema file is missing, then either:\n"
+             << " 1. (Re)install ignition-transport-log or\n"
+             << " 2. Set the " << SchemaLocationEnvVar << " env variable "
+             << "to the correct schema location.\n\n";
+      return false;
+    }
 
-  // Assume the database is uninitialized; use the schema to initialize it
-  igndbg << "Schema file: " << schemaFile << "\n";
-  std::ifstream fin(schemaFile, std::ifstream::in);
-  if (!fin)
-  {
-    ignerr << "Failed to open schema [" << schemaFile << "].\n"
-           << " -- If the schema file is missing, then either:\n"
-           << " 1. (Re)install ignition-transport-log or\n"
-           << " 2. Set the " << SchemaLocationEnvVar << " environment variable "
-           << "to the correct schema location.\n\n";
-    return false;
-  }
+    // Read the schema file
+    std::string schema;
+    char buffer[4096];
+    while (fin)
+    {
+      fin.read(buffer, sizeof(buffer));
+      schema.insert(schema.size(), buffer, fin.gcount());
+    }
+    if (schema.empty())
+    {
+      ignerr << "Failed to read schema file [" << schemaFile << "]\n";
+      return false;
+    }
 
-  // Read the schema file
-  std::string schema;
-  char buffer[4096];
-  while (fin)
-  {
-    fin.read(buffer, sizeof(buffer));
-    schema.insert(schema.size(), buffer, fin.gcount());
-  }
-  if (schema.empty())
-  {
-    ignerr << "Failed to read schema file [" << schemaFile << "]\n";
-    return false;
+    // Apply the schema to the database
+    returnCode = sqlite3_exec(
+        this->dataPtr->db->Handle(), schema.c_str(), NULL, 0, NULL);
+    if (returnCode != SQLITE_OK)
+    {
+      ignerr << "Failed to create log: " << sqlite3_errmsg(
+          this->dataPtr->db->Handle()) << "\n";
+      return false;
+    }
   }
 
-  // Apply the schema to the database
-  returnCode = sqlite3_exec(
-      this->dataPtr->db->Handle(), schema.c_str(), NULL, 0, NULL);
-  if (returnCode != SQLITE_OK)
+  // Check the schema version
+  // TODO(sloretz) handle multiple versions
+  std::string version = this->Version();
+  if ("0.1.0" != this->Version())
   {
-    ignerr << "Failed to create log: " << sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
+    ignerr << "Log file Version '" << version
+      << "' is unsupported by this tool\n";
     return false;
   }
 
@@ -484,4 +494,34 @@ std::vector<Log::NameTypePair> Log::AllTopics()
     }
   }
   return allTopics;
+}
+
+//////////////////////////////////////////////////
+std::string Log::Version()
+{
+  if (!this->Valid())
+  {
+    return "";
+  }
+
+  // Compile the statement
+  const char *get_version = "SELECT to_version FROM migrations ORDER BY id DESC LIMIT 1;";
+  raii_sqlite3::Statement statement(*(this->dataPtr->db), get_version);
+  if (!statement)
+  {
+    ignerr << "Failed to compile version query statement\n";
+    return "";
+  }
+
+  // Try to run it
+  int result_code = sqlite3_step(statement.Handle());
+  if (result_code != SQLITE_ROW)
+  {
+    ignerr << "Database has no version\n";
+    return "";
+  }
+
+  // Version is free'd automatically when statement is destructed
+  const unsigned char *version = sqlite3_column_text(statement.Handle(), 0);
+  return std::string(reinterpret_cast<const char *>(version));
 }

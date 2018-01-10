@@ -56,6 +56,11 @@ namespace ignition
         /// \return true if a log is open
         public: bool Valid() const;
 
+        /// \brief Get the schema version of the opened log
+        /// \return the current version of the schema in the log file
+        /// \return empty string if the log has not been opened
+        public: std::string Version();
+
         /// \brief Open a log file
         /// \param[in] _file path to log file
         /// \param[in] _mode flag indicating read only or read/write

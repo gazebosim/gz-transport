@@ -137,6 +137,14 @@ TEST(Log, Insert2Get1MessageByTopic)
 }
 
 //////////////////////////////////////////////////
+TEST(Log, CheckVersion)
+{
+  transport::log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+  EXPECT_EQ("0.1.0", logFile.Version());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
