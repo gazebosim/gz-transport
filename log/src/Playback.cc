@@ -171,7 +171,6 @@ PlaybackError Playback::Start()
         std::unordered_map<std::string,
         ignition::transport::Node::Publisher>> publishers;
 
-
       // Get current elapsed on monotonic clock
       std::chrono::nanoseconds nowNS(
           std::chrono::steady_clock::now().time_since_epoch());
