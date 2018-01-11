@@ -454,9 +454,8 @@ void NodeShared::RecvSrvRequest()
   // Get the REP handler.
   if (hasHandler)
   {
-    bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(req, rep, result);
+    bool result = repHandler->RunCallback(req, rep);
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response

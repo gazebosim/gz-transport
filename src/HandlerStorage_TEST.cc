@@ -45,16 +45,15 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Callback providing a service call.
-void cb1(const ignition::msgs::Vector3d &_req, ignition::msgs::Int32 &_rep,
-  bool &_result)
+bool cb1(const ignition::msgs::Vector3d &_req, ignition::msgs::Int32 &_rep)
 {
   EXPECT_DOUBLE_EQ(_req.x(), 1.0);
   EXPECT_DOUBLE_EQ(_req.y(), 2.0);
   EXPECT_DOUBLE_EQ(_req.z(), 3.0);
   _rep.set_data(intResult);
-  _result = true;
 
   cbExecuted = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -109,7 +108,7 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Check the handler operations.
   handler = m[nUuid1].begin()->second;
-  handler->RunLocalCallback(reqMsg, rep1Msg, result);
+  result = handler->RunLocalCallback(reqMsg, rep1Msg);
   EXPECT_TRUE(cbExecuted);
   EXPECT_EQ(rep1Msg.data(), intResult);
   EXPECT_TRUE(result);
@@ -119,7 +118,7 @@ TEST(RepStorageTest, RepStorageAPI)
   std::string reqSerialized;
   std::string repSerialized;
   EXPECT_TRUE(reqMsg.SerializeToString(&reqSerialized));
-  handler->RunCallback(reqSerialized, repSerialized, result);
+  result = handler->RunCallback(reqSerialized, repSerialized);
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(result);
   EXPECT_TRUE(rep1Msg.ParseFromString(repSerialized));
@@ -163,13 +162,13 @@ TEST(RepStorageTest, RepStorageAPI)
 
   // Check the handler operations.
   handler = m[nUuid2].begin()->second;
-  handler->RunLocalCallback(reqMsg, rep1Msg, result);
+  result = handler->RunLocalCallback(reqMsg, rep1Msg);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 
   reset();
 
-  handler->RunCallback(reqSerialized, repSerialized, result);
+  result = handler->RunCallback(reqSerialized, repSerialized);
   EXPECT_FALSE(cbExecuted);
   EXPECT_FALSE(result);
 

@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////
 /// \brief Provide a "quote" service.
 /// Well OK, it's just single-quote service but do you really need more?
-void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+bool srvQuote(ignition::msgs::StringMsg &_rep)
 {
   std::string awesomeQuote = "This is it! This is the answer. It says here..."
     "that a bolt of lightning is going to strike the clock tower at precisely "
@@ -35,7 +35,7 @@ void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
   _rep.set_data(awesomeQuote);
 
   // The response succeed.
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////

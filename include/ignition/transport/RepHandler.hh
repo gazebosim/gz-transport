@@ -60,9 +60,8 @@ namespace ignition
       /// \param[in] _msgReq Input parameter (Protobuf message).
       /// \param[out] _msgRep Output parameter (Protobuf message).
       /// \param[out] _result Service call result.
-      public: virtual void RunLocalCallback(const transport::ProtoMsg &_msgReq,
-                                            transport::ProtoMsg &_msgRep,
-                                            bool &_result) = 0;
+      public: virtual bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
+                                            transport::ProtoMsg &_msgRep) = 0;
 
       /// \brief Executes the callback registered for this handler.
       /// \param[in] _req Serialized data received. The data will be used
@@ -70,9 +69,8 @@ namespace ignition
       /// callback function.
       /// \param[out] _rep Out parameter with the data serialized.
       /// \param[out] _result Service call result.
-      public: virtual void RunCallback(const std::string &_req,
-                                       std::string &_rep,
-                                       bool &_result) = 0;
+      public: virtual bool RunCallback(const std::string &_req,
+                                       std::string &_rep) = 0;
 
       /// \brief Get the unique UUID of this handler.
       /// \return a string representation of the handler UUID.
@@ -111,71 +109,67 @@ namespace ignition
       /// \param[out] _rep Protobuf message containing the service response.
       /// \param[out] _result True when the service response is considered
       /// successful or false otherwise.
-      public: void SetCallback(const std::function
-        <void(const Req &, Rep &, bool &)> &_cb)
+      public: void SetCallback(
+        const std::function<bool(const Req &, Rep &)> &_cb)
       {
         this->cb = _cb;
       }
 
       // Documentation inherited.
-      public: void RunLocalCallback(const transport::ProtoMsg &_msgReq,
-                                    transport::ProtoMsg &_msgRep,
-                                    bool &_result)
+      public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
+                                    transport::ProtoMsg &_msgRep)
       {
         // Execute the callback (if existing)
-        if (this->cb)
-        {
-#if GOOGLE_PROTOBUF_VERSION > 2999999
-          auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
-          auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
-#else
-          auto msgReq =
-            google::protobuf::internal::down_cast<const Req*>(&_msgReq);
-          auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
-#endif
-
-          this->cb(*msgReq, *msgRep, _result);
-        }
-        else
+        if (!this->cb)
         {
           std::cerr << "RepHandler::RunLocalCallback() error: "
                     << "Callback is NULL" << std::endl;
-          _result = false;
+          return false;
         }
+
+#if GOOGLE_PROTOBUF_VERSION > 2999999
+        auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
+#else
+        auto msgReq =
+          google::protobuf::internal::down_cast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
+#endif
+
+        return this->cb(*msgReq, *msgRep);
       }
 
       // Documentation inherited.
-      public: void RunCallback(const std::string &_req,
-                               std::string &_rep,
-                               bool &_result)
+      public: bool RunCallback(const std::string &_req,
+                               std::string &_rep)
       {
         // Check if we have a callback registered.
         if (!this->cb)
         {
           std::cerr << "RepHandler::RunCallback() error: "
                     << "Callback is NULL" << std::endl;
-          _result = false;
-          return;
+          return false;
         }
 
         // Instantiate the specific protobuf message associated to this topic.
         auto msgReq = this->CreateMsg(_req);
         if (!msgReq)
         {
-          _result = false;
-          return;
+          return false;
         }
 
         Rep msgRep;
-        this->cb(*msgReq, msgRep, _result);
+        if (!this->cb(*msgReq, msgRep))
+          return false;
 
         if (!msgRep.SerializeToString(&_rep))
         {
           std::cerr << "RepHandler::RunCallback(): Error serializing the "
                     << "response" << std::endl;
-          _result = false;
-          return;
+          return false;
         }
+
+        return true;
       }
 
       // Documentation inherited.
@@ -209,7 +203,7 @@ namespace ignition
       }
 
       /// \brief Callback to the function registered for this handler.
-      private: std::function<void(const Req &, Rep &, bool &)> cb;
+      private: std::function<bool(const Req &, Rep &)> cb;
     };
   }
 }
