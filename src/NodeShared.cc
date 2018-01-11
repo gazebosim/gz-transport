@@ -62,6 +62,17 @@ using namespace transport;
 
 const std::string kIgnAuthDomain = "ign-auth";
 
+// Enum that encapsulates the possible values for ZeroMQ's setsocketopt
+// for ZMQ_PLAIN_SERVER. A value of 1 enables
+// plain authentication server, and a value of 0 disables.
+enum class ZmqPlainSecurityServerOptions
+{
+  // Value to disable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_DISABLED = 0,
+  // Value to enable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_ENABLED = 1,
+};
+
 //////////////////////////////////////////////////
 // Helper to get the username and password
 bool userPass(std::string &_user, std::string &_pass)
@@ -1134,10 +1145,8 @@ void NodeSharedPrivate::SecurityInit()
     this->accessControlThread = std::thread(
         &NodeSharedPrivate::AccessControlHandler, this);
 
-    // This is an option to ZeroMQ's setsockopt. This option defines whether the
-    // publisher is a plain security server or not. A value of 1 enables
-    // plain authentication server, and a value of 0 disables.
-    int asPlainSecurityServer = 1;
+    int asPlainSecurityServer = static_cast<int>(
+        ZmqPlainSecurityServerOptions::ZMQ_PLAIN_SECURITY_SERVER_ENABLED);
     this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
         &asPlainSecurityServer, sizeof(asPlainSecurityServer));
 
