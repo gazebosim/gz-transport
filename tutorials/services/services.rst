@@ -23,7 +23,7 @@ service, whereas the other node will be the service consumer requesting an
 Responser
 =========
 
-Download the `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser.cc>`_ file within the ``ign_transport_tutorial``
+Download the `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/responser.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -35,14 +35,14 @@ folder and open it with your favorite editor:
 
     //////////////////////////////////////////////////
     /// \brief Provide an "echo" service.
-    void srvEcho(const ignition::msgs::StringMsg &_req,
-      ignition::msgs::StringMsg &_rep, bool &_result)
+    bool srvEcho(const ignition::msgs::StringMsg &_req,
+      ignition::msgs::StringMsg &_rep)
     {
       // Set the response's content.
       _rep.set_data(_req.data());
 
       // The response succeed.
-      _result = true;
+      return true;
     }
 
     //////////////////////////////////////////////////
@@ -88,14 +88,14 @@ for our services.
 
     //////////////////////////////////////////////////
     /// \brief Provide an "echo" service.
-    void srvEcho(const ignition::msgs::StringMsg &_req,
-      ignition::msgs::StringMsg &_rep, bool &_result)
+    bool srvEcho(const ignition::msgs::StringMsg &_req,
+      ignition::msgs::StringMsg &_rep)
     {
       // Set the response's content.
       _rep.set_data(_req.data());
 
       // The response succeed.
-      _result = true;
+      return true;
     }
 
 As a service provider, our node needs to register a function callback that will
@@ -104,7 +104,7 @@ callback is always similar to the one shown in this example with the exception
 of the Protobuf messages types for the ``_req`` (request) and ``_rep``
 (response). The request parameter contains the input parameters of the request.
 The response message contains any resulting data from the service call. The
-``_result`` parameter denotes if the overall service call was considered
+return value denotes if the overall service call was considered
 successful or not. In our example, as a simple *echo* service, we just fill the
 response with the same data contained in the request.
 
@@ -137,7 +137,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 Synchronous requester
 =====================
 
-Download the `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester.cc>`_ file within the ``ign_transport_tutorial``
+Download the `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/requester.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -236,7 +236,7 @@ message.
 Asynchronous requester
 ======================
 
-Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_async.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
+Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/requester_async.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -328,7 +328,7 @@ oneway service to process service requests without sending back responses.
 Oneway services don't accept any output parameters nor the requests have to wait
 for the response.
 
-Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
+Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -405,7 +405,7 @@ This case is similar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
-Download the `requester_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_oneway.cc>`_ file within the ``ign_transport_tutorial``
+Download the `requester_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/requester_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -466,7 +466,7 @@ Service without input parameter
 Sometimes we want to receive some result but don't have any input parameter to
 send.
 
-Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/responser_no_input.cc>`_
+Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/responser_no_input.cc>`_
  file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -480,7 +480,7 @@ favorite editor:
     //////////////////////////////////////////////////
     /// \brief Provide a "quote" service.
     /// Well OK, it's just single-quote service but do you really need more?
-    void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+    bool srvQuote(ignition::msgs::StringMsg &_rep)
     {
       std::string awesomeQuote = "This is it! This is the answer. It says here..."
         "that a bolt of lightning is going to strike the clock tower at precisely "
@@ -492,7 +492,7 @@ favorite editor:
       _rep.set_data(awesomeQuote);
 
       // The response succeed.
-      _result = true;
+      return true;
     }
 
     //////////////////////////////////////////////////
@@ -519,10 +519,10 @@ Walkthrough
 
 .. code-block:: cpp
 
-    void srvQuote(ignition::msgs::StringMsg &_rep, bool &_result)
+    bool srvQuote(ignition::msgs::StringMsg &_rep)
 
-Service doesn't receive anything. The signature of the callback contains two
-parameters ``_rep`` (response) and ``_result``. In our example, we return
+Service doesn't receive anything. The signature of the callback contains the
+parameters ``_rep`` (response). In our example, we return
 the quote.
 
 .. code-block:: cpp
@@ -552,7 +552,7 @@ Empty requester sync and async
 This case is similar to the service without input parameter. We don't send any
 request.
 
-Download the `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_no_input.cc>`_
+Download the `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/requester_no_input.cc>`_
 file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -596,13 +596,15 @@ request timed out or reached the service provider and ``result`` shows if the
 service was successfully executed.
 
 We also have the async version for service request without input. You should
-download `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/requester_no_input.cc>`_
+download `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/requester_no_input.cc>`_
 file within the ``ign_transport_tutorial`` folder.
 
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder. Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
+Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/CMakeLists.txt>`_ file
+within the ``ign_transport_tutorial`` folder. Then, download
+`CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport4/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
 the ``ign_transport_tutorial`` directory.

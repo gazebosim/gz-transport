@@ -29,11 +29,10 @@ static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
-  bool &_result)
+bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
