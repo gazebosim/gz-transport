@@ -18,9 +18,6 @@ Next, you can see the major Ignition Transport versions, their availability and 
 +---------+-----------------+------------------+-------------------------+---------------+--------------+
 |  *3.y*  |       --        | ``Ubuntu T,X,Y`` | ``Yosemite,El Capitan`` | January 2017  |     TBD      |
 +---------+-----------------+------------------+-------------------------+---------------+--------------+
-|  *4.y*  |       --        | ``Ubuntu X,Y, Z``| ``El Capitan, Sierra,`` | October 2017  |     TBD      |
-|         |                 |                  | ``High Sierra``         |               |              |
-+---------+-----------------+------------------+-------------------------+---------------+--------------+
 
 Ubuntu Linux
 ============
@@ -42,7 +39,7 @@ Install Ignition Transport:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install libignition-transport4-dev
+    sudo apt-get install libignition-transport3-dev
 
 Mac OS X
 ========
@@ -67,7 +64,7 @@ Run the following commands:
 .. code-block:: bash
 
     brew tap osrf/simulation
-    brew install ignition-transport4
+    brew install ignition-transport3
 
 Windows
 =======
@@ -220,7 +217,7 @@ from source:
 
 .. code-block:: bash
 
-        sudo apt-get remove libignition-transport4-dev
+        sudo apt-get remove libignition-transport3-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 
