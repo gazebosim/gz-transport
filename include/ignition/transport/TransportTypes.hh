@@ -145,7 +145,7 @@ namespace ignition
     using DeallocFunc = void(void *_data, void *_hint);
 
     /// \brief The string type used for generic messages.
-    const std::string kGenericMessageType = "google.protobug.Message";
+    const std::string kGenericMessageType = "google.protobuf.Message";
   }
 }
 #endif
