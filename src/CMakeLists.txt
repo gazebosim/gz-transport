@@ -1,5 +1,5 @@
-# Turn on C++11 support for the library.
-set(CMAKE_CXX_STANDARD 11)
+# Turn on C++14 support for the library.
+set(CMAKE_CXX_STANDARD 14)
 
 # Collect source files into the "sources" variable and unit test files into the
 # "gtest_sources" variable.

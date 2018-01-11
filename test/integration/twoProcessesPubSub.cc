@@ -27,6 +27,7 @@
 using namespace ignition;
 
 static std::string partition;
+static std::string g_FQNPartition;
 static std::string g_topic = "/foo";
 static std::string data = "bar";
 static bool cbExecuted = false;
@@ -54,10 +55,12 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cbInfo(const ignition::msgs::Int32 &/*_msg*/,
+void cbInfo(const ignition::msgs::Int32 &_msg,
             const ignition::transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
+  EXPECT_EQ(g_FQNPartition, _info.Partition());
+  EXPECT_EQ(_msg.GetTypeName(), _info.Type());
   cbExecuted = true;
   ++counter;
 }
@@ -391,6 +394,7 @@ int main(int argc, char **argv)
 {
   // Get a random partition name.
   partition = testing::getRandomNumber();
+  g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
