@@ -264,7 +264,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         publisherTopic, publisherMsgType);
 
   // The serialized message size and buffer.
-  int msgSize = _msg.ByteSize();
+  const int msgSize = _msg.ByteSize();
   char *msgBuffer = nullptr;
 
   // Only serialize the message if we have a raw subscriber or a remote
@@ -399,9 +399,15 @@ bool Node::Publisher::PublishRaw(
   // serialized, so we just pass it along for publication.
   if (subscribers.haveRemote)
   {
+    const std::size_t msgSize = _msgData.size();
+    char *msgBuffer = static_cast<char *>(malloc(msgSize));
+    memcpy(msgBuffer, _msgData.c_str(), msgSize);
+    auto myDeallocator = [](void *_buffer, void * /*_hint*/) { free(_buffer); };
+
     // Note: This will copy _msgData (i.e. not zero copy)
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-                                        _msgData, _msgType))
+    if (!this->dataPtr->shared->Publish(
+          this->dataPtr->publisher.Topic(),
+          msgBuffer, msgSize, myDeallocator, _msgType))
     {
       return false;
     }
