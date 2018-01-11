@@ -38,6 +38,12 @@ namespace ignition
 
       /// \brief Topic name.
       public: std::string topic = "";
+
+      /// \brief Message type name.
+      public: std::string type = "";
+
+      /// \brief Partition name.
+      public: std::string partition = "";
     };
   }
 }
@@ -45,6 +51,19 @@ namespace ignition
 //////////////////////////////////////////////////
 MessageInfo::MessageInfo()
   : dataPtr(new MessageInfoPrivate())
+{
+}
+
+//////////////////////////////////////////////////
+MessageInfo::MessageInfo(const MessageInfo &_other)
+  : dataPtr(new MessageInfoPrivate())
+{
+  *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
+MessageInfo::MessageInfo(MessageInfo &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
 {
 }
 
@@ -63,4 +82,47 @@ std::string MessageInfo::Topic() const
 void MessageInfo::SetTopic(const std::string &_topic)
 {
   this->dataPtr->topic = _topic;
+}
+
+//////////////////////////////////////////////////
+std::string MessageInfo::Type() const
+{
+  return this->dataPtr->type;
+}
+
+//////////////////////////////////////////////////
+void MessageInfo::SetType(const std::string &_type)
+{
+  this->dataPtr->type = _type;
+}
+
+//////////////////////////////////////////////////
+std::string MessageInfo::Partition() const
+{
+  return this->dataPtr->partition;
+}
+
+//////////////////////////////////////////////////
+void MessageInfo::SetPartition(const std::string &_partition)
+{
+  this->dataPtr->partition = _partition;
+}
+
+//////////////////////////////////////////////////
+bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
+{
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
+
+  if ( firstAt != 0
+    || firstAt == lastAt
+    || lastAt == _fullyQualifiedName.size() - 1)
+  {
+    return false;
+  }
+
+  this->SetPartition(_fullyQualifiedName.substr(
+                       firstAt + 1, lastAt - firstAt - 1));
+  this->SetTopic(_fullyQualifiedName.substr(lastAt + 1));
+  return true;
 }

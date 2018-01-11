@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "WorkerPool.hh"
 #include "ignition/transport/Discovery.hh"
 
 using namespace ignition;
@@ -44,6 +45,9 @@ class ignition::transport::NodeSharedPrivate
             replier(new zmq::socket_t(*context, ZMQ_ROUTER))
   {
   }
+
+  /// A thread pool
+  public: WorkerPool workerPool;
 
   /// \brief Initialize security
   public: void SecurityInit();

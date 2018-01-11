@@ -231,13 +231,16 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local subscribers.
   if (hasLocalSubscribers)
   {
-    // Get the topic and remove the partition name.
-    std::string topic = this->dataPtr->publisher.Topic();
-    topic.erase(0, topic.find_last_of("@") + 1);
-
     // Create and populate the message information object.
-    MessageInfo info;
-    info.SetTopic(topic);
+    // This must be a shared pointer so that we can pass it to
+    // multiple threads below, and then allow this function to go
+    // out of scope.
+    std::shared_ptr<MessageInfo> info(new MessageInfo);
+    info->SetTopicAndPartition(this->dataPtr->publisher.Topic());
+    info->SetType(_msg.GetTypeName());
+
+    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
+    msgCopy->CopyFrom(_msg);
 
     for (auto &node : handlers)
     {
@@ -253,7 +256,26 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          subscriptionHandlerPtr->RunLocalCallback(_msg, info);
+          // Launch local callback in a thread. We get the raw pointer to
+          // the subscription handler because the object itself will change
+          // in this loop.
+          //
+          // This supports asynchronous intraprocess callbacks,
+          // which has the same behavior as interprocess callbacks.
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [subHandler = subscriptionHandlerPtr.get(), msgCopy, info] ()
+              {
+                try
+                {
+                  subHandler->RunLocalCallback(*(msgCopy.get()), *(info.get()));
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occured in a local callback "
+                    << "on topic[" << info->Topic() << "] with message ["
+                    << msgCopy->DebugString() << "]" << std::endl;
+                }
+              });
         }
         else
         {
