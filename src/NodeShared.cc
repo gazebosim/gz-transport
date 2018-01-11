@@ -1134,8 +1134,12 @@ void NodeSharedPrivate::SecurityInit()
     this->accessControlThread = std::thread(
         &NodeSharedPrivate::AccessControlHandler, this);
 
-    int asServer = 1;
-    this->publisher->setsockopt(ZMQ_PLAIN_SERVER, &asServer, sizeof(asServer));
+    // This is an option to ZeroMQ's setsockopt. This option defines whether the
+    // publisher is a plain security server or not. A value of 1 enables
+    // plain authentication server, and a value of 0 disables.
+    int asPlainSecurityServer = 1;
+    this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
+        &asPlainSecurityServer, sizeof(asPlainSecurityServer));
 
     this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
         kIgnAuthDomain.size());
