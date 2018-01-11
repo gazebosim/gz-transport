@@ -6,6 +6,7 @@
 1. Updated service responder callbacks to return a boolean value. The
    existing functions have been deprecated.
     * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
+    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
 
 ## Ignition Transport 3.0.0
 
