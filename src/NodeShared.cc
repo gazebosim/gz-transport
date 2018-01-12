@@ -219,7 +219,8 @@ void NodeShared::RunReceptionTask()
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
+bool NodeShared::Publish(const std::string &_topic,
+                         const std::string &_data,
                          const std::string &_msgType)
 {
   try
@@ -248,8 +249,11 @@ bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, char *_data,
-  const size_t _dataSize, DeallocFunc *_ffn, const std::string &_msgType)
+bool NodeShared::Publish(
+    const std::string &_topic,
+    char *_data,
+    const size_t _dataSize, DeallocFunc *_ffn,
+    const std::string &_msgType)
 {
   try
   {

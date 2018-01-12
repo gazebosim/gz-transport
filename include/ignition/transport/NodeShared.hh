@@ -68,35 +68,29 @@ namespace ignition
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
-      /// \param[in, out] _data Serialized data. Note that this buffer will be
-      /// automatically deallocated by ZMQ when all data has been published.
-      /// \param[in] _dataSize Data size (bytes).
-      /// \param[in, out] _ffn Deallocation function. This function is
-      /// executed by ZeroMQ when the data is published. This function
-      /// deallocates the buffer containing the published data.
-      /// \ref http://zeromq.org/blog:zero-copy
+      /// \param[in] _data Data to publish.
       /// \param[in] _msgType Message type in string format.
-      /// \return true when success or false otherwise.
-      public: bool Publish(const std::string &_topic,
-                           char *_data,
-                           const size_t _dataSize,
-                           DeallocFunc *_ffn,
-                           const std::string &_msgType);
-
-      /// \brief Publish data.
-      ///
-      /// \warning This function will cause a copy of _data to be created
-      /// with interprocess subscribers.
-      ///
-      /// \param[in] _topic Topic to be published.
-      /// \param[in] _data Serialized data. This buffer is copied.
-      /// \param[in] _msgType Message type in string format.
-      /// \sa bool Publish(const std::string &, char *, const size_t,
-      /// DeallocFunc *, const std::string &)
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
                            const std::string &_data,
                            const std::string &_msgType);
+
+    /// \brief Publish data.
+    /// \param[in] _topic Topic to be published.
+    /// \param[in, out] _data Serialized data. Note that this buffer will be
+    /// automatically deallocated by ZMQ when all data has been published.
+    /// \param[in] _dataSize Data size (bytes).
+    /// \param[in, out] _ffn Deallocation function. This function is
+    /// executed by ZeroMQ when the data is published. This function
+    /// deallocates the buffer containing the published data.
+    /// \ref http://zeromq.org/blog:zero-copy
+    /// \param[in] _msgType Message type in string format.
+    /// \return true when success or false otherwise.
+    public: bool Publish(const std::string &_topic,
+                         char *_data,
+                         const size_t _dataSize,
+                         DeallocFunc *_ffn,
+                         const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.
       public: void RecvMsgUpdate();
