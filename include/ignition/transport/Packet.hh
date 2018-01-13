@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/Publisher.hh"
-#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
@@ -227,7 +227,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
 
-    template <class T> class IGNITION_TRANSPORT_VISIBLE AdvertiseMessage
+    template <class T> class AdvertiseMessage
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
