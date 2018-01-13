@@ -14,28 +14,43 @@ set(tests
   twoProcessesSrvCallWithoutOutputStress.cc
 )
 
-include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)
-link_directories(${PROJECT_BINARY_DIR}/test)
-
-ign_build_tests(${tests})
-
-# Skip auxiliary files in the test suite
-set(IGN_SKIP_IN_TESTSUITE True)
+ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
 
 set(auxiliary_files
-  authPubSubSubscriberInvalid_aux.cc
-  fastPub_aux.cc
-  pub_aux.cc
-  pub_aux_throttled.cc
-  scopedTopicSubscriber_aux.cc
-  twoProcessesPublisher_aux.cc
-  twoProcessesPubSubSubscriber_aux.cc
-  twoProcessesSrvCallReplier_aux.cc
-  twoProcessesSrvCallReplierIncreasing_aux.cc
-  twoProcessesSrvCallWithoutInputReplier_aux.cc
-  twoProcessesSrvCallWithoutInputReplierIncreasing_aux.cc
-  twoProcessesSrvCallWithoutOutputReplier_aux.cc
-  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux.cc
+  authPubSubSubscriberInvalid_aux
+  fastPub_aux
+  pub_aux
+  pub_aux_throttled
+  scopedTopicSubscriber_aux
+  twoProcessesPublisher_aux
+  twoProcessesPubSubSubscriber_aux
+  twoProcessesSrvCallReplier_aux
+  twoProcessesSrvCallReplierIncreasing_aux
+  twoProcessesSrvCallWithoutInputReplier_aux
+  twoProcessesSrvCallWithoutInputReplierIncreasing_aux
+  twoProcessesSrvCallWithoutOutputReplier_aux
+  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux
 )
 
-ign_build_tests(${auxiliary_files})
+# Build the auxiliary files.
+foreach(AUX_EXECUTABLE ${auxiliary_files})
+  ign_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
+
+  # Include the interface directories that we always need.
+  ign_target_interface_include_directories(INTEGRATION_${AUX_EXECUTABLE}
+    ${PROJECT_LIBRARY_TARGET_NAME})
+
+  # Link the libraries that we always need.
+  target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+    PRIVATE
+      ${PROJECT_LIBRARY_TARGET_NAME}
+      gtest
+  )
+
+  if(UNIX)
+    # pthread is only available on Unix machines
+    target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+      PRIVATE pthread)
+  endif()
+
+endforeach(AUX_EXECUTABLE)

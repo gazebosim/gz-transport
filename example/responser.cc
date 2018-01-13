@@ -22,14 +22,14 @@
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-void srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep, bool &_result)
+bool srvEcho(const ignition::msgs::StringMsg &_req,
+  ignition::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
 
   // The response succeed.
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////

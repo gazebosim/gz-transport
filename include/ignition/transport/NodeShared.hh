@@ -32,8 +32,8 @@
 #include <thread>
 #include <vector>
 
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
@@ -174,11 +174,6 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: std::recursive_mutex mutex;
-
-#ifdef _WIN32
-      /// \brief True when the reception thread is finishing.
-      public: bool threadReceptionExiting;
-#endif
 
       /// \brief Port used by the message discovery layer.
       private: const int kMsgDiscPort = 11317;
