@@ -22,7 +22,7 @@
 #include <string>
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {

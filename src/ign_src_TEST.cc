@@ -31,7 +31,7 @@ using namespace ignition;
 static const std::string g_topic   = "/topic";
 static const std::string g_service = "/echo";
 static const std::string g_intType = "ign_msgs.Int32";
-static const std::string g_reqData = "10";
+static const std::string g_reqData = "data: 10";
 
 // Global variables.
 static std::string     g_partition;
@@ -64,11 +64,10 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
-  bool &_result)
+bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
-  _result = false;
+  return false;
 }
 
 //////////////////////////////////////////////////
@@ -192,7 +191,7 @@ TEST(ignTest, cmdServiceReq)
   cmdServiceReq(g_service.c_str(), kUnknownType.c_str(),
     g_intType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(),
-    "Unable to create request of type[_unknown_type_] with data[10].\n");
+    "Unable to create request of type[_unknown_type_] with data[data: 10].\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // It's not possible to request a service using a response type that is not

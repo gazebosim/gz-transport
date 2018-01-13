@@ -113,23 +113,23 @@ void genericCb(const transport::ProtoMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const ignition::msgs::Int32 &_req,
-  ignition::msgs::Int32 &_rep, bool &_result)
+bool srvEcho(const ignition::msgs::Int32 &_req,
+  ignition::msgs::Int32 &_rep)
 {
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without input.
-void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+bool srvWithoutInput(ignition::msgs::Int32 &_rep)
 {
   srvExecuted = true;
   _rep.set_data(data);
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -201,22 +201,22 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call.
-  public: void Echo(const ignition::msgs::Int32 &_req,
-    ignition::msgs::Int32 &_rep, bool &_result)
+  public: bool Echo(const ignition::msgs::Int32 &_req,
+    ignition::msgs::Int32 &_rep)
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
-    _result = true;
     this->callbackSrvExecuted = true;
+    return true;
   }
 
   /// \brief Member function used as a callback for responding to a service
   /// call without input.
-  public: void WithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+  public: bool WithoutInput(ignition::msgs::Int32 &_rep)
   {
     _rep.set_data(data);
-    _result = true;
     this->callbackSrvExecuted = true;
+    return true;
   }
 
   // Member function used as a callback for responding to a service call
@@ -1146,13 +1146,13 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   reset();
 
-  std::function<void(const ignition::msgs::Int32 &, ignition::msgs::Int32 &,
-    bool &)> advCb = [](const ignition::msgs::Int32 &_req,
-      ignition::msgs::Int32 &_rep, bool &_result)
+  std::function<bool(const ignition::msgs::Int32 &, ignition::msgs::Int32 &)>
+    advCb = [](const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+    -> bool
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
-    _result = true;
+    return true;
   };
 
   transport::Node node;
@@ -1184,11 +1184,11 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   reset();
 
-  std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
-    [](ignition::msgs::Int32 &_rep, bool &_result)
+  std::function<bool(ignition::msgs::Int32 &)> advCb =
+    [](ignition::msgs::Int32 &_rep) -> bool
   {
     _rep.set_data(data);
-    _result = true;
+    return true;
   };
 
   transport::Node node;
@@ -1483,7 +1483,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 20);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -1513,7 +1513,7 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 20);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);

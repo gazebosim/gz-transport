@@ -32,10 +32,10 @@ static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
-void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+bool srvWithoutInput(ignition::msgs::Int32 &_rep)
 {
   _rep.set_data(g_data);
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////

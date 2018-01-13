@@ -63,8 +63,27 @@ using namespace transport;
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
+#ifdef _MSC_VER
+  // If we compile ign-transport as a shared library on Windows, we should
+  // never destruct NodeShared, unfortunately. It seems that WinSock does
+  // not behave well during the DLL teardown phase as a program exits, and
+  // this will confuse the ZeroMQ library into thinking that WinSock
+  // misbehaved, causing an assertion in ZeroMQ to fail and throw an exception
+  // while the program exits. This is a known issue:
+  //
+  // https://github.com/zeromq/libzmq/issues/1144
+  //
+  // An easy way of dodging this issue is to never destruct NodeShared. The
+  // Operating System will take care of cleaning up its resources when the
+  // application exits. We may want to consider a more elegant solution in
+  // the future. The zsys_shutdown() function in the czmq library may be able
+  // to provide some inspiration for solving this more cleanly.
+  static NodeShared *instance = new NodeShared();
+  return instance;
+#else
   static NodeShared instance;
   return &instance;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -108,11 +127,6 @@ NodeShared::NodeShared()
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
-#ifdef _WIN32
-  this->threadReceptionExiting = false;
-  this->threadReception.detach();
-#endif
-
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
@@ -143,31 +157,9 @@ NodeShared::~NodeShared()
   this->exit = true;
   this->exitMutex.unlock();
 
-  // Don't join on Windows, because it can hang when this object
-  // is destructed on process exit (e.g., when it's a global static).
-  // I think that it's due to this bug:
-  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
-#ifndef _WIN32
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
-#else
-  bool exitLoop = false;
-  while (!exitLoop)
-  {
-    std::lock_guard<std::mutex> lock(this->exitMutex);
-    {
-      if (this->threadReceptionExiting)
-        exitLoop = true;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-
-  // We intentionally don't destroy the context in Windows.
-  // For some reason, when MATLAB deallocates the MEX file makes the context
-  // destructor to hang (probably waiting for ZMQ sockets to terminate).
-  // ToDo: Fix it.
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -210,12 +202,6 @@ void NodeShared::RunReceptionTask()
         exitLoop = true;
     }
   }
-#ifdef _WIN32
-  std::lock_guard<std::mutex> lock(this->exitMutex);
-  {
-    this->threadReceptionExiting = true;
-  }
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -468,9 +454,8 @@ void NodeShared::RecvSrvRequest()
   // Get the REP handler.
   if (hasHandler)
   {
-    bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(req, rep, result);
+    bool result = repHandler->RunCallback(req, rep);
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
