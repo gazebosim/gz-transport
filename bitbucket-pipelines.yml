@@ -12,14 +12,6 @@ pipelines:
           - apt-get -y install cmake pkg-config cppcheck mercurial build-essential lcov curl
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
             libignition-msgs-dev
-          # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b default
-          - cd ign-cmake
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make install
-          - cd ../..
           # Ignition tools
           - hg clone http://bitbucket.org/ignitionrobotics/ign-tools -b default
           - cd ign-tools
