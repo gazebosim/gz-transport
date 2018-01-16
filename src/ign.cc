@@ -42,7 +42,7 @@ using namespace ignition;
 using namespace transport;
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList()
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicList()
 {
   Node node;
 
@@ -54,7 +54,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicInfo(const char *_topic)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -89,7 +89,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList()
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceList()
 {
   Node node;
 
@@ -101,7 +101,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceInfo(const char *_service)
 {
   if (!_service || std::string(_service).empty())
   {
@@ -136,7 +136,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service)
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
   const char *_msgType, const char *_msgData)
 {
   if (!_topic)
@@ -187,7 +187,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
   const char *_reqType, const char *_repType, const int _timeout,
   const char *_reqData)
 {
@@ -250,7 +250,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
   const double _duration)
 {
   if (!_topic || std::string(_topic).empty())
@@ -280,7 +280,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion()
+extern "C" char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
 {
   int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
   int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;

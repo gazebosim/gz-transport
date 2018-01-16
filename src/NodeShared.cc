@@ -63,8 +63,27 @@ using namespace transport;
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
+#ifdef _MSC_VER
+  // If we compile ign-transport as a shared library on Windows, we should
+  // never destruct NodeShared, unfortunately. It seems that WinSock does
+  // not behave well during the DLL teardown phase as a program exits, and
+  // this will confuse the ZeroMQ library into thinking that WinSock
+  // misbehaved, causing an assertion in ZeroMQ to fail and throw an exception
+  // while the program exits. This is a known issue:
+  //
+  // https://github.com/zeromq/libzmq/issues/1144
+  //
+  // An easy way of dodging this issue is to never destruct NodeShared. The
+  // Operating System will take care of cleaning up its resources when the
+  // application exits. We may want to consider a more elegant solution in
+  // the future. The zsys_shutdown() function in the czmq library may be able
+  // to provide some inspiration for solving this more cleanly.
+  static NodeShared *instance = new NodeShared();
+  return instance;
+#else
   static NodeShared instance;
   return &instance;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -108,11 +127,6 @@ NodeShared::NodeShared()
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
-#ifdef _WIN32
-  this->threadReceptionExiting = false;
-  this->threadReception.detach();
-#endif
-
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
@@ -143,31 +157,9 @@ NodeShared::~NodeShared()
   this->exit = true;
   this->exitMutex.unlock();
 
-  // Don't join on Windows, because it can hang when this object
-  // is destructed on process exit (e.g., when it's a global static).
-  // I think that it's due to this bug:
-  // https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
-#ifndef _WIN32
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
-#else
-  bool exitLoop = false;
-  while (!exitLoop)
-  {
-    std::lock_guard<std::mutex> lock(this->exitMutex);
-    {
-      if (this->threadReceptionExiting)
-        exitLoop = true;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-
-  // We intentionally don't destroy the context in Windows.
-  // For some reason, when MATLAB deallocates the MEX file makes the context
-  // destructor to hang (probably waiting for ZMQ sockets to terminate).
-  // ToDo: Fix it.
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -210,37 +202,27 @@ void NodeShared::RunReceptionTask()
         exitLoop = true;
     }
   }
-#ifdef _WIN32
-  std::lock_guard<std::mutex> lock(this->exitMutex);
-  {
-    this->threadReceptionExiting = true;
-  }
-#endif
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, const std::string &_data,
-  const std::string &_msgType)
+bool NodeShared::Publish(const std::string &_topic, char *_data,
+  const size_t _dataSize, DeallocFunc *_ffn, const std::string &_msgType)
 {
   try
   {
+    // Create the messages.
+    // Note that we use zero copy for passing the message data (msg2).
+    zmq::message_t msg0(_topic.data(), _topic.size()),
+                   msg1(this->myAddress.data(), this->myAddress.size()),
+                   msg2(_data, _dataSize, _ffn, nullptr),
+                   msg3(_msgType.data(), _msgType.size());
+
+    // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
-    zmq::message_t msg;
-    msg.rebuild(_topic.size());
-    memcpy(msg.data(), _topic.data(), _topic.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(this->myAddress.size());
-    memcpy(msg.data(), this->myAddress.data(), this->myAddress.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(_data.size());
-    memcpy(msg.data(), _data.data(), _data.size());
-    this->dataPtr->publisher->send(msg, ZMQ_SNDMORE);
-
-    msg.rebuild(_msgType.size());
-    memcpy(msg.data(), _msgType.data(), _msgType.size());
-    this->dataPtr->publisher->send(msg, 0);
+    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg3, 0);
   }
   catch(const zmq::error_t& ze)
   {
@@ -472,9 +454,8 @@ void NodeShared::RecvSrvRequest()
   // Get the REP handler.
   if (hasHandler)
   {
-    bool result;
     // Run the service call and get the results.
-    repHandler->RunCallback(req, rep, result);
+    bool result = repHandler->RunCallback(req, rep);
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response

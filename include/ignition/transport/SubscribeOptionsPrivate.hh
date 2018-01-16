@@ -21,7 +21,6 @@
 #include <cstdint>
 
 #include "ignition/transport/Helpers.hh"
-#include "ignition/transport/SubscribeOptions.hh"
 
 namespace ignition
 {

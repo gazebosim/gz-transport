@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {
