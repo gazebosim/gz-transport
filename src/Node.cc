@@ -365,7 +365,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          if(!sharedBuffer)
+          if (!sharedBuffer)
           {
             // If the sharedBuffer has not been created, do so now.
             sharedBuffer = std::shared_ptr<char>(
