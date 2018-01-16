@@ -539,7 +539,7 @@ namespace ignition
             [_cb](const RequestT &_req, ReplyT &_rep)
         {
           bool internalResult = false;
-          (*_cb)(_req, _rep, internalResult);
+          (_cb)(_req, _rep, internalResult);
           return internalResult;
         };
 
