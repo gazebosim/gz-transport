@@ -264,7 +264,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         publisherTopic, publisherMsgType);
 
   // The serialized message size and buffer.
-  const int msgSize = _msg.ByteSize();
+  const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSize());
   char *msgBuffer = nullptr;
 
   // Only serialize the message if we have a raw subscriber or a remote
@@ -334,8 +334,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
                 }
                 catch (...)
                 {
-                  std::cerr << "Exception occured in a local callback "
-                    << "on topic[" << info->Topic() << "] with message ["
+                  std::cerr << "Exception occurred in a local callback "
+                    << "on topic [" << info->Topic() << "] with message ["
                     << msgCopy->DebugString() << "]" << std::endl;
                 }
               });
@@ -345,6 +345,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     if (subscribers.haveRaw)
     {
+      std::shared_ptr<char> sharedBuffer;
       for (auto &node : subscribers.rawHandlers)
       {
         for (auto &handler : node.second)
@@ -364,8 +365,30 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          rawHandler->RunRawCallback(
-                msgBuffer, static_cast<std::size_t>(msgSize), *info);
+          if(!sharedBuffer)
+          {
+            // If the sharedBuffer has not been created, do so now.
+            sharedBuffer = std::shared_ptr<char>(
+                  new char[msgSize], std::default_delete<char[]>());
+            memcpy(sharedBuffer.get(), msgBuffer, msgSize);
+          }
+
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [rawHandler, sharedBuffer, msgSize, info, msgCopy] ()
+              {
+                try
+                {
+                  rawHandler->RunRawCallback(
+                        sharedBuffer.get(), msgSize, *info);
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occured in a local raw callback "
+                            << "on topic [" << info->Topic() << "] with "
+                            << "message [" << msgCopy->DebugString() << "]"
+                            << std::endl;
+                }
+              });
         }
       }
     }
