@@ -280,7 +280,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       free(msgBuffer);
       std::cerr << "Node::Publisher::Publish(): Error serializing data"
-        << std::endl;
+                << std::endl;
       return false;
     }
   }
@@ -288,7 +288,15 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    MessageInfo info = this->dataPtr->CreateMessageInfo();
+    // Create and populate the message information object.
+    // This must be a shared pointer so that we can pass it to
+    // multiple threads below, and then allow this function to go
+    // out of scope.
+    std::shared_ptr<MessageInfo> info = std::make_shared<MessageInfo>(
+        this->dataPtr->CreateMessageInfo());
+
+    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
+    msgCopy->CopyFrom(_msg);
 
     if (subscribers.haveLocal)
     {
@@ -311,7 +319,26 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          localHandler->RunLocalCallback(_msg, info);
+          // Launch local callback in a thread. We get the raw pointer to
+          // the subscription handler because the object itself will change
+          // in this loop.
+          //
+          // This supports asynchronous intraprocess callbacks,
+          // which has the same behavior as interprocess callbacks.
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [localHandler, msgCopy, info] ()
+              {
+                try
+                {
+                  localHandler->RunLocalCallback(*msgCopy, *info);
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occured in a local callback "
+                    << "on topic[" << info->Topic() << "] with message ["
+                    << msgCopy->DebugString() << "]" << std::endl;
+                }
+              });
         }
       }
     }
@@ -337,7 +364,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          rawHandler->RunRawCallback(msgBuffer, msgSize, info);
+          rawHandler->RunRawCallback(
+                msgBuffer, static_cast<std::size_t>(msgSize), *info);
         }
       }
     }
@@ -348,7 +376,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void */*_hint*/) { free(_buffer); };
+    auto myDeallocator = [](void *_buffer, void * /*_hint*/) { free(_buffer); };
 
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
           msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))

@@ -1,73 +1,47 @@
-include (${project_cmake_dir}/Utils.cmake)
+# Turn on C++14 support for the library.
+set(CMAKE_CXX_STANDARD 14)
 
-set (sources
-  AdvertiseOptions.cc
-  Discovery.cc
-  Helpers.cc
-  ign.cc
-  MessageInfo.cc
-  NetUtils.cc
-  Node.cc
-  NodeOptions.cc
-  NodeShared.cc
-  Packet.cc
-  Publisher.cc
-  SubscribeOptions.cc
-  SubscriptionHandler.cc
-  TopicUtils.cc
-  Uuid.cc
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable.
+ign_get_libsources_and_unittests(sources gtest_sources)
+
+# Create the library target.
+ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
+
+# Link the libraries that we always need.
+target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+  PUBLIC
+    ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
+  PRIVATE
+    ${ZeroMQ_TARGET}
+    CPPZMQ::CPPZMQ
 )
 
-set (gtest_sources
-  AdvertiseOptions_TEST.cc
-  Discovery_TEST.cc
-  ign_src_TEST.cc
-  Helpers_TEST.cc
-  HandlerStorage_TEST.cc
-  MessageInfo_TEST.cc
-  NetUtils_TEST.cc
-  Node_TEST.cc
-  NodeOptions_TEST.cc
-  Packet_TEST.cc
-  Publisher_TEST.cc
-  SubscribeOptions_TEST.cc
-  TopicStorage_TEST.cc
-  TopicUtils_TEST.cc
-  Uuid_TEST.cc
-)
-
-include_directories(${CMAKE_BINARY_DIR}/ ${CMAKE_BINARY_DIR}/test/)
-
-ign_build_tests(${gtest_sources})
-
-if (UNIX)
-  ign_add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} ${sources})
-elseif(WIN32)
-  # Probotuf compilation is recommended and configured for a STATIC .lib
-  # Not mixing static and shared and just build ignition transport as STATIC
-  # on Windows
-  add_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION} STATIC ${sources})
+# Windows system library provides UUID
+if (NOT MSVC)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC
+      UUID::UUID
+  )
 endif()
 
-# Protobuf module does not have LIBRARIES but LIBRARY
-target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-                      ${ZeroMQ_LIBRARIES}
-                      ${uuid_LIBRARIES}
-                      ${IGNITION-MSGS_LIBRARIES})
+# Create installation instructions for the library target. This must be called
+# in the same scope that the target is created.
+ign_install_library()
 
-if(WIN32)
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-    ws2_32 Iphlpapi
-    optimized
-      ${PROTOBUF_LIBRARY}
-      ${PROTOBUF_PROTOC_LIBRARY}
-    debug
-      ${PROTOBUF_LIBRARY_DEBUG})
-else()
-  target_link_libraries(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
-    ${PROTOBUF_LIBRARY})
+# Build the unit tests.
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+
+if(MSVC)
+  # On Windows, UNIT_Discovery_TEST uses some socket functions and therefore
+  # needs to link to the Windows socket library. An easy, maintainable way to
+  # do that is to tell it to link to the ZeroMQ target, and let it get the
+  # socket library dependency transitively.
+  if(TARGET UNIT_Discovery_TEST)
+    target_link_libraries(UNIT_Discovery_TEST
+      ${ZeroMQ_TARGET})
+  endif()
 endif()
 
-ign_install_library(${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
-
+# Command line support.
 add_subdirectory(cmd)

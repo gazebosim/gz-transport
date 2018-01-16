@@ -24,42 +24,7 @@
 #include <limits>
 #include <string>
 
-/// \def IGNITION_TRANSPORT_VISIBLE
-/// Use to represent "symbol visible" if supported
-
-/// \def IGNITION_HIDDEN
-/// Use to represent "symbol hidden" if supported
-
-#if defined BUILDING_STATIC_LIBS
-  #define IGNITION_TRANSPORT_VISIBLE
-  #define IGNITION_HIDDEN
-#else
-  #if defined __WIN32 || defined __CYGWIN__
-    #ifdef BUILDING_DLL
-      #ifdef __GNUC__
-        #define IGNITION_TRANSPORT_VISIBLE __attribute__ ((dllexport))
-      #else
-        #define IGNITION_TRANSPORT_VISIBLE __declspec(dllexport)
-      #endif
-    #else
-      #ifdef __GNUC__
-        #define IGNITION_TRANSPORT_VISIBLE __attribute__ ((dllimport))
-      #else
-        #define IGNITION_TRANSPORT_VISIBLE __declspec(dllimport)
-      #endif
-    #endif
-    #define IGNITION_HIDDEN
-  #else
-    #if __GNUC__ >= 4
-      #define IGNITION_TRANSPORT_VISIBLE __attribute__ ((visibility ("default")))
-      #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-    #else
-      #define IGNITION_TRANSPORT_VISIBLE
-      #define IGNITION_HIDDEN
-    #endif
-  #endif
-// BUILDING_STATIC_LIBS
-#endif
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {
@@ -72,24 +37,23 @@ namespace ignition
     /// \param[in] _name Name of the environment variable.
     /// \param[out] _value Value if the variable was found.
     /// \return True if the variable was found or false otherwise.
-    IGNITION_TRANSPORT_VISIBLE
-    bool env(const std::string &_name,
+    bool IGNITION_TRANSPORT_VISIBLE env(const std::string &_name,
              std::string &_value);
+
+    // Use safer functions on Windows
+    #ifdef _MSC_VER
+      #define ign_strcat strcat_s
+      #define ign_strcpy strcpy_s
+      #define ign_sprintf sprintf_s
+      #define ign_strdup _strdup
+    #else
+      #define ign_strcat std::strcat
+      #define ign_strcpy std::strcpy
+      #define ign_sprintf std::sprintf
+      #define ign_strdup strdup
+    #endif
   }
 }
 
-// Use safer functions on Windows
-#ifdef _MSC_VER
-  #define ign_strcat strcat_s
-  #define ign_strcpy strcpy_s
-  #define ign_sprintf sprintf_s
-  #define ign_strdup _strdup
-#else
-  #define ign_strcat std::strcat
-  #define ign_strcpy std::strcpy
-  #define ign_sprintf std::sprintf
-  #define ign_strdup strdup
-#endif
-
-// __IGN_TRANSPORT_HELPERS_HH_INCLUDED__
+// IGN_TRANSPORT_HELPERS_HH_
 #endif

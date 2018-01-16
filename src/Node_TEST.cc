@@ -39,6 +39,8 @@ static std::string partition;
 static std::string g_FQNPartition;
 static std::string g_topic = "/foo";
 static std::mutex exitMutex;
+static std::mutex cbMutex;
+static std::condition_variable cbCondition;
 
 static int data = 5;
 static bool cbExecuted;
@@ -73,6 +75,9 @@ void cb(const ignition::msgs::Int32 &_msg)
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   ++counter;
+
+  std::lock_guard<std::mutex> lk(cbMutex);
+  cbCondition.notify_all();
 }
 
 //////////////////////////////////////////////////
@@ -123,23 +128,23 @@ void genericCb(const transport::ProtoMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-void srvEcho(const ignition::msgs::Int32 &_req,
-  ignition::msgs::Int32 &_rep, bool &_result)
+bool srvEcho(const ignition::msgs::Int32 &_req,
+  ignition::msgs::Int32 &_rep)
 {
   srvExecuted = true;
 
   EXPECT_EQ(_req.data(), data);
   _rep.set_data(_req.data());
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without input.
-void srvWithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+bool srvWithoutInput(ignition::msgs::Int32 &_rep)
 {
   srvExecuted = true;
   _rep.set_data(data);
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -211,22 +216,22 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call.
-  public: void Echo(const ignition::msgs::Int32 &_req,
-    ignition::msgs::Int32 &_rep, bool &_result)
+  public: bool Echo(const ignition::msgs::Int32 &_req,
+    ignition::msgs::Int32 &_rep)
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
-    _result = true;
     this->callbackSrvExecuted = true;
+    return true;
   }
 
   /// \brief Member function used as a callback for responding to a service
   /// call without input.
-  public: void WithoutInput(ignition::msgs::Int32 &_rep, bool &_result)
+  public: bool WithoutInput(ignition::msgs::Int32 &_rep)
   {
     _rep.set_data(data);
-    _result = true;
     this->callbackSrvExecuted = true;
+    return true;
   }
 
   // Member function used as a callback for responding to a service call
@@ -537,12 +542,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  std::unique_lock<std::mutex> lk(cbMutex);
   // Publish a message by each node.
   EXPECT_TRUE(pub1.Publish(msg));
-  EXPECT_TRUE(pub2.Publish(msg));
 
-  // Wait some time for the messages to arrive.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait for the messages to arrive.
+  cbCondition.wait(lk, []{return counter >= 1;});
+
+  EXPECT_TRUE(pub2.Publish(msg));
+  cbCondition.wait(lk, []{return counter >= 2;});
 
   // Check that the msg was received twice.
   EXPECT_TRUE(cbExecuted);
@@ -818,12 +826,17 @@ TEST(NodeTest, PubSubSameThreadLambda)
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
+  std::mutex mutex;
+  std::condition_variable condition;
+
   bool executed = false;
   std::function<void(const ignition::msgs::Int32&)> subCb =
-    [&executed](const ignition::msgs::Int32 &_msg)
+    [&executed, &mutex, &condition](const ignition::msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk(mutex);
     executed = true;
+    condition.notify_all();
   };
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
@@ -833,6 +846,11 @@ TEST(NodeTest, PubSubSameThreadLambda)
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
+
+  // The local publish is asynchronous, which means we need to wait
+  // for the callback.
+  std::unique_lock<std::mutex> lk(mutex);
+  condition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 
@@ -865,7 +883,9 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
     EXPECT_EQ(_msg.data(), data);
     EXPECT_EQ(g_FQNPartition, _info.Partition());
     EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+    std::lock_guard<std::mutex> lk(cbMutex);
     executed = true;
+    cbCondition.notify_all();
   };
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
@@ -874,7 +894,9 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
+  std::unique_lock<std::mutex> lk(cbMutex);
   EXPECT_TRUE(pub.Publish(msg));
+  cbCondition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 
@@ -1259,13 +1281,13 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   reset();
 
-  std::function<void(const ignition::msgs::Int32 &, ignition::msgs::Int32 &,
-    bool &)> advCb = [](const ignition::msgs::Int32 &_req,
-      ignition::msgs::Int32 &_rep, bool &_result)
+  std::function<bool(const ignition::msgs::Int32 &, ignition::msgs::Int32 &)>
+    advCb = [](const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+    -> bool
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
-    _result = true;
+    return true;
   };
 
   transport::Node node;
@@ -1297,11 +1319,11 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   reset();
 
-  std::function<void(ignition::msgs::Int32 &, bool &)> advCb =
-    [](ignition::msgs::Int32 &_rep, bool &_result)
+  std::function<bool(ignition::msgs::Int32 &)> advCb =
+    [](ignition::msgs::Int32 &_rep) -> bool
   {
     _rep.set_data(data);
-    _result = true;
+    return true;
   };
 
   transport::Node node;
@@ -1596,7 +1618,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 20);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -1626,7 +1648,7 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 20);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);

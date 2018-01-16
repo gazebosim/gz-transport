@@ -119,7 +119,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Now, we should have subscribers.
   EXPECT_TRUE(pub.HasConnections());
@@ -292,19 +292,19 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   bool correctRawCbExecuted = false;
   bool genericRawCbExecuted = false;
 
-  auto wrongCb = [&](const char *, const int _size,
+  auto wrongCb = [&](const char *, const int /*_size*/,
                      const transport::MessageInfo &)
   {
     wrongRawCbExecuted = true;
   };
 
-  auto correctCb = [&](const char *, const int _size,
+  auto correctCb = [&](const char *, const int /*_size*/,
                        const transport::MessageInfo &)
   {
     correctRawCbExecuted = true;
   };
 
-  auto genericCb = [&](const char *, const int _size,
+  auto genericCb = [&](const char *, const int /*_size*/,
                        const transport::MessageInfo &)
   {
     genericRawCbExecuted = true;
