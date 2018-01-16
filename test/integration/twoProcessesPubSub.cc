@@ -86,7 +86,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 }
 
 //////////////////////////////////////////////////
-void cbRaw(const std::string &/*_msgData*/,
+void cbRaw(const char * /*_msgData*/, const int /*_size*/,
            const ignition::transport::MessageInfo &/*_info*/)
 {
   cbRawExecuted = true;
@@ -135,7 +135,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 }
 
 //////////////////////////////////////////////////
-/// \brief This is the same as the last test, but we use RawPublish(~) instead
+/// \brief This is the same as the last test, but we use PublishRaw(~) instead
 /// of Publish(~).
 TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
@@ -166,7 +166,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
   {
-    EXPECT_TRUE(pub.RawPublish(msg.SerializeAsString(), msg.GetTypeName()));
+    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
@@ -215,7 +215,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
   reset();
 
   transport::Node node;
-  EXPECT_TRUE(node.RawSubscribe(g_topic, cbRaw,
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
                                 ignition::msgs::Int32().GetTypeName()));
 
   // Wait some time before publishing.
@@ -271,7 +271,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 
 //////////////////////////////////////////////////
 /// \brief This test spawns three raw subscribers on the same topic. The first
-/// subscriber has the wrong type (the type specified to RawSubscribe does not
+/// subscriber has the wrong type (the type specified to SubscribeRaw does not
 /// match the advertised type). The second subscriber requests the correct type.
 /// The third accepts the generic (default) type. Check that only two of the
 /// callbacks are executed (correct and generic).
@@ -292,17 +292,20 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   bool correctRawCbExecuted = false;
   bool genericRawCbExecuted = false;
 
-  auto wrongCb = [&](const std::string &, const transport::MessageInfo &)
+  auto wrongCb = [&](const char *, const int _size,
+                     const transport::MessageInfo &)
   {
     wrongRawCbExecuted = true;
   };
 
-  auto correctCb = [&](const std::string &, const transport::MessageInfo &)
+  auto correctCb = [&](const char *, const int _size,
+                       const transport::MessageInfo &)
   {
     correctRawCbExecuted = true;
   };
 
-  auto genericCb = [&](const std::string &, const transport::MessageInfo &)
+  auto genericCb = [&](const char *, const int _size,
+                       const transport::MessageInfo &)
   {
     genericRawCbExecuted = true;
   };
@@ -310,10 +313,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   transport::Node node1;
   transport::Node node2;
   transport::Node node3;
-  EXPECT_TRUE(node1.RawSubscribe(g_topic, wrongCb, "wrong.msg.type"));
-  EXPECT_TRUE(node2.RawSubscribe(g_topic, correctCb,
+  EXPECT_TRUE(node1.SubscribeRaw(g_topic, wrongCb, "wrong.msg.type"));
+  EXPECT_TRUE(node2.SubscribeRaw(g_topic, correctCb,
                                  msgs::Vector3d().GetTypeName()));
-  EXPECT_TRUE(node3.RawSubscribe(g_topic, genericCb));
+  EXPECT_TRUE(node3.SubscribeRaw(g_topic, genericCb));
 
 
   // Wait some time before publishing.

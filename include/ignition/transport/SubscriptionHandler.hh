@@ -324,10 +324,11 @@ namespace ignition
 
       /// \brief Executes the raw callback registered for this handler.
       /// \param[in] _msgData Serialized string of message data
+      /// \param[in] _size Number of bytes in the serialized message data
       /// \param[in] _info Meta-data for the message
       /// \return True if the callback was triggered, false if the callback was
       /// not set.
-      public: bool RunRawCallback(const std::string &_msgData,
+      public: bool RunRawCallback(const char *_msgData, const size_t _size,
                                   const MessageInfo &_info);
 
       /// \brief Destructor

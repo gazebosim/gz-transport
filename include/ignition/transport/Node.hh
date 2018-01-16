@@ -120,6 +120,9 @@ namespace ignition
         /// forwarding or playing back data instead of serializing/deserializing
         /// it). We currently only support the serialization scheme of protobuf.
         ///
+        /// \warning This function will copy the message data when
+        /// publishing to remote subscribers (interprocess communication).
+        ///
         /// \note This function will deserialize the message when sending it to
         /// local (intraprocess) subscribers.
         ///
@@ -128,7 +131,7 @@ namespace ignition
         /// \param[in] _msgType A std::string that contains the message type
         /// name.
         /// \return true when success.
-        public: bool RawPublish(
+        public: bool PublishRaw(
           const std::string &_msgData,
           const std::string &_msgType);
 
@@ -1019,7 +1022,7 @@ namespace ignition
       /// each message by inspecting its const MessageInfo& input argument.
       /// \param[in] _opts Options for subscribing.
       /// \return True if subscribing was successful.
-      public: bool RawSubscribe(
+      public: bool SubscribeRaw(
         const std::string &_topic,
         const RawCallback &_callback,
         const std::string &_msgType = kGenericMessageType,
