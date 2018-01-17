@@ -1,5 +1,8 @@
 ## Ignition Transport 4.0.0
 
+1. Use zero copy when publishing messages.
+    * [Pull request 229](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/229)
+
 1. Added publishing and receiving messages as raw bytes
     * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
 
