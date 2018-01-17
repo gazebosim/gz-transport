@@ -399,7 +399,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void * /*_hint*/) { free(_buffer); };
+    auto myDeallocator = [](void *_buffer, void *) { free(_buffer); };
 
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
           msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
