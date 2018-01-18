@@ -39,15 +39,17 @@ static std::mutex dataMutex;
 /// messages.
 /// \param[in] _archive A vector that will store the incoming message
 /// information. This must be passed from a lambda which has captured a vector.
-/// \param[in] _msgData The data passed by the RawSubscribe
+/// \param[in] _data The data passed by the SubscribeRaw
+/// \param[in] _len The length of data passed by the SubscribeRaw
 /// \param[in] _msgInfo The metainfo about the message, provided by the
-/// RawSubscribe.
+/// SubscribeRaw.
 void TrackMessages(std::vector<MessageInformation> &_archive,
-                   const std::string &_msgData,
+                   const char *_data,
+                   std::size_t _len,
                    const ignition::transport::MessageInfo &_msgInfo)
 {
   MessageInformation info;
-  info.data = _msgData;
+  info.data = std::string(_data, _len);
   info.type = _msgInfo.Type();
   info.topic = _msgInfo.Topic();
 
@@ -64,10 +66,11 @@ TEST(playback, ReplayLog)
   std::vector<MessageInformation> incomingData;
 
   auto callback = [&incomingData](
-      const std::string &_msgData,
+      const char *_data,
+      std::size_t _len,
       const ignition::transport::MessageInfo &_msgInfo)
   {
-    TrackMessages(incomingData, _msgData, _msgInfo);
+    TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
   ignition::transport::Node node;
@@ -75,7 +78,7 @@ TEST(playback, ReplayLog)
 
   for (const std::string &topic : topics)
   {
-    node.RawSubscribe(topic, callback);
+    node.SubscribeRaw(topic, callback);
     recorder.AddTopic(topic);
   }
 

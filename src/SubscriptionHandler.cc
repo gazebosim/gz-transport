@@ -117,7 +117,7 @@ namespace ignition
 
     /////////////////////////////////////////////////
     bool RawSubscriptionHandler::RunRawCallback(
-        const std::string &_msgData,
+        const char *_msgData, const size_t _size,
         const MessageInfo &_info)
     {
       // Make sure we have a callback
@@ -133,7 +133,7 @@ namespace ignition
         return true;
 
       // Trigger the callback
-      this->pimpl->callback(_msgData, _info);
+      this->pimpl->callback(_msgData, _size, _info);
       return true;
     }
 

@@ -213,7 +213,7 @@ PlaybackError Playback::Start()
 
         // Actually publish the message
         igndbg << "publishing\n";
-        this->dataPtr->publishers[msg.Topic()][msg.Type()].RawPublish(
+        this->dataPtr->publishers[msg.Topic()][msg.Type()].PublishRaw(
             msg.Data(), msg.Type());
       }
       {

@@ -38,7 +38,8 @@ class ignition::transport::log::RecorderPrivate
 {
   /// \brief Subscriber callback
   public: void OnMessageReceived(
-          const std::string &_msgData,
+          const char *_data,
+          std::size_t _len,
           const transport::MessageInfo &_info);
 
   /// \brief Callback that listens for newly advertised topics
@@ -82,7 +83,8 @@ class ignition::transport::log::RecorderPrivate
 
 //////////////////////////////////////////////////
 void RecorderPrivate::OnMessageReceived(
-          const std::string &_msgData,
+          const char *_data,
+          std::size_t _len,
           const transport::MessageInfo &_info)
 {
   // Get time RX using monotonic
@@ -108,8 +110,8 @@ void RecorderPrivate::OnMessageReceived(
         timeRX,
         _info.Topic(),
         _info.Type(),
-        reinterpret_cast<const void *>(_msgData.c_str()),
-        _msgData.size()))
+        reinterpret_cast<const void *>(_data),
+        _len))
   {
     ignwarn << "Failed to insert message into log file\n";
   }
@@ -154,7 +156,7 @@ RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 {
   igndbg << "Recording [" << _topic << "]\n";
   // Subscribe to the topic whether it exists or not
-  if (!this->node.RawSubscribe(_topic, this->rawCallback))
+  if (!this->node.SubscribeRaw(_topic, this->rawCallback))
   {
     ignerr << "Failed to subscribe to [" << _topic << "]\n";
     return RecorderError::FAILED_TO_SUBSCRIBE;
@@ -205,9 +207,9 @@ Recorder::Recorder()
 
   // Make a lambda to wrap a member function callback
   this->dataPtr->rawCallback = [this](
-      const std::string &_data, const transport::MessageInfo &_info)
+      const char *_data, std::size_t _len, const transport::MessageInfo &_info)
   {
-    this->dataPtr->OnMessageReceived(_data, _info);
+    this->dataPtr->OnMessageReceived(_data, _len, _info);
   };
 
   Uuid uuid;

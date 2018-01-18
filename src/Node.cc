@@ -263,16 +263,40 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       this->dataPtr->shared->CheckSubscriberInfo(
         publisherTopic, publisherMsgType);
 
-  // These variables ensure that serialization only happens once (at most), and
-  // that it only happens if necessary.
-  bool haveSerialized = false;
-  bool failedToSerialize = false;
-  std::string msgData;
+  // The serialized message size and buffer.
+  const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSize());
+  char *msgBuffer = nullptr;
+
+  // Only serialize the message if we have a raw subscriber or a remote
+  // subscriber.
+  if (subscribers.haveRaw || subscribers.haveRemote)
+  {
+    // Allocate the buffer to store the serialized data.
+    msgBuffer = static_cast<char *>(malloc(msgSize));
+
+    // Fail out early if we are unable to serialize the message. We do not
+    // want to send a corrupt/bad message to some subscribers and not others.
+    if (!_msg.SerializeToArray(msgBuffer, msgSize))
+    {
+      free(msgBuffer);
+      std::cerr << "Node::Publisher::Publish(): Error serializing data"
+                << std::endl;
+      return false;
+    }
+  }
 
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    MessageInfo info = this->dataPtr->CreateMessageInfo();
+    // Create and populate the message information object.
+    // This must be a shared pointer so that we can pass it to
+    // multiple threads below, and then allow this function to go
+    // out of scope.
+    std::shared_ptr<MessageInfo> info = std::make_shared<MessageInfo>(
+        this->dataPtr->CreateMessageInfo());
+
+    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
+    msgCopy->CopyFrom(_msg);
 
     if (subscribers.haveLocal)
     {
@@ -295,13 +319,33 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          localHandler->RunLocalCallback(_msg, info);
+          // Launch local callback in a thread. We get the raw pointer to
+          // the subscription handler because the object itself will change
+          // in this loop.
+          //
+          // This supports asynchronous intraprocess callbacks,
+          // which has the same behavior as interprocess callbacks.
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [localHandler, msgCopy, info] ()
+              {
+                try
+                {
+                  localHandler->RunLocalCallback(*msgCopy, *info);
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occurred in a local callback "
+                    << "on topic [" << info->Topic() << "] with message ["
+                    << msgCopy->DebugString() << "]" << std::endl;
+                }
+              });
         }
       }
     }
 
     if (subscribers.haveRaw)
     {
+      std::shared_ptr<char> sharedBuffer;
       for (auto &node : subscribers.rawHandlers)
       {
         for (auto &handler : node.second)
@@ -321,55 +365,58 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          if (!haveSerialized)
+          if (!sharedBuffer)
           {
-            failedToSerialize = !_msg.SerializeToString(&msgData);
-
-            if (failedToSerialize)
-              break;
-
-            haveSerialized = true;
+            // If the sharedBuffer has not been created, do so now.
+            sharedBuffer = std::shared_ptr<char>(
+                  new char[msgSize], std::default_delete<char[]>());
+            memcpy(sharedBuffer.get(), msgBuffer, msgSize);
           }
 
-          rawHandler->RunRawCallback(msgData, info);
+          this->dataPtr->shared->dataPtr->workerPool.AddWork(
+              [rawHandler, sharedBuffer, msgSize, info, msgCopy] ()
+              {
+                try
+                {
+                  rawHandler->RunRawCallback(
+                        sharedBuffer.get(), msgSize, *info);
+                }
+                catch (...)
+                {
+                  std::cerr << "Exception occured in a local raw callback "
+                            << "on topic [" << info->Topic() << "] with "
+                            << "message [" << msgCopy->DebugString() << "]"
+                            << std::endl;
+                }
+              });
         }
-
-        if (failedToSerialize)
-          break;
       }
     }
   }
 
-  // Remote subscribers.
+  // Handle remote subscribers.
   if (subscribers.haveRemote)
   {
-    if (!haveSerialized && !failedToSerialize)
-    {
-      failedToSerialize = !_msg.SerializeToString(&msgData);
+    // Zmq will call this lambda when the message is published.
+    // We use it to deallocate the buffer.
+    auto myDeallocator = [](void *_buffer, void *) { free(_buffer); };
 
-      if (!failedToSerialize)
-      {
-        if (!this->dataPtr->shared->Publish(
-              publisherTopic, msgData, publisherMsgType))
-        {
-          return false;
-        }
-      }
+    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+          msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
+    {
+      return false;
     }
   }
-
-  if (failedToSerialize)
+  else
   {
-    std::cerr << "Node::Publisher::Publish(): Error serializing data"
-              << std::endl;
-    return false;
+    free(msgBuffer);
   }
 
   return true;
 }
 
 //////////////////////////////////////////////////
-bool Node::Publisher::RawPublish(
+bool Node::Publisher::PublishRaw(
     const std::string &_msgData,
     const std::string &_msgType)
 {
@@ -378,10 +425,9 @@ bool Node::Publisher::RawPublish(
 
   const std::string &publisherMsgType = this->dataPtr->publisher.MsgTypeName();
 
-  if (publisherMsgType  != _msgType
-      && publisherMsgType != kGenericMessageType)
+  if (publisherMsgType  != _msgType && publisherMsgType != kGenericMessageType)
   {
-    std::cerr << "Node::Publisher::RawPublish() type mismatch.\n"
+    std::cerr << "Node::Publisher::PublishRaw() type mismatch.\n"
               << "\t* Type advertised: "
               << this->dataPtr->publisher.MsgTypeName()
               << "\n\t* Type published: " << _msgType << std::endl;
@@ -404,8 +450,15 @@ bool Node::Publisher::RawPublish(
   // serialized, so we just pass it along for publication.
   if (subscribers.haveRemote)
   {
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-                                        _msgData, _msgType))
+    const std::size_t msgSize = _msgData.size();
+    char *msgBuffer = static_cast<char *>(malloc(msgSize));
+    memcpy(msgBuffer, _msgData.c_str(), msgSize);
+    auto myDeallocator = [](void *_buffer, void * /*_hint*/) { free(_buffer); };
+
+    // Note: This will copy _msgData (i.e. not zero copy)
+    if (!this->dataPtr->shared->Publish(
+          this->dataPtr->publisher.Topic(),
+          msgBuffer, msgSize, myDeallocator, _msgType))
     {
       return false;
     }
@@ -692,7 +745,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
 }
 
 //////////////////////////////////////////////////
-bool Node::RawSubscribe(
+bool Node::SubscribeRaw(
     const std::string &_topic,
     const RawCallback &_callback,
     const std::string &_msgType,

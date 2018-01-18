@@ -33,8 +33,8 @@
 #include <vector>
 #include <map>
 
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
@@ -68,11 +68,19 @@ namespace ignition
 
       /// \brief Publish data.
       /// \param[in] _topic Topic to be published.
-      /// \param[in] _data Data to publish.
+      /// \param[in, out] _data Serialized data. Note that this buffer will be
+      /// automatically deallocated by ZMQ when all data has been published.
+      /// \param[in] _dataSize Data size (bytes).
+      /// \param[in, out] _ffn Deallocation function. This function is
+      /// executed by ZeroMQ when the data is published. This function
+      /// deallocates the buffer containing the published data.
+      /// \ref http://zeromq.org/blog:zero-copy
       /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
-                           const std::string &_data,
+                           char *_data,
+                           const size_t _dataSize,
+                           DeallocFunc *_ffn,
                            const std::string &_msgType);
 
       /// \brief Method in charge of receiving the topic updates.
@@ -104,8 +112,7 @@ namespace ignition
         // CheckHandlerInfo()
         friend class NodeShared;
 
-        /// \brief Default constructor
-        private: HandlerInfo() = default;
+        // TODO(sloretz) private default constructor (visual studio 2017?)
       };
 
       /// \brief Get information about the local and raw subscribers that are
@@ -132,12 +139,7 @@ namespace ignition
         // Friendship declaration
         friend class NodeShared;
 
-        /// \brief Default constructor.
-        ///
-        /// We do nothing here. CheckSubscriberInfo will fill this in. We make
-        /// the constructor private to prevent us from having incorrectly
-        /// initialized SubscriberInfo objects.
-        private: SubscriberInfo() = default;
+        // TODO(sloretz) private default constructor (visual studio 2017?)
       };
 
       /// \brief Get information about the nodes that are subscribed to the
@@ -264,11 +266,6 @@ namespace ignition
 
       /// \brief When true, the reception thread will finish.
       public: bool exit;
-
-#ifdef _WIN32
-      /// \brief True when the reception thread is finishing.
-      public: bool threadReceptionExiting;
-#endif
 
       /// \brief Port used by the message discovery layer.
       public: static const int kMsgDiscPort = 11317;

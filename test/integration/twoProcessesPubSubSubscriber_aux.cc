@@ -45,14 +45,14 @@ void cb(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void cbRaw(const std::string &_msgData,
+void cbRaw(const char *_msgData, const int _size,
            const ignition::transport::MessageInfo &_info)
 {
   ignition::msgs::Vector3d v;
 
   EXPECT_TRUE(v.GetTypeName() == _info.Type());
 
-  EXPECT_TRUE(v.ParseFromString(_msgData));
+  EXPECT_TRUE(v.ParseFromArray(_msgData, _size));
 
   EXPECT_DOUBLE_EQ(v.x(), 1.0);
   EXPECT_DOUBLE_EQ(v.y(), 2.0);
@@ -86,7 +86,7 @@ void runSubscriber()
   EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
 
   // Add a raw subscription to `node`
-  EXPECT_TRUE(node.RawSubscribe(g_topic, cbRaw,
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
                                 ignition::msgs::Vector3d().GetTypeName()));
 
   int interval = 100;
@@ -112,7 +112,7 @@ void runSubscriber()
   cb2Executed = false;
 
   // Only unsubscribe `node`, leaving `node2` subscribed. Note that the
-  // RawSubscribe is attached to `node`, so that will also be removed.
+  // SubscribeRaw is attached to `node`, so that will also be removed.
   EXPECT_TRUE(node.Unsubscribe(g_topic));
 
   // Wait a small amount of time so that the master process can send some new

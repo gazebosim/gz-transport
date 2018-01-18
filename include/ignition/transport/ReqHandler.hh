@@ -31,7 +31,7 @@
 #include <memory>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 

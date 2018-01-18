@@ -22,9 +22,14 @@
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const std::string &_data, const ignition::transport::MessageInfo &_info)
+void cb(const char *_data, const size_t _size,
+        const ignition::transport::MessageInfo &_info)
 {
-  std::cout << "Msg length: " << _data.size() << " bytes" << std::endl;
+  ignition::msgs::StringMsg msg;
+  msg.ParseFromArray(_data, _size);
+
+  std::cout << "Msg length: " << _size << " bytes" << std::endl;
+  std::cout << "Msg contents: " << msg.data() << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -34,7 +39,7 @@ int main(int argc, char **argv)
   std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  if (!node.RawSubscribe(topic, cb))
+  if (!node.SubscribeRaw(topic, cb))
   {
     std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return -1;

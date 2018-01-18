@@ -138,15 +138,33 @@ namespace ignition
 
     /// \def RawCallback
     /// \brief User callback used for receiving raw message data:
-    ///   \param[in] _msgData string of a serialized protobuf message
-    ///   \param[in] _info Message information
+    /// \param[in] _msgData string of a serialized protobuf message
+    /// \param[in] _size Number of bytes in the serialized message data
+    /// string.
+    /// \param[in] _info Message information
     using RawCallback =
-        std::function<void(const std::string &_msgData,
+        std::function<void(const char *_msgData, const size_t _size,
                            const MessageInfo &_info)>;
 
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;
+
+    /// \def DeallocFunc
+    /// \brief Used when passing data to be published using ZMQ.
+    /// \param[in] _data The buffer containing the message to be published.
+    /// \param[in] _hint This parameter can be used if more complex allocation
+    /// mechanism is used. Say we allocated the chunk using some "allocator"
+    /// object and we have to deallocate it via the same object.
+    /// In such case we can pass the pointer to allocator as a hint to
+    /// zmq::message_t and modify the deallocation function as follows:
+    ///
+    ///   void my_free (void *data, void *hint)
+    ///   {
+    ///     ((allocator_t*) hint)->free (data);
+    ///   }
+    /// \ref http://zeromq.org/blog:zero-copy
+    using DeallocFunc = void(void *_data, void *_hint);
 
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobuf.Message";

@@ -54,11 +54,10 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-void srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep,
-  bool &_result)
+bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
-  _result = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -287,7 +286,7 @@ TEST(ignTest, ServiceRequest)
   std::string output = custom_exec_str(ign +
       " service -s " + service + " --reqtype ign_msgs.Int32 " +
       "--reptype ign_msgs.Int32 --timeout 1000 " +
-      "--req 'data: " + value + "'");
+      "--req 'data: " + value + "' " + g_ignVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");
 }
@@ -334,7 +333,12 @@ int main(int argc, char **argv)
   // Make sure that we load the library recently built and not the one installed
   // in your system.
 #ifndef _WIN32
-  setenv("LD_LIBRARY_PATH", IGN_TEST_LIBRARY_PATH, 1);
+  // Save the current value of LD_LIBRARY_PATH.
+  std::string value = "";
+  ignition::transport::env("LD_LIBRARY_PATH", value);
+  // Add the directory where ignition transport has been built.
+  value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
+  setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);
