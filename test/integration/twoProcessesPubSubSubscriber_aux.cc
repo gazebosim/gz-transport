@@ -29,6 +29,7 @@
 using namespace ignition;
 
 static bool cbExecuted;
+static bool cbRawExecuted;
 static bool cb2Executed;
 static std::string g_topic = "/foo";
 static std::string data = "bar";
@@ -41,6 +42,23 @@ void cb(const ignition::msgs::Vector3d &_msg)
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
   EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
   cbExecuted = true;
+}
+
+//////////////////////////////////////////////////
+void cbRaw(const char *_msgData, const int _size,
+           const ignition::transport::MessageInfo &_info)
+{
+  ignition::msgs::Vector3d v;
+
+  EXPECT_TRUE(v.GetTypeName() == _info.Type());
+
+  EXPECT_TRUE(v.ParseFromArray(_msgData, _size));
+
+  EXPECT_DOUBLE_EQ(v.x(), 1.0);
+  EXPECT_DOUBLE_EQ(v.y(), 2.0);
+  EXPECT_DOUBLE_EQ(v.z(), 3.0);
+
+  cbRawExecuted = true;
 }
 
 //////////////////////////////////////////////////
@@ -57,17 +75,24 @@ void cb2(const ignition::msgs::Vector3d &_msg)
 void runSubscriber()
 {
   cbExecuted = false;
+  cbRawExecuted = false;
   cb2Executed = false;
 
   transport::Node node;
   transport::Node node2;
 
+  // Add some normal subscriptions to `node` and `node2`
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
 
+  // Add a raw subscription to `node`
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
+                                ignition::msgs::Vector3d().GetTypeName()));
+
   int interval = 100;
 
-  while (!cbExecuted || !cb2Executed)
+  // Wait until we've received at least one message.
+  while (!cbExecuted || !cb2Executed || !cbRawExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     interval--;
@@ -78,18 +103,30 @@ void runSubscriber()
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
+  EXPECT_TRUE(cbRawExecuted);
   EXPECT_TRUE(cb2Executed);
 
-  cb2Executed = false;
-  EXPECT_TRUE(node.Unsubscribe(g_topic));
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  // Reset the test flags
   cbExecuted = false;
+  cbRawExecuted = false;
+  cb2Executed = false;
+
+  // Only unsubscribe `node`, leaving `node2` subscribed. Note that the
+  // SubscribeRaw is attached to `node`, so that will also be removed.
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+
+  // Wait a small amount of time so that the master process can send some new
+  // messages.
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was only received in node2
   EXPECT_FALSE(cbExecuted);
+  EXPECT_FALSE(cbRawExecuted);
   EXPECT_TRUE(cb2Executed);
+
+  // Reset flags
   cbExecuted = false;
+  cbRawExecuted = false;
   cb2Executed = false;
 }
 

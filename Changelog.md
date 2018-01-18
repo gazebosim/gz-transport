@@ -3,6 +3,9 @@
 1. Use zero copy when publishing messages.
     * [Pull request 229](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/229)
 
+1. Added publishing and receiving messages as raw bytes
+    * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
+
 1. Updated service responder callbacks to return a boolean value. The
    existing functions have been deprecated.
     * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
