@@ -102,6 +102,16 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_dependencies(subscriber_custom_msg protobuf_compilation)
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_raw.cc")
+  add_executable(publisher_raw publisher_raw.cc)
+  target_link_libraries(publisher_raw ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_raw.cc")
+  add_executable(subscriber_raw subscriber_raw.cc)
+  target_link_libraries(subscriber_raw ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 
 if (MSVC)
   # Suppress Protobuf message generation warnings.
