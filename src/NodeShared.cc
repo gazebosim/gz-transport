@@ -60,6 +60,66 @@
 using namespace ignition;
 using namespace transport;
 
+const std::string kIgnAuthDomain = "ign-auth";
+
+// Enum that encapsulates the possible values for ZeroMQ's setsocketopt
+// for ZMQ_PLAIN_SERVER. A value of 1 enables
+// plain authentication server, and a value of 0 disables.
+enum class ZmqPlainSecurityServerOptions
+{
+  // Value to disable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_DISABLED = 0,
+  // Value to enable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_ENABLED = 1,
+};
+
+//////////////////////////////////////////////////
+// Helper to get the username and password
+bool userPass(std::string &_user, std::string &_pass)
+{
+  char *username = std::getenv("IGN_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGN_TRANSPORT_PASSWORD");
+
+  if (!username || !password)
+    return false;
+
+  _user = username;
+  _pass = password;
+  return true;
+}
+
+//////////////////////////////////////////////////
+// Helper to send messages
+int sendHelper(zmq::socket_t &_pub, const std::string &_data, int _type)
+{
+  zmq::message_t msg(_data.data(), _data.size());
+  return _pub.send(msg, _type);
+}
+
+//////////////////////////////////////////////////
+// Helper to receive messages
+std::string receiveHelper(zmq::socket_t &_socket)
+{
+  zmq::message_t msg(0);
+
+  if (!_socket.recv(&msg, 0))
+    return std::string();
+
+  return std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+}
+
+//////////////////////////////////////////////////
+// Helper to send an authentication error. This is used by basic
+// authentication.
+void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
+{
+  std::cerr << _err << std::endl;
+  sendHelper(_socket, "400", ZMQ_SNDMORE);
+  sendHelper(_socket, _err, ZMQ_SNDMORE);
+  sendHelper(_socket, "", ZMQ_SNDMORE);
+  sendHelper(_socket, "", 0);
+}
+
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -88,9 +148,7 @@ NodeShared *NodeShared::Instance()
 
 //////////////////////////////////////////////////
 NodeShared::NodeShared()
-  : timeout(Timeout),
-    exit(false),
-    verbose(false),
+  : verbose(false),
     dataPtr(new NodeSharedPrivate)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
@@ -153,13 +211,17 @@ NodeShared::NodeShared()
 NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
-  this->exitMutex.lock();
-  this->exit = true;
-  this->exitMutex.unlock();
+  this->dataPtr->exitMutex.lock();
+  this->dataPtr->exit = true;
+  this->dataPtr->exitMutex.unlock();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
+
+  // Wait for the authentication thread before exit.
+  if (this->dataPtr->accessControlThread.joinable())
+    this->dataPtr->accessControlThread.join();
 }
 
 //////////////////////////////////////////////////
@@ -178,7 +240,8 @@ void NodeShared::RunReceptionTask()
     };
     try
     {
-      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+                NodeSharedPrivate::Timeout);
     }
     catch(...)
     {
@@ -197,8 +260,8 @@ void NodeShared::RunReceptionTask()
 
     // Is it time to exit?
     {
-      std::lock_guard<std::mutex> lock(this->exitMutex);
-      if (this->exit)
+      std::lock_guard<std::mutex> lock(this->dataPtr->exitMutex);
+      if (this->dataPtr->exit)
         exitLoop = true;
     }
   }
@@ -863,6 +926,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   {
     try
     {
+      // Handle security
+      this->dataPtr->SecurityOnNewConnection();
+
       // I am not connected to the process.
       if (!this->connections.HasPublisher(addr))
         this->dataPtr->subscriber->connect(addr.c_str());
@@ -1035,6 +1101,9 @@ bool NodeShared::InitializeSockets()
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
 
+    // Initialize security
+    this->dataPtr->SecurityInit();
+
     char bindEndPoint[1024];
     int lingerVal = 0;
     this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
@@ -1177,3 +1246,186 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
 
   return removed;
 }
+
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityOnNewConnection()
+{
+  std::string user, pass;
+
+  // Set username and pass if they exist
+  // \todo: This will cause the subscriber to connect only to secure
+  // connections. Would be nice if the subscriber could still connect to
+  // unsecure connections. This might require an unsecure and secure
+  // subscriber.
+  // See issue #74
+  if (userPass(user, pass))
+  {
+    this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME, user.c_str(), user.size());
+    this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD, pass.c_str(), pass.size());
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityInit()
+{
+  // Check if a username and password has been set. If so, then
+  // setup a PLAIN authentication server.
+  std::string user, pass;
+  if (userPass(user, pass))
+  {
+    // Create the access control thread.
+    this->accessControlThread = std::thread(
+        &NodeSharedPrivate::AccessControlHandler, this);
+
+    int asPlainSecurityServer = static_cast<int>(
+        ZmqPlainSecurityServerOptions::ZMQ_PLAIN_SECURITY_SERVER_ENABLED);
+    this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
+        &asPlainSecurityServer, sizeof(asPlainSecurityServer));
+
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
+        kIgnAuthDomain.size());
+  }
+}
+
+//////////////////////////////////////////////////
+// Access control handler for plain security.
+// This function is designed to be run in a thread.
+void NodeSharedPrivate::AccessControlHandler()
+{
+  zmq::socket_t *sock = new zmq::socket_t(*this->context, ZMQ_REP);
+
+  try
+  {
+    // Bind to the zap address
+    sock->bind("inproc://zeromq.zap.01");
+
+    // Get the username and password
+    std::string user, pass;
+    if (!userPass(user, pass))
+    {
+      std::cerr << "Username and password not set. "
+                << "Authentication is disabled\n";
+      return;
+    }
+
+    std::string sequence;
+    std::string domain;
+    std::string address;
+    std::string routingId;
+    std::string mechanism;
+    std::string givenUsername;
+    std::string givenPassword;
+    std::string version;
+
+    bool exitLoop = false;
+    zmq::pollitem_t items[] =
+    {
+      {static_cast<void*>(*sock), 0, ZMQ_POLLIN, 0},
+    };
+
+    // Process
+    while (!exitLoop)
+    {
+      try
+      {
+        zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+            NodeSharedPrivate::Timeout);
+      }
+      catch(...)
+      {
+        continue;
+      }
+
+      if (items[0].revents & ZMQ_POLLIN)
+      {
+        // Get the version.
+        version = receiveHelper(*sock);
+        if (version.empty())
+          break;
+
+        // Get remaining data
+        sequence = receiveHelper(*sock);
+        domain = receiveHelper(*sock);
+        address = receiveHelper(*sock);
+
+        // cppcheck-suppress unreadVariable
+        routingId = receiveHelper(*sock);
+
+        mechanism = receiveHelper(*sock);
+        givenUsername = receiveHelper(*sock);
+        givenPassword = receiveHelper(*sock);
+
+        // Debug statements
+        // std::cout << "Version[" << version << "]\n";
+        // std::cout << "Sequence[" << sequence << "]\n";
+        // std::cout << "Domain[" << domain << "]\n";
+        // std::cout << "Address[" << address << "]\n";
+        // std::cout << "Routing Id[" << routingId << "]\n";
+        // std::cout << "Mechanism[" << mechanism << "]\n";
+        // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
+        // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
+
+        // Check that we received some kind of address. This could be used
+        // in the future to only accept connections from specific addresses.
+        if (address.empty())
+        {
+          sendAuthErrorHelper(*sock, "Invalid address");
+          continue;
+        }
+
+        // Check the version
+        if (version != "1.0")
+        {
+          sendAuthErrorHelper(*sock, "Invalid version");
+          continue;
+        }
+
+        // Check the mechanism
+        if (mechanism != "PLAIN")
+        {
+          sendAuthErrorHelper(*sock, "Invalid mechanism");
+          continue;
+        }
+
+        // Check the domain
+        if (domain != kIgnAuthDomain)
+        {
+          sendAuthErrorHelper(*sock, "Invalid domain");
+          continue;
+        }
+
+        sendHelper(*sock, version, ZMQ_SNDMORE);
+        sendHelper(*sock, sequence, ZMQ_SNDMORE);
+
+        // Check the username and password
+        if (givenUsername == user && givenPassword == pass)
+        {
+          sendHelper(*sock, "200", ZMQ_SNDMORE);
+          sendHelper(*sock, "OK", ZMQ_SNDMORE);
+          sendHelper(*sock, "anonymous", ZMQ_SNDMORE);
+          sendHelper(*sock, "", 0);
+        }
+        else
+        {
+          sendAuthErrorHelper(*sock, "Invalid username or password");
+        }
+      }
+
+      // Is it time to exit?
+      {
+        std::lock_guard<std::mutex> lock(this->exitMutex);
+        if (this->exit)
+          exitLoop = true;
+      }
+    }
+  }
+  catch (...)
+  {
+    // This catch can be triggered when ctrl-c is pressed and the context is
+    // deleted. Capture this case, and quit gracefully.
+  }
+
+  sock->close();
+}
+
