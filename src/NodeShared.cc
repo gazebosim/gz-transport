@@ -60,6 +60,66 @@
 using namespace ignition;
 using namespace transport;
 
+const std::string kIgnAuthDomain = "ign-auth";
+
+// Enum that encapsulates the possible values for ZeroMQ's setsocketopt
+// for ZMQ_PLAIN_SERVER. A value of 1 enables
+// plain authentication server, and a value of 0 disables.
+enum class ZmqPlainSecurityServerOptions
+{
+  // Value to disable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_DISABLED = 0,
+  // Value to enable plain security server
+  ZMQ_PLAIN_SECURITY_SERVER_ENABLED = 1,
+};
+
+//////////////////////////////////////////////////
+// Helper to get the username and password
+bool userPass(std::string &_user, std::string &_pass)
+{
+  char *username = std::getenv("IGN_TRANSPORT_USERNAME");
+  char *password = std::getenv("IGN_TRANSPORT_PASSWORD");
+
+  if (!username || !password)
+    return false;
+
+  _user = username;
+  _pass = password;
+  return true;
+}
+
+//////////////////////////////////////////////////
+// Helper to send messages
+int sendHelper(zmq::socket_t &_pub, const std::string &_data, int _type)
+{
+  zmq::message_t msg(_data.data(), _data.size());
+  return _pub.send(msg, _type);
+}
+
+//////////////////////////////////////////////////
+// Helper to receive messages
+std::string receiveHelper(zmq::socket_t &_socket)
+{
+  zmq::message_t msg(0);
+
+  if (!_socket.recv(&msg, 0))
+    return std::string();
+
+  return std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+}
+
+//////////////////////////////////////////////////
+// Helper to send an authentication error. This is used by basic
+// authentication.
+void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
+{
+  std::cerr << _err << std::endl;
+  sendHelper(_socket, "400", ZMQ_SNDMORE);
+  sendHelper(_socket, _err, ZMQ_SNDMORE);
+  sendHelper(_socket, "", ZMQ_SNDMORE);
+  sendHelper(_socket, "", 0);
+}
+
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -88,9 +148,7 @@ NodeShared *NodeShared::Instance()
 
 //////////////////////////////////////////////////
 NodeShared::NodeShared()
-  : timeout(Timeout),
-    exit(false),
-    verbose(false),
+  : verbose(false),
     dataPtr(new NodeSharedPrivate)
 {
   // If IGN_VERBOSE=1 enable the verbose mode.
@@ -153,13 +211,17 @@ NodeShared::NodeShared()
 NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
-  this->exitMutex.lock();
-  this->exit = true;
-  this->exitMutex.unlock();
+  this->dataPtr->exitMutex.lock();
+  this->dataPtr->exit = true;
+  this->dataPtr->exitMutex.unlock();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
+
+  // Wait for the authentication thread before exit.
+  if (this->dataPtr->accessControlThread.joinable())
+    this->dataPtr->accessControlThread.join();
 }
 
 //////////////////////////////////////////////////
@@ -178,7 +240,8 @@ void NodeShared::RunReceptionTask()
     };
     try
     {
-      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), this->timeout);
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+                NodeSharedPrivate::Timeout);
     }
     catch(...)
     {
@@ -197,16 +260,19 @@ void NodeShared::RunReceptionTask()
 
     // Is it time to exit?
     {
-      std::lock_guard<std::mutex> lock(this->exitMutex);
-      if (this->exit)
+      std::lock_guard<std::mutex> lock(this->dataPtr->exitMutex);
+      if (this->dataPtr->exit)
         exitLoop = true;
     }
   }
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::Publish(const std::string &_topic, char *_data,
-  const size_t _dataSize, DeallocFunc *_ffn, const std::string &_msgType)
+bool NodeShared::Publish(
+    const std::string &_topic,
+    char *_data,
+    const size_t _dataSize, DeallocFunc *_ffn,
+    const std::string &_msgType)
 {
   try
   {
@@ -241,10 +307,7 @@ void NodeShared::RecvMsgUpdate()
   // std::string sender;
   std::string data;
   std::string msgType;
-  std::map<std::string, ISubscriptionHandler_M> handlers;
-  ISubscriptionHandlerPtr firstSubscriberPtr;
-  bool handlersFound;
-  bool firstHandlerFound;
+  HandlerInfo handlerInfo;
 
   {
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
@@ -274,37 +337,125 @@ void NodeShared::RecvMsgUpdate()
       return;
     }
 
-    handlersFound = this->localSubscriptions.Handlers(topic, handlers);
-    firstHandlerFound = this->localSubscriptions.FirstHandler(topic, msgType,
-      firstSubscriberPtr);
+    handlerInfo = this->CheckHandlerInfo(topic);
   }
 
-  // Execute the callbacks registered.
-  if (handlersFound && firstHandlerFound)
+  this->TriggerSubscriberCallbacks(topic, data, msgType, handlerInfo);
+}
+
+//////////////////////////////////////////////////
+NodeShared::HandlerInfo NodeShared::CheckHandlerInfo(
+    const std::string &_topic) const
+{
+  HandlerInfo info;
+
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+
+  info.haveLocal = this->localSubscribers.normal.Handlers(
+        _topic, info.localHandlers);
+
+  info.haveRaw = this->localSubscribers.raw.Handlers(
+        _topic, info.rawHandlers);
+
+  return info;
+}
+
+//////////////////////////////////////////////////
+NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
+    const std::string &_topic,
+    const std::string &_msgType) const
+{
+  SubscriberInfo info;
+
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+
+  info.haveLocal = this->localSubscribers.normal.Handlers(
+        _topic, info.localHandlers);
+
+  info.haveRaw = this->localSubscribers.raw.Handlers(
+        _topic, info.rawHandlers);
+
+  info.haveRemote = this->remoteSubscribers.HasTopic(
+        _topic, _msgType);
+
+  return info;
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerSubscriberCallbacks(
+    const std::string &_topic,
+    const std::string &_msgData,
+    const std::string &_msgType,
+    const HandlerInfo &_handlerInfo)
+{
+  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
+    return;
+
+  MessageInfo info;
+  info.SetTopicAndPartition(_topic);
+  info.SetType(_msgType);
+
+  if (_handlerInfo.haveRaw)
   {
-    // Create the message.
-    auto recvMsg = firstSubscriberPtr->CreateMsg(data, msgType);
-    if (!recvMsg)
-      return;
-
-    // Create and populate the message information object.
-    MessageInfo info;
-    info.SetTopicAndPartition(topic);
-    info.SetType(msgType);
-
-    for (const auto &node : handlers)
+    for (const auto &node : _handlerInfo.rawHandlers)
     {
       for (const auto &handler : node.second)
       {
-        ISubscriptionHandlerPtr subscriptionHandlerPtr = handler.second;
-        if (subscriptionHandlerPtr)
+        const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+        if (rawHandler)
         {
-          if (subscriptionHandlerPtr->TypeName() == msgType ||
-              subscriptionHandlerPtr->TypeName() == kGenericMessageType)
-            subscriptionHandlerPtr->RunLocalCallback(*recvMsg, info);
+          if (rawHandler->TypeName() == _msgType ||
+              rawHandler->TypeName() == kGenericMessageType)
+          {
+            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(), info);
+          }
         }
         else
-          std::cerr << "Subscription handler is NULL" << std::endl;
+          std::cerr << "Raw subscription handler is NULL" << std::endl;
+      }
+    }
+  }
+
+  if (_handlerInfo.haveLocal)
+  {
+    // This will be instantiated by the first suitable handler that we
+    // encounter. If there is no suitable handler, then we can avoid
+    // deserializing the message altogether.
+    std::shared_ptr<ProtoMsg> msg;
+
+    for (const auto &node : _handlerInfo.localHandlers)
+    {
+      for (const auto &handler : node.second)
+      {
+        const ISubscriptionHandlerPtr &localHandler = handler.second;
+        if (localHandler)
+        {
+          if (localHandler->TypeName() == _msgType ||
+              localHandler->TypeName() == kGenericMessageType)
+          {
+            if (!msg)
+            {
+              // If the message has not been deserialized yet, do it now since
+              // we have allegedly found a subscriber which should be able to
+              // do it.
+              msg = localHandler->CreateMsg(_msgData, _msgType);
+
+              if (!msg)
+              {
+                // If the message could not be created, then none of the
+                // handlers in this process will be able to create it, because
+                // protobuf has access to all message types that the current
+                // process is linked to. If CreateMsg(~,~) fails, then we may
+                // as well quit.
+                return;
+              }
+            }
+
+            localHandler->RunLocalCallback(*msg, info);
+          }
+        }
+        else
+          std::cerr << "Local subscription handler is NULL" << std::endl;
       }
     }
   }
@@ -770,11 +921,14 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   }
 
   // Check if we are interested in this topic.
-  if (this->localSubscriptions.HasHandlersForTopic(topic) &&
+  if (this->localSubscribers.HasSubscriber(topic) &&
       this->pUuid.compare(procUuid) != 0)
   {
     try
     {
+      // Handle security
+      this->dataPtr->SecurityOnNewConnection();
+
       // I am not connected to the process.
       if (!this->connections.HasPublisher(addr))
         this->dataPtr->subscriber->connect(addr.c_str());
@@ -802,44 +956,32 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-      std::map<std::string, ISubscriptionHandler_M> handlers;
-      if (this->localSubscriptions.Handlers(topic, handlers))
+      std::vector<std::string> handlerNodeUuids =
+          this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
+
+      for (const std::string &nodeUuid : handlerNodeUuids)
       {
-        for (auto const &node : handlers)
-        {
-          for (auto const &handler : node.second)
-          {
-            if (handler.second->TypeName() != kGenericMessageType &&
-                handler.second->TypeName() != _pub.MsgTypeName())
-            {
-              continue;
-            }
+        zmq::message_t msg;
+        msg.rebuild(topic.size());
+        memcpy(msg.data(), topic.data(), topic.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            std::string nodeUuid = handler.second->NodeUuid();
+        msg.rebuild(this->pUuid.size());
+        memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            zmq::message_t msg;
-            msg.rebuild(topic.size());
-            memcpy(msg.data(), topic.data(), topic.size());
-            socket.send(msg, ZMQ_SNDMORE);
+        msg.rebuild(nodeUuid.size());
+        memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            msg.rebuild(this->pUuid.size());
-            memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
-            socket.send(msg, ZMQ_SNDMORE);
+        msg.rebuild(type.size());
+        memcpy(msg.data(), type.data(), type.size());
+        socket.send(msg, ZMQ_SNDMORE);
 
-            msg.rebuild(nodeUuid.size());
-            memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-            socket.send(msg, ZMQ_SNDMORE);
-
-            msg.rebuild(type.size());
-            memcpy(msg.data(), type.data(), type.size());
-            socket.send(msg, ZMQ_SNDMORE);
-
-            std::string data = std::to_string(NewConnection);
-            msg.rebuild(data.size());
-            memcpy(msg.data(), data.data(), data.size());
-            socket.send(msg, 0);
-          }
-        }
+        std::string data = std::to_string(NewConnection);
+        msg.rebuild(data.size());
+        memcpy(msg.data(), data.data(), data.size());
+        socket.send(msg, 0);
       }
     }
     // The remote node might not be available when we are connecting.
@@ -959,6 +1101,9 @@ bool NodeShared::InitializeSockets()
     // Publisher socket listening in a random port.
     std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
 
+    // Initialize security
+    this->dataPtr->SecurityInit();
+
     char bindEndPoint[1024];
     int lingerVal = 0;
     this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
@@ -1029,3 +1174,258 @@ bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 {
   return this->dataPtr->srvDiscovery->Advertise(_publisher);
 }
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::HasSubscriber(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_msgType) const
+{
+  std::shared_ptr<ISubscriptionHandler> normalSubscriberPtr;
+  std::shared_ptr<RawSubscriptionHandler> rawSubscriberPtr;
+
+  return this->normal.FirstHandler(
+            _fullyQualifiedTopic, _msgType, normalSubscriberPtr)
+         || this->raw.FirstHandler(
+            _fullyQualifiedTopic, _msgType, rawSubscriberPtr);
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::HasSubscriber(
+    const std::string &_fullyQualifiedTopic) const
+{
+  return this->normal.HasHandlersForTopic(_fullyQualifiedTopic)
+      || this->raw.HasHandlersForTopic(_fullyQualifiedTopic);
+}
+
+//////////////////////////////////////////////////
+template <typename HandlerT>
+static void AppendNodeUuids(const HandlerStorage<HandlerT> &_handlerStorage,
+                            const std::string &_fullyQualifiedTopic,
+                            const std::string &_msgTypeName,
+                            std::vector<std::string> &_uuids)
+{
+  using HandlerTPtr = std::shared_ptr<HandlerT>;
+  std::map<std::string, std::map<std::string, HandlerTPtr>> handlers;
+
+  _handlerStorage.Handlers(_fullyQualifiedTopic, handlers);
+  for (const auto &collection : handlers)
+  {
+    for (const auto &collectionEntry : collection.second)
+    {
+      const HandlerTPtr &handler = collectionEntry.second;
+      const std::string &handlerMsgType = handler->TypeName();
+      if (handlerMsgType == _msgTypeName
+          || handlerMsgType == kGenericMessageType)
+      {
+        _uuids.push_back(handler->NodeUuid());
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> NodeShared::HandlerWrapper::NodeUuids(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_msgTypeName) const
+{
+  std::vector<std::string> uuids;
+  AppendNodeUuids(this->normal, _fullyQualifiedTopic, _msgTypeName, uuids);
+  AppendNodeUuids(this->raw, _fullyQualifiedTopic, _msgTypeName, uuids);
+
+  return uuids;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_nUuid)
+{
+  bool removed = false;
+  removed |= this->normal.RemoveHandlersForNode(_fullyQualifiedTopic, _nUuid);
+  removed |= this->raw.RemoveHandlersForNode(_fullyQualifiedTopic, _nUuid);
+
+  return removed;
+}
+
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityOnNewConnection()
+{
+  std::string user, pass;
+
+  // Set username and pass if they exist
+  // \todo: This will cause the subscriber to connect only to secure
+  // connections. Would be nice if the subscriber could still connect to
+  // unsecure connections. This might require an unsecure and secure
+  // subscriber.
+  // See issue #74
+  if (userPass(user, pass))
+  {
+    this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME, user.c_str(), user.size());
+    this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD, pass.c_str(), pass.size());
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::SecurityInit()
+{
+  // Check if a username and password has been set. If so, then
+  // setup a PLAIN authentication server.
+  std::string user, pass;
+  if (userPass(user, pass))
+  {
+    // Create the access control thread.
+    this->accessControlThread = std::thread(
+        &NodeSharedPrivate::AccessControlHandler, this);
+
+    int asPlainSecurityServer = static_cast<int>(
+        ZmqPlainSecurityServerOptions::ZMQ_PLAIN_SECURITY_SERVER_ENABLED);
+    this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
+        &asPlainSecurityServer, sizeof(asPlainSecurityServer));
+
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
+        kIgnAuthDomain.size());
+  }
+}
+
+//////////////////////////////////////////////////
+// Access control handler for plain security.
+// This function is designed to be run in a thread.
+void NodeSharedPrivate::AccessControlHandler()
+{
+  zmq::socket_t *sock = new zmq::socket_t(*this->context, ZMQ_REP);
+
+  try
+  {
+    // Bind to the zap address
+    sock->bind("inproc://zeromq.zap.01");
+
+    // Get the username and password
+    std::string user, pass;
+    if (!userPass(user, pass))
+    {
+      std::cerr << "Username and password not set. "
+                << "Authentication is disabled\n";
+      return;
+    }
+
+    std::string sequence;
+    std::string domain;
+    std::string address;
+    std::string routingId;
+    std::string mechanism;
+    std::string givenUsername;
+    std::string givenPassword;
+    std::string version;
+
+    bool exitLoop = false;
+    zmq::pollitem_t items[] =
+    {
+      {static_cast<void*>(*sock), 0, ZMQ_POLLIN, 0},
+    };
+
+    // Process
+    while (!exitLoop)
+    {
+      try
+      {
+        zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+            NodeSharedPrivate::Timeout);
+      }
+      catch(...)
+      {
+        continue;
+      }
+
+      if (items[0].revents & ZMQ_POLLIN)
+      {
+        // Get the version.
+        version = receiveHelper(*sock);
+        if (version.empty())
+          break;
+
+        // Get remaining data
+        sequence = receiveHelper(*sock);
+        domain = receiveHelper(*sock);
+        address = receiveHelper(*sock);
+
+        // cppcheck-suppress unreadVariable
+        routingId = receiveHelper(*sock);
+
+        mechanism = receiveHelper(*sock);
+        givenUsername = receiveHelper(*sock);
+        givenPassword = receiveHelper(*sock);
+
+        // Debug statements
+        // std::cout << "Version[" << version << "]\n";
+        // std::cout << "Sequence[" << sequence << "]\n";
+        // std::cout << "Domain[" << domain << "]\n";
+        // std::cout << "Address[" << address << "]\n";
+        // std::cout << "Routing Id[" << routingId << "]\n";
+        // std::cout << "Mechanism[" << mechanism << "]\n";
+        // std::cout << "Username[" << givenUsername << "] [" << user << "]\n";
+        // std::cout << "Pass[" << givenPassword << "] [" << pass << "]\n";
+
+        // Check that we received some kind of address. This could be used
+        // in the future to only accept connections from specific addresses.
+        if (address.empty())
+        {
+          sendAuthErrorHelper(*sock, "Invalid address");
+          continue;
+        }
+
+        // Check the version
+        if (version != "1.0")
+        {
+          sendAuthErrorHelper(*sock, "Invalid version");
+          continue;
+        }
+
+        // Check the mechanism
+        if (mechanism != "PLAIN")
+        {
+          sendAuthErrorHelper(*sock, "Invalid mechanism");
+          continue;
+        }
+
+        // Check the domain
+        if (domain != kIgnAuthDomain)
+        {
+          sendAuthErrorHelper(*sock, "Invalid domain");
+          continue;
+        }
+
+        sendHelper(*sock, version, ZMQ_SNDMORE);
+        sendHelper(*sock, sequence, ZMQ_SNDMORE);
+
+        // Check the username and password
+        if (givenUsername == user && givenPassword == pass)
+        {
+          sendHelper(*sock, "200", ZMQ_SNDMORE);
+          sendHelper(*sock, "OK", ZMQ_SNDMORE);
+          sendHelper(*sock, "anonymous", ZMQ_SNDMORE);
+          sendHelper(*sock, "", 0);
+        }
+        else
+        {
+          sendAuthErrorHelper(*sock, "Invalid username or password");
+        }
+      }
+
+      // Is it time to exit?
+      {
+        std::lock_guard<std::mutex> lock(this->exitMutex);
+        if (this->exit)
+          exitLoop = true;
+      }
+    }
+  }
+  catch (...)
+  {
+    // This catch can be triggered when ctrl-c is pressed and the context is
+    // deleted. Capture this case, and quit gracefully.
+  }
+
+  sock->close();
+}
+

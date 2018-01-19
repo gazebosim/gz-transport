@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2017 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,51 +14,74 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <string>
-#include <thread>
 #include <ignition/msgs.hh>
+#ifdef _WIN32
+  #include <filesystem>
+#endif
 
-#include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
+#include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
+static bool cbExecuted;
 static std::string g_topic = "/foo";
 
 //////////////////////////////////////////////////
-/// \brief A publisher node.
-void advertiseAndPublish()
+/// \brief Function is called everytime a topic update is received.
+void cb(const ignition::msgs::Int32 &/*_msg*/)
 {
-  ignition::msgs::Int32 msg;
-  msg.set_data(1);
+  std::cerr << "CALLBACK\n";
+  cbExecuted = true;
+}
+
+//////////////////////////////////////////////////
+TEST(authProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
+{
+  cbExecuted = false;
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  for (auto i = 0; i < 15; ++i)
+  int interval = 100;
+
+  while (!cbExecuted)
   {
-    EXPECT_TRUE(pub.Publish(msg));
-
-    // Rate: 10 msgs/sec.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    interval--;
+
+    if (interval == 0)
+      break;
   }
+
+  // Check that no messages were received.
+  EXPECT_FALSE(cbExecuted);
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  if (argc < 2)
+  if (argc != 4)
   {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    std::cerr << "Partition name, username, and password have not be passed as "
+      << "arguments" << std::endl;
     return -1;
   }
 
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
 
-  advertiseAndPublish();
+  // Set the username for this test.
+  setenv("IGN_TRANSPORT_USERNAME", argv[2], 1);
+
+  // Set the password for this test.
+  setenv("IGN_TRANSPORT_PASSWORD", argv[3], 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
