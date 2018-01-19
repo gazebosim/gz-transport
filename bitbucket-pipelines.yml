@@ -1,25 +1,41 @@
-# This is a sample build configuration for C++.
-# Check our guides at https://confluence.atlassian.com/x/VYk8Lw for more examples.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
 image: ubuntu:xenial
 
 pipelines:
   default:
     - step:
-        script: # Modify the commands below to build your repository.
+        script:
+          # Install dependencies
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
+          - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
-          - apt-get -y install wget lsb-release
-          - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-latest.list'
-          - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
-          - apt-get update
-          - apt-get -y install cmake pkg-config cppcheck libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn libignition-msgs-dev libignition-common-dev libsqlite3-dev
+          - apt-get -y install cmake pkg-config cppcheck mercurial build-essential lcov curl
+            libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
+            libignition-msgs-dev
+          # Ignition tools
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-tools -b default
+          - cd ign-tools
           - mkdir build
           - cd build
           - cmake ..
+          - make install
+          - cd ../..
+          # Ignition Transport
+          - mkdir build
+          - cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4
           - make test ARGS="-VV"
+          - make coverage
+          - bash <(curl -s https://codecov.io/bash)
           - make doc
+          - make install
           - cd ..
+          # Build examples
+          - cd example
+          - mkdir build && cd build
+          - cmake ..
+          - make -j4
+          - cd ../..
+          # Static checker
           - sh tools/code_check.sh

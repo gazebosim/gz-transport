@@ -48,7 +48,10 @@ int main(int argc, char **argv)
   ignition::transport::Node node;
   std::string topic = "/foo";
 
-  auto pub = node.Advertise(topic, "ignition.msgs.StringMsg");
+  ignition::msgs::StringMsg msg;
+  msg.set_data("HELLO");
+
+  auto pub = node.Advertise(topic, msg.GetTypeName());
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -56,13 +59,15 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  char rawBytes[] = {0x12, 0x05, 0x48, 0x45, 0x4C, 0x4C, 0x4F};
-  std::string rawMsg(rawBytes);
+  std::string rawMsg;
+  msg.SerializeToString(&rawMsg);
 
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    if (!pub.RawPublish(rawMsg, "ignition.msgs.StringMsg"))
+    // Note: This will copy rawMsg when publishing to remote subscribers. A
+    // remote subscriber is a subscriber in a separate process.
+    if (!pub.PublishRaw(rawMsg, msg.GetTypeName()))
       break;
 
     std::cout << "Publishing on topic [" << topic << "]" << std::endl;

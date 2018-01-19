@@ -30,11 +30,11 @@ generate_export_header(${log_lib_target}
   EXPORT_FILE_NAME "include/ignition/transport/log/Export.hh"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/ignition/transport/log/Export.hh"
-  DESTINATION "${INCLUDE_INSTALL_DIR}/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}/log")
+  DESTINATION "${IGN_INCLUDE_INSTALL_DIR_FULL}/log")
 
 # Include directories
 target_include_directories(${log_lib_target} PUBLIC
-  $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
+  $<INSTALL_INTERFACE:${IGN_INCLUDE_INSTALL_DIR_FULL}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   ${IGNITION-COMMON_INCLUDE_DIRS}
@@ -47,8 +47,9 @@ target_include_directories(${log_lib_target} PRIVATE
 
 # Library dependencies
 target_link_libraries(${log_lib_target} PUBLIC
-  ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+  ${PROJECT_NAME_LOWER}
   ${IGNITION-COMMON_LIBRARIES}
+  ${IGNITION-MSGS_LIBRARIES}
 )
 target_link_libraries(${log_lib_target} PRIVATE
   ${SQLite3_LIBRARIES}
@@ -64,14 +65,14 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 # Configure file with build time info
-set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
+set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
 install(DIRECTORY sql DESTINATION ${SCHEMA_INSTALL_BASE})
 set(SCHEMA_INSTALL_PATH ${SCHEMA_INSTALL_BASE}/sql)
 configure_file(src/build_config.hh.in build_config.hh @ONLY)
 
 # Library installation
-set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_MAJOR_VERSION} VERSION ${PROJECT_VERSION_FULL})
+set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} VERSION ${PROJECT_VERSION_FULL})
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
 
 # header installation
-install(DIRECTORY include/ignition DESTINATION ${INCLUDE_INSTALL_DIR}/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
+install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR})
