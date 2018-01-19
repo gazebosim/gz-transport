@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  authPubSub.cc
   scopedTopic.cc
   twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
@@ -16,6 +17,7 @@ set(tests
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
 
 set(auxiliary_files
+  authPubSubSubscriberInvalid_aux
   fastPub_aux
   pub_aux
   pub_aux_throttled

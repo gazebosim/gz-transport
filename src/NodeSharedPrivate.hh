@@ -49,6 +49,16 @@ class ignition::transport::NodeSharedPrivate
   /// A thread pool
   public: WorkerPool workerPool;
 
+  /// \brief Initialize security
+  public: void SecurityInit();
+
+  /// \brief Handle new secure connections
+  public: void SecurityOnNewConnection();
+
+  /// \brief Access control handler for plain security.
+  /// This function is designed to be run in a thread.
+  public: void AccessControlHandler();
+
   //////////////////////////////////////////////////
   ///////    Declare here the ZMQ Context    ///////
   //////////////////////////////////////////////////
@@ -79,6 +89,9 @@ class ignition::transport::NodeSharedPrivate
   /// \brief ZMQ socket to receive service call requests.
   public: std::unique_ptr<zmq::socket_t> replier;
 
+  /// \brief Thread the handle access control
+  public: std::thread accessControlThread;
+
   //////////////////////////////////////////////////
   /////// Declare here the discovery object  ///////
   //////////////////////////////////////////////////
@@ -88,4 +101,17 @@ class ignition::transport::NodeSharedPrivate
 
   /// \brief Discovery service (services).
   public: std::unique_ptr<SrvDiscovery> srvDiscovery;
+
+  //////////////////////////////////////////////////
+  /////// Other private member variables     ///////
+  //////////////////////////////////////////////////
+
+  /// \brief When true, the reception thread will finish.
+  public: bool exit = false;
+
+  /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
+  public: std::mutex exitMutex;
+
+  /// \brief Timeout used for receiving messages (ms.).
+  public: static const int Timeout = 250;
 };
