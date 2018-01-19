@@ -229,6 +229,9 @@ namespace ignition
         /// \return True if the range is valid, false if invalid.
         public: bool Valid() const;
 
+        /// \brief Virtual destructor
+        public: ~QualifiedTimeRange();
+
         /// \internal Implementation class
         private: class Implementation;
 
@@ -263,6 +266,9 @@ namespace ignition
 
         // Documentation inherited
         public: std::vector<std::string> GenerateStatements() const override;
+
+        // Virtual destructor
+        public: ~BasicQueryOptions();
 
         /// \internal Implementation class
         private: class Implementation;

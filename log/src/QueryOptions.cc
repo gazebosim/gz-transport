@@ -103,3 +103,27 @@ QualifiedTime::~QualifiedTime()
 {
   // Destroy pimpl
 }
+
+//////////////////////////////////////////////////
+class ignition::transport::log::QualifiedTimeRange::Implementation
+{
+  // TODO(MXG): Implement
+};
+
+//////////////////////////////////////////////////
+QualifiedTimeRange::~QualifiedTimeRange()
+{
+  // Destroy pimpl
+}
+
+//////////////////////////////////////////////////
+class ignition::transport::log::BasicQueryOptions::Implementation
+{
+  // TODO(MXG): Implement
+};
+
+//////////////////////////////////////////////////
+BasicQueryOptions::~BasicQueryOptions()
+{
+  // Destroy pimpl
+}
