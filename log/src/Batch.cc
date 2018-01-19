@@ -117,7 +117,7 @@ std::unique_ptr<raii_sqlite3::Statement> BatchPrivate::CreateStatement()
       ++i;
     }
 
-    return std::move(statement);
+    return statement;
   }
   else
   {

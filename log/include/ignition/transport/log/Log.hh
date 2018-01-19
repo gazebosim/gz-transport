@@ -26,6 +26,7 @@
 
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Batch.hh>
+#include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -96,6 +97,11 @@ namespace ignition
         /// \return an iterator through the messages
         public: Batch QueryMessages(
             const std::unordered_set<std::string> &_topics);
+
+        /// \brief Get messages according to the specified options. By default,
+        /// it will query all messages over the entire time range of the log.
+        public: Batch QueryMessages(
+            const QueryOptions &_options = BasicQueryOptions());
 
         /// \brief Private implementation
         private: std::unique_ptr<LogPrivate> dataPtr;

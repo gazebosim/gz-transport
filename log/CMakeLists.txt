@@ -13,6 +13,7 @@ set(logging_sources
   src/Message.cc
   src/MsgIter.cc
   src/Playback.cc
+  src/QueryOptions.cc
   src/raii-sqlite3.cc
   src/Recorder.cc
 )
