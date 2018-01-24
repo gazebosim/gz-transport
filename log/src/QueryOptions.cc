@@ -127,3 +127,9 @@ BasicQueryOptions::~BasicQueryOptions()
 {
   // Destroy pimpl
 }
+
+//////////////////////////////////////////////////
+std::vector<std::string> BasicQueryOptions::GenerateStatements() const
+{
+  return std::vector<std::string>();
+}
