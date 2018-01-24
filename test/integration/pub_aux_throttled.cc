@@ -32,7 +32,7 @@ static std::string g_topic = "/foo";
 void advertiseAndPublish()
 {
   ignition::msgs::Int32 msg;
-  msg.set_data(1.0);
+  msg.set_data(1);
 
   transport::Node node;
   ignition::transport::AdvertiseMessageOptions opts;

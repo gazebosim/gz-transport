@@ -280,13 +280,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
 }
 
 //////////////////////////////////////////////////
-extern "C" char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
+extern "C" const char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
 {
-  int majorVersion = IGNITION_TRANSPORT_MAJOR_VERSION;
-  int minorVersion = IGNITION_TRANSPORT_MINOR_VERSION;
-  int patchVersion = IGNITION_TRANSPORT_PATCH_VERSION;
-
-  return ign_strdup((std::to_string(majorVersion) + "." +
-                     std::to_string(minorVersion) + "." +
-                     std::to_string(patchVersion)).c_str());
+  return IGNITION_TRANSPORT_VERSION_FULL;
 }
