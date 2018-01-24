@@ -1,4 +1,9 @@
-## Ignition Transport 4.0.0
+## Ignition Transport 4
+
+### Ignition Transport 4.X.X
+
+
+### Ignition Transport 4.0.0 (2018-01-XX)
 
 1. Basic authentication for topics.
     * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
