@@ -155,6 +155,7 @@ void SqlParameter::Set(const std::string &_text)
 //////////////////////////////////////////////////
 SqlParameter::ParamType SqlParameter::Type() const
 {
+  return this->dataPtr->type;
 }
 
 //////////////////////////////////////////////////
