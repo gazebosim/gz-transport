@@ -27,9 +27,9 @@ set (aux
   topicChirp_aux.cc
 )
 
-foreach(source_file ${tests} ${aux})
+foreach(source_file ${aux})
   string(REGEX REPLACE ".cc" "" AUX_EXECUTABLE ${source_file})
-  set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
+  set(BINARY_NAME ${TEST_TYPE}_${AUX_EXECUTABLE})
 
   ign_add_executable(${BINARY_NAME} ${AUX_EXECUTABLE}.cc)
 
@@ -54,5 +54,3 @@ foreach(source_file ${tests} ${aux})
   target_compile_definitions(${BINARY_NAME}
     PRIVATE IGN_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${BINARY_NAME}>")
 endforeach()
-
-
