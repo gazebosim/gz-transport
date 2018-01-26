@@ -71,6 +71,6 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" char IGNITION_TRANSPORT_VISIBLE *ignitionVersion();
+extern "C" const char IGNITION_TRANSPORT_VISIBLE *ignitionVersion();
 
 #endif
