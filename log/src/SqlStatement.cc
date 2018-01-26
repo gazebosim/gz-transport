@@ -23,7 +23,7 @@ using namespace ignition::transport::log;
 class SqlParameter::Implementation
 {
   public: Implementation()
-    : type(Type::NULL_TYPE)
+    : type(ParamType::NULL_TYPE)
   {
     // Do nothing
   }
@@ -31,34 +31,34 @@ class SqlParameter::Implementation
   /// \internal \sa SqlParameter::Set(std::nullptr_t)
   public: void Set(std::nullptr_t)
   {
-    this->type = Type::NULL_TYPE;
+    this->type = ParamType::NULL_TYPE;
   }
 
   /// \internal \sa SqlParameter::Set(long long int)
   public: void Set(const long long int _integer)
   {
-    this->type = Type::INTEGER;
+    this->type = ParamType::INTEGER;
     this->integer = _integer;
   }
 
   /// \internal \sa SqlParameter::Set(double)
   public: void Set(const double _real)
   {
-    this->type = Type::REAL;
+    this->type = ParamType::REAL;
     this->real = _real;
   }
 
   /// \internal \sa SqlParameter::Set(const std::string &)
   public: void Set(const std::string &_text)
   {
-    this->type = Type::TEXT;
+    this->type = ParamType::TEXT;
     this->text = _text;
   }
 
   /// \internal \sa SqlParameter::QueryInteger()
   public: const long long int *QueryInteger() const
   {
-    if (Type::INTEGER == this->type)
+    if (ParamType::INTEGER == this->type)
       return &this->integer;
 
     return nullptr;
@@ -67,7 +67,7 @@ class SqlParameter::Implementation
   /// \internal \sa SqlParameter::QueryReal()
   public: const double *QueryReal() const
   {
-    if (Type::REAL == this->type)
+    if (ParamType::REAL == this->type)
       return &this->real;
 
     return nullptr;
@@ -76,14 +76,14 @@ class SqlParameter::Implementation
   /// \internal \sa SqlParameter::QueryText()
   public: const std::string *QueryText() const
   {
-    if (Type::TEXT == this->type)
+    if (ParamType::TEXT == this->type)
       return &this->text;
 
     return nullptr;
   }
 
   /// \brief Type of value that this parameter contains
-  public: Type type;
+  public: ParamType type;
 
   // We store the parameter as a union to save space
   public: union
@@ -150,6 +150,11 @@ void SqlParameter::Set(const double _real)
 void SqlParameter::Set(const std::string &_text)
 {
   this->dataPtr->Set(_text);
+}
+
+//////////////////////////////////////////////////
+SqlParameter::ParamType SqlParameter::Type() const
+{
 }
 
 //////////////////////////////////////////////////

@@ -38,7 +38,7 @@ namespace ignition
       class SqlParameter
       {
         /// \brief An enum to indicate which type of parameter this is.
-        public: enum class Type : int
+        public: enum class ParamType : int
         {
           NULL_TYPE,
           INTEGER,
@@ -77,7 +77,7 @@ namespace ignition
 
         /// \brief Get the type for this parameter.
         /// \return The type for this parameter
-        public: Type GetType() const;
+        public: ParamType Type() const;
 
         /// \brief Get the integer value of this parameter.
         /// \return A pointer to this parameter's integer value, or a nullptr
