@@ -31,6 +31,7 @@
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"
 
+#include "Descriptor.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
@@ -39,24 +40,12 @@ using namespace ignition::transport::log;
 /// \brief Nanoseconds Per Second
 const sqlite3_int64 NS_PER_SEC = 1000000000;
 
-
-//////////////////////////////////////////////////
-/// \brief allow pair of strings to be a key in a map
-namespace std {
-  template <> struct hash<std::pair<std::string, std::string>>
-  {
-    size_t operator()(const std::pair<std::string, std::string> &_topic) const
-    {
-      // Terrible, gets the job done
-      return (std::hash<std::string>()(_topic.first) << 16)
-        + std::hash<std::string>()(_topic.second);
-    }
-  };
-}
-
 /// \brief Private implementation
-class ignition::transport::log::LogPrivate
+class ignition::transport::log::Log::Implementation
 {
+  /// \internal \sa Log::GetDescriptor()
+  public: const Descriptor *GetDescriptor() const;
+
   /// \brief End transaction if enough time has passed since it began
   /// \return false if there is a sqlite error
   public: bool EndTransactionIfEnoughTimeHasPassed();
@@ -86,18 +75,43 @@ class ignition::transport::log::LogPrivate
   public: bool inTransaction = false;
 
   /// \brief Maps topic name/type pairs to an id in the topics table
-  public:
-    std::unordered_map<std::pair<std::string, std::string>, int64_t> topics;
+  public: MessageColumnMap columns;
 
   /// \brief last time the transaction was ended
   public: std::chrono::steady_clock::time_point lastTransaction;
 
   /// \brief duration between transactions
   public: std::chrono::milliseconds transactionPeriod;
+
+  /// \brief Flag to track whether we need to generate a new Descriptor
+  private: mutable bool needNewDescriptor = false;
+
+  /// \brief Descriptor which provides insight to the column IDs in the database
+  public: mutable Descriptor descriptor;
 };
 
 //////////////////////////////////////////////////
-bool LogPrivate::EndTransactionIfEnoughTimeHasPassed()
+const Descriptor *Log::Implementation::GetDescriptor() const
+{
+  if (!this->db)
+    return nullptr;
+
+  if (this->needNewDescriptor)
+  {
+    this->needNewDescriptor = false;
+
+    MessageColumnMap columns;
+
+    // TODO: Perform queries to fill in the column information
+
+    descriptor.dataPtr->Reset(columns);
+  }
+
+  return &this->descriptor;
+}
+
+//////////////////////////////////////////////////
+bool Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
 {
   if (!this->TimeForNewTransaction())
   {
@@ -118,7 +132,7 @@ bool LogPrivate::EndTransactionIfEnoughTimeHasPassed()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::BeginTransactionIfNotInOne()
+bool Log::Implementation::BeginTransactionIfNotInOne()
 {
   if (this->inTransaction)
     return true;
@@ -137,20 +151,22 @@ bool LogPrivate::BeginTransactionIfNotInOne()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::TimeForNewTransaction() const
+bool Log::Implementation::TimeForNewTransaction() const
 {
   auto now = std::chrono::steady_clock::now();
   return now - this->transactionPeriod > this->lastTransaction;
 }
 
 //////////////////////////////////////////////////
-int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
+int64_t Log::Implementation::TopicId(
+    const std::string &_name,
+    const std::string &_type)
 {
   int returnCode;
   // If the name and type is known, return a cached ID
-  auto key = std::make_pair(_name, _type);
-  auto topicIter = this->topics.find(key);
-  if (topicIter != this->topics.end())
+  MessageColumnKey key = {_name, _type};
+  auto topicIter = this->columns.find(key);
+  if (topicIter != this->columns.end())
   {
     return topicIter->second;
   }
@@ -216,14 +232,17 @@ int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
 
   // topics.id is an alias for rowid
   int64_t id = sqlite3_last_insert_rowid(this->db->Handle());
-  this->topics[key] = id;
+  this->columns[key] = id;
   igndbg << "Inserted '" << _name << "'[" << _type << "]\n";
   return id;
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::InsertMessage(const common::Time &_time, int64_t _topic,
-      const void *_data, std::size_t _len)
+bool Log::Implementation::InsertMessage(
+    const common::Time &_time,
+    int64_t _topic,
+    const void *_data,
+    std::size_t _len)
 {
   int returnCode;
   const std::string sql_message =
@@ -271,7 +290,7 @@ bool LogPrivate::InsertMessage(const common::Time &_time, int64_t _topic,
 
 //////////////////////////////////////////////////
 Log::Log()
-  : dataPtr(new LogPrivate)
+  : dataPtr(new Implementation)
 {
   // Default to 2 transactions per second
   this->dataPtr->transactionPeriod = std::chrono::milliseconds(500);
@@ -394,6 +413,12 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 }
 
 //////////////////////////////////////////////////
+const Descriptor *Log::GetDescriptor() const
+{
+  return this->dataPtr->GetDescriptor();
+}
+
+//////////////////////////////////////////////////
 bool Log::InsertMessage(
     const common::Time &_time,
     const std::string &_topic, const std::string &_type,
@@ -454,47 +479,48 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
 }
 
 //////////////////////////////////////////////////
-std::vector<Log::NameTypePair> Log::AllTopics()
-{
-  std::vector<Log::NameTypePair> allTopics;
-  const char *sql = "SELECT topics.name, message_types.name FROM topics"
-    " JOIN message_types ON topics.message_type_id = message_types.id;";
-  raii_sqlite3::Statement statement(*(this->dataPtr->db), sql);
-  if (!statement)
-  {
-    ignerr << "Failed to query topics: "<< sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
-    return allTopics;
-  }
+// TODO(SQL): Delete this when it is no longer useful for reference.
+//std::vector<Log::NameTypePair> Log::AllTopics()
+//{
+//  std::vector<Log::NameTypePair> allTopics;
+//  const char *sql = "SELECT topics.name, message_types.name FROM topics"
+//    " JOIN message_types ON topics.message_type_id = message_types.id;";
+//  raii_sqlite3::Statement statement(*(this->dataPtr->db), sql);
+//  if (!statement)
+//  {
+//    ignerr << "Failed to query topics: "<< sqlite3_errmsg(
+//        this->dataPtr->db->Handle()) << "\n";
+//    return allTopics;
+//  }
 
-  int returnCode = SQLITE_ROW;
-  while (returnCode != SQLITE_DONE)
-  {
-    returnCode = sqlite3_step(statement.Handle());
-    if (returnCode == SQLITE_ROW)
-    {
-      // Topic name
-      const unsigned char *topic = sqlite3_column_text(statement.Handle(), 0);
-      std::size_t numTopic = sqlite3_column_bytes(statement.Handle(), 0);
+//  int returnCode = SQLITE_ROW;
+//  while (returnCode != SQLITE_DONE)
+//  {
+//    returnCode = sqlite3_step(statement.Handle());
+//    if (returnCode == SQLITE_ROW)
+//    {
+//      // Topic name
+//      const unsigned char *topic = sqlite3_column_text(statement.Handle(), 0);
+//      std::size_t numTopic = sqlite3_column_bytes(statement.Handle(), 0);
 
-      // Message type name
-      const unsigned char *type = sqlite3_column_text(statement.Handle(), 1);
-      std::size_t numType = sqlite3_column_bytes(statement.Handle(), 1);
+//      // Message type name
+//      const unsigned char *type = sqlite3_column_text(statement.Handle(), 1);
+//      std::size_t numType = sqlite3_column_bytes(statement.Handle(), 1);
 
-      // make pair
-      std::string topicName(reinterpret_cast<const char*>(topic), numTopic);
-      std::string topicType(reinterpret_cast<const char*>(type), numType);
+//      // make pair
+//      std::string topicName(reinterpret_cast<const char*>(topic), numTopic);
+//      std::string topicType(reinterpret_cast<const char*>(type), numType);
 
-      allTopics.push_back(std::make_pair(topicName, topicType));
-    }
-    else if (returnCode != SQLITE_DONE)
-    {
-      ignerr << "Failed to get topics [" << sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
-    }
-  }
-  return allTopics;
-}
+//      allTopics.push_back(std::make_pair(topicName, topicType));
+//    }
+//    else if (returnCode != SQLITE_DONE)
+//    {
+//      ignerr << "Failed to get topics [" << sqlite3_errmsg(
+//        this->dataPtr->db->Handle()) << "\n";
+//    }
+//  }
+//  return allTopics;
+//}
 
 //////////////////////////////////////////////////
 std::string Log::Version()

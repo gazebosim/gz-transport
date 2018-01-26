@@ -21,115 +21,155 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 //////////////////////////////////////////////////
-/// \internal Implementation for QualifiedTime
-class ignition::transport::log::QualifiedTime::Implementation
+class TimeRangeOption::Implementation
 {
-  // See QualifiedTime()
-  public: Implementation()
-    : indeterminate(true)
-  {
-    // Do nothing
-  }
-
-  // See QualifiedTime(const std::chrono::nanoseconds&, Qualifier)
-  public: Implementation(const Time &_time,
-                         Qualifier _qualifier)
-    : indeterminate(false),
-      qualifier(_qualifier),
-      time(_time)
-  {
-    // Do nothing
-  }
-
-  // See QualifiedTime::IsIndeterminate()
-  public: bool IsIndeterminate() const
-  {
-    return indeterminate;
-  }
-
-  // See QualifiedTime::GetTime()
-  public: const std::chrono::nanoseconds *GetTime() const
-  {
-    if (indeterminate)
-      return nullptr;
-
-    return &time;
-  }
-
-  // See QualifiedTime::GetQualifier()
-  public: const Qualifier *GetQualifier() const
-  {
-    if (indeterminate)
-      return nullptr;
-
-    return &qualifier;
-  }
-
-  // See QualifiedTime::SetTime()
-  public: void SetTime(const std::chrono::nanoseconds &_time,
-                       Qualifier _qualifier)
-  {
-    indeterminate = false;
-    time = _time;
-    qualifier = _qualifier;
-  }
-
-  // See QualifiedTime::Clear()
-  public: void Clear()
-  {
-    indeterminate = true;
-  }
-
-  /// \internal Flag to keep track of whether this QualifiedTime is indeterminate
-  private: bool indeterminate;
-
-  /// \internal Qualifier for the QualifiedTime, if it is not indeterminate
-  private: Qualifier qualifier;
-
-  /// \internal Time value for the QualifiedTime, if it is not indeterminate
-  private: std::chrono::nanoseconds time;
+  /// \brief Range for this option
+  public: QualifiedTimeRange range;
 };
 
 //////////////////////////////////////////////////
-QualifiedTime::QualifiedTime()
-  : dataPtr(new Implementation)
+TimeRangeOption::TimeRangeOption(const QualifiedTimeRange &_timeRange)
+  : dataPtr(new Implementation{_timeRange})
 {
   // Do nothing
 }
 
-
 //////////////////////////////////////////////////
-QualifiedTime::~QualifiedTime()
+QualifiedTimeRange &TimeRangeOption::TimeRange()
 {
-  // Destroy pimpl
+  return this->dataPtr->range;
 }
 
 //////////////////////////////////////////////////
-class ignition::transport::log::QualifiedTimeRange::Implementation
+const QualifiedTimeRange &TimeRangeOption::TimeRange() const
 {
-  // TODO(MXG): Implement
+  return this->dataPtr->range;
+}
+
+//////////////////////////////////////////////////
+TimeRangeOption::~TimeRangeOption()
+{
+  // Destroy the pimpl
+}
+
+//////////////////////////////////////////////////
+class TopicList::Implementation
+{
+  /// \brief Topics for this option
+  public: std::set<std::string> topics;
 };
 
 //////////////////////////////////////////////////
-QualifiedTimeRange::~QualifiedTimeRange()
+TopicList::TopicList(
+    const std::set<std::string> &_topics,
+    const QualifiedTimeRange &_timeRange)
+  : TimeRangeOption(_timeRange),
+    dataPtr(new Implementation{_topics})
 {
-  // Destroy pimpl
+  // Do nothing
 }
 
 //////////////////////////////////////////////////
-class ignition::transport::log::BasicQueryOptions::Implementation
+TopicList::TopicList(
+    const std::string &_singleTopic,
+    const QualifiedTimeRange &_timeRange)
+  : TopicList(std::set<std::string>{_singleTopic}, _timeRange)
 {
-  // TODO(MXG): Implement
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+std::set<std::string> &TopicList::Topics()
+{
+  return this->dataPtr->topics;
+}
+
+//////////////////////////////////////////////////
+const std::set<std::string> &TopicList::Topics() const
+{
+  return this->dataPtr->topics;
+}
+
+//////////////////////////////////////////////////
+std::vector<SqlStatement> TopicList::GenerateStatements(
+    const Descriptor &_descriptor) const
+{
+  // TODO(SQL)
+}
+
+//////////////////////////////////////////////////
+TopicList::~TopicList()
+{
+  // Destroy the pimpl
+}
+
+//////////////////////////////////////////////////
+class TopicPattern::Implementation
+{
+  /// \brief Pattern for this option
+  /// TODO: Consider making this a vector of patterns?
+  public: std::regex pattern;
 };
 
 //////////////////////////////////////////////////
-BasicQueryOptions::~BasicQueryOptions()
+TopicPattern::TopicPattern(
+    const std::regex &_pattern,
+    const QualifiedTimeRange &_timeRange)
+  : TimeRangeOption(_timeRange),
+    dataPtr(new Implementation{_pattern})
 {
-  // Destroy pimpl
+  // Do nothing
 }
 
 //////////////////////////////////////////////////
-std::vector<std::string> BasicQueryOptions::GenerateStatements() const
+std::regex &TopicPattern::Pattern()
 {
-  return std::vector<std::string>();
+  return this->dataPtr->pattern;
+}
+
+//////////////////////////////////////////////////
+const std::regex &TopicPattern::Pattern() const
+{
+  return this->dataPtr->pattern;
+}
+
+//////////////////////////////////////////////////
+std::vector<SqlStatement> TopicPattern::GenerateStatements(
+    const Descriptor &_descriptor) const
+{
+  // TODO(SQL)
+}
+
+//////////////////////////////////////////////////
+TopicPattern::~TopicPattern()
+{
+  // Destroy the pimpl
+}
+
+//////////////////////////////////////////////////
+class AllTopics::Implementation
+{
+  // Empty for now
+};
+
+//////////////////////////////////////////////////
+AllTopics::AllTopics(const QualifiedTimeRange &_timeRange)
+  : TimeRangeOption(_timeRange)
+{
+  // Do nothing. We don't even allocate the PIMPL because we have no use for it
+  // yet. We might never need it, but we'll hang onto it just in case the needs
+  // of this class change in the future.
+}
+
+//////////////////////////////////////////////////
+std::vector<SqlStatement> AllTopics::GenerateStatements(
+    const Descriptor &_descriptor) const
+{
+  // TODO(SQL)
+}
+
+//////////////////////////////////////////////////
+AllTopics::~AllTopics()
+{
+  // Destroy the pimpl
 }

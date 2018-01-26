@@ -27,6 +27,7 @@
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/QueryOptions.hh>
+#include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -35,10 +36,6 @@ namespace ignition
   {
     namespace log
     {
-
-      /// \brief Forward declaration
-      class LogPrivate;
-
       const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
 
       /// \brief Interface to a log file
@@ -69,6 +66,13 @@ namespace ignition
         public: bool Open(const std::string &_file,
             std::ios_base::openmode _mode = std::ios_base::in);
 
+        /// \brief Get a Descriptor for this log. The Descriptor will be
+        /// generated the first time that this function is called after a new
+        /// file has been opened.
+        /// \return A Descriptor for this log, if a log file is currently
+        /// loaded. If no log file is loaded, this returns a nullptr.
+        public: const Descriptor *GetDescriptor() const;
+
         /// \brief Insert a message into the log file
         /// \param[in] _time Time the message was received
         /// \param[in] _topic Name of the topic the message was on
@@ -81,12 +85,12 @@ namespace ignition
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
 
-        /// \brief first is topic name and second is message type name.
-        using NameTypePair = std::pair<std::string, std::string>;
+//        /// \brief first is topic name and second is message type name.
+//        using NameTypePair = std::pair<std::string, std::string>;
 
-        /// \brief List of topics contained in the log
-        /// \return a list of pairs of topics and message type names
-        public: std::vector<NameTypePair> AllTopics();
+//        /// \brief List of topics contained in the log
+//        /// \return a list of pairs of topics and message type names
+//        public: std::vector<NameTypePair> AllTopics();
 
         /// \brief Get all messages from the bag file
         /// \return an iterator through the messages
@@ -101,10 +105,13 @@ namespace ignition
         /// \brief Get messages according to the specified options. By default,
         /// it will query all messages over the entire time range of the log.
         public: Batch QueryMessages(
-            const QueryOptions &_options = BasicQueryOptions());
+            const QueryOptions &_options = AllTopics());
+
+        /// \internal Implementation for this class
+        private: class Implementation;
 
         /// \brief Private implementation
-        private: std::unique_ptr<LogPrivate> dataPtr;
+        private: std::unique_ptr<Implementation> dataPtr;
       };
     }
   }
