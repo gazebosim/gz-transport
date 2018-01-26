@@ -41,48 +41,46 @@ namespace ignition
       class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor
       {
         /// \brief A map from a name (e.g. topic name or message type name) to
-        /// a database column ID. (name -> id)
+        /// the id of a row in one of the database tables. (name -> id)
         public: using NameToId = std::map<std::string, int64_t>;
 
-        /// \brief A map from a name to a map from a name to a database column
-        /// ID. (name -> name -> id)
+        /// \brief A map from a name to a map from a name to a row ID.
+        /// (name -> name -> id)
         public: using NameToMap = std::map<std::string, NameToId>;
 
-        /// \brief Columns in the database are identified by pairs of
-        /// (topic name, message type). This function allows you to find a
-        /// column ID by searching (topic name -> message type name -> ID).
-        /// \return A map from topic names to a map of message types to column
-        /// IDs.
+        /// \brief A topic in the database is uniquely identified by a pair of
+        /// (topic name, message type).
+        /// This function allows you to find the id of a topic by searching
+        /// (topic name -> message type name -> ID).
+        /// \return A map from topic names to a map of message types to row ids.
         /// \sa GetMsgTypesToTopicsToId()
         /// \sa QueryMsgTypesOfTopic()
         public: const NameToMap &GetTopicsToMsgTypesToId() const;
 
-        /// \brief Columns in the database are identified by pairs of
-        /// (topic name, message type). This function allows you to find a
-        /// column ID by searching (message type name -> topic name -> ID).
-        /// \return A map from message types to a map of topic names to column
-        /// IDs.
+        /// \brief A topic in the database is uniquely identified by a pair of
+        /// (topic name, message type).
+        /// This function allows you to find the id of a topic by searching
+        /// (message type name -> topic name -> ID).
+        /// \return A map from message types to a map of topic names to row ids.
         /// \sa GetTopicsToMsgTypesToId()
         /// \sa QueryTopicsOfMsgType()
         public: const NameToMap &GetMsgTypesToTopicsToId() const;
 
-        /// \brief Check for the message types that were published by the
-        /// specified topic name.
+        /// \brief Get message types published on the given name of a topic.
         /// \param[in] _topicName Name of the topic that you are interested in.
-        /// \return A map from the message types published by _topicName to the
-        /// database's column ID for the (_topicName, message type name) pair.
+        /// \return A map from the message types published on _topicName to the
+        /// id of a row in the topics table.
         /// If _topicName is not available in this log, this will return a
         /// nullptr.
         public: const NameToId *QueryMsgTypesOfTopic(
           const std::string &_topicName) const;
 
-        /// \brief Check for the topics that published the specified message
-        /// type.
+        /// \brief Get topic names that were uses to published a message type.
         /// \param[in] _msgType Name of the message type that you are interested
         /// in.
-        /// \return A map from topic names which published _msgType to the
-        /// database's column ID for the (topic name, _msgType) pair. If
-        /// _msgType was never published in this log, this will return a
+        /// \return A map from topic names which published _msgType to the id
+        /// of a row in the topics table.
+        /// If _msgType was never published in this log, this will return a
         /// nullptr.
         public: const NameToId *QueryTopicsOfMsgType(
           const std::string &_msgType) const;
