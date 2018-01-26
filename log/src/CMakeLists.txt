@@ -7,6 +7,7 @@ ign_build_tests(
     Log_TEST.cc
     Message_TEST.cc
     Recorder_TEST.cc
+    SqlStatement_TEST.cc
   LIB_DEPS ${log_lib_target}
   TEST_LIST logging_tests
 )
