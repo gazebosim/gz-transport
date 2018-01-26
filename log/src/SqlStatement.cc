@@ -100,6 +100,13 @@ class SqlParameter::Implementation
   std::string text;
 };
 
+
+//////////////////////////////////////////////////
+SqlParameter::SqlParameter()
+  : SqlParameter(nullptr)
+{
+}
+
 //////////////////////////////////////////////////
 SqlParameter::SqlParameter(std::nullptr_t)
   : dataPtr(new Implementation)

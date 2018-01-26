@@ -48,6 +48,10 @@ namespace ignition
         };
 
         /// \sa Set(std::nullptr_t)
+        /// \sa SqlParameter(std::nullptr_t)
+        public: SqlParameter();
+
+        /// \sa Set(std::nullptr_t)
         public: SqlParameter(std::nullptr_t);
 
         /// \sa Set(long long int)
