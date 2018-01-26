@@ -47,6 +47,9 @@ namespace ignition
           // TODO: Consider supporting blob types
         };
 
+        /// \brief move constructor
+        public: SqlParameter(SqlParameter &&_other);
+
         /// \sa Set(std::nullptr_t)
         /// \sa SqlParameter(std::nullptr_t)
         public: SqlParameter();

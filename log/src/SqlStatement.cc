@@ -100,6 +100,11 @@ class SqlParameter::Implementation
   std::string text;
 };
 
+//////////////////////////////////////////////////
+SqlParameter::SqlParameter(SqlParameter &&_other)
+  : dataPtr(std::move(_other.dataPtr))
+{
+}
 
 //////////////////////////////////////////////////
 SqlParameter::SqlParameter()
