@@ -27,6 +27,7 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/transport/log/Log.hh"
+#include "ignition/transport/log/SqlStatement.hh"
 #include "src/BatchPrivate.hh"
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"
@@ -458,8 +459,20 @@ bool Log::InsertMessage(
 //////////////////////////////////////////////////
 Batch Log::AllMessages()
 {
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate);
-  batchPriv->db = this->dataPtr->db;
+  // TODO Move vv code below vv to BasicQueryOptions
+  SqlStatement gen_query;
+  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id"
+    " ORDER BY messages.time_recv;";
+
+  std::vector<SqlStatement> statements;
+  statements.push_back(std::move(gen_query));
+  // TODO ^^ code above ^^ to BasicQueryOptions
+
+  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
+        this->dataPtr->db, std::move(statements)));
   return Batch(std::move(batchPriv));
 }
 
@@ -472,9 +485,35 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
     return Batch();
   }
 
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate);
-  batchPriv->db = this->dataPtr->db;
-  batchPriv->topicNames = _topics;
+  // TODO Move vv code below vv to BasicQueryOptions
+  SqlStatement gen_query;
+  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id"
+    " WHERE topics.name IN (?";
+
+  // Build a template for the list of topics
+  for (std::size_t i = 1; i < _topics.size(); i++)
+  {
+    gen_query.statement += ", ?";
+  }
+
+  gen_query.statement += ") ORDER BY messages.time_recv;";
+
+  gen_query.parameters.reserve(_topics.size());
+  for (const std::string & _name : _topics)
+  {
+    // TODO(sloretz) more efficient to query by the topic ids
+    gen_query.parameters.emplace_back(_name);
+  }
+
+  std::vector<SqlStatement> statements;
+  statements.push_back(std::move(gen_query));
+  // TODO ^^ code above ^^ to BasicQueryOptions
+
+  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
+        this->dataPtr->db, std::move(statements)));
   return Batch(std::move(batchPriv));
 }
 

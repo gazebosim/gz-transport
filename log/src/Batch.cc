@@ -29,8 +29,25 @@ using namespace ignition::transport::log;
 
 
 //////////////////////////////////////////////////
+BatchPrivate::BatchPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,
+      std::vector<SqlStatement> &&_statements)
+  : statements(new std::vector<SqlStatement>(std::move(_statements))), db(_db)
+{
+}
+
+//////////////////////////////////////////////////
+BatchPrivate::BatchPrivate()
+{
+}
+
+//////////////////////////////////////////////////
+BatchPrivate::~BatchPrivate()
+{
+}
+
+//////////////////////////////////////////////////
 Batch::Batch()
-  : dataPtr(new BatchPrivate)
+  : dataPtr(nullptr)
 {
 }
 
@@ -48,11 +65,13 @@ Batch::~Batch()
 //////////////////////////////////////////////////
 Batch::iterator Batch::begin()
 {
-  std::unique_ptr<MsgIterPrivate> msgPriv(new MsgIterPrivate);
-  auto statementPtr = this->dataPtr->CreateStatement();
-  if (!statementPtr)
-    return MsgIter();
-  msgPriv->statement = std::move(statementPtr);
+  if (!this->dataPtr)
+  {
+    return Batch::iterator();
+  }
+
+  std::unique_ptr<MsgIterPrivate> msgPriv(new MsgIterPrivate(
+        this->dataPtr->db, this->dataPtr->statements));
   return Batch::iterator(std::move(msgPriv));
 }
 
@@ -66,76 +85,4 @@ Batch::iterator Batch::end()
 Batch::Batch(std::unique_ptr<BatchPrivate> &&_pimpl)
   : dataPtr(std::move(_pimpl))
 {
-}
-
-//////////////////////////////////////////////////
-std::unique_ptr<raii_sqlite3::Statement> BatchPrivate::CreateStatement()
-{
-  if (!this->db)
-    return nullptr;
-
-  if (!this->topicNames.empty())
-  {
-    // Filter messages by topic name
-    // TODO(sloretz) this could be more efficient by querying by the topic ids
-    std::string sql("SELECT messages.id, messages.time_recv, topics.name,"
-      " message_types.name, messages.message FROM messages JOIN topics ON"
-      " topics.id = messages.topic_id JOIN message_types ON"
-      " message_types.id = topics.message_type_id"
-      " WHERE topics.name IN (?");
-
-    // Build a template for the list of topics
-    for (std::size_t i = 1; i < this->topicNames.size(); i++)
-    {
-      sql += ", ?";
-    }
-
-    sql += ") ORDER BY messages.time_recv;";
-
-    std::unique_ptr<raii_sqlite3::Statement> statement(
-        new raii_sqlite3::Statement(*(this->db), sql));
-    if (!*statement)
-    {
-      ignerr << "Failed to query messages: "<< sqlite3_errmsg(
-          this->db->Handle()) << "\n";
-      return nullptr;
-    }
-
-    // Bind the topic names to the statement
-    int i = 1;
-    int returnCode;
-    for (const std::string &name : this->topicNames)
-    {
-      returnCode = sqlite3_bind_text(
-          statement->Handle(), i, name.c_str(), name.size(), SQLITE_TRANSIENT);
-      if (returnCode != SQLITE_OK)
-      {
-        ignerr << "Failed to query messages: "<< sqlite3_errmsg(
-          this->db->Handle()) << "\n";
-        return nullptr;
-      }
-      ++i;
-    }
-
-    return statement;
-  }
-  else
-  {
-    // Default to all messages
-    const char *sql = "SELECT messages.id, messages.time_recv, topics.name,"
-      " message_types.name, messages.message FROM messages JOIN topics ON"
-      " topics.id = messages.topic_id JOIN message_types ON"
-      " message_types.id = topics.message_type_id ORDER BY messages.time_recv;";
-    std::unique_ptr<raii_sqlite3::Statement> statement(
-        new raii_sqlite3::Statement(*(this->db), sql));
-    if (!*statement)
-    {
-      ignerr << "Failed to query messages: "<< sqlite3_errmsg(
-          this->db->Handle()) << "\n";
-      return nullptr;
-    }
-    return std::move(statement);
-  }
-
-  return nullptr;
 }
