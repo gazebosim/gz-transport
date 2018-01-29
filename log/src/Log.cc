@@ -56,10 +56,13 @@ class ignition::transport::log::Log::Implementation
   public: bool BeginTransactionIfNotInOne();
 
   /// \brief Get topic_id associated with a topic name and message type
+  /// If the topic is not in the log it will be added
+  /// \note Invalidates the descriptor if a topic is inserted
   /// \param[in] _name the name of the topic
   /// \param[in] _type the name of the message type
   /// \return topic_id or -1 if one could not be produced
-  public: int64_t TopicId(const std::string &_name, const std::string &_type);
+  public: int64_t InsertOrGetTopicId(
+      const std::string &_name, const std::string &_type);
 
   /// \brief Insert a message into the database
   public: bool InsertMessage(const common::Time &_time, int64_t _topic,
@@ -206,7 +209,7 @@ bool Log::Implementation::TimeForNewTransaction() const
 }
 
 //////////////////////////////////////////////////
-int64_t Log::Implementation::TopicId(
+int64_t Log::Implementation::InsertOrGetTopicId(
     const std::string &_name,
     const std::string &_type)
 {
@@ -487,7 +490,7 @@ bool Log::InsertMessage(
   }
 
   // Get the topics.id for this name and message type
-  int64_t topicId = this->dataPtr->TopicId(_topic, _type);
+  int64_t topicId = this->dataPtr->InsertOrGetTopicId(_topic, _type);
   if (topicId < 0)
   {
     return false;
