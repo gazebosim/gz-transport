@@ -27,11 +27,14 @@ using namespace ignition::transport::log;
 /// \brief test hook for Descriptor
 class ignition::transport::log::Log
 {
+  /// \brief Construct a descriptor
   public: static Descriptor Construct()
   {
     return Descriptor();
   }
 
+  /// \brief call descriptor api Reset()
+  /// \sa Descriptor::Implementation::Reset(const TopicKeyMap &)
   public: static void Reset(
       Descriptor &descriptor, const TopicKeyMap &_topics)
   {
