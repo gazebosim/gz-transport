@@ -533,15 +533,34 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
   }
 
   // TODO Move vv code below vv to BasicQueryOptions
+  std::vector<long long int> topicIds;
+  for (const std::string &_name : _topics)
+  {
+    const Descriptor::NameToId * typesToId =
+      this->dataPtr->descriptor.QueryMsgTypesOfTopic(_name);
+    if (typesToId != nullptr)
+    {
+      for (auto const & keyValue : *typesToId)
+      {
+        topicIds.push_back(keyValue.second);
+      }
+    }
+  }
+  if (topicIds.empty())
+  {
+    ignerr << "No matching topics found in log file\n";
+    return Batch();
+  }
+
   SqlStatement gen_query;
   gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
     " message_types.name, messages.message FROM messages JOIN topics ON"
     " topics.id = messages.topic_id JOIN message_types ON"
     " message_types.id = topics.message_type_id"
-    " WHERE topics.name IN (?";
+    " WHERE topics.id IN (?";
 
   // Build a template for the list of topics
-  for (std::size_t i = 1; i < _topics.size(); i++)
+  for (std::size_t i = 1; i < topicIds.size(); i++)
   {
     gen_query.statement += ", ?";
   }
@@ -549,10 +568,9 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
   gen_query.statement += ") ORDER BY messages.time_recv;";
 
   gen_query.parameters.reserve(_topics.size());
-  for (const std::string & _name : _topics)
+  for (long long int topicId : topicIds)
   {
-    // TODO(sloretz) more efficient to query by the topic ids
-    gen_query.parameters.emplace_back(_name);
+    gen_query.parameters.emplace_back(topicId);
   }
 
   std::vector<SqlStatement> statements;
