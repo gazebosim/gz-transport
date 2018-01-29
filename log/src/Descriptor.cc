@@ -88,6 +88,24 @@ auto Descriptor::QueryTopicsOfMsgType(
 }
 
 //////////////////////////////////////////////////
+int64_t Descriptor::TopicId(const std::string &_topicName,
+    const std::string &_msgType) const
+{
+  auto iter = this->dataPtr->topicsToMsgTypesToId.find(_topicName);
+  if (iter == this->dataPtr->topicsToMsgTypesToId.end())
+  {
+    return -1;
+  }
+
+  auto typeIter = iter->second.find(_msgType);
+  if (typeIter == iter->second.end())
+  {
+    return -1;
+  }
+  return typeIter->second;
+}
+
+//////////////////////////////////////////////////
 Descriptor::~Descriptor()
 {
   // Destruct pimpl

@@ -85,6 +85,15 @@ namespace ignition
         public: const NameToId *QueryTopicsOfMsgType(
           const std::string &_msgType) const;
 
+        /// \brief Convenience method to get an id given a topic name and type
+        /// \param[in] _topicName Name of the topic that you are interested in.
+        /// \param[in] _msgType Name of the message type that you are interested
+        /// in.
+        /// \return an id of a row in the topics table, or -1 none exists
+        public: int64_t TopicId(
+          const std::string &_topicName,
+          const std::string &_msgType) const;
+
         // The Log class is a friend so that it can construct a Descriptor
         friend class Log;
 
