@@ -210,14 +210,22 @@ int64_t Log::Implementation::TopicId(
     const std::string &_name,
     const std::string &_type)
 {
-  int returnCode;
   // If the name and type is known, return a cached ID
-  TopicKey key = {_name, _type};
-  auto topicIter = this->topics.find(key);
-  if (topicIter != this->topics.end())
+  // Call method to get side effect of updating descriptor
+  const Descriptor *desc = this->GetDescriptor();
+  if (nullptr == desc)
   {
-    return topicIter->second;
+    return -1;
   }
+
+  int64_t topicId = desc->TopicId(_name, _type);
+  if (topicId >= 0)
+  {
+    return topicId;
+  }
+
+  // Inserting a new topic invalidates the descriptor
+  this->needNewDescriptor = true;
 
   // Otherwise insert it into the database and return the new topic_id
   const std::string sql_message_type =
@@ -241,6 +249,7 @@ int64_t Log::Implementation::TopicId(
     return -1;
   }
 
+  int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
       message_type_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
@@ -280,7 +289,6 @@ int64_t Log::Implementation::TopicId(
 
   // topics.id is an alias for rowid
   int64_t id = sqlite3_last_insert_rowid(this->db->Handle());
-  this->topics[key] = id;
   igndbg << "Inserted '" << _name << "'[" << _type << "]\n";
   return id;
 }
@@ -536,8 +544,14 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
   std::vector<long long int> topicIds;
   for (const std::string &_name : _topics)
   {
-    const Descriptor::NameToId * typesToId =
-      this->dataPtr->descriptor.QueryMsgTypesOfTopic(_name);
+    // Call to get side effect of updating the descriptor
+    const Descriptor *desc = this->dataPtr->GetDescriptor();
+    if (nullptr == desc)
+    {
+      ignerr << "Failed to get descriptor\n";
+      return Batch();
+    }
+    const Descriptor::NameToId * typesToId = desc->QueryMsgTypesOfTopic(_name);
     if (typesToId != nullptr)
     {
       for (auto const & keyValue : *typesToId)
