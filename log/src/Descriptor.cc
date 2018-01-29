@@ -117,3 +117,10 @@ Descriptor::Descriptor()
 {
   // Do nothing
 }
+
+//////////////////////////////////////////////////
+Descriptor::Descriptor(Descriptor &&_orig)
+  : dataPtr(std::move(_orig.dataPtr))
+{
+  // Do nothing
+}

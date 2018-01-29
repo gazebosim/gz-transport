@@ -104,6 +104,10 @@ namespace ignition
         /// Log::GetDescriptor().
         private: Descriptor();
 
+        /// \brief Move constructor, not used by most
+        /// \internal
+        public: Descriptor(Descriptor &&_orig);
+
         /// \internal Implementation for this class
         class Implementation;
 
