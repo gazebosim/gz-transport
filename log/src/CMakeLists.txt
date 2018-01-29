@@ -4,6 +4,7 @@ ign_build_tests(
   TYPE "UNIT"
   SOURCES
     Batch_TEST.cc
+    Descriptor_TEST.cc
     Log_TEST.cc
     Message_TEST.cc
     Recorder_TEST.cc

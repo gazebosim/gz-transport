@@ -1,0 +1,146 @@
+/*
+ * Copyright (C) 2018 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+#include "ignition/transport/log/Descriptor.hh"
+#include "Descriptor.hh"
+#include "gtest/gtest.h"
+
+using namespace ignition;
+using namespace ignition::transport;
+using namespace ignition::transport::log;
+
+
+/// \brief test hook for Descriptor
+class ignition::transport::log::Log
+{
+  public: static Descriptor Construct()
+  {
+    return Descriptor();
+  }
+
+  public: static void Reset(
+      Descriptor &descriptor, const TopicKeyMap &_topics)
+  {
+    descriptor.dataPtr->Reset(_topics);
+  }
+};
+
+//////////////////////////////////////////////////
+TEST(Descriptor, ConstructHasNothing)
+{
+  Descriptor desc = Log::Construct();
+  EXPECT_TRUE(desc.GetTopicsToMsgTypesToId().empty());
+  EXPECT_TRUE(desc.GetMsgTypesToTopicsToId().empty());
+}
+
+
+//////////////////////////////////////////////////
+TEST(Descriptor, ResetNoTopics)
+{
+  Descriptor desc = Log::Construct();
+  Log::Reset(desc, TopicKeyMap());
+  EXPECT_TRUE(desc.GetTopicsToMsgTypesToId().empty());
+  EXPECT_TRUE(desc.GetMsgTypesToTopicsToId().empty());
+}
+
+//////////////////////////////////////////////////
+TEST(Descriptor, TopicIdOneTopic)
+{
+  Descriptor desc = Log::Construct();
+  TopicKeyMap topics;
+  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  Log::Reset(desc, topics);
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+}
+
+
+//////////////////////////////////////////////////
+TEST(Descriptor, TopicIdMultipleTopicsSameName)
+{
+  Descriptor desc = Log::Construct();
+  TopicKeyMap topics;
+  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  topics[{"/foo/bar", "ign.msgs.DNE2"}] = 6;
+  topics[{"/foo/bar", "ign.msgs.DNE3"}] = 7;
+  Log::Reset(desc, topics);
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
+  EXPECT_EQ(6, desc.TopicId("/foo/bar", "ign.msgs.DNE2"));
+  EXPECT_EQ(7, desc.TopicId("/foo/bar", "ign.msgs.DNE3"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+}
+
+
+//////////////////////////////////////////////////
+TEST(Descriptor, TopicIdMultipleTopicsSameType)
+{
+  Descriptor desc = Log::Construct();
+  TopicKeyMap topics;
+  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  topics[{"/fiz/buz", "ign.msgs.DNE"}] = 6;
+  topics[{"/fiz/bar", "ign.msgs.DNE"}] = 7;
+  Log::Reset(desc, topics);
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
+  EXPECT_EQ(6, desc.TopicId("/fiz/buz", "ign.msgs.DNE"));
+  EXPECT_EQ(7, desc.TopicId("/fiz/bar", "ign.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+}
+
+
+//////////////////////////////////////////////////
+TEST(Descriptor, TopicsMapOneTopic)
+{
+  Descriptor desc = Log::Construct();
+  TopicKeyMap topics;
+  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  Log::Reset(desc, topics);
+  auto topicsMap = desc.GetTopicsToMsgTypesToId();
+  ASSERT_EQ(1u, topicsMap.size());
+  EXPECT_EQ("/foo/bar", topicsMap.begin()->first);
+  auto msgsMap = topicsMap.begin()->second;
+  ASSERT_EQ(1u, msgsMap.size());
+  EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
+  EXPECT_EQ(5, msgsMap.begin()->second);
+}
+
+
+//////////////////////////////////////////////////
+TEST(Descriptor, MsgTypesMapOneTopic)
+{
+  Descriptor desc = Log::Construct();
+  TopicKeyMap topics;
+  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  Log::Reset(desc, topics);
+  auto msgsMap = desc.GetMsgTypesToTopicsToId();
+  ASSERT_EQ(1u, msgsMap.size());
+  EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
+  auto topicsMap = msgsMap.begin()->second;
+  ASSERT_EQ(1u, topicsMap.size());
+  EXPECT_EQ("/foo/bar", topicsMap.begin()->first);
+  EXPECT_EQ(5, topicsMap.begin()->second);
+}
+
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
