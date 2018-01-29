@@ -85,13 +85,6 @@ namespace ignition
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
 
-//        /// \brief first is topic name and second is message type name.
-//        using NameTypePair = std::pair<std::string, std::string>;
-
-//        /// \brief List of topics contained in the log
-//        /// \return a list of pairs of topics and message type names
-//        public: std::vector<NameTypePair> AllTopics();
-
         /// \brief Get all messages from the bag file
         /// \return an iterator through the messages
         public: Batch AllMessages();

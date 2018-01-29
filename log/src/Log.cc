@@ -583,50 +583,6 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
 }
 
 //////////////////////////////////////////////////
-// TODO(SQL): Delete this when it is no longer useful for reference.
-//std::vector<Log::NameTypePair> Log::AllTopics()
-//{
-//  std::vector<Log::NameTypePair> allTopics;
-//  const char *sql = "SELECT topics.name, message_types.name FROM topics"
-//    " JOIN message_types ON topics.message_type_id = message_types.id;";
-//  raii_sqlite3::Statement statement(*(this->dataPtr->db), sql);
-//  if (!statement)
-//  {
-//    ignerr << "Failed to query topics: "<< sqlite3_errmsg(
-//        this->dataPtr->db->Handle()) << "\n";
-//    return allTopics;
-//  }
-
-//  int returnCode = SQLITE_ROW;
-//  while (returnCode != SQLITE_DONE)
-//  {
-//    returnCode = sqlite3_step(statement.Handle());
-//    if (returnCode == SQLITE_ROW)
-//    {
-//      // Topic name
-//      const unsigned char *topic = sqlite3_column_text(statement.Handle(), 0);
-//      std::size_t numTopic = sqlite3_column_bytes(statement.Handle(), 0);
-
-//      // Message type name
-//      const unsigned char *type = sqlite3_column_text(statement.Handle(), 1);
-//      std::size_t numType = sqlite3_column_bytes(statement.Handle(), 1);
-
-//      // make pair
-//      std::string topicName(reinterpret_cast<const char*>(topic), numTopic);
-//      std::string topicType(reinterpret_cast<const char*>(type), numType);
-
-//      allTopics.push_back(std::make_pair(topicName, topicType));
-//    }
-//    else if (returnCode != SQLITE_DONE)
-//    {
-//      ignerr << "Failed to get topics [" << sqlite3_errmsg(
-//        this->dataPtr->db->Handle()) << "\n";
-//    }
-//  }
-//  return allTopics;
-//}
-
-//////////////////////////////////////////////////
 std::string Log::Version()
 {
   if (!this->Valid())
