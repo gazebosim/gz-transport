@@ -309,7 +309,7 @@ int Playback::AddTopic(const std::regex &_topic)
     {
       const std::string &type = typeEntry.first;
 
-      this->dataPtr->topicNames.insert(type);
+      this->dataPtr->topicNames.insert(topic);
       if (this->dataPtr->CreatePublisher(topic, type))
       {
         ++numPublishers;
