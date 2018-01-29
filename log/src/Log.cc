@@ -85,7 +85,7 @@ class ignition::transport::log::Log::Implementation
   public: std::chrono::milliseconds transactionPeriod;
 
   /// \brief Flag to track whether we need to generate a new Descriptor
-  private: mutable bool needNewDescriptor = false;
+  private: mutable bool needNewDescriptor = true;
 
   /// \brief Descriptor which provides insight to the column IDs in the database
   public: mutable Descriptor descriptor;
@@ -99,12 +99,59 @@ const Descriptor *Log::Implementation::GetDescriptor() const
 
   if (this->needNewDescriptor)
   {
-    this->needNewDescriptor = false;
-
     TopicKeyMap topicsInLog;
 
-    // TODO: Perform queries to fill in the column information
+    // Prepare the statement
+    const char * sql_statement =
+      "SELECT topics.id, topics.name, message_types.name FROM topics"
+      " JOIN message_types ON topics.message_type_id = message_types.id;";
 
+    raii_sqlite3::Statement topic_ids_statement(*(this->db), sql_statement);
+    if (!topic_ids_statement)
+    {
+      ignerr << "Failed to compile statement to get topic ids\n";
+      return nullptr;
+    }
+
+    // Execute the statement
+    int returnCode;
+    do
+    {
+      returnCode = sqlite3_step(topic_ids_statement.Handle());
+      if (returnCode == SQLITE_ROW)
+      {
+        // get the data about the topic
+        sqlite_int64 topicId = sqlite3_column_int64(
+            topic_ids_statement.Handle(), 0);
+
+        const unsigned char *topicName = sqlite3_column_text(
+            topic_ids_statement.Handle(), 1);
+        std::size_t lenTopicName = sqlite3_column_bytes(
+            topic_ids_statement.Handle(), 1);
+
+        const unsigned char *typeName = sqlite3_column_text(
+            topic_ids_statement.Handle(), 2);
+        std::size_t lenTypeName = sqlite3_column_bytes(
+            topic_ids_statement.Handle(), 2);
+
+        TopicKey key;
+        key.topic = std::string(
+            reinterpret_cast<const char *>(topicName), lenTopicName);
+        key.type = std::string(
+            reinterpret_cast<const char *>(typeName), lenTypeName);
+        topicsInLog[key] = topicId;
+        igndbg << key.topic << "|" << key.type << "|" << topicId << "\n";
+      }
+      else if (returnCode != SQLITE_DONE)
+      {
+        ignerr << "Failed query topic ids: " << sqlite3_errmsg(
+            this->db->Handle()) << "\n";
+        return nullptr;
+      }
+    } while (returnCode == SQLITE_ROW);
+
+    // Save the result into the descriptor
+    this->needNewDescriptor = false;
     descriptor.dataPtr->Reset(topicsInLog);
   }
 
