@@ -46,14 +46,14 @@ auto Descriptor::Implementation::QueryTopicsOfMsgType(
 }
 
 //////////////////////////////////////////////////
-void Descriptor::Implementation::Reset(const MessageColumnMap &_columns)
+void Descriptor::Implementation::Reset(const TopicKeyMap &_columns)
 {
   topicsToMsgTypesToId.clear();
   msgTypesToTopicsToId.clear();
 
   for (const auto &entry : _columns)
   {
-    const MessageColumnKey &key = entry.first;
+    const TopicKey &key = entry.first;
     int64_t id = entry.second;
 
     this->topicsToMsgTypesToId[key.topic][key.type] = id;

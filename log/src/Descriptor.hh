@@ -28,29 +28,28 @@ namespace ignition
   {
     namespace log
     {
-      /// \brief A representation of the information that defines a message
-      /// column.
-      struct MessageColumnKey
+      /// \brief A representation of the information that defines a topic row
+      struct TopicKey
       {
-        /// \brief The topic name of the column
+        /// \brief The name of the topic
         public: std::string topic;
 
-        /// \brief The message type name of the column
+        /// \brief The message type name published on the topic
         public: std::string type;
 
         /// \brief Equality operator. Needed for std::unordered_map
-        /// \param[in] _other Another MessageColumnKey
+        /// \param[in] _other Another TopicKey
         /// \return true if equal
-        inline bool operator==(const MessageColumnKey &_other) const
+        inline bool operator==(const TopicKey &_other) const
         {
           return (this->topic == _other.topic &&
                   this->type == _other.type);
         }
       };
 
-      /// \brief A map from the (topic, message type) of a column to its integer
+      /// \brief A map from the (topic, message type) of a topic to its integer
       /// key in the database.
-      using MessageColumnMap = std::unordered_map<MessageColumnKey, int64_t>;
+      using TopicKeyMap = std::unordered_map<TopicKey, int64_t>;
 
       /// \brief Implementation of the Descriptor class
       class Descriptor::Implementation
@@ -66,7 +65,7 @@ namespace ignition
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a
         /// new file.
-        public: void Reset(const MessageColumnMap &_columns);
+        public: void Reset(const TopicKeyMap &_topics);
 
         /// \internal \sa Descriptor::GetTopicsToMsgTypesToId()
         public: NameToMap topicsToMsgTypesToId;
@@ -79,16 +78,16 @@ namespace ignition
 }
 
 //////////////////////////////////////////////////
-/// \brief Allow a MessageColumnKey to be used as a key in a std::unordered_map
+/// \brief Allow a TopicKey to be used as a key in a std::unordered_map
 namespace std {
-  template <> struct hash<ignition::transport::log::MessageColumnKey>
+  template <> struct hash<ignition::transport::log::TopicKey>
   {
     size_t operator()(
-        const ignition::transport::log::MessageColumnKey &_column) const
+        const ignition::transport::log::TopicKey &_key) const
     {
       // Terrible, but it gets the job done
-      return (std::hash<std::string>()(_column.topic) << 16)
-        + std::hash<std::string>()(_column.type);
+      return (std::hash<std::string>()(_key.topic) << 16)
+        + std::hash<std::string>()(_key.type);
     }
   };
 }

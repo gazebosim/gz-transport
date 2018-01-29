@@ -76,7 +76,7 @@ class ignition::transport::log::Log::Implementation
   public: bool inTransaction = false;
 
   /// \brief Maps topic name/type pairs to an id in the topics table
-  public: MessageColumnMap columns;
+  public: TopicKeyMap topics;
 
   /// \brief last time the transaction was ended
   public: std::chrono::steady_clock::time_point lastTransaction;
@@ -101,11 +101,11 @@ const Descriptor *Log::Implementation::GetDescriptor() const
   {
     this->needNewDescriptor = false;
 
-    MessageColumnMap columns;
+    TopicKeyMap topicsInLog;
 
     // TODO: Perform queries to fill in the column information
 
-    descriptor.dataPtr->Reset(columns);
+    descriptor.dataPtr->Reset(topicsInLog);
   }
 
   return &this->descriptor;
@@ -165,9 +165,9 @@ int64_t Log::Implementation::TopicId(
 {
   int returnCode;
   // If the name and type is known, return a cached ID
-  MessageColumnKey key = {_name, _type};
-  auto topicIter = this->columns.find(key);
-  if (topicIter != this->columns.end())
+  TopicKey key = {_name, _type};
+  auto topicIter = this->topics.find(key);
+  if (topicIter != this->topics.end())
   {
     return topicIter->second;
   }
@@ -233,7 +233,7 @@ int64_t Log::Implementation::TopicId(
 
   // topics.id is an alias for rowid
   int64_t id = sqlite3_last_insert_rowid(this->db->Handle());
-  this->columns[key] = id;
+  this->topics[key] = id;
   igndbg << "Inserted '" << _name << "'[" << _type << "]\n";
   return id;
 }
