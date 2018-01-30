@@ -21,15 +21,12 @@ Check [here](http://ignition-transport.readthedocs.io/en/default/).
 
 ## Roadmap
 
-### Ignition Transport 4.x.x
+### Ignition Transport 5.x.x
 
-* Updated callback signature when advertising service calls
-* Zero copy
-* Benchmarking
 * Allow `ign topic --pub` and `ign topic --echo` to work with custom messages
 * Allow communication among nodes outside of the same LAN
 * Request the message description to its publisher
-* Security and authentication
+* Improved security and authentication
 * UDP support
 * Create a wrapper for a scripting language
 

@@ -280,7 +280,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
 }
 
 //////////////////////////////////////////////////
-extern "C" char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
+extern "C" const char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
 {
   return IGNITION_TRANSPORT_VERSION_FULL;
 }
