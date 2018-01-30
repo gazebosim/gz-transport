@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <memory>
+#include <string>
 
 
 #include <ignition/transport/log/Export.hh>

@@ -115,7 +115,7 @@ void MsgIterPrivate::StepStatement()
     {
       // TODO get data and create message in the dereference operators
       // Assumes statement has column order:
-      // messages id (0), timeRecv(1), topics name(2), 
+      // messages id (0), timeRecv(1), topics name(2),
       // message_type name(3), message data(4)
       ignition::common::Time timeRecv;
 
@@ -175,13 +175,14 @@ MsgIter::MsgIter()
 //   // at the current row id
 // }
 
-MsgIter::MsgIter(MsgIter &&_orig)
+MsgIter::MsgIter(MsgIter &&_orig)  // NOLINT(build/c++11)
   : dataPtr(std::move(_orig.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-MsgIter::MsgIter(std::unique_ptr<MsgIterPrivate> &&_pimpl)
+MsgIter::MsgIter(
+    std::unique_ptr<MsgIterPrivate> &&_pimpl)  // NOLINT(build/c++11)
   : dataPtr(std::move(_pimpl))
 {
   this->dataPtr->StepStatement();

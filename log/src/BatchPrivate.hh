@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "ignition/transport/log/SqlStatement.hh"
 #include "src/raii-sqlite3.hh"
@@ -35,8 +36,9 @@ class ignition::transport::log::BatchPrivate
   public: BatchPrivate();
 
   /// \brief constructor
-  public: BatchPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,
-      std::vector<SqlStatement> &&_statements);
+  public: explicit BatchPrivate(
+      const std::shared_ptr<raii_sqlite3::Database> &_db,
+      std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)
 
   /// \brief destructor
   public: ~BatchPrivate();

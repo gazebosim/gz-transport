@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2018 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 #ifndef IGNITION_TRANSPORT_LOG_QUALIFIEDTIME_HH_
 #define IGNITION_TRANSPORT_LOG_QUALIFIEDTIME_HH_
 
@@ -67,7 +83,7 @@ namespace ignition
         /// indeterminate. This means that the QualifiedTime object will be
         /// taken to indicate that no time has been specified at all.
         /// \sa IsIndeterminate()
-        public: QualifiedTime( /* Indeterminate */ );
+        public: QualifiedTime(/* Indeterminate */);
 
         /// \brief Copy constructor.
         /// \param[in] _other Another QualifiedTime
@@ -79,11 +95,12 @@ namespace ignition
         public: QualifiedTime & operator=(const QualifiedTime &_other);
 
         /// \brief Default move constructor
-        public: QualifiedTime(QualifiedTime &&) = default;
+        public: QualifiedTime(QualifiedTime &&) = default;  // NOLINT
 
         /// \brief Default move operator
         /// \return Reference to this object
-        public: QualifiedTime & operator=(QualifiedTime &&) = default;
+        public: QualifiedTime & operator=(
+            QualifiedTime &&) = default;  // NOLINT(build/c++11)
 
         /// \brief Indicates whether this QualifiedTime object is indeterminate.
         ///
@@ -158,11 +175,12 @@ namespace ignition
         public: QualifiedTimeRange &operator=(const QualifiedTimeRange &_other);
 
         /// \brief Default move constructor
-        public: QualifiedTimeRange(QualifiedTimeRange &&) = default;
+        public: QualifiedTimeRange(QualifiedTimeRange &&) = default;  // NOLINT
 
         /// \brief Default move assignment
         /// \return Reference to this object
-        public: QualifiedTimeRange &operator=(QualifiedTimeRange &&) = default;
+        public: QualifiedTimeRange &operator=(
+            QualifiedTimeRange &&) = default;  // NOLINT(build/c++11)
 
         /// \brief Construct a time range that begins at _start and never ends.
         /// \param[in] _start The beginning of the time range.

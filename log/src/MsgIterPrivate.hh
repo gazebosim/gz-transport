@@ -18,6 +18,8 @@
 #ifndef IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 #define IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 
+#include <vector>
+
 #include "ignition/transport/log/Message.hh"
 #include "ignition/transport/log/SqlStatement.hh"
 #include "src/raii-sqlite3.hh"

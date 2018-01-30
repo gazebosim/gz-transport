@@ -53,7 +53,7 @@ namespace ignition
       {
         /// \brief Constructor
         /// \param[in] _file path to log file
-        public: Playback(const std::string &_file);
+        public: explicit Playback(const std::string &_file);
 
         /// \brief move constructor
         /// \param[in] _old the instance being moved into this one

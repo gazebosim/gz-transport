@@ -111,7 +111,7 @@ TEST(playback, ReplayLog)
 
   std::cout << "Waiting to for playback to finish... ";
   std::flush(std::cout);
-  while(true)
+  while (true)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::unique_lock<std::mutex> lock(dataMutex);
@@ -123,7 +123,7 @@ TEST(playback, ReplayLog)
 
   playback.Stop();
 
-  for (std::size_t i=0; i < originalData.size(); ++i)
+  for (std::size_t i = 0; i < originalData.size(); ++i)
   {
     const MessageInformation &original = originalData[i];
     const MessageInformation &playedBack = incomingData[i];

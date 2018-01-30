@@ -65,7 +65,8 @@ TEST(Descriptor, TopicIdOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  topics[key] = 5;
   Log::Reset(desc, topics);
   EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
   EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
@@ -78,9 +79,12 @@ TEST(Descriptor, TopicIdMultipleTopicsSameName)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
-  topics[{"/foo/bar", "ign.msgs.DNE2"}] = 6;
-  topics[{"/foo/bar", "ign.msgs.DNE3"}] = 7;
+  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key2 = {"/foo/bar", "ign.msgs.DNE2"};
+  TopicKey key3 = {"/foo/bar", "ign.msgs.DNE3"};
+  topics[key1] = 5;
+  topics[key2] = 6;
+  topics[key3] = 7;
   Log::Reset(desc, topics);
   EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
   EXPECT_EQ(6, desc.TopicId("/foo/bar", "ign.msgs.DNE2"));
@@ -95,9 +99,12 @@ TEST(Descriptor, TopicIdMultipleTopicsSameType)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
-  topics[{"/fiz/buz", "ign.msgs.DNE"}] = 6;
-  topics[{"/fiz/bar", "ign.msgs.DNE"}] = 7;
+  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key2 = {"/fiz/buz", "ign.msgs.DNE"};
+  TopicKey key3 = {"/fiz/bar", "ign.msgs.DNE"};
+  topics[key1] = 5;
+  topics[key2] = 6;
+  topics[key3] = 7;
   Log::Reset(desc, topics);
   EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
   EXPECT_EQ(6, desc.TopicId("/fiz/buz", "ign.msgs.DNE"));
@@ -112,7 +119,8 @@ TEST(Descriptor, TopicsMapOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  topics[key] = 5;
   Log::Reset(desc, topics);
   auto topicsMap = desc.GetTopicsToMsgTypesToId();
   ASSERT_EQ(1u, topicsMap.size());
@@ -129,7 +137,8 @@ TEST(Descriptor, MsgTypesMapOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  topics[{"/foo/bar", "ign.msgs.DNE"}] = 5;
+  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  topics[key] = 5;
   Log::Reset(desc, topics);
   auto msgsMap = desc.GetMsgTypesToTopicsToId();
   ASSERT_EQ(1u, msgsMap.size());

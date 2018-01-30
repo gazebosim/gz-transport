@@ -56,7 +56,7 @@ namespace ignition
       class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
       {
         /// \brief Constructor that sets the initial time range option.
-        public: TimeRangeOption(const QualifiedTimeRange &_timeRange);
+        public: explicit TimeRangeOption(const QualifiedTimeRange &_timeRange);
 
         /// \brief Chosen time range
         /// \return A mutable reference to the time range that should be queried
@@ -171,7 +171,7 @@ namespace ignition
         /// \brief Query for all the topics over the specified time range (by
         /// default, all time).
         /// \param[in] _timeRange The initial range of time for this option.
-        public: AllTopics(
+        public: explicit AllTopics(
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
 
         // Documentation inherited

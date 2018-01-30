@@ -119,7 +119,7 @@ Descriptor::Descriptor()
 }
 
 //////////////////////////////////////////////////
-Descriptor::Descriptor(Descriptor &&_orig)
+Descriptor::Descriptor(Descriptor &&_orig)  // NOLINT(build/c++11)
   : dataPtr(std::move(_orig.dataPtr))
 {
   // Do nothing

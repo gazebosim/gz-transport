@@ -106,7 +106,7 @@ namespace ignition
 
         /// \brief Move constructor, not used by most
         /// \internal
-        public: Descriptor(Descriptor &&_orig);
+        public: Descriptor(Descriptor &&_orig);  // NOLINT
 
         /// \internal Implementation for this class
         class Implementation;

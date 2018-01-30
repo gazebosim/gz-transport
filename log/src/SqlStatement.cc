@@ -34,8 +34,8 @@ class SqlParameter::Implementation
     this->type = ParamType::NULL_TYPE;
   }
 
-  /// \internal \sa SqlParameter::Set(long long int)
-  public: void Set(const long long int _integer)
+  /// \internal \sa SqlParameter::Set(int64_t)
+  public: void Set(const int64_t _integer)
   {
     this->type = ParamType::INTEGER;
     this->integer = _integer;
@@ -56,7 +56,7 @@ class SqlParameter::Implementation
   }
 
   /// \internal \sa SqlParameter::QueryInteger()
-  public: const long long int *QueryInteger() const
+  public: const int64_t *QueryInteger() const
   {
     if (ParamType::INTEGER == this->type)
       return &this->integer;
@@ -89,7 +89,7 @@ class SqlParameter::Implementation
   public: union
   {
     /// \brief Integer value for this parameter
-    long long int integer;
+    int64_t integer;
 
     /// \brief Real (floating-point) value for this parameter
     double real;
@@ -101,7 +101,7 @@ class SqlParameter::Implementation
 };
 
 //////////////////////////////////////////////////
-SqlParameter::SqlParameter(SqlParameter &&_other)
+SqlParameter::SqlParameter(SqlParameter &&_other)  // NOLINT(build/c++11)
   : dataPtr(std::move(_other.dataPtr))
 {
 }
@@ -120,7 +120,7 @@ SqlParameter::SqlParameter(std::nullptr_t)
 }
 
 //////////////////////////////////////////////////
-SqlParameter::SqlParameter(const long long int _integer)
+SqlParameter::SqlParameter(const int64_t _integer)
   : dataPtr(new Implementation)
 {
   this->dataPtr->Set(_integer);
@@ -147,7 +147,7 @@ void SqlParameter::Set(std::nullptr_t)
 }
 
 //////////////////////////////////////////////////
-void SqlParameter::Set(const long long int _integer)
+void SqlParameter::Set(const int64_t _integer)
 {
   this->dataPtr->Set(_integer);
 }
@@ -171,7 +171,7 @@ SqlParameter::ParamType SqlParameter::Type() const
 }
 
 //////////////////////////////////////////////////
-const long long int *SqlParameter::QueryInteger() const
+const int64_t *SqlParameter::QueryInteger() const
 {
   return this->dataPtr->QueryInteger();
 }

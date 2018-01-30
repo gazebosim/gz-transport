@@ -166,10 +166,6 @@ PlaybackError Playback::Start()
     [this, batch{std::move(batch)}] () mutable
     {
       bool publishedFirstMessage = false;
-      // Map of topic names to a map of message types to publisher
-      std::unordered_map<std::string,
-        std::unordered_map<std::string,
-        ignition::transport::Node::Publisher>> publishers;
 
       // Get current elapsed on monotonic clock
       std::chrono::nanoseconds nowNS(
@@ -188,7 +184,7 @@ PlaybackError Playback::Start()
           break;
         }
 
-        //Publish the first message right away, all others delay
+        // Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
           ignition::common::Time target = msg.TimeReceived() - firstMsgTime;

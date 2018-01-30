@@ -18,6 +18,7 @@
 #ifndef IGNITION_TRANSPORT_LOG_INTERNAL_DESCRIPTOR_HH_
 #define IGNITION_TRANSPORT_LOG_INTERNAL_DESCRIPTOR_HH_
 
+#include <string>
 #include <unordered_map>
 
 #include <ignition/transport/log/Descriptor.hh>

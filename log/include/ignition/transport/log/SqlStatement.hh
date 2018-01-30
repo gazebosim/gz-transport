@@ -48,23 +48,23 @@ namespace ignition
         };
 
         /// \brief move constructor
-        public: SqlParameter(SqlParameter &&_other);
+        public: SqlParameter(SqlParameter &&_other);  // NOLINT
 
         /// \sa Set(std::nullptr_t)
         /// \sa SqlParameter(std::nullptr_t)
         public: SqlParameter();
 
         /// \sa Set(std::nullptr_t)
-        public: SqlParameter(std::nullptr_t);
+        public: explicit SqlParameter(std::nullptr_t);
 
-        /// \sa Set(long long int)
-        public: SqlParameter(long long int _integer);
+        /// \sa Set(int64_t)
+        public: explicit SqlParameter(int64_t _integer);
 
         /// \sa Set(double)
-        public: SqlParameter(double _real);
+        public: explicit SqlParameter(double _real);
 
         /// \sa Set(const std::string &)
-        public: SqlParameter(const std::string &_text);
+        public: explicit SqlParameter(const std::string &_text);
 
         /// \brief Set this parameter to a NULL_TYPE.
         /// \param[in] _np Pass in a nullptr.
@@ -72,7 +72,7 @@ namespace ignition
 
         /// \brief Set this parameter to an INTEGER type.
         /// \param[in] _integer The integer value to set this parameter to.
-        public: void Set(long long int _integer);
+        public: void Set(int64_t _integer);
 
         /// \brief Set this parameter to a floating-point type.
         /// \param[in] _real The value to set this parameter to.
@@ -89,7 +89,7 @@ namespace ignition
         /// \brief Get the integer value of this parameter.
         /// \return A pointer to this parameter's integer value, or a nullptr
         /// if it does not contain an integer.
-        public: const long long int *QueryInteger() const;
+        public: const int64_t *QueryInteger() const;
 
         /// \brief Get the floating-point value of this parameter.
         /// \return A pointer to this parameter's floating-point value, or a

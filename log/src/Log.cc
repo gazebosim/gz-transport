@@ -379,8 +379,6 @@ bool Log::Valid() const
 //////////////////////////////////////////////////
 bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 {
-  int returnCode;
-
   // Open the SQLite3 database
   if (this->dataPtr->db)
   {
@@ -448,7 +446,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     }
 
     // Apply the schema to the database
-    returnCode = sqlite3_exec(
+    int returnCode = sqlite3_exec(
         this->dataPtr->db->Handle(), schema.c_str(), NULL, 0, NULL);
     if (returnCode != SQLITE_OK)
     {
@@ -544,7 +542,7 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
   }
 
   // TODO Move vv code below vv to BasicQueryOptions
-  std::vector<long long int> topicIds;
+  std::vector<int64_t> topicIds;
   for (const std::string &_name : _topics)
   {
     // Call to get side effect of updating the descriptor
@@ -585,7 +583,7 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
   gen_query.statement += ") ORDER BY messages.time_recv;";
 
   gen_query.parameters.reserve(_topics.size());
-  for (long long int topicId : topicIds)
+  for (int64_t topicId : topicIds)
   {
     gen_query.parameters.emplace_back(topicId);
   }
@@ -608,7 +606,8 @@ std::string Log::Version()
   }
 
   // Compile the statement
-  const char *get_version = "SELECT to_version FROM migrations ORDER BY id DESC LIMIT 1;";
+  const char *get_version =
+    "SELECT to_version FROM migrations ORDER BY id DESC LIMIT 1;";
   raii_sqlite3::Statement statement(*(this->dataPtr->db), get_version);
   if (!statement)
   {

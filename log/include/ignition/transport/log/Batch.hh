@@ -70,7 +70,8 @@ namespace ignition
         /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer
         /// \internal
-        private: Batch(std::unique_ptr<BatchPrivate> &&_pimpl);
+        private: Batch(
+            std::unique_ptr<BatchPrivate> &&_pimpl);  // NOLINT(build/c++11)
 
         /// \brief Log can use private constructor
         friend class Log;

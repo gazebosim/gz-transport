@@ -35,8 +35,8 @@
 /// valid.
 /// \return True if the message we are viewing is valid.
 void VerifyMessage(const ignition::transport::log::Message &_msg,
-                   const long int _msgCount,
-                   const long int _numTopics,
+                   const int64_t _msgCount,
+                   const int64_t _numTopics,
                    const std::function<bool(const std::string&)> &VerifyTopic)
 {
   using MsgType = ignition::transport::log::test::ChirpMsgType;
@@ -57,7 +57,7 @@ void VerifyMessage(const ignition::transport::log::Message &_msg,
   // The chirps will count starting from 1 (hence the +1) up to numChirps for
   // each topic. We use integer division because it automatically rounds down,
   // which is what we want.
-  const long int chirpValue = _msgCount/_numTopics + 1;
+  const int64_t chirpValue = _msgCount/_numTopics + 1;
   EXPECT_EQ(chirpValue, msg.data());
 }
 
@@ -114,12 +114,12 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
     return false;
   };
 
-  long int count = 0;
+  int64_t count = 0;
 
   for (const ignition::transport::log::Message &msg : log.AllMessages())
   {
     VerifyMessage(msg, count,
-                  static_cast<long int>(topics.size()),
+                  static_cast<int64_t>(topics.size()),
                   VerifyTopic);
     ++count;
   }
@@ -188,7 +188,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   std::string data;
   std::string type;
 
-  for(const ignition::transport::log::Message &msg : log.AllMessages())
+  for (const ignition::transport::log::Message &msg : log.AllMessages())
   {
     data = msg.Data();
     type = msg.Type();
@@ -243,14 +243,14 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   auto VerifyTopic = [&](const std::string &_topic)
   {
-    if(std::regex_match(_topic, _pattern))
+    if (std::regex_match(_topic, _pattern))
       return true;
 
     std::cout << "Unexpected topic name: " << _topic << std::endl;
     return false;
   };
 
-  long int count = 0;
+  int64_t count = 0;
 
   for (const ignition::transport::log::Message &msg : log.AllMessages())
   {

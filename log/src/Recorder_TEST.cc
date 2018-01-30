@@ -24,7 +24,8 @@ using namespace ignition;
 TEST(Record, Start)
 {
   transport::log::Recorder recorder;
-  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(
+      transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
@@ -39,7 +40,8 @@ TEST(Record, StartImpossibleFilename)
 TEST(Record, DoubleStart)
 {
   transport::log::Recorder recorder;
-  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(
+      transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
   EXPECT_EQ(transport::log::RecorderError::ALREADY_RECORDING,
       recorder.Start(":memory:"));
 }
@@ -48,9 +50,11 @@ TEST(Record, DoubleStart)
 TEST(Record, StartStopStart)
 {
   transport::log::Recorder recorder;
-  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(
+      transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
   recorder.Stop();
-  EXPECT_EQ(transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
+  EXPECT_EQ(
+      transport::log::RecorderError::NO_ERROR, recorder.Start(":memory:"));
 }
 
 //////////////////////////////////////////////////
