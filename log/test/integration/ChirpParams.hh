@@ -19,10 +19,13 @@
 #define IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
 #include <ignition/msgs/int32.pb.h>
+#include <ignition/transport/test_config.h>
+
+#include <string>
+#include <vector>
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/transport/test_config.h>
 
 namespace ignition
 {
@@ -109,7 +112,7 @@ namespace ignition
           }
 
           char * args = new char[fullArgs.size()+1];
-          std::strcpy(args, fullArgs.c_str());
+          std::snprintf(args, fullArgs.size()+1, "%s", fullArgs.c_str());
 
           STARTUPINFO info = {sizeof(info)};
           PROCESS_INFORMATION processInfo;
@@ -133,7 +136,7 @@ namespace ignition
           {
             const std::string &arg = strArgs[i];
             args[i] = new char[arg.size()+1];
-            std::strcpy(args[i], arg.c_str());
+            std::snprintf(args[i], arg.size()+1, "%s", arg.c_str());
           }
 
           // The last item in the char array must be a nullptr, according to the

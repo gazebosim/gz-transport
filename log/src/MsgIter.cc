@@ -26,6 +26,84 @@ using namespace ignition::transport::log;
 
 
 //////////////////////////////////////////////////
+MsgIterPrivate::MsgIterPrivate()
+{
+}
+
+
+//////////////////////////////////////////////////
+MsgIterPrivate::MsgIterPrivate(
+    const std::shared_ptr<raii_sqlite3::Database> &_db,
+    const std::shared_ptr<std::vector<SqlStatement>> &_statements)
+  : db(_db), statements(_statements)
+{
+  PrepareNextStatement();
+}
+
+//////////////////////////////////////////////////
+MsgIterPrivate::~MsgIterPrivate()
+{
+}
+
+//////////////////////////////////////////////////
+bool MsgIterPrivate::PrepareNextStatement()
+{
+  if (this->statements != nullptr
+      && this->statementIndex >= this->statements->size())
+  {
+    // No more statements
+    return false;
+  }
+  // Get next statement in list
+  const SqlStatement & query = this->statements->at(this->statementIndex);
+
+  // Compile the statement
+  std::unique_ptr<raii_sqlite3::Statement> nextStatement(
+      new raii_sqlite3::Statement(*(this->db), query.statement));
+  if (!*nextStatement)
+  {
+    ignerr << "Failed to prepare query: "<< sqlite3_errmsg(
+        this->db->Handle()) << "\n";
+    return false;
+  }
+
+  // Bind the parameters supplied with the statment
+  int i = 1;
+  int returnCode;
+  for (const SqlParameter & param : query.parameters)
+  {
+    switch (param.Type())
+    {
+      case SqlParameter::ParamType::TEXT:
+          returnCode = sqlite3_bind_text(nextStatement->Handle(), i,
+              param.QueryText()->c_str(), param.QueryText()->size(),
+              SQLITE_STATIC);
+        break;
+      case SqlParameter::ParamType::INTEGER:
+          returnCode = sqlite3_bind_int64(nextStatement->Handle(), i,
+              *param.QueryInteger());
+        break;
+      case SqlParameter::ParamType::REAL:
+          returnCode = sqlite3_bind_double(nextStatement->Handle(), i,
+              *param.QueryReal());
+        break;
+      default:
+        return false;
+    }
+    if (returnCode != SQLITE_OK)
+    {
+      ignerr << "Failed to query messages: "<< sqlite3_errmsg(
+        this->db->Handle()) << "\n";
+      return false;
+    }
+    ++i;
+  }
+
+  this->statement = std::move(nextStatement);
+  return true;
+}
+
+//////////////////////////////////////////////////
 void MsgIterPrivate::StepStatement()
 {
   if (this->statement)
@@ -37,7 +115,7 @@ void MsgIterPrivate::StepStatement()
     {
       // TODO get data and create message in the dereference operators
       // Assumes statement has column order:
-      // messages id (0), timeRecv(1), topics name(2), 
+      // messages id (0), timeRecv(1), topics name(2),
       // message_type name(3), message data(4)
       ignition::common::Time timeRecv;
 
@@ -76,6 +154,8 @@ void MsgIterPrivate::StepStatement()
       }
       // Out of data
       this->statement.reset();
+      ++this->statementIndex;
+      this->PrepareNextStatement();
     }
   }
 }
@@ -95,13 +175,14 @@ MsgIter::MsgIter()
 //   // at the current row id
 // }
 
-MsgIter::MsgIter(MsgIter &&_orig)
+MsgIter::MsgIter(MsgIter &&_orig)  // NOLINT(build/c++11)
   : dataPtr(std::move(_orig.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-MsgIter::MsgIter(std::unique_ptr<MsgIterPrivate> &&_pimpl)
+MsgIter::MsgIter(
+    std::unique_ptr<MsgIterPrivate> &&_pimpl)  // NOLINT(build/c++11)
   : dataPtr(std::move(_pimpl))
 {
   this->dataPtr->StepStatement();

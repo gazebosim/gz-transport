@@ -9,12 +9,16 @@ add_subdirectory(src/cmd)
 set(logging_sources
   src/Batch.cc
   src/cmd/LogCommandAPI.cc
+  src/Descriptor.cc
   src/Log.cc
   src/Message.cc
   src/MsgIter.cc
   src/Playback.cc
+  src/QualifiedTime.cc
+  src/QueryOptions.cc
   src/raii-sqlite3.cc
   src/Recorder.cc
+  src/SqlStatement.cc
 )
 
 add_library(${log_lib_target} SHARED

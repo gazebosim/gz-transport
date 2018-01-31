@@ -46,7 +46,7 @@ namespace ignition
 
         /// \brief Move Constructor
         /// \param[in] _orig the instance being copied
-        public: MsgIter(MsgIter &&_orig);
+        public: MsgIter(MsgIter &&_orig);  // NOLINT
 
         /// \brief Destructor;
         public: ~MsgIter();
@@ -86,10 +86,11 @@ namespace ignition
         /// \brief Private Implementation Pointer
         public: std::unique_ptr<MsgIterPrivate> dataPtr;
 
-        /// \brief Construct with private implementation 
+        /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer
         /// \internal
-        private: MsgIter(std::unique_ptr<MsgIterPrivate> &&_pimpl);
+        private: MsgIter(
+            std::unique_ptr<MsgIterPrivate> &&_pimpl);  // NOLINT(build/c++11)
 
         /// \brief can use private constructor
         friend class Batch;

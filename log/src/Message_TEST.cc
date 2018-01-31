@@ -33,7 +33,7 @@ TEST(Message, DefaultConstructor)
 //////////////////////////////////////////////////
 TEST(Message, DataConstructor)
 {
-  ignition::common::Time goldenTime(1234,5678);
+  ignition::common::Time goldenTime(1234, 5678);
   std::string data("SomeData");
   std::string topic("/a/topic");
   std::string msgType("msg.type");

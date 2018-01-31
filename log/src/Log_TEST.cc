@@ -57,7 +57,7 @@ TEST(Log, AllMessagesNone)
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   auto batch = logFile.AllMessages();
-  EXPECT_EQ(transport::log::MsgIter(), batch.begin());
+  EXPECT_EQ(batch.end(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -85,10 +85,10 @@ TEST(Log, InsertMessageGetMessages)
 
   auto batch = logFile.AllMessages();
   auto iter = batch.begin();
-  ASSERT_NE(transport::log::MsgIter(), iter);
+  ASSERT_NE(batch.end(), iter);
   EXPECT_EQ(data1, iter->Data());
   ++iter;
-  ASSERT_NE(transport::log::MsgIter(), iter);
+  ASSERT_NE(batch.end(), iter);
   EXPECT_EQ(data2, iter->Data());
   ++iter;
   EXPECT_EQ(transport::log::MsgIter(), iter);
@@ -102,7 +102,7 @@ TEST(Log, QueryMessagesByTopicNone)
 
   std::unordered_set<std::string> noTopics;
   auto batch = logFile.QueryMessages(noTopics);
-  EXPECT_EQ(transport::log::MsgIter(), batch.begin());
+  EXPECT_EQ(batch.end(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -130,7 +130,7 @@ TEST(Log, Insert2Get1MessageByTopic)
 
   auto batch = logFile.QueryMessages({"/some/topic/name"});
   auto iter = batch.begin();
-  ASSERT_NE(transport::log::MsgIter(), iter);
+  ASSERT_NE(batch.end(), iter);
   EXPECT_EQ(data1, iter->Data());
   ++iter;
   EXPECT_EQ(transport::log::MsgIter(), iter);

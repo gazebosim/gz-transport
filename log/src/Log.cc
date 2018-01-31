@@ -27,10 +27,12 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/transport/log/Log.hh"
+#include "ignition/transport/log/SqlStatement.hh"
 #include "src/BatchPrivate.hh"
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"
 
+#include "Descriptor.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
@@ -39,24 +41,12 @@ using namespace ignition::transport::log;
 /// \brief Nanoseconds Per Second
 const sqlite3_int64 NS_PER_SEC = 1000000000;
 
-
-//////////////////////////////////////////////////
-/// \brief allow pair of strings to be a key in a map
-namespace std {
-  template <> struct hash<std::pair<std::string, std::string>>
-  {
-    size_t operator()(const std::pair<std::string, std::string> &_topic) const
-    {
-      // Terrible, gets the job done
-      return (std::hash<std::string>()(_topic.first) << 16)
-        + std::hash<std::string>()(_topic.second);
-    }
-  };
-}
-
 /// \brief Private implementation
-class ignition::transport::log::LogPrivate
+class ignition::transport::log::Log::Implementation
 {
+  /// \internal \sa Log::GetDescriptor()
+  public: const Descriptor *GetDescriptor() const;
+
   /// \brief End transaction if enough time has passed since it began
   /// \return false if there is a sqlite error
   public: bool EndTransactionIfEnoughTimeHasPassed();
@@ -66,10 +56,13 @@ class ignition::transport::log::LogPrivate
   public: bool BeginTransactionIfNotInOne();
 
   /// \brief Get topic_id associated with a topic name and message type
+  /// If the topic is not in the log it will be added
+  /// \note Invalidates the descriptor if a topic is inserted
   /// \param[in] _name the name of the topic
   /// \param[in] _type the name of the message type
   /// \return topic_id or -1 if one could not be produced
-  public: int64_t TopicId(const std::string &_name, const std::string &_type);
+  public: int64_t InsertOrGetTopicId(
+      const std::string &_name, const std::string &_type);
 
   /// \brief Insert a message into the database
   public: bool InsertMessage(const common::Time &_time, int64_t _topic,
@@ -86,18 +79,90 @@ class ignition::transport::log::LogPrivate
   public: bool inTransaction = false;
 
   /// \brief Maps topic name/type pairs to an id in the topics table
-  public:
-    std::unordered_map<std::pair<std::string, std::string>, int64_t> topics;
+  public: TopicKeyMap topics;
 
   /// \brief last time the transaction was ended
   public: std::chrono::steady_clock::time_point lastTransaction;
 
   /// \brief duration between transactions
   public: std::chrono::milliseconds transactionPeriod;
+
+  /// \brief Flag to track whether we need to generate a new Descriptor
+  private: mutable bool needNewDescriptor = true;
+
+  /// \brief Descriptor which provides insight to the column IDs in the database
+  public: mutable Descriptor descriptor;
 };
 
 //////////////////////////////////////////////////
-bool LogPrivate::EndTransactionIfEnoughTimeHasPassed()
+const Descriptor *Log::Implementation::GetDescriptor() const
+{
+  if (!this->db)
+    return nullptr;
+
+  if (this->needNewDescriptor)
+  {
+    TopicKeyMap topicsInLog;
+
+    // Prepare the statement
+    const char * sql_statement =
+      "SELECT topics.id, topics.name, message_types.name FROM topics"
+      " JOIN message_types ON topics.message_type_id = message_types.id;";
+
+    raii_sqlite3::Statement topic_ids_statement(*(this->db), sql_statement);
+    if (!topic_ids_statement)
+    {
+      ignerr << "Failed to compile statement to get topic ids\n";
+      return nullptr;
+    }
+
+    // Execute the statement
+    int returnCode;
+    do
+    {
+      returnCode = sqlite3_step(topic_ids_statement.Handle());
+      if (returnCode == SQLITE_ROW)
+      {
+        // get the data about the topic
+        sqlite_int64 topicId = sqlite3_column_int64(
+            topic_ids_statement.Handle(), 0);
+
+        const unsigned char *topicName = sqlite3_column_text(
+            topic_ids_statement.Handle(), 1);
+        std::size_t lenTopicName = sqlite3_column_bytes(
+            topic_ids_statement.Handle(), 1);
+
+        const unsigned char *typeName = sqlite3_column_text(
+            topic_ids_statement.Handle(), 2);
+        std::size_t lenTypeName = sqlite3_column_bytes(
+            topic_ids_statement.Handle(), 2);
+
+        TopicKey key;
+        key.topic = std::string(
+            reinterpret_cast<const char *>(topicName), lenTopicName);
+        key.type = std::string(
+            reinterpret_cast<const char *>(typeName), lenTypeName);
+        topicsInLog[key] = topicId;
+        igndbg << key.topic << "|" << key.type << "|" << topicId << "\n";
+      }
+      else if (returnCode != SQLITE_DONE)
+      {
+        ignerr << "Failed query topic ids: " << sqlite3_errmsg(
+            this->db->Handle()) << "\n";
+        return nullptr;
+      }
+    } while (returnCode == SQLITE_ROW);
+
+    // Save the result into the descriptor
+    this->needNewDescriptor = false;
+    descriptor.dataPtr->Reset(topicsInLog);
+  }
+
+  return &this->descriptor;
+}
+
+//////////////////////////////////////////////////
+bool Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
 {
   if (!this->TimeForNewTransaction())
   {
@@ -118,7 +183,7 @@ bool LogPrivate::EndTransactionIfEnoughTimeHasPassed()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::BeginTransactionIfNotInOne()
+bool Log::Implementation::BeginTransactionIfNotInOne()
 {
   if (this->inTransaction)
     return true;
@@ -137,23 +202,33 @@ bool LogPrivate::BeginTransactionIfNotInOne()
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::TimeForNewTransaction() const
+bool Log::Implementation::TimeForNewTransaction() const
 {
   auto now = std::chrono::steady_clock::now();
   return now - this->transactionPeriod > this->lastTransaction;
 }
 
 //////////////////////////////////////////////////
-int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
+int64_t Log::Implementation::InsertOrGetTopicId(
+    const std::string &_name,
+    const std::string &_type)
 {
-  int returnCode;
   // If the name and type is known, return a cached ID
-  auto key = std::make_pair(_name, _type);
-  auto topicIter = this->topics.find(key);
-  if (topicIter != this->topics.end())
+  // Call method to get side effect of updating descriptor
+  const Descriptor *desc = this->GetDescriptor();
+  if (nullptr == desc)
   {
-    return topicIter->second;
+    return -1;
   }
+
+  int64_t topicId = desc->TopicId(_name, _type);
+  if (topicId >= 0)
+  {
+    return topicId;
+  }
+
+  // Inserting a new topic invalidates the descriptor
+  this->needNewDescriptor = true;
 
   // Otherwise insert it into the database and return the new topic_id
   const std::string sql_message_type =
@@ -177,6 +252,7 @@ int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
     return -1;
   }
 
+  int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
       message_type_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
@@ -216,14 +292,16 @@ int64_t LogPrivate::TopicId(const std::string &_name, const std::string &_type)
 
   // topics.id is an alias for rowid
   int64_t id = sqlite3_last_insert_rowid(this->db->Handle());
-  this->topics[key] = id;
   igndbg << "Inserted '" << _name << "'[" << _type << "]\n";
   return id;
 }
 
 //////////////////////////////////////////////////
-bool LogPrivate::InsertMessage(const common::Time &_time, int64_t _topic,
-      const void *_data, std::size_t _len)
+bool Log::Implementation::InsertMessage(
+    const common::Time &_time,
+    int64_t _topic,
+    const void *_data,
+    std::size_t _len)
 {
   int returnCode;
   const std::string sql_message =
@@ -271,7 +349,7 @@ bool LogPrivate::InsertMessage(const common::Time &_time, int64_t _topic,
 
 //////////////////////////////////////////////////
 Log::Log()
-  : dataPtr(new LogPrivate)
+  : dataPtr(new Implementation)
 {
   // Default to 2 transactions per second
   this->dataPtr->transactionPeriod = std::chrono::milliseconds(500);
@@ -301,8 +379,6 @@ bool Log::Valid() const
 //////////////////////////////////////////////////
 bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 {
-  int returnCode;
-
   // Open the SQLite3 database
   if (this->dataPtr->db)
   {
@@ -370,7 +446,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     }
 
     // Apply the schema to the database
-    returnCode = sqlite3_exec(
+    int returnCode = sqlite3_exec(
         this->dataPtr->db->Handle(), schema.c_str(), NULL, 0, NULL);
     if (returnCode != SQLITE_OK)
     {
@@ -394,6 +470,12 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 }
 
 //////////////////////////////////////////////////
+const Descriptor *Log::GetDescriptor() const
+{
+  return this->dataPtr->GetDescriptor();
+}
+
+//////////////////////////////////////////////////
 bool Log::InsertMessage(
     const common::Time &_time,
     const std::string &_topic, const std::string &_type,
@@ -406,7 +488,7 @@ bool Log::InsertMessage(
   }
 
   // Get the topics.id for this name and message type
-  int64_t topicId = this->dataPtr->TopicId(_topic, _type);
+  int64_t topicId = this->dataPtr->InsertOrGetTopicId(_topic, _type);
   if (topicId < 0)
   {
     return false;
@@ -433,8 +515,20 @@ bool Log::InsertMessage(
 //////////////////////////////////////////////////
 Batch Log::AllMessages()
 {
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate);
-  batchPriv->db = this->dataPtr->db;
+  // TODO Move vv code below vv to BasicQueryOptions
+  SqlStatement gen_query;
+  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id"
+    " ORDER BY messages.time_recv;";
+
+  std::vector<SqlStatement> statements;
+  statements.push_back(std::move(gen_query));
+  // TODO ^^ code above ^^ to BasicQueryOptions
+
+  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
+        this->dataPtr->db, std::move(statements)));
   return Batch(std::move(batchPriv));
 }
 
@@ -447,53 +541,60 @@ Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
     return Batch();
   }
 
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate);
-  batchPriv->db = this->dataPtr->db;
-  batchPriv->topicNames = _topics;
+  // TODO Move vv code below vv to BasicQueryOptions
+  std::vector<int64_t> topicIds;
+  for (const std::string &_name : _topics)
+  {
+    // Call to get side effect of updating the descriptor
+    const Descriptor *desc = this->dataPtr->GetDescriptor();
+    if (nullptr == desc)
+    {
+      ignerr << "Failed to get descriptor\n";
+      return Batch();
+    }
+    const Descriptor::NameToId * typesToId = desc->QueryMsgTypesOfTopic(_name);
+    if (typesToId != nullptr)
+    {
+      for (auto const & keyValue : *typesToId)
+      {
+        topicIds.push_back(keyValue.second);
+      }
+    }
+  }
+  if (topicIds.empty())
+  {
+    ignerr << "No matching topics found in log file\n";
+    return Batch();
+  }
+
+  SqlStatement gen_query;
+  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
+    " message_types.name, messages.message FROM messages JOIN topics ON"
+    " topics.id = messages.topic_id JOIN message_types ON"
+    " message_types.id = topics.message_type_id"
+    " WHERE topics.id IN (?";
+
+  // Build a template for the list of topics
+  for (std::size_t i = 1; i < topicIds.size(); i++)
+  {
+    gen_query.statement += ", ?";
+  }
+
+  gen_query.statement += ") ORDER BY messages.time_recv;";
+
+  gen_query.parameters.reserve(_topics.size());
+  for (int64_t topicId : topicIds)
+  {
+    gen_query.parameters.emplace_back(topicId);
+  }
+
+  std::vector<SqlStatement> statements;
+  statements.push_back(std::move(gen_query));
+  // TODO ^^ code above ^^ to BasicQueryOptions
+
+  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
+        this->dataPtr->db, std::move(statements)));
   return Batch(std::move(batchPriv));
-}
-
-//////////////////////////////////////////////////
-std::vector<Log::NameTypePair> Log::AllTopics()
-{
-  std::vector<Log::NameTypePair> allTopics;
-  const char *sql = "SELECT topics.name, message_types.name FROM topics"
-    " JOIN message_types ON topics.message_type_id = message_types.id;";
-  raii_sqlite3::Statement statement(*(this->dataPtr->db), sql);
-  if (!statement)
-  {
-    ignerr << "Failed to query topics: "<< sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
-    return allTopics;
-  }
-
-  int returnCode = SQLITE_ROW;
-  while (returnCode != SQLITE_DONE)
-  {
-    returnCode = sqlite3_step(statement.Handle());
-    if (returnCode == SQLITE_ROW)
-    {
-      // Topic name
-      const unsigned char *topic = sqlite3_column_text(statement.Handle(), 0);
-      std::size_t numTopic = sqlite3_column_bytes(statement.Handle(), 0);
-
-      // Message type name
-      const unsigned char *type = sqlite3_column_text(statement.Handle(), 1);
-      std::size_t numType = sqlite3_column_bytes(statement.Handle(), 1);
-
-      // make pair
-      std::string topicName(reinterpret_cast<const char*>(topic), numTopic);
-      std::string topicType(reinterpret_cast<const char*>(type), numType);
-
-      allTopics.push_back(std::make_pair(topicName, topicType));
-    }
-    else if (returnCode != SQLITE_DONE)
-    {
-      ignerr << "Failed to get topics [" << sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
-    }
-  }
-  return allTopics;
 }
 
 //////////////////////////////////////////////////
@@ -505,7 +606,8 @@ std::string Log::Version()
   }
 
   // Compile the statement
-  const char *get_version = "SELECT to_version FROM migrations ORDER BY id DESC LIMIT 1;";
+  const char *get_version =
+    "SELECT to_version FROM migrations ORDER BY id DESC LIMIT 1;";
   raii_sqlite3::Statement statement(*(this->dataPtr->db), get_version);
   if (!statement)
   {

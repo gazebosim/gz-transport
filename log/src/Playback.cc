@@ -166,10 +166,6 @@ PlaybackError Playback::Start()
     [this, batch{std::move(batch)}] () mutable
     {
       bool publishedFirstMessage = false;
-      // Map of topic names to a map of message types to publisher
-      std::unordered_map<std::string,
-        std::unordered_map<std::string,
-        ignition::transport::Node::Publisher>> publishers;
 
       // Get current elapsed on monotonic clock
       std::chrono::nanoseconds nowNS(
@@ -188,7 +184,7 @@ PlaybackError Playback::Start()
           break;
         }
 
-        //Publish the first message right away, all others delay
+        // Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
           ignition::common::Time target = msg.TimeReceived() - firstMsgTime;
@@ -260,24 +256,30 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
     return PlaybackError::FAILED_TO_OPEN;
   }
 
-  std::vector<Log::NameTypePair> allTopics = this->dataPtr->logFile.AllTopics();
-  for (const Log::NameTypePair &topicType : allTopics)
+  const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
+  const Descriptor::NameToMap &allTopics = desc->GetTopicsToMsgTypesToId();
+
+  const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
+  if (it == allTopics.end())
   {
-    if (topicType.first == _topic)
+    ignerr << "Topic [" << _topic << "] is not in the log\n";
+    return PlaybackError::NO_SUCH_TOPIC;
+  }
+
+  const std::string &topic = it->first;
+  for (const auto &typeEntry : it->second)
+  {
+    const std::string &type = typeEntry.first;
+    igndbg << "Playing back [" << _topic << "]\n";
+    // Save the topic name for the query in Start
+    this->dataPtr->topicNames.insert(_topic);
+    if (!this->dataPtr->CreatePublisher(topic, type))
     {
-      igndbg << "Playing back [" << _topic << "]\n";
-      // Save the topic name for the query in Start
-      this->dataPtr->topicNames.insert(_topic);
-      if (!this->dataPtr->CreatePublisher(topicType.first, topicType.second))
-      {
-        return PlaybackError::FAILED_TO_ADVERTISE;
-      }
-      return PlaybackError::NO_ERROR;
+      return PlaybackError::FAILED_TO_ADVERTISE;
     }
   }
 
-  ignerr << "Topic [" << _topic << "] is not in the log\n";
-  return PlaybackError::NO_SUCH_TOPIC;
+  return PlaybackError::NO_ERROR;
 }
 
 //////////////////////////////////////////////////
@@ -290,13 +292,21 @@ int Playback::AddTopic(const std::regex &_topic)
   }
 
   int numPublishers = 0;
-  std::vector<Log::NameTypePair> allTopics = this->dataPtr->logFile.AllTopics();
-  for (const Log::NameTypePair &topicType : allTopics)
+  const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
+  const Descriptor::NameToMap &allTopics = desc->GetTopicsToMsgTypesToId();
+
+  for (const auto &topicEntry : allTopics)
   {
-    if (std::regex_match(topicType.first, _topic))
+    const std::string &topic = topicEntry.first;
+    if (!std::regex_match(topic, _topic))
+      continue;
+
+    for (const auto &typeEntry : topicEntry.second)
     {
-      this->dataPtr->topicNames.insert(topicType.first);
-      if (this->dataPtr->CreatePublisher(topicType.first, topicType.second))
+      const std::string &type = typeEntry.first;
+
+      this->dataPtr->topicNames.insert(topic);
+      if (this->dataPtr->CreatePublisher(topic, type))
       {
         ++numPublishers;
       }
@@ -304,11 +314,6 @@ int Playback::AddTopic(const std::regex &_topic)
       {
         return static_cast<int>(PlaybackError::FAILED_TO_ADVERTISE);
       }
-    }
-    else
-    {
-      igndbg << "Not playing back " << topicType.first << " " <<
-        topicType.second << "\n";
     }
   }
   return numPublishers;
