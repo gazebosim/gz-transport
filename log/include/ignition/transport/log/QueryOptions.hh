@@ -73,12 +73,20 @@ namespace ignition
       };
 
       //////////////////////////////////////////////////
-      /// \brief Pure abstract class which manages the time range settings for
-      /// the native QueryOptions classes.
+      /// \brief Base class which manages the time range settings for the native
+      /// QueryOptions classes.
       class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
       {
         /// \brief Constructor that sets the initial time range option.
         public: explicit TimeRangeOption(const QualifiedTimeRange &_timeRange);
+
+        /// \brief Copy constructor
+        /// \param[in] _other Another TimeRangeOption
+        public: TimeRangeOption(const TimeRangeOption &_other);
+
+        /// \brief Move constructor
+        /// \param[in] _other Another TimeRangeOption
+        public: TimeRangeOption(TimeRangeOption &&_other);
 
         /// \brief Chosen time range
         /// \return A mutable reference to the time range that should be queried
@@ -120,6 +128,17 @@ namespace ignition
           const std::set<std::string> &_topics = { },
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
 
+        /// \brief Factory function that accepts any container type that can be
+        /// passed through a range-for loop. This will take the contents of
+        /// _topics, put them into a std::set, and then pass it along to the
+        /// default constructor.
+        /// \param[in] _topics The topics to include
+        /// \param[in] _timeRange The time range to query over
+        public: template <typename Container>
+        static TopicList Create(
+          const Container &_topics,
+          const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
+
         /// \brief Query for a single topic over the specified time range (by
         /// default, all time).
         /// \param[in] _singleTopic The one topic to query for
@@ -127,6 +146,14 @@ namespace ignition
         public: TopicList(
           const std::string &_singleTopic,
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
+
+        /// \brief Copy constructor
+        /// \param[in] _other Another TopicList
+        public: TopicList(const TopicList &_other);
+
+        /// \brief Move constructor
+        /// \param[in] _other Another TopicList
+        public: TopicList(TopicList &&_other);
 
         /// \brief Topics of this TopicList
         /// \return A mutable reference to the topics that this TopicList should
@@ -166,6 +193,14 @@ namespace ignition
           const std::regex &_pattern,
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
 
+        /// \brief Copy constructor
+        /// \param[in] _other Another TopicPattern
+        public: TopicPattern(const TopicPattern &_other);
+
+        /// \brief Move constructor
+        /// \param[in] _other Another TopicPattern
+        public: TopicPattern(TopicPattern &&_other);
+
         /// \brief Pattern for this option
         /// \return A mutable reference to the regular expression pattern that
         /// this option will query for.
@@ -202,6 +237,14 @@ namespace ignition
         public: explicit AllTopics(
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
 
+        /// \brief Copy constructor
+        /// \param[in] _other Another AllTopics
+        public: AllTopics(const AllTopics &_other);
+
+        /// \brief Move constructor
+        /// \param[in] _other Another AllTopics
+        public: AllTopics(AllTopics &&_other);
+
         // Documentation inherited
         public: std::vector<SqlStatement> GenerateStatements(
           const Descriptor &_descriptor) const override;
@@ -218,5 +261,7 @@ namespace ignition
     }
   }
 }
+
+#include <ignition/transport/log/detail/QueryOptions.hh>
 
 #endif

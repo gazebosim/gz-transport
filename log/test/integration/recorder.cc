@@ -116,7 +116,7 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
 
   int64_t count = 0;
 
-  for (const ignition::transport::log::Message &msg : log.AllMessages())
+  for (const ignition::transport::log::Message &msg : log.QueryMessages())
   {
     VerifyMessage(msg, count,
                   static_cast<int64_t>(topics.size()),
@@ -188,7 +188,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   std::string data;
   std::string type;
 
-  for (const ignition::transport::log::Message &msg : log.AllMessages())
+  for (const ignition::transport::log::Message &msg : log.QueryMessages())
   {
     data = msg.Data();
     type = msg.Type();
@@ -252,7 +252,7 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   int64_t count = 0;
 
-  for (const ignition::transport::log::Message &msg : log.AllMessages())
+  for (const ignition::transport::log::Message &msg : log.QueryMessages())
   {
     VerifyMessage(msg, count, numMatchingTopics, VerifyTopic);
     ++count;

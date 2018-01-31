@@ -513,87 +513,19 @@ bool Log::InsertMessage(
 }
 
 //////////////////////////////////////////////////
-Batch Log::AllMessages()
+Batch Log::QueryMessages(const QueryOptions &_options)
 {
-  // TODO Move vv code below vv to BasicQueryOptions
-  SqlStatement gen_query;
-  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
-    " message_types.name, messages.message FROM messages JOIN topics ON"
-    " topics.id = messages.topic_id JOIN message_types ON"
-    " message_types.id = topics.message_type_id"
-    " ORDER BY messages.time_recv;";
+  const Descriptor *desc = this->GetDescriptor();
 
-  std::vector<SqlStatement> statements;
-  statements.push_back(std::move(gen_query));
-  // TODO ^^ code above ^^ to BasicQueryOptions
-
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
-        this->dataPtr->db, std::move(statements)));
-  return Batch(std::move(batchPriv));
-}
-
-//////////////////////////////////////////////////
-Batch Log::QueryMessages(const std::unordered_set<std::string> &_topics)
-{
-  if (_topics.empty())
-  {
-    ignwarn << "No topics given\n";
+  // Make sure the log has been initialized.
+  // TODO: Should we print a warning here?
+  if (!desc)
     return Batch();
-  }
 
-  // TODO Move vv code below vv to BasicQueryOptions
-  std::vector<int64_t> topicIds;
-  for (const std::string &_name : _topics)
-  {
-    // Call to get side effect of updating the descriptor
-    const Descriptor *desc = this->dataPtr->GetDescriptor();
-    if (nullptr == desc)
-    {
-      ignerr << "Failed to get descriptor\n";
-      return Batch();
-    }
-    const Descriptor::NameToId * typesToId = desc->QueryMsgTypesOfTopic(_name);
-    if (typesToId != nullptr)
-    {
-      for (auto const & keyValue : *typesToId)
-      {
-        topicIds.push_back(keyValue.second);
-      }
-    }
-  }
-  if (topicIds.empty())
-  {
-    ignerr << "No matching topics found in log file\n";
-    return Batch();
-  }
+  std::unique_ptr<BatchPrivate> batchPriv(
+        new BatchPrivate(this->dataPtr->db,
+                         _options.GenerateStatements(*desc)));
 
-  SqlStatement gen_query;
-  gen_query.statement = "SELECT messages.id, messages.time_recv, topics.name,"
-    " message_types.name, messages.message FROM messages JOIN topics ON"
-    " topics.id = messages.topic_id JOIN message_types ON"
-    " message_types.id = topics.message_type_id"
-    " WHERE topics.id IN (?";
-
-  // Build a template for the list of topics
-  for (std::size_t i = 1; i < topicIds.size(); i++)
-  {
-    gen_query.statement += ", ?";
-  }
-
-  gen_query.statement += ") ORDER BY messages.time_recv;";
-
-  gen_query.parameters.reserve(_topics.size());
-  for (int64_t topicId : topicIds)
-  {
-    gen_query.parameters.emplace_back(topicId);
-  }
-
-  std::vector<SqlStatement> statements;
-  statements.push_back(std::move(gen_query));
-  // TODO ^^ code above ^^ to BasicQueryOptions
-
-  std::unique_ptr<BatchPrivate> batchPriv(new BatchPrivate(
-        this->dataPtr->db, std::move(statements)));
   return Batch(std::move(batchPriv));
 }
 

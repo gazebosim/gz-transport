@@ -85,18 +85,11 @@ namespace ignition
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
 
-        /// \brief Get all messages from the bag file
-        /// \return an iterator through the messages
-        public: Batch AllMessages();
-
-        /// \brief Get messages belonging to the given topics
-        /// \param[in] _topics the list of topics to query
-        /// \return an iterator through the messages
-        public: Batch QueryMessages(
-            const std::unordered_set<std::string> &_topics);
-
         /// \brief Get messages according to the specified options. By default,
         /// it will query all messages over the entire time range of the log.
+        /// \param[in] _options A QueryOptions type to indicate what kind of
+        /// messages you would like to query.
+        /// \return A Batch which matches the requested QueryOptions.
         public: Batch QueryMessages(
             const QueryOptions &_options = AllTopics());
 

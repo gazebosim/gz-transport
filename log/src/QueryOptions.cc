@@ -134,6 +134,20 @@ TimeRangeOption::TimeRangeOption(const QualifiedTimeRange &_timeRange)
 }
 
 //////////////////////////////////////////////////
+TimeRangeOption::TimeRangeOption(const TimeRangeOption &_other)
+  : dataPtr(new Implementation{*_other.dataPtr})
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+TimeRangeOption::TimeRangeOption(TimeRangeOption &&_other)
+  : dataPtr(std::move(_other.dataPtr))
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
 QualifiedTimeRange &TimeRangeOption::TimeRange()
 {
   return this->dataPtr->range;
@@ -209,6 +223,22 @@ TopicList::TopicList(
     const std::string &_singleTopic,
     const QualifiedTimeRange &_timeRange)
   : TopicList(std::set<std::string>{_singleTopic}, _timeRange)
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+TopicList::TopicList(const TopicList &_other)
+  : TimeRangeOption(_other),
+    dataPtr(new Implementation{*_other.dataPtr})
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+TopicList::TopicList(TopicList &&_other)
+  : TimeRangeOption(std::move(_other)),
+    dataPtr(std::move(_other.dataPtr)) // Is this legal?
 {
   // Do nothing
 }
@@ -302,6 +332,22 @@ TopicPattern::TopicPattern(
 }
 
 //////////////////////////////////////////////////
+TopicPattern::TopicPattern(const TopicPattern &_other)
+  : TimeRangeOption(_other),
+    dataPtr(new Implementation{*_other.dataPtr})
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+TopicPattern::TopicPattern(TopicPattern &&_other)
+  : TimeRangeOption(std::move(_other)),
+    dataPtr(std::move(_other.dataPtr))
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
 std::regex &TopicPattern::Pattern()
 {
   return this->dataPtr->pattern;
@@ -352,6 +398,20 @@ AllTopics::AllTopics(const QualifiedTimeRange &_timeRange)
   // Do nothing. We don't even allocate the PIMPL because we have no use for it
   // yet. We might never need it, but we'll hang onto it just in case the needs
   // of this class change in the future.
+}
+
+//////////////////////////////////////////////////
+AllTopics::AllTopics(const AllTopics &_other)
+  : TimeRangeOption(_other)
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+AllTopics::AllTopics(AllTopics &&_other)
+  : TimeRangeOption(std::move(_other))
+{
+  // Do nothing
 }
 
 //////////////////////////////////////////////////

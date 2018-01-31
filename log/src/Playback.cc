@@ -144,7 +144,8 @@ PlaybackError Playback::Start()
     }
   }
 
-  Batch batch = this->dataPtr->logFile.QueryMessages(this->dataPtr->topicNames);
+  Batch batch = this->dataPtr->logFile.QueryMessages(
+        TopicList::Create(this->dataPtr->topicNames));
   if (batch.begin() == batch.end())
   {
     ignwarn << "There are no messages to play\n";
