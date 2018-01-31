@@ -59,7 +59,7 @@ target_compile_options(${log_lib_target} PRIVATE
   ${SQLite3_CFLAGS}
 )
 
-# ign_build_tests macro doesn't support building tests in a subflolder
+# ign_build_tests macro doesn't support building tests in a subfolder
 add_subdirectory(src)
 add_subdirectory(test)
 
@@ -73,5 +73,5 @@ configure_file(src/build_config.hh.in build_config.hh @ONLY)
 set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} VERSION ${PROJECT_VERSION_FULL})
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
 
-# header installation
+# Header installation
 install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR})
