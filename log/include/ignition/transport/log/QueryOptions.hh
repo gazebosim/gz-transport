@@ -46,6 +46,28 @@ namespace ignition
         public: virtual std::vector<SqlStatement> GenerateStatements(
           const Descriptor &_descriptor) const = 0;
 
+        /// \brief Get a standard SQL statement preamble, from the SELECT
+        /// keyword up to (but not including) the WHERE keyword. This preamble
+        /// will make sure that the statement is formatted in a way that MsgIter
+        /// will have the information it needs.
+        ///
+        /// Using this statement without modification will query all messages
+        /// in the log, with no specified order (or fail to compile in the SQL
+        /// interpreter if you neglect to add a semicolon to the end). Append
+        /// the output of StandardMessageQueryClose() to ensure that the query
+        /// output will be ordered by the time each message was received, and
+        /// that the statement closes with a semicolon.
+        ///
+        /// \return The initial clause of a standard QueryOptions SQL statement.
+        public: static SqlStatement StandardMessageQueryPreamble();
+
+        /// \brief Get a standard ending to a SQL statement that will instruct
+        /// the queries to be ordered by the time the messages were received by
+        /// the logger. It will also end the statement with a semicolon.
+        ///
+        /// \return \code{" ORDER BY messages.time_recv;"}
+        public: static SqlStatement StandardMessageQueryClose();
+
         /// \brief Virtual destructor
         public: virtual ~QueryOptions() = default;
       };
@@ -67,6 +89,12 @@ namespace ignition
         /// \return A const reference to the time range that should be queried
         /// for.
         public: const QualifiedTimeRange &TimeRange() const;
+
+        /// \brief Generate a SQL string to represent the time conditions.
+        /// This should be appended to a SQL statement after a WHERE keyword.
+        /// \return A partial SqlStatement that specifies the time conditions
+        /// that this TimeRangeOption has been set with.
+        public: SqlStatement GenerateTimeConditions() const;
 
         /// \brief Destructor
         public: ~TimeRangeOption();

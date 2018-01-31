@@ -101,15 +101,38 @@ class SqlParameter::Implementation
 };
 
 //////////////////////////////////////////////////
+SqlParameter::SqlParameter(const SqlParameter &_other)
+  : dataPtr(new Implementation)
+{
+  *this->dataPtr = *_other.dataPtr;
+}
+
+//////////////////////////////////////////////////
 SqlParameter::SqlParameter(SqlParameter &&_other)  // NOLINT(build/c++11)
   : dataPtr(std::move(_other.dataPtr))
 {
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+SqlParameter &SqlParameter::operator=(const SqlParameter &_other)
+{
+  *this->dataPtr = *_other.dataPtr;
+  return *this;
+}
+
+//////////////////////////////////////////////////
+SqlParameter &SqlParameter::operator=(SqlParameter &&_other) // NOLINT
+{
+  this->dataPtr = std::move(_other.dataPtr);
+  return *this;
 }
 
 //////////////////////////////////////////////////
 SqlParameter::SqlParameter()
   : SqlParameter(nullptr)
 {
+  // Do nothing
 }
 
 //////////////////////////////////////////////////
@@ -192,4 +215,12 @@ const std::string *SqlParameter::QueryText() const
 SqlParameter::~SqlParameter()
 {
   // Destroy pimpl
+}
+
+//////////////////////////////////////////////////
+void SqlStatement::Append(const SqlStatement &_other)
+{
+  this->statement += _other.statement;
+  for (const SqlParameter &p : _other.parameters)
+    this->parameters.push_back(p);
 }

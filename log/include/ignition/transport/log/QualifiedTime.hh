@@ -40,21 +40,18 @@ namespace ignition
       {
         /// \brief The Qualifier determines the behavior of how a message is
         /// selected.
-        public: enum Qualifier
+        public: enum class Qualifier : int64_t
         {
-          /// \brief Get either an exact time match, or the closest time before
-          /// the specified time stamp.
-          OrClosestBefore = 0,
+          /// \brief This point in time should be seen as a closed (inclusive)
+          /// time marker. When used in a QualifiedTimeRange, the range will
+          /// include this exact point in time.
+          Inclusive = 0,
 
-          /// \brief Get the closest time before the specified time stamp.
-          ClosestBefore,
-
-          /// \brief Get either an exact time match, or the closest time after
-          /// the specified time stamp.
-          OrClosestAfter,
-
-          /// \brief Get the closest time after the specified time stamp.
-          ClosestAfter
+          /// \brief This point in time should be seen as an open (exclusive)
+          /// time marker. When used in a QualifiedTimeRange, the range will
+          /// NOT include this exact point in time, but it will include
+          /// everything leading up to it.
+          Exclusive
         };
 
         /// \brief Convenient typedef for our time representation. Note that any
@@ -77,7 +74,7 @@ namespace ignition
         /// \param[in] _qualifier The qualifier that determines the exact
         /// interpretation of the _time value.
         public: QualifiedTime(const Time &_time,
-                              Qualifier _qualifier = OrClosestBefore);
+                              Qualifier _qualifier = Qualifier::Inclusive);
 
         /// \brief Default constructor. The time will be treated as
         /// indeterminate. This means that the QualifiedTime object will be
@@ -133,7 +130,7 @@ namespace ignition
         /// \param[in] _qualifier The qualifier that determines the exact
         /// interpretation of the _time value.
         public: void SetTime(const Time &_time,
-                             Qualifier _qualifier = OrClosestBefore);
+                             Qualifier _qualifier = Qualifier::Inclusive);
 
         /// \brief Set this QualifiedTime object to be indeterminate.
         /// \sa IsIndeterminate()

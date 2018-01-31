@@ -47,8 +47,23 @@ namespace ignition
           // TODO: Consider supporting blob types
         };
 
-        /// \brief move constructor
+        /// \brief Copy constructor
+        /// \param[in] _other Another SqlParameter
+        public: SqlParameter(const SqlParameter &_other);
+
+        /// \brief Move constructor
+        /// \param[in] _other Another SqlParameter
         public: SqlParameter(SqlParameter &&_other);  // NOLINT
+
+        /// \brief Copy assignment operator
+        /// \param[in] _other Another SqlParameter
+        /// \return This object
+        public: SqlParameter &operator=(const SqlParameter &_other);
+
+        /// \brief Move assignment operator
+        /// \param[in] _other Another SqlParameter
+        /// \return This object
+        public: SqlParameter &operator=(SqlParameter &&_other);  // NOLINT
 
         /// \sa Set(std::nullptr_t)
         /// \sa SqlParameter(std::nullptr_t)
@@ -120,6 +135,13 @@ namespace ignition
 
         /// \brief Parameters for the statement
         public: std::vector<SqlParameter> parameters;
+
+        /// \brief Append another SQL statement onto the end of this one.
+        /// _other.statement will be added to the end of this object's statement
+        /// string, and _other's parameters will be added to this object's
+        /// vector of parameters.
+        /// \param[in] _other Another SQL statement.
+        public: void Append(const SqlStatement &_other);
       };
     }
   }

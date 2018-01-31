@@ -21,8 +21,107 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 //////////////////////////////////////////////////
+/// \brief Append a topic ID condition clause that specifies a list of Topic IDs
+/// \param[in,out] _sql The SqlStatement to append the clause to
+/// \param[in] _ids The vector of Topic IDs to include in the list
+static void AppendTopicListClause(
+    SqlStatement &_sql, const std::vector<int64_t> &_ids)
+{
+  _sql.statement += "topic_id in (";
+  bool first = true;
+  for (const int64_t id : _ids)
+  {
+    if (first)
+    {
+      _sql.statement += "?";
+      first = false;
+    }
+    else
+    {
+      _sql.statement += ", ?";
+    }
+
+    _sql.parameters.emplace_back(id);
+  }
+
+  _sql.statement += ")";
+}
+
+//////////////////////////////////////////////////
+SqlStatement QueryOptions::StandardMessageQueryPreamble()
+{
+  SqlStatement sql;
+  sql.statement =
+      "SELECT messages.id, messages.time_recv, topics.name,"
+      " message_types.name, messages.message FROM messages JOIN topics ON"
+      " topics.id = messages.topic_id JOIN message_types ON"
+      " message_types.id = topics.message_type_id ";
+
+  return sql;
+}
+
+//////////////////////////////////////////////////
+SqlStatement QueryOptions::StandardMessageQueryClose()
+{
+  return SqlStatement{ " ORDER BY messages.time_recv;", {} };
+}
+
+//////////////////////////////////////////////////
 class TimeRangeOption::Implementation
 {
+  /// \brief Convert the QualifiedTimeRange into a SqlStatement clause that
+  /// can be appended to the complete clause.
+  /// \return SqlStatement time range clause
+  public: SqlStatement GenerateTimeConditions() const
+  {
+    SqlStatement sql;
+
+    const QualifiedTime &start = this->range.GetStart();
+    const QualifiedTime &finish = this->range.GetFinish();
+
+    if (start.IsIndeterminate() && finish.IsIndeterminate())
+    {
+      // We return a blank SQL statement, because we have no time constraints.
+      return SqlStatement();
+    }
+
+    std::string startCompare;
+    std::string finishCompare;
+
+    if (!start.IsIndeterminate())
+    {
+      if (*start.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
+        startCompare = ">=";
+      else if(*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+        startCompare = ">";
+    }
+
+    if (!finish.IsIndeterminate())
+    {
+      if (*finish.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
+        finishCompare = "<=";
+      else if (*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+        finishCompare = "<";
+    }
+
+    if (!startCompare.empty())
+    {
+      sql.statement += "time_recv " + startCompare + " ?";
+      sql.parameters.emplace_back(start.GetTime()->count());
+
+      if (!finishCompare.empty())
+        sql.statement += " AND ";
+    }
+
+    if (!finishCompare.empty())
+    {
+      sql.statement += "time_recv " + finishCompare + " ?";
+      sql.parameters.emplace_back(finish.GetTime()->count());
+    }
+
+    return sql;
+  }
+
   /// \brief Range for this option
   public: QualifiedTimeRange range;
 };
@@ -47,6 +146,12 @@ const QualifiedTimeRange &TimeRangeOption::TimeRange() const
 }
 
 //////////////////////////////////////////////////
+SqlStatement TimeRangeOption::GenerateTimeConditions() const
+{
+  return this->dataPtr->GenerateTimeConditions();
+}
+
+//////////////////////////////////////////////////
 TimeRangeOption::~TimeRangeOption()
 {
   // Destroy the pimpl
@@ -55,6 +160,36 @@ TimeRangeOption::~TimeRangeOption()
 //////////////////////////////////////////////////
 class TopicList::Implementation
 {
+  /// \brief Generate a WHERE clause for topics that exist in the requested list
+  /// \param[in] _descriptor The descriptor forwarded by the interface class
+  /// \return The desired WHERE clause
+  public: SqlStatement GenerateStatement(
+    const Descriptor &_descriptor)
+  {
+    const Descriptor::NameToMap &map = _descriptor.GetTopicsToMsgTypesToId();
+    std::vector<int64_t> rowIDs;
+    rowIDs.reserve(map.size());
+
+    for (const auto &topic : topics)
+    {
+      Descriptor::NameToMap::const_iterator it = map.find(topic);
+      if (it != map.end())
+      {
+        for (const auto &msgEntry : it->second)
+        {
+          rowIDs.push_back(msgEntry.second);
+        }
+      }
+    }
+
+    SqlStatement sql = QueryOptions::StandardMessageQueryPreamble();
+    sql.statement += " WHERE (";
+    AppendTopicListClause(sql, rowIDs);
+    sql.statement += ")";
+
+    return sql;
+  }
+
   /// \brief Topics for this option
   public: std::set<std::string> topics;
 };
@@ -94,7 +229,20 @@ const std::set<std::string> &TopicList::Topics() const
 std::vector<SqlStatement> TopicList::GenerateStatements(
     const Descriptor &_descriptor) const
 {
-  // TODO(SQL)
+  SqlStatement sql = this->dataPtr->GenerateStatement(_descriptor);
+
+  // Add the time range condition
+  const SqlStatement &timeCondition = GenerateTimeConditions();
+  if (!timeCondition.statement.empty())
+  {
+    sql.statement += " AND (";
+    sql.Append(timeCondition);
+    sql.statement += ")";
+  }
+
+  sql.Append(QueryOptions::StandardMessageQueryClose());
+
+  return {sql};
 }
 
 //////////////////////////////////////////////////
@@ -106,6 +254,38 @@ TopicList::~TopicList()
 //////////////////////////////////////////////////
 class TopicPattern::Implementation
 {
+  /// \brief Generate a WHERE clause for topics that match the requested pattern
+  /// \param[in] _descriptor The descriptor forwarded by the interface class
+  /// \return The desired WHERE clause
+  public: SqlStatement GenerateStatement(
+      const Descriptor &_descriptor)
+  {
+    const Descriptor::NameToMap &map = _descriptor.GetTopicsToMsgTypesToId();
+    std::vector<int64_t> rowIDs;
+    rowIDs.reserve(map.size());
+
+    // Look through all the topics
+    for (const auto &topicEntry : map)
+    {
+      // Find which topics match the pattern
+      if (std::regex_match(topicEntry.first, this->pattern))
+      {
+        // Add all the rows of that topic to the list of IDs.
+        for (const auto &msgEntry : topicEntry.second)
+        {
+          rowIDs.push_back(msgEntry.second);
+        }
+      }
+    }
+
+    SqlStatement sql = QueryOptions::StandardMessageQueryPreamble();
+    sql.statement += " WHERE (";
+    AppendTopicListClause(sql, rowIDs);
+    sql.statement += ")";
+
+    return sql;
+  }
+
   /// \brief Pattern for this option
   /// TODO: Consider making this a vector of patterns?
   public: std::regex pattern;
@@ -137,7 +317,20 @@ const std::regex &TopicPattern::Pattern() const
 std::vector<SqlStatement> TopicPattern::GenerateStatements(
     const Descriptor &_descriptor) const
 {
-  // TODO(SQL)
+  SqlStatement sql = this->dataPtr->GenerateStatement(_descriptor);
+
+  // Add the time range condition
+  const SqlStatement &timeCondition = GenerateTimeConditions();
+  if (!timeCondition.statement.empty())
+  {
+    sql.statement += " AND (";
+    sql.Append(timeCondition);
+    sql.statement += ")";
+  }
+
+  sql.Append(QueryOptions::StandardMessageQueryClose());
+
+  return {sql};
 }
 
 //////////////////////////////////////////////////
@@ -163,9 +356,20 @@ AllTopics::AllTopics(const QualifiedTimeRange &_timeRange)
 
 //////////////////////////////////////////////////
 std::vector<SqlStatement> AllTopics::GenerateStatements(
-    const Descriptor &_descriptor) const
+    const Descriptor & /*_descriptor*/) const
 {
-  // TODO(SQL)
+  SqlStatement sql = this->StandardMessageQueryPreamble();
+
+  const SqlStatement &timeCondition = GenerateTimeConditions();
+  if (!timeCondition.statement.empty())
+  {
+    sql.statement += "WHERE ";
+    sql.Append(timeCondition);
+  }
+
+  sql.Append(this->StandardMessageQueryClose());
+
+  return {sql};
 }
 
 //////////////////////////////////////////////////
