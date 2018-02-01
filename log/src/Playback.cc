@@ -137,7 +137,7 @@ PlaybackError Playback::Start()
   if (this->dataPtr->publishers.empty())
   {
     igndbg << "No topics added, defaulting to all topics\n";
-    int numTopics = this->AddTopic(std::regex(".*"));
+    int64_t numTopics = this->AddTopic(std::regex(".*"));
     if (numTopics < 0)
     {
       return static_cast<PlaybackError>(numTopics);
@@ -284,7 +284,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-int Playback::AddTopic(const std::regex &_topic)
+int64_t Playback::AddTopic(const std::regex &_topic)
 {
   if (!this->dataPtr->logFile.Valid())
   {
@@ -292,7 +292,7 @@ int Playback::AddTopic(const std::regex &_topic)
     return static_cast<int>(PlaybackError::FAILED_TO_OPEN);
   }
 
-  int numPublishers = 0;
+  int64_t numPublishers = 0;
   const Descriptor *desc = this->dataPtr->logFile.Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 

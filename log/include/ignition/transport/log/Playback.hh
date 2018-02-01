@@ -30,7 +30,7 @@ namespace ignition
   {
     namespace log
     {
-      enum class PlaybackError : int
+      enum class PlaybackError : int64_t
       {
         NO_ERROR = 0,
         FAILED_TO_OPEN = -1,
@@ -85,7 +85,7 @@ namespace ignition
         /// \note This method attempts to advertise topics immediately.
         ///       These publishers will be kept until this is destructed.
         /// \return number of topics published or negative number on error
-        public: int AddTopic(const std::regex &_topic);
+        public: int64_t AddTopic(const std::regex &_topic);
 
         /// \brief Private implementation
         private: std::unique_ptr<PlaybackPrivate> dataPtr;
