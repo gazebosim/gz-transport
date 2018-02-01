@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/MsgIter.hh>
 
