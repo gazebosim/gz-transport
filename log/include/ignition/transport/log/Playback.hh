@@ -63,7 +63,6 @@ namespace ignition
         public: ~Playback();
 
         /// \brief Begin playing messages
-        /// \param[in] _file path to log file
         /// \return NO_ERROR if playing was successfully started
         public: PlaybackError Start();
 
