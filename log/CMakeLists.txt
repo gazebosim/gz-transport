@@ -1,4 +1,5 @@
-find_package(ignition-common0 REQUIRED)
+find_package(ignition-common1 REQUIRED)
+find_package(ignition-msgs1 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(SQLite3 REQUIRED sqlite3>=3.6.19)
 
@@ -40,7 +41,6 @@ target_include_directories(${log_lib_target} PUBLIC
   $<INSTALL_INTERFACE:${IGN_INCLUDE_INSTALL_DIR_FULL}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-  ${IGNITION-COMMON_INCLUDE_DIRS}
 )
 target_include_directories(${log_lib_target} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -51,8 +51,8 @@ target_include_directories(${log_lib_target} PRIVATE
 # Library dependencies
 target_link_libraries(${log_lib_target} PUBLIC
   ${PROJECT_NAME_LOWER}
-  ${IGNITION-COMMON_LIBRARIES}
-  ${IGNITION-MSGS_LIBRARIES}
+  ignition-msgs1::ignition-msgs1
+  ignition-common1::ignition-common1
 )
 target_link_libraries(${log_lib_target} PRIVATE
   ${SQLite3_LIBRARIES}
