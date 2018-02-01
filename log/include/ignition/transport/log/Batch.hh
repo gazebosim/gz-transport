@@ -52,11 +52,14 @@ namespace ignition
         /// \brief Iterator to first message in batch
         /// \remarks the lowercase function name is required to support
         ///   range-based for loops
+        /// \return an iterator to the start of the messages
         public: iterator begin();
 
         /// \brief Iterator to one past the last message in a batch
         /// \remarks the lowercase function name is required to support
         ///   range-based for loops
+        /// \return an iterator that is not equal to any iterator that points
+        ///   to a valid message
         public: iterator end();
 
         /// \brief Private implementation
