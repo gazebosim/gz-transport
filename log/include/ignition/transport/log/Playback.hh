@@ -48,7 +48,7 @@ namespace ignition
       /// This class makes it easy to play topics from a log file
       /// Responsibilities: topic name matching, time keeping,
       /// multiple thread safety, publishing data to topics
-      /// TODO: make it subscribe to newly discovered topics
+      /// TODO(sloretz) make it subscribe to newly discovered topics
       class IGNITION_TRANSPORT_LOG_VISIBLE Playback
       {
         /// \brief Constructor
