@@ -53,18 +53,18 @@ namespace ignition
         /// This function allows you to find the id of a topic by searching
         /// (topic name -> message type name -> ID).
         /// \return A map from topic names to a map of message types to row ids.
-        /// \sa GetMsgTypesToTopicsToId()
+        /// \sa MsgTypesToTopicsToId()
         /// \sa QueryMsgTypesOfTopic()
-        public: const NameToMap &GetTopicsToMsgTypesToId() const;
+        public: const NameToMap &TopicsToMsgTypesToId() const;
 
         /// \brief A topic in the database is uniquely identified by a pair of
         /// (topic name, message type).
         /// This function allows you to find the id of a topic by searching
         /// (message type name -> topic name -> ID).
         /// \return A map from message types to a map of topic names to row ids.
-        /// \sa GetTopicsToMsgTypesToId()
+        /// \sa TopicsToMsgTypesToId()
         /// \sa QueryTopicsOfMsgType()
-        public: const NameToMap &GetMsgTypesToTopicsToId() const;
+        public: const NameToMap &MsgTypesToTopicsToId() const;
 
         /// \brief Get message types published on the given name of a topic.
         /// \param[in] _topicName Name of the topic that you are interested in.

@@ -181,7 +181,7 @@ class TopicList::Implementation
   public: SqlStatement GenerateStatement(
     const Descriptor &_descriptor)
   {
-    const Descriptor::NameToMap &map = _descriptor.GetTopicsToMsgTypesToId();
+    const Descriptor::NameToMap &map = _descriptor.TopicsToMsgTypesToId();
     std::vector<int64_t> rowIDs;
     rowIDs.reserve(map.size());
 
@@ -291,7 +291,7 @@ class TopicPattern::Implementation
   public: SqlStatement GenerateStatement(
       const Descriptor &_descriptor)
   {
-    const Descriptor::NameToMap &map = _descriptor.GetTopicsToMsgTypesToId();
+    const Descriptor::NameToMap &map = _descriptor.TopicsToMsgTypesToId();
     std::vector<int64_t> rowIDs;
     rowIDs.reserve(map.size());
 

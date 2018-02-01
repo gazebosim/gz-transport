@@ -46,8 +46,8 @@ class ignition::transport::log::Log
 TEST(Descriptor, ConstructHasNothing)
 {
   Descriptor desc = Log::Construct();
-  EXPECT_TRUE(desc.GetTopicsToMsgTypesToId().empty());
-  EXPECT_TRUE(desc.GetMsgTypesToTopicsToId().empty());
+  EXPECT_TRUE(desc.TopicsToMsgTypesToId().empty());
+  EXPECT_TRUE(desc.MsgTypesToTopicsToId().empty());
 }
 
 
@@ -56,8 +56,8 @@ TEST(Descriptor, ResetNoTopics)
 {
   Descriptor desc = Log::Construct();
   Log::Reset(desc, TopicKeyMap());
-  EXPECT_TRUE(desc.GetTopicsToMsgTypesToId().empty());
-  EXPECT_TRUE(desc.GetMsgTypesToTopicsToId().empty());
+  EXPECT_TRUE(desc.TopicsToMsgTypesToId().empty());
+  EXPECT_TRUE(desc.MsgTypesToTopicsToId().empty());
 }
 
 //////////////////////////////////////////////////
@@ -122,7 +122,7 @@ TEST(Descriptor, TopicsMapOneTopic)
   TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
   topics[key] = 5;
   Log::Reset(desc, topics);
-  auto topicsMap = desc.GetTopicsToMsgTypesToId();
+  auto topicsMap = desc.TopicsToMsgTypesToId();
   ASSERT_EQ(1u, topicsMap.size());
   EXPECT_EQ("/foo/bar", topicsMap.begin()->first);
   auto msgsMap = topicsMap.begin()->second;
@@ -140,7 +140,7 @@ TEST(Descriptor, MsgTypesMapOneTopic)
   TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
   topics[key] = 5;
   Log::Reset(desc, topics);
-  auto msgsMap = desc.GetMsgTypesToTopicsToId();
+  auto msgsMap = desc.MsgTypesToTopicsToId();
   ASSERT_EQ(1u, msgsMap.size());
   EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
   auto topicsMap = msgsMap.begin()->second;

@@ -258,7 +258,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
   }
 
   const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
-  const Descriptor::NameToMap &allTopics = desc->GetTopicsToMsgTypesToId();
+  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
   if (it == allTopics.end())
@@ -294,7 +294,7 @@ int Playback::AddTopic(const std::regex &_topic)
 
   int numPublishers = 0;
   const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
-  const Descriptor::NameToMap &allTopics = desc->GetTopicsToMsgTypesToId();
+  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   for (const auto &topicEntry : allTopics)
   {

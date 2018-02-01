@@ -62,13 +62,13 @@ void Descriptor::Implementation::Reset(const TopicKeyMap &_columns)
 }
 
 //////////////////////////////////////////////////
-auto Descriptor::GetTopicsToMsgTypesToId() const -> const NameToMap &
+auto Descriptor::TopicsToMsgTypesToId() const -> const NameToMap &
 {
   return this->dataPtr->topicsToMsgTypesToId;
 }
 
 //////////////////////////////////////////////////
-auto Descriptor::GetMsgTypesToTopicsToId() const -> const NameToMap &
+auto Descriptor::MsgTypesToTopicsToId() const -> const NameToMap &
 {
   return this->dataPtr->msgTypesToTopicsToId;
 }
