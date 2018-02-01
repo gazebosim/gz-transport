@@ -76,8 +76,8 @@ class TimeRangeOption::Implementation
   {
     SqlStatement sql;
 
-    const QualifiedTime &start = this->range.GetStart();
-    const QualifiedTime &finish = this->range.GetFinish();
+    const QualifiedTime &start = this->range.Start();
+    const QualifiedTime &finish = this->range.Finish();
 
     if (start.IsIndeterminate() && finish.IsIndeterminate())
     {

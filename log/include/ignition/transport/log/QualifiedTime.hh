@@ -196,11 +196,11 @@ namespace ignition
 
         /// \brief Get a reference to the start time of this range.
         /// \return A reference to the start time.
-        public: const QualifiedTime &GetStart() const;
+        public: const QualifiedTime &Start() const;
 
         /// \brief Get a reference to the end time of this range.
         /// \return A reference to the end time.
-        public: const QualifiedTime &GetFinish() const;
+        public: const QualifiedTime &Finish() const;
 
         /// \brief Set the start time of this range. Passing in an indeterminate
         /// QualifiedTime (its default constructor) will tell this range to have

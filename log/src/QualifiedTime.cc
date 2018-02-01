@@ -168,14 +168,14 @@ class ignition::transport::log::QualifiedTimeRange::Implementation
     // Do nothing
   }
 
-  /// \internal \sa QualifiedTimeRange::GetStart()
-  const QualifiedTime &GetStart() const
+  /// \internal \sa QualifiedTimeRange::Start()
+  const QualifiedTime &Start() const
   {
     return this->start;
   }
 
-  /// \internal \sa QualifiedTimeRange::GetFinish()
-  const QualifiedTime &GetFinish() const
+  /// \internal \sa QualifiedTimeRange::Finish()
+  const QualifiedTime &Finish() const
   {
     return this->finish;
   }
@@ -270,15 +270,15 @@ QualifiedTimeRange QualifiedTimeRange::AllTime()
 }
 
 //////////////////////////////////////////////////
-const QualifiedTime &QualifiedTimeRange::GetStart() const
+const QualifiedTime &QualifiedTimeRange::Start() const
 {
-  return this->dataPtr->GetStart();
+  return this->dataPtr->Start();
 }
 
 //////////////////////////////////////////////////
-const QualifiedTime &QualifiedTimeRange::GetFinish() const
+const QualifiedTime &QualifiedTimeRange::Finish() const
 {
-  return this->dataPtr->GetFinish();
+  return this->dataPtr->Finish();
 }
 
 //////////////////////////////////////////////////
