@@ -97,6 +97,11 @@ TEST(TopicUtilsTest, decomposeFullyQualifiedTopic)
   EXPECT_EQ(std::string("/foo"), partition);
   EXPECT_EQ(std::string("/bar"), topic);
 
+  EXPECT_TRUE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@@/bar", partition, topic));
+  EXPECT_EQ(std::string(""), partition);
+  EXPECT_EQ(std::string("/bar"), topic);
+
   EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
     "@/bar", partition, topic)) << partition << "|" << topic;
   EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(

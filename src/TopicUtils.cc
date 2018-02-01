@@ -55,7 +55,7 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidPartition(const std::string &_partition)
 {
-  return IsValidNamespace(_partition);
+  return _partition.empty() || IsValidNamespace(_partition);
 }
 
 //////////////////////////////////////////////////
@@ -135,11 +135,6 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
   std::string possiblePartition = _fullyQualifiedName.substr(
     firstAt + 1, lastAt - firstAt - 1);
   std::string possibleTopic = _fullyQualifiedName.substr(lastAt + 1);
-
-  if (possiblePartition.empty())
-  {
-    possiblePartition = "/";
-  }
 
   if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
   {
