@@ -160,10 +160,10 @@ QualifiedTime::~QualifiedTime()
 class ignition::transport::log::QualifiedTimeRange::Implementation
 {
   /// \internal \sa QualifiedTimeRange()
-  public: Implementation(const QualifiedTime &_start,
-                         const QualifiedTime &_finish)
-    : start(_start),
-      finish(_finish)
+  public: Implementation(const QualifiedTime &_begin,
+                         const QualifiedTime &_end)
+    : start(_begin),
+      finish(_end)
   {
     // Do nothing
   }
@@ -180,26 +180,26 @@ class ignition::transport::log::QualifiedTimeRange::Implementation
     return this->finish;
   }
 
-  /// \internal \sa QualifiedTimeRange::SetStart()
-  bool SetStart(const QualifiedTime &_start)
+  /// \internal \sa QualifiedTimeRange::SetBeginning()
+  bool SetBeginning(const QualifiedTime &_begin)
   {
-    this->start = _start;
+    this->start = _begin;
     return this->Valid();
   }
 
-  /// \internal \sa QualifiedTimeRange::SetFinish()
-  bool SetFinish(const QualifiedTime &_finish)
+  /// \internal \sa QualifiedTimeRange::SetEnding()
+  bool SetEnding(const QualifiedTime &_end)
   {
-    this->finish = _finish;
+    this->finish = _end;
     return this->Valid();
   }
 
   /// \internal \sa QualifiedTimeRange::SetRange()
-  bool SetRange(const QualifiedTime &_start,
-                const QualifiedTime &_finish)
+  bool SetRange(const QualifiedTime &_begin,
+                const QualifiedTime &_end)
   {
-    this->start = _start;
-    this->finish = _finish;
+    this->start = _begin;
+    this->finish = _end;
     return this->Valid();
   }
 
@@ -229,9 +229,9 @@ class ignition::transport::log::QualifiedTimeRange::Implementation
 
 //////////////////////////////////////////////////
 QualifiedTimeRange::QualifiedTimeRange(
-    const QualifiedTime &_start,
-    const QualifiedTime &_finish)
-  : dataPtr(new Implementation(_start, _finish))
+    const QualifiedTime &_begin,
+    const QualifiedTime &_end)
+  : dataPtr(new Implementation(_begin, _end))
 {
   // Do nothing
 }
@@ -252,15 +252,15 @@ QualifiedTimeRange &QualifiedTimeRange::operator=(
 }
 
 //////////////////////////////////////////////////
-QualifiedTimeRange QualifiedTimeRange::From(const QualifiedTime &_start)
+QualifiedTimeRange QualifiedTimeRange::From(const QualifiedTime &_begin)
 {
-  return QualifiedTimeRange(_start, QualifiedTime());
+  return QualifiedTimeRange(_begin, QualifiedTime());
 }
 
 //////////////////////////////////////////////////
-QualifiedTimeRange QualifiedTimeRange::Until(const QualifiedTime &_finish)
+QualifiedTimeRange QualifiedTimeRange::Until(const QualifiedTime &_end)
 {
-  return QualifiedTimeRange(QualifiedTime(), _finish);
+  return QualifiedTimeRange(QualifiedTime(), _end);
 }
 
 //////////////////////////////////////////////////
@@ -270,34 +270,34 @@ QualifiedTimeRange QualifiedTimeRange::AllTime()
 }
 
 //////////////////////////////////////////////////
-const QualifiedTime &QualifiedTimeRange::Start() const
+const QualifiedTime &QualifiedTimeRange::Beginning() const
 {
   return this->dataPtr->Start();
 }
 
 //////////////////////////////////////////////////
-const QualifiedTime &QualifiedTimeRange::Finish() const
+const QualifiedTime &QualifiedTimeRange::Ending() const
 {
   return this->dataPtr->Finish();
 }
 
 //////////////////////////////////////////////////
-bool QualifiedTimeRange::SetStart(const QualifiedTime &_start)
+bool QualifiedTimeRange::SetBeginning(const QualifiedTime &_begin)
 {
-  return this->dataPtr->SetStart(_start);
+  return this->dataPtr->SetBeginning(_begin);
 }
 
 //////////////////////////////////////////////////
-bool QualifiedTimeRange::SetFinish(const QualifiedTime &_finish)
+bool QualifiedTimeRange::SetEnding(const QualifiedTime &_end)
 {
-  return this->dataPtr->SetFinish(_finish);
+  return this->dataPtr->SetEnding(_end);
 }
 
 //////////////////////////////////////////////////
-bool QualifiedTimeRange::SetRange(const QualifiedTime &_start,
-                                  const QualifiedTime &_finish)
+bool QualifiedTimeRange::SetRange(const QualifiedTime &_begin,
+                                  const QualifiedTime &_end)
 {
-  return this->dataPtr->SetRange(_start, _finish);
+  return this->dataPtr->SetRange(_begin, _end);
 }
 
 //////////////////////////////////////////////////
