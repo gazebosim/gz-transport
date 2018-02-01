@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/log/Log.hh"
+#include "ignition/transport/log/Batch.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
