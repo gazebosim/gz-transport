@@ -18,11 +18,7 @@
 #ifndef IGNITION_TRANSPORT_LOG_BATCH_HH_
 #define IGNITION_TRANSPORT_LOG_BATCH_HH_
 
-#include <ios>
 #include <memory>
-#include <string>
-#include <unordered_set>
-#include <vector>
 
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
