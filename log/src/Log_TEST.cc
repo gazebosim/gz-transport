@@ -15,6 +15,8 @@
  *
 */
 
+#include <unordered_set>
+
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
