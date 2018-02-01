@@ -244,6 +244,14 @@ QualifiedTimeRange::QualifiedTimeRange(const QualifiedTimeRange &_other)
 }
 
 //////////////////////////////////////////////////
+QualifiedTimeRange::QualifiedTimeRange(QualifiedTimeRange &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
+  // Do nothing
+}
+
+
+//////////////////////////////////////////////////
 QualifiedTimeRange &QualifiedTimeRange::operator=(
     const QualifiedTimeRange &_other)
 {

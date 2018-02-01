@@ -172,7 +172,7 @@ namespace ignition
         public: QualifiedTimeRange &operator=(const QualifiedTimeRange &_other);
 
         /// \brief Default move constructor
-        public: QualifiedTimeRange(QualifiedTimeRange &&) = default;  // NOLINT
+        public: QualifiedTimeRange(QualifiedTimeRange &&);  // NOLINT
 
         /// \brief Default move assignment
         /// \return Reference to this object
