@@ -132,8 +132,21 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
     return false;
   }
 
-  _partition = _fullyQualifiedName.substr(firstAt + 1, lastAt - firstAt - 1);
-  _namespaceAndTopic = _fullyQualifiedName.substr(lastAt + 1);
+  std::string possiblePartition = _fullyQualifiedName.substr(
+    firstAt + 1, lastAt - firstAt - 1);
+  std::string possibleTopic = _fullyQualifiedName.substr(lastAt + 1);
 
+  if (possiblePartition.empty())
+  {
+    possiblePartition = "/";
+  }
+
+  if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
+  {
+    return false;
+  }
+
+  _partition = possiblePartition;
+  _namespaceAndTopic = possibleTopic;
   return true;
 }
