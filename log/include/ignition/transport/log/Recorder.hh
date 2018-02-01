@@ -30,7 +30,7 @@ namespace ignition
   {
     namespace log
     {
-      enum class RecorderError : int
+      enum class RecorderError : int64_t
       {
         NO_ERROR = 0,
         FAILED_TO_OPEN = -1,
@@ -80,7 +80,7 @@ namespace ignition
         /// \note This method attempts to subscribe to topics immediately.
         ///       These subscriptions will be kept until this is destructed.
         /// \return number of topics subscribed or negative number on error
-        public: int AddTopic(const std::regex &_topic);
+        public: int64_t AddTopic(const std::regex &_topic);
 
         /// \brief Private implementation
         private: std::unique_ptr<RecorderPrivate> dataPtr;
