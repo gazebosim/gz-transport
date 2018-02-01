@@ -21,7 +21,6 @@
 #include <fstream>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include <ignition/common/Console.hh>
