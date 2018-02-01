@@ -89,14 +89,14 @@ namespace ignition
         /// \brief Copy assignment operator.
         /// \param[in] _other Another QualifiedTime
         /// \return Reference to this object
-        public: QualifiedTime & operator=(const QualifiedTime &_other);
+        public: QualifiedTime &operator=(const QualifiedTime &_other);
 
         /// \brief Default move constructor
         public: QualifiedTime(QualifiedTime &&) = default;  // NOLINT
 
         /// \brief Default move operator
         /// \return Reference to this object
-        public: QualifiedTime & operator=(
+        public: QualifiedTime &operator=(
             QualifiedTime &&) = default;  // NOLINT(build/c++11)
 
         /// \brief Indicates whether this QualifiedTime object is indeterminate.
