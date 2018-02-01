@@ -49,7 +49,7 @@ class ignition::transport::log::RecorderPrivate
   public: RecorderError AddTopic(const std::string &_topic);
 
   /// \sa Record::AddTopic(const std::regex&)
-  public: int AddTopic(const std::regex &_pattern);
+  public: int64_t AddTopic(const std::regex &_pattern);
 
   /// \brief log file or nullptr if not recording
   public: std::unique_ptr<Log> logFile;
@@ -168,7 +168,7 @@ RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-int RecorderPrivate::AddTopic(const std::regex &_pattern)
+int64_t RecorderPrivate::AddTopic(const std::regex &_pattern)
 {
   int numSubscriptions = 0;
   std::vector<std::string> allTopics;
@@ -180,7 +180,7 @@ int RecorderPrivate::AddTopic(const std::regex &_pattern)
       // Subscribe to the topic
       if (this->AddTopic(topic) == RecorderError::FAILED_TO_SUBSCRIBE)
       {
-        return static_cast<int>(RecorderError::FAILED_TO_SUBSCRIBE);
+        return static_cast<int64_t>(RecorderError::FAILED_TO_SUBSCRIBE);
       }
       ++numSubscriptions;
     }
@@ -274,7 +274,7 @@ RecorderError Recorder::AddTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
-int Recorder::AddTopic(const std::regex &_topic)
+int64_t Recorder::AddTopic(const std::regex &_topic)
 {
   return this->dataPtr->AddTopic(_topic);
 }
