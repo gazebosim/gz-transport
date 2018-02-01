@@ -45,7 +45,7 @@ namespace ignition
       class PlaybackPrivate;
 
       /// \brief Playbacks ignition transport topics
-      /// This class makes it easy to play topics from a lot file
+      /// This class makes it easy to play topics from a log file
       /// Responsibilities: topic name matching, time keeping,
       /// multiple thread safety, publishing data to topics
       /// TODO: make it subscribe to newly discovered topics
