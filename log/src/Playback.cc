@@ -257,7 +257,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
     return PlaybackError::FAILED_TO_OPEN;
   }
 
-  const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
+  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
@@ -293,7 +293,7 @@ int Playback::AddTopic(const std::regex &_topic)
   }
 
   int numPublishers = 0;
-  const Descriptor *desc = this->dataPtr->logFile.GetDescriptor();
+  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   for (const auto &topicEntry : allTopics)

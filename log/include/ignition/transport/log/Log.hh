@@ -73,7 +73,7 @@ namespace ignition
         /// file has been opened.
         /// \return A Descriptor for this log, if a log file is currently
         /// loaded. If no log file is loaded, this returns a nullptr.
-        public: const Descriptor *GetDescriptor() const;
+        public: const log::Descriptor *Descriptor() const;
 
         /// \brief Insert a message into the log file
         /// \param[in] _time Time the message was received

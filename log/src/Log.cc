@@ -44,8 +44,8 @@ const sqlite3_int64 NS_PER_SEC = 1000000000;
 /// \brief Private implementation
 class ignition::transport::log::Log::Implementation
 {
-  /// \internal \sa Log::GetDescriptor()
-  public: const Descriptor *GetDescriptor() const;
+  /// \internal \sa Log::Descriptor()
+  public: const log::Descriptor *Descriptor() const;
 
   /// \brief End transaction if enough time has passed since it began
   /// \return false if there is a sqlite error
@@ -91,11 +91,11 @@ class ignition::transport::log::Log::Implementation
   private: mutable bool needNewDescriptor = true;
 
   /// \brief Descriptor which provides insight to the column IDs in the database
-  public: mutable Descriptor descriptor;
+  public: mutable log::Descriptor descriptor;
 };
 
 //////////////////////////////////////////////////
-const Descriptor *Log::Implementation::GetDescriptor() const
+const log::Descriptor *Log::Implementation::Descriptor() const
 {
   if (!this->db)
     return nullptr;
@@ -215,7 +215,7 @@ int64_t Log::Implementation::InsertOrGetTopicId(
 {
   // If the name and type is known, return a cached ID
   // Call method to get side effect of updating descriptor
-  const Descriptor *desc = this->GetDescriptor();
+  const log::Descriptor *desc = this->Descriptor();
   if (nullptr == desc)
   {
     return -1;
@@ -470,9 +470,9 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
 }
 
 //////////////////////////////////////////////////
-const Descriptor *Log::GetDescriptor() const
+const log::Descriptor *Log::Descriptor() const
 {
-  return this->dataPtr->GetDescriptor();
+  return this->dataPtr->Descriptor();
 }
 
 //////////////////////////////////////////////////
@@ -515,7 +515,7 @@ bool Log::InsertMessage(
 //////////////////////////////////////////////////
 Batch Log::QueryMessages(const QueryOptions &_options)
 {
-  const Descriptor *desc = this->GetDescriptor();
+  const log::Descriptor *desc = this->Descriptor();
 
   // Make sure the log has been initialized.
   // TODO: Should we print a warning here?

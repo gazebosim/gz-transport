@@ -101,7 +101,7 @@ namespace ignition
         public: ~Descriptor();
 
         /// \brief The Descriptor class must only be created by calling
-        /// Log::GetDescriptor().
+        /// \sa Log::Descriptor().
         private: Descriptor();
 
         /// \brief Move constructor, not used by most
