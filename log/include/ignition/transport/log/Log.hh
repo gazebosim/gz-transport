@@ -36,6 +36,7 @@ namespace ignition
   {
     namespace log
     {
+      /// \brief Name of Environment variable containing path to schema
       const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
 
       /// \brief Interface to a log file
@@ -51,6 +52,7 @@ namespace ignition
         /// \brief destructor
         public: ~Log();
 
+        /// \brief Indicate if a log has been successfully opened
         /// \return true if a log is open
         public: bool Valid() const;
 
