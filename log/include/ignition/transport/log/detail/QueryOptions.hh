@@ -18,6 +18,9 @@
 #ifndef IGNITION_TRANSPORT_LOG_DETAIL_QUERYOPTIONS_HH_
 #define IGNITION_TRANSPORT_LOG_DETAIL_QUERYOPTIONS_HH_
 
+#include <set>
+#include <string>
+
 #include <ignition/transport/log/QueryOptions.hh>
 
 namespace ignition

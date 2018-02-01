@@ -86,7 +86,7 @@ namespace ignition
 
         /// \brief Move constructor
         /// \param[in] _other Another TimeRangeOption
-        public: TimeRangeOption(TimeRangeOption &&_other);
+        public: TimeRangeOption(TimeRangeOption &&_other);  // NOLINT
 
         /// \brief Chosen time range
         /// \return A mutable reference to the time range that should be queried
@@ -153,7 +153,7 @@ namespace ignition
 
         /// \brief Move constructor
         /// \param[in] _other Another TopicList
-        public: TopicList(TopicList &&_other);
+        public: TopicList(TopicList &&_other);  // NOLINT(whitespace/operators)
 
         /// \brief Topics of this TopicList
         /// \return A mutable reference to the topics that this TopicList should
@@ -199,7 +199,7 @@ namespace ignition
 
         /// \brief Move constructor
         /// \param[in] _other Another TopicPattern
-        public: TopicPattern(TopicPattern &&_other);
+        public: TopicPattern(TopicPattern &&_other);  // NOLINT
 
         /// \brief Pattern for this option
         /// \return A mutable reference to the regular expression pattern that
@@ -243,7 +243,7 @@ namespace ignition
 
         /// \brief Move constructor
         /// \param[in] _other Another AllTopics
-        public: AllTopics(AllTopics &&_other);
+        public: AllTopics(AllTopics &&_other);  // NOLINT(whitespace/operators)
 
         // Documentation inherited
         public: std::vector<SqlStatement> GenerateStatements(

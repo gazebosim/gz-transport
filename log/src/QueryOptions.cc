@@ -92,7 +92,7 @@ class TimeRangeOption::Implementation
     {
       if (*start.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
         startCompare = ">=";
-      else if(*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+      else if (*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
         startCompare = ">";
     }
 
@@ -141,7 +141,8 @@ TimeRangeOption::TimeRangeOption(const TimeRangeOption &_other)
 }
 
 //////////////////////////////////////////////////
-TimeRangeOption::TimeRangeOption(TimeRangeOption &&_other)
+TimeRangeOption::TimeRangeOption(
+    TimeRangeOption &&_other)  // NOLINT(build/c++11)
   : dataPtr(std::move(_other.dataPtr))
 {
   // Do nothing
@@ -236,9 +237,9 @@ TopicList::TopicList(const TopicList &_other)
 }
 
 //////////////////////////////////////////////////
-TopicList::TopicList(TopicList &&_other)
+TopicList::TopicList(TopicList &&_other)  // NOLINT(build/c++11)
   : TimeRangeOption(std::move(_other)),
-    dataPtr(std::move(_other.dataPtr)) // Is this legal?
+    dataPtr(std::move(_other.dataPtr))  // Is this legal?
 {
   // Do nothing
 }
@@ -340,7 +341,7 @@ TopicPattern::TopicPattern(const TopicPattern &_other)
 }
 
 //////////////////////////////////////////////////
-TopicPattern::TopicPattern(TopicPattern &&_other)
+TopicPattern::TopicPattern(TopicPattern &&_other)  // NOLINT(build/c++11)
   : TimeRangeOption(std::move(_other)),
     dataPtr(std::move(_other.dataPtr))
 {
@@ -408,7 +409,7 @@ AllTopics::AllTopics(const AllTopics &_other)
 }
 
 //////////////////////////////////////////////////
-AllTopics::AllTopics(AllTopics &&_other)
+AllTopics::AllTopics(AllTopics &&_other)  // NOLINT(build/c++11)
   : TimeRangeOption(std::move(_other))
 {
   // Do nothing
