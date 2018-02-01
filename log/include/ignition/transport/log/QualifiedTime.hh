@@ -153,14 +153,14 @@ namespace ignition
       class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
       {
         /// \brief Construct a time range.
-        /// \param[in] _start The beginning of the time range.
-        /// \param[in] _finish The end of the time range.
+        /// \param[in] _begin The beginning of the time range.
+        /// \param[in] _end The end of the time range.
         /// \sa From()
         /// \sa Until()
         /// \sa AllTime()
         public: QualifiedTimeRange(
-          const QualifiedTime &_start,
-          const QualifiedTime &_finish);
+          const QualifiedTime &_begin,
+          const QualifiedTime &_end);
 
         /// \brief Copy constructor
         /// \param[in] _other Another QualifiedTimeRange
@@ -179,16 +179,16 @@ namespace ignition
         public: QualifiedTimeRange &operator=(
             QualifiedTimeRange &&) = default;  // NOLINT(build/c++11)
 
-        /// \brief Construct a time range that begins at _start and never ends.
-        /// \param[in] _start The beginning of the time range.
-        /// \return A time range that begins at _start and never ends.
-        public: static QualifiedTimeRange From(const QualifiedTime &_start);
+        /// \brief Construct a time range that begins at _begin and never ends.
+        /// \param[in] _begin The beginning of the time range.
+        /// \return A time range that begins at _begin and never ends.
+        public: static QualifiedTimeRange From(const QualifiedTime &_begin);
 
-        /// \brief Construct a time range that ends at _finish and has no
+        /// \brief Construct a time range that ends at _end and has no
         /// beginning.
-        /// \param[in] _finish The end of the time range.
-        /// \return A time range that ends at _finish and has no beginning.
-        public: static QualifiedTimeRange Until(const QualifiedTime &_finish);
+        /// \param[in] _end The end of the time range.
+        /// \return A time range that ends at _end and has no beginning.
+        public: static QualifiedTimeRange Until(const QualifiedTime &_end);
 
         /// \brief Construct a time range that has no beginning or end.
         /// \return A time range that has no beginning or end.
@@ -196,45 +196,45 @@ namespace ignition
 
         /// \brief Get a reference to the start time of this range.
         /// \return A reference to the start time.
-        public: const QualifiedTime &Start() const;
+        public: const QualifiedTime &Beginning() const;
 
         /// \brief Get a reference to the end time of this range.
         /// \return A reference to the end time.
-        public: const QualifiedTime &Finish() const;
+        public: const QualifiedTime &Ending() const;
 
         /// \brief Set the start time of this range. Passing in an indeterminate
         /// QualifiedTime (its default constructor) will tell this range to have
         /// no beginning (effectively, it should start at the beginning of the
         /// log).
-        /// \param[in] _start The start time of this range.
+        /// \param[in] _begin The start time of this range.
         /// \return True if the new range is valid. False if the range is now
-        /// invalid. The _start value will be accepted either way.
+        /// invalid. The _begin value will be accepted either way.
         /// \sa SetRange()
         /// \sa Valid()
-        public: bool SetStart(const QualifiedTime &_start);
+        public: bool SetBeginning(const QualifiedTime &_begin);
 
         /// \brief Set the finish time of this range. Passing in an
         /// indeterminate QualifiedTime (its default constructor) will tell this
         /// range to have no end (effectively, it should not stop until the end
         /// of the log).
-        /// \param[in] _finish The finish time of this range.
+        /// \param[in] _end The finish time of this range.
         /// \return True if this new range is valid. False if the range is now
-        /// invalid. The _finish value will be accepted either way.
+        /// invalid. The _end value will be accepted either way.
         /// \sa SetRange()
         /// \sa Valid()
-        public: bool SetFinish(const QualifiedTime &_finish);
+        public: bool SetEnding(const QualifiedTime &_end);
 
         /// \brief Set both endpoints of the range.
-        /// \param[in] _start The start time of this range.
-        /// \param[in] _finish The end time of this range.
+        /// \param[in] _begin The start time of this range.
+        /// \param[in] _end The end time of this range.
         /// \return True if this new range is valid. False if the range is now
-        /// invalid. The values for _start and _finish will be accepted either
+        /// invalid. The values for _begin and _end will be accepted either
         /// way.
-        /// \sa SetStart()
-        /// \sa SetFinish()
+        /// \sa SetBeginning()
+        /// \sa SetEnding()
         /// \sa Valid()
-        public: bool SetRange(const QualifiedTime &_start,
-                              const QualifiedTime &_finish);
+        public: bool SetRange(const QualifiedTime &_begin,
+                              const QualifiedTime &_end);
 
         /// \brief Check if the range is valid. A valid range means that the
         /// finish time is guaranteed to be later than or coincident with the
