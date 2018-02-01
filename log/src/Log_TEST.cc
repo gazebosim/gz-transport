@@ -151,6 +151,13 @@ TEST(Log, CheckVersion)
 }
 
 //////////////////////////////////////////////////
+TEST(Log, NullDescriptorUnopenedLog)
+{
+  transport::log::Log logFile;
+  EXPECT_EQ(nullptr, logFile.Descriptor());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
