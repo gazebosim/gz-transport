@@ -29,7 +29,7 @@ namespace ignition
     namespace log
     {
       //////////////////////////////////////////////////
-      /// \brief Since time is coninuous, it may be difficult to know the exact
+      /// \brief Since time is continuous, it may be difficult to know the exact
       /// time stamp of a desired message. The QualifiedTime class provides a
       /// way to tailor how a time stamp is interpreted by the message query.
       ///
