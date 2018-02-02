@@ -363,7 +363,7 @@ Log::Log(Log &&_other)  // NOLINT
 //////////////////////////////////////////////////
 Log::~Log()
 {
-  if (this->dataPtr->inTransaction)
+  if (this->dataPtr && this->dataPtr->inTransaction)
   {
     this->dataPtr->EndTransactionIfEnoughTimeHasPassed();
   }
@@ -372,7 +372,7 @@ Log::~Log()
 //////////////////////////////////////////////////
 bool Log::Valid() const
 {
-  return this->dataPtr->db.operator bool();
+  return this->dataPtr && this->dataPtr->db.operator bool();
 }
 
 //////////////////////////////////////////////////

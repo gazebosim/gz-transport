@@ -29,6 +29,15 @@ TEST(Log, OpenMemoryDatabase)
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
 
+//////////////////////////////////////////////////
+TEST(Log, MoveConstructor)
+{
+  transport::log::Log logFile;
+  EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+  transport::log::Log logDest(std::move(logFile));
+  EXPECT_TRUE(logDest.Valid());
+  EXPECT_FALSE(logFile.Valid());
+}
 
 //////////////////////////////////////////////////
 TEST(Log, UnopenedLog)
