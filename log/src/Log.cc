@@ -480,6 +480,11 @@ bool Log::InsertMessage(
     const std::string &_topic, const std::string &_type,
     const void *_data, std::size_t _len)
 {
+  if (!this->Valid())
+  {
+    return false;
+  }
+
   // Need to insert multiple messages pertransaction for best performance
   if (!this->dataPtr->BeginTransactionIfNotInOne())
   {

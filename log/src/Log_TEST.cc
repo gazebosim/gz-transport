@@ -29,6 +29,30 @@ TEST(Log, OpenMemoryDatabase)
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
 
+
+//////////////////////////////////////////////////
+TEST(Log, UnopenedLog)
+{
+  transport::log::Log logFile;
+  EXPECT_FALSE(logFile.Valid());
+  EXPECT_EQ(std::string(""), logFile.Version());
+  EXPECT_EQ(nullptr, logFile.Descriptor());
+  char data[] = {1,2,3,4};
+  EXPECT_FALSE(logFile.InsertMessage(common::Time::Zero, "/foo/bar", ".fiz.buz",
+    reinterpret_cast<const void *>(data), 4));
+
+  auto batch = logFile.QueryMessages();
+  EXPECT_EQ(batch.end(), batch.begin());
+}
+
+//////////////////////////////////////////////////
+TEST(Log, OpenMemoryDatabaseTwice)
+{
+  transport::log::Log logFile;
+  EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+  EXPECT_FALSE(logFile.Open(":memory:", std::ios_base::out));
+}
+
 //////////////////////////////////////////////////
 TEST(Log, OpenImpossibleFileName)
 {
