@@ -20,32 +20,6 @@
 using namespace ignition::transport::log;
 
 //////////////////////////////////////////////////
-auto Descriptor::Implementation::QueryMsgTypesOfTopic(
-    const std::string &_topicName) const -> const NameToId *
-{
-  const NameToMap::const_iterator it =
-      this->topicsToMsgTypesToId.find(_topicName);
-
-  if (it == this->topicsToMsgTypesToId.end())
-    return nullptr;
-
-  return &it->second;
-}
-
-//////////////////////////////////////////////////
-auto Descriptor::Implementation::QueryTopicsOfMsgType(
-    const std::string &_msgType) const -> const NameToId *
-{
-  const NameToMap::const_iterator it =
-      this->msgTypesToTopicsToId.find(_msgType);
-
-  if (it == this->msgTypesToTopicsToId.end())
-    return nullptr;
-
-  return &it->second;
-}
-
-//////////////////////////////////////////////////
 void Descriptor::Implementation::Reset(const TopicKeyMap &_columns)
 {
   topicsToMsgTypesToId.clear();
@@ -71,20 +45,6 @@ auto Descriptor::TopicsToMsgTypesToId() const -> const NameToMap &
 auto Descriptor::MsgTypesToTopicsToId() const -> const NameToMap &
 {
   return this->dataPtr->msgTypesToTopicsToId;
-}
-
-//////////////////////////////////////////////////
-auto Descriptor::QueryMsgTypesOfTopic(
-    const std::string &_topicName) const -> const NameToId *
-{
-  return this->dataPtr->QueryMsgTypesOfTopic(_topicName);
-}
-
-//////////////////////////////////////////////////
-auto Descriptor::QueryTopicsOfMsgType(
-    const std::string &_msgType) const -> const NameToId *
-{
-  return this->dataPtr->QueryTopicsOfMsgType(_msgType);
 }
 
 //////////////////////////////////////////////////
