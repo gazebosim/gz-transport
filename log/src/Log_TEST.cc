@@ -35,6 +35,7 @@ TEST(Log, OpenReadOnlyMemoryDatabase)
 {
   transport::log::Log logFile;
   EXPECT_FALSE(logFile.Open(":memory:", std::ios_base::in));
+  EXPECT_FALSE(logFile.Valid());
 }
 
 //////////////////////////////////////////////////

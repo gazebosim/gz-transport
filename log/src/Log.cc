@@ -394,8 +394,9 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     modeSQL = SQLITE_OPEN_READONLY;
   }
 
-  this->dataPtr->db.reset(new raii_sqlite3::Database(_file, modeSQL));
-  if (!*(this->dataPtr->db))
+  std::unique_ptr<raii_sqlite3::Database> db(
+      new raii_sqlite3::Database(_file, modeSQL));
+  if (!*(db))
   {
     ignerr << "Failed to open sqlite3 database\n";
     return false;
@@ -445,15 +446,15 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     }
 
     // Apply the schema to the database
-    int returnCode = sqlite3_exec(
-        this->dataPtr->db->Handle(), schema.c_str(), NULL, 0, NULL);
+    int returnCode = sqlite3_exec(db->Handle(), schema.c_str(), NULL, 0, NULL);
     if (returnCode != SQLITE_OK)
     {
-      ignerr << "Failed to create log: " << sqlite3_errmsg(
-          this->dataPtr->db->Handle()) << "\n";
+      ignerr << "Failed to open log: " << sqlite3_errmsg(db->Handle()) << "\n";
       return false;
     }
   }
+
+  this->dataPtr->db = std::move(db);
 
   // Check the schema version
   // TODO(sloretz) handle multiple versions
@@ -462,6 +463,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
   {
     ignerr << "Log file Version '" << version
       << "' is unsupported by this tool\n";
+    this->dataPtr->db.reset();
     return false;
   }
 
