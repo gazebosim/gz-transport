@@ -9,6 +9,7 @@ ign_build_tests(
     Message_TEST.cc
     QualifiedTime_TEST.cc
     Recorder_TEST.cc
+    Playback_TEST.cc
     SqlStatement_TEST.cc
   LIB_DEPS ${log_lib_target}
   TEST_LIST logging_tests
