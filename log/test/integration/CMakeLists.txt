@@ -6,6 +6,7 @@ ign_build_tests(
   SOURCES
     recorder.cc
     playback.cc
+    query.cc
   LIB_DEPS
     ${log_lib_target}
   INCLUDE_DIRS
