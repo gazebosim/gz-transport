@@ -112,7 +112,9 @@ TEST(SqlParameter, CopyAssignment)
 {
   transport::log::SqlParameter param_orig;
   param_orig.Set("Hello World!");
-  transport::log::SqlParameter param = param_orig;
+  transport::log::SqlParameter param;
+  param.Set(42L);
+  param = param_orig;
   ASSERT_NE(nullptr, param_orig.QueryText());
   ASSERT_NE(nullptr, param.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param_orig.QueryText());
@@ -125,7 +127,9 @@ TEST(SqlParameter, MoveAssignment)
 {
   transport::log::SqlParameter param_orig;
   param_orig.Set("Hello World!");
-  transport::log::SqlParameter param = std::move(param_orig);
+  transport::log::SqlParameter param;
+  param.Set(42L);
+  param = std::move(param_orig);
   ASSERT_NE(nullptr, param.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
