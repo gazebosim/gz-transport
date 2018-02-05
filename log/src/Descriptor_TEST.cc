@@ -151,6 +151,19 @@ TEST(Descriptor, MsgTypesMapOneTopic)
 
 
 //////////////////////////////////////////////////
+TEST(Descriptor, TopicKeyEquality)
+{
+  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key2 = {"/foo/bar", "ign.msgs.DNE2"};
+  TopicKey key3 = {"/foo/bar3", "ign.msgs.DNE"};
+  TopicKey key4 = {"/foo/bar", "ign.msgs.DNE"};
+  EXPECT_FALSE(key1 == key2);
+  EXPECT_FALSE(key1 == key3);
+  EXPECT_EQ(key1, key4);
+}
+
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
