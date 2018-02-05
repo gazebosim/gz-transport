@@ -348,6 +348,53 @@ TEST(Log, QueryAllTopicsAfterExclusive)
   EXPECT_EQ(5u, num_msgs);
 }
 
+//////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsBeforeInclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  auto batch = logFile.QueryMessages(
+      log::AllTopics(log::QualifiedTimeRange::Until(endTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin();
+  auto uutIter = batch.begin();
+  for (; goldenIter != (testMessages.end() - 2) && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(7u, num_msgs);
+}
+
+//////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsBeforeExclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Exclusive);
+  auto batch = logFile.QueryMessages(
+      log::AllTopics(log::QualifiedTimeRange::Until(endTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin();
+  auto uutIter = batch.begin();
+  for (; goldenIter != (testMessages.end() - 3) && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(6u, num_msgs);
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
