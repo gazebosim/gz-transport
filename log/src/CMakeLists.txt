@@ -8,6 +8,7 @@ ign_build_tests(
     Log_TEST.cc
     Message_TEST.cc
     QualifiedTime_TEST.cc
+    QueryOptions_TEST.cc
     Recorder_TEST.cc
     Playback_TEST.cc
     SqlStatement_TEST.cc
