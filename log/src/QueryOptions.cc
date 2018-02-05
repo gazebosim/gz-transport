@@ -92,7 +92,7 @@ class TimeRangeOption::Implementation
     {
       if (*start.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
         startCompare = ">=";
-      else if (*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+      else if (*start.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
         startCompare = ">";
     }
 

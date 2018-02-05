@@ -15,17 +15,20 @@
  *
 */
 
+#include <chrono>
 #include <unordered_set>
 
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
+using namespace ignition::transport;
+using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
 TEST(Log, OpenMemoryDatabase)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
 
@@ -33,7 +36,7 @@ TEST(Log, OpenMemoryDatabase)
 //////////////////////////////////////////////////
 TEST(Log, OpenReadOnlyMemoryDatabase)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_FALSE(logFile.Open(":memory:", std::ios_base::in));
   EXPECT_FALSE(logFile.Valid());
 }
@@ -41,9 +44,9 @@ TEST(Log, OpenReadOnlyMemoryDatabase)
 //////////////////////////////////////////////////
 TEST(Log, MoveConstructor)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
-  transport::log::Log logDest(std::move(logFile));
+  log::Log logDest(std::move(logFile));
   EXPECT_TRUE(logDest.Valid());
   EXPECT_FALSE(logFile.Valid());
 }
@@ -51,7 +54,7 @@ TEST(Log, MoveConstructor)
 //////////////////////////////////////////////////
 TEST(Log, UnopenedLog)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_FALSE(logFile.Valid());
   EXPECT_EQ(std::string(""), logFile.Version());
   EXPECT_EQ(nullptr, logFile.Descriptor());
@@ -66,7 +69,7 @@ TEST(Log, UnopenedLog)
 //////////////////////////////////////////////////
 TEST(Log, OpenMemoryDatabaseTwice)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
   EXPECT_FALSE(logFile.Open(":memory:", std::ios_base::out));
 }
@@ -74,14 +77,14 @@ TEST(Log, OpenMemoryDatabaseTwice)
 //////////////////////////////////////////////////
 TEST(Log, OpenImpossibleFileName)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_FALSE(logFile.Open("///////////", std::ios_base::out));
 }
 
 //////////////////////////////////////////////////
 TEST(Log, InsertMessage)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   std::string data("Hello World");
@@ -97,7 +100,7 @@ TEST(Log, InsertMessage)
 //////////////////////////////////////////////////
 TEST(Log, AllMessagesNone)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   auto batch = logFile.QueryMessages();
@@ -107,7 +110,7 @@ TEST(Log, AllMessagesNone)
 //////////////////////////////////////////////////
 TEST(Log, InsertMessageGetMessages)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   std::string data1("first_data");
@@ -135,18 +138,18 @@ TEST(Log, InsertMessageGetMessages)
   ASSERT_NE(batch.end(), iter);
   EXPECT_EQ(data2, iter->Data());
   ++iter;
-  EXPECT_EQ(transport::log::MsgIter(), iter);
+  EXPECT_EQ(log::MsgIter(), iter);
 }
 
 //////////////////////////////////////////////////
 TEST(Log, QueryMessagesByTopicNone)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   std::unordered_set<std::string> noTopics;
   auto batch = logFile.QueryMessages(
-        transport::log::TopicList::Create(noTopics));
+        log::TopicList::Create(noTopics));
 
   EXPECT_EQ(batch.end(), batch.begin());
 }
@@ -154,7 +157,7 @@ TEST(Log, QueryMessagesByTopicNone)
 //////////////////////////////////////////////////
 TEST(Log, Insert2Get1MessageByTopic)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
   std::string data1("first_data");
@@ -175,19 +178,19 @@ TEST(Log, Insert2Get1MessageByTopic)
       data2.size()));
 
   auto batch = logFile.QueryMessages(
-        transport::log::TopicList("/some/topic/name"));
+        log::TopicList("/some/topic/name"));
 
   auto iter = batch.begin();
   ASSERT_NE(batch.end(), iter);
   EXPECT_EQ(data1, iter->Data());
   ++iter;
-  EXPECT_EQ(transport::log::MsgIter(), iter);
+  EXPECT_EQ(log::MsgIter(), iter);
 }
 
 //////////////////////////////////////////////////
 TEST(Log, CheckVersion)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
   EXPECT_EQ("0.1.0", logFile.Version());
 }
@@ -195,9 +198,156 @@ TEST(Log, CheckVersion)
 //////////////////////////////////////////////////
 TEST(Log, NullDescriptorUnopenedLog)
 {
-  transport::log::Log logFile;
+  log::Log logFile;
   EXPECT_EQ(nullptr, logFile.Descriptor());
 }
+
+
+//////////////////////////////////////////////////
+/// \brief container for test message data
+typedef struct
+{
+  common::Time time;
+  std::string topic;
+  std::string type;
+  std::string data;
+} TestMessage;
+
+//////////////////////////////////////////////////
+std::vector<TestMessage> StandardTestMessages()
+{
+  std::vector<TestMessage> messages;
+
+  messages.push_back({
+      common::Time(1, 0),
+      "/topic/one",
+      "msg.type.1",
+      "topic1_type1_num1",
+      });
+  messages.push_back({
+      common::Time(1, 2.5e8),
+      "/topic/one",
+      "msg.type.2",
+      "topic1_type2_num1",
+      });
+  messages.push_back({
+      common::Time(1, 7.5e8),
+      "/topic/two",
+      "msg.type.1",
+      "topic2_type1_num1",
+      });
+  messages.push_back({
+      common::Time(2, 0),
+      "/topic/one",
+      "msg.type.1",
+      "topic1_type1_num2",
+      });
+  messages.push_back({
+      common::Time(2, 2.5e8),
+      "/topic/one",
+      "msg.type.2",
+      "topic1_type2_num2",
+      });
+  messages.push_back({
+      common::Time(2, 7.5e8),
+      "/topic/two",
+      "msg.type.2",
+      "topic2_type1_num2",
+      });
+  messages.push_back({
+      common::Time(3, 0),
+      "/topic/one",
+      "msg.type.1",
+      "topic1_type1_num3",
+      });
+  messages.push_back({
+      common::Time(3, 2.5e8),
+      "/topic/one",
+      "msg.type.2",
+      "topic1_type2_num3",
+      });
+  messages.push_back({
+      common::Time(3, 7.5e8),
+      "/topic/two",
+      "msg.type.1",
+      "topic2_type1_num3",
+      });
+
+  return messages;
+}
+
+
+void CheckEquality(const TestMessage &_golden, const log::Message &_uut)
+{
+  EXPECT_EQ(_golden.time, _uut.TimeReceived());
+  EXPECT_EQ(_golden.topic, _uut.Topic());
+  EXPECT_EQ(_golden.type, _uut.Type());
+  EXPECT_EQ(_golden.data, _uut.Data());
+}
+
+//////////////////////////////////////////////////
+void InsertMessages(log::Log &_log,
+    const std::vector<TestMessage> &_messages)
+{
+  for (const TestMessage &msg : _messages)
+  {
+    ASSERT_TRUE(_log.InsertMessage(
+        msg.time,
+        msg.topic,
+        msg.type,
+        reinterpret_cast<const void *>(msg.data.c_str()),
+        msg.data.size()));
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsAfterInclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  auto batch = logFile.QueryMessages(
+      log::AllTopics(log::QualifiedTimeRange::From(beginTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin() + 3;
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(6u, num_msgs);
+}
+
+//////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsAfterExclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Exclusive);
+  auto batch = logFile.QueryMessages(
+      log::AllTopics(log::QualifiedTimeRange::From(beginTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin() + 4;
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(5u, num_msgs);
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
