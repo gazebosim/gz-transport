@@ -135,13 +135,9 @@ TEST(playback, ReplayLog)
   playback.Start();
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  while (true)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::unique_lock<std::mutex> lock(dataMutex);
-    if (incomingData.size() == originalData.size())
-      break;
-  }
+  playback.WaitUntilFinished();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   std::cout << "Playback finished!" << std::endl;
 
   playback.Stop();
@@ -200,16 +196,10 @@ TEST(playback, ReplayLogRegex)
 
   ignition::transport::log::Playback playback(logName);
   playback.Start();
-
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  while (true)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::unique_lock<std::mutex> lock(dataMutex);
-    if (incomingData.size() == originalData.size())
-      break;
-  }
-
+  playback.WaitUntilFinished();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   std::cout << "Playback finished!" << std::endl;
 
   playback.Stop();
@@ -274,14 +264,9 @@ TEST(playback, ReplayLogMoveInstances)
   playback.Start();
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  while (true)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::unique_lock<std::mutex> lock(dataMutex);
-    if (incomingData.size() == originalData.size())
-      break;
-  }
-
+  playback.WaitUntilFinished();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   std::cout << "Playback finished!" << std::endl;
 
   playback.Stop();

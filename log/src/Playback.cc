@@ -45,6 +45,9 @@ class ignition::transport::log::PlaybackPrivate
   /// \param[in] Batch The messages to be played back
   public: void StartPlayback(Batch _batch);
 
+  /// \brief Waiti until playback has finished playing
+  public: void WaitUntilFinished();
+
   /// \brief True if the thread should be stopped
   public: bool stop = true;
 
@@ -173,6 +176,15 @@ void PlaybackPrivate::StartPlayback(Batch _batch)
     });
 }
 
+//////////////////////////////////////////////////
+void PlaybackPrivate::WaitUntilFinished()
+{
+  if (this->logFile.Valid() && !this->stop)
+  {
+    std::unique_lock<std::mutex> lk(this->waitMutex);
+    this->waitConditionVariable.wait(lk, [this]{return this->stop;});
+  }
+}
 
 //////////////////////////////////////////////////
 Playback::Playback(const std::string &_file)
@@ -253,13 +265,7 @@ PlaybackError Playback::Stop()
 //////////////////////////////////////////////////
 void Playback::WaitUntilFinished()
 {
-  if (this->dataPtr->logFile.Valid() && !this->dataPtr->stop)
-  {
-    std::unique_lock<std::mutex> lk(this->dataPtr->waitMutex);
-    bool &stop = this->dataPtr->stop;
-    this->dataPtr->waitConditionVariable.wait(
-        lk, [stop]{return stop;});
-  }
+  this->dataPtr->WaitUntilFinished();
 }
 
 //////////////////////////////////////////////////
