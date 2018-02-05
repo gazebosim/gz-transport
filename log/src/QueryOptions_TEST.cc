@@ -31,6 +31,7 @@ TEST(QueryOptionsTimeRange, GetRange)
   EXPECT_EQ(range, rangeOption.TimeRange());
 }
 
+//////////////////////////////////////////////////
 TEST(QueryOptionsTimeRange, GetRangeConst)
 {
   log::QualifiedTime beginTime(1s, log::QualifiedTime::Qualifier::Inclusive);
@@ -39,6 +40,50 @@ TEST(QueryOptionsTimeRange, GetRangeConst)
   log::TimeRangeOption rangeOption(range);
   const log::TimeRangeOption &constRangeOption = rangeOption;
   EXPECT_EQ(range, constRangeOption.TimeRange());
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CopyTopicList)
+{
+  std::set<std::string> topicList = {"/topic/one", "/topic/two"};
+  log::TopicList topicOptionOrig(topicList);
+  log::TopicList topicOption(topicOptionOrig);
+  EXPECT_EQ(topicList, topicOption.Topics());
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CopyTopicListConst)
+{
+  std::set<std::string> topicList = {"/topic/one", "/topic/two"};
+  log::TopicList topicOptionOrig(topicList);
+  const auto &constTopicOption = topicOptionOrig;
+  log::TopicList topicOption(constTopicOption);
+  EXPECT_EQ(topicList, topicOption.Topics());
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CopyTopicPattern)
+{
+  std::regex topicPattern("foo");
+  log::TopicPattern topicOptionOrig(topicPattern);
+  log::TopicPattern topicOption(topicOptionOrig);
+  std::regex uutPattern = topicOption.Pattern();
+
+  EXPECT_TRUE(std::regex_match("foo", uutPattern));
+  EXPECT_FALSE(std::regex_match("bar", uutPattern));
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CopyTopicPatternConst)
+{
+  std::regex topicPattern("foo");
+  log::TopicPattern topicOptionOrig(topicPattern);
+  const auto &constTopicOption = topicOptionOrig;
+  log::TopicPattern topicOption(constTopicOption);
+  std::regex uutPattern = topicOption.Pattern();
+
+  EXPECT_TRUE(std::regex_match("foo", uutPattern));
+  EXPECT_FALSE(std::regex_match("bar", uutPattern));
 }
 
 //////////////////////////////////////////////////
