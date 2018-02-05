@@ -41,6 +41,10 @@ class ignition::transport::log::PlaybackPrivate
   public: bool CreatePublisher(
               const std::string &_topic, const std::string &_type);
 
+  /// \brief Being playing messages in another thread
+  /// \param[in] Batch The messages to be played back
+  public: void StartPlayback(Batch _batch);
+
   /// \brief True if the thread should be stopped
   public: bool stop = true;
 
@@ -99,6 +103,78 @@ bool PlaybackPrivate::CreatePublisher(
 }
 
 //////////////////////////////////////////////////
+void PlaybackPrivate::StartPlayback(Batch _batch)
+{
+  this->stop = false;
+
+  // Dev Note: msgIter is being initialized via the move-constructor within the
+  // capture statement, as if it were being declared and constructed as
+  // `auto msgIter{std::move(iter)}`.
+  //
+  // For now, we need to use the move constructor because MsgIter does not yet
+  // support copy construction. Also, the object named `iter` will go out of
+  // scope while this lambda is still in use, so we cannot rely on capturing it
+  // by reference.
+  this->playbackThread = std::thread(
+    [this, batch{std::move(_batch)}] () mutable
+    {
+      bool publishedFirstMessage = false;
+
+      // Get current elapsed on monotonic clock
+      std::chrono::nanoseconds nowNS(
+          std::chrono::steady_clock::now().time_since_epoch());
+      // Round to nearest second
+      std::chrono::seconds nowS =
+          std::chrono::duration_cast<std::chrono::seconds>(nowNS);
+      ignition::common::Time startTime(nowS.count(), nowNS.count());
+      ignition::common::Time firstMsgTime;
+
+      std::lock_guard<std::mutex> playbackLock(this->logFileMutex);
+      for (const Message &msg : batch)
+      {
+        if (this->stop)
+        {
+          break;
+        }
+
+        // Publish the first message right away, all others delay
+        if (publishedFirstMessage)
+        {
+          ignition::common::Time target = msg.TimeReceived() - firstMsgTime;
+          nowNS = std::chrono::nanoseconds(
+              std::chrono::steady_clock::now().time_since_epoch());
+          // Round to nearest second
+          nowS = std::chrono::duration_cast<std::chrono::seconds>(nowNS);
+          ignition::common::Time now(nowS.count(), nowNS.count());
+          now -= startTime;
+          if (target > now)
+          {
+            ignition::common::Time delta = target - now;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(
+                  delta.sec * 1000000000 + delta.nsec));
+          }
+        }
+        else
+        {
+          publishedFirstMessage = true;
+          firstMsgTime = msg.TimeReceived();
+        }
+
+        // Actually publish the message
+        igndbg << "publishing\n";
+        this->publishers[msg.Topic()][msg.Type()].PublishRaw(
+            msg.Data(), msg.Type());
+      }
+      {
+        std::lock_guard<std::mutex> lk(this->waitMutex);
+        this->stop = true;
+      }
+      this->waitConditionVariable.notify_all();
+    });
+}
+
+
+//////////////////////////////////////////////////
 Playback::Playback(const std::string &_file)
   : dataPtr(new PlaybackPrivate)
 {
@@ -121,7 +197,10 @@ Playback::Playback(Playback &&_other)  // NOLINT
 //////////////////////////////////////////////////
 Playback::~Playback()
 {
-  this->Stop();
+  if (this->dataPtr)
+  {
+    this->Stop();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -152,74 +231,8 @@ PlaybackError Playback::Start()
     return PlaybackError::NO_MESSAGES;
   }
 
+  this->dataPtr->StartPlayback(std::move(batch));
   ignmsg << "Started playing\n";
-  this->dataPtr->stop = false;
-
-  // Dev Note: msgIter is being initialized via the move-constructor within the
-  // capture statement, as if it were being declared and constructed as
-  // `auto msgIter{std::move(iter)}`.
-  //
-  // For now, we need to use the move constructor because MsgIter does not yet
-  // support copy construction. Also, the object named `iter` will go out of
-  // scope while this lambda is still in use, so we cannot rely on capturing it
-  // by reference.
-  this->dataPtr->playbackThread = std::thread(
-    [this, batch{std::move(batch)}] () mutable
-    {
-      bool publishedFirstMessage = false;
-
-      // Get current elapsed on monotonic clock
-      std::chrono::nanoseconds nowNS(
-          std::chrono::steady_clock::now().time_since_epoch());
-      // Round to nearest second
-      std::chrono::seconds nowS =
-          std::chrono::duration_cast<std::chrono::seconds>(nowNS);
-      ignition::common::Time startTime(nowS.count(), nowNS.count());
-      ignition::common::Time firstMsgTime;
-
-      std::lock_guard<std::mutex> playbackLock(this->dataPtr->logFileMutex);
-      for (const Message &msg : batch)
-      {
-        if (this->dataPtr->stop)
-        {
-          break;
-        }
-
-        // Publish the first message right away, all others delay
-        if (publishedFirstMessage)
-        {
-          ignition::common::Time target = msg.TimeReceived() - firstMsgTime;
-          nowNS = std::chrono::nanoseconds(
-              std::chrono::steady_clock::now().time_since_epoch());
-          // Round to nearest second
-          nowS = std::chrono::duration_cast<std::chrono::seconds>(nowNS);
-          ignition::common::Time now(nowS.count(), nowNS.count());
-          now -= startTime;
-          if (target > now)
-          {
-            ignition::common::Time delta = target - now;
-            std::this_thread::sleep_for(std::chrono::nanoseconds(
-                  delta.sec * 1000000000 + delta.nsec));
-          }
-        }
-        else
-        {
-          publishedFirstMessage = true;
-          firstMsgTime = msg.TimeReceived();
-        }
-
-        // Actually publish the message
-        igndbg << "publishing\n";
-        this->dataPtr->publishers[msg.Topic()][msg.Type()].PublishRaw(
-            msg.Data(), msg.Type());
-      }
-      {
-        std::lock_guard<std::mutex> lk(this->dataPtr->waitMutex);
-        this->dataPtr->stop = true;
-      }
-      this->dataPtr->waitConditionVariable.notify_all();
-    });
-
   return PlaybackError::NO_ERROR;
 }
 
@@ -243,8 +256,9 @@ void Playback::WaitUntilFinished()
   if (this->dataPtr->logFile.Valid() && !this->dataPtr->stop)
   {
     std::unique_lock<std::mutex> lk(this->dataPtr->waitMutex);
+    bool &stop = this->dataPtr->stop;
     this->dataPtr->waitConditionVariable.wait(
-        lk, [this]{return this->dataPtr->stop;});
+        lk, [stop]{return stop;});
   }
 }
 

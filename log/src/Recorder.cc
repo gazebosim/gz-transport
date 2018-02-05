@@ -36,6 +36,12 @@ using namespace ignition::transport::log;
 /// \brief Private implementation
 class ignition::transport::log::RecorderPrivate
 {
+  /// \brief constructor
+  public: RecorderPrivate();
+
+  /// \brief destructor
+  public: ~RecorderPrivate();
+
   /// \brief Subscriber callback
   public: void OnMessageReceived(
           const char *_data,
@@ -80,6 +86,40 @@ class ignition::transport::log::RecorderPrivate
   /// \brief Object for discovering new publishers as they advertise themselves
   public: std::unique_ptr<MsgDiscovery> discovery;
 };
+
+//////////////////////////////////////////////////
+RecorderPrivate::RecorderPrivate()
+{
+  // Set the offset used to get UTC from steady clock
+  std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
+  std::chrono::nanoseconds monoStartNS(
+      std::chrono::steady_clock::now().time_since_epoch());
+  this->wallMinusMono = wallStartNS - monoStartNS;
+
+  // Make a lambda to wrap a member function callback
+  this->rawCallback = [this](
+      const char *_data, std::size_t _len, const transport::MessageInfo &_info)
+  {
+    this->OnMessageReceived(_data, _len, _info);
+  };
+
+  Uuid uuid;
+  this->discovery = std::unique_ptr<MsgDiscovery>(
+        new MsgDiscovery(uuid.ToString(), NodeShared::kMsgDiscPort));
+
+  DiscoveryCallback<Publisher> cb = [this](const Publisher &_publisher)
+  {
+    this->OnAdvertisement(_publisher);
+  };
+
+  this->discovery->ConnectionsCb(cb);
+  this->discovery->Start();
+}
+
+//////////////////////////////////////////////////
+RecorderPrivate::~RecorderPrivate()
+{
+}
 
 //////////////////////////////////////////////////
 void RecorderPrivate::OnMessageReceived(
@@ -199,30 +239,6 @@ int64_t RecorderPrivate::AddTopic(const std::regex &_pattern)
 Recorder::Recorder()
   : dataPtr(new RecorderPrivate)
 {
-  // Set the offset used to get UTC from steady clock
-  std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
-  std::chrono::nanoseconds monoStartNS(
-      std::chrono::steady_clock::now().time_since_epoch());
-  this->dataPtr->wallMinusMono = wallStartNS - monoStartNS;
-
-  // Make a lambda to wrap a member function callback
-  this->dataPtr->rawCallback = [this](
-      const char *_data, std::size_t _len, const transport::MessageInfo &_info)
-  {
-    this->dataPtr->OnMessageReceived(_data, _len, _info);
-  };
-
-  Uuid uuid;
-  this->dataPtr->discovery = std::unique_ptr<MsgDiscovery>(
-        new MsgDiscovery(uuid.ToString(), NodeShared::kMsgDiscPort));
-
-  DiscoveryCallback<Publisher> cb = [this](const Publisher &_publisher)
-  {
-    this->dataPtr->OnAdvertisement(_publisher);
-  };
-
-  this->dataPtr->discovery->ConnectionsCb(cb);
-  this->dataPtr->discovery->Start();
 }
 
 //////////////////////////////////////////////////
@@ -234,7 +250,10 @@ Recorder::Recorder(Recorder &&_other)  // NOLINT
 //////////////////////////////////////////////////
 Recorder::~Recorder()
 {
-  this->Stop();
+  if (this->dataPtr)
+  {
+    this->Stop();
+  }
 }
 
 //////////////////////////////////////////////////

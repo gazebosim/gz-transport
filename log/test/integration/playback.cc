@@ -217,6 +217,78 @@ TEST(playback, ReplayLogRegex)
   ExpectSameMessages(originalData, incomingData);
 }
 
+/// \brief Record a log and then play it back. Verify that the playback matches
+/// the original.
+TEST(playback, ReplayLogMoveInstances)
+{
+  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
+
+  std::vector<MessageInformation> incomingData;
+
+  auto callback = [&incomingData](
+      const char *_data,
+      std::size_t _len,
+      const ignition::transport::MessageInfo &_msgInfo)
+  {
+    TrackMessages(incomingData, _data, _len, _msgInfo);
+  };
+
+  ignition::transport::Node node;
+  ignition::transport::log::Recorder recorder_orig;
+
+  for (const std::string &topic : topics)
+  {
+    node.SubscribeRaw(topic, callback);
+  }
+  recorder_orig.AddTopic(std::regex(".*"));
+
+  ignition::transport::log::Recorder recorder(std::move(recorder_orig));
+
+  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
+  ignition::common::removeFile(logName);
+  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+    recorder.Start(logName));
+
+  const int numChirps = 100;
+  testing::forkHandlerType chirper =
+      ignition::transport::log::test::BeginChirps(topics, numChirps);
+
+  // Wait for the chirping to finish
+  testing::waitAndCleanupFork(chirper);
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Stop recording so we can safely play back the log
+  recorder.Stop();
+
+  // Make a copy of the data so we can compare it later
+  std::vector<MessageInformation> originalData = incomingData;
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  ignition::transport::log::Playback playback_orig(logName);
+  playback_orig.AddTopic(std::regex(".*"));
+  ignition::transport::log::Playback playback(std::move(playback_orig));
+  playback.Start();
+
+  std::cout << "Waiting to for playback to finish..." << std::endl;
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::unique_lock<std::mutex> lock(dataMutex);
+    if (incomingData.size() == originalData.size())
+      break;
+  }
+
+  std::cout << "Playback finished!" << std::endl;
+
+  playback.Stop();
+
+  ExpectSameMessages(originalData, incomingData);
+}
+
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
