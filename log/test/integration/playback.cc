@@ -57,6 +57,25 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
   _archive.push_back(info);
 }
 
+
+/// \brief Compare sent and received messages
+/// \param[in] _recorded messages that were recorded
+/// \param[in] _played messages that were published
+void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
+    const std::vector<MessageInformation> &_played)
+{
+  for (std::size_t i = 0; i < _recorded.size(); ++i)
+  {
+    const MessageInformation &original = _recorded[i];
+    const MessageInformation &playedBack = _played[i];
+
+    EXPECT_EQ(original.data, playedBack.data);
+    EXPECT_EQ(original.type, playedBack.type);
+    EXPECT_EQ(original.topic, playedBack.topic);
+  }
+}
+
+
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLog)
@@ -84,8 +103,81 @@ TEST(playback, ReplayLog)
 
   const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
   ignition::common::removeFile(logName);
-  EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::NO_ERROR);
+  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+    recorder.Start(logName));
+
+  const int numChirps = 100;
+  testing::forkHandlerType chirper =
+    ignition::transport::log::test::BeginChirps(topics, numChirps);
+
+  // Wait for the chirping to finish
+  testing::waitAndCleanupFork(chirper);
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Stop recording so we can safely play back the log
+  recorder.Stop();
+
+  // Make a copy of the data so we can compare it later
+  std::vector<MessageInformation> originalData = incomingData;
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  ignition::transport::log::Playback playback(logName);
+
+  for (const std::string &topic : topics)
+  {
+    playback.AddTopic(topic);
+  }
+
+  playback.Start();
+
+  std::cout << "Waiting to for playback to finish..." << std::endl;
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::unique_lock<std::mutex> lock(dataMutex);
+    if (incomingData.size() == originalData.size())
+      break;
+  }
+  std::cout << "Playback finished!" << std::endl;
+
+  playback.Stop();
+
+  ExpectSameMessages(originalData, incomingData);
+}
+
+/// \brief Record a log and then play it back. Verify that the playback matches
+/// the original.
+TEST(playback, ReplayLogRegex)
+{
+  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
+
+  std::vector<MessageInformation> incomingData;
+
+  auto callback = [&incomingData](
+      const char *_data,
+      std::size_t _len,
+      const ignition::transport::MessageInfo &_msgInfo)
+  {
+    TrackMessages(incomingData, _data, _len, _msgInfo);
+  };
+
+  ignition::transport::Node node;
+  ignition::transport::log::Recorder recorder;
+
+  for (const std::string &topic : topics)
+  {
+    node.SubscribeRaw(topic, callback);
+  }
+  recorder.AddTopic(std::regex(".*"));
+
+  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
+  ignition::common::removeFile(logName);
+  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+    recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
@@ -109,8 +201,7 @@ TEST(playback, ReplayLog)
   ignition::transport::log::Playback playback(logName);
   playback.Start();
 
-  std::cout << "Waiting to for playback to finish... ";
-  std::flush(std::cout);
+  std::cout << "Waiting to for playback to finish..." << std::endl;
   while (true)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -123,15 +214,7 @@ TEST(playback, ReplayLog)
 
   playback.Stop();
 
-  for (std::size_t i = 0; i < originalData.size(); ++i)
-  {
-    const MessageInformation &original = originalData[i];
-    const MessageInformation &playedBack = incomingData[i];
-
-    EXPECT_EQ(original.data, playedBack.data);
-    EXPECT_EQ(original.type, playedBack.type);
-    EXPECT_EQ(original.topic, playedBack.topic);
-  }
+  ExpectSameMessages(originalData, incomingData);
 }
 
 //////////////////////////////////////////////////
