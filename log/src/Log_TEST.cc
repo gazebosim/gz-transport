@@ -325,6 +325,56 @@ TEST(Log, QueryAllTopicsAfterInclusive)
 }
 
 //////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsAfterInclusiveCopy)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::AllTopics options_orig(log::QualifiedTimeRange::From(beginTime));
+  log::AllTopics options(options_orig);
+  auto batch = logFile.QueryMessages(options);
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin() + 3;
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(6u, num_msgs);
+}
+
+//////////////////////////////////////////////////
+TEST(Log, QueryAllTopicsAfterInclusiveMove)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::AllTopics options_orig(log::QualifiedTimeRange::From(beginTime));
+  log::AllTopics options(std::move(options_orig));
+  auto batch = logFile.QueryMessages(options);
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin() + 3;
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter, ++uutIter, ++num_msgs)
+  {
+    CheckEquality(*goldenIter, *uutIter);
+  }
+  EXPECT_EQ(6u, num_msgs);
+}
+
+//////////////////////////////////////////////////
 TEST(Log, QueryAllTopicsAfterExclusive)
 {
   log::Log logFile;
