@@ -497,6 +497,33 @@ TEST(Log, QueryAllTopicsBetweenExclusive)
 }
 
 //////////////////////////////////////////////////
+TEST(Log, QueryTopicPatternAllTime)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  auto batch = logFile.QueryMessages(log::TopicPattern(std::regex(".*/two")));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin();
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter)
+  {
+    if (goldenIter->topic == "/topic/two")
+    {
+      CheckEquality(*goldenIter, *uutIter);
+      ++uutIter;
+      ++num_msgs;
+    }
+  }
+  EXPECT_EQ(3u, num_msgs);
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
