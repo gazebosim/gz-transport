@@ -99,6 +99,16 @@ namespace ignition
         public: QualifiedTime &operator=(
             QualifiedTime &&) = default;  // NOLINT(build/c++11)
 
+        /// \brief Equality operator.
+        /// \param[in] _other Another QualifiedTime
+        /// \return true if the times are equal
+        public: bool operator==(const QualifiedTime &_other) const;
+
+        /// \brief Inequality operator.
+        /// \param[in] _other Another QualifiedTime
+        /// \return true if the times are not equal
+        public: bool operator!=(const QualifiedTime &_other) const;
+
         /// \brief Indicates whether this QualifiedTime object is indeterminate.
         ///
         /// When an indeterminate time is used as the end of a range, it implies
@@ -178,6 +188,16 @@ namespace ignition
         /// \return Reference to this object
         public: QualifiedTimeRange &operator=(
             QualifiedTimeRange &&) = default;  // NOLINT(build/c++11)
+
+        /// \brief Equality operator.
+        /// \param[in] _other Another QualifiedTimeRange
+        /// \return true if the times are equal
+        public: bool operator==(const QualifiedTimeRange &_other) const;
+
+        /// \brief Inequality operator.
+        /// \param[in] _other Another QualifiedTimeRange
+        /// \return true if the times are not equal
+        public: bool operator!=(const QualifiedTimeRange &_other) const;
 
         /// \brief Construct a time range that begins at _begin and never ends.
         /// \param[in] _begin The beginning of the time range.

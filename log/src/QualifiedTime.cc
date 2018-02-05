@@ -73,6 +73,22 @@ class ignition::transport::log::QualifiedTime::Implementation
     this->qualifier = _qualifier;
   }
 
+  /// \internal \sa QualifiedTime::operator==()
+  public: bool operator==(const Implementation &_other) const
+  {
+    return this->indeterminate == _other.indeterminate
+      && this->qualifier == _other.qualifier
+      && this->time == _other.time;
+  }
+
+  /// \internal \sa QualifiedTime::operator!=()
+  public: bool operator!=(const Implementation &_other) const
+  {
+    return this->indeterminate != _other.indeterminate
+      || this->qualifier != _other.qualifier
+      || this->time != _other.time;
+  }
+
   /// \internal \sa QualifiedTime::Clear()
   public: void Clear()
   {
@@ -117,6 +133,18 @@ QualifiedTime & QualifiedTime::operator=(const QualifiedTime &_other)
 {
   *this->dataPtr = *_other.dataPtr;
   return *this;
+}
+
+//////////////////////////////////////////////////
+bool QualifiedTime::operator==(const QualifiedTime &_other) const
+{
+  return this->dataPtr->operator==(*(_other.dataPtr));
+}
+
+//////////////////////////////////////////////////
+bool QualifiedTime::operator!=(const QualifiedTime &_other) const
+{
+  return this->dataPtr->operator!=(*(_other.dataPtr));
 }
 
 //////////////////////////////////////////////////
@@ -257,6 +285,20 @@ QualifiedTimeRange &QualifiedTimeRange::operator=(
 {
   *this->dataPtr = *_other.dataPtr;
   return *this;
+}
+
+//////////////////////////////////////////////////
+bool QualifiedTimeRange::operator==(const QualifiedTimeRange &_other) const
+{
+  return this->dataPtr->start == _other.dataPtr->start
+    && this->dataPtr->finish == _other.dataPtr->finish;
+}
+
+//////////////////////////////////////////////////
+bool QualifiedTimeRange::operator!=(const QualifiedTimeRange &_other) const
+{
+  return this->dataPtr->start != _other.dataPtr->start
+    || this->dataPtr->finish != _other.dataPtr->finish;
 }
 
 //////////////////////////////////////////////////

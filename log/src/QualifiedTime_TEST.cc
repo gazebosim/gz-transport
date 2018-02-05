@@ -84,6 +84,28 @@ TEST(QualifiedTime, CopyConstructor)
 }
 
 //////////////////////////////////////////////////
+TEST(QualifiedTime, EqualityOperators)
+{
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt3(48h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt4(24h, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime qt5;
+
+  EXPECT_TRUE(qt1 == qt2);
+  EXPECT_FALSE(qt1 == qt3);
+  EXPECT_FALSE(qt1 == qt4);
+  EXPECT_FALSE(qt1 == qt5);
+  EXPECT_TRUE(qt5 == qt5);
+
+  EXPECT_FALSE(qt1 != qt2);
+  EXPECT_TRUE(qt1 != qt3);
+  EXPECT_TRUE(qt1 != qt4);
+  EXPECT_TRUE(qt1 != qt5);
+  EXPECT_FALSE(qt5 != qt5);
+}
+
+//////////////////////////////////////////////////
 TEST(QualifiedTime, SetTime)
 {
   log::QualifiedTime qt;
@@ -229,6 +251,28 @@ TEST(QualifiedTimeRange, Until)
   EXPECT_TRUE(uut.Beginning().IsIndeterminate());
   ASSERT_NE(nullptr, uut.Ending().GetTime());
   EXPECT_EQ(24h, *(uut.Ending().GetTime()));
+}
+
+//////////////////////////////////////////////////
+TEST(QualifiedTimeRange, EqualityOperators)
+{
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::Inclusive);
+
+  EXPECT_TRUE(
+    log::QualifiedTimeRange(qt1, qt2) == log::QualifiedTimeRange(qt1, qt2));
+  EXPECT_FALSE(
+    log::QualifiedTimeRange(qt1, qt2) != log::QualifiedTimeRange(qt1, qt2));
+
+  EXPECT_FALSE(
+    log::QualifiedTimeRange(qt1, qt2) == log::QualifiedTimeRange(qt2, qt1));
+  EXPECT_TRUE(
+    log::QualifiedTimeRange(qt1, qt2) != log::QualifiedTimeRange(qt2, qt1));
+
+  EXPECT_FALSE(
+    log::QualifiedTimeRange(qt1, qt2) == log::QualifiedTimeRange(qt2, qt2));
+  EXPECT_TRUE(
+    log::QualifiedTimeRange(qt1, qt2) != log::QualifiedTimeRange(qt2, qt2));
 }
 
 //////////////////////////////////////////////////
