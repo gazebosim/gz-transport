@@ -33,9 +33,6 @@ using namespace ignition::transport::log;
 class ignition::transport::log::BatchPrivate
 {
   /// \brief constructor
-  public: BatchPrivate();
-
-  /// \brief constructor
   public: explicit BatchPrivate(
       const std::shared_ptr<raii_sqlite3::Database> &_db,
       std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)

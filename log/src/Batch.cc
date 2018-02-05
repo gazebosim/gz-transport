@@ -36,11 +36,6 @@ BatchPrivate::BatchPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,
 }
 
 //////////////////////////////////////////////////
-BatchPrivate::BatchPrivate()
-{
-}
-
-//////////////////////////////////////////////////
 BatchPrivate::~BatchPrivate()
 {
 }
