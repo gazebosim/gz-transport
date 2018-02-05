@@ -96,6 +96,40 @@ TEST(SqlParameter, QueryReal)
   EXPECT_EQ(nullptr, param.QueryReal());
 }
 
+//////////////////////////////////////////////////
+TEST(SqlParameter, MoveConstructor)
+{
+  transport::log::SqlParameter param_orig;
+  param_orig.Set(3.14159);
+  transport::log::SqlParameter param(std::move(param_orig));
+  ASSERT_NE(nullptr, param.QueryReal());
+  EXPECT_DOUBLE_EQ(3.14159, *param.QueryReal());
+}
+
+
+//////////////////////////////////////////////////
+TEST(SqlParameter, CopyAssignment)
+{
+  transport::log::SqlParameter param_orig;
+  param_orig.Set("Hello World!");
+  transport::log::SqlParameter param = param_orig;
+  ASSERT_NE(nullptr, param_orig.QueryText());
+  ASSERT_NE(nullptr, param.QueryText());
+  EXPECT_EQ(std::string("Hello World!"), *param_orig.QueryText());
+  EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
+}
+
+
+//////////////////////////////////////////////////
+TEST(SqlParameter, MoveAssignment)
+{
+  transport::log::SqlParameter param_orig;
+  param_orig.Set("Hello World!");
+  transport::log::SqlParameter param = std::move(param_orig);
+  ASSERT_NE(nullptr, param.QueryText());
+  EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
