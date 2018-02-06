@@ -31,18 +31,20 @@ extern "C"
     NO_ERROR = 0,
     FAILED_TO_OPEN = 1,
     BAD_REGEX = 2,
+    INVALID_VERSION = 3,
   };
 
   /// \brief Sets verbosity of library
   /// \param[in] _level [0-4] Verbosity level
-  void IGNITION_TRANSPORT_LOG_VISIBLE verbosity(int _level)
+  int IGNITION_TRANSPORT_LOG_VISIBLE verbosity(int _level)
   {
     if (_level < 0 || _level > 4)
     {
       std::cerr << "Invalid verbosity level\n";
-      std::exit(-1);
+      return INVALID_VERSION;
     }
     common::Console::SetVerbosity(_level);
+    return NO_ERROR;
   }
 
   /// \brief Record topics whose name matches the given pattern

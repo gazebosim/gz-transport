@@ -132,7 +132,9 @@ class Cmd
     options = parse(args)
 
     begin
-      TransportLog.verbosity options['verbose']
+      if 0 != TransportLog.verbosity options['verbose']
+        exit -1
+      end
 
       case options['subcommand']
       when 'record'
