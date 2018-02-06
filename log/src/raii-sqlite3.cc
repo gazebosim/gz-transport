@@ -20,13 +20,6 @@
 using namespace raii_sqlite3;
 
 //////////////////////////////////////////////////
-Database::Database(Database && _other)
-{
-  this->handle = _other.handle;
-  _other.handle = nullptr;
-}
-
-//////////////////////////////////////////////////
 Database::Database(std::string _path, int _flags)
 {
   // Open the database;

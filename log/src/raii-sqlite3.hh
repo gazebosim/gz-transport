@@ -30,9 +30,6 @@ namespace raii_sqlite3
   /// \internal
   class Database
   {
-    /// \brief move constructor
-    public: Database(Database &&_other);  // NOLINT
-
     /// \brief Constructor
     /// \param[in] _path UTF-8 path to db file to open
     /// \param[in] _flags Flags to use when opening the database
