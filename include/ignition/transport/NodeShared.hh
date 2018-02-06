@@ -259,10 +259,10 @@ namespace ignition
       public: mutable std::recursive_mutex mutex;
 
       /// \brief Port used by the message discovery layer.
-      private: const int kMsgDiscPort = 11317;
+      public: static const int kMsgDiscPort = 11317;
 
       /// \brief Port used by the service discovery layer.
-      private: const int kSrvDiscPort = 11318;
+      public: static const int kSrvDiscPort = 11318;
 
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage<MessagePublisher> connections;

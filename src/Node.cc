@@ -702,10 +702,13 @@ void Node::TopicList(std::vector<std::string> &_topics) const
 
   this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
 
-  for (auto &topic : allTopics)
+  for (const auto &fullyQualifiedTopic : allTopics)
   {
-    // Get the partition name.
-    std::string partition = topic.substr(1, topic.find_last_of("@") - 1);
+    std::string partition;
+    std::string topic;
+    TopicUtils::DecomposeFullyQualifiedTopic(
+          fullyQualifiedTopic, partition, topic);
+
     // Remove the front '/'
     if (!partition.empty())
       partition.erase(partition.begin());
@@ -713,9 +716,6 @@ void Node::TopicList(std::vector<std::string> &_topics) const
     // Discard if the partition name does not match this node's partition.
     if (partition != this->Options().Partition())
       continue;
-
-    // Remove the partition part from the topic.
-    topic.erase(0, topic.find_last_of("@") + 1);
 
     _topics.push_back(topic);
   }
@@ -779,7 +779,10 @@ bool Node::SubscribeRaw(
 }
 
 //////////////////////////////////////////////////
-// FIXME: Node::Partition() and Node::NameSpace() appear to be undefined
+const NodeOptions &Node::Options() const
+{
+  return this->dataPtr->options;
+}
 
 //////////////////////////////////////////////////
 NodeShared *Node::Shared() const
@@ -803,12 +806,6 @@ std::unordered_set<std::string> &Node::TopicsSubscribed() const
 std::unordered_set<std::string> &Node::SrvsAdvertised() const
 {
   return this->dataPtr->srvsAdvertised;
-}
-
-//////////////////////////////////////////////////
-NodeOptions &Node::Options() const
-{
-  return this->dataPtr->options;
 }
 
 //////////////////////////////////////////////////

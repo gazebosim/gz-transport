@@ -49,14 +49,14 @@ namespace ignition
 
       /// \brief Get the topic name associated to the message.
       /// \return The topic name.
-      public: std::string Topic() const;
+      public: const std::string &Topic() const;
 
       /// \brief Set the topic name associated to the message.
       public: void SetTopic(const std::string &_topic);
 
       /// \brief Get the name of the message type.
       /// \return The message type name.
-      public: std::string Type() const;
+      public: const std::string &Type() const;
 
       /// \brief Set the name of the message type.
       /// \param[in] _type the type name to set.
@@ -64,7 +64,7 @@ namespace ignition
 
       /// \brief Get the name of the partition.
       /// \return The partition name.
-      public: std::string Partition() const;
+      public: const std::string &Partition() const;
 
       /// \brief Set the partition of the topic the message was on.
       /// \param[in] _partition of the topic.
