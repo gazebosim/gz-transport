@@ -516,23 +516,18 @@ bool Log::InsertMessage(
 }
 
 //////////////////////////////////////////////////
-Batch Log::QueryMessages()
+Batch Log::QueryMessages(const QueryOptions &_options)
 {
   const log::Descriptor *desc = this->Descriptor();
 
+  // Make sure the log has been initialized.
+  // TODO: Should we print a warning here?
   if (!desc)
     return Batch();
 
-  SqlStatement sql;
-  sql.statement =
-      "SELECT messages.id, messages.time_recv, topics.name,"
-      " message_types.name, messages.message FROM messages JOIN topics ON"
-      " topics.id = messages.topic_id JOIN message_types ON"
-      " message_types.id = topics.message_type_id "
-      " ORDER BY messages.time_recv;";
-
   std::unique_ptr<BatchPrivate> batchPriv(
-        new BatchPrivate(this->dataPtr->db, {sql}));
+        new BatchPrivate(this->dataPtr->db,
+                         _options.GenerateStatements(*desc)));
 
   return Batch(std::move(batchPriv));
 }

@@ -7,6 +7,8 @@ ign_build_tests(
     Descriptor_TEST.cc
     Log_TEST.cc
     Message_TEST.cc
+    QualifiedTime_TEST.cc
+    QueryOptions_TEST.cc
     SqlStatement_TEST.cc
   LIB_DEPS ${log_lib_target}
   TEST_LIST logging_tests
