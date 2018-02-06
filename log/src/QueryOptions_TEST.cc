@@ -43,6 +43,23 @@ TEST(QueryOptionsTimeRange, GetRangeConst)
 }
 
 //////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, TopicList)
+{
+  std::set<std::string> topicList = {"/topic/one", "/topic/two"};
+  log::TopicList topicOption(topicList);
+  EXPECT_EQ(topicList, topicOption.Topics());
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, TopicListConst)
+{
+  std::set<std::string> topicList = {"/topic/one", "/topic/two"};
+  log::TopicList topicOption(topicList);
+  const auto &constTopicOption = topicOption;
+  EXPECT_EQ(topicList, constTopicOption.Topics());
+}
+
+//////////////////////////////////////////////////
 TEST(QueryOptionsTopicList, CopyTopicList)
 {
   std::set<std::string> topicList = {"/topic/one", "/topic/two"};
