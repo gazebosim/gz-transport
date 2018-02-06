@@ -79,6 +79,29 @@ TEST(QueryOptionsTopicList, CopyTopicListConst)
 }
 
 //////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, TopicPattern)
+{
+  std::regex topicPattern("foo");
+  log::TopicPattern topicOption(topicPattern);
+  std::regex uutPattern = topicOption.Pattern();
+
+  EXPECT_TRUE(std::regex_match("foo", uutPattern));
+  EXPECT_FALSE(std::regex_match("bar", uutPattern));
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, TopicPatternConst)
+{
+  std::regex topicPattern("foo");
+  log::TopicPattern topicOption(topicPattern);
+  const auto &constTopicOption = topicOption;
+  std::regex uutPattern = constTopicOption.Pattern();
+
+  EXPECT_TRUE(std::regex_match("foo", uutPattern));
+  EXPECT_FALSE(std::regex_match("bar", uutPattern));
+}
+
+//////////////////////////////////////////////////
 TEST(QueryOptionsTopicList, CopyTopicPattern)
 {
   std::regex topicPattern("foo");
