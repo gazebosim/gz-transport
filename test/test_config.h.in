@@ -118,7 +118,11 @@ namespace testing
     PROCESS_INFORMATION processInfo;
 
     char cmd[500];
-    ign_strcpy(cmd, _command);
+    // We should put quotes around the _command string to make sure we are 
+    // robust to file paths that contain spaces.
+    ign_strcpy(cmd, "\"");
+    ign_strcat(cmd, _command);
+    ign_strcat(cmd, "\"");
     ign_strcat(cmd, " ");
     ign_strcat(cmd, _partition);
 
@@ -129,11 +133,21 @@ namespace testing
       ign_strcat(cmd, " ");
       ign_strcat(cmd, _password);
     }
-
-    if (!CreateProcess(_command, const_cast<LPSTR>(cmd), NULL, NULL,
+    
+    // We set the first argument to NULL, because we want the behavior that
+    // CreateProcess exhibits when the first argument is NULL: i.e. Windows will
+    // automatically add the .exe extension onto the filename. When the first
+    // argument is non-NULL, it will not automatically add the extension, which
+    // makes more work for us.
+    //
+    // It should also be noted that the lookup behavior for the application is 
+    // different when the first argument is non-NULL, so we should take that into
+    // consideration when determining what to put into the first and second 
+    // arguments of CreateProcess.
+    if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
           TRUE, 0, NULL, NULL, &info, &processInfo))
     {
-      std::cerr << "CreateProcess call failed" << std::endl;
+      std::cerr << "CreateProcess call failed: " << cmd << std::endl;
     }
 
     return processInfo;
