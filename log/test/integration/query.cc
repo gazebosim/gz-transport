@@ -403,6 +403,91 @@ TEST(QueryMessages, QueryTopicPatternBeforeInclusive)
 }
 
 //////////////////////////////////////////////////
+TEST(QueryMessages, QueryTopicListAllTime)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  auto batch = logFile.QueryMessages(log::TopicList("/topic/one"));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin();
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter)
+  {
+    if (goldenIter->topic == "/topic/two")
+    {
+      CheckEquality(*goldenIter, *uutIter);
+      ++uutIter;
+      ++num_msgs;
+    }
+  }
+  EXPECT_EQ(3u, num_msgs);
+}
+
+//////////////////////////////////////////////////
+TEST(QueryMessages, QueryTopicListAfterInclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  auto batch = logFile.QueryMessages(log::TopicList(
+        "/topic/one", log::QualifiedTimeRange::From(beginTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin() + 3;
+  auto uutIter = batch.begin();
+  for (; goldenIter != testMessages.end() && uutIter != batch.end();
+       ++goldenIter)
+  {
+    if (goldenIter->topic == "/topic/one")
+    {
+      CheckEquality(*goldenIter, *uutIter);
+      ++uutIter;
+      ++num_msgs;
+    }
+  }
+  EXPECT_EQ(4u, num_msgs);
+}
+
+//////////////////////////////////////////////////
+TEST(QueryMessages, QueryTopicListBeforeInclusive)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto testMessages = StandardTestMessages();
+  InsertMessages(logFile, testMessages);
+
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  auto batch = logFile.QueryMessages(log::TopicList(
+        "/topic/one", log::QualifiedTimeRange::Until(endTime)));
+
+  std::size_t num_msgs = 0;
+  auto goldenIter = testMessages.begin();
+  auto uutIter = batch.begin();
+  for (; goldenIter != (testMessages.end() - 2) && uutIter != batch.end();
+       ++goldenIter)
+  {
+    if (goldenIter->topic == "/topic/one")
+    {
+      CheckEquality(*goldenIter, *uutIter);
+      ++uutIter;
+      ++num_msgs;
+    }
+  }
+  EXPECT_EQ(5u, num_msgs);
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
