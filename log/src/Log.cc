@@ -424,10 +424,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     if (!fin)
     {
       ignerr << "Failed to open schema [" << schemaFile << "].\n"
-             << " -- If the schema file is missing, then either:\n"
-             << " 1. (Re)install ignition-transport-log or\n"
-             << " 2. Set the " << SchemaLocationEnvVar << " env variable "
-             << "to the correct schema location.\n\n";
+             << " Set " << SchemaLocationEnvVar << " to the schema location.\n";
       return false;
     }
 
