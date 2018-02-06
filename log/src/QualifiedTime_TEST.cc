@@ -26,6 +26,7 @@ TEST(QualifiedTime, DefaultIndeterminate)
 {
   log::QualifiedTime qt;
   EXPECT_TRUE(qt.IsIndeterminate());
+  EXPECT_EQ(nullptr, qt.GetQualifier());
 }
 
 

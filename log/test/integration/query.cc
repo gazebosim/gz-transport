@@ -411,7 +411,7 @@ TEST(QueryMessages, QueryTopicListAllTime)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  auto batch = logFile.QueryMessages(log::TopicList("/topic/one"));
+  auto batch = logFile.QueryMessages(log::TopicList("/topic/two"));
 
   std::size_t num_msgs = 0;
   auto goldenIter = testMessages.begin();
