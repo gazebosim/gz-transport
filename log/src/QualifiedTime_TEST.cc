@@ -276,6 +276,19 @@ TEST(QualifiedTimeRange, EqualityOperators)
 }
 
 //////////////////////////////////////////////////
+TEST(QualifiedTimeRange, AssignmentOperator)
+{
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt2;
+  log::QualifiedTimeRange range1(qt1, qt2);
+  log::QualifiedTimeRange range2(qt2, qt1);
+
+  EXPECT_FALSE(range1 == range2);
+  range2 = range1;
+  EXPECT_TRUE(range1 == range2);
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
