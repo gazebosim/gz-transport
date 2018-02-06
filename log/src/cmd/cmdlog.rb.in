@@ -1,0 +1,154 @@
+#!/usr/bin/ruby
+
+# Copyright (C) 2017 Open Source Robotics Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'date'
+require 'ffi'
+require 'optparse'
+
+# Constants.
+COMMON_OPTIONS =
+  "  -h [ --help ]              Print this help message.                   \n"\
+  "  -v [ --verbose ] LEVEL     Set verbosity level 0-4 (default 1)        \n"\
+  "                                                                        \n"\
+
+COMMANDS = { 'log' =>
+  "Record and playback igntion transport topics.                           \n"\
+  "  ign log record|playback [options]                                     \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n" +
+  COMMON_OPTIONS
+}
+
+SUBCOMMANDS = { 'record' =>
+  "Record ignition transport topics.                                       \n"\
+  "  ign log record [options]                                              \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n"\
+  "  --file FILE              Log file name (default <datetime>.tlog)      \n"\
+  "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
+  "                           (Default match all topics)                   \n" +
+  COMMON_OPTIONS,
+                'playback' =>
+  "Playback previously recorded ignition transport topics.                 \n"\
+  "  ign log playback [options]                                            \n"\
+  "                                                                        \n"\
+  "Required Flags:                                                         \n"\
+  "  --file FILE              Log file name                                \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n"\
+  "  --pattern REGEX          Regular expression in C++ ECMAScript grammar \n"\
+  "                           (Default match all topics)                   \n" +
+  COMMON_OPTIONS
+}
+
+#
+# Class for accessing C functions
+#
+module TransportLog
+  extend FFI::Library
+  ffi_lib "@IGN_LIBRARY_NAME@"
+  attach_function :recordTopics, [:string, :string], :int
+  attach_function :playbackTopics, [:string, :string], :int
+  attach_function :verbosity, [:int], :int
+end
+
+#
+# Class for the Ignition Transport Log command line tools.
+#
+class Cmd
+
+  #
+  # Return a structure describing the options.
+  #
+  def parse(args)
+    options = {
+      'file' => '',
+      'pattern' => '.+',
+      'verbose' => 1,
+    }
+
+    usage = COMMANDS[args[0]]
+
+    if !SUBCOMMANDS.key?(args[1])
+      puts usage
+      exit -1
+    else
+      usage = SUBCOMMANDS[args[1]]
+    end
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = usage
+
+      opts.on('-h', '--help') do
+        puts usage
+        exit
+      end
+      opts.on('--file FILE') do |file|
+        options['file'] = file
+      end
+      opts.on('--pattern REGEX') do |regex|
+        options['pattern'] = regex
+      end
+      opts.on('-v LEVEL', '--verbose LEVEL', OptionParser::DecimalInteger) do |level|
+        options['verbose'] = level
+      end
+    end # opt_parser do
+
+    opt_parser.parse!(args)
+
+    options['command'] = args[0]
+    options['subcommand'] = args[1]
+
+    # check required flags
+    case options['subcommand']
+    when 'record'
+      if options['file'].length == 0
+        options['file'] = Time.now.strftime("%Y%m%d_%H%M%S.tlog")
+      end
+    when 'playback'
+      if options['file'].length == 0
+        puts usage
+        exit -1
+      end
+    end
+
+    options
+  end # parse()
+
+  def execute(args)
+    options = parse(args)
+
+    begin
+      result = TransportLog.verbosity options['verbose']
+      if 0 != result
+        exit -1
+      end
+
+      case options['subcommand']
+      when 'record'
+        result = TransportLog.recordTopics options['file'], options['pattern']
+      when 'playback'
+        result = TransportLog.playbackTopics options['file'], options['pattern']
+      end
+
+      if result != 0
+        exit -1
+      end
+    rescue
+      puts "Library error: Problem running [#{options['command']}]()"
+    end # begin
+  end # execute
+end # class
