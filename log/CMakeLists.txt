@@ -13,6 +13,7 @@ set(logging_sources
   src/QualifiedTime.cc
   src/QueryOptions.cc
   src/raii-sqlite3.cc
+  src/Recorder.cc
   src/SqlStatement.cc
 )
 
