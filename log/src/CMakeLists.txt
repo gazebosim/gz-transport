@@ -3,8 +3,11 @@ set(TEST_TYPE "UNIT")
 ign_build_tests(
   TYPE "UNIT"
   SOURCES
+    Batch_TEST.cc
     Descriptor_TEST.cc
     Log_TEST.cc
+    Message_TEST.cc
+    SqlStatement_TEST.cc
   LIB_DEPS ${log_lib_target}
   TEST_LIST logging_tests
 )

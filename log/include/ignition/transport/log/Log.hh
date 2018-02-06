@@ -23,6 +23,7 @@
 #include <string>
 
 #include <ignition/common/Time.hh>
+#include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/Export.hh>
 
@@ -82,6 +83,10 @@ namespace ignition
             const common::Time &_time,
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
+
+        /// \brief Get all messages in the log
+        /// \return A Batch of messages
+        public: Batch QueryMessages();
 
         /// \internal Implementation for this class
         private: class Implementation;

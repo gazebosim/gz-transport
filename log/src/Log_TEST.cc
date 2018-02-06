@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <unordered_set>
 
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
@@ -60,6 +61,9 @@ TEST(Log, UnopenedLog)
   char data[] = {1, 2, 3, 4};
   EXPECT_FALSE(logFile.InsertMessage(common::Time::Zero, "/foo/bar", ".fiz.buz",
     reinterpret_cast<const void *>(data), 4));
+
+  auto batch = logFile.QueryMessages();
+  EXPECT_EQ(batch.end(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -91,6 +95,50 @@ TEST(Log, InsertMessage)
       "some.message.type",
       reinterpret_cast<const void *>(data.c_str()),
       data.size()));
+}
+
+//////////////////////////////////////////////////
+TEST(Log, AllMessagesNone)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto batch = logFile.QueryMessages();
+  EXPECT_EQ(batch.end(), batch.begin());
+}
+
+//////////////////////////////////////////////////
+TEST(Log, InsertMessageGetMessages)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  std::string data1("first_data");
+  std::string data2("second_data");
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      common::Time(1, 0),
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data1.c_str()),
+      data1.size()));
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      common::Time(2, 0),
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data2.c_str()),
+      data2.size()));
+
+  auto batch = logFile.QueryMessages();
+  auto iter = batch.begin();
+  ASSERT_NE(batch.end(), iter);
+  EXPECT_EQ(data1, iter->Data());
+  ++iter;
+  ASSERT_NE(batch.end(), iter);
+  EXPECT_EQ(data2, iter->Data());
+  ++iter;
+  EXPECT_EQ(log::MsgIter(), iter);
 }
 
 //////////////////////////////////////////////////
