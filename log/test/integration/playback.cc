@@ -145,6 +145,23 @@ TEST(playback, ReplayLog)
   ExpectSameMessages(originalData, incomingData);
 }
 
+
+TEST(playback, ReplayNoSuchTopic)
+{
+  ignition::transport::log::Recorder recorder;
+  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
+  ignition::common::removeFile(logName);
+  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+    recorder.Start(logName));
+  recorder.Stop();
+
+  ignition::transport::log::Playback playback(logName);
+  EXPECT_EQ(ignition::transport::log::PlaybackError::NO_SUCH_TOPIC,
+      playback.AddTopic("/DNE"));
+  EXPECT_EQ(0, playback.AddTopic(std::regex("/DNE")));
+}
+
+
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLogRegex)
