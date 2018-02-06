@@ -133,7 +133,7 @@ namespace testing
       ign_strcat(cmd, " ");
       ign_strcat(cmd, _password);
     }
-    
+
     // We set the first argument to NULL, because we want the behavior that
     // CreateProcess exhibits when the first argument is NULL: i.e. Windows will
     // automatically add the .exe extension onto the filename. When the first
