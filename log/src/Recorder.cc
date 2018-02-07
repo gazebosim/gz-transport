@@ -26,7 +26,7 @@
 
 #include "ignition/transport/log/Recorder.hh"
 #include "ignition/transport/log/Log.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 #include "build_config.hh"
 
 
