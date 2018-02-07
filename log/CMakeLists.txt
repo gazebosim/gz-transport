@@ -6,6 +6,7 @@ set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
 set(logging_sources
   src/Batch.cc
+  src/Console.cc
   src/Descriptor.cc
   src/Log.cc
   src/Message.cc

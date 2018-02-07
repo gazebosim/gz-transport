@@ -59,7 +59,7 @@ TEST(Log, UnopenedLog)
   EXPECT_EQ(std::string(""), logFile.Version());
   EXPECT_EQ(nullptr, logFile.Descriptor());
   char data[] = {1, 2, 3, 4};
-  EXPECT_FALSE(logFile.InsertMessage(common::Time::Zero, "/foo/bar", ".fiz.buz",
+  EXPECT_FALSE(logFile.InsertMessage(0ns, "/foo/bar", ".fiz.buz",
     reinterpret_cast<const void *>(data), 4));
 
   auto batch = logFile.QueryMessages();
@@ -90,7 +90,7 @@ TEST(Log, InsertMessage)
   std::string data("Hello World");
 
   EXPECT_TRUE(logFile.InsertMessage(
-      common::Time(),
+      0ns,
       "/some/topic/name",
       "some.message.type",
       reinterpret_cast<const void *>(data.c_str()),
