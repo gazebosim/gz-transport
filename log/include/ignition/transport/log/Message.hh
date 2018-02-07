@@ -17,12 +17,12 @@
 #ifndef IGNITION_TRANSPORT_LOG_MESSAGE_HH_
 #define IGNITION_TRANSPORT_LOG_MESSAGE_HH_
 
+#include <chrono>
 #include <memory>
 #include <string>
 
 
 #include <ignition/transport/log/Export.hh>
-#include <ignition/common/Time.hh>
 
 
 namespace ignition
@@ -48,7 +48,7 @@ namespace ignition
         /// \brief _typeLen the length of _type
         /// \brief _topic the name of the topic the message was published to
         /// \brief _topicLen the length of _topic
-        public: Message(const common::Time &_timeRecv,
+        public: Message(const std::chrono::nanoseconds &_timeRecv,
             const void *_data, std::size_t _dataLen,
             const char *_type, std::size_t _typeLen,
             const char *_topic, std::size_t _topicLen);
@@ -66,7 +66,7 @@ namespace ignition
         public: std::string Topic() const;
 
         // \brief Return the time the message was received
-        public: const common::Time &TimeReceived() const;
+        public: const std::chrono::nanoseconds &TimeReceived() const;
 
         /// \brief Private Implementation Pointer
         private: std::unique_ptr<MessagePrivate> dataPtr;
