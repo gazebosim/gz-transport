@@ -55,14 +55,6 @@ namespace ignition
       /// \brief Implementation of the Descriptor class
       class Descriptor::Implementation
       {
-        /// \internal \sa Descriptor::QueryMsgTypesOfTopic()
-        public: const NameToId *QueryMsgTypesOfTopic(
-          const std::string &_topicName) const;
-
-        /// \internal \sa Descriptor::QueryTopicsOfMsgType()
-        public: const NameToId *QueryTopicsOfMsgType(
-          const std::string &_msgType) const;
-
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a
         /// new file.
