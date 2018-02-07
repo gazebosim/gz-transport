@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/common/Console.hh>
+#include "Console.hh"
 #include <ignition/transport/Node.hh>
 
 #include "ignition/transport/log/Playback.hh"
@@ -101,7 +101,7 @@ bool PlaybackPrivate::CreatePublisher(
   // Create a publisher for the topic and type combo
   firstMapIter->second[_type] = this->node.Advertise(
       _topic, _type);
-  igndbg << "Creating publisher for " << _topic << " " << _type << "\n";
+  LDBG("Creating publisher for " << _topic << " " << _type << "\n");
   return true;
 }
 
@@ -124,13 +124,9 @@ void PlaybackPrivate::StartPlayback(Batch _batch)
       bool publishedFirstMessage = false;
 
       // Get current elapsed on monotonic clock
-      std::chrono::nanoseconds nowNS(
+      std::chrono::nanoseconds startTime(
           std::chrono::steady_clock::now().time_since_epoch());
-      // Round to nearest second
-      std::chrono::seconds nowS =
-          std::chrono::duration_cast<std::chrono::seconds>(nowNS);
-      ignition::common::Time startTime(nowS.count(), nowNS.count());
-      ignition::common::Time firstMsgTime;
+      std::chrono::nanoseconds firstMsgTime;
 
       std::lock_guard<std::mutex> playbackLock(this->logFileMutex);
       for (const Message &msg : batch)
@@ -143,18 +139,13 @@ void PlaybackPrivate::StartPlayback(Batch _batch)
         // Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          ignition::common::Time target = msg.TimeReceived() - firstMsgTime;
-          nowNS = std::chrono::nanoseconds(
+          std::chrono::nanoseconds target = msg.TimeReceived() - firstMsgTime;
+          auto now = std::chrono::nanoseconds(
               std::chrono::steady_clock::now().time_since_epoch());
-          // Round to nearest second
-          nowS = std::chrono::duration_cast<std::chrono::seconds>(nowNS);
-          ignition::common::Time now(nowS.count(), nowNS.count());
           now -= startTime;
           if (target > now)
           {
-            ignition::common::Time delta = target - now;
-            std::this_thread::sleep_for(std::chrono::nanoseconds(
-                  delta.sec * 1000000000 + delta.nsec));
+            std::this_thread::sleep_for(target - now);
           }
         }
         else
@@ -164,7 +155,7 @@ void PlaybackPrivate::StartPlayback(Batch _batch)
         }
 
         // Actually publish the message
-        igndbg << "publishing\n";
+        LDBG("publishing\n");
         this->publishers[msg.Topic()][msg.Type()].PublishRaw(
             msg.Data(), msg.Type());
       }
@@ -192,11 +183,11 @@ Playback::Playback(const std::string &_file)
 {
   if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
   {
-    ignerr << "Failed to open file [" << _file << "]\n";
+    LERR("Failed to open file [" << _file << "]\n");
   }
   else
   {
-    igndbg << "Playback opened file [" << _file << "]\n";
+    LDBG("Playback opened file [" << _file << "]\n");
   }
 }
 
@@ -221,13 +212,13 @@ PlaybackError Playback::Start()
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   if (!this->dataPtr->logFile.Valid())
   {
-    ignerr << "Failed to open log file\n";
+    LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
 
   if (this->dataPtr->publishers.empty())
   {
-    igndbg << "No topics added, defaulting to all topics\n";
+    LDBG("No topics added, defaulting to all topics\n");
     int64_t numTopics = this->AddTopic(std::regex(".*"));
     if (numTopics < 0)
     {
@@ -239,12 +230,12 @@ PlaybackError Playback::Start()
         TopicList::Create(this->dataPtr->topicNames));
   if (batch.begin() == batch.end())
   {
-    ignwarn << "There are no messages to play\n";
+    LWRN("There are no messages to play\n");
     return PlaybackError::NO_MESSAGES;
   }
 
   this->dataPtr->StartPlayback(std::move(batch));
-  ignmsg << "Started playing\n";
+  LMSG("Started playing\n");
   return PlaybackError::NO_ERROR;
 }
 
@@ -253,7 +244,7 @@ PlaybackError Playback::Stop()
 {
   if (!this->dataPtr->logFile.Valid())
   {
-    ignerr << "Failed to open log file\n";
+    LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
   this->dataPtr->stop = true;
@@ -273,7 +264,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
 {
   if (!this->dataPtr->logFile.Valid())
   {
-    ignerr << "Failed to open log file\n";
+    LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
 
@@ -283,7 +274,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
   const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
   if (it == allTopics.end())
   {
-    ignerr << "Topic [" << _topic << "] is not in the log\n";
+    LWRN("Topic [" << _topic << "] is not in the log\n");
     return PlaybackError::NO_SUCH_TOPIC;
   }
 
@@ -291,7 +282,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
   for (const auto &typeEntry : it->second)
   {
     const std::string &type = typeEntry.first;
-    igndbg << "Playing back [" << _topic << "]\n";
+    LDBG("Playing back [" << _topic << "]\n");
     // Save the topic name for the query in Start
     this->dataPtr->topicNames.insert(_topic);
     if (!this->dataPtr->CreatePublisher(topic, type))
@@ -308,7 +299,7 @@ int64_t Playback::AddTopic(const std::regex &_topic)
 {
   if (!this->dataPtr->logFile.Valid())
   {
-    ignerr << "Failed to open log file\n";
+    LERR("Failed to open log file\n");
     return static_cast<int>(PlaybackError::FAILED_TO_OPEN);
   }
 
