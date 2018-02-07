@@ -42,6 +42,7 @@ namespace ignition
       {
         /// \brief Generate one or more SQL query statements to be used by the
         /// log file to produce a Batch of messages.
+        /// \param[in] _descriptor A Descriptor to help form the SQL statements
         /// \return One or more SQL statements.
         public: virtual std::vector<SqlStatement> GenerateStatements(
           const Descriptor &_descriptor) const = 0;
@@ -129,9 +130,8 @@ namespace ignition
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
 
         /// \brief Factory function that accepts any container type that can be
-        /// passed through a range-for loop. This will take the contents of
-        /// _topics, put them into a std::set, and then pass it along to the
-        /// default constructor.
+        /// passed through a range-for loop. This will insert the contents of
+        /// _topics into a blank TopicList and then return it.
         /// \param[in] _topics The topics to include
         /// \param[in] _timeRange The time range to query over
         public: template <typename Container>

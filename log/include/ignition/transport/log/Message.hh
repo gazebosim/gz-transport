@@ -41,14 +41,15 @@ namespace ignition
         public: Message();
 
         /// \brief Construct with data
-        /// \brief _timeRecv time the message was received
-        /// \brief _data the serialized message
-        /// \brief _dataLen number of bytes in _data
-        /// \brief _type the name of the message type
-        /// \brief _typeLen the length of _type
-        /// \brief _topic the name of the topic the message was published to
-        /// \brief _topicLen the length of _topic
-        public: Message(const std::chrono::nanoseconds &_timeRecv,
+        /// \param[in] _timeRecv time the message was received
+        /// \param[in] _data the serialized message
+        /// \param[in] _dataLen number of bytes in _data
+        /// \param[in] _type the name of the message type
+        /// \param[in] _typeLen the length of _type
+        /// \param[in] _topic the name of the topic the message was published to
+        /// \param[in] _topicLen the length of _topic
+        public: Message(
+            const std::chrono::nanoseconds &_timeRecv,
             const void *_data, std::size_t _dataLen,
             const char *_type, std::size_t _typeLen,
             const char *_topic, std::size_t _topicLen);
@@ -57,15 +58,19 @@ namespace ignition
         public: ~Message();
 
         /// \brief Get the message data
+        /// \return The raw data for this message
         public: std::string Data() const;
 
         /// \brief Get the message type as a string
+        /// \return The message type name
         public: std::string Type() const;
 
         /// \brief Get the Topic name as a string
+        /// \return The topic for the message
         public: std::string Topic() const;
 
-        // \brief Return the time the message was received
+        /// \brief Return the time the message was received
+        /// \return The time the message was received
         public: const std::chrono::nanoseconds &TimeReceived() const;
 
         /// \brief Private Implementation Pointer
