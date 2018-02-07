@@ -27,8 +27,8 @@
 
 #include "ignition/transport/log/Log.hh"
 #include "ignition/transport/log/SqlStatement.hh"
-#include "src/BatchPrivate.hh"
-#include "src/raii-sqlite3.hh"
+#include "BatchPrivate.hh"
+#include "raii-sqlite3.hh"
 #include "build_config.hh"
 
 #include "Descriptor.hh"
