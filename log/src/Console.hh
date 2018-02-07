@@ -44,11 +44,11 @@ namespace ignition
 } while (false)
 
 #define LERR(statements) do { \
-  if (ignition::transport::log::__verbosity >= 1) {std::cout << statements;} \
+  if (ignition::transport::log::__verbosity >= 1) {std::cerr << statements;} \
 } while (false)
 
 #define LFATAL(statements) do { \
-  if (ignition::transport::log::__verbosity >= 0) {std::cout << statements;} \
+  if (ignition::transport::log::__verbosity >= 0) {std::cerr << statements;} \
 } while (false)
 
 #endif
