@@ -79,6 +79,41 @@ TEST(TopicUtilsTest, testNamespaces)
     std::string(transport::TopicUtils::kMaxNameLength + 1, 'a')));
 }
 
+
+//////////////////////////////////////////////////
+/// \brief Check the namespace.
+TEST(TopicUtilsTest, decomposeFullyQualifiedTopic)
+{
+  std::string partition;
+  std::string topic;
+
+  EXPECT_TRUE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@/foo@/fiz/buz", partition, topic));
+  EXPECT_EQ(std::string("/foo"), partition);
+  EXPECT_EQ(std::string("/fiz/buz"), topic);
+
+  EXPECT_TRUE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@/foo@/bar", partition, topic));
+  EXPECT_EQ(std::string("/foo"), partition);
+  EXPECT_EQ(std::string("/bar"), topic);
+
+  EXPECT_TRUE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@@/bar", partition, topic));
+  EXPECT_EQ(std::string(""), partition);
+  EXPECT_EQ(std::string("/bar"), topic);
+
+  EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@/bar", partition, topic)) << partition << "|" << topic;
+  EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@@@/bar", partition, topic)) << partition << "|" << topic;
+  EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@/bar@", partition, topic)) << partition << "|" << topic;
+  EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@@", partition, topic)) << partition << "|" << topic;
+  EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
+    "@/foo@/", partition, topic)) << partition << "|" << topic;
+}
+
 //////////////////////////////////////////////////
 /// \brief Check the partition.
 TEST(TopicUtilsTest, tesPartitions)

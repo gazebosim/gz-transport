@@ -1260,13 +1260,9 @@ namespace ignition
         const std::string &_msgType = kGenericMessageType,
         const SubscribeOptions &_opts = SubscribeOptions());
 
-      /// \brief Get the partition name used by this node.
-      /// \return The partition name.
-      private: const std::string &Partition() const;
-
-      /// \brief Get the namespace used in this node.
-      /// \return The namespace
-      private: const std::string &NameSpace() const;
+      /// \brief Get the reference to the current node options.
+      /// \return Reference to the current node options.
+      public: const NodeOptions &Options() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
@@ -1284,10 +1280,6 @@ namespace ignition
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
       private: std::unordered_set<std::string> &SrvsAdvertised() const;
-
-      /// \brief Get the reference to the current node options.
-      /// \return Reference to the current node options.
-      private: NodeOptions &Options() const;
 
       /// \brief Helper function for Subscribe.
       /// \param[in] _fullyQualifiedTopic Fully qualified topic name

@@ -25,6 +25,10 @@ using namespace transport;
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
+  // An empty namespace is valid, so take a shortcut here.
+  if (_ns.empty())
+    return true;
+
   // Too long string is not valid.
   if (_ns.size() > kMaxNameLength)
     return false;
@@ -55,6 +59,7 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidPartition(const std::string &_partition)
 {
+  // A valid namespace is also a valid partition.
   return IsValidNamespace(_partition);
 }
 
@@ -113,5 +118,35 @@ bool TopicUtils::FullyQualifiedName(const std::string &_partition,
   if (_name.size() > kMaxNameLength)
     return false;
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::DecomposeFullyQualifiedTopic(
+    const std::string &_fullyQualifiedName,
+    std::string &_partition,
+    std::string &_namespaceAndTopic)
+{
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
+
+  if ( firstAt != 0
+    || firstAt == lastAt
+    || lastAt == _fullyQualifiedName.size() - 1)
+  {
+    return false;
+  }
+
+  std::string possiblePartition = _fullyQualifiedName.substr(
+    firstAt + 1, lastAt - firstAt - 1);
+  std::string possibleTopic = _fullyQualifiedName.substr(lastAt + 1);
+
+  if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
+  {
+    return false;
+  }
+
+  _partition = possiblePartition;
+  _namespaceAndTopic = possibleTopic;
   return true;
 }
