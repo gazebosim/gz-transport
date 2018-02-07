@@ -370,7 +370,7 @@ Log::~Log()
 //////////////////////////////////////////////////
 bool Log::Valid() const
 {
-  return this->dataPtr && this->dataPtr->db.operator bool();
+  return this->dataPtr && this->dataPtr->db && *(this->dataPtr->db);
 }
 
 //////////////////////////////////////////////////
