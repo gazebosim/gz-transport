@@ -1,10 +1,10 @@
-find_package(ignition-common1 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(SQLite3 REQUIRED sqlite3>=3.6.19)
 
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
 set(logging_sources
+  src/Console.cc
   src/Descriptor.cc
   src/Log.cc
   src/raii-sqlite3.cc
@@ -39,7 +39,6 @@ target_include_directories(${log_lib_target} PRIVATE
 # Library dependencies
 target_link_libraries(${log_lib_target} PUBLIC
   ${PROJECT_NAME_LOWER}
-  ignition-common1::ignition-common1
 )
 target_link_libraries(${log_lib_target} PRIVATE
   ${SQLite3_LIBRARIES}
