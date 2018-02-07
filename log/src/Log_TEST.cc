@@ -117,14 +117,14 @@ TEST(Log, InsertMessageGetMessages)
   std::string data2("second_data");
 
   EXPECT_TRUE(logFile.InsertMessage(
-      common::Time(1, 0),
+      1s,
       "/some/topic/name",
       "some.message.type",
       reinterpret_cast<const void *>(data1.c_str()),
       data1.size()));
 
   EXPECT_TRUE(logFile.InsertMessage(
-      common::Time(2, 0),
+      2s,
       "/some/topic/name",
       "some.message.type",
       reinterpret_cast<const void *>(data2.c_str()),
