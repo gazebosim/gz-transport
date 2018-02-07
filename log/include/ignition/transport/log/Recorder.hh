@@ -21,7 +21,6 @@
 #include <regex>
 #include <string>
 
-#include <ignition/common/Time.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition

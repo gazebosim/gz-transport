@@ -28,7 +28,7 @@ using namespace std::chrono_literals;
 /// \brief container for test message data
 typedef struct
 {
-  common::Time time;
+  std::chrono::nanoseconds time;
   std::string topic;
   std::string type;
   std::string data;
@@ -40,55 +40,55 @@ std::vector<TestMessage> StandardTestMessages()
   std::vector<TestMessage> messages;
 
   messages.push_back({
-      common::Time(1, 0),
+      1s,
       "/topic/one",
       "msg.type.1",
       "topic1_type1_num1",
       });
   messages.push_back({
-      common::Time(1, 2.5e8),
+      1250ms,
       "/topic/one",
       "msg.type.2",
       "topic1_type2_num1",
       });
   messages.push_back({
-      common::Time(1, 7.5e8),
+      1750ms,
       "/topic/two",
       "msg.type.1",
       "topic2_type1_num1",
       });
   messages.push_back({
-      common::Time(2, 0),
+      2s,
       "/topic/one",
       "msg.type.1",
       "topic1_type1_num2",
       });
   messages.push_back({
-      common::Time(2, 2.5e8),
+      2250ms,
       "/topic/one",
       "msg.type.2",
       "topic1_type2_num2",
       });
   messages.push_back({
-      common::Time(2, 7.5e8),
+      2750ms,
       "/topic/two",
       "msg.type.2",
       "topic2_type1_num2",
       });
   messages.push_back({
-      common::Time(3, 0),
+      3s,
       "/topic/one",
       "msg.type.1",
       "topic1_type1_num3",
       });
   messages.push_back({
-      common::Time(3, 2.5e8),
+      3250ms,
       "/topic/one",
       "msg.type.2",
       "topic1_type2_num3",
       });
   messages.push_back({
-      common::Time(3, 7.5e8),
+      3750ms,
       "/topic/two",
       "msg.type.1",
       "topic2_type1_num3",
