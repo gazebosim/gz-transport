@@ -17,9 +17,9 @@
 
 
 #include "ignition/transport/log/Batch.hh"
-#include "src/BatchPrivate.hh"
-#include "src/MsgIterPrivate.hh"
-#include "src/raii-sqlite3.hh"
+#include "BatchPrivate.hh"
+#include "MsgIterPrivate.hh"
+#include "raii-sqlite3.hh"
 #include "build_config.hh"
 
 

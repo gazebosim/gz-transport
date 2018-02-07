@@ -76,6 +76,17 @@ namespace ignition
         public: QualifiedTime(const Time &_time,
                               Qualifier _qualifier = Qualifier::Inclusive);
 
+        /// \brief Construct a qualified time specifier. This allows implicit
+        /// conversion from any std::chrono::duration type.
+        /// \param[in] _time The time stamp that is used as the focal point of
+        /// this qualified time.
+        /// \param[in] _qualifier The qualifier that determines the exact
+        /// interpretation of the _time value.
+        public: template <typename Rep, typename Period>
+        QualifiedTime(const std::chrono::duration<Rep, Period> &_time,
+                      Qualifier _qualifier = Qualifier::Inclusive)
+          : QualifiedTime(static_cast<const Time &>(_time), _qualifier) { }
+
         /// \brief Default constructor. The time will be treated as
         /// indeterminate. This means that the QualifiedTime object will be
         /// taken to indicate that no time has been specified at all.

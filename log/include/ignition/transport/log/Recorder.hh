@@ -77,6 +77,8 @@ namespace ignition
         /// \param[in] _topic Pattern to match against topic names
         /// \note This method attempts to subscribe to topics immediately.
         ///       These subscriptions will be kept until this is destructed.
+        ///       New topics that match the pattern will be added as they
+        ///       appear, including while recording is active.
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
