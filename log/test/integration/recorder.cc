@@ -132,8 +132,8 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
 {
   std::vector<std::string> topics = {"/foo", "/bar"};
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:recorderBeginRecordingTopicsAfterAdvertise?mode=memory&cache=shared";
 
   ignition::transport::log::Recorder recorder;
 
@@ -206,8 +206,8 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   EXPECT_NE(0, numMatchingTopics);
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:recorder_RecordPatternBeforeAdvertisement?mode=memory&cache=shared";
 
   ignition::transport::log::Recorder recorder;
   recorder.AddTopic(_pattern);

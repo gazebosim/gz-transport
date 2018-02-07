@@ -59,7 +59,7 @@ void chirp(const std::vector<std::string> &_topicNames,
     integer.set_data(c);
     for (auto &pub : publishers)
     {
-      std::cout << "Chirping [" << c << "] on publisher [" << &pub << "]\n";
+      // std::cout << "Chirping [" << c << "] on publisher [" << &pub << "]\n";
       pub.Publish(integer);
     }
 
