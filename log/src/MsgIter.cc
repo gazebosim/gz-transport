@@ -15,11 +15,11 @@
  *
 */
 
-#include <ignition/common/Console.hh>
+#include "Console.hh"
 
 #include "ignition/transport/log/MsgIter.hh"
-#include "src/MsgIterPrivate.hh"
-#include "src/raii-sqlite3.hh"
+#include "MsgIterPrivate.hh"
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
@@ -62,8 +62,8 @@ bool MsgIterPrivate::PrepareNextStatement()
       new raii_sqlite3::Statement(*(this->db), query.statement));
   if (!*nextStatement)
   {
-    ignerr << "Failed to prepare query: "<< sqlite3_errmsg(
-        this->db->Handle()) << "\n";
+    LERR("Failed to prepare query: "<< sqlite3_errmsg(
+        this->db->Handle()) << "\n");
     return false;
   }
 
@@ -92,8 +92,8 @@ bool MsgIterPrivate::PrepareNextStatement()
     }
     if (returnCode != SQLITE_OK)
     {
-      ignerr << "Failed to query messages: "<< sqlite3_errmsg(
-        this->db->Handle()) << "\n";
+      LERR("Failed to query messages: "<< sqlite3_errmsg(
+        this->db->Handle()) << "\n");
       return false;
     }
     ++i;
@@ -117,13 +117,12 @@ void MsgIterPrivate::StepStatement()
       // Assumes statement has column order:
       // messages id (0), timeRecv(1), topics name(2),
       // message_type name(3), message data(4)
-      ignition::common::Time timeRecv;
+      std::chrono::nanoseconds timeRecv;
 
       // Time received
       sqlite_int64 timeRecvInt = sqlite3_column_int64(
           this->statement->Handle(), 1);
-      timeRecv.sec = timeRecvInt / 1000000000;
-      timeRecv.nsec = timeRecvInt % 1000000000;
+      timeRecv = std::chrono::nanoseconds(timeRecvInt);
 
       // Topic name
       const unsigned char *topic = sqlite3_column_text(
@@ -150,7 +149,7 @@ void MsgIterPrivate::StepStatement()
     {
       if (returnCode != SQLITE_DONE)
       {
-        ignerr << "Failed to get message [" << returnCode << "]\n";
+        LERR("Failed to get message [" << returnCode << "]\n");
       }
       // Out of data
       this->statement.reset();

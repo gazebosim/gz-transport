@@ -25,6 +25,10 @@ using namespace transport;
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
+  // An empty namespace is valid, so take a shortcut here.
+  if (_ns.empty())
+    return true;
+
   // Too long string is not valid.
   if (_ns.size() > kMaxNameLength)
     return false;
@@ -55,7 +59,8 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidPartition(const std::string &_partition)
 {
-  return _partition.empty() || IsValidNamespace(_partition);
+  // A valid namespace is also a valid partition.
+  return IsValidNamespace(_partition);
 }
 
 //////////////////////////////////////////////////
