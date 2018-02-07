@@ -23,7 +23,7 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
+#include "Console.hh"
 
 #include "ignition/transport/log/Log.hh"
 #include "src/raii-sqlite3.hh"
@@ -109,7 +109,7 @@ const log::Descriptor *Log::Implementation::Descriptor() const
     raii_sqlite3::Statement topic_ids_statement(*(this->db), sql_statement);
     if (!topic_ids_statement)
     {
-      ignerr << "Failed to compile statement to get topic ids\n";
+      LERR("Failed to compile statement to get topic ids\n");
       return nullptr;
     }
 
@@ -140,12 +140,12 @@ const log::Descriptor *Log::Implementation::Descriptor() const
         key.type = std::string(
             reinterpret_cast<const char *>(typeName), lenTypeName);
         topicsInLog[key] = topicId;
-        igndbg << key.topic << "|" << key.type << "|" << topicId << "\n";
+        LDBG(key.topic << "|" << key.type << "|" << topicId << "\n");
       }
       else if (returnCode != SQLITE_DONE)
       {
-        ignerr << "Failed query topic ids: " << sqlite3_errmsg(
-            this->db->Handle()) << "\n";
+        LERR("Failed query topic ids: " << sqlite3_errmsg(
+            this->db->Handle()) << "\n");
         return nullptr;
       }
     } while (returnCode == SQLITE_ROW);
@@ -171,10 +171,10 @@ bool Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
       this->db->Handle(), "END;", NULL, 0, nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to end transaction" << returnCode << "\n";
+    LERR("Failed to end transaction" << returnCode << "\n");
     return false;
   }
-  igndbg << "Ended transaction\n";
+  LDBG("Ended transaction\n");
   this->inTransaction = false;
   return true;
 }
@@ -189,11 +189,11 @@ bool Log::Implementation::BeginTransactionIfNotInOne()
       this->db->Handle(), "BEGIN;", NULL, 0, nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to begin transaction" << returnCode << "\n";
+    LERR("Failed to begin transaction" << returnCode << "\n");
     return false;
   }
   this->inTransaction = true;
-  igndbg << "Began transaction\n";
+  LDBG("Began transaction\n");
   this->lastTransaction = std::chrono::steady_clock::now();
   return true;
 }
@@ -238,14 +238,14 @@ int64_t Log::Implementation::InsertOrGetTopicId(
       *(this->db), sql_message_type);
   if (!message_type_statement)
   {
-    ignerr << "Failed to compile statement to insert message type\n";
+    LERR("Failed to compile statement to insert message type\n");
     return -1;
   }
   raii_sqlite3::Statement topic_statement(
       *(this->db), sql_topic);
   if (!topic_statement)
   {
-    ignerr << "Failed to compile statement to insert topic\n";
+    LERR("Failed to compile statement to insert topic\n");
     return -1;
   }
 
@@ -255,21 +255,21 @@ int64_t Log::Implementation::InsertOrGetTopicId(
       message_type_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind message type name(1): " << returnCode << "\n";
+    LERR("Failed to bind message type name(1): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
       topic_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind message type name(2): " << returnCode << "\n";
+    LERR("Failed to bind message type name(2): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
       topic_statement.Handle(), 2, _name.c_str(), _name.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind topic name: " << returnCode << "\n";
+    LERR("Failed to bind topic name: " << returnCode << "\n");
     return -1;
   }
 
@@ -277,19 +277,19 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   returnCode = sqlite3_step(message_type_statement.Handle());
   if (returnCode != SQLITE_DONE)
   {
-    ignerr << "Failed to insert message type: " << returnCode << "\n";
+    LERR("Failed to insert message type: " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_step(topic_statement.Handle());
   if (returnCode != SQLITE_DONE)
   {
-    ignerr << "Faild to insert topic: " << returnCode << "\n";
+    LERR("Faild to insert topic: " << returnCode << "\n");
     return -1;
   }
 
   // topics.id is an alias for rowid
   int64_t id = sqlite3_last_insert_rowid(this->db->Handle());
-  igndbg << "Inserted '" << _name << "'[" << _type << "]\n";
+  LDBG("Inserted '" << _name << "'[" << _type << "]\n");
   return id;
 }
 
@@ -309,7 +309,7 @@ bool Log::Implementation::InsertMessage(
   raii_sqlite3::Statement statement(*(this->db), sql_message);
   if (!statement)
   {
-    ignerr << "Failed to compile insert message statement\n";
+    LERR("Failed to compile insert message statement\n");
     return false;
   }
 
@@ -317,19 +317,19 @@ bool Log::Implementation::InsertMessage(
   returnCode = sqlite3_bind_int64(statement.Handle(), 1, _time.count());
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind time received: " << returnCode << "\n";
+    LERR("Failed to bind time received: " << returnCode << "\n");
     return false;
   }
   returnCode = sqlite3_bind_blob(statement.Handle(), 2, _data, _len, nullptr);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind message data: " << returnCode << "\n";
+    LERR("Failed to bind message data: " << returnCode << "\n");
     return false;
   }
   returnCode = sqlite3_bind_int(statement.Handle(), 3, _topic);
   if (returnCode != SQLITE_OK)
   {
-    ignerr << "Failed to bind topic_id: " << returnCode << "\n";
+    LERR("Failed to bind topic_id: " << returnCode << "\n");
     return false;
   }
 
@@ -337,7 +337,7 @@ bool Log::Implementation::InsertMessage(
   returnCode = sqlite3_step(statement.Handle());
   if (returnCode != SQLITE_DONE)
   {
-    ignerr << "Failed to insert message: " << returnCode << "\n";
+    LERR("Failed to insert message: " << returnCode << "\n");
     return false;
   }
   return true;
@@ -378,7 +378,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
   // Open the SQLite3 database
   if (this->dataPtr->db)
   {
-    ignerr << "A database is already open\n";
+    LERR("A database is already open\n");
     return false;
   }
   int64_t modeSQL = 0;
@@ -395,7 +395,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
       new raii_sqlite3::Database(_file, modeSQL));
   if (!*(db))
   {
-    ignerr << "Failed to open sqlite3 database\n";
+    LERR("Failed to open sqlite3 database\n");
     return false;
   }
 
@@ -416,12 +416,12 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     schemaFile += "/0.1.0.sql";
 
     // Assume the database is uninitialized; use the schema to initialize it
-    igndbg << "Schema file: " << schemaFile << "\n";
+    LDBG("Schema file: " << schemaFile << "\n");
     std::ifstream fin(schemaFile, std::ifstream::in);
     if (!fin)
     {
-      ignerr << "Failed to open schema [" << schemaFile << "].\n"
-             << " Set " << SchemaLocationEnvVar << " to the schema location.\n";
+      LERR("Failed to open schema [" << schemaFile << "].\n"
+          << " Set " << SchemaLocationEnvVar << " to the schema location.\n");
       return false;
     }
 
@@ -435,7 +435,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     }
     if (schema.empty())
     {
-      ignerr << "Failed to read schema file [" << schemaFile << "]\n";
+      LERR("Failed to read schema file [" << schemaFile << "]\n");
       return false;
     }
 
@@ -443,7 +443,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
     int returnCode = sqlite3_exec(db->Handle(), schema.c_str(), NULL, 0, NULL);
     if (returnCode != SQLITE_OK)
     {
-      ignerr << "Failed to open log: " << sqlite3_errmsg(db->Handle()) << "\n";
+      LERR("Failed to open log: " << sqlite3_errmsg(db->Handle()) << "\n");
       return false;
     }
   }
@@ -455,8 +455,7 @@ bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
   std::string version = this->Version();
   if ("0.1.0" != this->Version())
   {
-    ignerr << "Log file Version '" << version
-      << "' is unsupported by this tool\n";
+    LERR("Log file Version '" << version << "' is unsupported by this tool\n");
     this->dataPtr->db.reset();
     return false;
   }
@@ -504,8 +503,8 @@ bool Log::InsertMessage(
   if (!this->dataPtr->EndTransactionIfEnoughTimeHasPassed())
   {
     // Something is really busted if this happens
-    ignerr << "Failed to end transcation: "<< sqlite3_errmsg(
-        this->dataPtr->db->Handle()) << "\n";
+    LERR("Failed to end transcation: "<< sqlite3_errmsg(
+        this->dataPtr->db->Handle()) << "\n");
     return false;
   }
 
@@ -526,7 +525,7 @@ std::string Log::Version()
   raii_sqlite3::Statement statement(*(this->dataPtr->db), get_version);
   if (!statement)
   {
-    ignerr << "Failed to compile version query statement\n";
+    LERR("Failed to compile version query statement\n");
     return "";
   }
 
@@ -534,7 +533,7 @@ std::string Log::Version()
   int result_code = sqlite3_step(statement.Handle());
   if (result_code != SQLITE_ROW)
   {
-    ignerr << "Database has no version\n";
+    LERR("Database has no version\n");
     return "";
   }
 
