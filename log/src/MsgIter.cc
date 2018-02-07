@@ -18,8 +18,8 @@
 #include "Console.hh"
 
 #include "ignition/transport/log/MsgIter.hh"
-#include "src/MsgIterPrivate.hh"
-#include "src/raii-sqlite3.hh"
+#include "MsgIterPrivate.hh"
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
