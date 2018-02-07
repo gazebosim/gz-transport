@@ -22,7 +22,6 @@
 #include <memory>
 #include <string>
 
-#include <ignition/common/Time.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Descriptor.hh>
@@ -74,14 +73,14 @@ namespace ignition
         public: const log::Descriptor *Descriptor() const;
 
         /// \brief Insert a message into the log file
-        /// \param[in] _time Time the message was received
+        /// \param[in] _time Time the message was received (ns since Unix epoch)
         /// \param[in] _topic Name of the topic the message was on
         /// \param[in] _type Name of the message type
         /// \param[in] _data pointer to a buffer containing the message data
         /// \param[in] _len number of bytes of data
         /// \return true if the message was successfully inserted
         public: bool InsertMessage(
-            const common::Time &_time,
+            const std::chrono::nanoseconds &_time,
             const std::string &_topic, const std::string &_type,
             const void *_data, std::size_t _len);
 

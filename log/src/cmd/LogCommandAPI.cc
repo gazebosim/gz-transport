@@ -17,7 +17,7 @@
 #include <functional>
 #include <regex>
 
-#include <ignition/common/Console.hh>
+#include "../Console.hh"
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>
@@ -43,7 +43,7 @@ extern "C"
       std::cerr << "Invalid verbosity level\n";
       return INVALID_VERSION;
     }
-    common::Console::SetVerbosity(_level);
+    ignition::transport::log::__verbosity = _level;
     return NO_ERROR;
   }
 
@@ -58,7 +58,7 @@ extern "C"
     }
     catch (std::regex_error e)
     {
-      ignerr << "Regex pattern is invalid\n";
+      LERR("Regex pattern is invalid\n");
       return BAD_REGEX;
     }
 
@@ -71,7 +71,7 @@ extern "C"
 
     // Wait until signaled (SIGINT, SIGTERM)
     transport::waitForShutdown();
-    igndbg << "Shutting down\n";
+    LDBG("Shutting down\n");
     recorder.Stop();
 
     return NO_ERROR;
@@ -90,7 +90,7 @@ extern "C"
     }
     catch (std::regex_error e)
     {
-      ignerr << "Regex pattern is invalid\n";
+      LERR("Regex pattern is invalid\n");
       return BAD_REGEX;
     }
 
@@ -103,7 +103,7 @@ extern "C"
 
     // Wait until playback finishes
     player.WaitUntilFinished();
-    igndbg << "Shutting down\n";
+    LDBG("Shutting down\n");
     return NO_ERROR;
   }
 }

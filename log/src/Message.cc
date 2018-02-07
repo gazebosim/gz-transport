@@ -19,12 +19,12 @@
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
-
+using namespace std::chrono_literals;
 
 class ignition::transport::log::MessagePrivate
 {
   /// \brief Time received
-  public: ignition::common::Time timeReceived = common::Time::Zero;
+  public: std::chrono::nanoseconds timeReceived = 0ns;
 
   /// \brief pointer to data bytes
   public: const void *data = nullptr;
@@ -52,7 +52,7 @@ Message::Message()
 }
 
 //////////////////////////////////////////////////
-Message::Message(const common::Time &_timeRecv,
+Message::Message(const std::chrono::nanoseconds &_timeRecv,
             const void *_data, std::size_t _dataLen,
             const char *_type, std::size_t _typeLen,
             const char *_topic, std::size_t _topicLen)
@@ -92,7 +92,7 @@ std::string Message::Topic() const
 }
 
 //////////////////////////////////////////////////
-const ignition::common::Time &Message::TimeReceived() const
+const std::chrono::nanoseconds &Message::TimeReceived() const
 {
   return this->dataPtr->timeReceived;
 }

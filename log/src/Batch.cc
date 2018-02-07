@@ -15,7 +15,6 @@
  *
 */
 
-#include <ignition/common/Console.hh>
 
 #include "ignition/transport/log/Batch.hh"
 #include "src/BatchPrivate.hh"

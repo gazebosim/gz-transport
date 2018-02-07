@@ -17,8 +17,6 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Filesystem.hh>
-
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/log/Playback.hh>
@@ -64,7 +62,7 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
 void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
     const std::vector<MessageInformation> &_played)
 {
-  for (std::size_t i = 0; i < _recorded.size(); ++i)
+  for (std::size_t i = 0; i < _recorded.size() && i < _played.size(); ++i)
   {
     const MessageInformation &original = _recorded[i];
     const MessageInformation &playedBack = _played[i];
@@ -73,6 +71,8 @@ void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
     EXPECT_EQ(original.type, playedBack.type);
     EXPECT_EQ(original.topic, playedBack.topic);
   }
+
+  EXPECT_EQ(_recorded.size(), _played.size());
 }
 
 
@@ -101,8 +101,7 @@ TEST(playback, ReplayLog)
     recorder.AddTopic(topic);
   }
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
   EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
     recorder.Start(logName));
 
@@ -116,7 +115,8 @@ TEST(playback, ReplayLog)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop recording so we can safely play back the log
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -124,8 +124,6 @@ TEST(playback, ReplayLog)
 
   // Clear out the old data so we can recreate it during the playback
   incomingData.clear();
-
-  ignition::transport::log::Playback playback(logName);
 
   for (const std::string &topic : topics)
   {
@@ -149,13 +147,14 @@ TEST(playback, ReplayLog)
 TEST(playback, ReplayNoSuchTopic)
 {
   ignition::transport::log::Recorder recorder;
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:playbackReplayNoSuchTopic?mode=memory&cache=shared";
   EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
     recorder.Start(logName));
-  recorder.Stop();
 
   ignition::transport::log::Playback playback(logName);
+  recorder.Stop();
+
   EXPECT_EQ(ignition::transport::log::PlaybackError::NO_SUCH_TOPIC,
       playback.AddTopic("/DNE"));
   EXPECT_EQ(0, playback.AddTopic(std::regex("/DNE")));
@@ -187,8 +186,8 @@ TEST(playback, ReplayLogRegex)
   }
   recorder.AddTopic(std::regex(".*"));
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:playbackReplayLogRegex?mode=memory&cache=shared";
   EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
     recorder.Start(logName));
 
@@ -202,7 +201,8 @@ TEST(playback, ReplayLogRegex)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop recording so we can safely play back the log
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -211,7 +211,6 @@ TEST(playback, ReplayLogRegex)
   // Clear out the old data so we can recreate it during the playback
   incomingData.clear();
 
-  ignition::transport::log::Playback playback(logName);
   playback.Start();
   std::cout << "Waiting to for playback to finish..." << std::endl;
   playback.WaitUntilFinished();
@@ -251,8 +250,8 @@ TEST(playback, ReplayLogMoveInstances)
 
   ignition::transport::log::Recorder recorder(std::move(recorder_orig));
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:playbackReplayLogRegex?mode=memory&cache=shared";
   EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
     recorder.Start(logName));
 
@@ -266,7 +265,8 @@ TEST(playback, ReplayLogMoveInstances)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop recording so we can safely play back the log
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback_orig(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -275,7 +275,6 @@ TEST(playback, ReplayLogMoveInstances)
   // Clear out the old data so we can recreate it during the playback
   incomingData.clear();
 
-  ignition::transport::log::Playback playback_orig(logName);
   playback_orig.AddTopic(std::regex(".*"));
   ignition::transport::log::Playback playback(std::move(playback_orig));
   playback.Start();

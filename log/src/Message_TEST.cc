@@ -19,6 +19,7 @@
 #include "gtest/gtest.h"
 
 using namespace ignition;
+using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
 TEST(Message, DefaultConstructor)
@@ -27,13 +28,13 @@ TEST(Message, DefaultConstructor)
   EXPECT_EQ(std::string(""), msg.Data());
   EXPECT_EQ(std::string(""), msg.Topic());
   EXPECT_EQ(std::string(""), msg.Type());
-  EXPECT_EQ(common::Time::Zero, msg.TimeReceived());
+  EXPECT_EQ(0ns, msg.TimeReceived());
 }
 
 //////////////////////////////////////////////////
 TEST(Message, DataConstructor)
 {
-  ignition::common::Time goldenTime(1234, 5678);
+  std::chrono::nanoseconds goldenTime = 12345678ns;
   std::string data("SomeData");
   std::string topic("/a/topic");
   std::string msgType("msg.type");
