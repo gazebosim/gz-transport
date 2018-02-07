@@ -41,7 +41,7 @@ namespace ignition
         for (const std::string &topic : _topics)
           internalTopics.insert(topic);
 
-        return std::move(tl);
+        return tl;
       }
     }
   }
