@@ -62,8 +62,8 @@ class ignition::transport::log::Log::Implementation
       const std::string &_name, const std::string &_type);
 
   /// \brief Insert a message into the database
-  public: bool InsertMessage(const common::Time &_time, int64_t _topic,
-      const void *_data, std::size_t _len);
+  public: bool InsertMessage(const std::chrono::nanoseconds &_time,
+      int64_t _topic, const void *_data, std::size_t _len);
 
   /// \brief Return true if enough time has passed since the last transaction
   /// \return true if the transaction has lasted long enough
@@ -295,7 +295,7 @@ int64_t Log::Implementation::InsertOrGetTopicId(
 
 //////////////////////////////////////////////////
 bool Log::Implementation::InsertMessage(
-    const common::Time &_time,
+    const std::chrono::nanoseconds &_time,
     int64_t _topic,
     const void *_data,
     std::size_t _len)
@@ -314,8 +314,7 @@ bool Log::Implementation::InsertMessage(
   }
 
   // Bind parameters
-  returnCode = sqlite3_bind_int64(statement.Handle(), 1,
-      _time.sec * NS_PER_SEC + _time.nsec);
+  returnCode = sqlite3_bind_int64(statement.Handle(), 1, _time.count());
   if (returnCode != SQLITE_OK)
   {
     ignerr << "Failed to bind time received: " << returnCode << "\n";
@@ -473,7 +472,7 @@ const log::Descriptor *Log::Descriptor() const
 
 //////////////////////////////////////////////////
 bool Log::InsertMessage(
-    const common::Time &_time,
+    const std::chrono::nanoseconds &_time,
     const std::string &_topic, const std::string &_type,
     const void *_data, std::size_t _len)
 {
