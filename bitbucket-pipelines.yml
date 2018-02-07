@@ -10,7 +10,7 @@ pipelines:
           - apt-get update
           - apt-get -y install cmake pkg-config cppcheck mercurial build-essential lcov curl
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn
-            libignition-msgs-dev libignition-common-dev libsqlite3-dev ruby-ffi
+            libignition-msgs-dev libsqlite3-dev
           # Upgraded version of Ignition cmake
           - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b default
           - cd ign-cmake

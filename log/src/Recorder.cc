@@ -20,7 +20,7 @@
 #include <memory>
 #include <mutex>
 
-#include <ignition/common/Console.hh>
+#include "Console.hh"
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Discovery.hh>
 
@@ -132,14 +132,8 @@ void RecorderPrivate::OnMessageReceived(
       std::chrono::steady_clock::now().time_since_epoch());
   // monotonic -> utc in nanoseconds
   std::chrono::nanoseconds utcNS = this->wallMinusMono + nowNS;
-  // Round to nearest second
-  std::chrono::seconds utcS =
-    std::chrono::duration_cast<std::chrono::seconds>(utcNS);
-  // create time object with rounded seconds and remainder nanoseconds
-  common::Time timeRX(utcS.count(),
-      (utcNS - std::chrono::nanoseconds(utcS)).count());
 
-  igndbg << "RX'" << _info.Topic() << "'[" << _info.Type() << "]\n";
+  LDBG("RX'" << _info.Topic() << "'[" << _info.Type() << "]\n");
 
   std::lock_guard<std::mutex> lock(this->logFileMutex);
 
@@ -147,13 +141,13 @@ void RecorderPrivate::OnMessageReceived(
   // or after Stop() has been called. If it is a nullptr, then we are not
   // recording anything yet, so we can just skip inserting the message.
   if (this->logFile && !this->logFile->InsertMessage(
-        timeRX,
+        utcNS,
         _info.Topic(),
         _info.Type(),
         reinterpret_cast<const void *>(_data),
         _len))
   {
-    ignwarn << "Failed to insert message into log file\n";
+    LWRN("Failed to insert message into log file\n");
   }
 }
 
@@ -194,11 +188,11 @@ void RecorderPrivate::OnAdvertisement(const Publisher &_publisher)
 //////////////////////////////////////////////////
 RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 {
-  igndbg << "Recording [" << _topic << "]\n";
+  LDBG("Recording [" << _topic << "]\n");
   // Subscribe to the topic whether it exists or not
   if (!this->node.SubscribeRaw(_topic, this->rawCallback))
   {
-    ignerr << "Failed to subscribe to [" << _topic << "]\n";
+    LERR("Failed to subscribe to [" << _topic << "]\n");
     return RecorderError::FAILED_TO_SUBSCRIBE;
   }
 
@@ -226,7 +220,7 @@ int64_t RecorderPrivate::AddTopic(const std::regex &_pattern)
     }
     else
     {
-      igndbg << "Not recording " << topic << "\n";
+      LDBG("Not recording " << topic << "\n");
     }
   }
 
@@ -262,19 +256,19 @@ RecorderError Recorder::Start(const std::string &_file)
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   if (this->dataPtr->logFile)
   {
-    ignwarn << "Recording is already in progress\n";
+    LWRN("Recording is already in progress\n");
     return RecorderError::ALREADY_RECORDING;
   }
 
   this->dataPtr->logFile.reset(new Log());
   if (!this->dataPtr->logFile->Open(_file, std::ios_base::out))
   {
-    ignerr << "Failed to open or create file [" << _file << "]\n";
+    LERR("Failed to open or create file [" << _file << "]\n");
     this->dataPtr->logFile.reset(nullptr);
     return RecorderError::FAILED_TO_OPEN;
   }
 
-  ignmsg << "Started recording to [" << _file << "]\n";
+  LMSG("Started recording to [" << _file << "]\n");
 
   return RecorderError::NO_ERROR;
 }
