@@ -17,8 +17,6 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Filesystem.hh>
-
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/log/Log.hh>
@@ -77,8 +75,8 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
     recorder.AddTopic(topic);
   }
 
-  const std::string logName = IGN_TRANSPORT_LOG_BUILD_PATH"/test.log";
-  ignition::common::removeFile(logName);
+  const std::string logName =
+    "file:recorderBeginRecordingTopicsBeforeAdvertise?mode=memory&cache=shared";
 
   EXPECT_EQ(recorder.Start(logName),
             ignition::transport::log::RecorderError::NO_ERROR);
@@ -93,11 +91,10 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop recording so we can safely view the log
-  recorder.Stop();
-
+  // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
 
   auto VerifyTopic = [&](const std::string &_topic)
   {
@@ -125,8 +122,6 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
   }
 
   EXPECT_EQ(numChirps*static_cast<int>(topics.size()), count);
-
-  ignition::common::removeFile(logName);
 }
 
 //////////////////////////////////////////////////
@@ -175,12 +170,10 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop the recording so we can safely view the log
-  recorder.Stop();
-
+  // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
-
+  recorder.Stop();
 
   using MsgType = ignition::transport::log::test::ChirpMsgType;
   MsgType protoMsg;
@@ -197,8 +190,6 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
 
   EXPECT_TRUE(protoMsg.ParseFromString(data));
   EXPECT_EQ(numChirps, protoMsg.data());
-
-  ignition::common::removeFile(logName);
 }
 
 //////////////////////////////////////////////////
@@ -234,12 +225,10 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  // Stop recording so we can safely view the log
-  recorder.Stop();
-
+  // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
-
+  recorder.Stop();
 
   auto VerifyTopic = [&](const std::string &_topic)
   {
@@ -259,8 +248,6 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   }
 
   EXPECT_EQ(numChirps*numMatchingTopics, count);
-
-  ignition::common::removeFile(logName);
 }
 
 //////////////////////////////////////////////////

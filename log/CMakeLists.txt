@@ -1,6 +1,7 @@
 find_package(ignition-common1 REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_search_module(SQLite3 REQUIRED sqlite3>=3.6.19)
+# First version of SQLite3 with shared-cache for in-memory databases
+pkg_search_module(SQLite3 REQUIRED sqlite3>=3.7.13)
 
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
