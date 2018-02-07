@@ -34,10 +34,6 @@
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
-
-/// \brief Nanoseconds Per Second
-const sqlite3_int64 NS_PER_SEC = 1000000000;
-
 /// \brief Private implementation
 class ignition::transport::log::Log::Implementation
 {
