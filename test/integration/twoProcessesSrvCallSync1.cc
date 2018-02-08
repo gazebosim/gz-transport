@@ -70,7 +70,7 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LT(diff, 50);
+  EXPECT_LT(diff, 200);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
