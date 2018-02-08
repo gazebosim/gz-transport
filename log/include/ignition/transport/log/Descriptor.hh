@@ -54,7 +54,6 @@ namespace ignition
         /// (topic name -> message type name -> ID).
         /// \return A map from topic names to a map of message types to row ids.
         /// \sa MsgTypesToTopicsToId()
-        /// \sa QueryMsgTypesOfTopic()
         public: const NameToMap &TopicsToMsgTypesToId() const;
 
         /// \brief A topic in the database is uniquely identified by a pair of
@@ -63,7 +62,6 @@ namespace ignition
         /// (message type name -> topic name -> ID).
         /// \return A map from message types to a map of topic names to row ids.
         /// \sa TopicsToMsgTypesToId()
-        /// \sa QueryTopicsOfMsgType()
         public: const NameToMap &MsgTypesToTopicsToId() const;
 
         /// \brief Convenience method to get an id given a topic name and type
