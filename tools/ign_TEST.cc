@@ -85,7 +85,7 @@ TEST(ignTest, TopicList)
   unsigned int retries = 0u;
   bool topicFound = false;
 
-  while (!topicFound && retries < 5u)
+  while (!topicFound && retries++ < 5u)
   {
     std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
@@ -141,7 +141,7 @@ TEST(ignTest, ServiceList)
   unsigned int retries = 0u;
   bool serviceFound = false;
 
-  while (!serviceFound && retries < 5u)
+  while (!serviceFound && retries++ < 5u)
   {
     std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
     serviceFound = output == "/foo\n";
@@ -173,7 +173,7 @@ TEST(ignTest, ServiceInfo)
   bool infoFound = false;
   std::string output;
 
-  while (!infoFound && retries < 5u)
+  while (!infoFound && retries++ < 5u)
   {
     output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
@@ -208,7 +208,7 @@ TEST(ignTest, TopicListSameProc)
   unsigned int retries = 0u;
   bool topicFound = false;
 
-  while (!topicFound && retries < 5u)
+  while (!topicFound && retries++ < 5u)
   {
     std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
@@ -256,7 +256,7 @@ TEST(ignTest, ServiceListSameProc)
   unsigned int retries = 0u;
   bool serviceFound = false;
 
-  while (!serviceFound && retries < 5u)
+  while (!serviceFound && retries++ < 5u)
   {
     std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
     serviceFound = output == "/foo\n";
@@ -280,7 +280,7 @@ TEST(ignTest, ServiceInfoSameProc)
   bool infoFound = false;
   std::string output;
 
-  while (!infoFound && retries < 5u)
+  while (!infoFound && retries++ < 5u)
   {
     output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;

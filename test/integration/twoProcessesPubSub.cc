@@ -160,7 +160,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 
   unsigned int retries = 0u;
 
-  while (!pub.HasConnections() && retries < 5u)
+  while (!pub.HasConnections() && retries++ < 5u)
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Now, we should have subscribers.
