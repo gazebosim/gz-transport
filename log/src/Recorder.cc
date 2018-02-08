@@ -26,7 +26,7 @@
 
 #include "ignition/transport/log/Recorder.hh"
 #include "ignition/transport/log/Log.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 #include "build_config.hh"
 
 
@@ -43,12 +43,16 @@ class ignition::transport::log::RecorderPrivate
   public: ~RecorderPrivate();
 
   /// \brief Subscriber callback
+  /// \param[in] _data Data of the message
+  /// \param[in] _len The size of the message data
+  /// \param[in] _info The meta-info of the message
   public: void OnMessageReceived(
           const char *_data,
           std::size_t _len,
           const transport::MessageInfo &_info);
 
   /// \brief Callback that listens for newly advertised topics
+  /// \param[in] _publisher The Publisher that has advertised
   public: void OnAdvertisement(const Publisher &_publisher);
 
   /// \sa Record::AddTopic(const std::string&)

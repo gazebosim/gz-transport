@@ -22,7 +22,7 @@
 
 #include "ignition/transport/log/Message.hh"
 #include "ignition/transport/log/SqlStatement.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 
 
 using namespace ignition::transport;
@@ -34,6 +34,9 @@ class ignition::transport::log::MsgIterPrivate
   public: MsgIterPrivate();
 
   /// \brief constructor
+  /// \param[in] _db Shared reference to a database
+  /// \param[in] _statements A set of SQL statements that this message will
+  /// iterate through
   public: MsgIterPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,
       const std::shared_ptr<std::vector<SqlStatement>> &_statements);
 

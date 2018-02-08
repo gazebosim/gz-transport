@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "ignition/transport/log/SqlStatement.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;

@@ -27,6 +27,7 @@ TEST(QualifiedTime, DefaultIndeterminate)
   log::QualifiedTime qt;
   EXPECT_TRUE(qt.IsIndeterminate());
   EXPECT_EQ(nullptr, qt.GetQualifier());
+  EXPECT_EQ(nullptr, qt.GetTime());
 }
 
 
@@ -130,9 +131,7 @@ TEST(QualifiedTime, ClearTime)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, ConstructWithBeginAndEnd)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
+  log::QualifiedTimeRange range(24h, 48h);
   EXPECT_TRUE(range.Valid());
   auto start = range.Beginning();
   auto end = range.Ending();
@@ -145,12 +144,8 @@ TEST(QualifiedTimeRange, ConstructWithBeginAndEnd)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, SetRange)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
-  range.SetRange(
-    log::QualifiedTime(72h),
-    log::QualifiedTime(120h));
+  log::QualifiedTimeRange range(24h, 48h);
+  range.SetRange(72h, 120h);
   EXPECT_TRUE(range.Valid());
   auto start = range.Beginning();
   auto end = range.Ending();
@@ -163,10 +158,8 @@ TEST(QualifiedTimeRange, SetRange)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, SetBeginning)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
-  range.SetBeginning(log::QualifiedTime(32h));
+  log::QualifiedTimeRange range(24h, 48h);
+  range.SetBeginning(32h);
   EXPECT_TRUE(range.Valid());
   auto start = range.Beginning();
   ASSERT_NE(nullptr, start.GetTime());
@@ -176,10 +169,8 @@ TEST(QualifiedTimeRange, SetBeginning)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, SetEnding)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
-  range.SetEnding(log::QualifiedTime(32h));
+  log::QualifiedTimeRange range(24h, 48h);
+  range.SetEnding(32h);
   EXPECT_TRUE(range.Valid());
   auto end = range.Ending();
   ASSERT_NE(nullptr, end.GetTime());
@@ -189,17 +180,13 @@ TEST(QualifiedTimeRange, SetEnding)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, EqualTimesValid)
 {
-  EXPECT_TRUE(log::QualifiedTimeRange(
-        log::QualifiedTime(24h),
-        log::QualifiedTime(24h)).Valid());
+  EXPECT_TRUE(log::QualifiedTimeRange(24h, 24h).Valid());
 }
 
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, CopyConstructor)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
+  log::QualifiedTimeRange range(24h, 48h);
   log::QualifiedTimeRange dest_range(range);
   EXPECT_TRUE(dest_range.Valid());
   auto start = dest_range.Beginning();
@@ -213,9 +200,7 @@ TEST(QualifiedTimeRange, CopyConstructor)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, CopyAssignment)
 {
-  log::QualifiedTimeRange range(
-    log::QualifiedTime(24h),
-    log::QualifiedTime(48h));
+  log::QualifiedTimeRange range(24h, 48h);
   log::QualifiedTimeRange dest_range = range;
   EXPECT_TRUE(dest_range.Valid());
   auto start = dest_range.Beginning();
@@ -237,7 +222,7 @@ TEST(QualifiedTimeRange, AllTime)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, From)
 {
-  auto uut = log::QualifiedTimeRange::From(log::QualifiedTime(24h));
+  auto uut = log::QualifiedTimeRange::From(24h);
   EXPECT_TRUE(uut.Valid());
   EXPECT_TRUE(uut.Ending().IsIndeterminate());
   ASSERT_NE(nullptr, uut.Beginning().GetTime());
@@ -247,7 +232,7 @@ TEST(QualifiedTimeRange, From)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, Until)
 {
-  auto uut = log::QualifiedTimeRange::Until(log::QualifiedTime(24h));
+  auto uut = log::QualifiedTimeRange::Until(24h);
   EXPECT_TRUE(uut.Valid());
   EXPECT_TRUE(uut.Beginning().IsIndeterminate());
   ASSERT_NE(nullptr, uut.Ending().GetTime());
