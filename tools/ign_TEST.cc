@@ -85,7 +85,7 @@ TEST(ignTest, TopicList)
   unsigned int retries = 0u;
   bool topicFound = false;
 
-  while (!topicFound && retries++ < 5u)
+  while (!topicFound && retries++ < 10u)
   {
     std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
@@ -112,11 +112,20 @@ TEST(ignTest, TopicInfo)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
-    g_ignVersion);
-  ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
-      != std::string::npos);
+
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -141,7 +150,7 @@ TEST(ignTest, ServiceList)
   unsigned int retries = 0u;
   bool serviceFound = false;
 
-  while (!serviceFound && retries++ < 5u)
+  while (!serviceFound && retries++ < 10u)
   {
     std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
     serviceFound = output == "/foo\n";
@@ -173,7 +182,7 @@ TEST(ignTest, ServiceInfo)
   bool infoFound = false;
   std::string output;
 
-  while (!infoFound && retries++ < 5u)
+  while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
@@ -208,7 +217,7 @@ TEST(ignTest, TopicListSameProc)
   unsigned int retries = 0u;
   bool topicFound = false;
 
-  while (!topicFound && retries++ < 5u)
+  while (!topicFound && retries++ < 10u)
   {
     std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
@@ -235,12 +244,20 @@ TEST(ignTest, TopicInfoSameProc)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
-    g_ignVersion);
 
-  ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") !=
-      std::string::npos);
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -256,7 +273,7 @@ TEST(ignTest, ServiceListSameProc)
   unsigned int retries = 0u;
   bool serviceFound = false;
 
-  while (!serviceFound && retries++ < 5u)
+  while (!serviceFound && retries++ < 10u)
   {
     std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
     serviceFound = output == "/foo\n";
@@ -280,7 +297,7 @@ TEST(ignTest, ServiceInfoSameProc)
   bool infoFound = false;
   std::string output;
 
-  while (!infoFound && retries++ < 5u)
+  while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
