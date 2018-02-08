@@ -103,8 +103,7 @@ bool PlaybackPrivate::CreatePublisher(
   }
 
   // Create a publisher for the topic and type combo
-  firstMapIter->second[_type] = this->node.Advertise(
-      _topic, _type);
+  firstMapIter->second[_type] = this->node.Advertise(_topic, _type);
   LDBG("Creating publisher for " << _topic << " " << _type << "\n");
   return true;
 }
