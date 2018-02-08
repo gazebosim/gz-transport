@@ -161,6 +161,7 @@ TEST(ignTest, ServiceInfo)
   std::string output = custom_exec_str(ign + " service -s /foo -i " +
     g_ignVersion);
   ASSERT_GT(output.size(), 50u);
+  EXPECT_EQ("", output);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
@@ -241,6 +242,7 @@ TEST(ignTest, ServiceInfoSameProc)
     g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
+  EXPECT_EQ("", output);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
