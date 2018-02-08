@@ -24,8 +24,8 @@ using namespace std::chrono_literals;
 //////////////////////////////////////////////////
 TEST(QueryOptionsTimeRange, GetRange)
 {
-  log::QualifiedTime beginTime(1s, log::QualifiedTime::Qualifier::Inclusive);
-  log::QualifiedTime endTime(2s, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime beginTime(1s, log::QualifiedTime::Qualifier::INCLUSIVE);
+  log::QualifiedTime endTime(2s, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTimeRange range(beginTime, endTime);
   log::TimeRangeOption rangeOption(range);
   EXPECT_EQ(range, rangeOption.TimeRange());
@@ -34,8 +34,8 @@ TEST(QueryOptionsTimeRange, GetRange)
 //////////////////////////////////////////////////
 TEST(QueryOptionsTimeRange, GetRangeConst)
 {
-  log::QualifiedTime beginTime(1s, log::QualifiedTime::Qualifier::Inclusive);
-  log::QualifiedTime endTime(2s, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime beginTime(1s, log::QualifiedTime::Qualifier::INCLUSIVE);
+  log::QualifiedTime endTime(2s, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTimeRange range(beginTime, endTime);
   log::TimeRangeOption rangeOption(range);
   const log::TimeRangeOption &constRangeOption = rangeOption;
