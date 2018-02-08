@@ -125,12 +125,20 @@ TEST(ignTest, ServiceList)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool serviceFound = false;
+
+  while (!serviceFound && retries < 5u)
+  {
+    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    serviceFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(serviceFound);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
