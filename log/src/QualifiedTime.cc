@@ -154,13 +154,13 @@ bool QualifiedTime::IsIndeterminate() const
 }
 
 //////////////////////////////////////////////////
-auto QualifiedTime::GetTime() const -> const Time *
+const QualifiedTime::Time *QualifiedTime::GetTime() const
 {
   return this->dataPtr->GetTime();
 }
 
 //////////////////////////////////////////////////
-auto QualifiedTime::GetQualifier() const -> const Qualifier *
+const QualifiedTime::Qualifier *QualifiedTime::GetQualifier() const
 {
   return this->dataPtr->GetQualifier();
 }
