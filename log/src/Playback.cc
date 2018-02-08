@@ -27,7 +27,7 @@
 
 #include "ignition/transport/log/Playback.hh"
 #include "ignition/transport/log/Log.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 #include "build_config.hh"
 
 
@@ -38,6 +38,10 @@ using namespace ignition::transport::log;
 class ignition::transport::log::PlaybackPrivate
 {
   /// \brief Create a publisher of a given topic name and type
+  /// \param[in] _topic Topic name to publish to
+  /// \param[in] _type The message type name to publish
+  /// \return True if a new publisher has been created. False if a publisher
+  /// already existed for this combination.
   public: bool CreatePublisher(
               const std::string &_topic, const std::string &_type);
 
@@ -99,8 +103,7 @@ bool PlaybackPrivate::CreatePublisher(
   }
 
   // Create a publisher for the topic and type combo
-  firstMapIter->second[_type] = this->node.Advertise(
-      _topic, _type);
+  firstMapIter->second[_type] = this->node.Advertise(_topic, _type);
   LDBG("Creating publisher for " << _topic << " " << _type << "\n");
   return true;
 }
