@@ -222,6 +222,9 @@ TEST(ignTest, ServiceListSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
+  // Check the 'ign service -l' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+
   unsigned int retries = 0u;
   bool serviceFound = false;
 
@@ -231,6 +234,8 @@ TEST(ignTest, ServiceListSameProc)
     serviceFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
+
+  EXPECT_TRUE(serviceFound);
 }
 
 //////////////////////////////////////////////////
