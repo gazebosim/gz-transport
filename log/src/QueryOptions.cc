@@ -90,17 +90,17 @@ class TimeRangeOption::Implementation
 
     if (!start.IsIndeterminate())
     {
-      if (*start.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
+      if (*start.GetQualifier() == QualifiedTime::Qualifier::INCLUSIVE)
         startCompare = ">=";
-      else if (*start.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+      else if (*start.GetQualifier() == QualifiedTime::Qualifier::EXCLUSIVE)
         startCompare = ">";
     }
 
     if (!finish.IsIndeterminate())
     {
-      if (*finish.GetQualifier() == QualifiedTime::Qualifier::Inclusive)
+      if (*finish.GetQualifier() == QualifiedTime::Qualifier::INCLUSIVE)
         finishCompare = "<=";
-      else if (*finish.GetQualifier() == QualifiedTime::Qualifier::Exclusive)
+      else if (*finish.GetQualifier() == QualifiedTime::Qualifier::EXCLUSIVE)
         finishCompare = "<";
     }
 

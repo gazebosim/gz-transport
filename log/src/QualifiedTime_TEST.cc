@@ -39,59 +39,59 @@ TEST(QualifiedTime, TimeOnlyConstructor)
   ASSERT_NE(nullptr, qt.GetTime());
   EXPECT_EQ(24h, *qt.GetTime());
   ASSERT_NE(nullptr, qt.GetQualifier());
-  EXPECT_EQ(log::QualifiedTime::Qualifier::Inclusive, *qt.GetQualifier());
+  EXPECT_EQ(log::QualifiedTime::Qualifier::INCLUSIVE, *qt.GetQualifier());
 }
 
 //////////////////////////////////////////////////
 TEST(QualifiedTime, TimeAndQualifierConstructor)
 {
   {
-    log::QualifiedTime qt(24h, log::QualifiedTime::Qualifier::Exclusive);
+    log::QualifiedTime qt(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
     EXPECT_FALSE(qt.IsIndeterminate());
     ASSERT_NE(nullptr, qt.GetTime());
     EXPECT_EQ(24h, *qt.GetTime());
     ASSERT_NE(nullptr, qt.GetQualifier());
-    EXPECT_EQ(log::QualifiedTime::Qualifier::Exclusive, *qt.GetQualifier());
+    EXPECT_EQ(log::QualifiedTime::Qualifier::EXCLUSIVE, *qt.GetQualifier());
   }
   {
-    log::QualifiedTime qt(24h, log::QualifiedTime::Qualifier::Inclusive);
+    log::QualifiedTime qt(24h, log::QualifiedTime::Qualifier::INCLUSIVE);
     EXPECT_FALSE(qt.IsIndeterminate());
     ASSERT_NE(nullptr, qt.GetTime());
     EXPECT_EQ(24h, *qt.GetTime());
     ASSERT_NE(nullptr, qt.GetQualifier());
-    EXPECT_EQ(log::QualifiedTime::Qualifier::Inclusive, *qt.GetQualifier());
+    EXPECT_EQ(log::QualifiedTime::Qualifier::INCLUSIVE, *qt.GetQualifier());
   }
 }
 
 //////////////////////////////////////////////////
 TEST(QualifiedTime, CopyAssignment)
 {
-  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2 = qt1;
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
-  EXPECT_EQ(log::QualifiedTime::Qualifier::Exclusive, *qt2.GetQualifier());
+  EXPECT_EQ(log::QualifiedTime::Qualifier::EXCLUSIVE, *qt2.GetQualifier());
 }
 
 //////////////////////////////////////////////////
 TEST(QualifiedTime, CopyConstructor)
 {
-  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2(qt1);
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
-  EXPECT_EQ(log::QualifiedTime::Qualifier::Exclusive, *qt2.GetQualifier());
+  EXPECT_EQ(log::QualifiedTime::Qualifier::EXCLUSIVE, *qt2.GetQualifier());
 }
 
 //////////////////////////////////////////////////
 TEST(QualifiedTime, EqualityOperators)
 {
-  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
-  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::Exclusive);
-  log::QualifiedTime qt3(48h, log::QualifiedTime::Qualifier::Exclusive);
-  log::QualifiedTime qt4(24h, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
+  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
+  log::QualifiedTime qt3(48h, log::QualifiedTime::Qualifier::EXCLUSIVE);
+  log::QualifiedTime qt4(24h, log::QualifiedTime::Qualifier::INCLUSIVE);
   log::QualifiedTime qt5;
 
   EXPECT_TRUE(qt1 == qt2);
@@ -111,12 +111,12 @@ TEST(QualifiedTime, EqualityOperators)
 TEST(QualifiedTime, SetTime)
 {
   log::QualifiedTime qt;
-  qt.SetTime(24h, log::QualifiedTime::Qualifier::Exclusive);
+  qt.SetTime(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   EXPECT_FALSE(qt.IsIndeterminate());
   ASSERT_NE(nullptr, qt.GetTime());
   EXPECT_EQ(24h, *qt.GetTime());
   ASSERT_NE(nullptr, qt.GetQualifier());
-  EXPECT_EQ(log::QualifiedTime::Qualifier::Exclusive, *qt.GetQualifier());
+  EXPECT_EQ(log::QualifiedTime::Qualifier::EXCLUSIVE, *qt.GetQualifier());
 }
 
 //////////////////////////////////////////////////
@@ -242,8 +242,8 @@ TEST(QualifiedTimeRange, Until)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, EqualityOperators)
 {
-  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
-  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
+  log::QualifiedTime qt2(24h, log::QualifiedTime::Qualifier::INCLUSIVE);
 
   EXPECT_TRUE(
     log::QualifiedTimeRange(qt1, qt2) == log::QualifiedTimeRange(qt1, qt2));
@@ -264,7 +264,7 @@ TEST(QualifiedTimeRange, EqualityOperators)
 //////////////////////////////////////////////////
 TEST(QualifiedTimeRange, AssignmentOperator)
 {
-  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2;
   log::QualifiedTimeRange range1(qt1, qt2);
   log::QualifiedTimeRange range2(qt2, qt1);
