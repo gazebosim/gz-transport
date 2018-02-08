@@ -125,6 +125,8 @@ TEST(ignTest, ServiceList)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
