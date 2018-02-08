@@ -264,15 +264,6 @@ QualifiedTimeRange::QualifiedTimeRange(
   // Do nothing
 }
 
-////////////////////////////////////////////////////
-//QualifiedTimeRange::QualifiedTimeRange(
-//    const QualifiedTime::Time &_begin,
-//    const QualifiedTime::Time &_end)
-//  : QualifiedTimeRange(QualifiedTime(_begin), QualifiedTime(_end))
-//{
-//  // Do nothing
-//}
-
 //////////////////////////////////////////////////
 QualifiedTimeRange::QualifiedTimeRange(const QualifiedTimeRange &_other)
   : dataPtr(new Implementation(*_other.dataPtr))
