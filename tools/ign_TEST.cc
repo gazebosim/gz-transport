@@ -81,8 +81,18 @@ TEST(ignTest, TopicList)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool topicFound = false;
+
+  while (!topicFound && retries < 5u)
+  {
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    topicFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(topicFound);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -182,12 +192,20 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool topicFound = false;
+
+  while (!topicFound && retries < 5u)
+  {
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    topicFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(topicFound);
 }
 
 //////////////////////////////////////////////////
