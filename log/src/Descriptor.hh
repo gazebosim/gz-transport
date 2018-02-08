@@ -30,7 +30,9 @@ namespace ignition
     namespace log
     {
       /// \brief A representation of the information that defines a topic row
-      struct TopicKey
+      /// \note We export the symbols for this class so it can be used in
+      /// UNIT_Descriptor_TEST
+      struct IGNITION_TRANSPORT_LOG_VISIBLE TopicKey
       {
         /// \brief The name of the topic
         public: std::string topic;
@@ -53,7 +55,9 @@ namespace ignition
       using TopicKeyMap = std::unordered_map<TopicKey, int64_t>;
 
       /// \brief Implementation of the Descriptor class
-      class Descriptor::Implementation
+      /// \note We export the symbols for this class so it can be used in
+      /// UNIT_Descriptor_TEST
+      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor::Implementation
       {
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a
