@@ -38,6 +38,10 @@ using namespace ignition::transport::log;
 class ignition::transport::log::PlaybackPrivate
 {
   /// \brief Create a publisher of a given topic name and type
+  /// \param[in] _topic Topic name to publish to
+  /// \param[in] _type The message type name to publish
+  /// \return True if a new publisher has been created. False if a publisher
+  /// already existed for this combination.
   public: bool CreatePublisher(
               const std::string &_topic, const std::string &_type);
 
