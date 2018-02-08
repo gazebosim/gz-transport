@@ -263,7 +263,7 @@ std::vector<SqlStatement> TopicList::GenerateStatements(
   SqlStatement sql = this->dataPtr->GenerateStatement(_descriptor);
 
   // Add the time range condition
-  const SqlStatement &timeCondition = GenerateTimeConditions();
+  const SqlStatement &timeCondition = this->GenerateTimeConditions();
   if (!timeCondition.statement.empty())
   {
     sql.statement += " AND (";
@@ -367,7 +367,7 @@ std::vector<SqlStatement> TopicPattern::GenerateStatements(
   SqlStatement sql = this->dataPtr->GenerateStatement(_descriptor);
 
   // Add the time range condition
-  const SqlStatement &timeCondition = GenerateTimeConditions();
+  const SqlStatement &timeCondition = this->GenerateTimeConditions();
   if (!timeCondition.statement.empty())
   {
     sql.statement += " AND (";
@@ -421,7 +421,7 @@ std::vector<SqlStatement> AllTopics::GenerateStatements(
 {
   SqlStatement sql = this->StandardMessageQueryPreamble();
 
-  const SqlStatement &timeCondition = GenerateTimeConditions();
+  const SqlStatement &timeCondition = this->GenerateTimeConditions();
   if (!timeCondition.statement.empty())
   {
     sql.statement += "WHERE ";
