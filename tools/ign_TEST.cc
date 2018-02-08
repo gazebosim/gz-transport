@@ -168,9 +168,19 @@ TEST(ignTest, ServiceInfo)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i " +
-    g_ignVersion);
-  ASSERT_GT(output.size(), 50u);
+
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries < 5u)
+  {
+    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
@@ -265,10 +275,19 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i " +
-    g_ignVersion);
 
-  ASSERT_GT(output.size(), 50u);
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries < 5u)
+  {
+    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
