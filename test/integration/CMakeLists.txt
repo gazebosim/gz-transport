@@ -1,17 +1,17 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-#  authPubSub.cc
-#  scopedTopic.cc
-#  twoProcessesPubSub.cc
-#  twoProcessesSrvCall.cc
-#  twoProcessesSrvCallStress.cc
-#  twoProcessesSrvCallSync1.cc
-#  twoProcessesSrvCallWithoutInput.cc
-#  twoProcessesSrvCallWithoutInputStress.cc
-#  twoProcessesSrvCallWithoutInputSync1.cc
-#  twoProcessesSrvCallWithoutOutput.cc
-#  twoProcessesSrvCallWithoutOutputStress.cc
+  authPubSub.cc
+  scopedTopic.cc
+  twoProcessesPubSub.cc
+  twoProcessesSrvCall.cc
+  twoProcessesSrvCallStress.cc
+  twoProcessesSrvCallSync1.cc
+  twoProcessesSrvCallWithoutInput.cc
+  twoProcessesSrvCallWithoutInputStress.cc
+  twoProcessesSrvCallWithoutInputSync1.cc
+  twoProcessesSrvCallWithoutOutput.cc
+  twoProcessesSrvCallWithoutOutputStress.cc
 )
 
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
