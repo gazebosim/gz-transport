@@ -20,11 +20,13 @@ elseif(WIN32)
   find_library(SQLite3_LIBRARIES sqlite3)
   if(NOT SQLite3_LIBRARIES)
     message(STATUS "Could not find sqlite3 library -- skipping the log component")
+    return()
   endif()
 
   find_path(SQLite3_INCLUDE_DIRS sqlite3.h)
   if(NOT SQLite3_INCLUDE_DIRS)
     message(STATUS "Could not find sqlite3.h header -- skipping the log component")
+    return()
   endif()
 
 endif()
@@ -76,6 +78,10 @@ target_link_libraries(${log_lib_target} PRIVATE
 target_compile_options(${log_lib_target} PRIVATE
   ${SQLite3_CFLAGS}
 )
+
+if(MSVC)
+  target_compile_definitions(${log_lib_target} PRIVATE "SQLITE_API=__declspec(dllimport)")
+endif()
 
 # ign_build_tests macro doesn't support building tests in a subfolder
 add_subdirectory(src)
