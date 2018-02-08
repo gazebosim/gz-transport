@@ -508,7 +508,7 @@ bool Log::InsertMessage(
 }
 
 //////////////////////////////////////////////////
-std::string Log::Version()
+std::string Log::Version() const
 {
   if (!this->Valid())
   {

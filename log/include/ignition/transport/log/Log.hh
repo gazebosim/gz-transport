@@ -54,7 +54,7 @@ namespace ignition
         /// \brief Get the schema version of the opened log
         /// \return the current version of the schema in the log file
         /// \return empty string if the log has not been opened
-        public: std::string Version();
+        public: std::string Version() const;
 
         /// \brief Open a log file
         /// \param[in] _file path to log file
