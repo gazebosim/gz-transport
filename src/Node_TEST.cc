@@ -1873,7 +1873,7 @@ TEST(NodeTest, SubThrottled)
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
-  for (auto i = 0; i < 15; ++i)
+  for (auto i = 0; i < 3; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
 
@@ -1881,8 +1881,8 @@ TEST(NodeTest, SubThrottled)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
-  EXPECT_EQ(counter, 2);
+  // Node published 3 messages in ~0.3 sec. We should only receive 1 message.
+  EXPECT_EQ(1, counter);
 
   reset();
 }
@@ -1907,7 +1907,7 @@ TEST(NodeTest, PubThrottled)
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
 
-  for (auto i = 0; i < 15; ++i)
+  for (auto i = 0; i < 3; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
 
@@ -1915,8 +1915,8 @@ TEST(NodeTest, PubThrottled)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
-  EXPECT_EQ(counter, 2);
+  // Node published 3 messages in ~0.3 sec. We should only receive 1 message.
+  EXPECT_EQ(1, counter);
 
   reset();
 }
