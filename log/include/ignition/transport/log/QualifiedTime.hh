@@ -102,10 +102,10 @@ namespace ignition
         /// \return Reference to this object
         public: QualifiedTime &operator=(const QualifiedTime &_other);
 
-        /// \brief Default move constructor
+        /// \brief move constructor
         public: QualifiedTime(QualifiedTime &&) = default;  // NOLINT
 
-        /// \brief Default move operator
+        /// \brief move assignment operator
         /// \return Reference to this object
         public: QualifiedTime &operator=(
             QualifiedTime &&) = default;  // NOLINT(build/c++11)
