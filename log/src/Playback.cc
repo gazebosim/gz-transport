@@ -41,11 +41,11 @@ class ignition::transport::log::PlaybackPrivate
   public: bool CreatePublisher(
               const std::string &_topic, const std::string &_type);
 
-  /// \brief Being playing messages in another thread
-  /// \param[in] Batch The messages to be played back
+  /// \brief Begin playing messages in another thread
+  /// \param[in] _batch The messages to be played back
   public: void StartPlayback(Batch _batch);
 
-  /// \brief Waiti until playback has finished playing
+  /// \brief Wait until playback has finished playing
   public: void WaitUntilFinished();
 
   /// \brief True if the thread should be stopped

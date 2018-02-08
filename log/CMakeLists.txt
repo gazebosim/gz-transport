@@ -1,6 +1,36 @@
-find_package(PkgConfig REQUIRED)
-# First version of SQLite3 with shared-cache for in-memory databases
-pkg_search_module(SQLite3 REQUIRED sqlite3>=3.7.13)
+
+# TODO: Move this search logic to a find-module when we start to use
+# components from ign-cmake.
+if(UNIX)
+
+  find_package(PkgConfig QUIET)
+  if(NOT PkgConfig_FOUND)
+    message(STATUS "Could not find pkgconfig -- skipping the log component")
+    return()
+  endif()
+
+  # First version of SQLite3 with shared-cache for in-memory databases
+  pkg_search_module(SQLite3 REQUIRED sqlite3>=3.7.13)
+  if(NOT SQLite3_FOUND)
+    message(STATUS "Could not find sqlite3 -- skipping the log component")
+    return()
+  endif()
+
+elseif(WIN32)
+
+  find_library(SQLite3_LIBRARIES sqlite3)
+  if(NOT SQLite3_LIBRARIES)
+    message(STATUS "Could not find sqlite3 library -- skipping the log component")
+    return()
+  endif()
+
+  find_path(SQLite3_INCLUDE_DIRS sqlite3.h)
+  if(NOT SQLite3_INCLUDE_DIRS)
+    message(STATUS "Could not find sqlite3.h header -- skipping the log component")
+    return()
+  endif()
+
+endif()
 
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
