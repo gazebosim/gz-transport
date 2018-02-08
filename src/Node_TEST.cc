@@ -1608,10 +1608,10 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   transport::Node node;
 
-  auto t1 = std::chrono::system_clock::now();
+  auto t1 = std::chrono::steady_clock::now();
   bool executed = node.Request(g_topic, req, static_cast<unsigned int>(timeout),
       rep, result);
-  auto t2 = std::chrono::system_clock::now();
+  auto t2 = std::chrono::steady_clock::now();
 
   int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
@@ -1638,10 +1638,10 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
   transport::Node node;
 
-  auto t1 = std::chrono::system_clock::now();
+  auto t1 = std::chrono::steady_clock::now();
   bool executed = node.Request(g_topic, static_cast<unsigned int>(timeout),
       rep, result);
-  auto t2 = std::chrono::system_clock::now();
+  auto t2 = std::chrono::steady_clock::now();
 
   int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
