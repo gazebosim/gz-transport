@@ -172,6 +172,8 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
