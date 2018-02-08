@@ -161,7 +161,6 @@ TEST(ignTest, ServiceInfo)
   std::string output = custom_exec_str(ign + " service -s /foo -i " +
     g_ignVersion);
   ASSERT_GT(output.size(), 50u);
-  EXPECT_EQ("", output);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
@@ -223,10 +222,15 @@ TEST(ignTest, ServiceListSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+  unsigned int retries = 0u;
+  bool serviceFound = false;
+
+  while (!serviceFound && retries < 5u)
+  {
+    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    serviceFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
 }
 
 //////////////////////////////////////////////////
@@ -242,7 +246,6 @@ TEST(ignTest, ServiceInfoSameProc)
     g_ignVersion);
 
   ASSERT_GT(output.size(), 50u);
-  EXPECT_EQ("", output);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
