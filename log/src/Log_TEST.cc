@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 */
 
 #include <chrono>
+#include <ios>
+#include <string>
 
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
@@ -30,7 +32,6 @@ TEST(Log, OpenMemoryDatabase)
   log::Log logFile;
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
-
 
 //////////////////////////////////////////////////
 TEST(Log, OpenReadOnlyMemoryDatabase)

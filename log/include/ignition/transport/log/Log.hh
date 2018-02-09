@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #ifndef IGNITION_TRANSPORT_LOG_LOG_HH_
 #define IGNITION_TRANSPORT_LOG_LOG_HH_
 
+#include <chrono>
 #include <ios>
 #include <memory>
 #include <string>
