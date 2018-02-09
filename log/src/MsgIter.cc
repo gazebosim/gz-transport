@@ -15,6 +15,8 @@
  *
 */
 
+#include <sqlite3.h>
+
 #include "Console.hh"
 
 #include "ignition/transport/log/MsgIter.hh"
