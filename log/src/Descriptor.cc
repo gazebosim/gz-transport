@@ -15,6 +15,8 @@
  *
 */
 
+#include <string>
+
 #include "Descriptor.hh"
 
 using namespace ignition::transport::log;
