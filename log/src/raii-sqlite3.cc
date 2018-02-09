@@ -24,7 +24,7 @@
 using namespace raii_sqlite3;
 
 //////////////////////////////////////////////////
-Database::Database(std::string _path, int _flags)
+Database::Database(const std::string &_path, int _flags)
 {
   // Open the database;
   int return_code = sqlite3_open_v2(

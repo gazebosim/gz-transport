@@ -36,7 +36,7 @@ namespace raii_sqlite3
     /// \param[in] _path UTF-8 path to db file to open
     /// \param[in] _flags Flags to use when opening the database
     /// See https://www.sqlite.org/c3ref/open.html for flags
-    public: Database(std::string _path, int _flags);
+    public: Database(const std::string &_path, int _flags);
 
     /// \brief Destructor
     public: ~Database();
