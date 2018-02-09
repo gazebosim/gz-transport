@@ -69,6 +69,7 @@ Database::~Database()
   if (this->handle)
   {
     sqlite3_close(this->handle);
+    this->handle = nullptr;
   }
 }
 
@@ -109,6 +110,7 @@ Statement::~Statement()
   if (this->handle)
   {
     sqlite3_finalize(this->handle);
+    this->handle = nullptr;
   }
 }
 
