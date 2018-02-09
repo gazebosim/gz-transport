@@ -297,12 +297,12 @@ bool Log::Implementation::InsertMessage(
     std::size_t _len)
 {
   int returnCode;
-  const std::string sql_message =
+  const std::string sql =
     "INSERT INTO messages (time_recv, message, topic_id)"
     "VALUES (?001, ?002, ?003);";
 
   // Compile the statement
-  raii_sqlite3::Statement statement(*(this->db), sql_message);
+  raii_sqlite3::Statement statement(*(this->db), sql);
   if (!statement)
   {
     LERR("Failed to compile insert message statement\n");
