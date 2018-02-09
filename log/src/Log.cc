@@ -224,22 +224,22 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   this->needNewDescriptor = true;
 
   // Otherwise insert it into the database and return the new topic_id
-  const std::string sql_message_type =
+  const std::string sqlMessageType =
     "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
-  const std::string sql_topic =
+  const std::string sqlTopic =
     "INSERT INTO topics (name, message_type_id)"
     " SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
 
-  raii_sqlite3::Statement message_type_statement(
-      *(this->db), sql_message_type);
-  if (!message_type_statement)
+  raii_sqlite3::Statement messageTypeStatement(
+      *(this->db), sqlMessageType);
+  if (!messageTypeStatement)
   {
     LERR("Failed to compile statement to insert message type\n");
     return -1;
   }
-  raii_sqlite3::Statement topic_statement(
-      *(this->db), sql_topic);
-  if (!topic_statement)
+  raii_sqlite3::Statement topicStatement(
+      *(this->db), sqlTopic);
+  if (!topicStatement)
   {
     LERR("Failed to compile statement to insert topic\n");
     return -1;
@@ -248,21 +248,21 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
-      message_type_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
+      messageTypeStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind message type name(1): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
-      topic_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
+      topicStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind message type name(2): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
-      topic_statement.Handle(), 2, _name.c_str(), _name.size(), nullptr);
+      topicStatement.Handle(), 2, _name.c_str(), _name.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind topic name: " << returnCode << "\n");
@@ -270,13 +270,13 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   }
 
   // Execute the statements
-  returnCode = sqlite3_step(message_type_statement.Handle());
+  returnCode = sqlite3_step(messageTypeStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
     LERR("Failed to insert message type: " << returnCode << "\n");
     return -1;
   }
-  returnCode = sqlite3_step(topic_statement.Handle());
+  returnCode = sqlite3_step(topicStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
     LERR("Faild to insert topic: " << returnCode << "\n");
