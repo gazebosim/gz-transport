@@ -294,9 +294,9 @@ int64_t Log::Implementation::InsertOrGetTopicId(
 //////////////////////////////////////////////////
 bool Log::Implementation::InsertMessage(
     const std::chrono::nanoseconds &_time,
-    int64_t _topic,
+    const int64_t _topic,
     const void *_data,
-    std::size_t _len)
+    const std::size_t _len)
 {
   int returnCode;
   const std::string sql =
@@ -371,7 +371,7 @@ bool Log::Valid() const
 }
 
 //////////////////////////////////////////////////
-bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
+bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
 {
   // Open the SQLite3 database
   if (this->dataPtr->db)
@@ -471,7 +471,7 @@ const log::Descriptor *Log::Descriptor() const
 bool Log::InsertMessage(
     const std::chrono::nanoseconds &_time,
     const std::string &_topic, const std::string &_type,
-    const void *_data, std::size_t _len)
+    const void *_data, const std::size_t _len)
 {
   if (!this->Valid())
   {
