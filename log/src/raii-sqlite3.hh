@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 #ifndef IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
 #define IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
 
-#include <sqlite3.h>
-
 #include <string>
+
+// Forward declarations.
+class sqlite3;
+class sqlite3_stmt;
 
 /// \internal
 /// \remarks Not using PIMPL because these classes are for internal use only

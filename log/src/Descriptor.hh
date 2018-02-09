@@ -18,6 +18,7 @@
 #ifndef IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
 #define IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 

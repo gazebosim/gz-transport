@@ -18,12 +18,12 @@
 #ifndef IGNITION_TRANSPORT_LOG_DESCRIPTOR_HH_
 #define IGNITION_TRANSPORT_LOG_DESCRIPTOR_HH_
 
+#include <cstdint>
 #include <map>
-#include <string>
 #include <memory>
+#include <string>
 
 #include <ignition/transport/log/Export.hh>
-
 
 namespace ignition
 {

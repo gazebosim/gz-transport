@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,22 @@
  *
 */
 
+#include <sqlite3.h>
+
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "Console.hh"
-
+#include "ignition/transport/log/Descriptor.hh"
 #include "ignition/transport/log/Log.hh"
 #include "src/raii-sqlite3.hh"
 #include "build_config.hh"
-
+#include "Console.hh"
 #include "Descriptor.hh"
 
 using namespace ignition::transport;
