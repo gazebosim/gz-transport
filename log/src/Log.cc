@@ -98,12 +98,12 @@ const log::Descriptor *Log::Implementation::Descriptor() const
     TopicKeyMap topicsInLog;
 
     // Prepare the statement
-    const char * sql_statement =
+    const char * sql =
       "SELECT topics.id, topics.name, message_types.name FROM topics"
       " JOIN message_types ON topics.message_type_id = message_types.id;";
 
-    raii_sqlite3::Statement topic_ids_statement(*(this->db), sql_statement);
-    if (!topic_ids_statement)
+    raii_sqlite3::Statement topicStatement(*(this->db), sql);
+    if (!topicStatement)
     {
       LERR("Failed to compile statement to get topic ids\n");
       return nullptr;
@@ -113,22 +113,22 @@ const log::Descriptor *Log::Implementation::Descriptor() const
     int returnCode;
     do
     {
-      returnCode = sqlite3_step(topic_ids_statement.Handle());
+      returnCode = sqlite3_step(topicStatement.Handle());
       if (returnCode == SQLITE_ROW)
       {
         // get the data about the topic
         sqlite_int64 topicId = sqlite3_column_int64(
-            topic_ids_statement.Handle(), 0);
+            topicStatement.Handle(), 0);
 
         const unsigned char *topicName = sqlite3_column_text(
-            topic_ids_statement.Handle(), 1);
+            topicStatement.Handle(), 1);
         std::size_t lenTopicName = sqlite3_column_bytes(
-            topic_ids_statement.Handle(), 1);
+            topicStatement.Handle(), 1);
 
         const unsigned char *typeName = sqlite3_column_text(
-            topic_ids_statement.Handle(), 2);
+            topicStatement.Handle(), 2);
         std::size_t lenTypeName = sqlite3_column_bytes(
-            topic_ids_statement.Handle(), 2);
+            topicStatement.Handle(), 2);
 
         TopicKey key;
         key.topic = std::string(
