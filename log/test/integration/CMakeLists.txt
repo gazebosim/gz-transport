@@ -13,8 +13,6 @@ ign_build_tests(
     ${CMAKE_BINARY_DIR}/test/
 )
 
-message("Got test list ${logging_tests}")
-
 foreach(test_target ${logging_tests})
   set_tests_properties(${test_target} PROPERTIES
     ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)

@@ -16,6 +16,8 @@
 */
 
 #include <chrono>
+#include <ios>
+#include <string>
 #include <unordered_set>
 
 #include "ignition/transport/log/Log.hh"
@@ -31,7 +33,6 @@ TEST(Log, OpenMemoryDatabase)
   log::Log logFile;
   EXPECT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 }
-
 
 //////////////////////////////////////////////////
 TEST(Log, OpenReadOnlyMemoryDatabase)

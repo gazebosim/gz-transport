@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 #ifndef IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
 #define IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
 
-#include <sqlite3.h>
-
 #include <string>
+
+// Forward declarations.
+class sqlite3;
+class sqlite3_stmt;
 
 /// \internal
 /// \remarks Not using PIMPL because these classes are for internal use only
@@ -33,7 +35,8 @@ namespace raii_sqlite3
     /// \brief Constructor
     /// \param[in] _path UTF-8 path to db file to open
     /// \param[in] _flags Flags to use when opening the database
-    public: Database(std::string _path, int _flags);
+    /// See https://www.sqlite.org/c3ref/open.html for flags
+    public: Database(const std::string &_path, int _flags);
 
     /// \brief Destructor
     public: ~Database();
