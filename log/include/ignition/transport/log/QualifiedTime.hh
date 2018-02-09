@@ -45,13 +45,13 @@ namespace ignition
           /// \brief This point in time should be seen as a closed (inclusive)
           /// time marker. When used in a QualifiedTimeRange, the range will
           /// include this exact point in time.
-          Inclusive = 0,
+          INCLUSIVE = 0,
 
           /// \brief This point in time should be seen as an open (exclusive)
           /// time marker. When used in a QualifiedTimeRange, the range will
           /// NOT include this exact point in time, but it will include
           /// everything leading up to it.
-          Exclusive
+          EXCLUSIVE
         };
 
         /// \brief Convenient typedef for our time representation. Note that any
@@ -74,7 +74,7 @@ namespace ignition
         /// \param[in] _qualifier The qualifier that determines the exact
         /// interpretation of the _time value.
         public: QualifiedTime(const Time &_time,
-                              Qualifier _qualifier = Qualifier::Inclusive);
+                              Qualifier _qualifier = Qualifier::INCLUSIVE);
 
         /// \brief Construct a qualified time specifier. This allows implicit
         /// conversion from any std::chrono::duration type.
@@ -84,7 +84,7 @@ namespace ignition
         /// interpretation of the _time value.
         public: template <typename Rep, typename Period>
         QualifiedTime(const std::chrono::duration<Rep, Period> &_time,
-                      Qualifier _qualifier = Qualifier::Inclusive)
+                      Qualifier _qualifier = Qualifier::INCLUSIVE)
           : QualifiedTime(static_cast<const Time &>(_time), _qualifier) { }
 
         /// \brief Default constructor. The time will be treated as
@@ -151,7 +151,7 @@ namespace ignition
         /// \param[in] _qualifier The qualifier that determines the exact
         /// interpretation of the _time value.
         public: void SetTime(const Time &_time,
-                             Qualifier _qualifier = Qualifier::Inclusive);
+                             Qualifier _qualifier = Qualifier::INCLUSIVE);
 
         /// \brief Set this QualifiedTime object to be indeterminate.
         /// \sa IsIndeterminate()

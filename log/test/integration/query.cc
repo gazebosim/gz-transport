@@ -130,7 +130,7 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange::From(beginTime)));
 
@@ -154,7 +154,7 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusiveCopy)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
   log::AllTopics options_orig(log::QualifiedTimeRange::From(beginTime));
   log::AllTopics options(options_orig);
   auto batch = logFile.QueryMessages(options);
@@ -179,7 +179,7 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusiveMove)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
   log::AllTopics options_orig(log::QualifiedTimeRange::From(beginTime));
   log::AllTopics options(std::move(options_orig));
   auto batch = logFile.QueryMessages(options);
@@ -204,7 +204,7 @@ TEST(QueryMessages, QueryAllTopicsAfterExclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::EXCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange::From(beginTime)));
 
@@ -228,7 +228,7 @@ TEST(QueryMessages, QueryAllTopicsBeforeInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange::Until(endTime)));
 
@@ -252,7 +252,7 @@ TEST(QueryMessages, QueryAllTopicsBeforeExclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::EXCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange::Until(endTime)));
 
@@ -276,8 +276,8 @@ TEST(QueryMessages, QueryAllTopicsBetweenInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange(beginTime, endTime)));
 
@@ -301,8 +301,8 @@ TEST(QueryMessages, QueryAllTopicsBetweenExclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Exclusive);
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Exclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::EXCLUSIVE);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::EXCLUSIVE);
   auto batch = logFile.QueryMessages(
       log::AllTopics(log::QualifiedTimeRange(beginTime, endTime)));
 
@@ -353,7 +353,7 @@ TEST(QueryMessages, QueryTopicPatternAfterInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(log::TopicPattern(
         std::regex(".*/one"), log::QualifiedTimeRange::From(beginTime)));
 
@@ -382,7 +382,7 @@ TEST(QueryMessages, QueryTopicPatternBeforeInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(log::TopicPattern(
         std::regex(".*/one"), log::QualifiedTimeRange::Until(endTime)));
 
@@ -438,7 +438,7 @@ TEST(QueryMessages, QueryTopicListAfterInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime beginTime(2s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(log::TopicList(
         "/topic/one", log::QualifiedTimeRange::From(beginTime)));
 
@@ -467,7 +467,7 @@ TEST(QueryMessages, QueryTopicListBeforeInclusive)
   auto testMessages = StandardTestMessages();
   InsertMessages(logFile, testMessages);
 
-  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::Inclusive);
+  log::QualifiedTime endTime(3s, log::QualifiedTime::Qualifier::INCLUSIVE);
   auto batch = logFile.QueryMessages(log::TopicList(
         "/topic/one", log::QualifiedTimeRange::Until(endTime)));
 
