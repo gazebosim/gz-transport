@@ -36,3 +36,8 @@ Next you can see a description of the available environment variables:
     *IGN_TRANSPORT_USERNAME*, for basic authentication. Authentication is
     enabled when both *IGN_TRANSPORT_USERNAME* and *IGN_TRANSPORT_PASSWORD*
     are specified.
+* **IGN_TRANSPORT_LOG_SQL_PATH**
+    * *Value allowed*: Any path
+    * *Description*: Path to the SQL files used by logging. This does not
+    normally need to be set. It is useful to developers who are testing changes
+    to the schema, and it is used by unit tests.

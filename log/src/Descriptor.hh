@@ -15,9 +15,10 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_INTERNAL_DESCRIPTOR_HH_
-#define IGNITION_TRANSPORT_LOG_INTERNAL_DESCRIPTOR_HH_
+#ifndef IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
+#define IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 
@@ -62,12 +63,13 @@ namespace ignition
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a
         /// new file.
+        /// \param[in] _topics The map of topics that the log contains.
         public: void Reset(const TopicKeyMap &_topics);
 
-        /// \internal \sa Descriptor::GetTopicsToMsgTypesToId()
+        /// \internal \sa Descriptor::TopicsToMsgTypesToId()
         public: NameToMap topicsToMsgTypesToId;
 
-        /// \internal \sa Descriptor::GetMsgTypesToTopicsToId()
+        /// \internal \sa Descriptor::MsgTypesToTopicsToId()
         public: NameToMap msgTypesToTopicsToId;
       };
     }
