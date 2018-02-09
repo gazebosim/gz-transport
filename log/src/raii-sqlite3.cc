@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,17 @@
  *
 */
 
+#include <sqlite3.h>
+
+#include <string>
+
+#include "Console.hh"
 #include "src/raii-sqlite3.hh"
 
 using namespace raii_sqlite3;
 
 //////////////////////////////////////////////////
-Database::Database(std::string _path, int _flags)
+Database::Database(const std::string &_path, int _flags)
 {
   // Open the database;
   int return_code = sqlite3_open_v2(
@@ -28,6 +33,7 @@ Database::Database(std::string _path, int _flags)
 
   if (return_code != SQLITE_OK)
   {
+    LERR("Failed to open sqlite database\n");
     sqlite3_close(this->handle);
     this->handle = nullptr;
     return;
@@ -37,6 +43,8 @@ Database::Database(std::string _path, int _flags)
   return_code = sqlite3_extended_result_codes(this->handle, 1);
   if (return_code != SQLITE_OK)
   {
+    LERR("Failed to turn on extended result codes"
+        << sqlite3_errmsg(this->handle) << "\n");
     sqlite3_close(this->handle);
     this->handle = nullptr;
     return;
@@ -47,6 +55,8 @@ Database::Database(std::string _path, int _flags)
   return_code = sqlite3_exec(this->handle, sql, NULL, 0, NULL);
   if (return_code != SQLITE_OK)
   {
+    LERR("Failed to turn on foreign_key support"
+        << sqlite3_errmsg(this->handle) << "\n");
     sqlite3_close(this->handle);
     this->handle = nullptr;
     return;
@@ -59,6 +69,7 @@ Database::~Database()
   if (this->handle)
   {
     sqlite3_close(this->handle);
+    this->handle = nullptr;
   }
 }
 
@@ -84,6 +95,8 @@ Statement::Statement(Database &_db, const std::string &_sql)
   {
     if (this->handle)
     {
+      LERR("Failed to prepare statement"
+          << sqlite3_errmsg(_db.Handle()) << "\n");
       sqlite3_finalize(this->handle);
       this->handle = nullptr;
     }
@@ -97,6 +110,7 @@ Statement::~Statement()
   if (this->handle)
   {
     sqlite3_finalize(this->handle);
+    this->handle = nullptr;
   }
 }
 

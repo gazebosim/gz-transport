@@ -23,7 +23,6 @@ using namespace ignition;
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
-
 /// \brief test hook for Descriptor
 class ignition::transport::log::Log
 {
@@ -50,7 +49,6 @@ TEST(Descriptor, ConstructHasNothing)
   EXPECT_TRUE(desc.MsgTypesToTopicsToId().empty());
 }
 
-
 //////////////////////////////////////////////////
 TEST(Descriptor, ResetNoTopics)
 {
@@ -73,7 +71,6 @@ TEST(Descriptor, TopicIdOneTopic)
   EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
 }
 
-
 //////////////////////////////////////////////////
 TEST(Descriptor, TopicIdMultipleTopicsSameName)
 {
@@ -92,7 +89,6 @@ TEST(Descriptor, TopicIdMultipleTopicsSameName)
   EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
   EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
 }
-
 
 //////////////////////////////////////////////////
 TEST(Descriptor, TopicIdMultipleTopicsSameType)
@@ -113,7 +109,6 @@ TEST(Descriptor, TopicIdMultipleTopicsSameType)
   EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
 }
 
-
 //////////////////////////////////////////////////
 TEST(Descriptor, TopicsMapOneTopic)
 {
@@ -130,7 +125,6 @@ TEST(Descriptor, TopicsMapOneTopic)
   EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
   EXPECT_EQ(5, msgsMap.begin()->second);
 }
-
 
 //////////////////////////////////////////////////
 TEST(Descriptor, MsgTypesMapOneTopic)
@@ -149,7 +143,6 @@ TEST(Descriptor, MsgTypesMapOneTopic)
   EXPECT_EQ(5, topicsMap.begin()->second);
 }
 
-
 //////////////////////////////////////////////////
 TEST(Descriptor, TopicKeyEquality)
 {
@@ -161,7 +154,6 @@ TEST(Descriptor, TopicKeyEquality)
   EXPECT_FALSE(key1 == key3);
   EXPECT_EQ(key1, key4);
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
