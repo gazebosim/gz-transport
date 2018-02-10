@@ -164,7 +164,9 @@ namespace ignition
         private: class Implementation;
 
         /// \internal PIMPL pointer
-        private: std::unique_ptr<Implementation> dataPtr;
+        /// We need a custom deleter here due to a compiler bug in MSVC 2017
+        private: std::unique_ptr<Implementation,
+                    void (*)(Implementation*)> dataPtr;
       };
 
       //////////////////////////////////////////////////
@@ -280,7 +282,9 @@ namespace ignition
         private: class Implementation;
 
         /// \internal PIMPL pointer
-        private: std::unique_ptr<Implementation> dataPtr;
+        /// We need a custom deleter here due to a compiler bug in MSVC 2017
+        private: std::unique_ptr<Implementation,
+                    void(*)(Implementation*)> dataPtr;
       };
     }
   }
