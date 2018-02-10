@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,24 @@
  *
 */
 
+#include <sqlite3.h>
+
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "Console.hh"
-
+#include "ignition/transport/log/Descriptor.hh"
 #include "ignition/transport/log/Log.hh"
 #include "ignition/transport/log/SqlStatement.hh"
 #include "BatchPrivate.hh"
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
-
+#include "Console.hh"
 #include "Descriptor.hh"
 
 using namespace ignition::transport;
@@ -100,12 +102,12 @@ const log::Descriptor *Log::Implementation::Descriptor() const
     TopicKeyMap topicsInLog;
 
     // Prepare the statement
-    const char * sql_statement =
+    const char * sql =
       "SELECT topics.id, topics.name, message_types.name FROM topics"
       " JOIN message_types ON topics.message_type_id = message_types.id;";
 
-    raii_sqlite3::Statement topic_ids_statement(*(this->db), sql_statement);
-    if (!topic_ids_statement)
+    raii_sqlite3::Statement topicStatement(*(this->db), sql);
+    if (!topicStatement)
     {
       LERR("Failed to compile statement to get topic ids\n");
       return nullptr;
@@ -115,22 +117,22 @@ const log::Descriptor *Log::Implementation::Descriptor() const
     int returnCode;
     do
     {
-      returnCode = sqlite3_step(topic_ids_statement.Handle());
+      returnCode = sqlite3_step(topicStatement.Handle());
       if (returnCode == SQLITE_ROW)
       {
         // get the data about the topic
         sqlite_int64 topicId = sqlite3_column_int64(
-            topic_ids_statement.Handle(), 0);
+            topicStatement.Handle(), 0);
 
         const unsigned char *topicName = sqlite3_column_text(
-            topic_ids_statement.Handle(), 1);
+            topicStatement.Handle(), 1);
         std::size_t lenTopicName = sqlite3_column_bytes(
-            topic_ids_statement.Handle(), 1);
+            topicStatement.Handle(), 1);
 
         const unsigned char *typeName = sqlite3_column_text(
-            topic_ids_statement.Handle(), 2);
+            topicStatement.Handle(), 2);
         std::size_t lenTypeName = sqlite3_column_bytes(
-            topic_ids_statement.Handle(), 2);
+            topicStatement.Handle(), 2);
 
         TopicKey key;
         key.topic = std::string(
@@ -226,22 +228,22 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   this->needNewDescriptor = true;
 
   // Otherwise insert it into the database and return the new topic_id
-  const std::string sql_message_type =
+  const std::string sqlMessageType =
     "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
-  const std::string sql_topic =
+  const std::string sqlTopic =
     "INSERT INTO topics (name, message_type_id)"
     " SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
 
-  raii_sqlite3::Statement message_type_statement(
-      *(this->db), sql_message_type);
-  if (!message_type_statement)
+  raii_sqlite3::Statement messageTypeStatement(
+      *(this->db), sqlMessageType);
+  if (!messageTypeStatement)
   {
     LERR("Failed to compile statement to insert message type\n");
     return -1;
   }
-  raii_sqlite3::Statement topic_statement(
-      *(this->db), sql_topic);
-  if (!topic_statement)
+  raii_sqlite3::Statement topicStatement(
+      *(this->db), sqlTopic);
+  if (!topicStatement)
   {
     LERR("Failed to compile statement to insert topic\n");
     return -1;
@@ -250,21 +252,21 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
-      message_type_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
+      messageTypeStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind message type name(1): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
-      topic_statement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
+      topicStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind message type name(2): " << returnCode << "\n");
     return -1;
   }
   returnCode = sqlite3_bind_text(
-      topic_statement.Handle(), 2, _name.c_str(), _name.size(), nullptr);
+      topicStatement.Handle(), 2, _name.c_str(), _name.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to bind topic name: " << returnCode << "\n");
@@ -272,13 +274,13 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   }
 
   // Execute the statements
-  returnCode = sqlite3_step(message_type_statement.Handle());
+  returnCode = sqlite3_step(messageTypeStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
     LERR("Failed to insert message type: " << returnCode << "\n");
     return -1;
   }
-  returnCode = sqlite3_step(topic_statement.Handle());
+  returnCode = sqlite3_step(topicStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
     LERR("Faild to insert topic: " << returnCode << "\n");
@@ -294,17 +296,17 @@ int64_t Log::Implementation::InsertOrGetTopicId(
 //////////////////////////////////////////////////
 bool Log::Implementation::InsertMessage(
     const std::chrono::nanoseconds &_time,
-    int64_t _topic,
+    const int64_t _topic,
     const void *_data,
-    std::size_t _len)
+    const std::size_t _len)
 {
   int returnCode;
-  const std::string sql_message =
+  const std::string sql =
     "INSERT INTO messages (time_recv, message, topic_id)"
     "VALUES (?001, ?002, ?003);";
 
   // Compile the statement
-  raii_sqlite3::Statement statement(*(this->db), sql_message);
+  raii_sqlite3::Statement statement(*(this->db), sql);
   if (!statement)
   {
     LERR("Failed to compile insert message statement\n");
@@ -371,7 +373,7 @@ bool Log::Valid() const
 }
 
 //////////////////////////////////////////////////
-bool Log::Open(const std::string &_file, std::ios_base::openmode _mode)
+bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
 {
   // Open the SQLite3 database
   if (this->dataPtr->db)
@@ -471,7 +473,7 @@ const log::Descriptor *Log::Descriptor() const
 bool Log::InsertMessage(
     const std::chrono::nanoseconds &_time,
     const std::string &_topic, const std::string &_type,
-    const void *_data, std::size_t _len)
+    const void *_data, const std::size_t _len)
 {
   if (!this->Valid())
   {
@@ -532,7 +534,7 @@ Batch Log::QueryMessages()
 }
 
 //////////////////////////////////////////////////
-std::string Log::Version()
+std::string Log::Version() const
 {
   if (!this->Valid())
   {
