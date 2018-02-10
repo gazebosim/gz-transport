@@ -46,9 +46,7 @@ set(logging_sources
   src/SqlStatement.cc
 )
 
-add_library(${log_lib_target} SHARED
-  ${logging_sources}
-)
+add_library(${log_lib_target} ${logging_sources})
 
 # Generate visibility macros
 include(GenerateExportHeader)
