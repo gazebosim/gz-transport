@@ -79,9 +79,10 @@ namespace ignition
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
-
+        /// \internal Implementation of this class
         private: class Implementation;
-        /// \brief Private implementation
+
+        /// \internal Pointer to the implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
     }

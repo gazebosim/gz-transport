@@ -29,6 +29,7 @@
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
+using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 /// \brief Private implementation
@@ -119,7 +120,7 @@ Recorder::Implementation::Implementation()
 void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
-          const transport::MessageInfo &_info)
+          const ignition::transport::MessageInfo &_info)
 {
   // Get time RX using monotonic
   std::chrono::nanoseconds nowNS(
