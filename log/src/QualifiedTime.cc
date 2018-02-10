@@ -109,21 +109,24 @@ class ignition::transport::log::QualifiedTime::Implementation
 //////////////////////////////////////////////////
 QualifiedTime::QualifiedTime(const Time &_time,
                              Qualifier _qualifier)
-  : dataPtr(new Implementation(_time, _qualifier))
+  : dataPtr(new Implementation(_time, _qualifier),
+      [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing
 }
 
 //////////////////////////////////////////////////
 QualifiedTime::QualifiedTime()
-  : dataPtr(new Implementation)
+  : dataPtr(new Implementation,
+      [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing
 }
 
 //////////////////////////////////////////////////
 QualifiedTime::QualifiedTime(const QualifiedTime &_other)
-  : dataPtr(new Implementation(*_other.dataPtr))
+  : dataPtr(new Implementation(*_other.dataPtr), 
+      [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing
 }
@@ -259,14 +262,16 @@ class ignition::transport::log::QualifiedTimeRange::Implementation
 QualifiedTimeRange::QualifiedTimeRange(
     const QualifiedTime &_begin,
     const QualifiedTime &_end)
-  : dataPtr(new Implementation(_begin, _end))
+  : dataPtr(new Implementation(_begin, _end),
+      [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing
 }
 
 //////////////////////////////////////////////////
 QualifiedTimeRange::QualifiedTimeRange(const QualifiedTimeRange &_other)
-  : dataPtr(new Implementation(*_other.dataPtr))
+  : dataPtr(new Implementation(*_other.dataPtr),
+      [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing
 }
