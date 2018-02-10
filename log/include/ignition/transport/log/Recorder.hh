@@ -39,9 +39,6 @@ namespace ignition
         TOPIC_NOT_FOUND = -5,
       };
 
-      /// \brief Forward declaration
-      class RecorderPrivate;
-
       /// \brief Records ignition transport topics
       /// This class makes it easy to record topics to a log file.
       /// Responsibilities: topic name matching, time received tracking,
@@ -82,8 +79,10 @@ namespace ignition
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
+
+        private: class Implementation;
         /// \brief Private implementation
-        private: std::unique_ptr<RecorderPrivate> dataPtr;
+        private: std::unique_ptr<Implementation> dataPtr;
       };
     }
   }
