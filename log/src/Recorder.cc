@@ -202,7 +202,7 @@ RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 
   this->alreadySubscribed.insert(_topic);
 
-  return RecorderError::NO_ERROR;
+  return RecorderError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -274,7 +274,7 @@ RecorderError Recorder::Start(const std::string &_file)
 
   LMSG("Started recording to [" << _file << "]\n");
 
-  return RecorderError::NO_ERROR;
+  return RecorderError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
