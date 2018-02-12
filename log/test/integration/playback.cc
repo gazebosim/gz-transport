@@ -102,7 +102,7 @@ TEST(playback, ReplayLog)
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
@@ -149,7 +149,7 @@ TEST(playback, ReplayNoSuchTopic)
   ignition::transport::log::Recorder recorder;
   const std::string logName =
     "file:playbackReplayNoSuchTopic?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   ignition::transport::log::Playback playback(logName);
@@ -188,7 +188,7 @@ TEST(playback, ReplayLogRegex)
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
@@ -252,7 +252,7 @@ TEST(playback, ReplayLogMoveInstances)
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
