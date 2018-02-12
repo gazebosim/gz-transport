@@ -20,8 +20,8 @@
 #include <string>
 
 // Forward declarations.
-class sqlite3;
-class sqlite3_stmt;
+struct sqlite3;
+struct sqlite3_stmt;
 
 /// \internal
 /// \remarks Not using PIMPL because these classes are for internal use only

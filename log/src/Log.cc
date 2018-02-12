@@ -45,12 +45,12 @@ class ignition::transport::log::Log::Implementation
   public: const log::Descriptor *Descriptor() const;
 
   /// \brief End transaction if enough time has passed since it began
-  /// \return false if there is a sqlite error
-  public: bool EndTransactionIfEnoughTimeHasPassed();
+  /// \return one of the SQLite error codes
+  public: int EndTransactionIfEnoughTimeHasPassed();
 
   /// \brief Begin transaction if one isn't already open
-  /// \return false if there is a sqlite error
-  public: bool BeginTransactionIfNotInOne();
+  /// \return one of the SQLite error codes
+  public: int BeginTransactionIfNotInOne();
 
   /// \brief Get topic_id associated with a topic name and message type
   /// If the topic is not in the log it will be added
@@ -159,11 +159,11 @@ const log::Descriptor *Log::Implementation::Descriptor() const
 }
 
 //////////////////////////////////////////////////
-bool Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
+int Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
 {
   if (!this->TimeForNewTransaction())
   {
-    return true;
+    return SQLITE_OK;
   }
 
   // End the transaction
@@ -172,30 +172,30 @@ bool Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to end transaction" << returnCode << "\n");
-    return false;
+    return returnCode;
   }
   LDBG("Ended transaction\n");
   this->inTransaction = false;
-  return true;
+  return returnCode;
 }
 
 //////////////////////////////////////////////////
-bool Log::Implementation::BeginTransactionIfNotInOne()
+int Log::Implementation::BeginTransactionIfNotInOne()
 {
   if (this->inTransaction)
-    return true;
+    return SQLITE_OK;
 
   int returnCode = sqlite3_exec(
       this->db->Handle(), "BEGIN;", NULL, 0, nullptr);
   if (returnCode != SQLITE_OK)
   {
     LERR("Failed to begin transaction" << returnCode << "\n");
-    return false;
+    return returnCode;
   }
   this->inTransaction = true;
   LDBG("Began transaction\n");
   this->lastTransaction = std::chrono::steady_clock::now();
-  return true;
+  return returnCode;
 }
 
 //////////////////////////////////////////////////
@@ -481,7 +481,7 @@ bool Log::InsertMessage(
   }
 
   // Need to insert multiple messages pertransaction for best performance
-  if (!this->dataPtr->BeginTransactionIfNotInOne())
+  if (SQLITE_OK != this->dataPtr->BeginTransactionIfNotInOne())
   {
     return false;
   }
@@ -500,7 +500,7 @@ bool Log::InsertMessage(
   }
 
   // Finish the transaction if enough time has passed
-  if (!this->dataPtr->EndTransactionIfEnoughTimeHasPassed())
+  if (SQLITE_OK != this->dataPtr->EndTransactionIfEnoughTimeHasPassed())
   {
     // Something is really busted if this happens
     LERR("Failed to end transcation: "<< sqlite3_errmsg(
