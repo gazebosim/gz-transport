@@ -239,7 +239,7 @@ PlaybackError Playback::Start()
 
   this->dataPtr->StartPlayback(std::move(batch));
   LMSG("Started playing\n");
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -253,7 +253,7 @@ PlaybackError Playback::Stop()
   this->dataPtr->stop = true;
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -294,7 +294,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
     }
   }
 
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////

@@ -31,7 +31,7 @@ namespace ignition
     {
       enum class PlaybackError : int64_t
       {
-        NO_ERROR = 0,
+        SUCCESS = 0,
         FAILED_TO_OPEN = -1,
         FAILED_TO_ADVERTISE = -2,
         ALREADY_PLAYING = -3,
