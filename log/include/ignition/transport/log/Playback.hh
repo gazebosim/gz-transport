@@ -40,9 +40,6 @@ namespace ignition
         NOT_PLAYING = -6,
       };
 
-      /// \brief Forward declaration
-      class PlaybackPrivate;
-
       /// \brief Playbacks ignition transport topics
       /// This class makes it easy to play topics from a log file
       /// Responsibilities: topic name matching, time keeping,
@@ -84,8 +81,11 @@ namespace ignition
         /// \return number of topics published or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
+        /// \internal Implementation of this class
+        private: class Implementation;
+
         /// \brief Private implementation
-        private: std::unique_ptr<PlaybackPrivate> dataPtr;
+        private: std::unique_ptr<Implementation> dataPtr;
       };
     }
   }
