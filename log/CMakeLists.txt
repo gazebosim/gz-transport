@@ -48,9 +48,7 @@ set(logging_sources
   src/SqlStatement.cc
 )
 
-add_library(${log_lib_target} SHARED
-  ${logging_sources}
-)
+add_library(${log_lib_target} ${logging_sources})
 
 # Generate visibility macros
 include(GenerateExportHeader)
@@ -81,6 +79,16 @@ target_link_libraries(${log_lib_target} PUBLIC
 target_link_libraries(${log_lib_target} PRIVATE
   ${SQLite3_LIBRARIES}
 )
+
+if(MSVC)
+  # The recorder class uses Discovery, which is a header-only class
+  # that makes calls to the native Windows socket library when compiled
+  # on Windows. The easiest way to link to the correct socket library is
+  # to link to the ZeroMQ target and then get the socket library 
+  # dependency transitively.
+  target_link_libraries(${log_lib_target} PRIVATE
+    ${ZeroMQ_TARGET})
+endif()
 
 # Compile flags
 target_compile_options(${log_lib_target} PRIVATE

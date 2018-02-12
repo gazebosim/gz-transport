@@ -31,16 +31,13 @@ namespace ignition
     {
       enum class RecorderError : int64_t
       {
-        NO_ERROR = 0,
+        SUCCESS = 0,
         FAILED_TO_OPEN = -1,
         FAILED_TO_SUBSCRIBE = -2,
         ALREADY_RECORDING = -3,
         INVALID_TOPIC = -4,
         TOPIC_NOT_FOUND = -5,
       };
-
-      /// \brief Forward declaration
-      class RecorderPrivate;
 
       /// \brief Records ignition transport topics
       /// This class makes it easy to record topics to a log file.
@@ -82,8 +79,11 @@ namespace ignition
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
-        /// \brief Private implementation
-        private: std::unique_ptr<RecorderPrivate> dataPtr;
+        /// \internal Implementation of this class
+        private: class Implementation;
+
+        /// \internal Pointer to the implementation
+        private: std::unique_ptr<Implementation> dataPtr;
       };
     }
   }
