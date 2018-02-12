@@ -35,7 +35,7 @@ using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::PlaybackPrivate
+class ignition::transport::log::Playback::Implementation
 {
   /// \brief Create a publisher of a given topic name and type
   /// \param[in] _topic Topic name to publish to
@@ -84,7 +84,7 @@ class ignition::transport::log::PlaybackPrivate
 };
 
 //////////////////////////////////////////////////
-bool PlaybackPrivate::CreatePublisher(
+bool Playback::Implementation::CreatePublisher(
     const std::string &_topic, const std::string &_type)
 {
   auto firstMapIter = this->publishers.find(_topic);
@@ -109,7 +109,7 @@ bool PlaybackPrivate::CreatePublisher(
 }
 
 //////////////////////////////////////////////////
-void PlaybackPrivate::StartPlayback(Batch _batch)
+void Playback::Implementation::StartPlayback(Batch _batch)
 {
   this->stop = false;
 
@@ -171,7 +171,7 @@ void PlaybackPrivate::StartPlayback(Batch _batch)
 }
 
 //////////////////////////////////////////////////
-void PlaybackPrivate::WaitUntilFinished()
+void Playback::Implementation::WaitUntilFinished()
 {
   if (this->logFile.Valid() && !this->stop)
   {
@@ -182,7 +182,7 @@ void PlaybackPrivate::WaitUntilFinished()
 
 //////////////////////////////////////////////////
 Playback::Playback(const std::string &_file)
-  : dataPtr(new PlaybackPrivate)
+  : dataPtr(new Implementation)
 {
   if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
   {
@@ -239,7 +239,7 @@ PlaybackError Playback::Start()
 
   this->dataPtr->StartPlayback(std::move(batch));
   LMSG("Started playing\n");
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -253,7 +253,7 @@ PlaybackError Playback::Stop()
   this->dataPtr->stop = true;
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -294,7 +294,7 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
     }
   }
 
-  return PlaybackError::NO_ERROR;
+  return PlaybackError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
