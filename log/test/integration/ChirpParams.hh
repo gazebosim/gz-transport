@@ -117,11 +117,11 @@ namespace ignition
           STARTUPINFO info = {sizeof(info)};
           PROCESS_INFORMATION processInfo;
 
-          if (!CreateProcess(process.c_str(), args, nullptr, nullptr,
+          if (!CreateProcess(nullptr, args, nullptr, nullptr,
                              TRUE, 0, nullptr, nullptr, &info, &processInfo))
           {
             std::cerr << "Error running the chirp process ["
-                      << process << "]\n";
+                      << args << "]\n";
           }
 
           delete[] args;
