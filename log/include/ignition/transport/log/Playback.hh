@@ -31,7 +31,7 @@ namespace ignition
     {
       enum class PlaybackError : int64_t
       {
-        NO_ERROR = 0,
+        SUCCESS = 0,
         FAILED_TO_OPEN = -1,
         FAILED_TO_ADVERTISE = -2,
         ALREADY_PLAYING = -3,
@@ -39,9 +39,6 @@ namespace ignition
         NO_SUCH_TOPIC = -5,
         NOT_PLAYING = -6,
       };
-
-      /// \brief Forward declaration
-      class PlaybackPrivate;
 
       /// \brief Playbacks ignition transport topics
       /// This class makes it easy to play topics from a log file
@@ -84,8 +81,11 @@ namespace ignition
         /// \return number of topics published or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
+        /// \internal Implementation of this class
+        private: class Implementation;
+
         /// \brief Private implementation
-        private: std::unique_ptr<PlaybackPrivate> dataPtr;
+        private: std::unique_ptr<Implementation> dataPtr;
       };
     }
   }

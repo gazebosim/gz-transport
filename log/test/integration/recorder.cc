@@ -79,7 +79,7 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
     "file:recorderBeginRecordingTopicsBeforeAdvertise?mode=memory&cache=shared";
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::NO_ERROR);
+            ignition::transport::log::RecorderError::SUCCESS);
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
@@ -162,7 +162,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   }
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::NO_ERROR);
+            ignition::transport::log::RecorderError::SUCCESS);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -213,7 +213,7 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   recorder.AddTopic(_pattern);
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::NO_ERROR);
+            ignition::transport::log::RecorderError::SUCCESS);
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =

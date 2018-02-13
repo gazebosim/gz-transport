@@ -29,18 +29,14 @@
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
-
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::RecorderPrivate
+class ignition::transport::log::Recorder::Implementation
 {
   /// \brief constructor
-  public: RecorderPrivate();
-
-  /// \brief destructor
-  public: ~RecorderPrivate();
+  public: Implementation();
 
   /// \brief Subscriber callback
   /// \param[in] _data Data of the message
@@ -92,7 +88,7 @@ class ignition::transport::log::RecorderPrivate
 };
 
 //////////////////////////////////////////////////
-RecorderPrivate::RecorderPrivate()
+Recorder::Implementation::Implementation()
 {
   // Set the offset used to get UTC from steady clock
   std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
@@ -121,15 +117,10 @@ RecorderPrivate::RecorderPrivate()
 }
 
 //////////////////////////////////////////////////
-RecorderPrivate::~RecorderPrivate()
-{
-}
-
-//////////////////////////////////////////////////
-void RecorderPrivate::OnMessageReceived(
+void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
-          const transport::MessageInfo &_info)
+          const ignition::transport::MessageInfo &_info)
 {
   // Get time RX using monotonic
   std::chrono::nanoseconds nowNS(
@@ -156,7 +147,7 @@ void RecorderPrivate::OnMessageReceived(
 }
 
 //////////////////////////////////////////////////
-void RecorderPrivate::OnAdvertisement(const Publisher &_publisher)
+void Recorder::Implementation::OnAdvertisement(const Publisher &_publisher)
 {
   std::string partition;
   std::string topic;
@@ -190,7 +181,7 @@ void RecorderPrivate::OnAdvertisement(const Publisher &_publisher)
 }
 
 //////////////////////////////////////////////////
-RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
+RecorderError Recorder::Implementation::AddTopic(const std::string &_topic)
 {
   LDBG("Recording [" << _topic << "]\n");
   // Subscribe to the topic whether it exists or not
@@ -202,11 +193,11 @@ RecorderError RecorderPrivate::AddTopic(const std::string &_topic)
 
   this->alreadySubscribed.insert(_topic);
 
-  return RecorderError::NO_ERROR;
+  return RecorderError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
-int64_t RecorderPrivate::AddTopic(const std::regex &_pattern)
+int64_t Recorder::Implementation::AddTopic(const std::regex &_pattern)
 {
   int numSubscriptions = 0;
   std::vector<std::string> allTopics;
@@ -235,7 +226,7 @@ int64_t RecorderPrivate::AddTopic(const std::regex &_pattern)
 
 //////////////////////////////////////////////////
 Recorder::Recorder()
-  : dataPtr(new RecorderPrivate)
+  : dataPtr(new Implementation)
 {
 }
 
@@ -274,7 +265,7 @@ RecorderError Recorder::Start(const std::string &_file)
 
   LMSG("Started recording to [" << _file << "]\n");
 
-  return RecorderError::NO_ERROR;
+  return RecorderError::SUCCESS;
 }
 
 //////////////////////////////////////////////////
