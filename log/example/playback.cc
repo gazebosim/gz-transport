@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
   // Begin recording, saving received messages to the given file
   auto result = player.Start();
-  if (ignition::transport::log::PlaybackError::NO_ERROR != result)
+  if (ignition::transport::log::PlaybackError::SUCCESS != result)
   {
     std::cerr << "Failed to start playback: " << static_cast<int64_t>(result)
       << "\n";

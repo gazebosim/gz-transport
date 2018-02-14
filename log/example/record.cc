@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
   // Begin recording, saving received messages to the given file
   auto result = recorder.Start(argv[1]);
-  if (ignition::transport::log::RecorderError::NO_ERROR != result)
+  if (ignition::transport::log::RecorderError::SUCCESS != result)
   {
     std::cerr << "Failed to start recording: " << static_cast<int64_t>(result)
       << "\n";
