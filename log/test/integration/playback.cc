@@ -102,7 +102,7 @@ TEST(playback, ReplayLog)
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
@@ -134,11 +134,13 @@ TEST(playback, ReplayLog)
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
   playback.WaitUntilFinished();
-  // Wait to make sure our callbacks are done processing the incoming messages
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::cout << " Done waiting..." << std::endl;
+  playback.Stop();
   std::cout << "Playback finished!" << std::endl;
 
-  playback.Stop();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  // (Strangely, Windows throws an exception when this is ~1s or more)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   ExpectSameMessages(originalData, incomingData);
 }
@@ -149,7 +151,7 @@ TEST(playback, ReplayNoSuchTopic)
   ignition::transport::log::Recorder recorder;
   const std::string logName =
     "file:playbackReplayNoSuchTopic?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   ignition::transport::log::Playback playback(logName);
@@ -188,7 +190,7 @@ TEST(playback, ReplayLogRegex)
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
@@ -214,11 +216,13 @@ TEST(playback, ReplayLogRegex)
   playback.Start();
   std::cout << "Waiting to for playback to finish..." << std::endl;
   playback.WaitUntilFinished();
-  // Wait to make sure our callbacks are done processing the incoming messages
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::cout << " Done waiting..." << std::endl;
+  playback.Stop();
   std::cout << "Playback finished!" << std::endl;
 
-  playback.Stop();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  // (Strangely, Windows throws an exception when this is ~1s or more)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   ExpectSameMessages(originalData, incomingData);
 }
@@ -252,7 +256,7 @@ TEST(playback, ReplayLogMoveInstances)
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::NO_ERROR,
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
@@ -281,11 +285,13 @@ TEST(playback, ReplayLogMoveInstances)
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
   playback.WaitUntilFinished();
-  // Wait to make sure our callbacks are done processing the incoming messages
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::cout << " Done waiting..." << std::endl;
+  playback.Stop();
   std::cout << "Playback finished!" << std::endl;
 
-  playback.Stop();
+  // Wait to make sure our callbacks are done processing the incoming messages
+  // (Strangely, Windows throws an exception when this is ~1s or more)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   ExpectSameMessages(originalData, incomingData);
 }
