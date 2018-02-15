@@ -15,16 +15,14 @@
  *
 */
 
-#include "LogCommandAPI.cc"
+#include "LogCommandAPI.hh"
 #include "gtest/gtest.h"
-
-using namespace ignition;
 
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, Version)
 {
   EXPECT_EQ(INVALID_VERSION, verbosity(-1));
-  EXPECT_EQ(NO_ERROR, verbosity(0));
+  EXPECT_EQ(SUCCESS, verbosity(0));
   EXPECT_EQ(INVALID_VERSION, verbosity(5));
 }
 

@@ -30,15 +30,3 @@ add_custom_command (
 )
 add_custom_target(generate_cmd_yaml ALL DEPENDS ${output_script})
 install(FILES ${output_script} DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ignition/")
-
-ign_build_tests(
-  TYPE "UNIT"
-  SOURCES
-    LogCommandAPI_TEST.cc
-  LIB_DEPS ${log_lib_target}
-  TEST_LIST logging_tests
-)
-foreach(test_target ${logging_tests})
-  set_tests_properties(${logging_tests} PROPERTIES
-    ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
-endforeach()
