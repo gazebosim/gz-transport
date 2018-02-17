@@ -38,8 +38,8 @@ static int data = 5;
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());

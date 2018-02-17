@@ -3,10 +3,7 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target.
-ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
-
-# Turn on C++14 support for the library.
-ign_set_project_public_cxx_standard(14)
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
 
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
@@ -25,12 +22,19 @@ if (NOT MSVC)
   )
 endif()
 
-# Create installation instructions for the library target. This must be called
-# in the same scope that the target is created.
-ign_install_library()
-
 # Build the unit tests.
-ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
+  TEST_LIST test_list)
+
+foreach(test ${test_list})
+
+  # Inform each test of its output directory so it knows where to call the
+  # auxiliary files from. Using a generator expression here is useful for
+  # multi-configuration generators, like Visual Studio.
+  target_compile_definitions(${test} PRIVATE
+    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
+
+endforeach()
 
 if(MSVC)
   # On Windows, UNIT_Discovery_TEST uses some socket functions and therefore

@@ -67,8 +67,8 @@ void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
@@ -126,8 +126,8 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
@@ -166,8 +166,8 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -207,8 +207,8 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   unsigned int timeout = 2000;
 
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
@@ -248,8 +248,8 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 TEST(twoProcSrvCall, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -299,8 +299,8 @@ TEST(twoProcSrvCall, ServiceList)
 TEST(twoProcSrvCall, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());

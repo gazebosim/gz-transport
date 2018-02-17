@@ -18,13 +18,17 @@
 #ifndef IGNITION_TRANSPORT_TEST_CONFIG_HH_
 #define IGNITION_TRANSPORT_TEST_CONFIG_HH_
 
-#define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
-#define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
-#define IGN_TEST_LIBRARY_PATH "${PROJECT_BINARY_DIR}/src:"\
-  "@IGNITION-MSGS_LIBRARY_DIRS@:"
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 #define IGN_VERSION_FULL "@PROJECT_VERSION_FULL@"
+
+#ifdef DETAIL_IGN_TRANSPORT_TEST_DIR
+// The DETAIL_IGN_TRANSPORT_TEST_DIR macro is defined using generator
+// expressions in CMakeLists.txt files. See test/integration/CMakeLists.txt for
+// an example.
+#define IGN_TRANSPORT_TEST_DIR \
+  DETAIL_IGN_TRANSPORT_TEST_DIR
+#endif
 
 #include <climits>
 #include <iostream>
