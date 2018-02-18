@@ -18,7 +18,6 @@
 #define IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
 
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "ignition/transport/log/SqlStatement.hh"
@@ -26,7 +25,6 @@
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
-
 
 /// \brief Private implementation for Batch
 /// \internal

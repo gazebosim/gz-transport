@@ -15,11 +15,13 @@
  *
 */
 
+#include <cstdint>
+#include <string>
+
 #include "ignition/transport/log/SqlStatement.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, Construct)
@@ -36,7 +38,6 @@ TEST(SqlParameter, Construct)
       transport::log::SqlParameter("Hello World!").Type());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, Set)
 {
@@ -50,7 +51,6 @@ TEST(SqlParameter, Set)
   param.Set(nullptr);
   EXPECT_EQ(transport::log::SqlParameter::ParamType::NULL_TYPE, param.Type());
 }
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryText)
@@ -66,7 +66,6 @@ TEST(SqlParameter, QueryText)
   EXPECT_EQ(nullptr, param.QueryText());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryInteger)
 {
@@ -80,7 +79,6 @@ TEST(SqlParameter, QueryInteger)
   param.Set(nullptr);
   EXPECT_EQ(nullptr, param.QueryInteger());
 }
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryReal)
@@ -106,7 +104,6 @@ TEST(SqlParameter, MoveConstructor)
   EXPECT_DOUBLE_EQ(3.14159, *param.QueryReal());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, CopyAssignment)
 {
@@ -121,7 +118,6 @@ TEST(SqlParameter, CopyAssignment)
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, MoveAssignment)
 {
@@ -134,11 +130,9 @@ TEST(SqlParameter, MoveAssignment)
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
 
-
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-

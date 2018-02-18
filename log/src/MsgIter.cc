@@ -17,8 +17,10 @@
 
 #include <sqlite3.h>
 
-#include "Console.hh"
+#include <memory>
+#include <vector>
 
+#include "Console.hh"
 #include "ignition/transport/log/MsgIter.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
@@ -26,12 +28,10 @@
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
-
 //////////////////////////////////////////////////
 MsgIterPrivate::MsgIterPrivate()
 {
 }
-
 
 //////////////////////////////////////////////////
 MsgIterPrivate::MsgIterPrivate(
@@ -72,22 +72,22 @@ bool MsgIterPrivate::PrepareNextStatement()
   // Bind the parameters supplied with the statment
   int i = 1;
   int returnCode;
-  for (const SqlParameter & param : query.parameters)
+  for (const SqlParameter &param : query.parameters)
   {
     switch (param.Type())
     {
       case SqlParameter::ParamType::TEXT:
-          returnCode = sqlite3_bind_text(nextStatement->Handle(), i,
-              param.QueryText()->c_str(), param.QueryText()->size(),
-              SQLITE_STATIC);
+        returnCode = sqlite3_bind_text(nextStatement->Handle(), i,
+            param.QueryText()->c_str(), param.QueryText()->size(),
+            SQLITE_STATIC);
         break;
       case SqlParameter::ParamType::INTEGER:
-          returnCode = sqlite3_bind_int64(nextStatement->Handle(), i,
-              *param.QueryInteger());
+        returnCode = sqlite3_bind_int64(nextStatement->Handle(), i,
+            *param.QueryInteger());
         break;
       case SqlParameter::ParamType::REAL:
-          returnCode = sqlite3_bind_double(nextStatement->Handle(), i,
-              *param.QueryReal());
+        returnCode = sqlite3_bind_double(nextStatement->Handle(), i,
+            *param.QueryReal());
         break;
       default:
         return false;

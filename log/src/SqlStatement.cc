@@ -15,6 +15,9 @@
  *
 */
 
+#include <cstdint>
+#include <string>
+
 #include <ignition/transport/log/SqlStatement.hh>
 
 using namespace ignition::transport::log;
