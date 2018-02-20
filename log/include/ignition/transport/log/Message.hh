@@ -57,6 +57,14 @@ namespace ignition
             const char *_type, std::size_t _typeLen,
             const char *_topic, std::size_t _topicLen);
 
+        /// \brief No move constructor to prevent borrowed pointers from
+        /// living beyond creator's expectations.
+        public: Message(Message && _other) = delete;
+
+        /// \brief No copy constructor to prevent borrowed pointers from
+        /// living beyond creator's expectations.
+        public: Message(const Message & _other) = delete;
+
         /// \brief Destructor
         public: ~Message();
 
