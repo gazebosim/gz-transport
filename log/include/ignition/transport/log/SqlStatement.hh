@@ -49,6 +49,29 @@ namespace ignition
           // TODO: Consider supporting blob types
         };
 
+        /// \sa Set(std::nullptr_t)
+        /// \sa SqlParameter(std::nullptr_t)
+        public: SqlParameter();
+
+        /// \sa Set(std::nullptr_t)
+        /// \brief Construct NULL parameter
+        public: explicit SqlParameter(std::nullptr_t);
+
+        /// \sa Set(int64_t)
+        /// \brief Construct integer parameter
+        /// \param[in] _integer an integer
+        public: explicit SqlParameter(int64_t _integer);
+
+        /// \sa Set(double)
+        /// \brief Construct real parameter
+        /// \param[in] _real a real number
+        public: explicit SqlParameter(double _real);
+
+        /// \sa Set(const std::string &)
+        /// \brief Construct string parameter
+        /// \param[in] _string a string
+        public: explicit SqlParameter(const std::string &_text);
+
         /// \brief Copy constructor
         /// \param[in] _other Another SqlParameter
         public: SqlParameter(const SqlParameter &_other);
@@ -66,22 +89,6 @@ namespace ignition
         /// \param[in] _other Another SqlParameter
         /// \return This object
         public: SqlParameter &operator=(SqlParameter &&_other);  // NOLINT
-
-        /// \sa Set(std::nullptr_t)
-        /// \sa SqlParameter(std::nullptr_t)
-        public: SqlParameter();
-
-        /// \sa Set(std::nullptr_t)
-        public: explicit SqlParameter(std::nullptr_t);
-
-        /// \sa Set(int64_t)
-        public: explicit SqlParameter(int64_t _integer);
-
-        /// \sa Set(double)
-        public: explicit SqlParameter(double _real);
-
-        /// \sa Set(const std::string &)
-        public: explicit SqlParameter(const std::string &_text);
 
         /// \brief Set this parameter to a NULL_TYPE.
         /// \param[in] _np Pass in a nullptr.
