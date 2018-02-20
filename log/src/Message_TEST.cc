@@ -15,6 +15,9 @@
  *
 */
 
+#include <chrono>
+#include <string>
+
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
@@ -49,7 +52,6 @@ TEST(Message, DataConstructor)
   EXPECT_EQ(topic, msg.Topic());
   EXPECT_EQ(goldenTime, msg.TimeReceived());
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

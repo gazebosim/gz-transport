@@ -18,9 +18,9 @@
 #ifndef IGNITION_TRANSPORT_LOG_SQLSTATEMENT_HH_
 #define IGNITION_TRANSPORT_LOG_SQLSTATEMENT_HH_
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include <ignition/transport/log/Export.hh>
 
@@ -148,6 +148,5 @@ namespace ignition
     }
   }
 }
-
 
 #endif
