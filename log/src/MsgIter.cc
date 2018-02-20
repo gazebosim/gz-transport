@@ -186,6 +186,7 @@ MsgIter::MsgIter(
     std::unique_ptr<MsgIterPrivate> &&_pimpl)  // NOLINT(build/c++11)
   : dataPtr(std::move(_pimpl))
 {
+  // Execute statement so iter points to first result
   this->dataPtr->StepStatement();
 }
 
