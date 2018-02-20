@@ -34,15 +34,17 @@ endif()
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
 set(logging_sources
+  src/Batch.cc
   src/Console.cc
   src/Descriptor.cc
   src/Log.cc
+  src/Message.cc
+  src/MsgIter.cc
   src/raii-sqlite3.cc
+  src/SqlStatement.cc
 )
 
-add_library(${log_lib_target} SHARED
-  ${logging_sources}
-)
+add_library(${log_lib_target} ${logging_sources})
 
 # Generate visibility macros
 include(GenerateExportHeader)

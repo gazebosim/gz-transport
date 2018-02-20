@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2017 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,9 @@ TEST(Log, UnopenedLog)
   char data[] = {1, 2, 3, 4};
   EXPECT_FALSE(logFile.InsertMessage(0ns, "/foo/bar", ".fiz.buz",
     reinterpret_cast<const void *>(data), 4));
+
+  auto batch = logFile.QueryMessages();
+  EXPECT_EQ(batch.end(), batch.begin());
 }
 
 //////////////////////////////////////////////////
@@ -92,6 +95,50 @@ TEST(Log, InsertMessage)
       "some.message.type",
       reinterpret_cast<const void *>(data.c_str()),
       data.size()));
+}
+
+//////////////////////////////////////////////////
+TEST(Log, AllMessagesNone)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  auto batch = logFile.QueryMessages();
+  EXPECT_EQ(batch.end(), batch.begin());
+}
+
+//////////////////////////////////////////////////
+TEST(Log, InsertMessageGetMessages)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  std::string data1("first_data");
+  std::string data2("second_data");
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      1s,
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data1.c_str()),
+      data1.size()));
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      2s,
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data2.c_str()),
+      data2.size()));
+
+  auto batch = logFile.QueryMessages();
+  auto iter = batch.begin();
+  ASSERT_NE(batch.end(), iter);
+  EXPECT_EQ(data1, iter->Data());
+  ++iter;
+  ASSERT_NE(batch.end(), iter);
+  EXPECT_EQ(data2, iter->Data());
+  ++iter;
+  EXPECT_EQ(log::MsgIter(), iter);
 }
 
 //////////////////////////////////////////////////

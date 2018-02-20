@@ -28,10 +28,12 @@
 
 #include "ignition/transport/log/Descriptor.hh"
 #include "ignition/transport/log/Log.hh"
-#include "src/raii-sqlite3.hh"
+#include "ignition/transport/log/SqlStatement.hh"
+#include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "Console.hh"
 #include "Descriptor.hh"
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
@@ -507,6 +509,28 @@ bool Log::InsertMessage(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+Batch Log::QueryMessages()
+{
+  const log::Descriptor *desc = this->Descriptor();
+
+  if (!desc)
+    return Batch();
+
+  SqlStatement sql;
+  sql.statement =
+      "SELECT messages.id, messages.time_recv, topics.name,"
+      " message_types.name, messages.message FROM messages JOIN topics ON"
+      " topics.id = messages.topic_id JOIN message_types ON"
+      " message_types.id = topics.message_type_id "
+      " ORDER BY messages.time_recv;";
+
+  std::unique_ptr<BatchPrivate> batchPriv(
+        new BatchPrivate(this->dataPtr->db, {sql}));
+
+  return Batch(std::move(batchPriv));
 }
 
 //////////////////////////////////////////////////
