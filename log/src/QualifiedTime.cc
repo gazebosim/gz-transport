@@ -15,6 +15,8 @@
  *
 */
 
+#include <chrono>
+
 #include <ignition/transport/log/QualifiedTime.hh>
 
 using namespace ignition::transport::log;
@@ -125,7 +127,7 @@ QualifiedTime::QualifiedTime()
 
 //////////////////////////////////////////////////
 QualifiedTime::QualifiedTime(const QualifiedTime &_other)
-  : dataPtr(new Implementation(*_other.dataPtr), 
+  : dataPtr(new Implementation(*_other.dataPtr),
       [](Implementation *_impl) { delete _impl; })
 {
   // Do nothing

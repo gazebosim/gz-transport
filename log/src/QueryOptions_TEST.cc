@@ -15,6 +15,11 @@
  *
 */
 
+#include <regex>
+#include <set>
+#include <string>
+
+#include "ignition/transport/log/QualifiedTime.hh"
 #include "ignition/transport/log/QueryOptions.hh"
 #include "gtest/gtest.h"
 
