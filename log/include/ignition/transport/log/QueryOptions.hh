@@ -18,16 +18,16 @@
 #ifndef IGNITION_TRANSPORT_LOG_QUERYOPTIONS_HH_
 #define IGNITION_TRANSPORT_LOG_QUERYOPTIONS_HH_
 
-#include <vector>
-#include <string>
 #include <memory>
 #include <regex>
 #include <set>
+#include <string>
+#include <vector>
 
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Descriptor.hh>
-#include <ignition/transport/log/SqlStatement.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
+#include <ignition/transport/log/SqlStatement.hh>
 
 namespace ignition
 {
@@ -79,6 +79,7 @@ namespace ignition
       class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
       {
         /// \brief Constructor that sets the initial time range option.
+        /// \param[in] _timeRange The time range.
         public: explicit TimeRangeOption(const QualifiedTimeRange &_timeRange);
 
         /// \brief Copy constructor
