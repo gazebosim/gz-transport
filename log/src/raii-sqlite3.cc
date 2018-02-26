@@ -20,7 +20,7 @@
 #include <string>
 
 #include "Console.hh"
-#include "src/raii-sqlite3.hh"
+#include "raii-sqlite3.hh"
 
 using namespace raii_sqlite3;
 
