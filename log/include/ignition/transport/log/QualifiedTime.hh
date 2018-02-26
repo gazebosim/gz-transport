@@ -114,12 +114,14 @@ namespace ignition
 
         /// \brief Equality operator.
         /// \param[in] _other Another QualifiedTime
-        /// \return true if the times are equal
+        /// \return True if the times are equal. When either time is
+        /// indeterminate, this will always return false, similar to the
+        /// behavior of NaN comparisons.
         public: bool operator==(const QualifiedTime &_other) const;
 
         /// \brief Inequality operator.
         /// \param[in] _other Another QualifiedTime
-        /// \return true if the times are not equal
+        /// \return Opposite value of operator==(const QualifiedTime &)
         public: bool operator!=(const QualifiedTime &_other) const;
 
         /// \brief Indicates whether this QualifiedTime object is indeterminate.
@@ -207,12 +209,13 @@ namespace ignition
 
         /// \brief Equality operator.
         /// \param[in] _other Another QualifiedTimeRange
-        /// \return true if the times are equal
+        /// \return true if the time ranges represented by each object are
+        /// equivalent
         public: bool operator==(const QualifiedTimeRange &_other) const;
 
         /// \brief Inequality operator.
         /// \param[in] _other Another QualifiedTimeRange
-        /// \return true if the times are not equal
+        /// \return Opposite of operator==(const QualifiedTimeRange &)
         public: bool operator!=(const QualifiedTimeRange &_other) const;
 
         /// \brief Construct a time range that begins at _begin and never ends.
