@@ -104,13 +104,13 @@ TEST(QualifiedTime, EqualityOperators)
   EXPECT_FALSE(qt1 == qt3);
   EXPECT_FALSE(qt1 == qt4);
   EXPECT_FALSE(qt1 == qt5);
-  EXPECT_TRUE(qt5 == qt5);
+  EXPECT_FALSE(qt5 == qt5);
 
   EXPECT_FALSE(qt1 != qt2);
   EXPECT_TRUE(qt1 != qt3);
   EXPECT_TRUE(qt1 != qt4);
   EXPECT_TRUE(qt1 != qt5);
-  EXPECT_FALSE(qt5 != qt5);
+  EXPECT_TRUE(qt5 != qt5);
 }
 
 //////////////////////////////////////////////////

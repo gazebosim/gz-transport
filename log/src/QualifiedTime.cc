@@ -78,17 +78,18 @@ class ignition::transport::log::QualifiedTime::Implementation
   /// \internal \sa QualifiedTime::operator==()
   public: bool operator==(const Implementation &_other) const
   {
-    return this->indeterminate == _other.indeterminate
-      && this->qualifier == _other.qualifier
-      && this->time == _other.time;
+    // We mimick the behavior of NaN equality comparisons, which always return
+    // false during an equality comparison.
+    if (_other.IsIndeterminate() || this->IsIndeterminate())
+      return false;
+
+    return this->qualifier == _other.qualifier && this->time == _other.time;
   }
 
   /// \internal \sa QualifiedTime::operator!=()
   public: bool operator!=(const Implementation &_other) const
   {
-    return this->indeterminate != _other.indeterminate
-      || this->qualifier != _other.qualifier
-      || this->time != _other.time;
+    return !(_other == *this);
   }
 
   /// \internal \sa QualifiedTime::Clear()
@@ -190,6 +191,24 @@ QualifiedTime::~QualifiedTime()
 }
 
 //////////////////////////////////////////////////
+/// \brief This function evaluates whether two QualifiedTimes, when used as the
+/// same type of endpoint in a range, would be equivalent to each other. This
+/// gracefully handles the possibility of the endpoints being indeterminate.
+/// \param _t1 Either a start or finish endpoint time
+/// \param _t2 A time that is being used in the same context as _t1. If _t1 is
+/// being used as a start time, then _t2 must also be a start time. If _t1 is
+/// being used as a finish time, then _t2 must also be a finish time.
+/// \return Returns true if replacing _t1 with _t2 in a QualifiedTimeRange will
+/// result in the same range, otherwise returns false.
+static bool EndPointEqual(const QualifiedTime &_t1, const QualifiedTime &_t2)
+{
+  if (_t1.IsIndeterminate() && _t2.IsIndeterminate())
+    return true;
+
+  return (_t1 == _t2);
+}
+
+//////////////////////////////////////////////////
 class ignition::transport::log::QualifiedTimeRange::Implementation
 {
   /// \internal \sa QualifiedTimeRange()
@@ -253,6 +272,13 @@ class ignition::transport::log::QualifiedTimeRange::Implementation
     return (*ts <= *tf);
   }
 
+  /// \internal \sa QualifiedTimeRange::operator==
+  bool operator==(const QualifiedTimeRange::Implementation &_other) const
+  {
+    return EndPointEqual(this->start, _other.start)
+        && EndPointEqual(this->finish, _other.finish);
+  }
+
   /// \brief The time where the range starts
   public: QualifiedTime start;
 
@@ -297,15 +323,13 @@ QualifiedTimeRange &QualifiedTimeRange::operator=(
 //////////////////////////////////////////////////
 bool QualifiedTimeRange::operator==(const QualifiedTimeRange &_other) const
 {
-  return this->dataPtr->start == _other.dataPtr->start
-    && this->dataPtr->finish == _other.dataPtr->finish;
+  return (*this->dataPtr) == (*_other.dataPtr);
 }
 
 //////////////////////////////////////////////////
 bool QualifiedTimeRange::operator!=(const QualifiedTimeRange &_other) const
 {
-  return this->dataPtr->start != _other.dataPtr->start
-    || this->dataPtr->finish != _other.dataPtr->finish;
+  return !(*this == _other);
 }
 
 //////////////////////////////////////////////////
