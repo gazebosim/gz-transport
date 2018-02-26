@@ -70,6 +70,8 @@ TEST(QualifiedTime, CopyAssignment)
 {
   log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2 = qt1;
+  EXPECT_EQ(qt1, qt2);
+
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
@@ -81,6 +83,8 @@ TEST(QualifiedTime, CopyConstructor)
 {
   log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2(qt1);
+  EXPECT_EQ(qt1, qt2);
+
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
