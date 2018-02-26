@@ -21,9 +21,7 @@
 #include <memory>
 #include <string>
 
-
 #include <ignition/transport/log/Export.hh>
-
 
 namespace ignition
 {
@@ -34,13 +32,18 @@ namespace ignition
       /// \brief Forward Declarations
       class MessagePrivate;
 
-      /// \brief Represents a message in a bag file
+      /// \brief Represents a message in a bag file.
       class IGNITION_TRANSPORT_LOG_VISIBLE Message
       {
         /// \brief Default constructor
         public: Message();
 
-        /// \brief Construct with data
+        /// \brief Construct with data.
+        /// \internal
+        /// Referrences and pointers are borrowed, and must be kept alive by
+        /// the creator for as long as an instance lives.
+        /// This constructor is public for the sake of unit testing, but is not
+        /// expected to be called by a user.
         /// \param[in] _timeRecv time the message was received
         /// \param[in] _data the serialized message
         /// \param[in] _dataLen number of bytes in _data
@@ -53,6 +56,14 @@ namespace ignition
             const void *_data, std::size_t _dataLen,
             const char *_type, std::size_t _typeLen,
             const char *_topic, std::size_t _topicLen);
+
+        /// \brief No move constructor to prevent borrowed pointers from
+        /// living beyond creator's expectations.
+        public: Message(Message && _other) = delete;
+
+        /// \brief No copy constructor to prevent borrowed pointers from
+        /// living beyond creator's expectations.
+        public: Message(const Message & _other) = delete;
 
         /// \brief Destructor
         public: ~Message();
