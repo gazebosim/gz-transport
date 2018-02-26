@@ -18,6 +18,7 @@
 #include <chrono>
 #include <ios>
 #include <string>
+#include <unordered_set>
 
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
@@ -139,6 +140,65 @@ TEST(Log, InsertMessageGetMessages)
   EXPECT_EQ(data2, iter->Data());
   ++iter;
   EXPECT_EQ(log::MsgIter(), iter);
+}
+
+//////////////////////////////////////////////////
+TEST(Log, QueryMessagesByTopicNone)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  std::unordered_set<std::string> noTopics;
+  auto batch = logFile.QueryMessages(
+        log::TopicList::Create(noTopics));
+
+  EXPECT_EQ(batch.end(), batch.begin());
+}
+
+//////////////////////////////////////////////////
+TEST(Log, Insert2Get1MessageByTopic)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  std::string data1("first_data");
+  std::string data2("second_data");
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      1s,
+      "/some/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data1.c_str()),
+      data1.size()));
+
+  EXPECT_TRUE(logFile.InsertMessage(
+      2s,
+      "/second/topic/name",
+      "some.message.type",
+      reinterpret_cast<const void *>(data2.c_str()),
+      data2.size()));
+
+  {
+    auto batch = logFile.QueryMessages(
+          log::TopicList("/some/topic/name"));
+
+    auto iter = batch.begin();
+    ASSERT_NE(batch.end(), iter);
+    EXPECT_EQ(data1, iter->Data());
+    ++iter;
+    EXPECT_EQ(batch.end(), iter);
+  }
+
+  {
+    // Test with a time range specified
+    auto batch = logFile.QueryMessages(
+        log::TopicList("/second/topic/name", log::QualifiedTimeRange(0s, 2s)));
+    auto iter = batch.begin();
+    ASSERT_NE(batch.end(), iter);
+    EXPECT_EQ(data2, iter->Data());
+    ++iter;
+    EXPECT_EQ(batch.end(), iter);
+  }
 }
 
 //////////////////////////////////////////////////

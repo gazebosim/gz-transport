@@ -1,21 +1,23 @@
-# Unit tests
-set(TEST_TYPE "UNIT")
+# Integration tests
+
 ign_build_tests(
-  TYPE "UNIT"
-  SOURCES
-    Batch_TEST.cc
-    Descriptor_TEST.cc
-    Log_TEST.cc
-    Message_TEST.cc
-    QualifiedTime_TEST.cc
-    QueryOptions_TEST.cc
-    SqlStatement_TEST.cc
-  LIB_DEPS ${log_lib_target}
+  TYPE "INTEGRATION"
   TEST_LIST logging_tests
+  SOURCES
+    query.cc
+  LIB_DEPS
+    ${log_lib_target}
+  INCLUDE_DIRS
+    ${CMAKE_BINARY_DIR}/test/
 )
+
 foreach(test_target ${logging_tests})
-  set_tests_properties(${logging_tests} PROPERTIES
+  set_tests_properties(${test_target} PROPERTIES
     ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+  target_compile_definitions(${test_target}
+    PRIVATE IGN_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
+  target_compile_definitions(${test_target}
+    PRIVATE IGN_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${test_target}>")
 
   # Gross hack so that the tests can work on Windows. We need a better system for
   # accessing the runtime libraries.

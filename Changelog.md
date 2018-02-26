@@ -2,6 +2,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added ability to query log messages by topic name and time received
+   * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
+
 1. Added ability to get all messages from a log file
    * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
 

@@ -40,6 +40,8 @@ set(logging_sources
   src/Log.cc
   src/Message.cc
   src/MsgIter.cc
+  src/QualifiedTime.cc
+  src/QueryOptions.cc
   src/raii-sqlite3.cc
   src/SqlStatement.cc
 )
@@ -87,6 +89,7 @@ endif()
 
 # ign_build_tests macro doesn't support building tests in a subfolder
 add_subdirectory(src)
+add_subdirectory(test)
 
 # Configure file with build time info
 set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
