@@ -14,9 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_RECORD_HH_
-#define IGNITION_TRANSPORT_LOG_RECORD_HH_
+#ifndef IGNITION_TRANSPORT_LOG_RECORDER_HH_
+#define IGNITION_TRANSPORT_LOG_RECORDER_HH_
 
+#include <cstdint>
 #include <memory>
 #include <regex>
 #include <string>
