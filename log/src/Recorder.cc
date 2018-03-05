@@ -57,10 +57,10 @@ class ignition::transport::log::Recorder::Implementation
   /// \param[in] _publisher The Publisher that has advertised
   public: void OnAdvertisement(const Publisher &_publisher);
 
-  /// \sa Record::AddTopic(const std::string&)
+  /// \sa Recorder::AddTopic(const std::string&)
   public: RecorderError AddTopic(const std::string &_topic);
 
-  /// \sa Record::AddTopic(const std::regex&)
+  /// \sa Recorder::AddTopic(const std::regex&)
   public: int64_t AddTopic(const std::regex &_pattern);
 
   /// \brief log file or nullptr if not recording
