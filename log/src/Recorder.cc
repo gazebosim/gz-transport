@@ -16,16 +16,22 @@
 */
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <regex>
+#include <set>
+#include <vector>
 
 #include "Console.hh"
-#include <ignition/transport/Node.hh>
 #include <ignition/transport/Discovery.hh>
+#include <ignition/transport/log/Log.hh>
+#include <ignition/transport/log/Recorder.hh>
+#include <ignition/transport/MessageInfo.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/TransportTypes.hh>
 
-#include "ignition/transport/log/Recorder.hh"
-#include "ignition/transport/log/Log.hh"
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
