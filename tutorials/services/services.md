@@ -617,12 +617,12 @@ In your requester terminals, you should expect an output similar to this one,
 showing that your requesters have received their responses:
 
 ```{.sh}
-caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester
+$ ./requester
 Response: [Hello World!]
 ```
 
 ```{.sh}
-caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester_async
+$ ./requester_async
 Response: [Hello World!]
 ```
 
@@ -645,7 +645,7 @@ In your responser terminal, you should expect an output similar to this one,
 showing that your service provider has received a request:
 
 ```{.sh}
-caguero@turtlebot:~/ign_transport_tutorial/build$ ./responser_oneway
+$ ./responser_oneway
 Request received: [HELLO]
 ```
 
@@ -674,7 +674,7 @@ In your requesters' terminals, you should expect an output similar to this one,
 showing that you have received a response:
 
 ```{.sh}
-caguero@turtlebot:~/ign_transport_tutorial/build$ ./requester_no_input
+$ ./requester_no_input
 Response: [This is it! This is the answer. It says here...that a bolt of
 lightning is going to strike the clock tower at precisely 10:04pm, next
 Saturday night! If...If we could somehow...harness this lightning...channel
