@@ -63,6 +63,8 @@ namespace ignition
         /// \param[in] _file path to log file
         /// \param[in] _mode flag indicating read only or read/write
         ///   Can use (in or out)
+        /// \return True if the log file was successfully opened, false
+        /// otherwise.
         public: bool Open(const std::string &_file,
             std::ios_base::openmode _mode = std::ios_base::in);
 

@@ -2,6 +2,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added ability to record ignition transport topics
+   * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
+
 1. Added ability to query log messages by topic name and time received
    * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
 
