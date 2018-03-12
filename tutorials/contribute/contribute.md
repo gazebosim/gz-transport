@@ -4,9 +4,8 @@ Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
 If you would like to contribute software patches, read on to find out how.
 You'll probably want to check out the [Development
-Section](http://ignition-transport.readthedocs.io/en/latest/api/api.html) for
-learning about the internal design of the library when planning your
-contribution.
+Section](https://ignitionrobotics.org/libs/transport) for learning about the
+internal design of the library when planning your contribution.
 
 ## Development process
 
