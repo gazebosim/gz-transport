@@ -31,7 +31,7 @@ applications that work).
 
 3.  Work out of a branch:
 
-    `$ hg branch my_new_branch_name`
+        hg branch my_new_branch_name`
 
     Always work out of a new branch, never off of default. This is a good habit
     to get in, and will make your life easier. If you're solving an issue, make
@@ -55,7 +55,7 @@ applications that work).
     A tool is provided to check for correct style. Your code must have no errors
     after running the following command from the root of the source tree:
 
-    $ sh tools/code_check.sh
+        sh tools/code_check.sh
 
     The tool does not catch all style errors. See the Style section below for
     more information.
@@ -249,28 +249,20 @@ code coverage report. You'll need
 1.  In your `build` folder, compile Ignition Transport with
     `-DCMAKE_BUILD_TYPE=Coverage`:
 
-  ```bash
-  cmake -DCMAKE_BUILD_TYPE=Coverage ..\
-  make
-  ```
+         cmake -DCMAKE_BUILD_TYPE=Coverage ..\
+         make
 
 2. Run a single test, or all the tests:
 
-  ```bash
-  make test
-  ```
+         make test
 
 3. Make the coverage report:
 
-  ```bash
-  make coverage
-  ```
+         make coverage
 
 4. View the coverage report:
 
-  ``` bash
-  firefox coverage/index.html
-  ```
+         firefox coverage/index.html
 
 ## Debugging Ignition Transport
 
@@ -319,20 +311,14 @@ leaks, and style. The Ignition Transport static code checker uses cppcheck, and
 a modified cpplint. You'll need to install cppcheck on your system. Ubuntu users
 can install via:
 
-```bash
-sudo apt-get install cppcheck
-```
+    sudo apt-get install cppcheck
 
 To check your code, run the following script from the root of the Ignition
 Transport sources:
 
-```bash
-sh tools/code_check.sh
-```
+    sh tools/code_check.sh
 
 It takes a few minutes to run. Fix all errors and warnings until the
 output looks like:
 
-```bash
-Total errors found: 0
-```
+    Total errors found: 0
