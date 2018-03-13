@@ -4,8 +4,9 @@ Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
 If you would like to contribute software patches, read on to find out how.
 You'll probably want to check out the [Development
-Section](https://ignitionrobotics.org/libs/transport) for learning about the
-internal design of the library when planning your contribution.
+Section](https://ignitionrobotics.org/tutorials/transport/4.0/index.html) for
+learning about the internal design of the library when planning your
+contribution.
 
 ## Development process
 
@@ -30,7 +31,7 @@ applications that work).
 
 3.  Work out of a branch:
 
-        hg branch my_new_branch_name`
+        hg branch my_new_branch_name
 
     Always work out of a new branch, never off of default. This is a good habit
     to get in, and will make your life easier. If you're solving an issue, make
