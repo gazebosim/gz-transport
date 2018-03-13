@@ -1,4 +1,4 @@
-# Node communication via messages
+# Messages
 
 In this tutorial, we are going to create two nodes that are going to communicate
 via messages. One node will be a publisher that generates the information,
