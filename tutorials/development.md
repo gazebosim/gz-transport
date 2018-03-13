@@ -118,7 +118,7 @@ invocations could be triggered because `Discovery` will pro-actively learn about
 all the available topics and generate notifications.
 
 You can check the complete API details
-[here](http://ignition-transport.readthedocs.io/en/ign-transport4/api/api.html).
+[here](https://ignitionrobotics.org/libs/transport).
 
 ### \[Un\]Announce a local topic
 
@@ -129,7 +129,7 @@ the discovery service. We store what we call a `Publisher`, which contains the
 topic name and all the associated meta-data.
 
 Each publisher advertises the topic with a specific scope as described
-[here](http://ignition-transport.readthedocs.io/en/latest/nodesAndTopics/nodesAndTopics.html#topic-scope).
+[here](https://ignitionrobotics.org/tutorials/transport/4.0/md__data_ignition_ign-transport_tutorials_nodesAndTopics.html).
 If the topic's scope is `PROCESS`, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an `ADVERTISE` message
 with the following format:
@@ -288,6 +288,6 @@ requests.
 
 Note that the result of `determineInterfaces()` can be manually set by using the
 `IGN_IP` environment variable, as described
-[here](http://ignition-transport.readthedocs.io/en/ign-transport4/environment_variables/env_variables.html).
+[here](https://ignitionrobotics.org/tutorials/transport/4.0/md__data_ignition_ign-transport_tutorials_env_variables.html).
 This will essentially ignore other network interfaces, isolating all discovery
 traffic through the specified interface.
