@@ -110,6 +110,9 @@ bool Playback::Implementation::CreatePublisher(
   auto secondMapIter = firstMapIter->second.find(_type);
   if (secondMapIter != firstMapIter->second.end())
   {
+    // A publisher which matches this (topic, type) pair has already been
+    // created, so we stop here. We return a value of false because no new
+    // publisher was created.
     return false;
   }
 
