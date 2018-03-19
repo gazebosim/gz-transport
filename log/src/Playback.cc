@@ -83,8 +83,12 @@ class ignition::transport::log::Playback::Implementation
   /// \brief a mutex to use when waiting for playback to finish
   public: std::mutex waitMutex;
 
-  /// \brief Condition variable to wakeup threads waiting on playback
+  /// \brief Condition variable to wake up threads waiting on playback
   public: std::condition_variable waitConditionVariable;
+
+  /// \brief Condition variable to wake up the playback thread if it's waiting
+  /// to publish the next message.
+  public: std::condition_variable stopConditionVariable;
 };
 
 //////////////////////////////////////////////////
@@ -141,7 +145,7 @@ void Playback::Implementation::StartPlayback(Batch _batch)
       bool publishedFirstMessage = false;
 
       // Get current elapsed on monotonic clock
-      std::chrono::nanoseconds startTime(
+      const std::chrono::nanoseconds startTime(
           std::chrono::steady_clock::now().time_since_epoch());
       std::chrono::nanoseconds firstMsgTime;
 
@@ -156,13 +160,31 @@ void Playback::Implementation::StartPlayback(Batch _batch)
         // Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          std::chrono::nanoseconds target = msg.TimeReceived() - firstMsgTime;
-          auto now = std::chrono::nanoseconds(
-              std::chrono::steady_clock::now().time_since_epoch());
-          now -= startTime;
-          if (target > now)
+          const std::chrono::nanoseconds target =
+              msg.TimeReceived() - firstMsgTime;
+
+          std::chrono::nanoseconds now;
+
+          // We create a lambda to test whether this thread needs to keep
+          // waiting. This is used as a predicate by the
+          // condition_variable::wait_for(~) function to avoid spurious wakeups.
+          auto KeepWaiting = [&startTime, &target, &now]() -> bool
           {
-            std::this_thread::sleep_for(target - now);
+            now = std::chrono::nanoseconds(
+                  std::chrono::steady_clock::now().time_since_epoch());
+            now -= startTime;
+            return target > now;
+          };
+
+          if (KeepWaiting())
+          {
+            // Passing a lock to wait_for is just a formality (we don't actually
+            // want to unlock any mutex while waiting), so we create a temporary
+            // mutex and lock to satisfy the function.
+            std::mutex tempMutex;
+            std::unique_lock<std::mutex> tempLock;
+            this->stopConditionVariable.wait_for(
+                  tempLock, target - now, KeepWaiting);
           }
         }
         else
@@ -264,7 +286,10 @@ PlaybackError Playback::Stop()
     LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
+
   this->dataPtr->stop = true;
+  this->dataPtr->stopConditionVariable.notify_all();
+
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
   return PlaybackError::SUCCESS;
