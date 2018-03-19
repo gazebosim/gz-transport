@@ -15,6 +15,7 @@
  *
 */
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -37,6 +38,9 @@ using namespace ignition::transport::log;
 /// \brief Private implementation
 class ignition::transport::log::Playback::Implementation
 {
+  /// \brief Default constructor
+  public: Implementation();
+
   /// \brief Create a publisher of a given topic name and type
   /// \param[in] _topic Topic name to publish to
   /// \param[in] _type The message type name to publish
@@ -53,7 +57,7 @@ class ignition::transport::log::Playback::Implementation
   public: void WaitUntilFinished();
 
   /// \brief True if the thread should be stopped
-  public: bool stop = true;
+  public: std::atomic_bool stop;
 
   /// \brief thread running playback
   public: std::thread playbackThread;
@@ -82,6 +86,13 @@ class ignition::transport::log::Playback::Implementation
   /// \brief Condition variable to wakeup threads waiting on playback
   public: std::condition_variable waitConditionVariable;
 };
+
+//////////////////////////////////////////////////
+Playback::Implementation::Implementation()
+  : stop(true)
+{
+  // Do nothing
+}
 
 //////////////////////////////////////////////////
 bool Playback::Implementation::CreatePublisher(
@@ -176,7 +187,7 @@ void Playback::Implementation::WaitUntilFinished()
   if (this->logFile.Valid() && !this->stop)
   {
     std::unique_lock<std::mutex> lk(this->waitMutex);
-    this->waitConditionVariable.wait(lk, [this]{return this->stop;});
+    this->waitConditionVariable.wait(lk, [this]{return this->stop.load();});
   }
 }
 
