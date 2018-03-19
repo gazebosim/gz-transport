@@ -168,23 +168,35 @@ void Playback::Implementation::StartPlayback(Batch _batch)
           // We create a lambda to test whether this thread needs to keep
           // waiting. This is used as a predicate by the
           // condition_variable::wait_for(~) function to avoid spurious wakeups.
-          auto KeepWaiting = [&startTime, &target, &now]() -> bool
+          auto FinishedWaiting = [this, &startTime, &target, &now]() -> bool
           {
             now = std::chrono::nanoseconds(
                   std::chrono::steady_clock::now().time_since_epoch());
             now -= startTime;
-            return target > now;
+            return now <= target || this->stop;
           };
 
-          if (KeepWaiting())
+          if (!FinishedWaiting())
           {
             // Passing a lock to wait_for is just a formality (we don't actually
             // want to unlock any mutex while waiting), so we create a temporary
             // mutex and lock to satisfy the function.
+            //
+            // According to the C++11 standard, it is undefined behavior to pass
+            // different mutexes into the condition_variable::wait_for()
+            // function of the same condition_variable instance from different
+            // threads. However, this current thread should be the only thread
+            // that is ever waiting on stopConditionVariable because we are
+            // keeping playbackLock locked this whole time. Therefore, it's okay
+            // for it lock its own local, unique mutex.
+            //
+            // This is really a substitute for the sleep_for function. This
+            // alternative allows us to interrupt the sleep in case the user
+            // calls Playback::Stop() while we are waiting between messages.
             std::mutex tempMutex;
             std::unique_lock<std::mutex> tempLock;
             this->stopConditionVariable.wait_for(
-                  tempLock, target - now, KeepWaiting);
+                  tempLock, target - now, FinishedWaiting);
           }
         }
         else
