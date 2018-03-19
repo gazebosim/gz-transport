@@ -173,7 +173,7 @@ void Playback::Implementation::StartPlayback(Batch _batch)
             now = std::chrono::nanoseconds(
                   std::chrono::steady_clock::now().time_since_epoch());
             now -= startTime;
-            return now <= target || this->stop;
+            return target <= now || this->stop;
           };
 
           if (!FinishedWaiting())
