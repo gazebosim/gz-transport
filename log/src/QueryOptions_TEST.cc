@@ -15,6 +15,12 @@
  *
 */
 
+#include <regex>
+#include <set>
+#include <string>
+#include <unordered_set>
+
+#include "ignition/transport/log/QualifiedTime.hh"
 #include "ignition/transport/log/QueryOptions.hh"
 #include "gtest/gtest.h"
 
@@ -76,6 +82,40 @@ TEST(QueryOptionsTopicList, CopyTopicListConst)
   const auto &constTopicOption = topicOptionOrig;
   log::TopicList topicOption(constTopicOption);
   EXPECT_EQ(topicList, topicOption.Topics());
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CreateFromVector)
+{
+  // We repeat /topic/one to verify that we can handle unsanitized input
+  std::vector<std::string> topics = {"/topic/one", "/topic/two", "/topic/one"};
+  log::TopicList topicList = log::TopicList::Create(topics);
+
+  EXPECT_EQ(2u, topicList.Topics().size());
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/one"));
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/two"));
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CreateFromUnorderedSet)
+{
+  std::unordered_set<std::string> topics = {"/topic/one", "/topic/two"};
+  log::TopicList topicList = log::TopicList::Create(topics);
+
+  EXPECT_EQ(2u, topicList.Topics().size());
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/one"));
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/two"));
+}
+
+//////////////////////////////////////////////////
+TEST(QueryOptionsTopicList, CreateFromSet)
+{
+  std::set<std::string> topics = {"/topic/one", "/topic/two"};
+  log::TopicList topicList = log::TopicList::Create(topics);
+
+  EXPECT_EQ(2u, topicList.Topics().size());
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/one"));
+  EXPECT_EQ(1u, topicList.Topics().count("/topic/two"));
 }
 
 //////////////////////////////////////////////////

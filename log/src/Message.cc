@@ -15,6 +15,9 @@
  *
 */
 
+#include <chrono>
+#include <string>
+
 #include "ignition/transport/log/Message.hh"
 
 using namespace ignition::transport;
