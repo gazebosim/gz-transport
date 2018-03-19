@@ -104,7 +104,7 @@ bool Playback::Implementation::CreatePublisher(
     // Create a map for the message topic
     this->publishers[_topic] = std::unordered_map<std::string,
       ignition::transport::Node::Publisher>();
-    firstMapIter = publishers.find(_topic);
+    firstMapIter = this->publishers.find(_topic);
   }
 
   auto secondMapIter = firstMapIter->second.find(_type);
@@ -127,12 +127,12 @@ void Playback::Implementation::StartPlayback(Batch _batch)
 {
   this->stop = false;
 
-  // Dev Note: msgIter is being initialized via the move-constructor within the
+  // Dev Note: batch is being initialized via the move-constructor within the
   // capture statement, as if it were being declared and constructed as
-  // `auto msgIter{std::move(iter)}`.
+  // `auto batch{std::move(_batch)}`.
   //
-  // For now, we need to use the move constructor because MsgIter does not yet
-  // support copy construction. Also, the object named `iter` will go out of
+  // For now, we need to use the move constructor because Batch does not yet
+  // support copy construction. Also, the object named `_batch` will go out of
   // scope while this lambda is still in use, so we cannot rely on capturing it
   // by reference.
   this->playbackThread = std::thread(
