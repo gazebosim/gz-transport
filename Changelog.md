@@ -2,6 +2,23 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added ability to play back ignition transport topics
+   * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
+
+1. Added ability to record ignition transport topics
+   * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
+
+1. Added ability to query log messages by topic name and time received
+   * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
+
+1. Added ability to get all messages from a log file
+   * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
+
+1. Added ability to insert messages into a sqlite3 based log file
+   * [Pull request 270](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/270)
+
+1. Added TopicUtils::DecomposeFullyQualifiedTopic()
+   * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
 

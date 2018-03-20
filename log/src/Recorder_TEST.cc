@@ -15,6 +15,9 @@
  *
 */
 
+#include <regex>
+#include <string>
+
 #include "ignition/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 

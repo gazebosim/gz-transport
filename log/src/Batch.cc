@@ -15,17 +15,16 @@
  *
 */
 
+#include <vector>
 
 #include "ignition/transport/log/Batch.hh"
 #include "BatchPrivate.hh"
+#include "build_config.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
-#include "build_config.hh"
-
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
-
 
 //////////////////////////////////////////////////
 BatchPrivate::BatchPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,

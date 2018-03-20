@@ -16,16 +16,22 @@
 */
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <regex>
+#include <set>
+#include <vector>
 
 #include "Console.hh"
-#include <ignition/transport/Node.hh>
 #include <ignition/transport/Discovery.hh>
+#include <ignition/transport/log/Log.hh>
+#include <ignition/transport/log/Recorder.hh>
+#include <ignition/transport/MessageInfo.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/TransportTypes.hh>
 
-#include "ignition/transport/log/Recorder.hh"
-#include "ignition/transport/log/Log.hh"
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
@@ -51,10 +57,10 @@ class ignition::transport::log::Recorder::Implementation
   /// \param[in] _publisher The Publisher that has advertised
   public: void OnAdvertisement(const Publisher &_publisher);
 
-  /// \sa Record::AddTopic(const std::string&)
+  /// \sa Recorder::AddTopic(const std::string&)
   public: RecorderError AddTopic(const std::string &_topic);
 
-  /// \sa Record::AddTopic(const std::regex&)
+  /// \sa Recorder::AddTopic(const std::regex&)
   public: int64_t AddTopic(const std::regex &_pattern);
 
   /// \brief log file or nullptr if not recording
@@ -103,9 +109,8 @@ Recorder::Implementation::Implementation()
     this->OnMessageReceived(_data, _len, _info);
   };
 
-  Uuid uuid;
   this->discovery = std::unique_ptr<MsgDiscovery>(
-        new MsgDiscovery(uuid.ToString(), NodeShared::kMsgDiscPort));
+        new MsgDiscovery(Uuid().ToString(), NodeShared::kMsgDiscPort));
 
   DiscoveryCallback<Publisher> cb = [this](const Publisher &_publisher)
   {

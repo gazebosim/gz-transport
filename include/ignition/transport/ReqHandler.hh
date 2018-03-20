@@ -124,7 +124,7 @@ namespace ignition
       public: template<typename Lock> bool WaitUntil(Lock &_lock,
                                                     const unsigned int _timeout)
       {
-        auto now = std::chrono::system_clock::now();
+        auto now = std::chrono::steady_clock::now();
         return this->condition.wait_until(_lock,
           now + std::chrono::milliseconds(_timeout),
           [this]

@@ -18,12 +18,12 @@
 #ifndef IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 #define IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 
+#include <memory>
 #include <vector>
 
 #include "ignition/transport/log/Message.hh"
 #include "ignition/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
-
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
