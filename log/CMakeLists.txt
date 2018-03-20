@@ -40,6 +40,7 @@ set(logging_sources
   src/Log.cc
   src/Message.cc
   src/MsgIter.cc
+  src/Playback.cc
   src/QualifiedTime.cc
   src/QueryOptions.cc
   src/raii-sqlite3.cc

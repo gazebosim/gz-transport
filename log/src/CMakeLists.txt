@@ -10,6 +10,7 @@ ign_build_tests(
     QualifiedTime_TEST.cc
     QueryOptions_TEST.cc
     Recorder_TEST.cc
+    Playback_TEST.cc
     SqlStatement_TEST.cc
   LIB_DEPS ${log_lib_target}
   TEST_LIST logging_tests
