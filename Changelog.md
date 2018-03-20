@@ -2,6 +2,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added integration tests for recording
+   * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
+
 1. Added ability to play back ignition transport topics
    * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
 
