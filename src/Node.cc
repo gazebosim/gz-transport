@@ -403,9 +403,9 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void *) 
-    { 
-      delete[] reinterpret_cast<char*>(_buffer); 
+    auto myDeallocator = [](void *_buffer, void *)
+    {
+      delete[] reinterpret_cast<char*>(_buffer);
     };
 
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
@@ -460,9 +460,9 @@ bool Node::Publisher::PublishRaw(
     const std::size_t msgSize = _msgData.size();
     char *msgBuffer = static_cast<char *>(new char [msgSize]);
     memcpy(msgBuffer, _msgData.c_str(), msgSize);
-    auto myDeallocator = [](void *_buffer, void * /*_hint*/) 
-    { 
-      delete[] reinterpret_cast<char*>(_buffer); 
+    auto myDeallocator = [](void *_buffer, void * /*_hint*/)
+    {
+      delete[] reinterpret_cast<char*>(_buffer);
     };
 
     // Note: This will copy _msgData (i.e. not zero copy)
