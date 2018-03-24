@@ -1,4 +1,4 @@
-# Understanding nodes and topics
+# Nodes and topics
 
 ## Nodes
 
