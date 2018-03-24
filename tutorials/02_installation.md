@@ -102,44 +102,6 @@ ign-ws/cppzmq
 
 To fix this problem, manually move the nested directories up one level.
 
-Clone and prepare the Ignition Math dependency:
-
-```
-hg clone https://bitbucket.org/ignitionrobotics/ign-math
-cd ign-math
-mkdir build
-```
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-```
-"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-math\build
-..\configure
-nmake install
-```
-
-Clone and prepare the Ignition Msgs dependency:
-
-```
-hg clone https://bitbucket.org/ignitionrobotics/ign-msgs
-cd ign-msgs
-mkdir build
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-msgs\build
-..\configure
-nmake install
-```
-
 Clone ign-transport:
 
 ```

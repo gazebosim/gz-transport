@@ -44,33 +44,9 @@ directory that has the source files. Here is an example:
 
     To fix this problem, manually move the nested directories up one level.
 
-1. Clone and prepare the Ignition Math dependency:
-
-        hg clone https://bitbucket.org/ignitionrobotics/ign-math
-        cd ign-math
-        mkdir build
-
 1. In a Windows Command Prompt, load your compiler setup, e.g.:
 
         "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-
-1. In the Windows Command Promp, configure and build:
-
-        cd ign-math\build
-        ..\configure
-        nmake install
-
-1. Clone and prepare the Ignition Msgs dependency:
-
-        hg clone https://bitbucket.org/ignitionrobotics/ign-msgs
-        cd ign-msgs
-        mkdir build
-
-1. In the Windows Command Prompt, configure and build:
-
-        cd ign-msgs\build
-        ..\configure
-        nmake install
 
 1. Clone ign-transport:
 
@@ -80,7 +56,7 @@ directory that has the source files. Here is an example:
 
 1. In the Windows Command Prompt, configure and build:
 
-	    cd ign-transport\build
+        cd ign-transport\build
         ..\configure
         nmake install
 
