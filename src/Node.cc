@@ -276,13 +276,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (subscribers.haveRaw || subscribers.haveRemote)
   {
     // Allocate the buffer to store the serialized data.
-    msgBuffer = static_cast<char *>(malloc(msgSize));
+    msgBuffer = static_cast<char *>(new char [msgSize]);
 
     // Fail out early if we are unable to serialize the message. We do not
     // want to send a corrupt/bad message to some subscribers and not others.
     if (!_msg.SerializeToArray(msgBuffer, msgSize))
     {
-      free(msgBuffer);
+      delete[] msgBuffer;
       std::cerr << "Node::Publisher::Publish(): Error serializing data"
                 << std::endl;
       return false;
@@ -403,7 +403,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void *) { free(_buffer); };
+    auto myDeallocator = [](void *_buffer, void *)
+    {
+      delete[] reinterpret_cast<char*>(_buffer);
+    };
 
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
           msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
@@ -413,7 +416,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
   else
   {
-    free(msgBuffer);
+    delete[] msgBuffer;
   }
 
   return true;
@@ -455,9 +458,12 @@ bool Node::Publisher::PublishRaw(
   if (subscribers.haveRemote)
   {
     const std::size_t msgSize = _msgData.size();
-    char *msgBuffer = static_cast<char *>(malloc(msgSize));
+    char *msgBuffer = static_cast<char *>(new char [msgSize]);
     memcpy(msgBuffer, _msgData.c_str(), msgSize);
-    auto myDeallocator = [](void *_buffer, void * /*_hint*/) { free(_buffer); };
+    auto myDeallocator = [](void *_buffer, void * /*_hint*/)
+    {
+      delete[] reinterpret_cast<char*>(_buffer);
+    };
 
     // Note: This will copy _msgData (i.e. not zero copy)
     if (!this->dataPtr->shared->Publish(
