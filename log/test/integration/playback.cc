@@ -24,6 +24,8 @@
 
 #include "ChirpParams.hh"
 
+static std::string partition;
+
 struct MessageInformation
 {
   public: std::string data;
@@ -110,7 +112,7 @@ TEST(playback, ReplayLog)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps);
+    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -200,7 +202,7 @@ TEST(playback, ReplayLogRegex)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -268,7 +270,7 @@ TEST(playback, ReplayLogMoveInstances)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -307,6 +309,12 @@ TEST(playback, ReplayLogMoveInstances)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name to avoid topic collisions between processes.
+  partition = testing::getRandomNumber();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   setenv(ignition::transport::log::SchemaLocationEnvVar.c_str(),
          IGN_TRANSPORT_LOG_SQL_PATH, 1);
 

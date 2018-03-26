@@ -23,6 +23,8 @@
 
 #include "ChirpParams.hh"
 
+static std::string partition;
+
 //////////////////////////////////////////////////
 /// \brief VerifyMessage is intended to be used by the
 /// BeginRecordingXxxxBeforeAdvertisement tests.
@@ -72,7 +74,8 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
   ignition::transport::log::Recorder recorder;
   for (const std::string &topic : topics)
   {
-    recorder.AddTopic(topic);
+    EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+              recorder.AddTopic(topic));
   }
 
   const std::string logName =
@@ -83,7 +86,7 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -147,7 +150,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
         std::ceil(secondsToChirpFor * 1000.0/static_cast<double>(delay_ms)));
 
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   const int waitBeforeSubscribing_ms =
       ignition::transport::log::test::DelayBeforePublishing_ms
@@ -217,7 +220,7 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -265,6 +268,12 @@ TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name to avoid topic collisions between processes.
+  partition = testing::getRandomNumber();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   setenv(ignition::transport::log::SchemaLocationEnvVar.c_str(),
          IGN_TRANSPORT_LOG_SQL_PATH, 1);
 
