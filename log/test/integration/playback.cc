@@ -17,12 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Log.hh>
+#include <ignition/transport/log/Playback.hh>
+#include <ignition/transport/log/Recorder.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ChirpParams.hh"
+
+static std::string partition;
 
 struct MessageInformation
 {
@@ -33,9 +35,10 @@ struct MessageInformation
 
 static std::mutex dataMutex;
 
+//////////////////////////////////////////////////
 /// \brief This is used within lambda callbacks to keep track of incoming
 /// messages.
-/// \param[in] _archive A vector that will store the incoming message
+/// \param[out] _archive A vector that will store the incoming message
 /// information. This must be passed from a lambda which has captured a vector.
 /// \param[in] _data The data passed by the SubscribeRaw
 /// \param[in] _len The length of data passed by the SubscribeRaw
@@ -56,6 +59,7 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Compare sent and received messages
 /// \param[in] _recorded messages that were recorded
 /// \param[in] _played messages that were published
@@ -76,6 +80,7 @@ void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLog)
@@ -107,7 +112,7 @@ TEST(playback, ReplayLog)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps);
+    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -146,6 +151,7 @@ TEST(playback, ReplayLog)
 }
 
 
+//////////////////////////////////////////////////
 TEST(playback, ReplayNoSuchTopic)
 {
   ignition::transport::log::Recorder recorder;
@@ -163,6 +169,7 @@ TEST(playback, ReplayNoSuchTopic)
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLogRegex)
@@ -195,7 +202,7 @@ TEST(playback, ReplayLogRegex)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -227,6 +234,8 @@ TEST(playback, ReplayLogRegex)
   ExpectSameMessages(originalData, incomingData);
 }
 
+
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLogMoveInstances)
@@ -261,7 +270,7 @@ TEST(playback, ReplayLogMoveInstances)
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps);
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -296,9 +305,16 @@ TEST(playback, ReplayLogMoveInstances)
   ExpectSameMessages(originalData, incomingData);
 }
 
+
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  // Get a random partition name to avoid topic collisions between processes.
+  partition = testing::getRandomNumber();
+
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", partition.c_str(), 1);
+
   setenv(ignition::transport::log::SchemaLocationEnvVar.c_str(),
          IGN_TRANSPORT_LOG_SQL_PATH, 1);
 

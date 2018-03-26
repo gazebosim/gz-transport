@@ -14,9 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_RECORD_HH_
-#define IGNITION_TRANSPORT_LOG_RECORD_HH_
+#ifndef IGNITION_TRANSPORT_LOG_RECORDER_HH_
+#define IGNITION_TRANSPORT_LOG_RECORDER_HH_
 
+#include <cstdint>
 #include <memory>
 #include <regex>
 #include <string>
@@ -57,7 +58,8 @@ namespace ignition
 
         /// \brief Begin recording topics
         /// \param[in] _file path to log file
-        /// \return NO_ERROR if recording was successfully started
+        /// \return NO_ERROR if recording was successfully started. If the file
+        /// already existed, this will return FAILED_TO_OPEN.
         public: RecorderError Start(const std::string &_file);
 
         /// \brief Stop recording topics

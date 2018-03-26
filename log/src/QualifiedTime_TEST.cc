@@ -15,6 +15,8 @@
  *
 */
 
+#include <chrono>
+
 #include "ignition/transport/log/QualifiedTime.hh"
 #include "gtest/gtest.h"
 
@@ -68,6 +70,8 @@ TEST(QualifiedTime, CopyAssignment)
 {
   log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2 = qt1;
+  EXPECT_EQ(qt1, qt2);
+
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
@@ -79,6 +83,8 @@ TEST(QualifiedTime, CopyConstructor)
 {
   log::QualifiedTime qt1(24h, log::QualifiedTime::Qualifier::EXCLUSIVE);
   log::QualifiedTime qt2(qt1);
+  EXPECT_EQ(qt1, qt2);
+
   ASSERT_NE(nullptr, qt2.GetTime());
   EXPECT_EQ(24h, *qt2.GetTime());
   ASSERT_NE(nullptr, qt2.GetQualifier());
@@ -98,13 +104,13 @@ TEST(QualifiedTime, EqualityOperators)
   EXPECT_FALSE(qt1 == qt3);
   EXPECT_FALSE(qt1 == qt4);
   EXPECT_FALSE(qt1 == qt5);
-  EXPECT_TRUE(qt5 == qt5);
+  EXPECT_FALSE(qt5 == qt5);
 
   EXPECT_FALSE(qt1 != qt2);
   EXPECT_TRUE(qt1 != qt3);
   EXPECT_TRUE(qt1 != qt4);
   EXPECT_TRUE(qt1 != qt5);
-  EXPECT_FALSE(qt5 != qt5);
+  EXPECT_TRUE(qt5 != qt5);
 }
 
 //////////////////////////////////////////////////

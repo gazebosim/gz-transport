@@ -63,16 +63,12 @@ namespace ignition
         /// testing::waitAndCleanupFork().
         testing::forkHandlerType BeginChirps(
             const std::vector<std::string> &_topics,
-            const int _chirps)
+            const int _chirps,
+            const std::string &_partitionName)
         {
           // Set the chirping process name
           const std::string process =
               IGN_TRANSPORT_LOG_BUILD_PATH"/INTEGRATION_topicChirp_aux";
-
-          // Get the partition name by creating a temporary Node and checking
-          // its default partition name.
-          std::string partitionName =
-              ignition::transport::Node().Options().Partition();
 
           // Argument list:
           // [0]: Executable name
@@ -85,7 +81,7 @@ namespace ignition
           std::vector<std::string> strArgs;
           strArgs.reserve(numArgs-1);
           strArgs.push_back(process);
-          strArgs.push_back(partitionName);
+          strArgs.push_back(_partitionName);
           strArgs.push_back(std::to_string(_chirps));
           strArgs.insert(strArgs.end(), _topics.begin(), _topics.end());
 

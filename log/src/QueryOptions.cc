@@ -15,6 +15,12 @@
  *
 */
 
+#include <cstdint>
+#include <regex>
+#include <set>
+#include <string>
+#include <vector>
+
 #include <ignition/transport/log/QueryOptions.hh>
 
 using namespace ignition::transport;
