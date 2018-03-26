@@ -9,7 +9,8 @@ if(UNIX)
     return()
   endif()
 
-  pkg_search_module(SQLite3 sqlite3>=3.6.19)
+  # First version of SQLite3 with shared-cache for in-memory databases
+  pkg_search_module(SQLite3 REQUIRED sqlite3>=3.7.13)
   if(NOT SQLite3_FOUND)
     message(STATUS "Could not find sqlite3 -- skipping the log component")
     return()
@@ -94,10 +95,6 @@ endif()
 target_compile_options(${log_lib_target} PRIVATE
   ${SQLite3_CFLAGS}
 )
-
-if(MSVC)
-  target_compile_definitions(${log_lib_target} PRIVATE "SQLITE_API=__declspec(dllimport)")
-endif()
 
 # ign_build_tests macro doesn't support building tests in a subfolder
 add_subdirectory(src)

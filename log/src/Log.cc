@@ -381,14 +381,14 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
     LERR("A database is already open\n");
     return false;
   }
-  int64_t modeSQL = 0;
+  int64_t modeSQL = SQLITE_OPEN_URI;
   if (std::ios_base::out & _mode)
   {
-    modeSQL = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+    modeSQL = modeSQL | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
   }
   else if (std::ios_base::in & _mode)
   {
-    modeSQL = SQLITE_OPEN_READONLY;
+    modeSQL = modeSQL | SQLITE_OPEN_READONLY;
   }
 
   std::unique_ptr<raii_sqlite3::Database> db(
@@ -400,7 +400,7 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
   }
 
   // Don't need to create a schema if this is read only
-  if (modeSQL != SQLITE_OPEN_READONLY)
+  if (std::ios_base::out & _mode)
   {
     // Test hook so tests can be run before `make install`
     std::string schemaFile;

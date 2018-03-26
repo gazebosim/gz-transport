@@ -163,6 +163,8 @@ void Playback::Implementation::StartPlayback(Batch _batch)
           const std::chrono::nanoseconds target =
               msg.TimeReceived() - firstMsgTime;
 
+          // This will get initialized at if(!FinishedWaiting()) because the
+          // FinishedWaiting lambda is capturing this by reference.
           std::chrono::nanoseconds now;
 
           // We create a lambda to test whether this thread needs to keep
@@ -170,9 +172,9 @@ void Playback::Implementation::StartPlayback(Batch _batch)
           // condition_variable::wait_for(~) function to avoid spurious wakeups.
           auto FinishedWaiting = [this, &startTime, &target, &now]() -> bool
           {
-            now = std::chrono::nanoseconds(
-                  std::chrono::steady_clock::now().time_since_epoch());
-            now -= startTime;
+            now =
+                std::chrono::steady_clock::now().time_since_epoch() - startTime;
+
             return target <= now || this->stop;
           };
 
@@ -194,7 +196,7 @@ void Playback::Implementation::StartPlayback(Batch _batch)
             // alternative allows us to interrupt the sleep in case the user
             // calls Playback::Stop() while we are waiting between messages.
             std::mutex tempMutex;
-            std::unique_lock<std::mutex> tempLock;
+            std::unique_lock<std::mutex> tempLock(tempMutex);
             this->stopConditionVariable.wait_for(
                   tempLock, target - now, FinishedWaiting);
           }
