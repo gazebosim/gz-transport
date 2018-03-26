@@ -2,6 +2,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added examples using logging features
+   * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
+
 1. Added integration tests for recording
    * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
 
