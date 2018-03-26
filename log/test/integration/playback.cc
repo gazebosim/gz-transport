@@ -33,6 +33,7 @@ struct MessageInformation
 
 static std::mutex dataMutex;
 
+//////////////////////////////////////////////////
 /// \brief This is used within lambda callbacks to keep track of incoming
 /// messages.
 /// \param[in] _archive A vector that will store the incoming message
@@ -56,6 +57,7 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Compare sent and received messages
 /// \param[in] _recorded messages that were recorded
 /// \param[in] _played messages that were published
@@ -76,6 +78,7 @@ void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLog)
@@ -146,6 +149,7 @@ TEST(playback, ReplayLog)
 }
 
 
+//////////////////////////////////////////////////
 TEST(playback, ReplayNoSuchTopic)
 {
   ignition::transport::log::Recorder recorder;
@@ -163,6 +167,7 @@ TEST(playback, ReplayNoSuchTopic)
 }
 
 
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLogRegex)
@@ -227,6 +232,8 @@ TEST(playback, ReplayLogRegex)
   ExpectSameMessages(originalData, incomingData);
 }
 
+
+//////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
 TEST(playback, ReplayLogMoveInstances)
@@ -295,6 +302,7 @@ TEST(playback, ReplayLogMoveInstances)
 
   ExpectSameMessages(originalData, incomingData);
 }
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
