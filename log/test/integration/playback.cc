@@ -36,7 +36,7 @@ static std::mutex dataMutex;
 //////////////////////////////////////////////////
 /// \brief This is used within lambda callbacks to keep track of incoming
 /// messages.
-/// \param[in] _archive A vector that will store the incoming message
+/// \param[out] _archive A vector that will store the incoming message
 /// information. This must be passed from a lambda which has captured a vector.
 /// \param[in] _data The data passed by the SubscribeRaw
 /// \param[in] _len The length of data passed by the SubscribeRaw
