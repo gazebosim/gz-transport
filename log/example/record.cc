@@ -17,16 +17,19 @@
 
 /// \brief Example of recording all ignition transport topics.
 /// This will record all topics and currently published to a file.
-/// Launch a the ignition-transport publisher example so this example has
+/// Launch the ignition-transport publisher example so this example has
 /// something to record.
 
 #include <chrono>
+#include <cstdint>
 #include <iostream>
-#include <ignition/transport/log/Recorder.hh>
+#include <regex>
 #include <thread>
+#include <ignition/transport/log/Recorder.hh>
 
 using namespace std::chrono_literals;
 
+//////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
   if (argc != 2)

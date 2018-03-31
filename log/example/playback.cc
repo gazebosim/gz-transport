@@ -22,8 +22,10 @@
 /// by recording the publisher example.
 
 #include <iostream>
+#include <regex>
 #include <ignition/transport/log/Playback.hh>
 
+//////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
   if (argc != 2)
