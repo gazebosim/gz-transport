@@ -17,7 +17,7 @@
 #include <functional>
 #include <regex>
 
-#include "../Console.hh"
+#include "Console.hh"
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>

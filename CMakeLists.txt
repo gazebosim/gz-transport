@@ -80,10 +80,19 @@ endif()
 # Find ignition-tools
 ign_find_package(ignition-tools QUIET)
 
+#--------------------------------------
+# Find SQLite3
+ign_find_package(SQLite3
+  REQUIRED_BY log
+  PRIVATE_FOR log
+  PRETTY sqlite3)
+
+
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+ign_configure_build(QUIT_IF_BUILD_ERRORS
+  COMPONENTS log)
 
 #============================================================================
 # ign command line support
@@ -94,11 +103,6 @@ add_subdirectory(conf)
 # Test the command line commands
 #============================================================================
 add_subdirectory(tools)
-
-#============================================================================
-# Build Transport logging
-#============================================================================
-add_subdirectory(log)
 
 #============================================================================
 # Create package information
