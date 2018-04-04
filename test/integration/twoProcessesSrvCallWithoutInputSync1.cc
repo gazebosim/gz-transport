@@ -37,8 +37,8 @@ static std::string g_topic = "/foo";
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "test/integration/INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcessesSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
