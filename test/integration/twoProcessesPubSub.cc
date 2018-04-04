@@ -158,13 +158,10 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  unsigned int retries = 0u;
-
-  while (!pub.HasConnections() && retries++ < 5u)
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Now, we should have subscribers.
-  EXPECT_LT(retries, 5u);
+  EXPECT_TRUE(pub.HasConnections());
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
