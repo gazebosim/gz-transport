@@ -83,6 +83,7 @@ ign_find_package(ignition-tools QUIET)
 #--------------------------------------
 # Find SQLite3
 ign_find_package(SQLite3
+  VERSION 3.7.13
   REQUIRED_BY log
   PRIVATE_FOR log
   PRETTY sqlite3)
