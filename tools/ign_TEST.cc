@@ -81,8 +81,18 @@ TEST(ignTest, TopicList)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool topicFound = false;
+
+  while (!topicFound && retries++ < 10u)
+  {
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    topicFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(topicFound);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -102,11 +112,20 @@ TEST(ignTest, TopicInfo)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
-    g_ignVersion);
-  ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
-      != std::string::npos);
+
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -127,8 +146,18 @@ TEST(ignTest, ServiceList)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool serviceFound = false;
+
+  while (!serviceFound && retries++ < 10u)
+  {
+    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    serviceFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(serviceFound);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -148,9 +177,19 @@ TEST(ignTest, ServiceInfo)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i " +
-    g_ignVersion);
-  ASSERT_GT(output.size(), 50u);
+
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
@@ -174,8 +213,18 @@ TEST(ignTest, TopicListSameProc)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool topicFound = false;
+
+  while (!topicFound && retries++ < 10u)
+  {
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    topicFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(topicFound);
 }
 
 //////////////////////////////////////////////////
@@ -195,12 +244,20 @@ TEST(ignTest, TopicInfoSameProc)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
-    g_ignVersion);
 
-  ASSERT_GT(output.size(), 50u);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") !=
-      std::string::npos);
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -212,8 +269,18 @@ TEST(ignTest, ServiceListSameProc)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-  EXPECT_EQ(output, "/foo\n");
+
+  unsigned int retries = 0u;
+  bool serviceFound = false;
+
+  while (!serviceFound && retries++ < 10u)
+  {
+    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    serviceFound = output == "/foo\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(serviceFound);
 }
 
 //////////////////////////////////////////////////
@@ -225,10 +292,19 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign + " service -s /foo -i " +
-    g_ignVersion);
 
-  ASSERT_GT(output.size(), 50u);
+  unsigned int retries = 0u;
+  bool infoFound = false;
+  std::string output;
+
+  while (!infoFound && retries++ < 10u)
+  {
+    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    infoFound = output.size() > 50u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
@@ -340,8 +416,6 @@ int main(int argc, char **argv)
   value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 #endif
-
-  std::cout << "IGN_TEST_LIBRARY_PATH: " << IGN_TEST_LIBRARY_PATH << std::endl;
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
