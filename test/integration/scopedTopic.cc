@@ -37,8 +37,8 @@ static int data = 5;
 TEST(ScopedTopicTest, ProcessTest)
 {
   std::string subscriber_path = testing::portablePathUnion(
-     PROJECT_BINARY_PATH,
-     "/test/integration/INTEGRATION_scopedTopicSubscriber_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_scopedTopicSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
     partition.c_str());

@@ -8,7 +8,7 @@ ign_build_tests(
     playback.cc
     query.cc
   LIB_DEPS
-    ${log_lib_target}
+    ${PROJECT_LIBRARY_TARGET_NAME}-log
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )

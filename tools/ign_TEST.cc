@@ -73,26 +73,16 @@ TEST(ignTest, TopicList)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool topicFound = false;
-
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(topicFound);
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+  EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -104,28 +94,19 @@ TEST(ignTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
+    g_ignVersion);
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d")
+      != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -138,26 +119,16 @@ TEST(ignTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
   std::string replier_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool serviceFound = false;
-
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+  EXPECT_EQ(output, "/foo\n");
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -169,27 +140,17 @@ TEST(ignTest, ServiceInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string replier_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
+  std::string output = custom_exec_str(ign + " service -s /foo -i " +
+    g_ignVersion);
+  ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
@@ -213,18 +174,8 @@ TEST(ignTest, TopicListSameProc)
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool topicFound = false;
-
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(topicFound);
+  std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+  EXPECT_EQ(output, "/foo\n");
 }
 
 //////////////////////////////////////////////////
@@ -244,20 +195,12 @@ TEST(ignTest, TopicInfoSameProc)
 
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " topic -t /foo -i " +
+    g_ignVersion);
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  ASSERT_GT(output.size(), 50u);
+  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") !=
+      std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -269,18 +212,8 @@ TEST(ignTest, ServiceListSameProc)
 
   // Check the 'ign service -l' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-
-  unsigned int retries = 0u;
-  bool serviceFound = false;
-
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
+  std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+  EXPECT_EQ(output, "/foo\n");
 }
 
 //////////////////////////////////////////////////
@@ -292,19 +225,10 @@ TEST(ignTest, ServiceInfoSameProc)
 
   // Check the 'ign service -i' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(ign + " service -s /foo -i " +
+    g_ignVersion);
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
+  ASSERT_GT(output.size(), 50u);
   EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
 }
 
@@ -373,8 +297,8 @@ TEST(ignTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
@@ -416,6 +340,8 @@ int main(int argc, char **argv)
   value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 #endif
+
+  std::cout << "IGN_TEST_LIBRARY_PATH: " << IGN_TEST_LIBRARY_PATH << std::endl;
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
