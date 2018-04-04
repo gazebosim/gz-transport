@@ -55,10 +55,10 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
     result));
   EXPECT_TRUE(result);
 
-  auto t1 = std::chrono::system_clock::now();
+  auto t1 = std::chrono::steady_clock::now();
   EXPECT_FALSE(node.Request("unknown_service",
     static_cast<unsigned int>(timeout), rep, result));
-  auto t2 = std::chrono::system_clock::now();
+  auto t2 = std::chrono::steady_clock::now();
 
   int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
