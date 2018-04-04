@@ -112,4 +112,4 @@ set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_VERSION_M
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
 
 # Header installation
-install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR})
+install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL})
