@@ -20,8 +20,9 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/NodeOptionsPrivate.hh"
 #include "ignition/transport/TopicUtils.hh"
+
+#include "NodeOptionsPrivate.hh"
 
 using namespace ignition;
 using namespace transport;
