@@ -25,7 +25,7 @@ COMMON_OPTIONS =
   "                                                                        \n"\
 
 COMMANDS = { 'log' =>
-  "Record and playback igntion transport topics.                           \n"\
+  "Record and playback ignition transport topics.                          \n"\
   "  ign log record|playback [options]                                     \n"\
   "                                                                        \n"\
   "Available Options:                                                      \n" +
