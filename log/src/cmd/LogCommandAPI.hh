@@ -31,10 +31,12 @@ extern "C"
   int IGNITION_TRANSPORT_LOG_VISIBLE verbosity(int _level);
 
   /// \brief Record topics whose name matches the given pattern
+  /// \param[in] _file Path to the log file to record
+  /// \param[in] _pattern ECMAScript regular expression to match against topics
   int IGNITION_TRANSPORT_LOG_VISIBLE recordTopics(
     const char *_file, const char *_pattern);
 
-  /// \brief Playback topics whos name matches the given pattern
+  /// \brief Playback topics whose name matches the given pattern
   /// \param[in] _file Path to the log file to playback
   /// \param[in] _pattern ECMAScript regular expression to match against topics
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(

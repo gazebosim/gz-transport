@@ -15,19 +15,19 @@
  *
 */
 #include <functional>
+#include <iostream>
 #include <regex>
 
 #include "../Console.hh"
-#include <ignition/transport/Node.hh>
+#include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/log/Export.hh>
+#include <ignition/transport/Node.hh>
 #include "LogCommandAPI.hh"
 
 using namespace ignition;
 
-/// \brief Sets verbosity of library
-/// \param[in] _level [0-4] Verbosity level
+//////////////////////////////////////////////////
 int verbosity(int _level)
 {
   if (_level < 0 || _level > 4)
@@ -39,7 +39,7 @@ int verbosity(int _level)
   return SUCCESS;
 }
 
-/// \brief Record topics whose name matches the given pattern
+//////////////////////////////////////////////////
 int recordTopics(const char *_file, const char *_pattern)
 {
   std::regex regexPattern;
@@ -68,9 +68,7 @@ int recordTopics(const char *_file, const char *_pattern)
   return SUCCESS;
 }
 
-/// \brief Playback topics whos name matches the given pattern
-/// \param[in] _file Path to the log file to playback
-/// \param[in] _pattern ECMAScript regular expression to match against topics
+//////////////////////////////////////////////////
 int playbackTopics(const char *_file, const char *_pattern)
 {
   std::regex regexPattern;
