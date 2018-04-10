@@ -15,12 +15,13 @@
  *
 */
 
-/// \brief Example of creating custom query options for the log file
+/// \brief Example of creating custom query options for the log file.
 /// Custom query options can filter or re-order the output of a query for
 /// messages.
 /// This example will query all messages in a log, but output them in reverse.
 
 #include <iostream>
+#include <vector>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
   for (const auto &message : batch)
   {
     std::cout << message.TimeReceived().count()
-      << ": '" << message.Data() << "'\n";
+              << ": '" << message.Data() << "'\n";
   }
 
   return 0;

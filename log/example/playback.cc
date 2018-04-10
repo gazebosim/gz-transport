@@ -15,15 +15,18 @@
  *
 */
 
-/// \brief Example of playing back all messages from a log
+/// \brief Example of playing back all messages from a log.
 /// This will create publishers for all topics in a file and publish them
 /// with the same timing that they were received.
-/// Launch a the ignition-transport subscriber example if the log was created
+/// Launch the ignition-transport subscriber example if the log was created
 /// by recording the publisher example.
 
+#include <cstdint>
 #include <iostream>
+#include <regex>
 #include <ignition/transport/log/Playback.hh>
 
+//////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
   if (argc != 2)
@@ -37,12 +40,12 @@ int main(int argc, char *argv[])
   // Playback all topics
   player.AddTopic(std::regex(".*"));
 
-  // Begin recording, saving received messages to the given file
+  // Begin playback
   auto result = player.Start();
   if (ignition::transport::log::PlaybackError::SUCCESS != result)
   {
     std::cerr << "Failed to start playback: " << static_cast<int64_t>(result)
-      << "\n";
+              << "\n";
     return -1;
   }
 
