@@ -59,7 +59,7 @@ generate_export_header(${log_lib_target}
   EXPORT_FILE_NAME "include/ignition/transport/log/Export.hh"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/ignition/transport/log/Export.hh"
-  DESTINATION "${IGN_INCLUDE_INSTALL_DIR_FULL}/log")
+  DESTINATION "${IGN_INCLUDE_INSTALL_DIR_FULL}/ignition/transport/log")
 
 # Include directories
 target_include_directories(${log_lib_target} PUBLIC
