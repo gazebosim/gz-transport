@@ -38,19 +38,29 @@ int main(int argc, char *argv[])
   ignition::transport::log::Playback player(argv[1]);
 
   // Playback all topics
-  player.AddTopic(std::regex(".*"));
+  const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
+  if (addTopicResult == 0)
+  {
+    std::cout << "No topics to play back\n";
+    return 0;
+  }
+  else if (addTopicResult < 0)
+  {
+    std::cerr << "Failed to advertise topics: " << addTopicResult
+              << "\n";
+    return -1;
+  }
 
   // Begin playback
-  auto result = player.Start();
+  const auto result = player.Start();
   if (ignition::transport::log::PlaybackError::SUCCESS != result)
   {
     std::cerr << "Failed to start playback: " << static_cast<int64_t>(result)
               << "\n";
-    return -1;
+    return -2;
   }
 
   // Wait until the player stops on its own
   std::cout << "Playing all messages in the log file\n";
   player.WaitUntilFinished();
-  return 0;
 }

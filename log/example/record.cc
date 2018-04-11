@@ -39,15 +39,21 @@ int main(int argc, char *argv[])
   ignition::transport::log::Recorder recorder;
 
   // Record all topics
-  recorder.AddTopic(std::regex(".*"));
+  const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
+  if (addTopicResult < 0)
+  {
+    std::cerr << "An error occured when trying to add topics: "
+              << addTopicResult << "\n";
+    return -1;
+  }
 
   // Begin recording, saving received messages to the given file
-  auto result = recorder.Start(argv[1]);
+  const auto result = recorder.Start(argv[1]);
   if (ignition::transport::log::RecorderError::SUCCESS != result)
   {
     std::cerr << "Failed to start recording: " << static_cast<int64_t>(result)
               << "\n";
-    return -1;
+    return -2;
   }
 
   std::cout << "Press Ctrl+C to finish recording.\n  Recording... "
