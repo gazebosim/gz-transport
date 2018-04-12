@@ -59,7 +59,7 @@ generate_export_header(${log_lib_target}
   EXPORT_FILE_NAME "include/ignition/transport/log/Export.hh"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/ignition/transport/log/Export.hh"
-  DESTINATION "${IGN_INCLUDE_INSTALL_DIR_FULL}/log")
+  DESTINATION "${IGN_INCLUDE_INSTALL_DIR_FULL}/ignition/transport/log")
 
 # Include directories
 target_include_directories(${log_lib_target} PUBLIC
@@ -99,6 +99,7 @@ target_compile_options(${log_lib_target} PRIVATE
 # ign_build_tests macro doesn't support building tests in a subfolder
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(example)
 
 # Configure file with build time info
 set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_FULL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
@@ -111,4 +112,4 @@ set_target_properties(${log_lib_target} PROPERTIES SOVERSION ${PROJECT_VERSION_M
 install(TARGETS ${log_lib_target} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib)
 
 # Header installation
-install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR})
+install(DIRECTORY include/ignition DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL})
