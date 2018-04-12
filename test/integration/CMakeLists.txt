@@ -14,7 +14,18 @@ set(tests
   twoProcessesSrvCallWithoutOutputStress.cc
 )
 
-ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
+ign_build_tests(TYPE INTEGRATION SOURCES ${tests}
+  TEST_LIST test_list)
+
+foreach(test ${test_list})
+
+  # Inform each test of its output directory so it knows where to call the
+  # auxiliary files from. Using a generator expression here is useful for
+  # multi-configuration generators, like Visual Studio.
+  target_compile_definitions(${test} PRIVATE
+    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
+
+endforeach()
 
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
@@ -35,10 +46,6 @@ set(auxiliary_files
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})
   ign_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
-
-  # Include the interface directories that we always need.
-  ign_target_interface_include_directories(INTEGRATION_${AUX_EXECUTABLE}
-    ${PROJECT_LIBRARY_TARGET_NAME})
 
   # Link the libraries that we always need.
   target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
