@@ -15,6 +15,9 @@
  *
 */
 
+#include <cstdint>
+#include <string>
+
 #include <ignition/transport/log/SqlStatement.hh>
 
 using namespace ignition::transport::log;
@@ -97,7 +100,7 @@ class SqlParameter::Implementation
 
   /// \brief Text value for this parameter. This cannot be part of the union
   /// because it has a non-trivial destructor.
-  std::string text;
+  public: std::string text;
 };
 
 //////////////////////////////////////////////////

@@ -15,11 +15,13 @@
  *
 */
 
+#include <cstdint>
+#include <string>
+
 #include "ignition/transport/log/SqlStatement.hh"
 #include "gtest/gtest.h"
 
 using namespace ignition;
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, Construct)
@@ -36,7 +38,6 @@ TEST(SqlParameter, Construct)
       transport::log::SqlParameter("Hello World!").Type());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, Set)
 {
@@ -50,7 +51,6 @@ TEST(SqlParameter, Set)
   param.Set(nullptr);
   EXPECT_EQ(transport::log::SqlParameter::ParamType::NULL_TYPE, param.Type());
 }
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryText)
@@ -66,7 +66,6 @@ TEST(SqlParameter, QueryText)
   EXPECT_EQ(nullptr, param.QueryText());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryInteger)
 {
@@ -80,7 +79,6 @@ TEST(SqlParameter, QueryInteger)
   param.Set(nullptr);
   EXPECT_EQ(nullptr, param.QueryInteger());
 }
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, QueryReal)
@@ -99,41 +97,38 @@ TEST(SqlParameter, QueryReal)
 //////////////////////////////////////////////////
 TEST(SqlParameter, MoveConstructor)
 {
-  transport::log::SqlParameter param_orig;
-  param_orig.Set(3.14159);
-  transport::log::SqlParameter param(std::move(param_orig));
+  transport::log::SqlParameter paramOrig;
+  paramOrig.Set(3.14159);
+  transport::log::SqlParameter param(std::move(paramOrig));
   ASSERT_NE(nullptr, param.QueryReal());
   EXPECT_DOUBLE_EQ(3.14159, *param.QueryReal());
 }
 
-
 //////////////////////////////////////////////////
 TEST(SqlParameter, CopyAssignment)
 {
-  transport::log::SqlParameter param_orig;
-  param_orig.Set("Hello World!");
+  transport::log::SqlParameter paramOrig;
+  paramOrig.Set("Hello World!");
   transport::log::SqlParameter param;
   param.Set(static_cast<int64_t>(42));
-  param = param_orig;
-  ASSERT_NE(nullptr, param_orig.QueryText());
+  param = paramOrig;
+  ASSERT_NE(nullptr, paramOrig.QueryText());
   ASSERT_NE(nullptr, param.QueryText());
-  EXPECT_EQ(std::string("Hello World!"), *param_orig.QueryText());
+  EXPECT_EQ(std::string("Hello World!"), *paramOrig.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
-
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, MoveAssignment)
 {
-  transport::log::SqlParameter param_orig;
-  param_orig.Set("Hello World!");
+  transport::log::SqlParameter paramOrig;
+  paramOrig.Set("Hello World!");
   transport::log::SqlParameter param;
   param.Set(static_cast<int64_t>(42));
-  param = std::move(param_orig);
+  param = std::move(paramOrig);
   ASSERT_NE(nullptr, param.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
@@ -141,4 +136,3 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-

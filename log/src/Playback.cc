@@ -15,6 +15,7 @@
  *
 */
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -37,6 +38,9 @@ using namespace ignition::transport::log;
 /// \brief Private implementation
 class ignition::transport::log::Playback::Implementation
 {
+  /// \brief Default constructor
+  public: Implementation();
+
   /// \brief Create a publisher of a given topic name and type
   /// \param[in] _topic Topic name to publish to
   /// \param[in] _type The message type name to publish
@@ -53,7 +57,7 @@ class ignition::transport::log::Playback::Implementation
   public: void WaitUntilFinished();
 
   /// \brief True if the thread should be stopped
-  public: bool stop = true;
+  public: std::atomic_bool stop;
 
   /// \brief thread running playback
   public: std::thread playbackThread;
@@ -79,9 +83,20 @@ class ignition::transport::log::Playback::Implementation
   /// \brief a mutex to use when waiting for playback to finish
   public: std::mutex waitMutex;
 
-  /// \brief Condition variable to wakeup threads waiting on playback
+  /// \brief Condition variable to wake up threads waiting on playback
   public: std::condition_variable waitConditionVariable;
+
+  /// \brief Condition variable to wake up the playback thread if it's waiting
+  /// to publish the next message.
+  public: std::condition_variable stopConditionVariable;
 };
+
+//////////////////////////////////////////////////
+Playback::Implementation::Implementation()
+  : stop(true)
+{
+  // Do nothing
+}
 
 //////////////////////////////////////////////////
 bool Playback::Implementation::CreatePublisher(
@@ -93,12 +108,15 @@ bool Playback::Implementation::CreatePublisher(
     // Create a map for the message topic
     this->publishers[_topic] = std::unordered_map<std::string,
       ignition::transport::Node::Publisher>();
-    firstMapIter = publishers.find(_topic);
+    firstMapIter = this->publishers.find(_topic);
   }
 
   auto secondMapIter = firstMapIter->second.find(_type);
   if (secondMapIter != firstMapIter->second.end())
   {
+    // A publisher which matches this (topic, type) pair has already been
+    // created, so we stop here. We return a value of false because no new
+    // publisher was created.
     return false;
   }
 
@@ -113,12 +131,12 @@ void Playback::Implementation::StartPlayback(Batch _batch)
 {
   this->stop = false;
 
-  // Dev Note: msgIter is being initialized via the move-constructor within the
+  // Dev Note: batch is being initialized via the move-constructor within the
   // capture statement, as if it were being declared and constructed as
-  // `auto msgIter{std::move(iter)}`.
+  // `auto batch{std::move(_batch)}`.
   //
-  // For now, we need to use the move constructor because MsgIter does not yet
-  // support copy construction. Also, the object named `iter` will go out of
+  // For now, we need to use the move constructor because Batch does not yet
+  // support copy construction. Also, the object named `_batch` will go out of
   // scope while this lambda is still in use, so we cannot rely on capturing it
   // by reference.
   this->playbackThread = std::thread(
@@ -127,7 +145,7 @@ void Playback::Implementation::StartPlayback(Batch _batch)
       bool publishedFirstMessage = false;
 
       // Get current elapsed on monotonic clock
-      std::chrono::nanoseconds startTime(
+      const std::chrono::nanoseconds startTime(
           std::chrono::steady_clock::now().time_since_epoch());
       std::chrono::nanoseconds firstMsgTime;
 
@@ -142,13 +160,45 @@ void Playback::Implementation::StartPlayback(Batch _batch)
         // Publish the first message right away, all others delay
         if (publishedFirstMessage)
         {
-          std::chrono::nanoseconds target = msg.TimeReceived() - firstMsgTime;
-          auto now = std::chrono::nanoseconds(
-              std::chrono::steady_clock::now().time_since_epoch());
-          now -= startTime;
-          if (target > now)
+          const std::chrono::nanoseconds target =
+              msg.TimeReceived() - firstMsgTime;
+
+          // This will get initialized at if(!FinishedWaiting()) because the
+          // FinishedWaiting lambda is capturing this by reference.
+          std::chrono::nanoseconds now;
+
+          // We create a lambda to test whether this thread needs to keep
+          // waiting. This is used as a predicate by the
+          // condition_variable::wait_for(~) function to avoid spurious wakeups.
+          auto FinishedWaiting = [this, &startTime, &target, &now]() -> bool
           {
-            std::this_thread::sleep_for(target - now);
+            now =
+                std::chrono::steady_clock::now().time_since_epoch() - startTime;
+
+            return target <= now || this->stop;
+          };
+
+          if (!FinishedWaiting())
+          {
+            // Passing a lock to wait_for is just a formality (we don't actually
+            // want to unlock any mutex while waiting), so we create a temporary
+            // mutex and lock to satisfy the function.
+            //
+            // According to the C++11 standard, it is undefined behavior to pass
+            // different mutexes into the condition_variable::wait_for()
+            // function of the same condition_variable instance from different
+            // threads. However, this current thread should be the only thread
+            // that is ever waiting on stopConditionVariable because we are
+            // keeping playbackLock locked this whole time. Therefore, it's okay
+            // for it lock its own local, unique mutex.
+            //
+            // This is really a substitute for the sleep_for function. This
+            // alternative allows us to interrupt the sleep in case the user
+            // calls Playback::Stop() while we are waiting between messages.
+            std::mutex tempMutex;
+            std::unique_lock<std::mutex> tempLock(tempMutex);
+            this->stopConditionVariable.wait_for(
+                  tempLock, target - now, FinishedWaiting);
           }
         }
         else
@@ -176,7 +226,7 @@ void Playback::Implementation::WaitUntilFinished()
   if (this->logFile.Valid() && !this->stop)
   {
     std::unique_lock<std::mutex> lk(this->waitMutex);
-    this->waitConditionVariable.wait(lk, [this]{return this->stop;});
+    this->waitConditionVariable.wait(lk, [this]{return this->stop.load();});
   }
 }
 
@@ -250,7 +300,10 @@ PlaybackError Playback::Stop()
     LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
+
   this->dataPtr->stop = true;
+  this->dataPtr->stopConditionVariable.notify_all();
+
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
   return PlaybackError::SUCCESS;

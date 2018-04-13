@@ -18,7 +18,6 @@
 #define IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
 
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "ignition/transport/log/SqlStatement.hh"
@@ -27,12 +26,13 @@
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
-
 /// \brief Private implementation for Batch
 /// \internal
 class ignition::transport::log::BatchPrivate
 {
   /// \brief constructor
+  /// \param[in] _db an open sqlite3 database handle wrapper
+  /// \param[in] _statements a list of statments to be executed to get messages
   public: explicit BatchPrivate(
       const std::shared_ptr<raii_sqlite3::Database> &_db,
       std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)

@@ -51,8 +51,8 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
   ignition::msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
@@ -83,8 +83,8 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 TEST(twoProcSrvCallWithoutOutput, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     g_partition.c_str());
@@ -134,8 +134,8 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     g_partition.c_str());
