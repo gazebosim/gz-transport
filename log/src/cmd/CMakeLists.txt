@@ -2,7 +2,8 @@
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # TODO: We do not currently have tests for the `ign log` command, so this is currently going unused.
-set(cmd_log_script_generated_test "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition/cmdlog${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_log_ruby_test_dir "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
+set(cmd_log_script_generated_test "${cmd_log_ruby_test_dir}/cmdlog${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_log_script_configured_test "${cmd_log_script_generated_test}.configured")
 
 # Set the log_library_location variable to the full path of the library file
@@ -17,6 +18,13 @@ configure_file(
 file(GENERATE
   OUTPUT "${cmd_log_script_generated_test}"
   INPUT  "${cmd_log_script_configured_test}")
+
+# Used for internal testing.
+set(ign_log_ruby_path "${cmd_log_script_generated_test}")
+
+configure_file(
+  "transportlog.yaml.in"
+  "${cmd_log_ruby_test_dir}/transportlog${PROJECT_VERSION_MAJOR}.yaml")
 
 
 #===============================================================================
@@ -40,3 +48,13 @@ file(GENERATE
   INPUT  "${cmd_log_script_configured}")
 
 install(FILES ${cmd_log_script_generated} DESTINATION lib/ruby/ignition)
+
+# Used for the installed version.
+set(ign_log_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdlog${PROJECT_VERSION_MAJOR}")
+
+set(transportlog_configured "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml")
+configure_file(
+  "transportlog.yaml.in"
+  ${transportlog_configured})
+
+install(FILES ${transportlog_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)

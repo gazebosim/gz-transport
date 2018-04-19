@@ -2,7 +2,7 @@
 format: 1.0.0
 library_name: ignition-transport-log
 library_version: @PROJECT_VERSION_FULL@
-library_path: @IGN_LIBRARY_PATH@
+library_path: @ign_log_ruby_path@
 commands:
     - log   : Record or playback topics
 ---
