@@ -1,6 +1,6 @@
 # Generate ruby script
 get_filename_component(input_script "${CMAKE_CURRENT_SOURCE_DIR}/cmdlog.rb.in" ABSOLUTE)
-get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/cmdlog${PROJECT_MAJOR_VERSION}.rb" ABSOLUTE)
+get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/cmdlog${PROJECT_VERSION_MAJOR}.rb" ABSOLUTE)
 add_custom_command (
   OUTPUT ${output_script}
   DEPENDS ${input_script}
@@ -14,9 +14,9 @@ add_custom_target(generate_ruby_script ALL DEPENDS ${output_script})
 install(FILES ${output_script} DESTINATION lib/ruby/ignition)
 
 # Generate command yaml
-set(ruby_script_install "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdlog${PROJECT_MAJOR_VERSION}")
+set(ruby_script_install "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdlog${PROJECT_VERSION_MAJOR}")
 get_filename_component(input_script "${CMAKE_CURRENT_SOURCE_DIR}/transportlog.yaml.in" ABSOLUTE)
-get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_MAJOR_VERSION}.yaml" ABSOLUTE)
+get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml" ABSOLUTE)
 add_custom_command (
   OUTPUT ${output_script}
   DEPENDS ${input_script}
