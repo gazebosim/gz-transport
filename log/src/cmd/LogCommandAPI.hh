@@ -23,7 +23,9 @@ extern "C"
     SUCCESS = 0,
     FAILED_TO_OPEN = 1,
     BAD_REGEX = 2,
-    INVALID_VERSION = 3,
+    FAILED_TO_ADVERTISE = 3,
+    FAILED_TO_SUBSCRIBE = 4,
+    INVALID_VERSION = 5,
   };
 
   /// \brief Sets verbosity of library

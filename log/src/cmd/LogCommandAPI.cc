@@ -54,11 +54,12 @@ int recordTopics(const char *_file, const char *_pattern)
   }
 
   transport::log::Recorder recorder;
-  recorder.AddTopic(regexPattern);
+
+  if(recorder.AddTopic(regexPattern) < 0)
+    return FAILED_TO_SUBSCRIBE;
+
   if (recorder.Start(_file) != transport::log::RecorderError::SUCCESS)
-  {
     return FAILED_TO_OPEN;
-  }
 
   // Wait until signaled (SIGINT, SIGTERM)
   transport::waitForShutdown();
@@ -86,11 +87,11 @@ int playbackTopics(const char *_file, const char *_pattern)
   if (!player.Valid())
     return FAILED_TO_OPEN;
 
-  player.AddTopic(regexPattern);
+  if (player.AddTopic(regexPattern) < 0)
+    return FAILED_TO_ADVERTISE;
+
   if (player.Start() != transport::log::PlaybackError::SUCCESS)
-  {
     return FAILED_TO_OPEN;
-  }
 
   // Wait until playback finishes
   player.WaitUntilFinished();

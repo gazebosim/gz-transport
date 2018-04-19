@@ -311,7 +311,6 @@ PlaybackError Playback::Stop()
 //////////////////////////////////////////////////
 bool Playback::Valid() const
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   return this->dataPtr->logFile.Valid();
 }
 
