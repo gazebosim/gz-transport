@@ -40,6 +40,7 @@
 
 #include <ignition/msgs/Factory.hh>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/SubscribeOptions.hh"
@@ -50,6 +51,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief SubscriptionHandlerBase contains functions and data which are
     /// common to all SubscriptionHandler types.
     class IGNITION_TRANSPORT_VISIBLE SubscriptionHandlerBase
@@ -339,6 +343,7 @@ namespace ignition
       /// \brief Pointer to the implementation of the class
       private: std::unique_ptr<Implementation> pimpl;
     };
+    }
   }
 }
 

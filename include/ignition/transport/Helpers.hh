@@ -24,12 +24,16 @@
 #include <limits>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief Constant used when not interested in throttling.
     static const uint64_t kUnthrottled = std::numeric_limits<uint64_t>::max();
 
@@ -52,6 +56,7 @@ namespace ignition
       #define ign_sprintf std::sprintf
       #define ign_strdup strdup
     #endif
+  }
   }
 }
 

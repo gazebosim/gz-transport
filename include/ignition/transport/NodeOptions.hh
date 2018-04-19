@@ -21,12 +21,17 @@
 #include <memory>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class NodeOptionsPrivate;
 
     /// \class NodeOptions NodeOptions.hh ignition/transport/NodeOptions.hh
@@ -105,6 +110,7 @@ namespace ignition
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::NodeOptionsPrivate> dataPtr;
     };
+    }
   }
 }
 #endif

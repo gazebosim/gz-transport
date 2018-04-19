@@ -55,6 +55,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \brief Get the preferred local IP address.
     /// Note that we don't consider private IP addresses.
     /// \param[out] _ip The preferred local IP address.
@@ -90,6 +92,7 @@ namespace ignition
 
       _ip = hostIP;
       return true;
+    }
     }
   }
 }

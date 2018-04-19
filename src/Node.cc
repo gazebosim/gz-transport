@@ -49,6 +49,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
     /// waitForShutdown().
     static bool g_shutdown = false;
@@ -167,6 +169,7 @@ namespace ignition
       /// \brief Mutex to protect the node::publisher from race conditions.
       public: std::mutex mutex;
     };
+    }
   }
 }
 

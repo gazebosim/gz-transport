@@ -31,6 +31,7 @@
 #include <memory>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -39,6 +40,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class IGNITION_TRANSPORT_VISIBLE IReqHandler
@@ -395,6 +399,7 @@ namespace ignition
       /// \brief Protobuf message containing the response.
       private: google::protobuf::Message *repMsg = nullptr;
     };
+    }
   }
 }
 

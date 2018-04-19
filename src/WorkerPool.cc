@@ -29,6 +29,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \brief info needed to perform work
     struct WorkOrder
     {
@@ -66,6 +68,7 @@ namespace ignition
       /// \brief used to signal when the pool is being shut down
       public: bool done = false;
     };
+    }
   }
 }
 

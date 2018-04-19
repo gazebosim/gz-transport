@@ -35,6 +35,7 @@
 #endif
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
@@ -50,6 +51,10 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class NodePrivate;
 
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
@@ -1290,6 +1295,7 @@ namespace ignition
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<transport::NodePrivate> dataPtr;
     };
+    }
   }
 }
 #endif

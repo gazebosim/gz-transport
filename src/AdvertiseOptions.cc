@@ -29,6 +29,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \internal
     /// \brief Private data for AdvertiseOptions class.
     class AdvertiseOptionsPrivate
@@ -67,6 +69,7 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~AdvertiseServiceOptionsPrivate() = default;
     };
+    }
   }
 }
 

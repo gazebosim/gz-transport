@@ -32,12 +32,16 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Publisher.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief Forward declarations.
     class IRepHandler;
     class IReqHandler;
@@ -168,6 +172,7 @@ namespace ignition
 
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobuf.Message";
+    }
   }
 }
 #endif
