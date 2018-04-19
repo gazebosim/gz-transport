@@ -76,6 +76,17 @@ namespace ignition
     }
 
     //////////////////////////////////////////////////
+    void waitForShutdown()
+    {
+      // Install a signal handler for SIGINT and SIGTERM.
+      std::signal(SIGINT,  signal_handler);
+      std::signal(SIGTERM, signal_handler);
+
+      std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+      g_shutdown_cv.wait(lk, []{return g_shutdown;});
+    }
+
+    //////////////////////////////////////////////////
     /// \internal
     /// \brief Private data for Node::Publisher class.
     class Node::PublisherPrivate
@@ -171,17 +182,6 @@ namespace ignition
     };
     }
   }
-}
-
-//////////////////////////////////////////////////
-void ignition::transport::waitForShutdown()
-{
-  // Install a signal handler for SIGINT and SIGTERM.
-  std::signal(SIGINT,  signal_handler);
-  std::signal(SIGTERM, signal_handler);
-
-  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
-  g_shutdown_cv.wait(lk, []{return g_shutdown;});
 }
 
 //////////////////////////////////////////////////
