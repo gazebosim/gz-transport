@@ -2,6 +2,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Added command line tool for the logging features
+   * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
+
 1. Added examples using logging features
    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
 
