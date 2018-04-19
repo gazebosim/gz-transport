@@ -55,7 +55,7 @@ int recordTopics(const char *_file, const char *_pattern)
 
   transport::log::Recorder recorder;
 
-  if(recorder.AddTopic(regexPattern) < 0)
+  if (recorder.AddTopic(regexPattern) < 0)
     return FAILED_TO_SUBSCRIBE;
 
   if (recorder.Start(_file) != transport::log::RecorderError::SUCCESS)
