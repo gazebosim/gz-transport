@@ -236,7 +236,7 @@ Playback::Playback(const std::string &_file)
 {
   if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
   {
-    LERR("Failed to open file [" << _file << "]\n");
+    LERR("Could not open file [" << _file << "]\n");
   }
   else
   {
@@ -297,7 +297,6 @@ PlaybackError Playback::Stop()
 {
   if (!this->dataPtr->logFile.Valid())
   {
-    LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
 
@@ -307,6 +306,13 @@ PlaybackError Playback::Stop()
   if (this->dataPtr->playbackThread.joinable())
     this->dataPtr->playbackThread.join();
   return PlaybackError::SUCCESS;
+}
+
+//////////////////////////////////////////////////
+bool Playback::Valid() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
+  return this->dataPtr->logFile.Valid();
 }
 
 //////////////////////////////////////////////////

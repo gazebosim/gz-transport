@@ -64,6 +64,10 @@ namespace ignition
         /// \brief Stop playing messages
         public: PlaybackError Stop();
 
+        /// \brief Check if this Playback object has a valid log to play back
+        /// \return true if this has a valid log to play back, otherwise false.
+        public: bool Valid() const;
+
         /// \brief Block until playback runs out of messages to publish
         public: void WaitUntilFinished();
 

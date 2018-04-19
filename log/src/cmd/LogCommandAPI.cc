@@ -83,6 +83,9 @@ int playbackTopics(const char *_file, const char *_pattern)
   }
 
   transport::log::Playback player(_file);
+  if (!player.Valid())
+    return FAILED_TO_OPEN;
+
   player.AddTopic(regexPattern);
   if (player.Start() != transport::log::PlaybackError::SUCCESS)
   {
