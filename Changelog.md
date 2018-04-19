@@ -3,7 +3,7 @@
 ### Ignition Transport 5.X.X
 
 1. Added inline versioned namespace
-   * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/xxx)
+   * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
 
 ## Ignition Transport 4
 
