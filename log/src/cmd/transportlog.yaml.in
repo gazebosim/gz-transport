@@ -1,6 +1,6 @@
 --- # Subcommands available inside ignition-transport-log.
 format: 1.0.0
-library_name: @PROJECT_NAME_LOWER@
+library_name: ignition-transport-log
 library_version: @PROJECT_VERSION_FULL@
 library_path: @IGN_LIBRARY_PATH@
 commands:
