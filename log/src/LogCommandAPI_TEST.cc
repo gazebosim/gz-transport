@@ -15,7 +15,7 @@
  *
 */
 
-#include "LogCommandAPI.hh"
+#include "cmd/LogCommandAPI.hh"
 #include "gtest/gtest.h"
 
 //////////////////////////////////////////////////
