@@ -14,11 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < '2'
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
 require 'date'
-require 'ffi'
 require 'optparse'
 
 # Constants.
+LIBRARY_NAME = '@log_library_location@'
+LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMON_OPTIONS =
   "  -h [ --help ]              Print this help message.                   \n"\
   "  -v [ --verbose ] LEVEL     Set verbosity level 0-4 (default 1)        \n"\
@@ -53,17 +65,6 @@ SUBCOMMANDS = { 'record' =>
   "                           (Default match all topics)                   \n" +
   COMMON_OPTIONS
 }
-
-#
-# Class for accessing C functions
-#
-module TransportLog
-  extend FFI::Library
-  ffi_lib "@IGN_LIBRARY_NAME@"
-  attach_function :recordTopics, [:string, :string], :int
-  attach_function :playbackTopics, [:string, :string], :int
-  attach_function :verbosity, [:int], :int
-end
 
 #
 # Class for the Ignition Transport Log command line tools.
@@ -131,22 +132,46 @@ class Cmd
   def execute(args)
     options = parse(args)
 
+    if LIBRARY_NAME[0] == '/'
+      # If the first character is a slash, we'll assume that we've been given an
+      # absolute path to the library. This is only used during test mode.
+      plugin = LIBRARY_NAME
+    else
+      # We're assuming that the library path is relative  to the current
+      # location of this script.
+      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+    end
+    conf_version = LIBRARY_VERSION
+
     begin
-      result = TransportLog.verbosity options['verbose']
+      Importer.dlload plugin
+    rescue DLError
+      puts "Library error: [#{plugin}] not found."
+      exit(-1)
+    end
+
+    # TODO: Add a sanity check for the ignition-transport-log version
+
+    begin
+      Importer.extern 'int verbosity(int)'
+      result = Importer.verbosity(options['verbose'])
       if 0 != result
         exit -1
       end
 
       case options['subcommand']
       when 'record'
-        result = TransportLog.recordTopics options['file'], options['pattern']
+        Importer.extern 'int recordTopics(const char *, const char *)'
+        result = Importer.recordTopics(options['file'], options['pattern'])
       when 'playback'
-        result = TransportLog.playbackTopics options['file'], options['pattern']
+        Importer.extern 'int playbackTopics(const char *, const char *)'
+        result = Importer.playbackTopics(options['file'], options['pattern'])
       end
 
       if result != 0
         exit -1
       end
+
     rescue
       puts "Library error: Problem running [#{options['command']}]()"
     end # begin
