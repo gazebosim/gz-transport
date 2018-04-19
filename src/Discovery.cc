@@ -27,24 +27,32 @@
 
 #include "ignition/transport/Discovery.hh"
 
-/////////////////////////////////////////////////
-bool ignition::transport::pollSockets(const std::vector<int> &_sockets,
-                                      const int _timeout)
+namespace ignition
 {
-  zmq::pollitem_t items[] =
+namespace transport
+{
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+{
+  /////////////////////////////////////////////////
+  bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
   {
-    {0, _sockets.at(0), ZMQ_POLLIN, 0},
-  };
+    zmq::pollitem_t items[] =
+    {
+      {0, _sockets.at(0), ZMQ_POLLIN, 0},
+    };
 
-  try
-  {
-    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), _timeout);
-  }
-  catch(...)
-  {
-    return false;
-  }
+    try
+    {
+      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]), _timeout);
+    }
+    catch(...)
+    {
+      return false;
+    }
 
-  // Return if we got a reply.
-  return items[0].revents & ZMQ_POLLIN;
+    // Return if we got a reply.
+    return items[0].revents & ZMQ_POLLIN;
+  }
+}
+}
 }
