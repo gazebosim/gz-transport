@@ -1,32 +1,42 @@
-# Generate ruby script
-get_filename_component(input_script "${CMAKE_CURRENT_SOURCE_DIR}/cmdlog.rb.in" ABSOLUTE)
-get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/cmdlog${PROJECT_VERSION_MAJOR}.rb" ABSOLUTE)
-add_custom_command (
-  OUTPUT ${output_script}
-  DEPENDS ${input_script}
-  COMMAND ${CMAKE_COMMAND}
-    "-DINPUT_FILE=${input_script}"
-    "-DOUTPUT_FILE=${output_script}"
-    "-DIGN_LIBRARY_NAME=$<TARGET_FILE:${log_lib_target}>"
-    -P "${CMAKE_CURRENT_SOURCE_DIR}/generate_time_configure_file.cmake"
-)
-add_custom_target(generate_ruby_script ALL DEPENDS ${output_script})
-install(FILES ${output_script} DESTINATION lib/ruby/ignition)
+#===============================================================================
+# Generate the ruby script for internal testing.
+# Note that the major version of the library is included in the name.
+# TODO: We do not currently have tests for the `ign log` command, so this is currently going unused.
+set(cmd_log_script_generated_test "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition/cmdlog${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_log_script_configured_test "${cmd_log_script_generated_test}.configured")
 
-# Generate command yaml
-set(ruby_script_install "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdlog${PROJECT_VERSION_MAJOR}")
-get_filename_component(input_script "${CMAKE_CURRENT_SOURCE_DIR}/transportlog.yaml.in" ABSOLUTE)
-get_filename_component(output_script "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml" ABSOLUTE)
-add_custom_command (
-  OUTPUT ${output_script}
-  DEPENDS ${input_script}
-  COMMAND ${CMAKE_COMMAND}
-    "-DINPUT_FILE=${input_script}"
-    "-DOUTPUT_FILE=${output_script}"
-    "-DPROJECT_NAME_LOWER=${log_lib_target}"
-    "-DIGN_LIBRARY_PATH=${ruby_script_install}"
-    "-DPROJECT_VERSION_FULL=${PROJECT_VERSION_FULL}"
-    -P "${CMAKE_CURRENT_SOURCE_DIR}/generate_time_configure_file.cmake"
-)
-add_custom_target(generate_cmd_yaml ALL DEPENDS ${output_script})
-install(FILES ${output_script} DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ignition/")
+# Set the log_library_location variable to the full path of the library file
+# within the build directory
+set(log_library_location "$<TARGET_FILE:${log_lib_target}>")
+
+configure_file(
+  "cmdlog.rb.in"
+  "${cmd_log_script_configured_test}"
+  @ONLY)
+
+file(GENERATE
+  OUTPUT "${cmd_log_script_generated_test}"
+  INPUT  "${cmd_log_script_configured_test}")
+
+
+#===============================================================================
+# Used for the installed version.
+# Generate the ruby script that gets installed.
+# Note that the major version of the library is included in the name.
+set(cmd_log_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdlog${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_log_script_configured "${cmd_log_script_generated}.configured")
+
+# Set the log_library_location variable to the relative path to the library file
+# within the install directory structure.
+set(log_library_location "../../../${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${log_lib_target}>")
+
+configure_file(
+  "cmdlog.rb.in"
+  "${cmd_log_script_configured}"
+  @ONLY)
+
+file(GENERATE
+  OUTPUT "${cmd_log_script_generated}"
+  INPUT  "${cmd_log_script_configured}")
+
+install(FILES ${cmd_log_script_generated} DESTINATION lib/ruby/ignition)
