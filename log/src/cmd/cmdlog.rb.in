@@ -62,7 +62,10 @@ SUBCOMMANDS = { 'record' =>
   "                                                                        \n"\
   "Options:                                                              \n\n"\
   "  --pattern REGEX            Regular expression in C++ ECMAScript grammar\n"\
-  "                             (Default match all topics).                \n" +
+  "                             (Default match all topics).                \n"\
+  "  --wait MILLISEC            Integer (milliseconds) for how long to wait \n"\
+  "                             between topic advertisement and publishing.\n"\
+  "                             Default: 1000 (1 second)\n"+
   COMMON_OPTIONS
 }
 
@@ -79,6 +82,7 @@ class Cmd
       'file' => '',
       'pattern' => '.+',
       'verbose' => 1,
+      'wait' => 1000
     }
 
     usage = COMMANDS[args[0]]
@@ -105,6 +109,9 @@ class Cmd
       end
       opts.on('-v LEVEL', '--verbose LEVEL', OptionParser::DecimalInteger) do |level|
         options['verbose'] = level
+      end
+      opts.on('--wait MILLISEC', OptionParser::DecimalInteger) do |wait|
+        options['wait'] = wait
       end
     end # opt_parser do
 
@@ -164,8 +171,9 @@ class Cmd
         Importer.extern 'int recordTopics(const char *, const char *)'
         result = Importer.recordTopics(options['file'], options['pattern'])
       when 'playback'
-        Importer.extern 'int playbackTopics(const char *, const char *)'
-        result = Importer.playbackTopics(options['file'], options['pattern'])
+        Importer.extern 'int playbackTopics(const char *, const char *, int)'
+        result = Importer.playbackTopics(
+          options['file'], options['pattern'], options['wait'])
       end
 
       if result != 0

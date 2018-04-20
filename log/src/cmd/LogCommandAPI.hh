@@ -42,5 +42,5 @@ extern "C"
   /// \param[in] _file Path to the log file to playback
   /// \param[in] _pattern ECMAScript regular expression to match against topics
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
-    const char *_file, const char *_pattern);
+    const char *_file, const char *_pattern, const int _wait_ms);
 }

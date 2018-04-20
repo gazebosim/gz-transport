@@ -70,7 +70,7 @@ int recordTopics(const char *_file, const char *_pattern)
 }
 
 //////////////////////////////////////////////////
-int playbackTopics(const char *_file, const char *_pattern)
+int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms)
 {
   std::regex regexPattern;
   try
@@ -89,6 +89,8 @@ int playbackTopics(const char *_file, const char *_pattern)
 
   if (player.AddTopic(regexPattern) < 0)
     return FAILED_TO_ADVERTISE;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(_wait_ms));
 
   if (player.Start() != transport::log::PlaybackError::SUCCESS)
     return FAILED_TO_OPEN;

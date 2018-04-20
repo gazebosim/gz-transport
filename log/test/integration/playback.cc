@@ -63,7 +63,8 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
 /// \brief Compare sent and received messages
 /// \param[in] _recorded messages that were recorded
 /// \param[in] _played messages that were published
-void ExpectSameMessages(const std::vector<MessageInformation> &_recorded,
+void ExpectSameMessages(
+    const std::vector<MessageInformation> &_recorded,
     const std::vector<MessageInformation> &_played)
 {
   for (std::size_t i = 0; i < _recorded.size() && i < _played.size(); ++i)

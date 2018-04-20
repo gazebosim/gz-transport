@@ -35,7 +35,7 @@ TEST(LogCommandAPI, RecordBadRegex)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackBadRegex)
 {
-  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*"));
+  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0));
 }
 
 //////////////////////////////////////////////////
@@ -47,7 +47,7 @@ TEST(LogCommandAPI, RecordFailedToOpen)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackFailedToOpen)
 {
-  EXPECT_EQ(FAILED_TO_OPEN, playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*"));
+  EXPECT_EQ(FAILED_TO_OPEN, playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0));
 }
 
 
