@@ -4,5 +4,5 @@ library_name: ignition-transport-log
 library_version: @PROJECT_VERSION_FULL@
 library_path: @ign_log_ruby_path@
 commands:
-    - log   : Record or playback topics
+    - log   : Record or playback topics.
 ---
