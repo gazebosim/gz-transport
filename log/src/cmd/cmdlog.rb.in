@@ -65,7 +65,7 @@ SUBCOMMANDS = { 'record' =>
   "                             (Default match all topics).                \n"\
   "  --wait MILLISEC            Integer (milliseconds) for how long to wait \n"\
   "                             between topic advertisement and publishing.\n"\
-  "                             Default: 1000 (1 second)\n"+
+  "                             Default: 1000 (1 second).\n"+
   COMMON_OPTIONS
 }
 
