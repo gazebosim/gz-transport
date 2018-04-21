@@ -92,11 +92,12 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(_wait_ms));
 
-  if (player.Start() != transport::log::PlaybackError::SUCCESS)
+  ignition::transport::log::PlaybackHandlePtr handler = player.Start();
+  if (!handler)
     return FAILED_TO_OPEN;
 
   // Wait until playback finishes
-  player.WaitUntilFinished();
+  handler->WaitUntilFinished();
   LDBG("Shutting down\n");
   return SUCCESS;
 }

@@ -136,12 +136,12 @@ TEST(playback, ReplayLog)
     playback.AddTopic(topic);
   }
 
-  playback.Start();
+  const auto handle = playback.Start();
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  playback.WaitUntilFinished();
+  handle->WaitUntilFinished();
   std::cout << " Done waiting..." << std::endl;
-  playback.Stop();
+  handle->Stop();
   std::cout << "Playback finished!" << std::endl;
 
   // Wait to make sure our callbacks are done processing the incoming messages
@@ -164,8 +164,7 @@ TEST(playback, ReplayNoSuchTopic)
   ignition::transport::log::Playback playback(logName);
   recorder.Stop();
 
-  EXPECT_EQ(ignition::transport::log::PlaybackError::NO_SUCH_TOPIC,
-      playback.AddTopic("/DNE"));
+  EXPECT_EQ(false, playback.AddTopic("/DNE"));
   EXPECT_EQ(0, playback.AddTopic(std::regex("/DNE")));
 }
 
@@ -221,11 +220,11 @@ TEST(playback, ReplayLogRegex)
   // Clear out the old data so we can recreate it during the playback
   incomingData.clear();
 
-  playback.Start();
+  const auto handle = playback.Start();
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  playback.WaitUntilFinished();
+  handle->WaitUntilFinished();
   std::cout << " Done waiting..." << std::endl;
-  playback.Stop();
+  handle->Stop();
   std::cout << "Playback finished!" << std::endl;
 
   // Wait to make sure our callbacks are done processing the incoming messages
@@ -291,12 +290,12 @@ TEST(playback, ReplayLogMoveInstances)
 
   playback_orig.AddTopic(std::regex(".*"));
   ignition::transport::log::Playback playback(std::move(playback_orig));
-  playback.Start();
+  const auto handle = playback.Start();
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
-  playback.WaitUntilFinished();
+  handle->WaitUntilFinished();
   std::cout << " Done waiting..." << std::endl;
-  playback.Stop();
+  handle->Stop();
   std::cout << "Playback finished!" << std::endl;
 
   // Wait to make sure our callbacks are done processing the incoming messages

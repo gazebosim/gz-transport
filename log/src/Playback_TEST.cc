@@ -25,13 +25,10 @@ using namespace ignition::transport;
 TEST(Playback, PlaybackEmptyDatabase)
 {
   log::Playback playback(":memory:");
-  EXPECT_EQ(log::PlaybackError::FAILED_TO_OPEN, playback.Start());
-  EXPECT_EQ(log::PlaybackError::FAILED_TO_OPEN, playback.AddTopic("/foo/bar"));
-  EXPECT_EQ(log::PlaybackError::FAILED_TO_OPEN,
-    static_cast<log::PlaybackError>(playback.AddTopic(std::regex(".*"))));
-  EXPECT_EQ(log::PlaybackError::FAILED_TO_OPEN, playback.Start());
-  EXPECT_EQ(log::PlaybackError::FAILED_TO_OPEN, playback.Stop());
-  playback.WaitUntilFinished();
+  EXPECT_EQ(nullptr, playback.Start());
+  EXPECT_EQ(false, playback.AddTopic("/foo/bar"));
+  EXPECT_EQ(-1, playback.AddTopic(std::regex(".*")));
+  EXPECT_EQ(nullptr, playback.Start());
 }
 
 
