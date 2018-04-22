@@ -6,6 +6,7 @@ ign_build_tests(
     Batch_TEST.cc
     Descriptor_TEST.cc
     Log_TEST.cc
+    LogCommandAPI_TEST.cc
     Message_TEST.cc
     QualifiedTime_TEST.cc
     QueryOptions_TEST.cc

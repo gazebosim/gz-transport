@@ -34,8 +34,11 @@ endif()
 
 set(log_lib_target ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-log)
 
+add_subdirectory(src/cmd)
+
 set(logging_sources
   src/Batch.cc
+  src/cmd/LogCommandAPI.cc
   src/Console.cc
   src/Descriptor.cc
   src/Log.cc

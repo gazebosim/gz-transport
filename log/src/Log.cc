@@ -395,7 +395,8 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
       new raii_sqlite3::Database(_file, modeSQL));
   if (!*(db))
   {
-    LERR("Failed to open sqlite3 database\n");
+    // The constructor of raii_sqlite3::Database will print out the reason that
+    // the database failed to open.
     return false;
   }
 

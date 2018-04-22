@@ -33,7 +33,7 @@ Database::Database(const std::string &_path, int _flags)
 
   if (return_code != SQLITE_OK)
   {
-    LERR("Failed to open sqlite database\n");
+    LERR("Failed to open the requested sqlite3 database\n");
     sqlite3_close(this->handle);
     this->handle = nullptr;
     return;
