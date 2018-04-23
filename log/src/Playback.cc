@@ -17,20 +17,20 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "Console.hh"
 #include <ignition/transport/Node.hh>
-
-#include "ignition/transport/log/Playback.hh"
 #include "ignition/transport/log/Log.hh"
-#include "raii-sqlite3.hh"
+#include "ignition/transport/log/Playback.hh"
 #include "build_config.hh"
-
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;

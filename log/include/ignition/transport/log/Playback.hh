@@ -17,10 +17,10 @@
 #ifndef IGNITION_TRANSPORT_LOG_PLAYBACK_HH_
 #define IGNITION_TRANSPORT_LOG_PLAYBACK_HH_
 
+#include <chrono>
 #include <memory>
 #include <regex>
 #include <string>
-#include <chrono>
 
 #include <ignition/transport/log/Export.hh>
 
