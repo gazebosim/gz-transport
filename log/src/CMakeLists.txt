@@ -1,5 +1,8 @@
 
+add_subdirectory(cmd)
+
 ign_get_libsources_and_unittests(sources gtest_sources)
+list(APPEND sources cmd/LogCommandAPI.cc)
 
 ign_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 

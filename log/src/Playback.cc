@@ -59,6 +59,9 @@ class ignition::transport::log::Playback::Implementation
   /// \brief True if the thread should be stopped
   public: std::atomic_bool stop;
 
+  /// \brief True if a call to either AddTopic() has occurred.
+  public: bool addTopicWasUsed;
+
   /// \brief thread running playback
   public: std::thread playbackThread;
 
@@ -93,7 +96,8 @@ class ignition::transport::log::Playback::Implementation
 
 //////////////////////////////////////////////////
 Playback::Implementation::Implementation()
-  : stop(true)
+  : stop(true),
+    addTopicWasUsed(false)
 {
   // Do nothing
 }
@@ -236,7 +240,7 @@ Playback::Playback(const std::string &_file)
 {
   if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
   {
-    LERR("Failed to open file [" << _file << "]\n");
+    LERR("Could not open file [" << _file << "]\n");
   }
   else
   {
@@ -260,7 +264,8 @@ Playback::~Playback()
 }
 
 //////////////////////////////////////////////////
-PlaybackError Playback::Start()
+PlaybackError Playback::Start(
+    const std::chrono::nanoseconds &_waitAfterAdvertising)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   if (!this->dataPtr->logFile.Valid())
@@ -269,7 +274,7 @@ PlaybackError Playback::Start()
     return PlaybackError::FAILED_TO_OPEN;
   }
 
-  if (this->dataPtr->publishers.empty())
+  if (!this->dataPtr->addTopicWasUsed)
   {
     LDBG("No topics added, defaulting to all topics\n");
     int64_t numTopics = this->AddTopic(std::regex(".*"));
@@ -277,6 +282,8 @@ PlaybackError Playback::Start()
     {
       return static_cast<PlaybackError>(numTopics);
     }
+
+    std::this_thread::sleep_for(_waitAfterAdvertising);
   }
 
   Batch batch = this->dataPtr->logFile.QueryMessages(
@@ -297,7 +304,6 @@ PlaybackError Playback::Stop()
 {
   if (!this->dataPtr->logFile.Valid())
   {
-    LERR("Failed to open log file\n");
     return PlaybackError::FAILED_TO_OPEN;
   }
 
@@ -310,6 +316,12 @@ PlaybackError Playback::Stop()
 }
 
 //////////////////////////////////////////////////
+bool Playback::Valid() const
+{
+  return this->dataPtr->logFile.Valid();
+}
+
+//////////////////////////////////////////////////
 void Playback::WaitUntilFinished()
 {
   this->dataPtr->WaitUntilFinished();
@@ -318,6 +330,11 @@ void Playback::WaitUntilFinished()
 //////////////////////////////////////////////////
 PlaybackError Playback::AddTopic(const std::string &_topic)
 {
+  // We set this to true whether or not the function call succeeds, because by
+  // calling this function, the user has expressed an intention to explicitly
+  // specify which topics to publish.
+  this->dataPtr->addTopicWasUsed = true;
+
   if (!this->dataPtr->logFile.Valid())
   {
     LERR("Failed to open log file\n");
@@ -353,6 +370,11 @@ PlaybackError Playback::AddTopic(const std::string &_topic)
 //////////////////////////////////////////////////
 int64_t Playback::AddTopic(const std::regex &_topic)
 {
+  // We set this to true whether or not the function call succeeds, because by
+  // calling this function, the user has expressed an intention to explicitly
+  // specify which topics to publish.
+  this->dataPtr->addTopicWasUsed = true;
+
   if (!this->dataPtr->logFile.Valid())
   {
     LERR("Failed to open log file\n");

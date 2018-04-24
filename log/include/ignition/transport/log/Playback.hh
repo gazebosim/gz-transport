@@ -20,6 +20,7 @@
 #include <memory>
 #include <regex>
 #include <string>
+#include <chrono>
 
 #include <ignition/transport/log/Export.hh>
 
@@ -58,11 +59,29 @@ namespace ignition
         public: ~Playback();
 
         /// \brief Begin playing messages
+        /// \param[in] _waitAfterAdvertising If no topics were specified for
+        /// playback using AddTopic(), then we will default to using all the
+        /// topics that are stored in the log. When that happens, it is usually
+        /// a good idea to wait some time after advertising the topics, to give
+        /// subscribers a chance to start listening. This parameter allows you
+        /// to specify how much time we should wait in that circumstance. This
+        /// wait will not occur if you have already made a call to an AddTopic()
+        /// function.
+        ///
+        /// \note If you do call AddTopic(), then you become responsible for
+        /// having your application wait before calling Start().
+        ///
         /// \return NO_ERROR if playing was successfully started
-        public: PlaybackError Start();
+        public: PlaybackError Start(
+          const std::chrono::nanoseconds &_waitAfterAdvertising =
+            std::chrono::seconds(1));
 
         /// \brief Stop playing messages
         public: PlaybackError Stop();
+
+        /// \brief Check if this Playback object has a valid log to play back
+        /// \return true if this has a valid log to play back, otherwise false.
+        public: bool Valid() const;
 
         /// \brief Block until playback runs out of messages to publish
         public: void WaitUntilFinished();
