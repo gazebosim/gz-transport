@@ -1,6 +1,4 @@
 
-add_subdirectory(cmd)
-
 ign_get_libsources_and_unittests(sources gtest_sources)
 list(APPEND sources cmd/LogCommandAPI.cc)
 
@@ -67,3 +65,5 @@ target_include_directories(${log_lib_target}
     # the logging library. This allows the logging library to see build_config.hh
     # while being built.
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
+
+add_subdirectory(cmd)
