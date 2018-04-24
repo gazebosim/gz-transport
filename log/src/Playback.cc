@@ -63,6 +63,22 @@ class ignition::transport::log::Playback::Implementation
     }
   }
 
+  /// \brief This gets used by RemoveTopic(~) to make sure we follow the correct
+  /// behavior.
+  void DefaultToAllTopics()
+  {
+    if (!this->addTopicWasUsed)
+    {
+      const Descriptor *desc = this->logFile->Descriptor();
+      const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+      for (const auto &entry : allTopics)
+        this->topicNames.insert(entry.first);
+
+      // Topics have been set, so we change this flag to true
+      this->addTopicWasUsed = true;
+    }
+  }
+
   /// \brief log file to play from
   public: std::shared_ptr<Log> logFile;
 
@@ -285,6 +301,39 @@ int64_t Playback::AddTopic(const std::regex &_topic)
     ++numMatches;
   }
   return numMatches;
+}
+
+//////////////////////////////////////////////////
+bool Playback::RemoveTopic(const std::string &_topic)
+{
+  this->dataPtr->DefaultToAllTopics();
+
+  return (this->dataPtr->topicNames.erase(_topic) > 0);
+}
+
+//////////////////////////////////////////////////
+int64_t Playback::RemoveTopic(const std::regex &_topic)
+{
+  this->dataPtr->DefaultToAllTopics();
+
+  uint64_t count = 0;
+  std::unordered_set<std::string>::iterator it =
+      this->dataPtr->topicNames.begin();
+
+  while (it != this->dataPtr->topicNames.end())
+  {
+    if (std::regex_match(*it, _topic))
+    {
+      it = this->dataPtr->topicNames.erase(it);
+      ++count;
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  return count;
 }
 
 //////////////////////////////////////////////////

@@ -104,6 +104,29 @@ namespace ignition
         /// Playback object is not valid.
         public: int64_t AddTopic(const std::regex &_topic);
 
+        /// \brief Remove a topic from being played back.
+        ///
+        /// \note If neither AddTopic() nor RemoveTopic() were called prior to
+        /// this function, we will assume you want all of the topics and then
+        /// remove the one passed in here.
+        ///
+        /// \param[in] _topic The exact topic name to remove
+        /// \return True if the topic was in the list and has been removed,
+        /// false otherwise.
+        public: bool RemoveTopic(const std::string &_topic);
+
+        /// \brief Remove all topics matching the specified pattern from being
+        /// played back.
+        ///
+        /// \note If neither AddTopic() nor RemoveTopic() were called prior to
+        /// this function, we will assume you want all of the topics and then
+        /// remove the one passed in here.
+        ///
+        /// \param[in] _topic The pattern of topics to be removed
+        /// \return The number of topics that have been removed from playback
+        /// due to this function call.
+        public: int64_t RemoveTopic(const std::regex &_topic);
+
         /// \internal Implementation of this class
         private: class Implementation;
 
