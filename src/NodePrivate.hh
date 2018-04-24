@@ -30,6 +30,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     class NodeShared;
 
     /// \internal
@@ -70,6 +72,7 @@ namespace ignition
       /// \brief Custom options for this node.
       public: NodeOptions options;
     };
+    }
   }
 }
 #endif

@@ -35,6 +35,7 @@
 #include <memory>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -43,6 +44,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class IRepHandler RepHandler.hh ignition/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
     class IGNITION_TRANSPORT_VISIBLE IRepHandler
@@ -205,6 +209,7 @@ namespace ignition
       /// \brief Callback to the function registered for this handler.
       private: std::function<bool(const Req &, Rep &)> cb;
     };
+    }
   }
 }
 

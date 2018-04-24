@@ -21,12 +21,16 @@
 #include <cstdint>
 #include <memory>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     class SubscribeOptionsPrivate;
 
     /// \class SubscribeOptions SubscribeOptions.hh
@@ -66,6 +70,7 @@ namespace ignition
       /// \brief Pointer to private data.
       protected: std::unique_ptr<SubscribeOptionsPrivate> dataPtr;
     };
+    }
   }
 }
 #endif

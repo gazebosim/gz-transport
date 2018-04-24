@@ -20,12 +20,16 @@
 
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/NetUtils.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \internal
     /// \brief Private data for NodeOption class.
     class NodeOptionsPrivate
@@ -42,6 +46,7 @@ namespace ignition
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();
     };
+    }
   }
 }
 #endif

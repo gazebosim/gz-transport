@@ -21,12 +21,16 @@
 #include <map>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/TransportTypes.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class HandlerStorage HandlerStorage.hh
     /// ignition/transport/HandlerStorage.hh
     /// \brief Class to store and manage service call handlers.
@@ -250,6 +254,7 @@ namespace ignition
       /// the node UUID and the value is a smart pointer to the handler.
       private: TopicServiceCalls_M data;
     };
+    }
   }
 }
 

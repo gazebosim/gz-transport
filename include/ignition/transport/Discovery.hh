@@ -63,6 +63,7 @@
 #include <thread>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
@@ -75,6 +76,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \internal
     /// \brief Discovery helper function to poll sockets.
     /// \param[in] _sockets Sockets on which to listen.
@@ -1162,6 +1166,7 @@ namespace ignition
     /// \def SrvDiscovery
     /// \brief A discovery object for services.
     using SrvDiscovery = Discovery<ServicePublisher>;
+    }
   }
 }
 

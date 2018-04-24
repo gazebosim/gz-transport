@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Publisher.hh"
 
@@ -30,6 +31,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     // Message types.
     static const uint8_t Uninitialized  = 0;
     static const uint8_t AdvType        = 1;
@@ -328,6 +332,7 @@ namespace ignition
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
       private: T publisher;
     };
+    }
   }
 }
 

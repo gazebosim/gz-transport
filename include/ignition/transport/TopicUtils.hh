@@ -21,12 +21,16 @@
 #include <cstdint>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
     /// \brief This class provides different utilities related with topics.
     class IGNITION_TRANSPORT_VISIBLE TopicUtils
@@ -126,6 +130,7 @@ namespace ignition
       /// qualified topic name.
       public: static const uint16_t kMaxNameLength = 65535;
     };
+    }
   }
 }
 

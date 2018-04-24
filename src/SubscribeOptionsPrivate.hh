@@ -26,6 +26,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
     /// ignition/transport/SubscribeOptionsPrivate.hh
     /// \brief Private data for the SubscribeOptions class.
@@ -40,6 +42,7 @@ namespace ignition
       /// \brief Default message subscription rate.
       public: uint64_t msgsPerSec = kUnthrottled;
     };
+    }
   }
 }
 #endif

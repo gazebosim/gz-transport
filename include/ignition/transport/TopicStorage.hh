@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -31,6 +32,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, removing them, etc.
@@ -363,6 +367,7 @@ namespace ignition
       private: std::map<std::string,
                         std::map<std::string, std::vector<T>>> data;
     };
+    }
   }
 }
 
