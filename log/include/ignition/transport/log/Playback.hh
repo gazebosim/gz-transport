@@ -22,6 +22,7 @@
 #include <string>
 #include <chrono>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -30,6 +31,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       enum class PlaybackError : int64_t
       {
         SUCCESS = 0,
@@ -106,6 +110,7 @@ namespace ignition
         /// \brief Private implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
+      }
     }
   }
 }

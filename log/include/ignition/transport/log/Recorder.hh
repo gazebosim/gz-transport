@@ -22,6 +22,7 @@
 #include <regex>
 #include <string>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -30,6 +31,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       enum class RecorderError : int64_t
       {
         SUCCESS = 0,
@@ -87,6 +91,7 @@ namespace ignition
         /// \internal Pointer to the implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
+      }
     }
   }
 }

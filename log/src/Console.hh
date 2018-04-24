@@ -20,13 +20,19 @@
 
 #include <iostream>
 
+#include <ignition/transport/config.hh>
+
 namespace ignition
 {
   namespace transport
   {
     namespace log
     {
-      extern int __verbosity;
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+        //
+        extern int __verbosity;
+      }
     }
   }
 }
