@@ -32,7 +32,7 @@ namespace ignition
     {
       // Forward declarations
       class PlaybackHandle;
-      using PlaybackHandlePtr = std::unique_ptr<PlaybackHandle>;
+      using PlaybackHandlePtr = std::shared_ptr<PlaybackHandle>;
 
       //////////////////////////////////////////////////
       /// \brief Initiates playback of ignition transport topics
@@ -61,6 +61,16 @@ namespace ignition
         /// publishing begins, or else subscribers in other processes will miss
         /// the outgoing messages. The default value is recommended unless you
         /// are confident in the timing of your system.
+        ///
+        /// \remark If your application uses another library that uses sqlite3,
+        /// it may be unsafe to start multiple simultaneous PlaybackHandles from
+        /// the same Playback instance, because they will interact with the same
+        /// sqlite3 database in multiple threads (see https://www.sqlite.org/threadsafe.html).
+        /// In most cases there should be no issue, but if you or a library you
+        /// are using calls sqlite3_config(~) to change the threading mode to
+        /// Single-thread or Multi-thread (instead of the default setting of
+        /// Seralized), then starting multiple simultaneous playbacks from the
+        /// same log file could be dangerous.
         ///
         /// \return A handle for managing the playback of the log. You must hold
         /// onto this object in order for the playback to continue, or else it
@@ -116,6 +126,10 @@ namespace ignition
 
         /// \brief Block until playback runs out of messages to publish
         public: void WaitUntilFinished();
+
+        /// \brief Check if this playback is finished
+        /// \return true if all messages have finished playing; false otherwise.
+        public: bool Finished() const;
 
         /// \brief Destructor
         public: ~PlaybackHandle();

@@ -164,7 +164,7 @@ TEST(playback, ReplayNoSuchTopic)
   ignition::transport::log::Playback playback(logName);
   recorder.Stop();
 
-  EXPECT_EQ(false, playback.AddTopic("/DNE"));
+  EXPECT_FALSE(playback.AddTopic("/DNE"));
   EXPECT_EQ(0, playback.AddTopic(std::regex("/DNE")));
 }
 
@@ -221,11 +221,13 @@ TEST(playback, ReplayLogRegex)
   incomingData.clear();
 
   const auto handle = playback.Start();
+  EXPECT_FALSE(handle->Finished());
   std::cout << "Waiting to for playback to finish..." << std::endl;
   handle->WaitUntilFinished();
   std::cout << " Done waiting..." << std::endl;
   handle->Stop();
   std::cout << "Playback finished!" << std::endl;
+  EXPECT_TRUE(handle->Finished());
 
   // Wait to make sure our callbacks are done processing the incoming messages
   // (Strangely, Windows throws an exception when this is ~1s or more)

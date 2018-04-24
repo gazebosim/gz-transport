@@ -26,7 +26,7 @@ TEST(Playback, PlaybackEmptyDatabase)
 {
   log::Playback playback(":memory:");
   EXPECT_EQ(nullptr, playback.Start());
-  EXPECT_EQ(false, playback.AddTopic("/foo/bar"));
+  EXPECT_FALSE(playback.AddTopic("/foo/bar"));
   EXPECT_EQ(-1, playback.AddTopic(std::regex(".*")));
   EXPECT_EQ(nullptr, playback.Start());
 }

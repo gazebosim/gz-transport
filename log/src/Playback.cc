@@ -15,6 +15,8 @@
  *
 */
 
+#include <sqlite3.h>
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -35,12 +37,34 @@
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
+// We check whether sqlite3 is potentially threadsafe. Note that this only
+// knows whether sqlite3 was compiled with multi-threading capabilities. It
+// might not catch changes to sqlite3's runtime settings.
+// See: https://www.sqlite.org/threadsafe.html
+const static bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
+
 //////////////////////////////////////////////////
 /// \brief Private implementation of Playback
 class ignition::transport::log::Playback::Implementation
 {
+  /// \brief Constructor. Creates and initializes the log file
+  /// \param[in] _file The full path of the file to open
+  public: Implementation(const std::string &_file)
+    : logFile(std::make_shared<Log>()),
+      addTopicWasUsed(false)
+  {
+    if (!this->logFile->Open(_file, std::ios_base::in))
+    {
+      LERR("Could not open file [" << _file << "]\n");
+    }
+    else
+    {
+      LDBG("Playback opened file [" << _file << "]\n");
+    }
+  }
+
   /// \brief log file to play from
-  public: Log logFile;
+  public: std::shared_ptr<Log> logFile;
 
   /// \brief topics that are being played back
   public: std::unordered_set<std::string> topicNames;
@@ -48,9 +72,10 @@ class ignition::transport::log::Playback::Implementation
   /// \brief True if a call to either overload of AddTopic() has been made.
   public: bool addTopicWasUsed;
 
-  /// \brief FIXME: Temporary hack so that we can copy the log file into the
-  /// PlaybackHandler instead of sharing a Log instance.
-  public: std::string filename;
+  /// \brief This is the last handle that was produced by the Playback object.
+  /// This is only used to ensure safety in special cases where multi-threaded
+  /// sqlite3 is known to be unavailable.
+  public: std::weak_ptr<PlaybackHandle> lastHandle;
 };
 
 //////////////////////////////////////////////////
@@ -58,12 +83,12 @@ class ignition::transport::log::Playback::Implementation
 class PlaybackHandle::Implementation
 {
   /// \brief Constructor
-  /// \param[in] _file The filename for the log
+  /// \param[in] _logFile A reference to the Log instance
   /// \param[in] _topics A set of all topics to publish
   /// \param[in] _waitAfterAdvertising How long to wait after advertising the
   /// topics
   public: Implementation(
-      const std::string &_file,
+      const std::shared_ptr<Log> &_logFile,
       const std::unordered_set<std::string> &_topics,
       const std::chrono::nanoseconds &_waitAfterAdvertising);
 
@@ -113,11 +138,16 @@ class PlaybackHandle::Implementation
   /// \brief True if the thread should be stopped
   public: std::atomic_bool stop;
 
+  /// \brief This will be switched to true as the playback thread exits. This is
+  /// different from `stop` because it cannot be changed by the user; it only
+  /// changes exactly when the playback thread exits.
+  public: std::atomic_bool finished;
+
   /// \brief thread running playback
   public: std::thread playbackThread;
 
   /// \brief log file to play from
-  public: Log logFile;
+  public: std::shared_ptr<Log> logFile;
 
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
@@ -125,24 +155,16 @@ class PlaybackHandle::Implementation
 
 //////////////////////////////////////////////////
 Playback::Playback(const std::string &_file)
-  : dataPtr(new Implementation)
+  : dataPtr(new Implementation(_file))
 {
-  if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
-  {
-    LERR("Could not open file [" << _file << "]\n");
-  }
-  else
-  {
-    LDBG("Playback opened file [" << _file << "]\n");
-  }
-
-  this->dataPtr->filename = _file;
+  // Do nothing
 }
 
 //////////////////////////////////////////////////
 Playback::Playback(Playback &&_other)  // NOLINT
   : dataPtr(std::move(_other.dataPtr))
 {
+  // Do nothing
 }
 
 //////////////////////////////////////////////////
@@ -155,17 +177,30 @@ Playback::~Playback()
 PlaybackHandlePtr Playback::Start(
     const std::chrono::nanoseconds &_waitAfterAdvertising) const
 {
-  if (!this->dataPtr->logFile.Valid())
+  if (!this->dataPtr->logFile->Valid())
   {
-    LERR("Failed to open log file\n");
+    LERR("Could not start: Failed to open log file\n");
     return nullptr;
+  }
+
+  if (!kSqlite3Threadsafe)
+  {
+    // If we know that threadsafety is not available, then we will insist on
+    // not creating a new PlaybackHandle until the last one is finished.
+    PlaybackHandlePtr lastHandle = this->dataPtr->lastHandle.lock();
+    if (lastHandle && !lastHandle->Finished())
+    {
+      LWRN("You have linked to a single-threaded sqlite3. We can only spawn "
+           "one PlaybackHandle at a time\n");
+      return nullptr;
+    }
   }
 
   std::unordered_set<std::string> topics;
   if (!this->dataPtr->addTopicWasUsed)
   {
     LDBG("No topics added, defaulting to all topics\n");
-    const Descriptor *desc = this->dataPtr->logFile.Descriptor();
+    const Descriptor *desc = this->dataPtr->logFile->Descriptor();
     const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
     for (const auto &entry : allTopics)
       topics.insert(entry.first);
@@ -175,15 +210,22 @@ PlaybackHandlePtr Playback::Start(
     topics = this->dataPtr->topicNames;
   }
 
-  return PlaybackHandlePtr(new PlaybackHandle(
-        std::make_unique<PlaybackHandle::Implementation>(
-          this->dataPtr->filename, topics, _waitAfterAdvertising)));
+  PlaybackHandlePtr newHandle(
+        new PlaybackHandle(
+          std::make_unique<PlaybackHandle::Implementation>(
+            this->dataPtr->logFile, topics, _waitAfterAdvertising)));
+
+  // We only need to store this if sqlite3 was not compiled in threadsafe mode.
+  if (!kSqlite3Threadsafe)
+    this->dataPtr->lastHandle = newHandle;
+
+  return newHandle;
 }
 
 //////////////////////////////////////////////////
 bool Playback::Valid() const
 {
-  return this->dataPtr->logFile.Valid();
+  return this->dataPtr->logFile->Valid();
 }
 
 //////////////////////////////////////////////////
@@ -194,13 +236,13 @@ bool Playback::AddTopic(const std::string &_topic)
   // specify which topics to publish.
   this->dataPtr->addTopicWasUsed = true;
 
-  if (!this->dataPtr->logFile.Valid())
+  if (!this->dataPtr->logFile->Valid())
   {
     LERR("Failed to open log file\n");
     return false;
   }
 
-  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
+  const Descriptor *desc = this->dataPtr->logFile->Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
@@ -223,14 +265,14 @@ int64_t Playback::AddTopic(const std::regex &_topic)
   // specify which topics to publish.
   this->dataPtr->addTopicWasUsed = true;
 
-  if (!this->dataPtr->logFile.Valid())
+  if (!this->dataPtr->logFile->Valid())
   {
     LERR("Failed to open log file\n");
     return -1;
   }
 
   int64_t numMatches = 0;
-  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
+  const Descriptor *desc = this->dataPtr->logFile->Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   for (const auto &topicEntry : allTopics)
@@ -247,22 +289,19 @@ int64_t Playback::AddTopic(const std::regex &_topic)
 
 //////////////////////////////////////////////////
 PlaybackHandle::Implementation::Implementation(
-    const std::string &_file,
+    const std::shared_ptr<Log> &_logFile,
     const std::unordered_set<std::string> &_topics,
     const std::chrono::nanoseconds &_waitAfterAdvertising)
-  : stop(true)
+  : stop(true),
+    finished(false),
+    logFile(_logFile)
 {
-  if (!this->logFile.Open(_file, std::ios_base::in))
-  {
-    LERR("Playback handle failed to open file [" << _file << "]\n");
-  }
-
   for (const std::string &topic : _topics)
     this->AddTopic(topic);
 
   std::this_thread::sleep_for(_waitAfterAdvertising);
 
-  Batch batch = this->logFile.QueryMessages(TopicList::Create(_topics));
+  Batch batch = this->logFile->QueryMessages(TopicList::Create(_topics));
   if (batch.begin() == batch.end())
   {
     LWRN("There are no messages to play\n");
@@ -275,7 +314,7 @@ PlaybackHandle::Implementation::Implementation(
 void PlaybackHandle::Implementation::AddTopic(
     const std::string &_topic)
 {
-  const Descriptor *desc = this->logFile.Descriptor();
+  const Descriptor *desc = this->logFile->Descriptor();
   const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
 
   const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
@@ -317,7 +356,7 @@ void PlaybackHandle::Implementation::CreatePublisher(
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::WaitUntilFinished()
 {
-  if (this->logFile.Valid() && !this->stop)
+  if (this->logFile->Valid() && !this->stop)
   {
     std::unique_lock<std::mutex> lk(this->waitMutex);
     this->waitConditionVariable.wait(lk, [this]{return this->stop.load();});
@@ -411,6 +450,7 @@ void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
             msg.Data(), msg.Type());
       }
       {
+        this->finished = true;
         std::lock_guard<std::mutex> lk(this->waitMutex);
         this->stop = true;
       }
@@ -421,7 +461,7 @@ void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::Stop()
 {
-  if (!this->logFile.Valid())
+  if (!this->logFile->Valid())
   {
     return;
   }
@@ -452,6 +492,12 @@ void PlaybackHandle::Stop()
 void PlaybackHandle::WaitUntilFinished()
 {
   this->dataPtr->WaitUntilFinished();
+}
+
+//////////////////////////////////////////////////
+bool PlaybackHandle::Finished() const
+{
+  return this->dataPtr->finished;
 }
 
 //////////////////////////////////////////////////
