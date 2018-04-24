@@ -49,6 +49,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
     /// waitForShutdown().
     static bool g_shutdown = false;
@@ -71,6 +73,17 @@ namespace ignition
         g_shutdown_mutex.unlock();
         g_shutdown_cv.notify_all();
       }
+    }
+
+    //////////////////////////////////////////////////
+    void waitForShutdown()
+    {
+      // Install a signal handler for SIGINT and SIGTERM.
+      std::signal(SIGINT,  signal_handler);
+      std::signal(SIGTERM, signal_handler);
+
+      std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+      g_shutdown_cv.wait(lk, []{return g_shutdown;});
     }
 
     //////////////////////////////////////////////////
@@ -167,18 +180,8 @@ namespace ignition
       /// \brief Mutex to protect the node::publisher from race conditions.
       public: std::mutex mutex;
     };
+    }
   }
-}
-
-//////////////////////////////////////////////////
-void ignition::transport::waitForShutdown()
-{
-  // Install a signal handler for SIGINT and SIGTERM.
-  std::signal(SIGINT,  signal_handler);
-  std::signal(SIGTERM, signal_handler);
-
-  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
-  g_shutdown_cv.wait(lk, []{return g_shutdown;});
 }
 
 //////////////////////////////////////////////////

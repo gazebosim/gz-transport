@@ -23,10 +23,15 @@
 #include <functional>
 #include <memory>
 
+#include "ignition/transport/config.hh"
+
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief forward declaration
     class WorkerPoolPrivate;
 
@@ -50,6 +55,7 @@ namespace ignition
       /// \brief private implementation pointer
       private: std::unique_ptr<WorkerPoolPrivate> dataPtr;
     };
+    }
   }
 }
 

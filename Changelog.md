@@ -1,3 +1,10 @@
+## Ignition Transport 5
+
+### Ignition Transport 5.X.X
+
+1. Added inline versioned namespace
+   * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
+
 ## Ignition Transport 4
 
 ### Ignition Transport 4.X.X

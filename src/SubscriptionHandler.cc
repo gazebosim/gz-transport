@@ -21,6 +21,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /////////////////////////////////////////////////
     SubscriptionHandlerBase::SubscriptionHandlerBase(
         const std::string &_nUuid,
@@ -141,6 +143,7 @@ namespace ignition
     RawSubscriptionHandler::~RawSubscriptionHandler()
     {
       // Do nothing. This is here for pimpl.
+    }
     }
   }
 }

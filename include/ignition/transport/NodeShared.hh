@@ -33,6 +33,7 @@
 #include <vector>
 #include <map>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/Publisher.hh"
@@ -47,6 +48,10 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class Node;
     class NodePrivate;
 
@@ -360,6 +365,7 @@ namespace ignition
       private: friend Node;
       private: friend NodePrivate;
     };
+    }
   }
 }
 #endif

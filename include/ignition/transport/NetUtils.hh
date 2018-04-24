@@ -21,12 +21,16 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief Determine if an IP is private.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
@@ -59,6 +63,7 @@ namespace ignition
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
     std::string IGNITION_TRANSPORT_VISIBLE username();
+    }
   }
 }
 

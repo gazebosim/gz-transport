@@ -27,6 +27,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     /// \internal
     /// \brief Private data for MessageInfo class.
     class MessageInfoPrivate
@@ -46,6 +48,7 @@ namespace ignition
       /// \brief Partition name.
       public: std::string partition = "";
     };
+    }
   }
 }
 

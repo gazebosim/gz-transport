@@ -21,12 +21,16 @@
 #include <memory>
 #include <string>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     class MessageInfoPrivate;
 
     /// \brief A class that provides information about the message received.
@@ -81,6 +85,7 @@ namespace ignition
       /// \brief Pointer to private data.
       protected: std::unique_ptr<MessageInfoPrivate> dataPtr;
     };
+    }
   }
 }
 #endif

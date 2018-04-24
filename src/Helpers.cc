@@ -24,6 +24,8 @@ namespace ignition
 {
   namespace transport
   {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
     //////////////////////////////////////////////////
     bool env(const std::string &_name, std::string &_value)
     {
@@ -40,6 +42,7 @@ namespace ignition
         return true;
       }
       return false;
+    }
     }
   }
 }
