@@ -64,8 +64,8 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 1)
-ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
+ign_find_package(ignition-msgs2 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
