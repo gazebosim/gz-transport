@@ -23,7 +23,6 @@ namespace transport
 {
 namespace log
 {
-// Inline bracket to help doxygen filtering.
 inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 {
   int __verbosity = 1;
