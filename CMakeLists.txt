@@ -9,7 +9,7 @@ project(ignition-transport5 VERSION 5.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake0 0.4.0 REQUIRED)
+find_package(ignition-cmake1 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -64,7 +64,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 1)
+set(IGN_MSGS_VER 2)
 ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------

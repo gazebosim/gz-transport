@@ -17,14 +17,17 @@
 
 #include <iostream>
 #include <string>
+#include <ignition/msgs/Factory.hh>
 #include <ignition/transport.hh>
 
 #include "msgs/stringmsg.pb.h"
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const example::msgs::StringMsg &_msg)
+void cb(const example::msgs::StringMsg &_msg,
+        const ignition::transport::MessageInfo &_info)
 {
+  std::cout << _info.Type() << std::endl;
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
@@ -33,6 +36,14 @@ int main(int argc, char **argv)
 {
   ignition::transport::Node node;
   std::string topic = "/foo";
+
+  auto msgPtr = ignition::msgs::Factory::New("example.msgs.StringMsg");
+  if (msgPtr)
+  {
+    std::cout << msgPtr->DebugString() << std::endl;
+  }
+  else
+    std::cerr << "Unable to cast message" << std::endl;
 
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))

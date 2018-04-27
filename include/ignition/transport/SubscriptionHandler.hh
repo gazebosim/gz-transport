@@ -231,22 +231,22 @@ namespace ignition
       {
         std::shared_ptr<google::protobuf::Message> msgPtr;
 
-        const google::protobuf::Descriptor *desc =
-          google::protobuf::DescriptorPool::generated_pool()
-            ->FindMessageTypeByName(_type);
-
-        // First, check if we have the descriptor from the generated proto
-        // classes.
-        if (desc)
-        {
-          msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
-            ->GetPrototype(desc)->New());
-        }
-        else
-        {
+        //const google::protobuf::Descriptor *desc =
+        //  google::protobuf::DescriptorPool::generated_pool()
+        //    ->FindMessageTypeByName(_type);
+//
+        //// First, check if we have the descriptor from the generated proto
+        //// classes.
+        //if (desc)
+        //{
+        //  msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
+        //    ->GetPrototype(desc)->New());
+        //}
+        //else
+        //{
           // Fallback on Ignition Msgs if the message type is not found.
           msgPtr = ignition::msgs::Factory::New(_type);
-        }
+        //}
 
         if (!msgPtr)
           return nullptr;
