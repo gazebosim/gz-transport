@@ -408,7 +408,7 @@ void PlaybackHandle::Implementation::WaitUntilFinished()
   if (this->logFile->Valid() && !this->stop)
   {
     std::unique_lock<std::mutex> lk(this->waitMutex);
-    this->waitConditionVariable.wait(lk, [this]{return this->stop.load();});
+    this->waitConditionVariable.wait(lk, [this]{return this->finished.load();});
   }
 }
 
