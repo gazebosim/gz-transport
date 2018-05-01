@@ -236,6 +236,117 @@ TEST(playback, ReplayLogRegex)
   ExpectSameMessages(originalData, incomingData);
 }
 
+//////////////////////////////////////////////////
+/// \brief Record a log and then play it back after removing some topics. Verify
+/// that the playback matches the original.
+TEST(playback, RemoveTopic)
+{
+  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
+
+  std::vector<MessageInformation> incomingData;
+
+  auto callback = [&incomingData](
+      const char *_data,
+      std::size_t _len,
+      const ignition::transport::MessageInfo &_msgInfo)
+  {
+    TrackMessages(incomingData, _data, _len, _msgInfo);
+  };
+
+  ignition::transport::Node node;
+  ignition::transport::log::Recorder recorder;
+
+  for (const std::string &topic : topics)
+  {
+    node.SubscribeRaw(topic, callback);
+  }
+  recorder.AddTopic(std::regex(".*"));
+
+  const std::string logName =
+    "file:playbackReplayLogRegex?mode=memory&cache=shared";
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+    recorder.Start(logName));
+
+  const int numChirps = 100;
+  testing::forkHandlerType chirper =
+      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+
+  // Wait for the chirping to finish
+  testing::waitAndCleanupFork(chirper);
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback(logName);
+  recorder.Stop();
+
+  // Make a copy of the data so we can compare it later
+  std::vector<MessageInformation> originalData = incomingData;
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  // Remove some topics without calling AddTopic(). This tells the Playback that
+  // it should play all topics except for these.
+  EXPECT_TRUE(playback.RemoveTopic("/foo"));
+  EXPECT_TRUE(playback.RemoveTopic("/baz"));
+
+  {
+    const auto handle = playback.Start();
+    EXPECT_FALSE(handle->Finished());
+    std::cout << "Waiting to for playback to finish..." << std::endl;
+    handle->WaitUntilFinished();
+    std::cout << " Done waiting..." << std::endl;
+    handle->Stop();
+    std::cout << "Playback finished!" << std::endl;
+    EXPECT_TRUE(handle->Finished());
+
+    // Wait to make sure our callbacks are done processing the incoming messages
+    // (Strangely, Windows throws an exception when this is ~1s or more)
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Every message that we received should be from the /bar topic, because
+  // we removed the other two.
+  EXPECT_EQ(numChirps, static_cast<int>(incomingData.size()));
+  for (const MessageInformation &info : incomingData)
+  {
+    EXPECT_EQ("/bar", info.topic);
+  }
+
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  // Add the original two topics, but then remove all topics beginning with /b
+  EXPECT_TRUE(playback.AddTopic("/foo"));
+  EXPECT_TRUE(playback.AddTopic("/baz"));
+  EXPECT_EQ(2, playback.RemoveTopic(std::regex("/b.*")));
+
+  {
+    const auto handle = playback.Start();
+    EXPECT_FALSE(handle->Finished());
+    std::cout << "Waiting to for playback to finish..." << std::endl;
+    handle->WaitUntilFinished();
+    std::cout << " Done waiting..." << std::endl;
+    handle->Stop();
+    std::cout << "Playback finished!" << std::endl;
+    EXPECT_TRUE(handle->Finished());
+
+    // Wait to make sure our callbacks are done processing the incoming messages
+    // (Strangely, Windows throws an exception when this is ~1s or more)
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Every message that we received should be from the /foo topic, because
+  // we removed the other two.
+  EXPECT_EQ(numChirps, static_cast<int>(incomingData.size()));
+  for (const MessageInformation &info : incomingData)
+  {
+    EXPECT_EQ("/foo", info.topic);
+  }
+}
 
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
