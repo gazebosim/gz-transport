@@ -13,6 +13,12 @@ ign_build_tests(
     ${CMAKE_BINARY_DIR}/test/
 )
 
+# Test symbols having the right name on linux only.
+if (UNIX AND NOT APPLE)
+  add_test(NAME INTEGRATION_log_versioned_symbols
+    COMMAND bash ${PROJECT_BINARY_DIR}/test/integration/all_symbols_have_version.bash ${PROJECT_BINARY_DIR}/log/$<TARGET_FILE_NAME:${log_lib_target}>)
+endif()
+
 foreach(test_target ${logging_tests})
   set_tests_properties(${test_target} PROPERTIES
     ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)

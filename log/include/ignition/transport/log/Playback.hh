@@ -22,6 +22,7 @@
 #include <regex>
 #include <string>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -30,6 +31,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       // Forward declarations
       class PlaybackHandle;
       using PlaybackHandlePtr = std::shared_ptr<PlaybackHandle>;
@@ -169,6 +173,7 @@ namespace ignition
         /// \internal Pointer to implementation class
         private: std::unique_ptr<Implementation> dataPtr;
       };
+      }
     }
   }
 }

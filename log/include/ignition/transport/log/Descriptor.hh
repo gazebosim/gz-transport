@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -31,6 +32,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       // Forward declaration
       class Log;
 
@@ -93,7 +97,7 @@ namespace ignition
         /// \internal Pointer to implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
-
+      }
     }
   }
 }

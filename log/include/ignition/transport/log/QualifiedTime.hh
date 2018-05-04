@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -29,6 +30,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       //////////////////////////////////////////////////
       /// \brief Since time is continuous, it may be difficult to know the exact
       /// time stamp of a desired message. The QualifiedTime class provides a
@@ -292,6 +296,7 @@ namespace ignition
         private: std::unique_ptr<Implementation,
                     void(*)(Implementation*)> dataPtr;
       };
+      }
     }
   }
 }
