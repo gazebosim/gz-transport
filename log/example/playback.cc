@@ -52,15 +52,14 @@ int main(int argc, char *argv[])
   }
 
   // Begin playback
-  const auto result = player.Start();
-  if (ignition::transport::log::PlaybackError::SUCCESS != result)
+  const auto handle = player.Start();
+  if (!handle)
   {
-    std::cerr << "Failed to start playback: " << static_cast<int64_t>(result)
-              << "\n";
+    std::cerr << "Failed to start playback\n";
     return -2;
   }
 
   // Wait until the player stops on its own
   std::cout << "Playing all messages in the log file\n";
-  player.WaitUntilFinished();
+  handle->WaitUntilFinished();
 }

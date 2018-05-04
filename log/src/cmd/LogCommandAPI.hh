@@ -41,6 +41,8 @@ extern "C"
   /// \brief Playback topics whose name matches the given pattern
   /// \param[in] _file Path to the log file to playback
   /// \param[in] _pattern ECMAScript regular expression to match against topics
+  /// \param[in] _wait_ms How long to wait before the publications begin after
+  /// advertising the topics that will be played back (milliseconds)
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
     const char *_file, const char *_pattern, const int _wait_ms);
 }
