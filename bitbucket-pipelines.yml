@@ -15,14 +15,7 @@ pipelines:
             libignition-tools-dev
             libignition-cmake1-dev
             libignition-math5-dev
-          # Upgraded version of Ignition msgs
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
-          - cd ign-msgs
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make install
-          - cd ../..
+            libignition-msgs2-dev
           # Ignition Transport
           - mkdir build
           - cd build
