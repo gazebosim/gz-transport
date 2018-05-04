@@ -12,6 +12,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Refactored Playback to return a PlaybackHandle from Start()
+   * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
+
 1. Added command line tool for the logging features
    * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
 

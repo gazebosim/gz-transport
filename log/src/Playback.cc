@@ -15,67 +15,125 @@
  *
 */
 
+#include <sqlite3.h>
+
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "Console.hh"
 #include <ignition/transport/Node.hh>
-
-#include "ignition/transport/log/Playback.hh"
 #include "ignition/transport/log/Log.hh"
-#include "raii-sqlite3.hh"
+#include "ignition/transport/log/Playback.hh"
 #include "build_config.hh"
-
+#include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;
 
-/// \brief Private implementation
+// We check whether sqlite3 is potentially threadsafe. Note that this only
+// knows whether sqlite3 was compiled with multi-threading capabilities. It
+// might not catch changes to sqlite3's runtime settings.
+// See: https://www.sqlite.org/threadsafe.html
+const static bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
+
+//////////////////////////////////////////////////
+/// \brief Private implementation of Playback
 class ignition::transport::log::Playback::Implementation
 {
-  /// \brief Default constructor
-  public: Implementation();
+  /// \brief Constructor. Creates and initializes the log file
+  /// \param[in] _file The full path of the file to open
+  public: Implementation(const std::string &_file)
+    : logFile(std::make_shared<Log>()),
+      addTopicWasUsed(false)
+  {
+    if (!this->logFile->Open(_file, std::ios_base::in))
+    {
+      LERR("Could not open file [" << _file << "]\n");
+    }
+    else
+    {
+      LDBG("Playback opened file [" << _file << "]\n");
+    }
+  }
+
+  /// \brief This gets used by RemoveTopic(~) to make sure we follow the correct
+  /// behavior.
+  void DefaultToAllTopics()
+  {
+    if (!this->addTopicWasUsed)
+    {
+      const Descriptor *desc = this->logFile->Descriptor();
+      const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+      for (const auto &entry : allTopics)
+        this->topicNames.insert(entry.first);
+
+      // Topics have been set, so we change this flag to true
+      this->addTopicWasUsed = true;
+    }
+  }
+
+  /// \brief log file to play from
+  public: std::shared_ptr<Log> logFile;
+
+  /// \brief topics that are being played back
+  public: std::unordered_set<std::string> topicNames;
+
+  /// \brief True if a call to either overload of AddTopic() has been made.
+  public: bool addTopicWasUsed;
+
+  /// \brief This is the last handle that was produced by the Playback object.
+  /// This is only used to ensure safety in special cases where multi-threaded
+  /// sqlite3 is known to be unavailable.
+  public: std::weak_ptr<PlaybackHandle> lastHandle;
+};
+
+//////////////////////////////////////////////////
+/// \brief Private implementation of PlaybackHandle
+class PlaybackHandle::Implementation
+{
+  /// \brief Constructor
+  /// \param[in] _logFile A reference to the Log instance
+  /// \param[in] _topics A set of all topics to publish
+  /// \param[in] _waitAfterAdvertising How long to wait after advertising the
+  /// topics
+  public: Implementation(
+      const std::shared_ptr<Log> &_logFile,
+      const std::unordered_set<std::string> &_topics,
+      const std::chrono::nanoseconds &_waitAfterAdvertising);
+
+  /// \brief Look through the types of data that _topic can publish and create
+  /// a publisher for each type.
+  /// \param[in] _topic Name of the topic to publish
+  public: void AddTopic(const std::string &_topic);
 
   /// \brief Create a publisher of a given topic name and type
   /// \param[in] _topic Topic name to publish to
   /// \param[in] _type The message type name to publish
-  /// \return True if a new publisher has been created. False if a publisher
-  /// already existed for this combination.
-  public: bool CreatePublisher(
-              const std::string &_topic, const std::string &_type);
+  public: void CreatePublisher(
+      const std::string &_topic,
+      const std::string &_type);
 
   /// \brief Begin playing messages in another thread
   /// \param[in] _batch The messages to be played back
   public: void StartPlayback(Batch _batch);
 
+  /// \brief Stop the playback
+  public: void Stop();
+
   /// \brief Wait until playback has finished playing
   public: void WaitUntilFinished();
 
-  /// \brief True if the thread should be stopped
-  public: std::atomic_bool stop;
-
-  /// \brief True if a call to either AddTopic() has occurred.
-  public: bool addTopicWasUsed;
-
-  /// \brief thread running playback
-  public: std::thread playbackThread;
-
-  /// \brief log file to play from
-  public: Log logFile;
-
-  /// \brief mutex for thread safety with log file
-  public: std::mutex logFileMutex;
-
   /// \brief node used to create publishers
+  /// \note This member needs to come before the publishers member so that they
+  /// get destructed in the correct order
   public: ignition::transport::Node node;
-
-  /// \brief topics that are being played back
-  public: std::unordered_set<std::string> topicNames;
 
   /// \brief Map whose key is a topic name and value is another map whose
   /// key is a message type name and value is a publisher
@@ -92,19 +150,235 @@ class ignition::transport::log::Playback::Implementation
   /// \brief Condition variable to wake up the playback thread if it's waiting
   /// to publish the next message.
   public: std::condition_variable stopConditionVariable;
+
+  /// \brief True if the thread should be stopped
+  public: std::atomic_bool stop;
+
+  /// \brief This will be switched to true as the playback thread exits. This is
+  /// different from `stop` because it cannot be changed by the user; it only
+  /// changes exactly when the playback thread exits.
+  public: std::atomic_bool finished;
+
+  /// \brief thread running playback
+  public: std::thread playbackThread;
+
+  /// \brief log file to play from
+  public: std::shared_ptr<Log> logFile;
+
+  /// \brief mutex for thread safety with log file
+  public: std::mutex logFileMutex;
 };
 
 //////////////////////////////////////////////////
-Playback::Implementation::Implementation()
-  : stop(true),
-    addTopicWasUsed(false)
+Playback::Playback(const std::string &_file)
+  : dataPtr(new Implementation(_file))
 {
   // Do nothing
 }
 
 //////////////////////////////////////////////////
-bool Playback::Implementation::CreatePublisher(
-    const std::string &_topic, const std::string &_type)
+Playback::Playback(Playback &&_other)  // NOLINT
+  : dataPtr(std::move(_other.dataPtr))
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+Playback::~Playback()
+{
+  // Do nothing
+}
+
+//////////////////////////////////////////////////
+PlaybackHandlePtr Playback::Start(
+    const std::chrono::nanoseconds &_waitAfterAdvertising) const
+{
+  if (!this->dataPtr->logFile->Valid())
+  {
+    LERR("Could not start: Failed to open log file\n");
+    return nullptr;
+  }
+
+  if (!kSqlite3Threadsafe)
+  {
+    // If we know that threadsafety is not available, then we will insist on
+    // not creating a new PlaybackHandle until the last one is finished.
+    PlaybackHandlePtr lastHandle = this->dataPtr->lastHandle.lock();
+    if (lastHandle && !lastHandle->Finished())
+    {
+      LWRN("You have linked to a single-threaded sqlite3. We can only spawn "
+           "one PlaybackHandle at a time\n");
+      return nullptr;
+    }
+  }
+
+  std::unordered_set<std::string> topics;
+  if (!this->dataPtr->addTopicWasUsed)
+  {
+    LDBG("No topics added, defaulting to all topics\n");
+    const Descriptor *desc = this->dataPtr->logFile->Descriptor();
+    const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+    for (const auto &entry : allTopics)
+      topics.insert(entry.first);
+  }
+  else
+  {
+    topics = this->dataPtr->topicNames;
+  }
+
+  PlaybackHandlePtr newHandle(
+        new PlaybackHandle(
+          std::make_unique<PlaybackHandle::Implementation>(
+            this->dataPtr->logFile, topics, _waitAfterAdvertising)));
+
+  // We only need to store this if sqlite3 was not compiled in threadsafe mode.
+  if (!kSqlite3Threadsafe)
+    this->dataPtr->lastHandle = newHandle;
+
+  return newHandle;
+}
+
+//////////////////////////////////////////////////
+bool Playback::Valid() const
+{
+  return this->dataPtr->logFile->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Playback::AddTopic(const std::string &_topic)
+{
+  // We set this to true whether or not the function call succeeds, because by
+  // calling this function, the user has expressed an intention to explicitly
+  // specify which topics to publish.
+  this->dataPtr->addTopicWasUsed = true;
+
+  if (!this->dataPtr->logFile->Valid())
+  {
+    LERR("Failed to open log file\n");
+    return false;
+  }
+
+  const Descriptor *desc = this->dataPtr->logFile->Descriptor();
+  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+
+  const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
+  if (it == allTopics.end())
+  {
+    LWRN("Topic [" << _topic << "] is not in the log\n");
+    return false;
+  }
+
+  this->dataPtr->topicNames.insert(_topic);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+int64_t Playback::AddTopic(const std::regex &_topic)
+{
+  // We set this to true whether or not the function call succeeds, because by
+  // calling this function, the user has expressed an intention to explicitly
+  // specify which topics to publish.
+  this->dataPtr->addTopicWasUsed = true;
+
+  if (!this->dataPtr->logFile->Valid())
+  {
+    LERR("Failed to open log file\n");
+    return -1;
+  }
+
+  int64_t numMatches = 0;
+  const Descriptor *desc = this->dataPtr->logFile->Descriptor();
+  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+
+  for (const auto &topicEntry : allTopics)
+  {
+    const std::string &topic = topicEntry.first;
+    if (!std::regex_match(topic, _topic))
+      continue;
+
+    this->dataPtr->topicNames.insert(topic);
+    ++numMatches;
+  }
+  return numMatches;
+}
+
+//////////////////////////////////////////////////
+bool Playback::RemoveTopic(const std::string &_topic)
+{
+  this->dataPtr->DefaultToAllTopics();
+
+  return (this->dataPtr->topicNames.erase(_topic) > 0);
+}
+
+//////////////////////////////////////////////////
+int64_t Playback::RemoveTopic(const std::regex &_topic)
+{
+  this->dataPtr->DefaultToAllTopics();
+
+  uint64_t count = 0;
+  std::unordered_set<std::string>::iterator it =
+      this->dataPtr->topicNames.begin();
+
+  while (it != this->dataPtr->topicNames.end())
+  {
+    if (std::regex_match(*it, _topic))
+    {
+      it = this->dataPtr->topicNames.erase(it);
+      ++count;
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  return count;
+}
+
+//////////////////////////////////////////////////
+PlaybackHandle::Implementation::Implementation(
+    const std::shared_ptr<Log> &_logFile,
+    const std::unordered_set<std::string> &_topics,
+    const std::chrono::nanoseconds &_waitAfterAdvertising)
+  : stop(true),
+    finished(false),
+    logFile(_logFile)
+{
+  for (const std::string &topic : _topics)
+    this->AddTopic(topic);
+
+  std::this_thread::sleep_for(_waitAfterAdvertising);
+
+  Batch batch = this->logFile->QueryMessages(TopicList::Create(_topics));
+  if (batch.begin() == batch.end())
+  {
+    LWRN("There are no messages to play\n");
+  }
+
+  this->StartPlayback(std::move(batch));
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::AddTopic(
+    const std::string &_topic)
+{
+  const Descriptor *desc = this->logFile->Descriptor();
+  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
+
+  const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
+  for (const auto &typeEntry : it->second)
+  {
+    const std::string &type = typeEntry.first;
+    LDBG("Playing back [" << _topic << "] : [" << type << "]\n");
+    this->CreatePublisher(_topic, type);
+  }
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::CreatePublisher(
+    const std::string &_topic,
+    const std::string &_type)
 {
   auto firstMapIter = this->publishers.find(_topic);
   if (firstMapIter == this->publishers.end())
@@ -119,19 +393,27 @@ bool Playback::Implementation::CreatePublisher(
   if (secondMapIter != firstMapIter->second.end())
   {
     // A publisher which matches this (topic, type) pair has already been
-    // created, so we stop here. We return a value of false because no new
-    // publisher was created.
-    return false;
+    // created, so we stop here.
+    return;
   }
 
   // Create a publisher for the topic and type combo
   firstMapIter->second[_type] = this->node.Advertise(_topic, _type);
   LDBG("Creating publisher for " << _topic << " " << _type << "\n");
-  return true;
 }
 
 //////////////////////////////////////////////////
-void Playback::Implementation::StartPlayback(Batch _batch)
+void PlaybackHandle::Implementation::WaitUntilFinished()
+{
+  if (this->logFile->Valid() && !this->stop)
+  {
+    std::unique_lock<std::mutex> lk(this->waitMutex);
+    this->waitConditionVariable.wait(lk, [this]{return this->finished.load();});
+  }
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
 {
   this->stop = false;
 
@@ -217,6 +499,7 @@ void Playback::Implementation::StartPlayback(Batch _batch)
             msg.Data(), msg.Type());
       }
       {
+        this->finished = true;
         std::lock_guard<std::mutex> lk(this->waitMutex);
         this->stop = true;
       }
@@ -225,186 +508,51 @@ void Playback::Implementation::StartPlayback(Batch _batch)
 }
 
 //////////////////////////////////////////////////
-void Playback::Implementation::WaitUntilFinished()
+void PlaybackHandle::Implementation::Stop()
 {
-  if (this->logFile.Valid() && !this->stop)
+  if (!this->logFile->Valid())
   {
-    std::unique_lock<std::mutex> lk(this->waitMutex);
-    this->waitConditionVariable.wait(lk, [this]{return this->stop.load();});
+    return;
   }
+
+  this->stop = true;
+  this->stopConditionVariable.notify_all();
+
+  if (this->playbackThread.joinable())
+    this->playbackThread.join();
 }
 
 //////////////////////////////////////////////////
-Playback::Playback(const std::string &_file)
-  : dataPtr(new Implementation)
-{
-  if (!this->dataPtr->logFile.Open(_file, std::ios_base::in))
-  {
-    LERR("Could not open file [" << _file << "]\n");
-  }
-  else
-  {
-    LDBG("Playback opened file [" << _file << "]\n");
-  }
-}
-
-//////////////////////////////////////////////////
-Playback::Playback(Playback &&_other)  // NOLINT
-  : dataPtr(std::move(_other.dataPtr))
-{
-}
-
-//////////////////////////////////////////////////
-Playback::~Playback()
+PlaybackHandle::~PlaybackHandle()
 {
   if (this->dataPtr)
   {
-    this->Stop();
+    this->dataPtr->Stop();
   }
 }
 
 //////////////////////////////////////////////////
-PlaybackError Playback::Start(
-    const std::chrono::nanoseconds &_waitAfterAdvertising)
+void PlaybackHandle::Stop()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
-  if (!this->dataPtr->logFile.Valid())
-  {
-    LERR("Failed to open log file\n");
-    return PlaybackError::FAILED_TO_OPEN;
-  }
-
-  if (!this->dataPtr->addTopicWasUsed)
-  {
-    LDBG("No topics added, defaulting to all topics\n");
-    int64_t numTopics = this->AddTopic(std::regex(".*"));
-    if (numTopics < 0)
-    {
-      return static_cast<PlaybackError>(numTopics);
-    }
-
-    std::this_thread::sleep_for(_waitAfterAdvertising);
-  }
-
-  Batch batch = this->dataPtr->logFile.QueryMessages(
-        TopicList::Create(this->dataPtr->topicNames));
-  if (batch.begin() == batch.end())
-  {
-    LWRN("There are no messages to play\n");
-    return PlaybackError::NO_MESSAGES;
-  }
-
-  this->dataPtr->StartPlayback(std::move(batch));
-  LMSG("Started playing\n");
-  return PlaybackError::SUCCESS;
+  this->dataPtr->Stop();
 }
 
 //////////////////////////////////////////////////
-PlaybackError Playback::Stop()
-{
-  if (!this->dataPtr->logFile.Valid())
-  {
-    return PlaybackError::FAILED_TO_OPEN;
-  }
-
-  this->dataPtr->stop = true;
-  this->dataPtr->stopConditionVariable.notify_all();
-
-  if (this->dataPtr->playbackThread.joinable())
-    this->dataPtr->playbackThread.join();
-  return PlaybackError::SUCCESS;
-}
-
-//////////////////////////////////////////////////
-bool Playback::Valid() const
-{
-  return this->dataPtr->logFile.Valid();
-}
-
-//////////////////////////////////////////////////
-void Playback::WaitUntilFinished()
+void PlaybackHandle::WaitUntilFinished()
 {
   this->dataPtr->WaitUntilFinished();
 }
 
 //////////////////////////////////////////////////
-PlaybackError Playback::AddTopic(const std::string &_topic)
+bool PlaybackHandle::Finished() const
 {
-  // We set this to true whether or not the function call succeeds, because by
-  // calling this function, the user has expressed an intention to explicitly
-  // specify which topics to publish.
-  this->dataPtr->addTopicWasUsed = true;
-
-  if (!this->dataPtr->logFile.Valid())
-  {
-    LERR("Failed to open log file\n");
-    return PlaybackError::FAILED_TO_OPEN;
-  }
-
-  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
-  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
-
-  const Descriptor::NameToMap::const_iterator it = allTopics.find(_topic);
-  if (it == allTopics.end())
-  {
-    LWRN("Topic [" << _topic << "] is not in the log\n");
-    return PlaybackError::NO_SUCH_TOPIC;
-  }
-
-  const std::string &topic = it->first;
-  for (const auto &typeEntry : it->second)
-  {
-    const std::string &type = typeEntry.first;
-    LDBG("Playing back [" << _topic << "]\n");
-    // Save the topic name for the query in Start
-    this->dataPtr->topicNames.insert(_topic);
-    if (!this->dataPtr->CreatePublisher(topic, type))
-    {
-      return PlaybackError::FAILED_TO_ADVERTISE;
-    }
-  }
-
-  return PlaybackError::SUCCESS;
+  return this->dataPtr->finished;
 }
 
 //////////////////////////////////////////////////
-int64_t Playback::AddTopic(const std::regex &_topic)
+PlaybackHandle::PlaybackHandle(std::unique_ptr<Implementation> &&_internal)
+  : dataPtr(std::move(_internal))
 {
-  // We set this to true whether or not the function call succeeds, because by
-  // calling this function, the user has expressed an intention to explicitly
-  // specify which topics to publish.
-  this->dataPtr->addTopicWasUsed = true;
-
-  if (!this->dataPtr->logFile.Valid())
-  {
-    LERR("Failed to open log file\n");
-    return static_cast<int>(PlaybackError::FAILED_TO_OPEN);
-  }
-
-  int64_t numPublishers = 0;
-  const Descriptor *desc = this->dataPtr->logFile.Descriptor();
-  const Descriptor::NameToMap &allTopics = desc->TopicsToMsgTypesToId();
-
-  for (const auto &topicEntry : allTopics)
-  {
-    const std::string &topic = topicEntry.first;
-    if (!std::regex_match(topic, _topic))
-      continue;
-
-    for (const auto &typeEntry : topicEntry.second)
-    {
-      const std::string &type = typeEntry.first;
-
-      this->dataPtr->topicNames.insert(topic);
-      if (this->dataPtr->CreatePublisher(topic, type))
-      {
-        ++numPublishers;
-      }
-      else
-      {
-        return static_cast<int>(PlaybackError::FAILED_TO_ADVERTISE);
-      }
-    }
-  }
-  return numPublishers;
+  // Do nothing
 }
+
