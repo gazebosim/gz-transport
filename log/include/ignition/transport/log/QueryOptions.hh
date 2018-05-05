@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
@@ -35,6 +36,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       //////////////////////////////////////////////////
       /// \brief The QueryOptions interface is used by Log::QueryMessages() to
       /// determine which messages are retrieved from the log file.
@@ -259,6 +263,7 @@ namespace ignition
         /// \internal Pointer to the implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
+      }
     }
   }
 }

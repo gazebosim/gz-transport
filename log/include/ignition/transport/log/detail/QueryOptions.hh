@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 
 namespace ignition
@@ -29,6 +30,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       //////////////////////////////////////////////////
       template <typename Container>
       TopicList TopicList::Create(
@@ -42,6 +46,7 @@ namespace ignition
           internalTopics.insert(topic);
 
         return tl;
+      }
       }
     }
   }

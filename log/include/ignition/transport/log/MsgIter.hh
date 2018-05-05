@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Message.hh>
 
@@ -29,6 +30,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       /// \brief Forward Declarations
       class MsgIterPrivate;
       class Log;
@@ -95,6 +99,7 @@ namespace ignition
         /// \brief can use private constructor
         friend class Batch;
       };
+      }
     }
   }
 }

@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
 namespace ignition
@@ -30,6 +31,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       /// \brief A class which contains a SQL statement parameter. SqlParameter
       /// can be useful for keeping SQL queries sanitized and avoid SQL
       /// injection. With C++17, it may be desirable to replace this class with
@@ -152,6 +156,7 @@ namespace ignition
         /// \param[in] _other Another SQL statement.
         public: void Append(const SqlStatement &_other);
       };
+      }
     }
   }
 }
