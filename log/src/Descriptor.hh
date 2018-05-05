@@ -30,6 +30,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       /// \brief A representation of the information that defines a topic row
       /// \note We export the symbols for this class so it can be used in
       /// UNIT_Descriptor_TEST
@@ -72,6 +75,7 @@ namespace ignition
         /// \internal \sa Descriptor::MsgTypesToTopicsToId()
         public: NameToMap msgTypesToTopicsToId;
       };
+      }
     }
   }
 }

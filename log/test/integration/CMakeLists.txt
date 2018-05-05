@@ -13,6 +13,12 @@ ign_build_tests(
     ${CMAKE_BINARY_DIR}/test/
 )
 
+# Test symbols having the right name on linux only.
+if (UNIX AND NOT APPLE)
+  add_test(NAME INTEGRATION_log_versioned_symbols
+    COMMAND bash ${PROJECT_BINARY_DIR}/test/integration/all_symbols_have_version.bash $<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}-log>)
+endif()
+
 foreach(test_target ${logging_tests})
 
   set_tests_properties(${test_target} PROPERTIES

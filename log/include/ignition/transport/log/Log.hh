@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include <ignition/transport/config.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Descriptor.hh>
@@ -34,6 +35,9 @@ namespace ignition
   {
     namespace log
     {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      //
       /// \brief Name of Environment variable containing path to schema
       const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
 
@@ -101,6 +105,7 @@ namespace ignition
         /// \brief Private implementation
         private: std::unique_ptr<Implementation> dataPtr;
       };
+      }
     }
   }
 }
