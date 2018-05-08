@@ -8,7 +8,7 @@ ign_build_tests(
     playback.cc
     query.cc
   LIB_DEPS
-    ${log_lib_target}
+    ${PROJECT_LIBRARY_TARGET_NAME}-log
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )
@@ -16,31 +16,17 @@ ign_build_tests(
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
   add_test(NAME INTEGRATION_log_versioned_symbols
-    COMMAND bash ${PROJECT_BINARY_DIR}/test/integration/all_symbols_have_version.bash ${PROJECT_BINARY_DIR}/log/$<TARGET_FILE_NAME:${log_lib_target}>)
+    COMMAND bash ${PROJECT_BINARY_DIR}/test/integration/all_symbols_have_version.bash $<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}-log>)
 endif()
 
 foreach(test_target ${logging_tests})
+
   set_tests_properties(${test_target} PROPERTIES
     ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
   target_compile_definitions(${test_target}
     PRIVATE IGN_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
   target_compile_definitions(${test_target}
     PRIVATE IGN_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${test_target}>")
-
-  # Gross hack so that the tests can work on Windows. We need a better system for
-  # accessing the runtime libraries.
-  if(MSVC)
-
-    set(dll_original "$<TARGET_FILE:${log_lib_target}>")
-    set(dll_target "$<TARGET_FILE_DIR:${test_target}>/$<TARGET_FILE_NAME:${log_lib_target}>")
-
-    add_custom_command(
-      TARGET ${test_target}
-      COMMAND ${CMAKE_COMMAND}
-      ARGS -E copy_if_different ${dll_original} ${dll_target}
-      VERBATIM)
-
-  endif()
 
 endforeach()
 

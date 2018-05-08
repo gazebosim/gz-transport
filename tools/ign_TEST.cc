@@ -73,8 +73,8 @@ TEST(ignTest, TopicList)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
@@ -104,8 +104,8 @@ TEST(ignTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
@@ -138,8 +138,8 @@ TEST(ignTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
   std::string replier_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
@@ -169,8 +169,8 @@ TEST(ignTest, ServiceInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string replier_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesSrvCallReplier_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
@@ -373,8 +373,8 @@ TEST(ignTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    PROJECT_BINARY_PATH,
-    "test/integration/INTEGRATION_twoProcessesPublisher_aux");
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcessesPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());

@@ -2,6 +2,9 @@
 
 ### Ignition Transport 5.X.X
 
+1. Converted ignition-transport-log into a component
+   * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
+
 1. Added inline versioned namespace to the log library
    * [Pull request 303](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/303)
 

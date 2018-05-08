@@ -9,7 +9,7 @@ project(ignition-transport5 VERSION 5.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake0 0.4.0 REQUIRED)
+find_package(ignition-cmake1 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -64,8 +64,8 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 1)
-ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
+ign_find_package(ignition-msgs2 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
@@ -80,10 +80,20 @@ endif()
 # Find ignition-tools
 ign_find_package(ignition-tools QUIET)
 
+#--------------------------------------
+# Find SQLite3
+ign_find_package(SQLite3
+  VERSION 3.7.13
+  REQUIRED_BY log
+  PRIVATE_FOR log
+  PRETTY sqlite3)
+
+
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+ign_configure_build(QUIT_IF_BUILD_ERRORS
+  COMPONENTS log)
 
 #============================================================================
 # ign command line support
@@ -96,11 +106,14 @@ add_subdirectory(conf)
 add_subdirectory(tools)
 
 #============================================================================
-# Build Transport logging
-#============================================================================
-add_subdirectory(log)
-
-#============================================================================
 # Create package information
 #============================================================================
 ign_create_packages()
+
+#============================================================================
+# Create documentation
+#============================================================================
+ign_create_docs(
+  TAGFILES
+    "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
+  )
