@@ -276,7 +276,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (subscribers.haveRaw || subscribers.haveRemote)
   {
     // Allocate the buffer to store the serialized data.
-    msgBuffer = static_cast<char *>(new char [msgSize]);
+    msgBuffer = static_cast<char *>(new char[msgSize]);
 
     // Fail out early if we are unable to serialize the message. We do not
     // want to send a corrupt/bad message to some subscribers and not others.
@@ -458,7 +458,7 @@ bool Node::Publisher::PublishRaw(
   if (subscribers.haveRemote)
   {
     const std::size_t msgSize = _msgData.size();
-    char *msgBuffer = static_cast<char *>(new char [msgSize]);
+    char *msgBuffer = static_cast<char *>(new char[msgSize]);
     memcpy(msgBuffer, _msgData.c_str(), msgSize);
     auto myDeallocator = [](void *_buffer, void * /*_hint*/)
     {
@@ -959,7 +959,7 @@ bool NodePrivate::SubscribeHelper(const std::string &_fullyQualifiedTopic)
   if (!this->shared->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
   {
     std::cerr << "Node::Subscribe(): Error discovering topic ["
-              << _topic
+              << _fullyQualifiedTopic
               << "]. Did you forget to start the discovery service?"
               << std::endl;
     return false;
