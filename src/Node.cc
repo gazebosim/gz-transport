@@ -939,8 +939,9 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 
   if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
   {
-    std::cerr << "Node::Advertise(): Error advertising a topic. "
-      << "Did you forget to start the discovery service?"
+    std::cerr << "Node::Advertise(): Error advertising topic ["
+      << _topic
+      << "]. Did you forget to start the discovery service?"
       << std::endl;
     return Publisher();
   }
@@ -957,8 +958,9 @@ bool NodePrivate::SubscribeHelper(const std::string &_fullyQualifiedTopic)
   // Discover the list of nodes that publish on the topic.
   if (!this->shared->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
   {
-    std::cerr << "Node::Subscribe(): Error discovering a topic. "
-              << "Did you forget to start the discovery service?"
+    std::cerr << "Node::Subscribe(): Error discovering topic ["
+              << _topic
+              << "]. Did you forget to start the discovery service?"
               << std::endl;
     return false;
   }
