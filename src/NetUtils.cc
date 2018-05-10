@@ -33,6 +33,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "ignition/transport/config.hh"
@@ -41,6 +42,7 @@
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
+# include <sys/ioctl.h>
 #endif
 
 #ifdef _MSC_VER
@@ -163,6 +165,15 @@ std::vector<std::string> transport::determineInterfaces()
   }
   char preferred_ip[200] = {0};
 
+  // Open a socket to use IOCTL later.
+  int sockfd;
+  if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) == -1) {
+    std::cerr << "Unable to open a socket for using IOCTL" << std::endl;
+  }
+
+  // Stores a set of SIOCGIFINDEX.
+  std::unordered_set<int> realIdx = {};
+
   for (ifa = ifp; ifa; ifa = ifa->ifa_next)
   {
     char ip_[200];
@@ -177,6 +188,27 @@ std::vector<std::string> transport::determineInterfaces()
     // Unknown family.
     else
       continue;
+
+    // We don't want to return multiple subinterfaces, as you won't be able
+    // to join the multicast group in all of them (using IP_ADD_MEMBERSHIP).
+    // All the subinterfaces share the same SIOCGIFINDEX.
+    struct ifreq ifIdx;
+    memset(&ifIdx, 0, sizeof(struct ifreq));
+    strncpy(ifIdx.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+    if (ioctl(sockfd, SIOCGIFINDEX, &ifIdx) < 0)
+    {
+      std::cerr << "Error requesting SIOCGIFINDEX for ["
+                << ifa->ifa_name << "]" << std::endl;
+      continue;
+    }
+
+    // If we already have the same SIOCGIFINDEX, ignore it (subinterface).
+    if (realIdx.find(ifIdx.ifr_ifindex) != realIdx.end())
+      continue;
+
+    realIdx.insert(ifIdx.ifr_ifindex);
+
+
     if (getnameinfo(ifa->ifa_addr, salen, ip_, sizeof(ip_), nullptr, 0,
                     NI_NUMERICHOST) < 0)
     {
