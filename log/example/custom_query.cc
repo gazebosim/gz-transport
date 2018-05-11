@@ -36,7 +36,7 @@ class AllTopicsReverse final
       const ignition::transport::log::Descriptor &/*_descriptor*/)
       const override
   {
-    // The preample has all the necessary joins and the correct column order
+    // The preamble has all the necessary joins and the correct column order
     // for a SELECT statement that returns messages.
     ignition::transport::log::SqlStatement statement =
       this->StandardMessageQueryPreamble();
