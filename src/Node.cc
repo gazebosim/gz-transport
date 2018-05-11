@@ -276,7 +276,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   if (subscribers.haveRaw || subscribers.haveRemote)
   {
     // Allocate the buffer to store the serialized data.
-    msgBuffer = static_cast<char *>(new char [msgSize]);
+    msgBuffer = static_cast<char *>(new char[msgSize]);
 
     // Fail out early if we are unable to serialize the message. We do not
     // want to send a corrupt/bad message to some subscribers and not others.
@@ -458,7 +458,7 @@ bool Node::Publisher::PublishRaw(
   if (subscribers.haveRemote)
   {
     const std::size_t msgSize = _msgData.size();
-    char *msgBuffer = static_cast<char *>(new char [msgSize]);
+    char *msgBuffer = static_cast<char *>(new char[msgSize]);
     memcpy(msgBuffer, _msgData.c_str(), msgSize);
     auto myDeallocator = [](void *_buffer, void * /*_hint*/)
     {
@@ -939,8 +939,9 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 
   if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
   {
-    std::cerr << "Node::Advertise(): Error advertising a topic. "
-      << "Did you forget to start the discovery service?"
+    std::cerr << "Node::Advertise(): Error advertising topic ["
+      << _topic
+      << "]. Did you forget to start the discovery service?"
       << std::endl;
     return Publisher();
   }
@@ -957,8 +958,9 @@ bool NodePrivate::SubscribeHelper(const std::string &_fullyQualifiedTopic)
   // Discover the list of nodes that publish on the topic.
   if (!this->shared->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic))
   {
-    std::cerr << "Node::Subscribe(): Error discovering a topic. "
-              << "Did you forget to start the discovery service?"
+    std::cerr << "Node::Subscribe(): Error discovering topic ["
+              << _fullyQualifiedTopic
+              << "]. Did you forget to start the discovery service?"
               << std::endl;
     return false;
   }
