@@ -109,11 +109,3 @@ add_subdirectory(tools)
 # Create package information
 #============================================================================
 ign_create_packages()
-
-#============================================================================
-# Create documentation
-#============================================================================
-ign_create_docs(
-  TAGFILES
-    "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-  )
