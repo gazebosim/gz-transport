@@ -34,6 +34,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   target_link_libraries(publisher ${IGNITION-TRANSPORT_LIBRARIES})
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/multipublisher.cc")
+  add_executable(multipublisher multipublisher.cc)
+  target_link_libraries(multipublisher ${IGNITION-TRANSPORT_LIBRARIES})
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber.cc")
   add_executable(subscriber subscriber.cc)
   target_link_libraries(subscriber ${IGNITION-TRANSPORT_LIBRARIES})
