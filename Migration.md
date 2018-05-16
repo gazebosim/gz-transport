@@ -8,3 +8,11 @@ release will remove the deprecated code.
 
 ## Ignition Transport 4.X to 5.X
 
+## Ignition Transport 3.X to 4.X
+
+1. Service responder callbacks passed to `Node::Advertise` should now return
+   a boolean value instead of taking in a boolean output parameter. The existing
+   functions have been deprecated.
+    * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
+    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
+
