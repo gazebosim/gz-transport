@@ -118,7 +118,7 @@ recorder.Stop();
 
 In our example, we are logging messages until the user hits `CTRL-C`. The
 function `ignition::transport::waitForShutdown()` captures the appropriate
-signal and block the execution until that event occurs. Then, `recorder.Stop()`
+signal and blocks the execution until that event occurs. Then, `recorder.Stop()`
 stops the log recording as expected.
 
 # Play back
