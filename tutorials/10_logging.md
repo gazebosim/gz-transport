@@ -12,6 +12,14 @@ command line utilities as part of the optional `ign` CLI tool (available via
 recorded during a session. You can imagine it as a container where all the
 original messages have been efficiently stored and timestamped.
 
+Let's create a directory for compiling and running our examples:
+
+```{.sh}
+mkdir ~/ign_transport_tutorial
+cd ~/ign_transport_tutorial
+
+```
+
 # Record
 
 Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/record.cc)
@@ -203,14 +211,6 @@ back messages. Therefore, we can use `WaitUntilFinished()` to block the current
 thread until all messages have been published.
 
 ## Building the code
-
-Let's create a directory for compiling and running our examples:
-
-```{.sh}
-mkdir ~/ign_transport_tutorial
-cd ~/ign_transport_tutorial
-
-```
 
 Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/CMakeLists.txt)
 file within the `ign_transport_tutorial` folder.
