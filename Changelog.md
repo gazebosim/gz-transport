@@ -2,6 +2,9 @@
 
 ### Ignition Transport 5.X.X
 
+1. Added a logging tutorial
+   * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+
 1. Converted ignition-transport-log into a component
    * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
 
