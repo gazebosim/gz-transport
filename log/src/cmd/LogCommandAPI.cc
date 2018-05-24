@@ -47,7 +47,7 @@ int recordTopics(const char *_file, const char *_pattern)
   {
     regexPattern = _pattern;
   }
-  catch (std::regex_error e)
+  catch (const std::regex_error &e)
   {
     LERR("Regex pattern is invalid\n");
     return BAD_REGEX;
@@ -77,7 +77,7 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms)
   {
     regexPattern = _pattern;
   }
-  catch (std::regex_error e)
+  catch (const std::regex_error &e)
   {
     LERR("Regex pattern is invalid\n");
     return BAD_REGEX;
