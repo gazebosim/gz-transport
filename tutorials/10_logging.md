@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
   if (addTopicResult < 0)
   {
-    std::cerr << "An error occured when trying to add topics: "
+    std::cerr << "An error occurred when trying to add topics: "
               << addTopicResult << "\n";
     return -1;
   }
@@ -90,7 +90,7 @@ ignition::transport::log::Recorder recorder;
 const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
 if (addTopicResult < 0)
 {
-  std::cerr << "An error occured when trying to add topics: "
+  std::cerr << "An error occurred when trying to add topics: "
             << addTopicResult << "\n";
   return -1;
 }
