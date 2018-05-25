@@ -3,7 +3,7 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target.
-ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
