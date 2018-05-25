@@ -258,8 +258,7 @@ ign topic -t /foo -e
 And from terminal 1, playback your log file:
 
 ```{.sh}
-caguero@turtlebot:~/ign_transport_tutorial/build$ ./example_playback tutorial.tlog
-Playing all messages in the log file
+./example_playback tutorial.tlog
 ```
 
 You should receive one message in terminal 2:
