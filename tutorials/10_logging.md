@@ -96,10 +96,10 @@ if (addTopicResult < 0)
 }
 ```
 
-The next step requires to instantiate a `log::Recorder` object and to specify
-the topics that we're interested in logging. The `AddTopic()` function accepts
-a regular expression to set the appropriate topic filter. In our example, we are
-recording all topics.
+The next step requires instantiation of a `log::Recorder` object and
+specification of the topics that we're interested in logging. The `AddTopic()`
+function accepts a regular expression to set the appropriate topic filter.
+In our example, we are recording all topics.
 
 ```{.cpp}
 // Begin recording, saving received messages to the given file
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 #include <ignition/transport/log/Playback.hh>
 ```
 
-The `Playback.hh` header contains all the playing back functionality. Make sure
+The `Playback.hh` header contains all the log play back functionality. Make sure
 that is included in your source code.
 
 ```{.cpp}
@@ -198,7 +198,7 @@ playing back all messages.
 const auto handle = player.Start();
 ```
 
-The `Start()` method starts playing back messages. Note that this is an
+The `Start()` method starts message playback. Note that this is an
 asynchronous function, the messages will be published without blocking the
 current thread.
 
