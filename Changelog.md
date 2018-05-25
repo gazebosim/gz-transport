@@ -2,6 +2,9 @@
 
 ### Ignition Transport 5.X.X
 
+1. Added a logging tutorial
+   * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+
 1. Added a migration guide for helping with the transition between major
    versions
    * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
