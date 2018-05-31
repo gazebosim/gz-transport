@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
 
 # Find the Ignition_Transport library
 find_package(ignition-transport5 QUIET REQUIRED COMPONENTS log)
@@ -92,8 +92,8 @@ endif()
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
-     ignition-transport5::ignition-transport5
-     ${PROTO_SRC}
+    ignition-transport5::ignition-transport5
+    ${PROTO_SRC}
   )
   add_dependencies(publisher_custom_msg protobuf_compilation)
 endif()
@@ -161,7 +161,7 @@ if (MSVC)
   # Copy the Ignition Messages DLL.
   add_custom_command(TARGET publisher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${IGNITION-MSGS_FOLDER}/lib/ignition-msgs0.dll"
+    "${IGNITION-MSGS_FOLDER}/lib/ignition-msgs2.dll"
     $<TARGET_FILE_DIR:publisher> VERBATIM)
 
 endif()
