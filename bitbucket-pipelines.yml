@@ -9,7 +9,7 @@ pipelines:
           - apt-get -y install cmake pkg-config cppcheck mercurial build-essential lcov curl libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev doxygen ruby-ronn libsqlite3-dev
             libignition-msgs2-dev
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b c++17
           - cd ign-cmake
           - mkdir build
           - cd build
@@ -25,7 +25,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition math
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b gz11
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b gcc8_c++17
           - cd ign-math
           - mkdir build
           - cd build
@@ -33,7 +33,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition msgs
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b proto3
           - cd ign-math
           - mkdir build
           - cd build
