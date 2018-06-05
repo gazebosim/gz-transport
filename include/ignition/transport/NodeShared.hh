@@ -139,6 +139,7 @@ namespace ignition
       public: struct SubscriberInfo : public HandlerInfo
       {
         /// \brief True iff this Publisher has any remote subscribers
+        // cppcheck-suppress unusedStructMember
         public: bool haveRemote;
 
         // Friendship declaration
