@@ -173,8 +173,10 @@ std::vector<std::string> transport::determineInterfaces()
     std::cerr << "Unable to open a socket for using IOCTL" << std::endl;
   }
 
+#if defined(SIOCGIFINDEX)
   // Stores a set of SIOCGIFINDEX.
   std::unordered_set<int> realIdx = {};
+#endif
 
   for (ifa = ifp; ifa; ifa = ifa->ifa_next)
   {
@@ -191,6 +193,7 @@ std::vector<std::string> transport::determineInterfaces()
     else
       continue;
 
+#if defined(SIOCGIFINDEX)
     // We don't want to return multiple subinterfaces, as you won't be able
     // to join the multicast group in all of them (using IP_ADD_MEMBERSHIP).
     // All the subinterfaces share the same SIOCGIFINDEX.
@@ -209,7 +212,7 @@ std::vector<std::string> transport::determineInterfaces()
       continue;
 
     realIdx.insert(ifIdx.ifr_ifindex);
-
+#endif
 
     if (getnameinfo(ifa->ifa_addr, salen, ip_, sizeof(ip_), nullptr, 0,
                     NI_NUMERICHOST) < 0)
