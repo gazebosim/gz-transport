@@ -43,8 +43,6 @@
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
 # include <sys/ioctl.h>
-# include <sys/socket.h>
-# include <sys/types.h>
 #endif
 
 #ifdef _MSC_VER
@@ -167,13 +165,13 @@ std::vector<std::string> transport::determineInterfaces()
   }
   char preferred_ip[200] = {0};
 
+#if defined(SIOCGIFINDEX)
   // Open a socket to use IOCTL later.
   int sockfd;
   if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) == -1) {
     std::cerr << "Unable to open a socket for using IOCTL" << std::endl;
   }
 
-#if defined(SIOCGIFINDEX)
   // Stores a set of SIOCGIFINDEX.
   std::unordered_set<int> realIdx = {};
 #endif
