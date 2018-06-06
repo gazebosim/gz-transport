@@ -43,6 +43,8 @@
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
 # include <sys/ioctl.h>
+# include <sys/socket.h>
+# include <sys/types.h>
 #endif
 
 #ifdef _MSC_VER
