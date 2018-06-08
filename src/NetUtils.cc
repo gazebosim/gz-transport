@@ -168,7 +168,8 @@ std::vector<std::string> transport::determineInterfaces()
 #if defined(SIOCGIFINDEX)
   // Open a socket to use IOCTL later.
   int sockfd;
-  if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) == -1) {
+  if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) == -1)
+  {
     std::cerr << "Unable to open a socket for using IOCTL" << std::endl;
   }
 
