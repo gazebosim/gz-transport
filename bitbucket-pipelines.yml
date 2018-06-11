@@ -42,7 +42,7 @@ pipelines:
           - cd ../..
           # Ignition msgs
           - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
-          - cd ign-msg
+          - cd ign-msgs
           - mkdir build
           - cd build
           - cmake .. # -DENABLE_TESTS_COMPILATION=false
