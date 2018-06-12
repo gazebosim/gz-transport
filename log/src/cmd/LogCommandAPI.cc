@@ -18,11 +18,11 @@
 #include <iostream>
 #include <regex>
 
-#include "../Console.hh"
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
+#include "../Console.hh"
 #include "LogCommandAPI.hh"
 
 using namespace ignition;
