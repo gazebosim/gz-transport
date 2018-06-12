@@ -157,7 +157,7 @@ class Cmd
       exit(-1)
     end
 
-    # TODO: Add a sanity check for the ignition-transport-log version
+    # TODO(anyone): Add a sanity check for the ignition-transport-log version
 
     begin
       Importer.extern 'int verbosity(int)'

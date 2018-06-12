@@ -25,7 +25,7 @@
 #include <unordered_set>
 #include <vector>
 
-// ToDo: Remove after fixing the warnings
+// TODO(anyone): Remove after fixing the warnings
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif

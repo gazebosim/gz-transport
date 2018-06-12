@@ -301,7 +301,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     }
     return result;
 #else
-    // @todo Fix IP determination in the case where getifaddrs() isn't
+    // @todo(anyone) Fix IP determination in the case where getifaddrs() isn't
     // available.
     std::cerr <<
       "You don't have the getifaddrs() call; I'm assuming that your IP "

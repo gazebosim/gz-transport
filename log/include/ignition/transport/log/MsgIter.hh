@@ -45,7 +45,7 @@ namespace ignition
 
         /// \brief Copy Constructor
         /// \param[in] _orig the instance being copied
-        // TODO
+        // TODO(anyone)
         // public: MsgIter(const MsgIter &_orig);
 
         /// \brief Move Constructor
@@ -66,7 +66,7 @@ namespace ignition
 
         /// \brief Postfix increment
         /// \return a reference to a copy of this iterator before incrementing
-        // TODO
+        // TODO(anyone)
         // public: MsgIter operator++(int);
 
         /// \brief Equality operator
