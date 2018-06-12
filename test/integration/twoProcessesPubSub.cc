@@ -26,10 +26,10 @@
 
 using namespace ignition;
 
-static std::string partition;
-static std::string g_FQNPartition;
-static const std::string g_topic = "/foo";
-static std::string data = "bar";
+static std::string partition;  // NOLINT(*)
+static std::string g_FQNPartition;  // NOLINT(*)
+static const std::string g_topic = "/foo";  // NOLINT(*)
+static std::string data = "bar";  // NOLINT(*)
 static bool cbExecuted = false;
 static bool cbInfoExecuted = false;
 static bool genericCbExecuted = false;

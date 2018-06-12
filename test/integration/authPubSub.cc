@@ -26,8 +26,8 @@
 
 using namespace ignition;
 
-static std::string partition;
-static std::string g_topic = "/foo";
+static std::string partition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 TEST(authPubSub, InvalidAuth)

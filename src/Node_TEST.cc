@@ -35,9 +35,9 @@
 
 using namespace ignition;
 
-static std::string partition;
-static std::string g_FQNPartition;
-static std::string g_topic = "/foo";
+static std::string partition; // NOLINT(*)
+static std::string g_FQNPartition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 static std::mutex exitMutex;
 static std::mutex cbMutex;
 static std::condition_variable cbCondition;

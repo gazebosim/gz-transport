@@ -29,10 +29,10 @@
 using namespace ignition;
 
 // Global variables used for multiple tests.
-std::string topic   = "foo";
-std::string nUuid1  = "node-UUID-1";
-std::string nUuid2  = "node-UUID-2";
-std::string hUuid   = "handler-UUID";
+std::string topic   = "foo"; // NOLINT(*)
+std::string nUuid1  = "node-UUID-1"; // NOLINT(*)
+std::string nUuid2  = "node-UUID-2"; // NOLINT(*)
+std::string hUuid   = "handler-UUID"; // NOLINT(*)
 int intResult       = 4;
 bool cbExecuted = false;
 
