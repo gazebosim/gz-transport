@@ -59,6 +59,11 @@ ign_find_package(ignition-msgs3 REQUIRED)
 set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-math
+ign_find_package(ignition-math6 REQUIRED)
+set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ifaddrs
 ign_find_package(IFADDRS QUIET)
 if (IFADDRS_FOUND)
