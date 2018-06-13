@@ -590,7 +590,10 @@ namespace ignition
             Pub publisher;
             publisher.SetPUuid(it->first);
             publisher.SetScope(Scope_t::ALL);
-            this->disconnectionCb(publisher);
+            if (this->disconnectionCb)
+            {
+              this->disconnectionCb(publisher);
+            }
 
             // Remove the activity entry.
             this->activity.erase(it++);
