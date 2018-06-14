@@ -33,10 +33,5 @@ pipelines:
           - cmake ..
           - make -j4
           - cd ../..
-          - cd log/example
-          - mkdir build && cd build
-          - cmake ..
-          - make -j4
-          - cd ../../..
           # Static checker
           - sh tools/code_check.sh
