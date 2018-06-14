@@ -15,7 +15,6 @@
 1. Fix case where `std::bad_function_call` could be thrown.
     * [Pull request 317](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/317)
 
-
 ### Ignition Transport 2.0.0
 
 1. Move ZMQ initialization from constructor to separate function in
