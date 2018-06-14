@@ -5,6 +5,9 @@
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
 
+1. Ignore subinterfaces when using determineInterfaces().
+    * [Pull request 307](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/307)
+
 1. Basic authentication for topics.
     * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
 
@@ -14,7 +17,7 @@
 1. Added a benchmark program to test latency and throughput.
     * [Pull request 225](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/225)
 
-1. Support publication and receipt of raw serialized data. 
+1. Support publication and receipt of raw serialized data.
     * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
 
 1. Use zero copy when publishing messages.
