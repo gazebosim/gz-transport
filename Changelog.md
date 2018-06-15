@@ -54,6 +54,9 @@
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
 
+1. Ignore subinterfaces when using determineInterfaces().
+    * [Pull request 307](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/307)
+
 1. Basic authentication for topics.
     * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
 
@@ -187,6 +190,9 @@
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
     * [Pull request 168](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/168)
+
+1. Fix case where `std::bad_function_call` could be thrown.
+    * [Pull request 317](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/317)
 
 ### Ignition Transport 2.0.0
 
