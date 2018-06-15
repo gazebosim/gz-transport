@@ -22,6 +22,9 @@
 
 ### Ignition Transport 4.X.X
 
+1. Ignore subinterfaces when using determineInterfaces().
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/314)
+
 1. Refactored Playback to return a PlaybackHandle from Start()
    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
 
@@ -53,9 +56,6 @@
    * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
-
-1. Ignore subinterfaces when using determineInterfaces().
-    * [Pull request 307](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/307)
 
 1. Basic authentication for topics.
     * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
