@@ -50,9 +50,9 @@ SUBCOMMANDS = { 'record' =>
   "                                                                        \n"\
   "Options:                                                              \n\n"\
   "  --file FILE                Log file name (default <datetime>.tlog).   \n"\
+  "  --force                    Overwrite a file if one exists.            \n"\
   "  --pattern REGEX            Regular expression in C++ ECMAScript grammar\n"\
-  "                             (Default match all topics).                \n"\
-  "  --force                    Overwrite a file if one exists             \n" +
+  "                             (Default match all topics).                \n" +
   COMMON_OPTIONS,
                 'playback' =>
   "Playback previously recorded Ignition Transport topics.               \n\n"\
