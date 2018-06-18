@@ -66,32 +66,18 @@ endforeach()
 if (IGNITION-TOOLS_BINARY_DIRS)
   set(IGN_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
 
-  configure_file(
-    "ign_log_record_no_overwrite.sh.in"
-    ign_log_record_no_overwrite.sh
-    @ONLY
-  )
   add_test(ign_log_record_no_overwrite
-    sh ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_no_overwrite.sh
-  )
-  set_tests_properties(ign_log_record_no_overwrite
-    PROPERTIES
-    PASS_REGULAR_EXPRESSION "Failed to open.+"
-    TIMEOUT 5
-  )
-
-  configure_file(
-    "ign_log_record_force.sh.in"
-    ign_log_record_force.sh
-    @ONLY
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb
   )
   add_test(ign_log_record_force
-    sh ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_force.sh
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb
   )
-  set_tests_properties(ign_log_record_force
+  set_tests_properties(
+    ign_log_record_no_overwrite
+    ign_log_record_force
     PROPERTIES
-    FAIL_REGULAR_EXPRESSION "Failed to open.+"
+    ENVIRONMENT
+      IGN_CONFIG_PATH=${IGN_CONFIG_PATH}
     TIMEOUT 5
   )
-
 endif ()
