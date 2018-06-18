@@ -15,9 +15,7 @@ Test coverage: [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/
 
 ## Documentation
 
-Check [here](http://ignition-transport.readthedocs.io/en/ign-transport4/) for the old documentation.
-
-[![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=default)](https://readthedocs.org/projects/ignition-transport/?badge=default)
+Check [here](https://ignitionrobotics.org/libs/transport) for documentation.
 
 ## Roadmap
 

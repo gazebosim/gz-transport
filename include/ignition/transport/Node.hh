@@ -535,8 +535,9 @@ namespace ignition
 
         if (!this->Shared()->AdvertisePublisher(publisher))
         {
-          std::cerr << "Node::Advertise(): Error advertising a service. "
-                    << "Did you forget to start the discovery service?"
+          std::cerr << "Node::Advertise(): Error advertising service ["
+                    << _topic
+                    << "]. Did you forget to start the discovery service?"
                     << std::endl;
           return false;
         }
@@ -807,8 +808,9 @@ namespace ignition
             // Discover the service responser.
             if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
             {
-              std::cerr << "Node::Request(): Error discovering a service. "
-                        << "Did you forget to start the discovery service?"
+              std::cerr << "Node::Request(): Error discovering service ["
+                        << _topic
+                        << "]. Did you forget to start the discovery service?"
                         << std::endl;
               return false;
             }
@@ -947,8 +949,9 @@ namespace ignition
           // Discover the service responser.
           if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
           {
-            std::cerr << "Node::Request(): Error discovering a service. "
-                      << "Did you forget to start the discovery service?"
+            std::cerr << "Node::Request(): Error discovering service ["
+                      << _topic
+                      << "]. Did you forget to start the discovery service?"
                       << std::endl;
             return false;
           }
