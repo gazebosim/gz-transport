@@ -11,7 +11,7 @@ target_link_libraries(${log_lib_target}
 ign_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
-  LIB_DEPS ${log_lib_target} stdc++fs
+  LIB_DEPS ${log_lib_target} ${EXTRA_TEST_LIB_DEPS}
   TEST_LIST logging_tests
 )
 

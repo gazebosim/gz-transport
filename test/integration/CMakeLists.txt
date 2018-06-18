@@ -24,7 +24,7 @@ endif()
 
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
-  LIB_DEPS stdc++fs)
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
 
@@ -61,7 +61,7 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
     PRIVATE
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
-      stdc++fs
+      ${EXTRA_TEST_LIB_DEPS}
   )
 
   if(UNIX)

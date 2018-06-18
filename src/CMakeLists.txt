@@ -25,7 +25,7 @@ endif()
 # Build the unit tests.
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${IGNITION-MATH_LIBRARIES} stdc++fs)
+  LIB_DEPS ${IGNITION-MATH_LIBRARIES} ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
 

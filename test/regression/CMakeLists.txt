@@ -2,7 +2,8 @@ set(TEST_TYPE "REGRESSION")
 
 ign_get_sources(tests)
 
-ign_build_tests(TYPE REGRESSION SOURCES ${tests} LIB_DEPS stdc++fs)
+ign_build_tests(TYPE REGRESSION SOURCES ${tests}
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 if(TARGET REGRESSION_deprecated)
   # Turn off deprecation warnings specifically for the test of deprecated
