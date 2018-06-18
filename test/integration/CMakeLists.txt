@@ -23,7 +23,8 @@ if (UNIX AND NOT APPLE)
 endif()
 
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests}
-  TEST_LIST test_list)
+  TEST_LIST test_list
+  LIB_DEPS stdc++fs)
 
 foreach(test ${test_list})
 
@@ -60,6 +61,7 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
     PRIVATE
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
+      stdc++fs
   )
 
   if(UNIX)
