@@ -48,6 +48,7 @@ pipelines:
           - cmake .. # -DENABLE_TESTS_COMPILATION=false
           - make -j4 install
           - cd ../..
+          - ls /usr/local/lib/libignition*
           # Ignition Transport
           - mkdir build
           - cd build
