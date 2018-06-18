@@ -1,10 +1,9 @@
 # Installation
 
-Instructions to install Ignition Transport on all the platforms
-supported: major Linux distributions, Mac OS X and Windows.
+This page contains instructions to install Ignition Transport on all the
+support platforms including major Linux distributions, Mac OS X and Windows.
 
-Next, you can see the major Ignition Transport versions, their
-availability and lifetime.
+You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
 
 ## Ubuntu Linux
 
@@ -25,7 +24,7 @@ Install Ignition Transport:
 
 ```
 sudo apt-get update
-sudo apt-get install libignition-transport3-dev
+sudo apt-get install libignition-transport4-dev
 ```
 
 ## Mac OS X
@@ -50,7 +49,7 @@ Run the following commands:
 
 ```
 brew tap osrf/simulation
-brew install ignition-transport3
+brew install ignition-transport4
 ```
 
 ## Windows
@@ -208,7 +207,7 @@ Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 
 ```
-sudo apt-get remove libignition-transport3-dev
+sudo apt-get remove libignition-transport4-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:
