@@ -31,6 +31,7 @@
 #endif
 
 #include <climits>
+#include <experimental/filesystem>
 #include <filesystem>
 #include <iostream>
 #include <random>
@@ -87,7 +88,8 @@ namespace testing
   std::string portablePathUnion(const std::string &str1,
                                 const std::string &str2)
   {
-    return (std::filesystem::path(str1) / std::filesystem::path(str2)).string();
+    using namespace std::experimental::filesystem::v1;
+    return (path(str1) / path(str2)).string();
   }
 
 #ifdef _WIN32
