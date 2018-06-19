@@ -295,19 +295,19 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   bool correctRawCbExecuted = false;
   bool genericRawCbExecuted = false;
 
-  auto wrongCb = [&](const char *, const int /*_size*/,
+  auto wrongCb = [&](const char *, const size_t /*_size*/,
                      const transport::MessageInfo &)
   {
     wrongRawCbExecuted = true;
   };
 
-  auto correctCb = [&](const char *, const int /*_size*/,
+  auto correctCb = [&](const char *, const size_t /*_size*/,
                        const transport::MessageInfo &)
   {
     correctRawCbExecuted = true;
   };
 
-  auto genericCb = [&](const char *, const int /*_size*/,
+  auto genericCb = [&](const char *, const size_t /*_size*/,
                        const transport::MessageInfo &)
   {
     genericRawCbExecuted = true;
