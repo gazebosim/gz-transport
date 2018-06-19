@@ -255,6 +255,18 @@ namespace ignition
       /// \brief Replier socket identity.
       public: Uuid replierId;
 
+      /// \brief Port used by the message discovery layer.
+      public: static const int kMsgDiscPort = 11317;
+
+      /// \brief Port used by the service discovery layer.
+      public: static const int kSrvDiscPort = 11318;
+
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Process UUID.
       public: std::string pUuid;
 
@@ -264,12 +276,6 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: mutable std::recursive_mutex mutex;
 
-      /// \brief Port used by the message discovery layer.
-      public: static const int kMsgDiscPort = 11317;
-
-      /// \brief Port used by the service discovery layer.
-      public: static const int kSrvDiscPort = 11318;
-
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage<MessagePublisher> connections;
 
@@ -278,6 +284,9 @@ namespace ignition
 
       /// \brief Remote subscribers.
       public: TopicStorage<MessagePublisher> remoteSubscribers;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief This struct wraps up the two different types of subscription
       /// handlers: normal (deserialized) and raw (serialized). This wrapper
@@ -336,14 +345,20 @@ namespace ignition
 
       public: HandlerWrapper localSubscribers;
 
+      /// \brief Print activity to stdout.
+      public: int verbose;
+
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Service call repliers.
       public: HandlerStorage<IRepHandler> repliers;
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
-
-      /// \brief Print activity to stdout.
-      public: int verbose;
 
       /// \brief My pub/sub address.
       public: std::string myAddress;
@@ -360,12 +375,6 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
       /// \brief Internal data pointer.
       private: std::unique_ptr<NodeSharedPrivate> dataPtr;
 #ifdef _WIN32
