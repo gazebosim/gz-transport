@@ -48,12 +48,13 @@ pipelines:
           - cmake .. # -DENABLE_TESTS_COMPILATION=false
           - make -j4 install
           - cd ../..
-          - ls /usr/local/lib/libignition*
           # Ignition Transport
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4
+          - ldd bin/UNIT_AdvertiseOptions_TEST
+          - ls /usr/local/lib/libignition*
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
