@@ -18,6 +18,9 @@
 1. Added inline versioned namespace to the main library
    * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
 
+1. Added --force option to 'ign log record'
+   * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
+
 ## Ignition Transport 4
 
 ### Ignition Transport 4.X.X

@@ -61,3 +61,23 @@ foreach(source_file ${aux})
   target_compile_definitions(${BINARY_NAME}
     PRIVATE IGN_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${BINARY_NAME}>")
 endforeach()
+
+# ign log CLI test
+if (IGNITION-TOOLS_BINARY_DIRS)
+  set(IGN_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
+
+  add_test(ign_log_record_no_overwrite
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb
+  )
+  add_test(ign_log_record_force
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb
+  )
+  set_tests_properties(
+    ign_log_record_no_overwrite
+    ign_log_record_force
+    PROPERTIES
+    ENVIRONMENT
+      IGN_CONFIG_PATH=${IGN_CONFIG_PATH}
+    TIMEOUT 5
+  )
+endif ()
