@@ -52,7 +52,7 @@ pipelines:
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
-          - VERBOSER=1 make
+          - VERBOSE=1 make
           - ldd bin/UNIT_AdvertiseOptions_TEST
           - ls /usr/local/lib/libignition*
           - make test ARGS="-VV"
