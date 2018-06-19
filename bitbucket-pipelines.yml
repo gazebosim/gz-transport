@@ -54,6 +54,7 @@ pipelines:
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - VERBOSE=1 make
           - ldd bin/UNIT_AdvertiseOptions_TEST
+          - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
           - file bin/UNIT_AdvertiseOptions_TEST
           - ls -l /usr/local/lib/libignition*
           - file /usr/local/lib/libignition-math6.so.6.0.0~pre1
