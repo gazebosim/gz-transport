@@ -53,6 +53,7 @@ pipelines:
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - VERBOSE=1 make
+          - env | grep LIBRARY
           - ldd bin/UNIT_AdvertiseOptions_TEST
           - file bin/UNIT_AdvertiseOptions_TEST
           - ls -l /usr/local/lib/libignition*
