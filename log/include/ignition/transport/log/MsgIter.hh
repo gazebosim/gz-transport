@@ -87,8 +87,17 @@ namespace ignition
         /// \return a pointer to the message this is pointing to
         public: const Message *operator->() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private Implementation Pointer
         public: std::unique_ptr<MsgIterPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
         /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer

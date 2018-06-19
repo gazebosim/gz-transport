@@ -360,9 +360,17 @@ namespace ignition
       /// \brief IP address of this host.
       public: std::string hostAddr;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Internal data pointer.
       private: std::unique_ptr<NodeSharedPrivate> dataPtr;
-
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       private: friend Node;
       private: friend NodePrivate;
     };

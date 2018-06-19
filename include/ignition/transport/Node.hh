@@ -159,7 +159,16 @@ namespace ignition
         /// This is std::shared_ptr because we want to trigger the destructor
         /// only once: when all references to PublisherPrivate are out of scope.
         /// The destructor of PublisherPrivate unadvertise the topic.
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::shared_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         private: std::shared_ptr<PublisherPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
 
       /// \brief Constructor.
@@ -1102,9 +1111,18 @@ namespace ignition
       /// \return True on success.
       private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<transport::NodePrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }
