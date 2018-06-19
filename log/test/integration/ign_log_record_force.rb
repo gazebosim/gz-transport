@@ -16,16 +16,17 @@
 
 require 'open3'
 
-testfile = "ign_log_record_force.tlog"
-File.write(testfile, "not empty file")
+testfile = 'ign_log_record_force.tlog'
+File.write(testfile, 'not empty file')
 
-stdin, stdout, stderr, wait_thr = Open3.popen3("ign log record --force --file #{testfile}")
+_, stdout, stderr, wait_thr =
+  Open3.popen3("ign log record --force --file #{testfile}")
 
 sleep(2)
 
 cmd_running = true
 if wait_thr.alive?
-  Process.kill("KILL", wait_thr.pid)
+  Process.kill('KILL', wait_thr.pid)
 else
   cmd_running = false
 end
@@ -42,12 +43,6 @@ puts wait_thr.value
 
 File.delete(testfile)
 
-if not cmd_running
-  exit 1
-end
-
-if stderr.length > 0
-  exit 2
-end
-
+exit 1 unless cmd_running
+exit 2 unless stderr.empty?
 exit 0

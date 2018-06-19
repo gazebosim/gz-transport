@@ -16,8 +16,8 @@
 
 require 'open3'
 
-testfile = "ign_log_record_no_overwrite.tlog"
-File.write(testfile, "not empty file")
+testfile = 'ign_log_record_no_overwrite.tlog'
+File.write(testfile, 'not empty file')
 
 stdout, stderr, status = Open3.capture3("ign log record --file #{testfile}")
 
@@ -30,12 +30,6 @@ puts stderr
 puts '-----status-----'
 puts status
 
-if status.exitstatus == 0
-  exit 1
-end
-
-if not stderr.include? "Failed to open log"
-  exit 2
-end
-
+exit 1 if status.exitstatus.zero?
+exit 2 unless stderr.include? 'Failed to open log'
 exit 0
