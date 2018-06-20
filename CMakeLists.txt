@@ -22,7 +22,7 @@ ign_configure_project(VERSION_SUFFIX pre1)
 
 # ignition-transport currently has no options that are unique to it
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
   set (EXTRA_TEST_LIB_DEPS stdc++fs)
 else()
   set (EXTRA_TEST_LIB_DEPS)
