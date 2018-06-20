@@ -21,7 +21,7 @@ pipelines:
           - cd ign-cmake
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition tools
@@ -29,7 +29,7 @@ pipelines:
           - cd ign-tools
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition math
@@ -37,7 +37,7 @@ pipelines:
           - cd ign-math
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition msgs
@@ -45,20 +45,14 @@ pipelines:
           - cd ign-msgs
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition Transport
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
-          - VERBOSE=1 make
-          - ldd bin/UNIT_AdvertiseOptions_TEST
-            # - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-          - ldd bin/UNIT_AdvertiseOptions_TEST
-          - file bin/UNIT_AdvertiseOptions_TEST
-          - ls -l /usr/local/lib/libignition*
-          - file /usr/local/lib/libignition-math6.so.6.0.0~pre1
+          - make -j4
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
