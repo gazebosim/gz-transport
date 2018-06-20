@@ -30,9 +30,12 @@
   DETAIL_IGN_TRANSPORT_TEST_DIR
 #endif
 
-#include <climits>
+#ifndef __APPLE__
 #include <experimental/filesystem>
 #include <filesystem>
+#endif
+
+#include <climits>
 #include <iostream>
 #include <random>
 #include <string>
@@ -81,15 +84,20 @@
 
 namespace testing
 {
-  /// \brief Join str1 and str2 considering both as storing system paths.
-  /// \param[in] str1 string containing a path.
-  /// \param[in] str2 string containing a path.
+  /// \brief Join _str1 and _str2 considering both as storing system paths.
+  /// \param[in] _str1 string containing a path.
+  /// \param[in] _str2 string containing a path.
   /// \return The string representation of the union of two paths.
-  std::string portablePathUnion(const std::string &str1,
-                                const std::string &str2)
+  std::string portablePathUnion(const std::string &_str1,
+                                const std::string &_str2)
   {
+#ifdef __APPLE__
+    std::tr2::sys::path basePath(_str1);
+    return (basePath /= _str2).string();
+#else
     using namespace std::experimental::filesystem::v1;
-    return (path(str1) / path(str2)).string();
+    return (path(_str1) / path(_str2)).string();
+#endif
   }
 
 #ifdef _WIN32
