@@ -22,7 +22,7 @@ ign_configure_project(VERSION_SUFFIX pre1)
 
 # ignition-transport currently has no options that are unique to it
 
-if (NOT MSVC)
+if (UNIX)
   set (EXTRA_TEST_LIB_DEPS stdc++fs)
 else()
   set (EXTRA_TEST_LIB_DEPS)
