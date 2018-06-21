@@ -1348,10 +1348,7 @@ void NodeSharedPrivate::AccessControlHandler()
         sequence = receiveHelper(*sock);
         domain = receiveHelper(*sock);
         address = receiveHelper(*sock);
-
-        // cppcheck-suppress unreadVariable
         routingId = receiveHelper(*sock);
-
         mechanism = receiveHelper(*sock);
         givenUsername = receiveHelper(*sock);
         givenPassword = receiveHelper(*sock);

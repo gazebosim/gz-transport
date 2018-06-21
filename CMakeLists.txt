@@ -22,6 +22,12 @@ ign_configure_project(VERSION_SUFFIX pre1)
 
 # ignition-transport currently has no options that are unique to it
 
+if (UNIX AND NOT APPLE)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+else()
+  set (EXTRA_TEST_LIB_DEPS)
+endif()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
@@ -102,9 +108,6 @@ add_subdirectory(tools)
 ign_create_packages()
 
 #============================================================================
-# Create documentation
+# Configure documentation
 #============================================================================
-ign_create_docs(
-  TAGFILES
-    "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-  )
+ign_create_docs()

@@ -51,9 +51,9 @@ namespace ignition
       /// \param[in] _nUuid UUID of the node registering the request handler.
       public: explicit IReqHandler(const std::string &_nUuid)
         : rep(""),
-          result(false),
           hUuid(Uuid().ToString()),
           nUuid(_nUuid),
+          result(false),
           requested(false),
           repAvailable(false)
       {
@@ -145,6 +145,12 @@ namespace ignition
       /// \return Message type name.
       public: virtual std::string RepTypeName() const = 0;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
       protected: std::condition_variable_any condition;
@@ -152,14 +158,17 @@ namespace ignition
       /// \brief Stores the service response as raw bytes.
       protected: std::string rep;
 
-      /// \brief Stores the result of the service call.
-      protected: bool result;
-
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
 
       /// \brief Node UUID.
       private: std::string nUuid;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
+      /// \brief Stores the result of the service call.
+      protected: bool result;
 
       /// \brief When true, the REQ was already sent and the REP should be on
       /// its way. Used to not resend the same REQ more than one time.

@@ -7,6 +7,13 @@
 
 ### Ignition Transport 5.X.X
 
+1. Added a logging tutorial
+   * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+
+1. Added a migration guide for helping with the transition between major
+   versions
+   * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
+
 1. Converted ignition-transport-log into a component
    * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
 
@@ -19,6 +26,9 @@
 ## Ignition Transport 4
 
 ### Ignition Transport 4.X.X
+
+1. Ignore subinterfaces when using determineInterfaces().
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/314)
 
 1. Refactored Playback to return a PlaybackHandle from Start()
    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
@@ -185,6 +195,9 @@
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
     * [Pull request 168](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/168)
+
+1. Fix case where `std::bad_function_call` could be thrown.
+    * [Pull request 317](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/317)
 
 ### Ignition Transport 2.0.0
 
