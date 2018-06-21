@@ -146,8 +146,17 @@ namespace ignition
       /// \brief Discovery protocol version.
       private: uint16_t version = 0;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::string
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Global identifier. Every process has a unique UUID.
       private: std::string pUuid = "";
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief Message type (ADVERTISE, SUBSCRIPTION, ...).
       private: uint8_t type = Uninitialized;
@@ -220,8 +229,17 @@ namespace ignition
       /// \brief Message header.
       private: transport::Header header;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::string
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Topic.
       private: std::string topic = "";
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
 
     /// \class AdvertiseMessage Packet.hh ignition/transport/Packet.hh

@@ -45,7 +45,7 @@ void cb(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void cbRaw(const char *_msgData, const int _size,
+void cbRaw(const char *_msgData, const size_t _size,
            const ignition::transport::MessageInfo &_info)
 {
   ignition::msgs::Vector3d v;

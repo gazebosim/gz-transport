@@ -180,6 +180,12 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       protected: size_t MsgLengthInternal() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::string
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Topic name.
       protected: std::string topic;
 
@@ -191,6 +197,9 @@ namespace ignition
 
       /// \brief Node UUID of the publisher.
       protected: std::string nUuid;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief Advertised options.
       /// This member is not used when we have a derived publisher.
@@ -303,11 +312,20 @@ namespace ignition
       /// \return A reference to this instance.
       public: MessagePublisher &operator=(const MessagePublisher &_other);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief ZeroMQ control address of the publisher.
       private: std::string ctrl;
 
       /// \brief Message type advertised by this publisher.
       private: std::string msgTypeName;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief Advertise options (e.g.: msgsPerSec).
       private: AdvertiseMessageOptions msgOpts;
@@ -428,6 +446,12 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const ServicePublisher &_srv) const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::string
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// ZeroMQ socket ID used by this publisher.
       private: std::string socketId;
 
@@ -436,6 +460,9 @@ namespace ignition
 
       /// \brief The name of the response's protobuf message advertised.
       private: std::string repTypeName;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief Advertise options.
       private: AdvertiseServiceOptions srvOpts;

@@ -103,7 +103,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 }
 
 //////////////////////////////////////////////////
-void rawCbInfo(const char *_msgData, const int _size,
+void rawCbInfo(const char *_msgData, const size_t _size,
                const ignition::transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);

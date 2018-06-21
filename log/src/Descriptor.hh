@@ -38,11 +38,20 @@ namespace ignition
       /// UNIT_Descriptor_TEST
       struct IGNITION_TRANSPORT_LOG_VISIBLE TopicKey
       {
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief The name of the topic
         public: std::string topic;
 
         /// \brief The message type name published on the topic
         public: std::string type;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
         /// \brief Equality operator. Needed for std::unordered_map
         /// \param[in] _other Another TopicKey
@@ -69,11 +78,20 @@ namespace ignition
         /// \param[in] _topics The map of topics that the log contains.
         public: void Reset(const TopicKeyMap &_topics);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal \sa Descriptor::TopicsToMsgTypesToId()
         public: NameToMap topicsToMsgTypesToId;
 
         /// \internal \sa Descriptor::MsgTypesToTopicsToId()
         public: NameToMap msgTypesToTopicsToId;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

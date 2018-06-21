@@ -36,10 +36,18 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
   {
+#ifdef _WIN32
+// Disable warning C4838
+#pragma warning(push)
+#pragma warning(disable: 4838)
+#endif
     zmq::pollitem_t items[] =
     {
       {0, _sockets.at(0), ZMQ_POLLIN, 0},
     };
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
     try
     {

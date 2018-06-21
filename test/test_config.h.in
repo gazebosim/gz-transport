@@ -30,13 +30,17 @@
   DETAIL_IGN_TRANSPORT_TEST_DIR
 #endif
 
+#ifndef __APPLE__
+#include <experimental/filesystem>
+#include <filesystem>
+#endif
+
 #include <climits>
 #include <iostream>
 #include <random>
 #include <string>
 
 #ifdef _WIN32
-  #include <filesystem>
   #include <windows.h>
 #else
   #include <signal.h>
@@ -80,18 +84,19 @@
 
 namespace testing
 {
-  /// \brief Join str1 and str2 considering both as storing system paths.
-  /// \param[in] str1 string containing a path.
-  /// \param[in] str2 string containing a path.
+  /// \brief Join _str1 and _str2 considering both as storing system paths.
+  /// \param[in] _str1 string containing a path.
+  /// \param[in] _str2 string containing a path.
   /// \return The string representation of the union of two paths.
-  std::string portablePathUnion(const std::string str1, const std::string str2)
+  std::string portablePathUnion(const std::string &_str1,
+                                const std::string &_str2)
   {
-#ifdef _WIN32
-    std::tr2::sys::path base_path(str1);
-    return (base_path /= str2).string();
-#else
+#ifdef __APPLE__
     // Ugly as hell but trying to avoid boost::filesystem
-    return str1 + "/" + str2;
+    return _str1 + "/" + _str2;
+#else
+    using namespace std::experimental::filesystem::v1;
+    return (path(_str1) / path(_str2)).string();
 #endif
   }
 
@@ -122,7 +127,7 @@ namespace testing
     PROCESS_INFORMATION processInfo;
 
     char cmd[500];
-    // We should put quotes around the _command string to make sure we are 
+    // We should put quotes around the _command string to make sure we are
     // robust to file paths that contain spaces.
     ign_strcpy(cmd, "\"");
     ign_strcat(cmd, _command);
@@ -144,9 +149,9 @@ namespace testing
     // argument is non-NULL, it will not automatically add the extension, which
     // makes more work for us.
     //
-    // It should also be noted that the lookup behavior for the application is 
-    // different when the first argument is non-NULL, so we should take that into
-    // consideration when determining what to put into the first and second 
+    // It should also be noted that the lookup behavior for the application is
+    // different when the first argument is non-NULL, so we should take that
+    // into consideration when determining what to put into the first and second
     // arguments of CreateProcess.
     if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
           TRUE, 0, NULL, NULL, &info, &processInfo))
