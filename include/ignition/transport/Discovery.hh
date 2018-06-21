@@ -181,6 +181,7 @@ namespace ignition
         // multiple interfaces. We will use the socket at position 0 for
         // receiving data.
         int reusePort = 1;
+        // cppcheck-suppress ConfigurationNotChecked
         if (setsockopt(this->sockets.at(0), SOL_SOCKET, SO_REUSEPORT,
             reinterpret_cast<const char *>(&reusePort), sizeof(reusePort)) != 0)
         {

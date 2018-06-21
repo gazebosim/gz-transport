@@ -199,6 +199,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       struct ifreq ifIdx;
       memset(&ifIdx, 0, sizeof(struct ifreq));
       strncpy(ifIdx.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+      // cppcheck-suppress ConfigurationNotChecked
       if (ioctl(sockfd, SIOCGIFINDEX, &ifIdx) < 0)
       {
         std::cerr << "Error requesting SIOCGIFINDEX for ["
@@ -353,7 +354,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   {
 #ifdef _WIN32
     WSADATA wsaData;
-    WSAStartup(MAKEWORD(2,2), &wsaData);
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
     char hostname[200 + 1];

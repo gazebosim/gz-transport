@@ -102,7 +102,6 @@ namespace ignition
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-
     };
 
     /// \class RepHandler RepHandler.hh

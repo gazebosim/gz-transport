@@ -49,7 +49,7 @@ class ignition::transport::log::Playback::Implementation
 {
   /// \brief Constructor. Creates and initializes the log file
   /// \param[in] _file The full path of the file to open
-  public: Implementation(const std::string &_file)
+  public: explicit Implementation(const std::string &_file)
     : logFile(std::make_shared<Log>()),
       addTopicWasUsed(false)
   {
