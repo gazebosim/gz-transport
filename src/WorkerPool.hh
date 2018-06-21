@@ -15,7 +15,7 @@
  *
 */
 
-/// \todo: Use ignition::common::WorkPool when smaller libraries from
+/// \todo(anyone): Use ignition::common::WorkPool when smaller libraries from
 /// ign-common are available.
 #ifndef IGNITION_TRANSPORT_WORKER_POOL_HH_
 #define IGNITION_TRANSPORT_WORKER_POOL_HH_

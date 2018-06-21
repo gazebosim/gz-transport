@@ -324,7 +324,7 @@ class TopicPattern::Implementation
   }
 
   /// \brief Pattern for this option
-  /// TODO: Consider making this a vector of patterns?
+  /// TODO(anyone): Consider making this a vector of patterns?
   public: std::regex pattern;
 };
 

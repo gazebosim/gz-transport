@@ -85,7 +85,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicInfo(const char *_topic)
     std::cout << "No publishers on topic [" << _topic << "]\n";
   }
 
-  // TODO: Add subscribers lists
+  // TODO(anyone): Add subscribers lists
 }
 
 //////////////////////////////////////////////////
@@ -168,7 +168,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
     // Publish the message
     if (pub)
     {
-      // \todo Change this sleep to a WaitForSubscribers() call.
+      // \todo(anyone) Change this sleep to a WaitForSubscribers() call.
       // See issue #xxx
       std::this_thread::sleep_for(std::chrono::milliseconds(800));
       pub.Publish(*msg);

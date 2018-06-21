@@ -50,7 +50,7 @@ namespace ignition
           INTEGER,
           REAL,
           TEXT
-          // TODO: Consider supporting blob types
+          // TODO(anyone): Consider supporting blob types
         };
 
         /// \sa Set(std::nullptr_t)
