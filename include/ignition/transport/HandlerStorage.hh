@@ -19,7 +19,9 @@
 #define IGN_TRANSPORT_HANDLERSTORAGE_HH_
 
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/TransportTypes.hh"
