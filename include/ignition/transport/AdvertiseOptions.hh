@@ -130,9 +130,18 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<AdvertiseOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
 
     /// \brief A class for customizing the publication options for a topic
@@ -219,9 +228,18 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<AdvertiseMessageOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
 
     /// \brief A class for customizing the publication options for a service
@@ -282,9 +300,19 @@ namespace ignition
       /// \return Return the length of the message in bytes.
       public: size_t MsgLength() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<AdvertiseServiceOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
     };
     }
   }

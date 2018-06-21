@@ -81,9 +81,18 @@ namespace ignition
       /// \sa TopicUtils::FullyQualifiedName
       public: bool SetTopicAndPartition(const std::string &_fullyQualifiedName);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Pointer to private data.
       protected: std::unique_ptr<MessageInfoPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }

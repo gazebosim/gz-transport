@@ -106,9 +106,18 @@ namespace ignition
       /// \sa Partition
       public: bool SetPartition(const std::string &_partition);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::NodeOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }

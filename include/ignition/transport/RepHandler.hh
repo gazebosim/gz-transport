@@ -91,8 +91,18 @@ namespace ignition
       /// \return Message type name.
       public: virtual std::string RepTypeName() const = 0;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::string
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Unique handler's UUID.
       protected: std::string hUuid;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
     };
 
     /// \class RepHandler RepHandler.hh
