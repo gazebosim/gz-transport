@@ -171,10 +171,19 @@ namespace ignition
         /// \internal Implementation class
         private: class Implementation;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal PIMPL pointer
         /// We need a custom deleter here due to a compiler bug in MSVC 2017
         private: std::unique_ptr<Implementation,
                     void (*)(Implementation*)> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
 
       //////////////////////////////////////////////////
@@ -291,10 +300,19 @@ namespace ignition
         /// \internal Implementation class
         private: class Implementation;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal PIMPL pointer
         /// We need a custom deleter here due to a compiler bug in MSVC 2017
         private: std::unique_ptr<Implementation,
                     void(*)(Implementation*)> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

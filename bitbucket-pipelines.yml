@@ -17,11 +17,11 @@ pipelines:
           - make install
           - cd ..
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b c++17
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11 
           - cd ign-cmake
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition tools
@@ -29,7 +29,7 @@ pipelines:
           - cd ign-tools
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition math
@@ -37,7 +37,7 @@ pipelines:
           - cd ign-math
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition msgs
@@ -45,7 +45,7 @@ pipelines:
           - cd ign-msgs
           - mkdir build
           - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition Transport
@@ -56,9 +56,9 @@ pipelines:
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
-          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
+          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout 2>/dev/null
           - make doc
-          - make codecheck
+          # - make codecheck
           - make install
           - cd ..
           # Build examples
@@ -66,10 +66,3 @@ pipelines:
           - mkdir build && cd build
           - cmake ..
           - make -j4
-          - cd ../..
-          - cd log/example
-          - mkdir build && cd build
-          - cmake ..
-          - make -j4
-          - cd ../../..
-
