@@ -35,7 +35,8 @@
 #endif
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/NodeOptions.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/Publisher.hh"
@@ -50,12 +51,16 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class NodePrivate;
 
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
-    IGNITION_TRANSPORT_VISIBLE void waitForShutdown();
+    void IGNITION_TRANSPORT_VISIBLE waitForShutdown();
 
     /// \class Node Node.hh ignition/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
@@ -76,9 +81,12 @@ namespace ignition
       ///    if (pub)
       ///    {
       ///      MsgType msg;
+      ///
+      ///      // Note that this version of Publish will copy the message
+      ///      // when publishing to interprocess subscribers.
       ///      pub.Publish(msg);
       ///    }
-      public: class Publisher
+      public: class IGNITION_TRANSPORT_VISIBLE Publisher
       {
         /// \brief Default constructor.
         public: Publisher();
@@ -105,10 +113,37 @@ namespace ignition
         /// \return True if this object can be used in Publish() calls.
         public: bool Valid() const;
 
-        /// \brief Publish a message.
+        /// \brief Publish a message. This function will copy the message
+        /// when publishing to interprocess subscribers. This copy is
+        /// necessary to facilitate asynchronous publication.
         /// \param[in] _msg A google::protobuf message.
         /// \return true when success.
         public: bool Publish(const ProtoMsg &_msg);
+
+        /// \brief Publish a raw pre-serialized message.
+        ///
+        /// \warning This function is only intended for advanced users. The
+        /// standard publishing function, Publish(const ProtoMsg &_msg), will
+        /// ensure that your message is correctly serialized. It is strongly
+        /// recommended that you use the standard publishing function unless
+        /// there is a specific reason for using this one (e.g. you are
+        /// forwarding or playing back data instead of serializing/deserializing
+        /// it). We currently only support the serialization scheme of protobuf.
+        ///
+        /// \warning This function will copy the message data when
+        /// publishing to remote subscribers (interprocess communication).
+        ///
+        /// \note This function will deserialize the message when sending it to
+        /// local (intraprocess) subscribers.
+        ///
+        /// \param[in] _msgData A std::string that represents a
+        /// serialized google::protobuf message.
+        /// \param[in] _msgType A std::string that contains the message type
+        /// name.
+        /// \return true when success.
+        public: bool PublishRaw(
+          const std::string &_msgData,
+          const std::string &_msgType);
 
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
@@ -122,7 +157,7 @@ namespace ignition
         /// \internal
         /// \brief Smart pointer to private data.
         /// This is std::shared_ptr because we want to trigger the destructor
-        /// only once when all references to PublisherPrivate are out of scope.
+        /// only once: when all references to PublisherPrivate are out of scope.
         /// The destructor of PublisherPrivate unadvertise the topic.
         private: std::shared_ptr<PublisherPrivate> dataPtr;
       };
@@ -276,28 +311,6 @@ namespace ignition
       /// \return true when successfully unsubscribed or false otherwise.
       public: bool Unsubscribe(const std::string &_topic);
 
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (*_callback)(const Request &_request, const Reply &_reply)}
-      /// for advertising a service.
-      /// \param[in] _topic Topic name associated with the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply ProtobufMessage containing the response.
-      ///   \param[out] _result Service call result
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or false
-      /// otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean.
-      public: template<typename RequestT, typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          void(*_callback)(const RequestT &_request,
-                           ReplyT &_reply, bool &_result),
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
       /// \brief Advertise a new service.
       /// In this version the callback is a plain function pointer.
       /// \param[in] _topic Topic name associated to the service.
@@ -314,25 +327,6 @@ namespace ignition
       bool Advertise(
           const std::string &_topic,
           bool(*_callback)(const RequestT &_request, ReplyT &_reply),
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (*_callback)(T &_reply)} for advertising a service.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean
-      public: template<typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          void(*_callback)(ReplyT &_reply, bool &_result),
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without input parameter.
@@ -368,28 +362,6 @@ namespace ignition
           void(*_callback)(const RequestT &_request),
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (*_callback)(const T1 &_request, T2 &_reply)} for
-      /// advertising a service.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean
-      public: template<typename RequestT, typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          std::function<void(const RequestT &_request,
-                             ReplyT &_reply, bool &_result)> &_callback,
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
       /// \brief Advertise a new service.
       /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic name associated to the service.
@@ -407,25 +379,6 @@ namespace ignition
           const std::string &_topic,
           std::function<bool(const RequestT &_request,
                              ReplyT &_reply)> _callback,
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (*_callback)(T2 &_reply)} for advertising a service.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean
-      public: template<typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          std::function<void(ReplyT &_reply, bool &_result)> &_callback,
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
       /// \brief Advertise a new service without input parameter.
@@ -461,30 +414,6 @@ namespace ignition
           std::function<void(const RequestT &_request)> &_callback,
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (C::*_callback)(const T1 &_request, T2 &_reply)} for
-      /// advertising a service.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean
-      public: template<typename ClassT, typename RequestT, typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          void(ClassT::*_callback)(const RequestT &_request,
-                             ReplyT &_reply, bool &_result),
-          ClassT *_obj,
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
       /// \brief Advertise a new service.
       /// In this version the callback is a member function.
       /// \param[in] _topic Topic name associated to the service.
@@ -502,27 +431,6 @@ namespace ignition
       bool Advertise(
           const std::string &_topic,
           bool(ClassT::*_callback)(const RequestT &_request, ReplyT &_reply),
-          ClassT *_obj,
-          const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
-
-      /// \brief Old method for advertising a service. This signature is
-      /// considered deprecated. Please migrate to the callback signature
-      /// \code{bool (C::*_callback)(T &_reply)} for advertising a service.
-      /// \param[in] _topic Topic name associated to the service.
-      /// \param[in] _callback Callback to handle the service request with the
-      /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \param[out] _result Service call result.
-      /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _options Advertise options.
-      /// \return true when the topic has been successfully advertised or
-      /// false otherwise.
-      /// \sa AdvertiseOptions.
-      /// \deprecated See version where the callback function returns a boolean
-      public: template<typename ClassT, typename ReplyT>
-      IGN_DEPRECATED(4.0) bool Advertise(
-          const std::string &_topic,
-          void(ClassT::*_callback)(ReplyT &_reply, bool &_result),
           ClassT *_obj,
           const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
@@ -745,13 +653,28 @@ namespace ignition
           const std::string &_service,
           std::vector<ServicePublisher> &_publishers) const;
 
-      /// \brief Get the partition name used by this node.
-      /// \return The partition name.
-      private: const std::string &Partition() const;
+      /// \brief Subscribe to a topic registering a callback. The callback must
+      /// accept a std::string to represent the message data, and a MessageInfo
+      /// which provides metadata about the message.
+      /// \param[in] _topic Name of the topic to subscribe to
+      /// \param[in] _callback A function pointer or std::function object that
+      /// has a void return value and accepts two arguments:
+      /// (const std::string &_msgData, const MessageInfo &_info).
+      /// \param[in] _msgType The type of message to subscribe to. Using
+      /// kGenericMessageType (the default) will allow this subscriber to listen
+      /// to all message types. The callback function can identify the type for
+      /// each message by inspecting its const MessageInfo& input argument.
+      /// \param[in] _opts Options for subscribing.
+      /// \return True if subscribing was successful.
+      public: bool SubscribeRaw(
+        const std::string &_topic,
+        const RawCallback &_callback,
+        const std::string &_msgType = kGenericMessageType,
+        const SubscribeOptions &_opts = SubscribeOptions());
 
-      /// \brief Get the namespace used in this node.
-      /// \return The namespace
-      private: const std::string &NameSpace() const;
+      /// \brief Get the reference to the current node options.
+      /// \return Reference to the current node options.
+      public: const NodeOptions &Options() const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
@@ -770,10 +693,6 @@ namespace ignition
       /// \return The set of advertised services.
       private: std::unordered_set<std::string> &SrvsAdvertised() const;
 
-      /// \brief Get the reference to the current node options.
-      /// \return Reference to the current node options.
-      private: NodeOptions &Options() const;
-
       /// \brief Helper function for Subscribe.
       /// \param[in] _fullyQualifiedTopic Fully qualified topic name
       /// \return True on success.
@@ -783,6 +702,7 @@ namespace ignition
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<transport::NodePrivate> dataPtr;
     };
+    }
   }
 }
 

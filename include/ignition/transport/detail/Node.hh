@@ -134,7 +134,7 @@ namespace ignition
       // associated with a topic. When the receiving thread gets new data,
       // it will recover the subscription handler associated to the topic and
       // will invoke the callback.
-      this->Shared()->localSubscriptions.AddHandler(
+      this->Shared()->localSubscribers.normal.AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
       return this->SubscribeHelper(fullyQualifiedTopic);
@@ -163,24 +163,6 @@ namespace ignition
     //////////////////////////////////////////////////
     template<typename RequestT, typename ReplyT>
     bool Node::Advertise(
-        const std::string &_topic,
-        void(*_cb)(const RequestT &_request, ReplyT &_reply, bool &_result),
-        const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const RequestT &, ReplyT&)> newCb =
-        [=](const RequestT &_internalReq, ReplyT &_internalRep) -> bool
-      {
-        bool internalResult = false;
-        (*_cb)(_internalReq, _internalRep, internalResult);
-        return internalResult;
-      };
-
-      return this->Advertise(_topic, newCb, _options);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename RequestT, typename ReplyT>
-    bool Node::Advertise(
       const std::string &_topic,
       bool(*_cb)(const RequestT &_request, ReplyT &_reply),
       const AdvertiseServiceOptions &_options)
@@ -198,23 +180,6 @@ namespace ignition
         [_cb](const RequestT &_internalReq, ReplyT &_internalRep)
       {
         return (*_cb)(_internalReq, _internalRep);
-      };
-
-      return this->Advertise(_topic, f, _options);
-    }
-
-    template<typename ReplyT>
-    bool Node::Advertise(
-      const std::string &_topic,
-      void(*_cb)(ReplyT &_reply, bool &_result),
-      const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const msgs::Empty &, ReplyT &)> f =
-        [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
-      {
-        bool internalResult = false;
-        (*_cb)(_internalRep, internalResult);
-        return internalResult;
       };
 
       return this->Advertise(_topic, f, _options);
@@ -248,25 +213,6 @@ namespace ignition
       {
         (*_cb)(_internalReq);
         return true;
-      };
-
-      return this->Advertise(_topic, f, _options);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename RequestT, typename ReplyT>
-    bool Node::Advertise(
-      const std::string &_topic,
-      std::function<void(const RequestT &_request,
-                         ReplyT &_reply, bool &_result)> &_cb,
-      const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const RequestT&, ReplyT&)> f =
-          [_cb](const RequestT &_request, ReplyT &_reply)
-      {
-        bool internalResult = false;
-        (*_cb)(_request, _reply, internalResult);
-        return internalResult;
       };
 
       return this->Advertise(_topic, f, _options);
@@ -315,31 +261,14 @@ namespace ignition
 
       if (!this->Shared()->AdvertisePublisher(publisher))
       {
-        std::cerr << "Node::Advertise(): Error advertising a service. "
-                  << "Did you forget to start the discovery service?"
+        std::cerr << "Node::Advertise(): Error advertising service ["
+                  << _topic
+                  << "]. Did you forget to start the discovery service?"
                   << std::endl;
         return false;
       }
 
       return true;
-    }
-
-    //////////////////////////////////////////////////
-    template<typename ReplyT>
-    bool Node::Advertise(
-      const std::string &_topic,
-      std::function<void(ReplyT &_reply, bool &_result)> &_cb,
-      const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const msgs::Empty &, ReplyT &)> f =
-        [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
-      {
-        bool internalResult = false;
-        (_cb)(_internalRep, internalResult);
-        return internalResult;
-      };
-
-      return this->Advertise(_topic, f, _options);
     }
 
     //////////////////////////////////////////////////
@@ -379,27 +308,6 @@ namespace ignition
     template<typename ClassT, typename RequestT, typename ReplyT>
     bool Node::Advertise(
       const std::string &_topic,
-      void(ClassT::*_cb)(const RequestT &_request,
-                         ReplyT &_reply, bool &_result),
-      ClassT *_obj,
-      const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const RequestT &, ReplyT &)> f =
-        [_cb, _obj](const RequestT &_internalReq,
-                    ReplyT &_internalRep)
-      {
-        bool internalResult;
-        (_obj->*_cb)(_internalReq, _internalRep, internalResult);
-        return internalResult;
-      };
-
-      return this->Advertise(_topic, f, _options);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename ClassT, typename RequestT, typename ReplyT>
-    bool Node::Advertise(
-      const std::string &_topic,
       bool(ClassT::*_cb)(const RequestT &_request, ReplyT &_reply),
       ClassT *_obj,
       const AdvertiseServiceOptions &_options)
@@ -409,25 +317,6 @@ namespace ignition
                     ReplyT &_internalRep)
       {
         return (_obj->*_cb)(_internalReq, _internalRep);
-      };
-
-      return this->Advertise(_topic, f, _options);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename ClassT, typename ReplyT>
-    bool Node::Advertise(
-      const std::string &_topic,
-      void(ClassT::*_cb)(ReplyT &_reply, bool &_result),
-      ClassT *_obj,
-      const AdvertiseServiceOptions &_options)
-    {
-      std::function<bool(const msgs::Empty &, ReplyT &)> f =
-        [_cb, _obj](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
-      {
-        bool internalResult;
-        (_obj->*_cb)(_internalRep, internalResult);
-        return internalResult;
       };
 
       return this->Advertise(_topic, f, _options);
@@ -562,8 +451,9 @@ namespace ignition
           // Discover the service responser.
           if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
           {
-            std::cerr << "Node::Request(): Error discovering a service. "
-                      << "Did you forget to start the discovery service?"
+            std::cerr << "Node::Request(): Error discovering service ["
+                      << _topic
+                      << "]. Did you forget to start the discovery service?"
                       << std::endl;
             return false;
           }
@@ -666,8 +556,9 @@ namespace ignition
         // Discover the service responser.
         if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
         {
-          std::cerr << "Node::Request(): Error discovering a service. "
-                    << "Did you forget to start the discovery service?"
+          std::cerr << "Node::Request(): Error discovering service ["
+                    << _topic
+                    << "]. Did you forget to start the discovery service?"
                     << std::endl;
           return false;
         }

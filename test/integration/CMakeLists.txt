@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  authPubSub.cc
   scopedTopic.cc
   twoProcessesPubSub.cc
   twoProcessesSrvCall.cc
@@ -13,27 +14,58 @@ set(tests
   twoProcessesSrvCallWithoutOutputStress.cc
 )
 
-include_directories(SYSTEM ${CMAKE_BINARY_DIR}/test/)
-link_directories(${PROJECT_BINARY_DIR}/test)
+# Test symbols having the right name on linux only.
+if (UNIX AND NOT APPLE)
+  configure_file(all_symbols_have_version.bash.in
+    ${CMAKE_CURRENT_BINARY_DIR}/all_symbols_have_version.bash @ONLY)
+  add_test(NAME INTEGRATION_versioned_symbols
+    COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/all_symbols_have_version.bash $<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>)
+endif()
 
-ign_build_tests(${tests})
+ign_build_tests(TYPE INTEGRATION SOURCES ${tests}
+  TEST_LIST test_list)
 
-# Skip auxiliary files in the test suite
-set(IGN_SKIP_IN_TESTSUITE True)
+foreach(test ${test_list})
+
+  # Inform each test of its output directory so it knows where to call the
+  # auxiliary files from. Using a generator expression here is useful for
+  # multi-configuration generators, like Visual Studio.
+  target_compile_definitions(${test} PRIVATE
+    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
+
+endforeach()
 
 set(auxiliary_files
-  fastPub_aux.cc
-  pub_aux.cc
-  pub_aux_throttled.cc
-  scopedTopicSubscriber_aux.cc
-  twoProcessesPublisher_aux.cc
-  twoProcessesPubSubSubscriber_aux.cc
-  twoProcessesSrvCallReplier_aux.cc
-  twoProcessesSrvCallReplierIncreasing_aux.cc
-  twoProcessesSrvCallWithoutInputReplier_aux.cc
-  twoProcessesSrvCallWithoutInputReplierIncreasing_aux.cc
-  twoProcessesSrvCallWithoutOutputReplier_aux.cc
-  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux.cc
+  authPubSubSubscriberInvalid_aux
+  fastPub_aux
+  pub_aux
+  pub_aux_throttled
+  scopedTopicSubscriber_aux
+  twoProcessesPublisher_aux
+  twoProcessesPubSubSubscriber_aux
+  twoProcessesSrvCallReplier_aux
+  twoProcessesSrvCallReplierIncreasing_aux
+  twoProcessesSrvCallWithoutInputReplier_aux
+  twoProcessesSrvCallWithoutInputReplierIncreasing_aux
+  twoProcessesSrvCallWithoutOutputReplier_aux
+  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux
 )
 
-ign_build_tests(${auxiliary_files})
+# Build the auxiliary files.
+foreach(AUX_EXECUTABLE ${auxiliary_files})
+  ign_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
+
+  # Link the libraries that we always need.
+  target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+    PRIVATE
+      ${PROJECT_LIBRARY_TARGET_NAME}
+      gtest
+  )
+
+  if(UNIX)
+    # pthread is only available on Unix machines
+    target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+      PRIVATE pthread)
+  endif()
+
+endforeach(AUX_EXECUTABLE)

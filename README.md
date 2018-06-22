@@ -11,23 +11,20 @@ of libraries designed to rapidly develop robot applications.
 
 Please refer to the [Bitbucket Pipelines](https://bitbucket.org/ignitionrobotics/ign-transport/addon/pipelines/home#!/).
 
+Test coverage: [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
+
 ## Documentation
 
-Check [here](http://ignition-transport.readthedocs.io/en/default/).
-
-[![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=default)](https://readthedocs.org/projects/ignition-transport/?badge=default)
+Check [here](https://ignitionrobotics.org/libs/transport) for documentation.
 
 ## Roadmap
 
-### Ignition Transport 4.x.x
+### Ignition Transport 5.x.x
 
-* Updated callback signature when advertising service calls
-* Zero copy
-* Benchmarking
 * Allow `ign topic --pub` and `ign topic --echo` to work with custom messages
 * Allow communication among nodes outside of the same LAN
 * Request the message description to its publisher
-* Security and authentication
+* Improved security and authentication
 * UDP support
 * Create a wrapper for a scripting language
 

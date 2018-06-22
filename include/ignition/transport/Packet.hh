@@ -23,13 +23,17 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/Publisher.hh"
-#include "ignition/transport/Helpers.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     // Message types.
     static const uint8_t Uninitialized  = 0;
     static const uint8_t AdvType        = 1;
@@ -227,7 +231,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
 
-    template <class T> class IGNITION_TRANSPORT_VISIBLE AdvertiseMessage
+    template <class T> class AdvertiseMessage
     {
       /// \brief Constructor.
       public: AdvertiseMessage() = default;
@@ -328,6 +332,7 @@ namespace ignition
       /// \brief Publisher information (topic, ZMQ address, UUIDs, etc.).
       private: T publisher;
     };
+    }
   }
 }
 

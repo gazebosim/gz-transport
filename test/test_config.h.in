@@ -18,13 +18,17 @@
 #ifndef IGNITION_TRANSPORT_TEST_CONFIG_HH_
 #define IGNITION_TRANSPORT_TEST_CONFIG_HH_
 
-#define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
-#define PROJECT_BINARY_PATH "${PROJECT_BINARY_DIR}"
-#define IGN_TEST_LIBRARY_PATH "${PROJECT_BINARY_DIR}/src:"\
-  "@IGNITION-MSGS_LIBRARY_DIRS@:"
 #define IGN_PATH "@IGNITION-TOOLS_BINARY_DIRS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 #define IGN_VERSION_FULL "@PROJECT_VERSION_FULL@"
+
+#ifdef DETAIL_IGN_TRANSPORT_TEST_DIR
+// The DETAIL_IGN_TRANSPORT_TEST_DIR macro is defined using generator
+// expressions in CMakeLists.txt files. See test/integration/CMakeLists.txt for
+// an example.
+#define IGN_TRANSPORT_TEST_DIR \
+  DETAIL_IGN_TRANSPORT_TEST_DIR
+#endif
 
 #include <climits>
 #include <iostream>
@@ -100,26 +104,54 @@ namespace testing
   /// \brief create a new process and run command on it. This function is
   /// implementing the creation of a new process on both Linux (fork) and
   /// Windows (CreateProcess) and the execution of the command provided.
-  /// \param[in] command The full system path to the binary to run into the
+  /// \param[in] _command The full system path to the binary to run into the
   /// new process.
+  /// \param[in] _partition Name of the ignition partition (IGN_PARTITION)
+  /// \param[in] _username Username for authentication
+  /// (IGN_TRANSPORT_USERNAME)
+  /// \param[in] _password Password for authentication
+  /// (IGN_TRANSPORT_PASSWORD)
   /// \return On success, the PID of the child process is returned in the
   /// parent, an 0 is returned in the child. On failure, -1 is returned in the
   /// parent and no child process is created.
-  forkHandlerType forkAndRun(const char *_command, const char *_partition)
+  forkHandlerType forkAndRun(const char *_command, const char *_partition,
+      const char *_username = nullptr, const char *_password = nullptr)
   {
 #ifdef _WIN32
     STARTUPINFO info= {sizeof(info)};
     PROCESS_INFORMATION processInfo;
 
     char cmd[500];
-    ign_strcpy(cmd, _command);
+    // We should put quotes around the _command string to make sure we are 
+    // robust to file paths that contain spaces.
+    ign_strcpy(cmd, "\"");
+    ign_strcat(cmd, _command);
+    ign_strcat(cmd, "\"");
     ign_strcat(cmd, " ");
     ign_strcat(cmd, _partition);
 
+    if (_username && _password)
+    {
+      ign_strcat(cmd, " ");
+      ign_strcat(cmd, _username);
+      ign_strcat(cmd, " ");
+      ign_strcat(cmd, _password);
+    }
+
+    // We set the first argument to NULL, because we want the behavior that
+    // CreateProcess exhibits when the first argument is NULL: i.e. Windows will
+    // automatically add the .exe extension onto the filename. When the first
+    // argument is non-NULL, it will not automatically add the extension, which
+    // makes more work for us.
+    //
+    // It should also be noted that the lookup behavior for the application is 
+    // different when the first argument is non-NULL, so we should take that into
+    // consideration when determining what to put into the first and second 
+    // arguments of CreateProcess.
     if (!CreateProcess(NULL, const_cast<LPSTR>(cmd), NULL, NULL,
           TRUE, 0, NULL, NULL, &info, &processInfo))
     {
-      std::cerr << "CreateProcess call failed" << std::endl;
+      std::cerr << "CreateProcess call failed: " << cmd << std::endl;
     }
 
     return processInfo;
@@ -128,10 +160,21 @@ namespace testing
 
     if (pid == 0)
     {
-      if (execl(_command, _command, _partition,
-            reinterpret_cast<char *>(0)) == -1)
+      if (_username && _password)
       {
-        std::cerr << "Error running execl call: " << _command << std::endl;
+        if (execl(_command, _command, _partition, _username, _password,
+              reinterpret_cast<char *>(0)) == -1)
+        {
+          std::cerr << "Error running execl call: " << _command << std::endl;
+        }
+      }
+      else
+      {
+        if (execl(_command, _command, _partition,
+              reinterpret_cast<char *>(0)) == -1)
+        {
+          std::cerr << "Error running execl call: " << _command << std::endl;
+        }
       }
     }
 

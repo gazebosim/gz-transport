@@ -1,9 +1,141 @@
-## Ignition Transport 4.0.0
+## Ignition Transport 5
+
+### Ignition Transport 5.X.X
+
+1. Added a logging tutorial
+   * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+
+1. Added a migration guide for helping with the transition between major
+   versions
+   * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
+
+1. Converted ignition-transport-log into a component
+   * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
+
+1. Added inline versioned namespace to the log library
+   * [Pull request 303](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/303)
+
+1. Added inline versioned namespace to the main library
+   * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
+
+1. Added --force option to 'ign log record'
+   * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
+
+## Ignition Transport 4
+
+### Ignition Transport 4.X.X
+
+1. Ignore subinterfaces when using determineInterfaces().
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/314)
+
+1. Refactored Playback to return a PlaybackHandle from Start()
+   * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
+
+1. Added command line tool for the logging features
+   * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
+
+1. Added examples using logging features
+   * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
+
+1. Added integration tests for recording
+   * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
+
+1. Added ability to play back ignition transport topics
+   * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
+
+1. Added ability to record ignition transport topics
+   * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
+
+1. Added ability to query log messages by topic name and time received
+   * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
+
+1. Added ability to get all messages from a log file
+   * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
+
+1. Added ability to insert messages into a sqlite3 based log file
+   * [Pull request 270](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/270)
+
+1. Added TopicUtils::DecomposeFullyQualifiedTopic()
+   * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
+
+### Ignition Transport 4.0.0 (2018-01-XX)
+
+1. Basic authentication for topics.
+    * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
+
+1. Upgrade to ign-cmake.
+    * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/239)
+
+1. Added a benchmark program to test latency and throughput.
+    * [Pull request 225](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/225)
+
+1. Support publication and receipt of raw serialized data.
+    * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
 
 1. Use zero copy when publishing messages.
     * [Pull request 229](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/229)
 
-## Ignition Transport 3.0.0
+1. Added publishing and receiving messages as raw bytes
+    * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
+
+1. Updated service responder callbacks to return a boolean value. The
+   existing functions have been deprecated.
+    * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
+    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
+
+1. Hide ZMQ from public interfaces
+    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
+
+## Ignition Transport 3
+
+### Ignition Transport 3.X.X
+
+
+
+### Ignition Transport 3.1.0 (2017-11-29)
+
+1. Documentation improvements
+    * [Pull request 199](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/199)
+    * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/200)
+    * [Pull request 203](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/203)
+    * [Pull request 206](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/206)
+    * [Pull request 197](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/197)
+    * [Pull request 219](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/219)
+    * [Issue 63](https://bitbucket.org/ignitionrobotics/ign-transport/issues/63)
+    * [Issue 67](https://bitbucket.org/ignitionrobotics/ign-transport/issues/67)
+
+1. Workaround for the ghost Msbuild warning in Jenkins plugin
+    * [Pull request 205](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/205)
+
+1. Added tests for ign.cc
+    * [Pull request 209](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/209)
+
+1. Remove manual setting of flags for dynamic linking of the Windows CRT library
+    * [Pull request 210](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/210)
+
+1. Add BUILD_TESTING CMake option and tests target
+    * [Pull request 208](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/208)
+
+1. Remove unused statement from Header::Unpack
+    * [Pull request 212](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/212)
+
+1. Port cmake fixes from sdformat
+    * [Pull request 213](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/213)
+
+1. Clean up DefaultFlags.cmake
+    * [Pull request 214](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/214)
+
+1. Add the new const methods to overloaded bool operator
+    * [Pull request 217](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/217)
+
+1. SubscriptionHandler.hh fix std::move compiler warning
+    * [Pull request 222](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/222)
+
+1. Fix ign topic|service fails on MacOS X if system integrity protection is enabled
+    * [Pull request 227](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/227)
+    * [Issue 72](https://bitbucket.org/ignitionrobotics/ign-transport/issues/72)
+
+### Ignition Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
     * [Pull request 194](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/194)
@@ -45,9 +177,6 @@
    See [issue #54](https://bitbucket.org/ignitionrobotics/ign-transport/issues/54)
     * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/169)
 
-1. Hide ZMQ from public interfaces
-    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
-
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
     * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)
 
@@ -64,6 +193,9 @@
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
     * [Pull request 168](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/168)
+
+1. Fix case where `std::bad_function_call` could be thrown.
+    * [Pull request 317](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/317)
 
 ### Ignition Transport 2.0.0
 

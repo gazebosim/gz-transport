@@ -31,7 +31,8 @@
 #include <memory>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -39,6 +40,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class IGNITION_TRANSPORT_VISIBLE IReqHandler
@@ -124,7 +128,7 @@ namespace ignition
       public: template<typename Lock> bool WaitUntil(Lock &_lock,
                                                     const unsigned int _timeout)
       {
-        auto now = std::chrono::system_clock::now();
+        auto now = std::chrono::steady_clock::now();
         return this->condition.wait_until(_lock,
           now + std::chrono::milliseconds(_timeout),
           [this]
@@ -395,6 +399,7 @@ namespace ignition
       /// \brief Protobuf message containing the response.
       private: google::protobuf::Message *repMsg = nullptr;
     };
+    }
   }
 }
 

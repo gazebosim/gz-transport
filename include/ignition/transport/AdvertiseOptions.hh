@@ -22,12 +22,17 @@
 #include <iostream>
 #include <memory>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class AdvertiseOptionsPrivate;
     class AdvertiseMessageOptionsPrivate;
     class AdvertiseServiceOptionsPrivate;
@@ -281,6 +286,7 @@ namespace ignition
       /// \brief Smart pointer to private data.
       private: std::unique_ptr<AdvertiseServiceOptionsPrivate> dataPtr;
     };
+    }
   }
 }
 #endif

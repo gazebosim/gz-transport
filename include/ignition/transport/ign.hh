@@ -20,21 +20,21 @@
 
 #include <cstring>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/Export.hh"
 
 /// \brief External hook to execute 'ign topic -i' from the command line.
 /// \param[in] _topic Topic name.
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicInfo(const char *_topic);
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicInfo(const char *_topic);
 
 /// \brief External hook to execute 'ign service -i' from the command line.
 /// \param[in] _service Service name.
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceInfo(const char *_service);
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceInfo(const char *_service);
 
 /// \brief External hook to execute 'ign topic -l' from the command line.
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicList();
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicList();
 
 /// \brief External hook to execute 'ign service -l' from the command line.
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList();
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceList();
 
 /// \brief External hook to execute 'ign topic -p' from the command line.
 /// \param[in] _topic Topic name.
@@ -43,7 +43,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceList();
 /// DebugString().
 /// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
                                                        const char *_msgType,
                                                        const char *_msgData);
 
@@ -57,7 +57,7 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicPub(const char *_topic,
 /// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
 ///                     "ignition.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
                                                          const char *_reqType,
                                                          const char *_repType,
                                                          const int _timeout,
@@ -66,11 +66,11 @@ extern "C" IGNITION_TRANSPORT_VISIBLE void cmdServiceReq(const char *_service,
 /// \brief External hook to execute 'ign topic -e' from the command line.
 /// \param[in] _topic Topic name.
 /// \param[in] _duration Duration (seconds) to run.
-extern "C" IGNITION_TRANSPORT_VISIBLE void cmdTopicEcho(const char *_topic,
+extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
                                                         const double _duration);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" IGNITION_TRANSPORT_VISIBLE char *ignitionVersion();
+extern "C" const char IGNITION_TRANSPORT_VISIBLE *ignitionVersion();
 
 #endif

@@ -22,12 +22,17 @@
 #include <string>
 
 #include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    // Forward declarations.
     class MessagePublisherPrivate;
 
     /// \class Publisher Publisher.hh
@@ -435,6 +440,7 @@ namespace ignition
       /// \brief Advertise options.
       private: AdvertiseServiceOptions srvOpts;
     };
+    }
   }
 }
 

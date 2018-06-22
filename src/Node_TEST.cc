@@ -36,8 +36,11 @@
 using namespace ignition;
 
 static std::string partition;
+static std::string g_FQNPartition;
 static std::string g_topic = "/foo";
 static std::mutex exitMutex;
+static std::mutex cbMutex;
+static std::condition_variable cbCondition;
 
 static int data = 5;
 static bool cbExecuted;
@@ -72,6 +75,9 @@ void cb(const ignition::msgs::Int32 &_msg)
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
   ++counter;
+
+  std::lock_guard<std::mutex> lk(cbMutex);
+  cbCondition.notify_all();
 }
 
 //////////////////////////////////////////////////
@@ -90,7 +96,24 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(_msg.data(), data);
+  EXPECT_EQ(g_FQNPartition, _info.Partition());
+  EXPECT_EQ(_msg.GetTypeName(), _info.Type());
   cbExecuted = true;
+  ++counter;
+}
+
+//////////////////////////////////////////////////
+void rawCbInfo(const char *_msgData, const int _size,
+               const ignition::transport::MessageInfo &_info)
+{
+  EXPECT_EQ(_info.Topic(), g_topic);
+  EXPECT_EQ(g_FQNPartition, _info.Partition());
+  cbExecuted = true;
+
+  ignition::msgs::Int32 msg;
+  EXPECT_TRUE(msg.ParseFromArray(_msgData, _size));
+  EXPECT_EQ(msg.data(), data);
+
   ++counter;
 }
 
@@ -253,6 +276,8 @@ class MyTestClass
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(g_FQNPartition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
     this->callbackExecuted = true;
   };
 
@@ -517,12 +542,15 @@ TEST(NodeTest, PubWithoutAdvertise)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  std::unique_lock<std::mutex> lk(cbMutex);
   // Publish a message by each node.
   EXPECT_TRUE(pub1.Publish(msg));
-  EXPECT_TRUE(pub2.Publish(msg));
 
-  // Wait some time for the messages to arrive.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait for the messages to arrive.
+  cbCondition.wait(lk, []{return counter >= 1;});
+
+  EXPECT_TRUE(pub2.Publish(msg));
+  cbCondition.wait(lk, []{return counter >= 2;});
 
   // Check that the msg was received twice.
   EXPECT_TRUE(cbExecuted);
@@ -665,6 +693,126 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
 }
 
 //////////////////////////////////////////////////
+TEST(NodeTest, RawPubSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+TEST(NodeTest, PubRawSubSameThreadMessageInfo)
+{
+  reset();
+
+  ignition::msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
+
+  // Wait some time before publishing.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a first message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the message was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+
+  // Publish a second message on topic.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Check that the data was received.
+  EXPECT_TRUE(cbExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
 TEST(NodeTest, PubSubSameThreadLambda)
 {
@@ -678,12 +826,17 @@ TEST(NodeTest, PubSubSameThreadLambda)
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
+  std::mutex mutex;
+  std::condition_variable condition;
+
   bool executed = false;
   std::function<void(const ignition::msgs::Int32&)> subCb =
-    [&executed](const ignition::msgs::Int32 &_msg)
+    [&executed, &mutex, &condition](const ignition::msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk(mutex);
     executed = true;
+    condition.notify_all();
   };
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
@@ -693,6 +846,11 @@ TEST(NodeTest, PubSubSameThreadLambda)
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
+
+  // The local publish is asynchronous, which means we need to wait
+  // for the callback.
+  std::unique_lock<std::mutex> lk(mutex);
+  condition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 
@@ -723,7 +881,11 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
+    EXPECT_EQ(g_FQNPartition, _info.Partition());
+    EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+    std::lock_guard<std::mutex> lk(cbMutex);
     executed = true;
+    cbCondition.notify_all();
   };
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
@@ -732,7 +894,9 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
+  std::unique_lock<std::mutex> lk(cbMutex);
   EXPECT_TRUE(pub.Publish(msg));
+  cbCondition.wait(lk, [&executed]{return executed;});
 
   EXPECT_TRUE(executed);
 
@@ -1444,17 +1608,17 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
   transport::Node node;
 
-  auto t1 = std::chrono::system_clock::now();
+  auto t1 = std::chrono::steady_clock::now();
   bool executed = node.Request(g_topic, req, static_cast<unsigned int>(timeout),
       rep, result);
-  auto t2 = std::chrono::system_clock::now();
+  auto t2 = std::chrono::steady_clock::now();
 
   int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 200);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -1474,17 +1638,17 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
   transport::Node node;
 
-  auto t1 = std::chrono::system_clock::now();
+  auto t1 = std::chrono::steady_clock::now();
   bool executed = node.Request(g_topic, static_cast<unsigned int>(timeout),
       rep, result);
-  auto t2 = std::chrono::system_clock::now();
+  auto t2 = std::chrono::steady_clock::now();
 
   int64_t elapsed =
     std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
-  EXPECT_LE(diff, 10);
+  EXPECT_LE(diff, 200);
 
   // Check that the service call response was not executed.
   EXPECT_FALSE(executed);
@@ -1709,7 +1873,7 @@ TEST(NodeTest, SubThrottled)
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
-  for (auto i = 0; i < 15; ++i)
+  for (auto i = 0; i < 3; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
 
@@ -1717,8 +1881,8 @@ TEST(NodeTest, SubThrottled)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
-  EXPECT_EQ(counter, 2);
+  // Node published 3 messages in ~0.3 sec. We should only receive 1 message.
+  EXPECT_EQ(1, counter);
 
   reset();
 }
@@ -1743,7 +1907,7 @@ TEST(NodeTest, PubThrottled)
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
 
-  for (auto i = 0; i < 15; ++i)
+  for (auto i = 0; i < 3; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
 
@@ -1751,8 +1915,8 @@ TEST(NodeTest, PubThrottled)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  // Node published 15 messages in ~1.5 sec. We should only receive 2 messages.
-  EXPECT_EQ(counter, 2);
+  // Node published 3 messages in ~0.3 sec. We should only receive 1 message.
+  EXPECT_EQ(1, counter);
 
   reset();
 }
@@ -1995,6 +2159,7 @@ int main(int argc, char **argv)
 {
   // Get a random partition name.
   partition = testing::getRandomNumber();
+  g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);

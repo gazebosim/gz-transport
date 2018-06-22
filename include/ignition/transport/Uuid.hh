@@ -21,7 +21,8 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 
 #ifdef _WIN32
   #include <Rpc.h>
@@ -36,6 +37,9 @@ namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \class Uuid Uuid.hh ignition/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
     class IGNITION_TRANSPORT_VISIBLE Uuid
@@ -71,6 +75,7 @@ namespace ignition
       /// \brief Internal representation.
       private: portable_uuid_t data;
     };
+    }
   }
 }
 #endif

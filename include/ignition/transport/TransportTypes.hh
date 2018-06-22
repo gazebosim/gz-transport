@@ -32,16 +32,21 @@
 #include <string>
 #include <vector>
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Publisher.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief Forward declarations.
     class IRepHandler;
     class IReqHandler;
     class ISubscriptionHandler;
+    class RawSubscriptionHandler;
     class MessageInfo;
 
     /// \def Addresses_M
@@ -72,6 +77,10 @@ namespace ignition
     /// \brief Shared pointer to ISubscriptionHandler.
     using ISubscriptionHandlerPtr = std::shared_ptr<ISubscriptionHandler>;
 
+    /// \def RawSubscriptionHandlerPtr
+    /// \brief Shared pointer to RawSubscriptionHandler
+    using RawSubscriptionHandlerPtr = std::shared_ptr<RawSubscriptionHandler>;
+
     /// \def ISubscriptionHandler_M
     /// \brief Map to store the different subscription handlers for a topic.
     /// Each node can have its own subscription handler. The node id
@@ -79,6 +88,13 @@ namespace ignition
     /// value.
     using ISubscriptionHandler_M =
       std::map<std::string, ISubscriptionHandlerPtr>;
+
+    /// \def RawSubscriptionHandler_M
+    /// \brief Map to store the raw subscription handlers for a topic.
+    /// Each node can have its own raw subscription handler. The node id is used
+    /// as the key and a pointer to a raw subscription handler is the value.
+    using RawSubscriptionHandler_M =
+      std::map<std::string, RawSubscriptionHandlerPtr>;
 
     /// \def IRepHandlerPtr
     /// \brief Shared pointer to IRepHandler.
@@ -124,6 +140,16 @@ namespace ignition
     using MsgCallback =
       std::function<void(const T &_msg, const MessageInfo &_info)>;
 
+    /// \def RawCallback
+    /// \brief User callback used for receiving raw message data:
+    /// \param[in] _msgData string of a serialized protobuf message
+    /// \param[in] _size Number of bytes in the serialized message data
+    /// string.
+    /// \param[in] _info Message information
+    using RawCallback =
+        std::function<void(const char *_msgData, const size_t _size,
+                           const MessageInfo &_info)>;
+
     /// \def Timestamp
     /// \brief Used to evaluate the validity of a discovery entry.
     using Timestamp = std::chrono::steady_clock::time_point;
@@ -145,7 +171,8 @@ namespace ignition
     using DeallocFunc = void(void *_data, void *_hint);
 
     /// \brief The string type used for generic messages.
-    const std::string kGenericMessageType = "google.protobug.Message";
+    const std::string kGenericMessageType = "google.protobuf.Message";
+    }
   }
 }
 #endif

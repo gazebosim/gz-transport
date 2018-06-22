@@ -16,8 +16,8 @@
 */
 
 #include <iostream>
-#include <ignition/transport.hh>
 #include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
