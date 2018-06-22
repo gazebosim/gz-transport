@@ -27,33 +27,33 @@ using namespace ignition;
 using namespace transport;
 
 // Global constants.
-static const std::string             g_topic          = "/topic";
-static const std::string             g_addr           = "tcp://myAddress";
-static const std::string             g_puuid          = "processUUID";
-static const std::string             g_nuuid          = "nodeUUID";
-static const Scope_t                 g_scope          = Scope_t::ALL;
+static const std::string g_topic          = "/topic"; // NOLINT(*)
+static const std::string g_addr           = "tcp://myAddress"; // NOLINT(*)
+static const std::string g_puuid          = "processUUID"; // NOLINT(*)
+static const std::string g_nuuid          = "nodeUUID"; // NOLINT(*)
+static const Scope_t     g_scope          = Scope_t::ALL;
 static       AdvertiseOptions        g_opts1;
 static       AdvertiseMessageOptions g_msgOpts1;
 static       AdvertiseServiceOptions g_srvOpts1;
-static const std::string             g_ctrl           = "controlAddress";
-static const std::string             g_socketId       = "socketId";
-static const std::string             g_msgTypeName    = "MessageType";
-static const std::string             g_reqTypeName    = "RequestType";
-static const std::string             g_repTypeName    = "ResponseType";
+static const std::string g_ctrl           = "controlAddress"; // NOLINT(*)
+static const std::string g_socketId       = "socketId"; // NOLINT(*)
+static const std::string g_msgTypeName    = "MessageType"; // NOLINT(*)
+static const std::string g_reqTypeName    = "RequestType"; // NOLINT(*)
+static const std::string g_repTypeName    = "ResponseType"; // NOLINT(*)
 
-static const std::string             g_newTopic       = "/g_newTopic";
-static const std::string             g_newAddr        = "tcp://anotherAddress";
-static const std::string             g_newPUuid       = "processUUID2";
-static const std::string             g_newNUuid       = "nodeUUID2";
+static const std::string g_newTopic       = "/g_newTopic"; // NOLINT(*)
+static const std::string g_newAddr        = "tcp://anotherAddress"; // NOLINT(*)
+static const std::string g_newPUuid       = "processUUID2"; // NOLINT(*)
+static const std::string g_newNUuid       = "nodeUUID2"; // NOLINT(*)
 static const Scope_t                 g_newScope       = Scope_t::HOST;
 static       AdvertiseOptions        g_opts2;
 static       AdvertiseMessageOptions g_msgOpts2;
 static       AdvertiseServiceOptions g_srvOpts2;
-static const std::string             g_newCtrl        = "controlAddress2";
-static const std::string             g_newSocketId    = "socketId2";
-static const std::string             g_newMsgTypeName = "MessageType2";
-static const std::string             g_newReqTypeName = "RequestType2";
-static const std::string             g_newRepTypeName = "ResponseType2";
+static const std::string g_newCtrl        = "controlAddress2"; // NOLINT(*)
+static const std::string g_newSocketId    = "socketId2"; // NOLINT(*)
+static const std::string g_newMsgTypeName = "MessageType2"; // NOLINT(*)
+static const std::string g_newReqTypeName = "RequestType2"; // NOLINT(*)
+static const std::string g_newRepTypeName = "ResponseType2"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Initalize some global variables.

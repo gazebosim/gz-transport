@@ -31,8 +31,8 @@ using namespace ignition;
 static bool cbExecuted;
 static bool cbRawExecuted;
 static bool cb2Executed;
-static std::string g_topic = "/foo";
-static std::string data = "bar";
+static std::string g_topic = "/foo"; // NOLINT(*)
+static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.

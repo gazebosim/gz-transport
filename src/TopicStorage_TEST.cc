@@ -29,26 +29,26 @@ using namespace ignition;
 using namespace transport;
 
 // Global variables.
-static const std::string      g_topic1 = "foo";
-static const std::string      g_topic2 = "foo2";
+static const std::string      g_topic1 = "foo"; // NOLINT(*)
+static const std::string      g_topic2 = "foo2"; // NOLINT(*)
 
-static const std::string      g_pUuid1 = "process-UUID-1";
-static const std::string      g_addr1  = "tcp://10.0.0.1:6001";
-static const std::string      g_nUuid1 = "node-UUID-1";
+static const std::string      g_pUuid1 = "process-UUID-1"; // NOLINT(*)
+static const std::string      g_addr1  = "tcp://10.0.0.1:6001"; // NOLINT(*)
+static const std::string      g_nUuid1 = "node-UUID-1"; // NOLINT(*)
 static const Scope_t          g_scope1 = Scope_t::ALL;
 static       AdvertiseOptions g_opts1  = AdvertiseOptions();
 
-static const std::string      g_pUuid2 = "process-UUID-2";
-static const std::string      g_addr2  = "tcp://10.0.0.1:6002";
-static const std::string      g_nUuid2 = "node-UUID-2";
+static const std::string      g_pUuid2 = "process-UUID-2"; // NOLINT(*)
+static const std::string      g_addr2  = "tcp://10.0.0.1:6002"; // NOLINT(*)
+static const std::string      g_nUuid2 = "node-UUID-2"; // NOLINT(*)
 static const Scope_t          g_scope2 = Scope_t::PROCESS;
 static       AdvertiseOptions g_opts2  = AdvertiseOptions();
 
-static const std::string      g_nUuid3 = "node-UUID-3";
+static const std::string      g_nUuid3 = "node-UUID-3"; // NOLINT(*)
 static const Scope_t          g_scope3 = Scope_t::HOST;
 static       AdvertiseOptions g_opts3  = AdvertiseOptions();
 
-static const std::string      g_nUuid4 = "node-UUID-4";
+static const std::string      g_nUuid4 = "node-UUID-4"; // NOLINT(*)
 static const Scope_t          g_scope4 = Scope_t::ALL;
 static       AdvertiseOptions g_opts4  = AdvertiseOptions();
 

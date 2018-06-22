@@ -26,7 +26,7 @@
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
+static std::string g_topic = "/foo"; // NOLINT(*)
 static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
