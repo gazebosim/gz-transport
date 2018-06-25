@@ -24,6 +24,7 @@
 #endif
 
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -60,7 +61,7 @@
 using namespace ignition;
 using namespace transport;
 
-const std::string kIgnAuthDomain = "ign-auth";
+const char kIgnAuthDomain[] = "ign-auth";
 
 // Enum that encapsulates the possible values for ZeroMQ's setsocketopt
 // for ZMQ_PLAIN_SERVER. A value of 1 enables
@@ -1283,8 +1284,8 @@ void NodeSharedPrivate::SecurityInit()
     this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
         &asPlainSecurityServer, sizeof(asPlainSecurityServer));
 
-    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
-        kIgnAuthDomain.size());
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain,
+        std::strlen(kIgnAuthDomain));
   }
 }
 
@@ -1386,7 +1387,7 @@ void NodeSharedPrivate::AccessControlHandler()
         }
 
         // Check the domain
-        if (domain != kIgnAuthDomain)
+        if (std::strcmp(domain.c_str(), kIgnAuthDomain) != 0)
         {
           sendAuthErrorHelper(*sock, "Invalid domain");
           continue;
