@@ -85,6 +85,8 @@ namespace ignition
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
+        public: std::string Filename() const;
+
         /// \internal Implementation of this class
         private: class Implementation;
 

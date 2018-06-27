@@ -291,3 +291,10 @@ int64_t Recorder::AddTopic(const std::regex &_topic)
 {
   return this->dataPtr->AddTopic(_topic);
 }
+
+//////////////////////////////////////////////////
+std::string Recorder::Filename() const
+{
+  return this->dataPtr->logFile == nullptr ? "" :
+         this->dataPtr->logFile->Filename();
+}
