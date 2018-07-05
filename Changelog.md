@@ -3,7 +3,7 @@
 ### Ignition Transport 5.X.X
 
 1. Added log::Recorder::Filename that returns the name of the log file.
-   * [Pull request XXX](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/XXX)
+   * [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/327)
 
 1. Added a logging tutorial
    * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
