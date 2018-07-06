@@ -89,6 +89,9 @@ class ignition::transport::log::Log::Implementation
 
   /// \brief Descriptor which provides insight to the column IDs in the database
   public: mutable log::Descriptor descriptor;
+
+  /// \brief Name of the log file.
+  public: std::string filename = "";
 };
 
 //////////////////////////////////////////////////
@@ -461,6 +464,7 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
     return false;
   }
 
+  this->dataPtr->filename = _file;
   return true;
 }
 
@@ -558,4 +562,10 @@ std::string Log::Version() const
   // Version is free'd automatically when statement is destructed
   const unsigned char *version = sqlite3_column_text(statement.Handle(), 0);
   return std::string(reinterpret_cast<const char *>(version));
+}
+
+//////////////////////////////////////////////////
+std::string Log::Filename() const
+{
+  return this->dataPtr->filename;
 }

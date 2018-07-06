@@ -85,6 +85,11 @@ namespace ignition
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
 
+        /// \brief Get the name of the log file.
+        /// \return The name of the log file, or an empty string if Start has
+        /// not been successfully called.
+        public: std::string Filename() const;
+
         /// \internal Implementation of this class
         private: class Implementation;
 

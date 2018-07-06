@@ -72,6 +72,11 @@ namespace ignition
         public: bool Open(const std::string &_file,
             std::ios_base::openmode _mode = std::ios_base::in);
 
+        /// \brief Get the name of the log file.
+        /// \return The name of the log file, or an empty string if Open has
+        /// not been successfully called.
+        public: std::string Filename() const;
+
         /// \brief Get a Descriptor for this log. The Descriptor will be
         /// generated the first time that this function is called after a new
         /// file has been opened.
