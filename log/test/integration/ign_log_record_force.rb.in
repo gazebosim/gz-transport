@@ -16,20 +16,33 @@
 
 require 'open3'
 
-testfile = 'ign_log_record_no_overwrite.tlog'
+testfile = 'ign_log_record_force.tlog'
 File.write(testfile, 'not empty file')
 
-stdout, stderr, status = Open3.capture3("ign log record --file #{testfile}")
+_, stdout, stderr, wait_thr =
+  Open3.popen3("ign log --force-version @PROJECT_VERSION_FULL@ record --force --file #{testfile}")
 
-File.delete(testfile)
+sleep(2)
+
+cmd_running = true
+if wait_thr.alive?
+  Process.kill('KILL', wait_thr.pid)
+else
+  cmd_running = false
+end
+
+stdout = stdout.read
+stderr = stderr.read
 
 puts '-----stdout-----'
 puts stdout
 puts '-----stderr-----'
 puts stderr
 puts '-----status-----'
-puts status
+puts wait_thr.value
 
-exit 1 if status.exitstatus.zero?
-exit 2 unless stderr.include? 'Failed to open log'
+File.delete(testfile)
+
+exit 1 unless cmd_running
+exit 2 unless stderr.empty?
 exit 0

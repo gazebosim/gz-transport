@@ -66,11 +66,18 @@ endforeach()
 if (IGNITION-TOOLS_BINARY_DIRS)
   set(IGN_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
 
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_no_overwrite.rb)
+
   add_test(ign_log_record_no_overwrite
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb
+    ruby ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_no_overwrite.rb
   )
+
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_force.rb)
+
   add_test(ign_log_record_force
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb
+    ruby ${CMAKE_CURRENT_BINARY_DIR}/ign_log_record_force.rb
   )
   set_tests_properties(
     ign_log_record_no_overwrite
