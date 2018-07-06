@@ -69,6 +69,7 @@ if (IGNITION-TOOLS_BINARY_DIRS)
   add_test(ign_log_record_no_overwrite
     ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb
   )
+
   add_test(ign_log_record_force
     ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb
   )
@@ -77,7 +78,7 @@ if (IGNITION-TOOLS_BINARY_DIRS)
     ign_log_record_force
     PROPERTIES
     ENVIRONMENT
-      IGN_CONFIG_PATH=${IGN_CONFIG_PATH}
-    TIMEOUT 5
+      "IGN_CONFIG_PATH=${IGN_CONFIG_PATH};IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql"
+    TIMEOUT 10
   )
 endif ()

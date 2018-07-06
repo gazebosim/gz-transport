@@ -67,6 +67,8 @@ TEST(Record, AddValidTopic)
   EXPECT_EQ(0u, recorder.Topics().size());
   EXPECT_EQ(transport::log::RecorderError::SUCCESS,
       recorder.AddTopic(std::string("/foo")));
+  EXPECT_EQ(transport::log::RecorderError::ALREADY_SUBSCRIBED_TO_TOPIC,
+      recorder.AddTopic(std::string("/foo")));
   EXPECT_EQ(1u, recorder.Topics().size());
   EXPECT_NE(recorder.Topics().end(), recorder.Topics().find("/foo"));
 }

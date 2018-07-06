@@ -2,6 +2,10 @@
 
 ### Ignition Transport 5.X.X
 
+1. Prevent the log recorder from subscribing to topics that have already
+   been added.
+   * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
+
 1. Added log::Recorder::Topics that returns the set of added topics.
    * [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/328)
 
