@@ -19,7 +19,7 @@ require 'open3'
 testfile = 'ign_log_record_no_overwrite.tlog'
 File.write(testfile, 'not empty file')
 
-stdout, stderr, status = Open3.capture3("ign log --force-version @PROJECT_VERSION_FULL@ record --file #{testfile}")
+stdout, stderr, status = Open3.capture3("ign log record --file #{testfile}")
 
 File.delete(testfile)
 
