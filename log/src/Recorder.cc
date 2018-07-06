@@ -291,3 +291,9 @@ int64_t Recorder::AddTopic(const std::regex &_topic)
 {
   return this->dataPtr->AddTopic(_topic);
 }
+
+//////////////////////////////////////////////////
+const std::set<std::string> &Recorder::Topics() const
+{
+  return this->dataPtr->alreadySubscribed;
+}

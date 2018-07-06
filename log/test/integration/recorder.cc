@@ -159,10 +159,13 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   std::this_thread::sleep_for(
         std::chrono::milliseconds(waitBeforeSubscribing_ms));
 
+  EXPECT_TRUE(recorder.Topics().empty());
   for (const std::string &topic : topics)
   {
     recorder.AddTopic(topic);
+    EXPECT_NE(recorder.Topics().end(), recorder.Topics().find(topic));
   }
+  EXPECT_EQ(topics.size(), recorder.Topics().size());
 
   EXPECT_EQ(recorder.Start(logName),
             ignition::transport::log::RecorderError::SUCCESS);

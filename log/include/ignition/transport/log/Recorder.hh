@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <regex>
+#include <set>
 #include <string>
 
 #include <ignition/transport/config.hh>
@@ -84,6 +85,11 @@ namespace ignition
         ///       appear, including while recording is active.
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
+
+        /// \brief Get the set of topics have have been added.
+        /// \return The set of topic names that have been added using the
+        /// AddTopic functions.
+        public: const std::set<std::string> &Topics() const;
 
         /// \internal Implementation of this class
         private: class Implementation;
