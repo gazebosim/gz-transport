@@ -302,3 +302,9 @@ std::string Recorder::Filename() const
   return this->dataPtr->logFile == nullptr ? "" :
          this->dataPtr->logFile->Filename();
 }
+
+//////////////////////////////////////////////////
+const std::set<std::string> &Recorder::Topics() const
+{
+  return this->dataPtr->alreadySubscribed;
+}

@@ -64,10 +64,13 @@ TEST(Record, StartStopStart)
 TEST(Record, AddValidTopic)
 {
   transport::log::Recorder recorder;
+  EXPECT_EQ(0u, recorder.Topics().size());
   EXPECT_EQ(transport::log::RecorderError::SUCCESS,
       recorder.AddTopic(std::string("/foo")));
   EXPECT_EQ(transport::log::RecorderError::ALREADY_SUBSCRIBED_TO_TOPIC,
       recorder.AddTopic(std::string("/foo")));
+  EXPECT_EQ(1u, recorder.Topics().size());
+  EXPECT_NE(recorder.Topics().end(), recorder.Topics().find("/foo"));
 }
 
 //////////////////////////////////////////////////
@@ -76,6 +79,7 @@ TEST(Record, AddInvalidTopic)
   transport::log::Recorder recorder;
   EXPECT_EQ(transport::log::RecorderError::FAILED_TO_SUBSCRIBE,
       recorder.AddTopic(std::string("/////")));
+  EXPECT_EQ(0u, recorder.Topics().size());
 }
 
 //////////////////////////////////////////////////
