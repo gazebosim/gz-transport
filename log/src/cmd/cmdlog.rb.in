@@ -174,7 +174,12 @@ class Cmd
       case options['subcommand']
       when 'record'
         if options['force'] and File.exists?(options['file'])
-          File.delete(options['file'])
+          begin
+            File.delete(options['file'])
+          rescue Exception => e
+            STDERR.puts "Unable to delete file#{options['file']} "
+              "because #{e.message}."
+          end
         end
         Importer.extern 'int recordTopics(const char *, const char *)'
         result = Importer.recordTopics(options['file'], options['pattern'])
