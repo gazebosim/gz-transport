@@ -42,6 +42,7 @@ namespace ignition
         ALREADY_RECORDING = -3,
         INVALID_TOPIC = -4,
         TOPIC_NOT_FOUND = -5,
+        ALREADY_SUBSCRIBED_TO_TOPIC = -6,
       };
 
       /// \brief Records ignition transport topics

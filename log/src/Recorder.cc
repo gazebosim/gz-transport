@@ -188,17 +188,21 @@ void Recorder::Implementation::OnAdvertisement(const Publisher &_publisher)
 //////////////////////////////////////////////////
 RecorderError Recorder::Implementation::AddTopic(const std::string &_topic)
 {
-  LDBG("Recording [" << _topic << "]\n");
-  // Subscribe to the topic whether it exists or not
-  if (!this->node.SubscribeRaw(_topic, this->rawCallback))
+  // Do not subscribe to a topic if we are already subscribed.
+  if (this->alreadySubscribed.find(_topic) == this->alreadySubscribed.end())
   {
-    LERR("Failed to subscribe to [" << _topic << "]\n");
-    return RecorderError::FAILED_TO_SUBSCRIBE;
+    LDBG("Recording [" << _topic << "]\n");
+    // Subscribe to the topic whether it exists or not
+    if (!this->node.SubscribeRaw(_topic, this->rawCallback))
+    {
+      LERR("Failed to subscribe to [" << _topic << "]\n");
+      return RecorderError::FAILED_TO_SUBSCRIBE;
+    }
+    this->alreadySubscribed.insert(_topic);
+    return RecorderError::SUCCESS;
   }
 
-  this->alreadySubscribed.insert(_topic);
-
-  return RecorderError::SUCCESS;
+  return RecorderError::ALREADY_SUBSCRIBED_TO_TOPIC;
 }
 
 //////////////////////////////////////////////////
