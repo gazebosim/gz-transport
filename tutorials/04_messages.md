@@ -549,3 +549,39 @@ From terminal 2:
 ```{.sh}
 ./subscriber_custom_msg
 ```
+
+## Topic remapping
+
+It's possible to set some global node options that will affect both publishers
+and subscribers. One of these options is topic remapping. A topic remap
+consists of a pair of topic names. The first name is the original topic name to
+be replaced. The second name is the new topic to use, instead. As an example,
+imagine that you recorded a collection of messages published over topic `/foo`.
+Maybe in the future, you want to play back the log file but remapping the topic
+`/foo` to `/bar`. This way, all messages will be published over the `/bar`
+topic without having to modify the publisher and create a new log.
+
+We can declare the topic remapping option using the following code:
+
+```{.cpp}
+  // Create a transport node and remap a topic.
+  ignition::transport::NodeOptions nodeOptions;
+  nodeOptions.AddTopicRemap("/foo", "/bar");
+  ignition::transport::Node node(nodeOptions);
+```
+
+You can modify any of the publisher examples to add this option:
+
+From terminal 1:
+
+```{.sh}
+./publisher
+```
+
+From terminal 2 (requires Ignition Tools):
+
+```{.sh}
+ign topic --echo -t /bar
+```
+
+And you should receive all the messages coming in terminal 2.
