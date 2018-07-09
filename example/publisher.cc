@@ -45,8 +45,6 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::NodeOptions options;
-  options.AddRemapping("/foo", "/bar");
   ignition::transport::Node node(options);
   std::string topic = "/foo";
 
