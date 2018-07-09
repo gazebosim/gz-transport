@@ -64,7 +64,7 @@ SUBCOMMANDS = { 'record' =>
   "Options:                                                              \n\n"\
   "  --pattern REGEX            Regular expression in C++ ECMAScript grammar\n"\
   "                             (Default match all topics).                \n"\
-  "  --remap FROM@TO            Rename a topic while playingback.          \n"\
+  "  --remap FROM@TO            Rename a topic while playing back.         \n"\
   "                             Use @ to separate the two topics.          \n"\
   "  --wait MILLISEC            Integer (milliseconds) for how long to wait \n"\
   "                             between topic advertisement and publishing.\n"\
