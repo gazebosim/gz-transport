@@ -64,6 +64,8 @@ SUBCOMMANDS = { 'record' =>
   "Options:                                                              \n\n"\
   "  --pattern REGEX            Regular expression in C++ ECMAScript grammar\n"\
   "                             (Default match all topics).                \n"\
+  "  --remap FROM@TO            Rename a topic while playingback.          \n"\
+  "                             Use @ to separate the two topics.          \n"\
   "  --wait MILLISEC            Integer (milliseconds) for how long to wait \n"\
   "                             between topic advertisement and publishing.\n"\
   "                             Default: 1000 (1 second).\n"+
@@ -84,7 +86,8 @@ class Cmd
       'pattern' => '.+',
       'verbose' => 1,
       'wait' => 1000,
-      'force' => false
+      'force' => false,
+      'remap' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -117,6 +120,9 @@ class Cmd
       end
       opts.on('--force') do
         options['force'] = true
+      end
+      opts.on('--remap FROMTO') do |remap|
+        options['remap'] = remap
       end
     end # opt_parser do
 
@@ -184,9 +190,11 @@ class Cmd
         Importer.extern 'int recordTopics(const char *, const char *)'
         result = Importer.recordTopics(options['file'], options['pattern'])
       when 'playback'
-        Importer.extern 'int playbackTopics(const char *, const char *, int)'
+        Importer.extern 'int playbackTopics(const char *, const char *, int, \\
+                         const char *)'
         result = Importer.playbackTopics(
-          options['file'], options['pattern'], options['wait'])
+          options['file'], options['pattern'], options['wait'],
+          options['remap'])
       end
 
       if result != 0

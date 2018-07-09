@@ -24,6 +24,7 @@
 
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
+#include <ignition/transport/NodeOptions.hh>
 
 namespace ignition
 {
@@ -47,7 +48,8 @@ namespace ignition
       {
         /// \brief Constructor
         /// \param[in] _file path to log file
-        public: explicit Playback(const std::string &_file);
+        public: explicit Playback(const std::string &_file,
+                               const NodeOptions &_nodeOptions = NodeOptions());
 
         /// \brief move constructor
         /// \param[in] _old the instance being moved into this one

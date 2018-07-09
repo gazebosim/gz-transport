@@ -20,12 +20,13 @@
 extern "C"
 {
   enum {
-    SUCCESS = 0,
-    FAILED_TO_OPEN = 1,
-    BAD_REGEX = 2,
+    SUCCESS             = 0,
+    FAILED_TO_OPEN      = 1,
+    BAD_REGEX           = 2,
     FAILED_TO_ADVERTISE = 3,
     FAILED_TO_SUBSCRIBE = 4,
-    INVALID_VERSION = 5,
+    INVALID_VERSION     = 5,
+    INVALID_REMAP       = 6,
   };
 
   /// \brief Sets verbosity of library
@@ -36,7 +37,8 @@ extern "C"
   /// \param[in] _file Path to the log file to record
   /// \param[in] _pattern ECMAScript regular expression to match against topics
   int IGNITION_TRANSPORT_LOG_VISIBLE recordTopics(
-    const char *_file, const char *_pattern);
+    const char *_file,
+    const char *_pattern);
 
   /// \brief Playback topics whose name matches the given pattern
   /// \param[in] _file Path to the log file to playback
@@ -44,5 +46,8 @@ extern "C"
   /// \param[in] _wait_ms How long to wait before the publications begin after
   /// advertising the topics that will be played back (milliseconds)
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
-    const char *_file, const char *_pattern, const int _wait_ms);
+    const char *_file,
+    const char *_pattern,
+    const int _wait_ms,
+    const char *_remap);
 }
