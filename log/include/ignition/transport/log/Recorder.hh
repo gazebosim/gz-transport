@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <regex>
+#include <set>
 #include <string>
 
 #include <ignition/transport/config.hh>
@@ -42,6 +43,7 @@ namespace ignition
         ALREADY_RECORDING = -3,
         INVALID_TOPIC = -4,
         TOPIC_NOT_FOUND = -5,
+        ALREADY_SUBSCRIBED_TO_TOPIC = -6,
       };
 
       /// \brief Records ignition transport topics
@@ -84,6 +86,16 @@ namespace ignition
         ///       appear, including while recording is active.
         /// \return number of topics subscribed or negative number on error
         public: int64_t AddTopic(const std::regex &_topic);
+
+        /// \brief Get the name of the log file.
+        /// \return The name of the log file, or an empty string if Start has
+        /// not been successfully called.
+        public: std::string Filename() const;
+
+        /// \brief Get the set of topics have have been added.
+        /// \return The set of topic names that have been added using the
+        /// AddTopic functions.
+        public: const std::set<std::string> &Topics() const;
 
         /// \internal Implementation of this class
         private: class Implementation;

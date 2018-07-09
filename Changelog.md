@@ -7,6 +7,16 @@
 
 ### Ignition Transport 5.X.X
 
+1. Prevent the log recorder from subscribing to topics that have already
+   been added.
+   * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
+
+1. Added log::Recorder::Topics that returns the set of added topics.
+   * [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/328)
+
+1. Added log::Recorder::Filename that returns the name of the log file.
+   * [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/327)
+
 1. Added a logging tutorial
    * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
 
@@ -22,6 +32,9 @@
 
 1. Added inline versioned namespace to the main library
    * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
+
+1. Added --force option to 'ign log record'
+   * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
 
 ## Ignition Transport 4
 

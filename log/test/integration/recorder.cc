@@ -72,6 +72,7 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
   std::vector<std::string> topics = {"/foo", "/bar"};
 
   ignition::transport::log::Recorder recorder;
+  EXPECT_TRUE(recorder.Filename().empty());
   for (const std::string &topic : topics)
   {
     EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
@@ -83,6 +84,8 @@ TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
 
   EXPECT_EQ(recorder.Start(logName),
             ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
@@ -159,10 +162,13 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   std::this_thread::sleep_for(
         std::chrono::milliseconds(waitBeforeSubscribing_ms));
 
+  EXPECT_TRUE(recorder.Topics().empty());
   for (const std::string &topic : topics)
   {
     recorder.AddTopic(topic);
+    EXPECT_NE(recorder.Topics().end(), recorder.Topics().find(topic));
   }
+  EXPECT_EQ(topics.size(), recorder.Topics().size());
 
   EXPECT_EQ(recorder.Start(logName),
             ignition::transport::log::RecorderError::SUCCESS);
