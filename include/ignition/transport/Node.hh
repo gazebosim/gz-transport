@@ -324,11 +324,15 @@ namespace ignition
                              const MessageInfo &_info)> &_cb,
           const SubscribeOptions &_opts = SubscribeOptions())
       {
+        // Topic remapping.
+        std::string topic = _topic;
+        this->Options().TopicRemap(_topic, topic);
+
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+          this->Options().NameSpace(), topic, fullyQualifiedTopic))
         {
-          std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -499,11 +503,15 @@ namespace ignition
         std::function<bool(const RequestT &_req, ReplyT &_rep)> &_cb,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions())
       {
+        // Topic remapping.
+        std::string topic = _topic;
+        this->Options().TopicRemap(_topic, topic);
+
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+          this->Options().NameSpace(), topic, fullyQualifiedTopic))
         {
-          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -536,7 +544,7 @@ namespace ignition
         if (!this->Shared()->AdvertisePublisher(publisher))
         {
           std::cerr << "Node::Advertise(): Error advertising service ["
-                    << _topic
+                    << topic
                     << "]. Did you forget to start the discovery service?"
                     << std::endl;
           return false;
@@ -749,11 +757,15 @@ namespace ignition
         const RequestT &_req,
         std::function<void(const ReplyT &_rep, const bool _result)> &_cb)
       {
+        // Topic remapping.
+        std::string topic = _topic;
+        this->Options().TopicRemap(_topic, topic);
+
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+          this->Options().NameSpace(), topic, fullyQualifiedTopic))
         {
-          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -809,7 +821,7 @@ namespace ignition
             if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
             {
               std::cerr << "Node::Request(): Error discovering service ["
-                        << _topic
+                        << topic
                         << "]. Did you forget to start the discovery service?"
                         << std::endl;
               return false;
@@ -905,11 +917,15 @@ namespace ignition
         ReplyT &_rep,
         bool &_result)
       {
+        // Topic remapping.
+        std::string topic = _topic;
+        this->Options().TopicRemap(_topic, topic);
+
         std::string fullyQualifiedTopic;
         if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-          this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+          this->Options().NameSpace(), topic, fullyQualifiedTopic))
         {
-          std::cerr << "Service [" << _topic << "] is not valid." << std::endl;
+          std::cerr << "Service [" << topic << "] is not valid." << std::endl;
           return false;
         }
 
@@ -950,7 +966,7 @@ namespace ignition
           if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
           {
             std::cerr << "Node::Request(): Error discovering service ["
-                      << _topic
+                      << topic
                       << "]. Did you forget to start the discovery service?"
                       << std::endl;
             return false;

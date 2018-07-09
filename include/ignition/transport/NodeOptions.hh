@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_NODEOPTIONS_HH_
 #define IGN_TRANSPORT_NODEOPTIONS_HH_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -105,6 +106,20 @@ namespace ignition
       /// invalid.
       /// \sa Partition
       public: bool SetPartition(const std::string &_partition);
+
+      /// \brief ToDo.
+      /// \param[in] _fromTopic ToDo.
+      /// \param[in] _toTopic ToDo.
+      /// \return True if the topic remap is possible or false otherwise.
+      public: bool AddTopicRemap(const std::string &_fromTopic,
+                                 const std::string &_toTopic);
+
+      /// \brief ToDo.
+      /// \param[in] _fromTopic .
+      /// \param[in] _toTopic .
+      /// \return ToDo.
+      public: bool TopicRemap(const std::string &_fromTopic,
+                              std::string &_toTopic) const;
 
       /// \internal
       /// \brief Smart pointer to private data.

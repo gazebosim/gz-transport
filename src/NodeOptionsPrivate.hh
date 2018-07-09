@@ -18,6 +18,7 @@
 #ifndef IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
 #define IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
 
+#include <map>
 #include <string>
 
 #include "ignition/transport/config.hh"
@@ -45,6 +46,10 @@ namespace ignition
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();
+
+      /// \brief Table of remappings. The key is the original topic name and
+      /// its value is the new topic name to be used instead.
+      public: std::map<std::string, std::string> topicsRemap;
     };
     }
   }
