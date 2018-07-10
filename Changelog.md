@@ -2,6 +2,9 @@
 
 ### Ignition Transport 5.X.X
 
+1. Added the ability to remap topic names.
+   * [Pull request 330](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/330)
+
 1. Prevent the log recorder from subscribing to topics that have already
    been added.
    * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
