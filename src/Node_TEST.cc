@@ -38,6 +38,7 @@ using namespace ignition;
 static std::string partition;
 static std::string g_FQNPartition;
 static std::string g_topic = "/foo";
+static std::string g_topic_remap = "/bar";
 static std::mutex exitMutex;
 static std::mutex cbMutex;
 static std::condition_variable cbCondition;
@@ -429,9 +430,9 @@ class MyTestClass
 
 //////////////////////////////////////////////////
 /// \brief Create a subscriber and wait for a callback to be executed.
-void CreateSubscriber()
+void CreateSubscriber(const transport::NodeOptions &_nodeOptions)
 {
-  transport::Node node;
+  transport::Node node(_nodeOptions);
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   int i = 0;
@@ -447,6 +448,7 @@ void CreateSubscriber()
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// \param[in] _scope Scope used to advertise the topic.
 void CreatePubSubTwoThreads(
+  const transport::NodeOptions &_nodeOptions,
   const transport::Scope_t &_sc = transport::Scope_t::ALL)
 {
   reset();
@@ -457,13 +459,13 @@ void CreatePubSubTwoThreads(
   ignition::msgs::Int32 msg;
   msg.set_data(data);
 
-  transport::Node node;
+  transport::Node node(_nodeOptions);
   auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
 
   // Subscribe to a topic in a different thread and wait until the callback is
   // received.
-  std::thread subscribeThread(CreateSubscriber);
+  std::thread subscribeThread(CreateSubscriber, _nodeOptions);
 
   // Wait some time until the subscriber is alive.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -924,7 +926,8 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
 {
-  CreatePubSubTwoThreads();
+  transport::NodeOptions options;
+  CreatePubSubTwoThreads(options);
 }
 
 //////////////////////////////////////////////////
@@ -932,7 +935,8 @@ TEST(NodeTest, PubSubTwoThreadsSameTopic)
 /// advertising a topic with "Process" scope.
 TEST(NodeTest, ScopeProcess)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::PROCESS);
+  transport::NodeOptions options;
+  CreatePubSubTwoThreads(options, transport::Scope_t::PROCESS);
 }
 
 //////////////////////////////////////////////////
@@ -940,7 +944,8 @@ TEST(NodeTest, ScopeProcess)
 /// advertising a topic with "Host" scope.
 TEST(NodeTest, ScopeHost)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::HOST);
+  transport::NodeOptions options;
+  CreatePubSubTwoThreads(options, transport::Scope_t::HOST);
 }
 
 //////////////////////////////////////////////////
@@ -948,7 +953,52 @@ TEST(NodeTest, ScopeHost)
 /// advertising a topic with "All" scope.
 TEST(NodeTest, ScopeAll)
 {
-  CreatePubSubTwoThreads(transport::Scope_t::ALL);
+  transport::NodeOptions options;
+  CreatePubSubTwoThreads(options, transport::Scope_t::ALL);
+}
+
+//////////////////////////////////////////////////
+/// \brief Use two threads using their own transport nodes. One thread
+/// will publish a message, whereas the other thread is subscribed to the topic.
+/// Topic remapping is enabled.
+TEST(NodeTest, PubSubTwoThreadsSameTopicRemap)
+{
+  transport::NodeOptions options;
+  options.AddTopicRemap(g_topic, g_topic_remap);
+  CreatePubSubTwoThreads(options);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "Process" scope.
+/// Topic remapping is enabled.
+TEST(NodeTest, ScopeProcessRemap)
+{
+  transport::NodeOptions options;
+  options.AddTopicRemap(g_topic, g_topic_remap);
+  CreatePubSubTwoThreads(options, transport::Scope_t::PROCESS);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "Host" scope.
+/// Topic remapping is enabled.
+TEST(NodeTest, ScopeHostRemap)
+{
+  transport::NodeOptions options;
+  options.AddTopicRemap(g_topic, g_topic_remap);
+  CreatePubSubTwoThreads(options, transport::Scope_t::HOST);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that two nodes in different threads are able to communicate
+/// advertising a topic with "All" scope.
+/// Topic remapping is enabled.
+TEST(NodeTest, ScopeAllRemap)
+{
+  transport::NodeOptions options;
+  options.AddTopicRemap(g_topic, g_topic_remap);
+  CreatePubSubTwoThreads(options, transport::Scope_t::ALL);
 }
 
 //////////////////////////////////////////////////
@@ -2104,6 +2154,26 @@ TEST(NodeTest, TopicList)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test creates two nodes and advertises some topics. The test
+/// verifies that TopicList() returns the list of all the topics advertised.
+/// Topic remapping is enabled.
+TEST(NodeTest, TopicListRemap)
+{
+  std::vector<std::string> topics;
+  transport::NodeOptions nodeOptions;
+  nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
+  transport::Node node(nodeOptions);
+
+  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+
+  node.TopicList(topics);
+  ASSERT_EQ(1u, topics.size());
+
+  // The topic advertised should be remapped.
+  EXPECT_EQ(g_topic_remap, topics.at(0));
+}
+
+//////////////////////////////////////////////////
 /// \brief This test creates two nodes and advertises some services. The test
 /// verifies that ServiceList() returns the list of all the services advertised.
 TEST(NodeTest, ServiceList)
@@ -2128,6 +2198,39 @@ TEST(NodeTest, ServiceList)
   auto elapsed = end - start;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed).count(), 2);
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates two nodes and advertises some services. The test
+/// verifies that ServiceList() returns the list of all the services advertised.
+/// Topic remapping is enabled.
+TEST(NodeTest, ServiceListRemap)
+{
+  std::vector<std::string> services;
+  transport::NodeOptions nodeOptions;
+  nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
+  transport::Node node(nodeOptions);
+
+  node.Advertise(g_topic, srvEcho);
+
+  node.ServiceList(services);
+  ASSERT_EQ(1u, services.size());
+  EXPECT_EQ(g_topic_remap, services.at(0));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check bad topic remap use cases.
+TEST(NodeTest, WrongTopicRemap)
+{
+  transport::NodeOptions nodeOptions;
+
+  // Invalid topics.
+  EXPECT_FALSE(nodeOptions.AddTopicRemap("  ", g_topic_remap));
+  EXPECT_FALSE(nodeOptions.AddTopicRemap(g_topic, "  "));
+
+  // Repeated topic.
+  EXPECT_TRUE(nodeOptions.AddTopicRemap(g_topic, g_topic_remap));
+  EXPECT_FALSE(nodeOptions.AddTopicRemap(g_topic, g_topic_remap));
 }
 
 //////////////////////////////////////////////////

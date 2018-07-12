@@ -106,6 +106,26 @@ namespace ignition
       /// \sa Partition
       public: bool SetPartition(const std::string &_partition);
 
+      /// \brief Add a new topic remapping. Any [Un]Advertise(),
+      /// [Un]Subscribe() or Request() operation will check for topic
+      /// remappings. If a topic is remapped, the '_fromTopic' topic will be
+      /// renamed to '_toTopic' in any of the previous functions.
+      /// Is not possible to add two remaps over the same '_fromTopic'.
+      /// \param[in] _fromTopic Original topic to be renamed.
+      /// \param[in] _toTopic New topic to be used.
+      /// \return True if the topic remap is possible or false otherwise.
+      public: bool AddTopicRemap(const std::string &_fromTopic,
+                                 const std::string &_toTopic);
+
+      /// \brief Get a topic remapping.
+      /// \param[in] _fromTopic The original topic.
+      /// \param[out] _toTopic The new topic name.
+      /// _toTopic is unchanged if there is no remapping.
+      /// \return True if a topic remap was found for '_fromTopic' or
+      /// false otherwise.
+      public: bool TopicRemap(const std::string &_fromTopic,
+                              std::string &_toTopic) const;
+
       /// \internal
       /// \brief Smart pointer to private data.
       protected: std::unique_ptr<transport::NodeOptionsPrivate> dataPtr;
