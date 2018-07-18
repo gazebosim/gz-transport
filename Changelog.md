@@ -4,6 +4,7 @@
 
 1. Added support for topic remapping when running "ign log playback". Note that
    the string ":=" is not allowed now as part of a partition, namespace or topic
+   anymore.
    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/331)
 
 1. Added the ability to remap topic names.
