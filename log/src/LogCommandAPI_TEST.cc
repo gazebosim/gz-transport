@@ -42,10 +42,10 @@ TEST(LogCommandAPI, PlaybackBadRegex)
 TEST(LogCommandAPI, PlaybackBadRemap)
 {
   EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo"));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo@"));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo@ "));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "@/bar"));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " @/bar"));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:="));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:= "));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, ":=/bar"));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " :=/bar"));
 }
 
 //////////////////////////////////////////////////
