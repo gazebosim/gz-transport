@@ -54,6 +54,7 @@ NodeOptions &NodeOptions::operator=(const NodeOptions &_other)
 {
   this->SetNameSpace(_other.NameSpace());
   this->SetPartition(_other.Partition());
+  this->dataPtr->topicsRemap = _other.dataPtr->topicsRemap;
   return *this;
 }
 
@@ -91,4 +92,45 @@ bool NodeOptions::SetPartition(const std::string &_partition)
   }
   this->dataPtr->partition = _partition;
   return true;
+}
+
+//////////////////////////////////////////////////
+bool NodeOptions::AddTopicRemap(const std::string &_fromTopic,
+                                const std::string &_toTopic)
+{
+  // Sanity check: Make sure that both topics are valid.
+  for (auto topic : {_fromTopic, _toTopic})
+  {
+    if (!TopicUtils::IsValidTopic(topic))
+    {
+      std::cerr << "Invalid topic name [" << topic << "]" << std::endl;
+      return false;
+    }
+  }
+
+  // Sanity check: Make sure that the orignal topic hasn't been remapped already
+  if (this->dataPtr->topicsRemap.find(_fromTopic) !=
+      this->dataPtr->topicsRemap.end())
+  {
+    std::cerr << "Topic name [" << _fromTopic << "] has already been remapped"
+              << "to [" << this->dataPtr->topicsRemap.at(_fromTopic) << "]"
+              << std::endl;
+    return false;
+  }
+
+  this->dataPtr->topicsRemap[_fromTopic] = _toTopic;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool NodeOptions::TopicRemap(const std::string &_fromTopic,
+  std::string &_toTopic) const
+{
+  // Is there any remap for this topic?
+  auto topicIt = this->dataPtr->topicsRemap.find(_fromTopic);
+  if (topicIt != this->dataPtr->topicsRemap.end())
+    _toTopic = topicIt->second;
+
+  return topicIt != this->dataPtr->topicsRemap.end();
 }

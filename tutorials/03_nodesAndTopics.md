@@ -34,6 +34,7 @@ There are some rules to follow when selecting a topic name. It should be any
 alphanumeric name followed by zero or more slashes. For example: `/image`,
 `head_position`, `/robot1/joints/HeadPitch` are examples of valid topic
 names. The next table summarizes the allowed and not allowed topic rules.
+The following symbols are not allowed as part of the topic name: "@", ":=", "~".
 
 | Topic name  | Validity | Comment                       |
 |:----------: |:--------:|:-----------------------------:|
@@ -46,6 +47,8 @@ names. The next table summarizes the allowed and not allowed topic rules.
 | //image     | Invalid  | Contains two consecutive `//` |
 | /           | Invalid  | `/` topic is not allowed      |
 | ~myTopic    | Invalid  | Symbol `~` not allowed        |
+| @myTopic    | Invalid  | Symbol `@` not allowed        |
+| myTopic:=   | Invalid  | Symbol `:=` not allowed       |
 
 ## Topic scope
 
@@ -74,7 +77,7 @@ don't set a partition name, we won't receive any messages from Node1 or Node2.
 
 A partition name is any alphanumeric string with a few exceptions.
 The symbol `/` is allowed as part of a partition name but just `/` is
-not allowed. The symbols `@`, `~` or white spaces are not allowed as
+not allowed. The symbols `@`, `~`, `:=` or white spaces are not allowed as
 part of a partition name. Two or more consecutive slashes (`//`) are not
 allowed.
 

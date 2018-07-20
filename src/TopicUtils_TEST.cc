@@ -49,6 +49,7 @@ TEST(TopicUtilsTest, testTopics)
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("~/"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("~"));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic("@partition"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidTopic("topic:="));
   EXPECT_FALSE(transport::TopicUtils::IsValidTopic(
     std::string(transport::TopicUtils::kMaxNameLength + 1, 'a')));
 }
@@ -75,6 +76,7 @@ TEST(TopicUtilsTest, testNamespaces)
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~/abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("~abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("@namespace"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidNamespace("namespace:="));
   EXPECT_FALSE(transport::TopicUtils::IsValidNamespace(
     std::string(transport::TopicUtils::kMaxNameLength + 1, 'a')));
 }
@@ -136,6 +138,7 @@ TEST(TopicUtilsTest, tesPartitions)
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~/abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("~abcde"));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition("@namespace"));
+  EXPECT_FALSE(transport::TopicUtils::IsValidPartition("namespace:="));
   EXPECT_FALSE(transport::TopicUtils::IsValidPartition(
     std::string(transport::TopicUtils::kMaxNameLength + 1, 'a')));
 }

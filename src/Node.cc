@@ -578,6 +578,10 @@ std::vector<std::string> Node::SubscribedTopics() const
 //////////////////////////////////////////////////
 bool Node::Unsubscribe(const std::string &_topic)
 {
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
@@ -677,6 +681,10 @@ std::vector<std::string> Node::AdvertisedServices() const
 //////////////////////////////////////////////////
 bool Node::UnadvertiseSrv(const std::string &_topic)
 {
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
     this->Options().NameSpace(), _topic, fullyQualifiedTopic))
@@ -765,6 +773,10 @@ bool Node::SubscribeRaw(
     const std::string &_msgType,
     const SubscribeOptions &_opts)
 {
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->dataPtr->options.Partition(),
                                       this->dataPtr->options.NameSpace(),
@@ -910,11 +922,15 @@ bool Node::ServiceInfo(const std::string &_service,
 Node::Publisher Node::Advertise(const std::string &_topic,
     const std::string &_msgTypeName, const AdvertiseMessageOptions &_options)
 {
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-        this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+        this->Options().NameSpace(), topic, fullyQualifiedTopic))
   {
-    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
     return Publisher();
   }
 
@@ -923,7 +939,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   if (std::find(currentTopics.begin(), currentTopics.end(),
         fullyQualifiedTopic) != currentTopics.end())
   {
-    std::cerr << "Topic [" << _topic << "] already advertised. You cannot"
+    std::cerr << "Topic [" << topic << "] already advertised. You cannot"
       << " advertise the same topic twice on the same node."
       << " If you want to advertise the same topic with different"
       << " types, use separate nodes" << std::endl;
@@ -941,7 +957,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
   {
     std::cerr << "Node::Advertise(): Error advertising topic ["
-      << _topic
+      << topic
       << "]. Did you forget to start the discovery service?"
       << std::endl;
     return Publisher();

@@ -22,6 +22,7 @@
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/transport/NodeOptions.hh>
 #include "../Console.hh"
 #include "LogCommandAPI.hh"
 
@@ -70,7 +71,8 @@ int recordTopics(const char *_file, const char *_pattern)
 }
 
 //////////////////////////////////////////////////
-int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms)
+int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
+  const char *_remap)
 {
   std::regex regexPattern;
   try
@@ -83,7 +85,24 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms)
     return BAD_REGEX;
   }
 
-  transport::log::Playback player(_file);
+  // Parse remapping.
+  transport::NodeOptions nodeOptions;
+  std::string remap = std::string(_remap);
+  if (!remap.empty())
+  {
+    // Sanity check: It should contain the := delimiter.
+    auto delim = remap.find(":=");
+    if (delim == std::string::npos)
+      return INVALID_REMAP;
+
+    std::string from = remap.substr(0, delim);
+    std::string to = remap.substr(delim + 2, remap.size() - delim - 1);
+
+    if (!nodeOptions.AddTopicRemap(from, to))
+      return INVALID_REMAP;
+  }
+
+  transport::log::Playback player(_file, nodeOptions);
   if (!player.Valid())
     return FAILED_TO_OPEN;
 
