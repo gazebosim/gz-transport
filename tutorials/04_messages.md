@@ -1,4 +1,8 @@
-# Messages
+\page messages Messages
+
+Next Tutorial: \ref services
+
+## Overview
 
 In this tutorial, we are going to create two nodes that are going to communicate
 via messages. One node will be a publisher that generates the information,

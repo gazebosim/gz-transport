@@ -1,4 +1,8 @@
-# Installation
+\page installation Installation
+
+Next Tutorial: \ref nodestopics
+
+## Overview
 
 This page contains instructions to install Ignition Transport on all the
 support platforms including major Linux distributions, Mac OS X and Windows.
