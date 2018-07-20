@@ -53,6 +53,10 @@ bool TopicUtils::IsValidNamespace(const std::string &_ns)
   if (_ns.find("@") != std::string::npos)
     return false;
 
+  // If the topic name has a ':=' is not valid.
+  if (_ns.find(":=") != std::string::npos)
+    return false;
+
   return true;
 }
 

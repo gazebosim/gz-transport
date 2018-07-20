@@ -35,7 +35,17 @@ TEST(LogCommandAPI, RecordBadRegex)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackBadRegex)
 {
-  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0));
+  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0, ""));
+}
+
+//////////////////////////////////////////////////
+TEST(LogCommandAPI, PlaybackBadRemap)
+{
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo"));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:="));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:= "));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, ":=/bar"));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " :=/bar"));
 }
 
 //////////////////////////////////////////////////
@@ -47,9 +57,9 @@ TEST(LogCommandAPI, RecordFailedToOpen)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackFailedToOpen)
 {
-  EXPECT_EQ(FAILED_TO_OPEN, playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0));
+  EXPECT_EQ(FAILED_TO_OPEN,
+    playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0, ""));
 }
-
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

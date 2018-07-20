@@ -49,9 +49,11 @@ class ignition::transport::log::Playback::Implementation
 {
   /// \brief Constructor. Creates and initializes the log file
   /// \param[in] _file The full path of the file to open
-  public: Implementation(const std::string &_file)
+  public: Implementation(
+    const std::string &_file, const NodeOptions &_nodeOptions)
     : logFile(std::make_shared<Log>()),
-      addTopicWasUsed(false)
+      addTopicWasUsed(false),
+      nodeOptions(_nodeOptions)
   {
     if (!this->logFile->Open(_file, std::ios_base::in))
     {
@@ -92,6 +94,9 @@ class ignition::transport::log::Playback::Implementation
   /// This is only used to ensure safety in special cases where multi-threaded
   /// sqlite3 is known to be unavailable.
   public: std::weak_ptr<PlaybackHandle> lastHandle;
+
+  /// \brief The node options.
+  public: NodeOptions nodeOptions;
 };
 
 //////////////////////////////////////////////////
@@ -106,7 +111,8 @@ class PlaybackHandle::Implementation
   public: Implementation(
       const std::shared_ptr<Log> &_logFile,
       const std::unordered_set<std::string> &_topics,
-      const std::chrono::nanoseconds &_waitAfterAdvertising);
+      const std::chrono::nanoseconds &_waitAfterAdvertising,
+      const NodeOptions &_nodeOptions);
 
   /// \brief Look through the types of data that _topic can publish and create
   /// a publisher for each type.
@@ -133,7 +139,7 @@ class PlaybackHandle::Implementation
   /// \brief node used to create publishers
   /// \note This member needs to come before the publishers member so that they
   /// get destructed in the correct order
-  public: ignition::transport::Node node;
+  public: std::unique_ptr<ignition::transport::Node> node;
 
   /// \brief Map whose key is a topic name and value is another map whose
   /// key is a message type name and value is a publisher
@@ -170,8 +176,8 @@ class PlaybackHandle::Implementation
 };
 
 //////////////////////////////////////////////////
-Playback::Playback(const std::string &_file)
-  : dataPtr(new Implementation(_file))
+Playback::Playback(const std::string &_file, const NodeOptions &_nodeOptions)
+  : dataPtr(new Implementation(_file, _nodeOptions))
 {
   // Do nothing
 }
@@ -229,7 +235,8 @@ PlaybackHandlePtr Playback::Start(
   PlaybackHandlePtr newHandle(
         new PlaybackHandle(
           std::make_unique<PlaybackHandle::Implementation>(
-            this->dataPtr->logFile, topics, _waitAfterAdvertising)));
+            this->dataPtr->logFile, topics, _waitAfterAdvertising,
+            this->dataPtr->nodeOptions)));
 
   // We only need to store this if sqlite3 was not compiled in threadsafe mode.
   if (!kSqlite3Threadsafe)
@@ -340,11 +347,14 @@ int64_t Playback::RemoveTopic(const std::regex &_topic)
 PlaybackHandle::Implementation::Implementation(
     const std::shared_ptr<Log> &_logFile,
     const std::unordered_set<std::string> &_topics,
-    const std::chrono::nanoseconds &_waitAfterAdvertising)
+    const std::chrono::nanoseconds &_waitAfterAdvertising,
+    const NodeOptions &_nodeOptions)
   : stop(true),
     finished(false),
     logFile(_logFile)
 {
+  this->node.reset(new transport::Node(_nodeOptions));
+
   for (const std::string &topic : _topics)
     this->AddTopic(topic);
 
@@ -398,7 +408,7 @@ void PlaybackHandle::Implementation::CreatePublisher(
   }
 
   // Create a publisher for the topic and type combo
-  firstMapIter->second[_type] = this->node.Advertise(_topic, _type);
+  firstMapIter->second[_type] = this->node->Advertise(_topic, _type);
   LDBG("Creating publisher for " << _topic << " " << _type << "\n");
 }
 
