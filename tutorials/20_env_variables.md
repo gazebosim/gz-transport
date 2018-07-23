@@ -2,14 +2,14 @@
 
 Next Tutorial: \ref contribute
 
-## Overview 
+## Overview
 
 In a similar way you can programatically customize the behavior of your
 nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Ignition Transport.
 Next you can see a description of the available environment variables:
 
-* **IGN_PARITION**
+* **IGN_PARTITION**
     * *Value allowed*: Any partition value
     * *Description*: Specifies a partition name for all the nodes declared
     inside this process. Note that an alternative partition name  declared
