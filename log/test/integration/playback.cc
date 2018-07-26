@@ -60,24 +60,35 @@ void TrackMessages(std::vector<MessageInformation> &_archive,
 
 
 //////////////////////////////////////////////////
-/// \brief Compare sent and received messages
-/// \param[in] _recorded messages that were recorded
-/// \param[in] _played messages that were published
-void ExpectSameMessages(
+/// \brief Compares two messages.
+/// \param[in] _recorded message that was recorded
+/// \param[in] _played message that was published
+/// \param[out] a boolean
+bool MessagesAreEqual(
+    const MessageInformation &_recorded,
+    const MessageInformation &_played)
+{
+  if(_recorded.data.compare(_played.data) != 0) return false;
+  if(_recorded.type.compare(_played.type) != 0) return false;
+  if(_recorded.topic.compare(_played.topic) != 0) return false;
+  return true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Compares two vectors of messages.
+/// \param[in] _recorded vector of messages that were recorded
+/// \param[in] _played vector of messages that were published
+/// \param[out] a boolean
+bool ExpectSameMessages(
     const std::vector<MessageInformation> &_recorded,
     const std::vector<MessageInformation> &_played)
 {
   for (std::size_t i = 0; i < _recorded.size() && i < _played.size(); ++i)
   {
-    const MessageInformation &original = _recorded[i];
-    const MessageInformation &playedBack = _played[i];
-
-    EXPECT_EQ(original.data, playedBack.data);
-    EXPECT_EQ(original.type, playedBack.type);
-    EXPECT_EQ(original.topic, playedBack.topic);
+    if(!MessagesAreEqual(_recorded[i], _played[i])) return false;
   }
-
-  EXPECT_EQ(_recorded.size(), _played.size());
+  if(_recorded.size() != _played.size()) return false;
+  return true;
 }
 
 
@@ -148,7 +159,7 @@ TEST(playback, ReplayLog)
   // (Strangely, Windows throws an exception when this is ~1s or more)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  ExpectSameMessages(originalData, incomingData);
+  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
 }
 
 
@@ -233,7 +244,7 @@ TEST(playback, ReplayLogRegex)
   // (Strangely, Windows throws an exception when this is ~1s or more)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  ExpectSameMessages(originalData, incomingData);
+  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
 }
 
 //////////////////////////////////////////////////
@@ -415,7 +426,125 @@ TEST(playback, ReplayLogMoveInstances)
   // (Strangely, Windows throws an exception when this is ~1s or more)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  ExpectSameMessages(originalData, incomingData);
+  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
+}
+
+//////////////////////////////////////////////////
+/// \brief Record a log and then play it back calling the Pause and Resume
+/// methods to control the playback flow.
+TEST(playback, ReplayPauseResume)
+{
+  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
+
+  std::vector<MessageInformation> incomingData;
+
+  auto callback = [&incomingData](
+      const char *_data,
+      std::size_t _len,
+      const ignition::transport::MessageInfo &_msgInfo)
+  {
+    TrackMessages(incomingData, _data, _len, _msgInfo);
+  };
+
+  ignition::transport::Node node;
+  ignition::transport::log::Recorder recorder;
+
+  for (const std::string &topic : topics)
+  {
+    node.SubscribeRaw(topic, callback);
+    recorder.AddTopic(topic);
+  }
+
+  const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+    recorder.Start(logName));
+
+  const int numChirps = 100;
+  testing::forkHandlerType chirper =
+    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+
+  // Wait for the chirping to finish
+  testing::waitAndCleanupFork(chirper);
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback(logName);
+  recorder.Stop();
+
+  // Make a copy of the data so we can compare it later
+  std::vector<MessageInformation> originalData = incomingData;
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  for (const std::string &topic : topics)
+  {
+    playback.AddTopic(topic);
+  }
+
+  const auto handle = playback.Start();
+
+  // Wait until approximately half of the chirps have been played back
+  std::this_thread::sleep_for(
+        std::chrono::milliseconds(
+          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 2));
+
+  //// Pause Playback
+  handle->Pause();
+
+  // Wait for incomingData to catch up with the played back messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Make a copy of the last received message
+  const MessageInformation originalMessage{incomingData.back()};
+
+  // Pause for an arbitrary amount of time.
+  std::this_thread::sleep_for(
+        std::chrono::milliseconds(500));
+
+  // If the playback has been successfully paused,
+  // the last incoming message shouldn't change over time.
+  MessageInformation lastReceivedMessage{incomingData.back()};
+
+  EXPECT_TRUE(MessagesAreEqual(originalMessage, lastReceivedMessage));
+
+  std::cout << "Resuming playback..." << std::endl;
+
+  handle->Resume();
+
+  // Playback around a quarter of the total number of chirps
+  std::this_thread::sleep_for(
+        std::chrono::milliseconds(
+          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 4));
+
+  handle->Pause();
+
+  // Wait for incomingData to catch up with the played back messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // If the playback hasn't been paused, the message received must differ
+  // from the one recorded an instant before.
+  lastReceivedMessage = incomingData.back();
+
+  EXPECT_FALSE(MessagesAreEqual(originalMessage, lastReceivedMessage));
+
+  handle->Resume();
+
+  std::cout << "Waiting to for playback to finish..." << std::endl;
+  handle->WaitUntilFinished();
+  std::cout << " Done waiting..." << std::endl;
+  handle->Stop();
+  std::cout << "Playback finished!" << std::endl;
+
+  // Checks that the stream of messages hasn't been corrupted in between
+  // pausing and resuming.
+  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  // (Strangely, Windows throws an exception when this is ~1s or more)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 
