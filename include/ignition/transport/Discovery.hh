@@ -555,44 +555,59 @@ namespace ignition
       /// and invalids the old topics.
       private: void UpdateActivity()
       {
+        // The UUIDs of the processes that have expired.
+        std::vector<std::string> uuids;
+
+        // A copy of the disconnection callback.
+        DiscoveryCallback<Pub> disconnectCb;
+
         Timestamp now = std::chrono::steady_clock::now();
 
-        std::lock_guard<std::mutex> lock(this->mutex);
-
-        if (now < this->timeNextActivity)
-          return;
-
-        for (auto it = this->activity.cbegin(); it != this->activity.cend();)
         {
-          // Elapsed time since the last update from this publisher.
-          auto elapsed = now - it->second;
+          std::lock_guard<std::mutex> lock(this->mutex);
 
-          // This publisher has expired.
-          if (std::chrono::duration_cast<std::chrono::milliseconds>
-               (elapsed).count() > this->silenceInterval)
+          if (now < this->timeNextActivity)
+            return;
+
+          for (auto it = this->activity.cbegin(); it != this->activity.cend();)
           {
-            // Remove all the info entries for this process UUID.
-            this->info.DelPublishersByProc(it->first);
+            // Elapsed time since the last update from this publisher.
+            auto elapsed = now - it->second;
 
-            // Notify without topic information. This is useful to inform the
-            // client that a remote node is gone, even if we were not
-            // interested in its topics.
-            Pub publisher;
-            publisher.SetPUuid(it->first);
-            if (this->disconnectionCb)
+            // This publisher has expired.
+            if (std::chrono::duration_cast<std::chrono::milliseconds>
+                 (elapsed).count() > this->silenceInterval)
             {
-              this->disconnectionCb(publisher);
-            }
+              // Remove all the info entries for this process UUID.
+              this->info.DelPublishersByProc(it->first);
 
-            // Remove the activity entry.
-            this->activity.erase(it++);
+              uuids.push_back(it->first);
+
+              // Remove the activity entry.
+              this->activity.erase(it++);
+            }
+            else
+              ++it;
           }
-          else
-            ++it;
+
+          this->timeNextActivity = std::chrono::steady_clock::now() +
+            std::chrono::milliseconds(this->activityInterval);
+
+          disconnectCb = this->disconnectionCb;
         }
 
-        this->timeNextActivity = std::chrono::steady_clock::now() +
-          std::chrono::milliseconds(this->activityInterval);
+        if (!disconnectCb)
+          return;
+
+        // Notify without topic information. This is useful to inform the
+        // client that a remote node is gone, even if we were not
+        // interested in its topics.
+        for (auto const &uuid : uuids)
+        {
+          Pub publisher;
+          publisher.SetPUuid(uuid);
+          disconnectCb(publisher);
+        }
       }
 
       /// \brief Broadcast periodic heartbeats.
