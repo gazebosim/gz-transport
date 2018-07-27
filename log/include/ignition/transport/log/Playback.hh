@@ -170,7 +170,8 @@ namespace ignition
         private: class Implementation;
 
         /// \brief Private constructor. This can only be called by Playback.
-        private: PlaybackHandle(std::unique_ptr<Implementation> &&_internal);
+        private: PlaybackHandle(
+          std::unique_ptr<Implementation> &&_internal); // NOLINT
 
         /// \internal Pointer to implementation class
         private: std::unique_ptr<Implementation> dataPtr;
