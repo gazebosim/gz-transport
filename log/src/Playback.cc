@@ -27,11 +27,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Console.hh"
 #include <ignition/transport/Node.hh>
-#include "ignition/transport/log/Log.hh"
-#include "ignition/transport/log/Playback.hh"
+#include <ignition/transport/log/Log.hh>
+#include <ignition/transport/log/Playback.hh>
 #include "build_config.hh"
+#include "Console.hh"
 #include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
@@ -41,7 +41,7 @@ using namespace ignition::transport::log;
 // knows whether sqlite3 was compiled with multi-threading capabilities. It
 // might not catch changes to sqlite3's runtime settings.
 // See: https://www.sqlite.org/threadsafe.html
-const static bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
+static const bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
 
 //////////////////////////////////////////////////
 /// \brief Private implementation of Playback
@@ -560,9 +560,9 @@ bool PlaybackHandle::Finished() const
 }
 
 //////////////////////////////////////////////////
-PlaybackHandle::PlaybackHandle(std::unique_ptr<Implementation> &&_internal)
+PlaybackHandle::PlaybackHandle(
+  std::unique_ptr<Implementation> &&_internal) // NOLINT
   : dataPtr(std::move(_internal))
 {
   // Do nothing
 }
-
