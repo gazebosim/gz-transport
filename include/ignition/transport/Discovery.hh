@@ -569,6 +569,8 @@ namespace ignition
           if (now < this->timeNextActivity)
             return;
 
+          disconnectCb = this->disconnectionCb;
+
           for (auto it = this->activity.cbegin(); it != this->activity.cend();)
           {
             // Elapsed time since the last update from this publisher.
@@ -592,8 +594,6 @@ namespace ignition
 
           this->timeNextActivity = std::chrono::steady_clock::now() +
             std::chrono::milliseconds(this->activityInterval);
-
-          disconnectCb = this->disconnectionCb;
         }
 
         if (!disconnectCb)
