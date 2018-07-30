@@ -499,7 +499,7 @@ void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
               std::chrono::steady_clock::now().time_since_epoch());
             // If paused, the thread will be blocked here.
             pauseConditionVariable.wait(lk,
-              [this]{return this->paused.load();});
+              [this]{return !this->paused.load();});
             // Calculate how much time has been paused.
             const std::chrono::nanoseconds elapsedTimePaused(
               std::chrono::steady_clock::now().time_since_epoch() -
