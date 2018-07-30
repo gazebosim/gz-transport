@@ -68,10 +68,9 @@ bool MessagesAreEqual(
     const MessageInformation &_recorded,
     const MessageInformation &_played)
 {
-  if(_recorded.data.compare(_played.data) != 0) return false;
-  if(_recorded.type.compare(_played.type) != 0) return false;
-  if(_recorded.topic.compare(_played.topic) != 0) return false;
-  return true;
+  return _recorded.data  == _played.data &&
+        _recorded.type  == _played.type &&
+        _recorded.topic == _played.topic;
 }
 
 //////////////////////////////////////////////////
@@ -491,18 +490,20 @@ TEST(playback, ReplayPauseResume)
         std::chrono::milliseconds(
           ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 2));
 
-  //// Pause Playback
+  // Pause Playback
   handle->Pause();
 
   // Wait for incomingData to catch up with the played back messages
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  // The playback must be paused now
+  EXPECT_TRUE(handle->IsPaused());
+
   // Make a copy of the last received message
   const MessageInformation originalMessage{incomingData.back()};
 
   // Pause for an arbitrary amount of time.
-  std::this_thread::sleep_for(
-        std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // If the playback has been successfully paused,
   // the last incoming message shouldn't change over time.
