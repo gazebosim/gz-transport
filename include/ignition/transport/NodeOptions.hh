@@ -119,7 +119,8 @@ namespace ignition
 
       /// \brief Get a topic remapping.
       /// \param[in] _fromTopic The original topic.
-      /// \param[in] _toTopic The new topic (if there was a remapped).
+      /// \param[out] _toTopic The new topic name.
+      /// _toTopic is unchanged if there is no remapping.
       /// \return True if a topic remap was found for '_fromTopic' or
       /// false otherwise.
       public: bool TopicRemap(const std::string &_fromTopic,

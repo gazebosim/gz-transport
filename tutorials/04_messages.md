@@ -585,3 +585,6 @@ ign topic --echo -t /bar
 ```
 
 And you should receive all the messages coming in terminal 2.
+
+The command `ign log playback` also supports the notion of topic remapping. See
+`ign log playback -h` for further details (need Ignition Tools).

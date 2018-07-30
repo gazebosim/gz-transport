@@ -37,6 +37,8 @@ namespace ignition
     {
       /// \brief Determines if a namespace is valid. A namespace's length must
       /// not exceed kMaxNameLength.
+      /// The following symbols are not allowed as part of the
+      /// namespace:  '@', ':=', '~'.
       /// \param[in] _ns Namespace to be checked.
       /// \return true if the namespace is valid.
       public: static bool IsValidNamespace(const std::string &_ns);
@@ -52,9 +54,10 @@ namespace ignition
 
       /// \brief Determines if a topic name is valid. A topic name is any
       /// non-empty alphanumeric string. The symbol '/' is also allowed as part
-      /// of a topic name. The symbol '@' is not allowed in a topic name
-      /// because it is used as a partition delimitier. A topic name's length
-      /// must not exceed kMaxNameLength.
+      /// of a topic name.
+      /// The following symbols are not allowed as part of the
+      /// topic name:  '@', ':=', '~'.
+      /// A topic name's length must not exceed kMaxNameLength.
       /// Examples of valid topics: abc, /abc, /abc/de, /abc/de/
       /// \param[in] _topic Topic name to be checked.
       /// \return true if the topic name is valid.

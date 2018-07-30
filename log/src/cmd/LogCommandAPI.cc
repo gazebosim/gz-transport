@@ -90,13 +90,13 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
   std::string remap = std::string(_remap);
   if (!remap.empty())
   {
-    // Sanity check: It should contain the @ delimiter.
-    auto delim = remap.find("@");
+    // Sanity check: It should contain the := delimiter.
+    auto delim = remap.find(":=");
     if (delim == std::string::npos)
       return INVALID_REMAP;
 
     std::string from = remap.substr(0, delim);
-    std::string to = remap.substr(delim + 1, remap.size() - delim);
+    std::string to = remap.substr(delim + 2, remap.size() - delim - 1);
 
     if (!nodeOptions.AddTopicRemap(from, to))
       return INVALID_REMAP;
