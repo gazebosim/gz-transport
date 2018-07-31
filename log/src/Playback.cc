@@ -493,12 +493,13 @@ void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
             return target <= now || this->stop;
           };
 
-          if(this->paused){
+          if (this->paused)
+          {
             std::unique_lock<std::mutex> lk(this->pauseMutex);
             const std::chrono::nanoseconds startTimePaused(
               std::chrono::steady_clock::now().time_since_epoch());
             // If paused, the thread will be blocked here.
-            pauseConditionVariable.wait(lk,
+            this->pauseConditionVariable.wait(lk,
               [this]{return !this->paused.load();});
             // Calculate how much time has been paused.
             const std::chrono::nanoseconds elapsedTimePaused(
@@ -566,7 +567,7 @@ void PlaybackHandle::Implementation::Stop()
   this->stop = true;
   this->stopConditionVariable.notify_all();
 
-  if(this->paused)
+  if (this->paused)
   {
     std::unique_lock<std::mutex> lk(this->pauseMutex);
     this->pauseConditionVariable.notify_all();
@@ -581,7 +582,8 @@ void PlaybackHandle::Implementation::Stop()
 void PlaybackHandle::Implementation::Pause()
 {
   std::unique_lock<std::mutex> lk(this->pauseMutex);
-  if(!this->paused) {
+  if (!this->paused)
+  {
     this->paused = true;
   }
 }
@@ -590,7 +592,8 @@ void PlaybackHandle::Implementation::Pause()
 void PlaybackHandle::Implementation::Resume()
 {
   std::unique_lock<std::mutex> lk(this->pauseMutex);
-  if(this->paused) {
+  if (this->paused)
+  {
     this->paused = false;
     this->pauseConditionVariable.notify_all();
   }

@@ -84,9 +84,9 @@ bool ExpectSameMessages(
 {
   for (std::size_t i = 0; i < _recorded.size() && i < _played.size(); ++i)
   {
-    if(!MessagesAreEqual(_recorded[i], _played[i])) return false;
+    if (!MessagesAreEqual(_recorded[i], _played[i])) return false;
   }
-  if(_recorded.size() != _played.size()) return false;
+  if (_recorded.size() != _played.size()) return false;
   return true;
 }
 
