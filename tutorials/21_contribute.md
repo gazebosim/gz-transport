@@ -1,4 +1,8 @@
-# How to contribute
+\page contribute How to contribute
+
+Next Tutorial: \ref development
+
+## Overview
 
 Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
