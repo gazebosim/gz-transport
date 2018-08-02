@@ -153,6 +153,15 @@ namespace ignition
         /// \brief Stop playing messages
         public: void Stop();
 
+        /// \brief Pauses the playback
+        public: void Pause();
+
+        /// \brief Unpauses the playback
+        public: void Resume();
+
+        /// \brief Check pause status
+        public: bool IsPaused() const;
+
         /// \brief Block until playback runs out of messages to publish
         public: void WaitUntilFinished();
 
