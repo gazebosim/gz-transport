@@ -485,7 +485,8 @@ TEST(playback, ReplayPauseResume)
   // Wait until approximately half of the chirps have been played back
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 2));
+          ignition::transport::log::test::DelayBetweenChirps_ms *
+          numChirps / 2));
 
   // Pause Playback
   handle->Pause();
@@ -515,7 +516,8 @@ TEST(playback, ReplayPauseResume)
   // Playback around a quarter of the total number of chirps
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 4));
+          ignition::transport::log::test::DelayBetweenChirps_ms *
+          numChirps / 4));
 
   handle->Pause();
 
