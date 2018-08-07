@@ -145,14 +145,24 @@ namespace ignition
           const std::string &_msgData,
           const std::string &_msgType);
 
+        /// \brief Return true if this publisher has subscribers.
+        /// \return True if subscribers have connected to this publisher.
+        public: bool HasConnections() const;
+
+        /// \brief Return true if this publisher will send a message if
+        /// Publish is called. This will return false if the publisher is
+        /// throttled and the update period has not elapsed.
+        /// Throttling which can be configured at the time of advertisement.
+        /// This function is useful if you need to perform some computation
+        /// during message construction and would like to avoid that
+        /// computation if the message will not be sent.
+        /// \return True if calling Publish will actually send a message.
+        public: bool WillPublish() const;
+
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
         /// \return true if the message should be published or false otherwise.
         private: bool UpdateThrottling();
-
-        /// \brief Return true if this publisher has subscribers.
-        /// \return True if subscribers have connected to this publisher.
-        public: bool HasConnections() const;
 
         /// \internal
         /// \brief Smart pointer to private data.

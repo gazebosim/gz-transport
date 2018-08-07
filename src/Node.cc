@@ -108,7 +108,7 @@ namespace ignition
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
       /// \return True if it is okay to publish, false otherwise.
-      public: bool UpdateThrottling()
+      public: bool UpdateThrottling(const bool _updateTimestamp = true)
       {
         std::lock_guard<std::mutex> lk(this->mutex);
         if (!this->publisher.Options().Throttled())
@@ -124,8 +124,8 @@ namespace ignition
           return false;
         }
 
-        // Update the last callback execution.
-        this->lastCbTimestamp = now;
+        if (_updateTimestamp)
+          this->lastCbTimestamp = now;
         return true;
       }
 
@@ -222,6 +222,12 @@ Node::Publisher::operator bool() const
 bool Node::Publisher::Valid() const
 {
   return this->dataPtr->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::WillPublish() const
+{
+  return this->dataPtr->UpdateThrottling(false);
 }
 
 //////////////////////////////////////////////////
