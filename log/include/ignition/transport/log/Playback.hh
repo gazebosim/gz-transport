@@ -162,6 +162,15 @@ namespace ignition
         /// \brief Stop playing messages
         public: void Stop();
 
+        /// \brief Pauses the playback
+        public: void Pause();
+
+        /// \brief Unpauses the playback
+        public: void Resume();
+
+        /// \brief Check pause status
+        public: bool IsPaused() const;
+
         /// \brief Block until playback runs out of messages to publish
         public: void WaitUntilFinished();
 
@@ -179,7 +188,8 @@ namespace ignition
         private: class Implementation;
 
         /// \brief Private constructor. This can only be called by Playback.
-        private: PlaybackHandle(std::unique_ptr<Implementation> &&_internal);
+        private: PlaybackHandle(
+          std::unique_ptr<Implementation> &&_internal); // NOLINT
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
