@@ -607,7 +607,8 @@ TEST(playback, ReplayStep)
   // Wait until approximately half of the chirps have been played back
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 4));
+          ignition::transport::log::test::DelayBetweenChirps_ms *
+          numChirps / 4));
 
   // Pause Playback
   handle->Pause();
@@ -655,6 +656,10 @@ TEST(playback, ReplayStep)
   std::cout << " Done waiting..." << std::endl;
   handle->Stop();
   std::cout << "Playback finished!" << std::endl;
+
+  // Checks that the stream of messages hasn't been corrupted in between
+  // pausing and resuming.
+  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
 
   // Wait to make sure our callbacks are done processing the incoming messages
   // (Strangely, Windows throws an exception when this is ~1s or more)

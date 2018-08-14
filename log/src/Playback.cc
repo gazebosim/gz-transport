@@ -217,7 +217,6 @@ class PlaybackHandle::Implementation
 
   // \brief Iterator to loop over the messages found in batch
   public: Batch::iterator currentMsgIter;
-
 };
 
 //////////////////////////////////////////////////
@@ -490,7 +489,7 @@ void PlaybackHandle::Implementation::StartPlayback()
 
   this->playbackThread = std::thread([this] () mutable
     {
-      while(!this->stop && (this->currentMsgIter != this->batch.end())) {
+      while (!this->stop && (this->currentMsgIter != this->batch.end())) {
         // Lock if paused
         if (this->paused)
         {
@@ -504,7 +503,8 @@ void PlaybackHandle::Implementation::StartPlayback()
           continue;
         }
         // If not executing a requested step (regular non-paused playback flow)
-        if(this->currentMessageTime <= this->boundaryTime) {
+        if (this->currentMessageTime <= this->boundaryTime)
+        {
           // The timeDelta becomes the time remaining until next message
           const std::chrono::nanoseconds timeDelta(
               this->currentMessageTime - this->playbackTime);
@@ -512,7 +512,7 @@ void PlaybackHandle::Implementation::StartPlayback()
               this->lastEventTime + timeDelta);
           // Wait until target time is reached or playback is stopped/paused
           // In the latter case, break the iteration step
-          if(!WaitUntil(timeToWaitUntil))
+          if (!WaitUntil(timeToWaitUntil))
           {
             continue;
           }
@@ -532,7 +532,8 @@ void PlaybackHandle::Implementation::StartPlayback()
         // If a custom step has been requested, always from a paused state,
         // playback gets resumed until the step requested is completed,
         // then goes back to paused.
-        else {
+        else
+        {
           // The timeDelta is equal to the step size passed to the step function
           const std::chrono::nanoseconds timeDelta(
               this->boundaryTime - this->playbackTime);
@@ -541,7 +542,7 @@ void PlaybackHandle::Implementation::StartPlayback()
               this->lastEventTime + timeDelta);
           // Wait until target time is reached or playback is stopped/paused
           // In the latter case, break the iteration step
-          if(!WaitUntil(timeToWaitUntil))
+          if (!WaitUntil(timeToWaitUntil))
           {
             continue;
           }
@@ -555,8 +556,7 @@ void PlaybackHandle::Implementation::StartPlayback()
       }
       this->finished = true;
       this->waitConditionVariable.notify_all();
-    }
-  );
+  });
 }
 
 //////////////////////////////////////////////////
@@ -606,7 +606,7 @@ bool PlaybackHandle::Implementation::WaitUntil(
 void PlaybackHandle::Implementation::Step(
     const std::chrono::nanoseconds _stepSize)
 {
-  if(_stepSize.count() == 0) return;
+  if (_stepSize.count() == 0) return;
   this->boundaryTime = this->playbackTime + _stepSize;
   this->Resume();
 }
@@ -720,7 +720,8 @@ bool PlaybackHandle::Finished() const
 }
 
 //////////////////////////////////////////////////
-PlaybackHandle::PlaybackHandle(std::unique_ptr<Implementation> &&_internal)
+PlaybackHandle::PlaybackHandle(
+  std::unique_ptr<Implementation> &&_internal) // NOLINT
   : dataPtr(std::move(_internal))
 {
   // Do nothing
