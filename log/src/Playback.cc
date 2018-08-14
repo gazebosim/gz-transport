@@ -547,11 +547,6 @@ void PlaybackHandle::Implementation::StartPlayback()
           {
             continue;
           }
-          // Advance time to boundary in playback frame
-          this->playbackTime = this->boundaryTime;
-          this->lastEventTime =
-              std::chrono::steady_clock::now().time_since_epoch();
-          this->boundaryTime = std::chrono::nanoseconds::max();
           this->Pause();
         }
       }
