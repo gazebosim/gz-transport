@@ -127,16 +127,17 @@ class PlaybackHandle::Implementation
       const std::string &_type);
 
   /// \brief Begin playing messages in another thread
-  /// \param[in] _batch The messages to be played back
   public: void StartPlayback();
 
   /// \brief Stop the playback
   public: void Stop();
 
-  /// \brief
+  /// \brief Step the playback by a given amount of nanoseconds
+  /// \pre Playback must be previously paused
   public: void Step(std::chrono::nanoseconds _stepSize);
 
-  /// \brief
+  /// \brief Put the caller thread to sleep until a given time since epoc
+  /// or until a pause or stop state is triggered
   public: void WaitUntil(std::chrono::nanoseconds _targetTime);
 
   /// \brief Pauses the playback
@@ -184,16 +185,16 @@ class PlaybackHandle::Implementation
   public: std::atomic_bool paused;
 
   // \brief Current time in the playback frame
-  public: std::chrono::nanoseconds timePlayback;
+  public: std::chrono::nanoseconds playbackTime;
 
   // \brief Time until next step in the playback frame
-  public: std::chrono::nanoseconds timeBoundary;
+  public: std::chrono::nanoseconds boundaryTime;
 
   // \brief Time read from the next message to playback
-  public: std::chrono::nanoseconds timeCurrentMessage;
+  public: std::chrono::nanoseconds currentMessageTime;
 
   // \brief Time at which ocurred the last event in the realtime frame
-  public: std::chrono::nanoseconds timeLastEvent;
+  public: std::chrono::nanoseconds lastEventTime;
 
   /// \brief A mutex to use when waiting for playback to be resumed
   public: std::mutex pauseMutex;
@@ -478,37 +479,41 @@ void PlaybackHandle::Implementation::StartPlayback()
   this->stop = false;
 
   // Set time boundary to infinite, which will get overwritten on a step request
-  this->timeBoundary = std::chrono::nanoseconds::max();
+  this->boundaryTime = std::chrono::nanoseconds::max();
 
-  this->timeLastEvent = std::chrono::steady_clock::now().time_since_epoch();
-  this->timeCurrentMessage = this->currentMsgIter->TimeReceived();
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
+  this->currentMessageTime = this->currentMsgIter->TimeReceived();
 
   // Set time in the playback frame equal to the first message in batch
   // so that it gets played back right after playback starts
-  this->timePlayback = this->currentMsgIter->TimeReceived();
+  this->playbackTime = this->currentMsgIter->TimeReceived();
 
   this->playbackThread = std::thread([this] () mutable
     {
-      while(this->currentMsgIter != this->batch.end()) {
+      while(!this->stop && (this->currentMsgIter != this->batch.end())) {
+        // Lock if paused
+        if (this->paused)
+        {
+          std::unique_lock<std::mutex> lk(this->pauseMutex);
+          // If paused, the thread will be blocked here
+          this->pauseConditionVariable.wait(lk,
+            [this]{return !this->paused.load();});
+          this->lastEventTime =
+              std::chrono::steady_clock::now().time_since_epoch();
+          // Abort current iteration after coming back from pause
+          continue;
+        }
         // If not executing a requested step (regular non-paused playback flow)
-        if(this->timeCurrentMessage <= this->timeBoundary) {
+        if(this->currentMessageTime <= this->boundaryTime) {
           // The timeDelta becomes the time remaining until next message
           const std::chrono::nanoseconds timeDelta(
-              this->timeCurrentMessage - this->timePlayback);
+              this->currentMessageTime - this->playbackTime);
           const std::chrono::nanoseconds timeToWaitUntil(
-              this->timeLastEvent + timeDelta);
-           // Wait until target time is reached or playback is stopped
-          WaitUntil(timeToWaitUntil);
-          // Lock if paused
-          if (this->paused)
+              this->lastEventTime + timeDelta);
+          // Wait until target time is reached or playback is stopped/paused
+          // In the latter case, break the iteration step
+          if(!WaitUntil(timeToWaitUntil))
           {
-            std::unique_lock<std::mutex> lk(this->pauseMutex);
-            // If paused, the thread will be blocked here
-            this->pauseConditionVariable.wait(lk,
-              [this]{return !this->paused.load();});
-            this->timeLastEvent =
-                std::chrono::steady_clock::now().time_since_epoch();
-            // Abort current iteration after coming back from pause
             continue;
           }
           // Publish the message
@@ -519,10 +524,10 @@ void PlaybackHandle::Implementation::StartPlayback()
                 this->currentMsgIter->Data(), this->currentMsgIter->Type());
           // Advance iterator to next message
           ++this->currentMsgIter;
-          this->timePlayback = this->timeCurrentMessage;
-          this->timeLastEvent =
+          this->playbackTime = this->currentMessageTime;
+          this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
-          this->timeCurrentMessage = currentMsgIter->TimeReceived();
+          this->currentMessageTime = currentMsgIter->TimeReceived();
         }
         // If a custom step has been requested, always from a paused state,
         // playback gets resumed until the step requested is completed,
@@ -530,16 +535,21 @@ void PlaybackHandle::Implementation::StartPlayback()
         else {
           // The timeDelta is equal to the step size passed to the step function
           const std::chrono::nanoseconds timeDelta(
-              this->timeBoundary - this->timePlayback);
+              this->boundaryTime - this->playbackTime);
           // Target time in the realtime frame
           const std::chrono::nanoseconds timeToWaitUntil(
-              this->timeLastEvent + timeDelta);
-          WaitUntil(timeToWaitUntil);
+              this->lastEventTime + timeDelta);
+          // Wait until target time is reached or playback is stopped/paused
+          // In the latter case, break the iteration step
+          if(!WaitUntil(timeToWaitUntil))
+          {
+            continue;
+          }
           // Advance time to boundary in playback frame
-          this->timePlayback = this->timeBoundary;
-          this->timeLastEvent =
+          this->playbackTime = this->boundaryTime;
+          this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
-          this->timeBoundary = std::chrono::nanoseconds::max();
+          this->boundaryTime = std::chrono::nanoseconds::max();
           this->Pause();
         }
       }
@@ -550,7 +560,7 @@ void PlaybackHandle::Implementation::StartPlayback()
 }
 
 //////////////////////////////////////////////////
-void PlaybackHandle::Implementation::WaitUntil(
+bool PlaybackHandle::Implementation::WaitUntil(
     const std::chrono::nanoseconds targetTime)
 {
   const auto waitStartTime =
@@ -561,7 +571,7 @@ void PlaybackHandle::Implementation::WaitUntil(
   {
     const auto now =
       std::chrono::steady_clock::now().time_since_epoch();
-    return targetTime <= now || this->stop;
+    return targetTime <= now || this->stop || this->paused;
   };
 
   // Passing a lock to wait_for is just a formality (we don't actually
@@ -582,9 +592,14 @@ void PlaybackHandle::Implementation::WaitUntil(
   std::mutex tempMutex;
   std::unique_lock<std::mutex> tempLock(tempMutex);
 
-  // Wait until reaching targetTime or until a stop signal is received
-  this->stopConditionVariable.wait_for(
-      tempLock, targetTime - waitStartTime, FinishedWaiting);
+  // Wait until reaching targetTime or until a stop signal is received.
+  // The function will return true if the wait finished with a timeout state,
+  // (having successfully achieved the time to wait) or false if the predicate
+  // evaluates to true, which means that a pause or stop order was received,
+  // interrupting the wait.
+  return this->stopConditionVariable.wait_for(
+      tempLock, targetTime - waitStartTime, FinishedWaiting) ==
+      std::cv_status::timeout;
 }
 
 //////////////////////////////////////////////////
@@ -592,7 +607,7 @@ void PlaybackHandle::Implementation::Step(
     const std::chrono::nanoseconds _stepSize)
 {
   if(_stepSize.count() == 0) return;
-  this->timeBoundary = this->timePlayback + _stepSize;
+  this->boundaryTime = this->playbackTime + _stepSize;
   this->Resume();
 }
 
@@ -625,14 +640,14 @@ void PlaybackHandle::Implementation::Pause()
   if (!this->paused)
   {
     this->paused = true;
+    std::chrono::nanoseconds now(
+        std::chrono::steady_clock::now().time_since_epoch());
     // Advance time in the playback frame to the moment when pause started
-    this->timePlayback = this->timePlayback +
-        std::chrono::steady_clock::now().time_since_epoch() -
-        this->timeLastEvent;
+    this->playbackTime = this->playbackTime +
+        now - this->lastEventTime;
     // Update last event time in the realtime frame.
-    this->timeLastEvent = std::chrono::steady_clock::now().time_since_epoch();
-    this->timeBoundary = std::chrono::nanoseconds::max();
-
+    this->lastEventTime = now;
+    this->boundaryTime = std::chrono::nanoseconds::max();
   }
 }
 
