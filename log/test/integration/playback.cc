@@ -634,8 +634,8 @@ TEST(playback, ReplayStep)
   // the one received before executing the Step of 1 millisecond.
   EXPECT_FALSE(MessagesAreEqual(firstMessageData, secondMessageData));
 
-  // Step for 0.1 millisecond
-  handle->Step(std::chrono::nanoseconds(100000));
+  // Step for 0.01 millisecond
+  handle->Step(std::chrono::nanoseconds(10000));
 
   // Wait for incomingData to catch up with the played back messages
   std::this_thread::sleep_for(std::chrono::milliseconds(200));

@@ -136,8 +136,9 @@ class PlaybackHandle::Implementation
   /// \pre Playback must be previously paused
   public: void Step(std::chrono::nanoseconds _stepSize);
 
-  /// \brief Put the caller thread to sleep until a given time since epoc
-  /// or until a pause or stop state is triggered
+  /// \brief Puts the calling thread to sleep until a given time is achieved.
+  /// In this case it returns true. If a pause or stop state is triggered,
+  /// the wait state gets immediately aborted and the function returns false.
   public: bool WaitUntil(std::chrono::nanoseconds _targetTime);
 
   /// \brief Pauses the playback
