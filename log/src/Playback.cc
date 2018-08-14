@@ -138,7 +138,7 @@ class PlaybackHandle::Implementation
 
   /// \brief Put the caller thread to sleep until a given time since epoc
   /// or until a pause or stop state is triggered
-  public: void WaitUntil(std::chrono::nanoseconds _targetTime);
+  public: bool WaitUntil(std::chrono::nanoseconds _targetTime);
 
   /// \brief Pauses the playback
   public: void Pause();
@@ -598,8 +598,7 @@ bool PlaybackHandle::Implementation::WaitUntil(
   // evaluates to true, which means that a pause or stop order was received,
   // interrupting the wait.
   return this->stopConditionVariable.wait_for(
-      tempLock, targetTime - waitStartTime, FinishedWaiting) ==
-      std::cv_status::timeout;
+      tempLock, targetTime - waitStartTime, FinishedWaiting);
 }
 
 //////////////////////////////////////////////////
