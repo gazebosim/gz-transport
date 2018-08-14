@@ -547,6 +547,119 @@ TEST(playback, ReplayPauseResume)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
+//////////////////////////////////////////////////
+/// \brief Record a log and then play it back calling the Step method to control
+/// the playback workflow.
+TEST(playback, ReplayStep)
+{
+  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
+
+  std::vector<MessageInformation> incomingData;
+
+  auto callback = [&incomingData](
+      const char *_data,
+      std::size_t _len,
+      const ignition::transport::MessageInfo &_msgInfo)
+  {
+    TrackMessages(incomingData, _data, _len, _msgInfo);
+  };
+
+  ignition::transport::Node node;
+  ignition::transport::log::Recorder recorder;
+
+  for (const std::string &topic : topics)
+  {
+    node.SubscribeRaw(topic, callback);
+    recorder.AddTopic(topic);
+  }
+
+  const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+    recorder.Start(logName));
+
+  const int numChirps = 100;
+  testing::forkHandlerType chirper =
+    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+
+  // Wait for the chirping to finish
+  testing::waitAndCleanupFork(chirper);
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Create playback before stopping so sqlite memory database is shared
+  ignition::transport::log::Playback playback(logName);
+  recorder.Stop();
+
+  // Make a copy of the data so we can compare it later
+  std::vector<MessageInformation> originalData = incomingData;
+
+  // Clear out the old data so we can recreate it during the playback
+  incomingData.clear();
+
+  for (const std::string &topic : topics)
+  {
+    playback.AddTopic(topic);
+  }
+
+  const auto handle = playback.Start();
+
+  // Wait until approximately half of the chirps have been played back
+  std::this_thread::sleep_for(
+        std::chrono::milliseconds(
+          ignition::transport::log::test::DelayBetweenChirps_ms * numChirps / 4));
+
+  // Pause Playback
+  handle->Pause();
+
+  // Wait for incomingData to catch up with the played back messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Make a copy of the last received message
+  const MessageInformation firstMessageData{incomingData.back()};
+
+  std::cout << "Stepping playback..." << std::endl;
+
+  // Step for 1 millisecond
+  handle->Step(std::chrono::nanoseconds(1000000));
+
+  // Wait for an arbitrary amount of time after stepping to ensure it had enough
+  // time to finish.
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const MessageInformation secondMessageData{incomingData.back()};
+
+  // The last message received after the Step was executed must differ from
+  // the one received before executing the Step of 1 millisecond.
+  EXPECT_FALSE(MessagesAreEqual(firstMessageData, secondMessageData));
+
+  // Step for 0.1 millisecond
+  handle->Step(std::chrono::nanoseconds(100000));
+
+  // Wait for incomingData to catch up with the played back messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // Make a copy of the last received message
+  const MessageInformation thirdMessageData{incomingData.back()};
+
+  // Since the size of the Step was small (0.1 milliseconds), and assuming there
+  // were no messages to playback in such a small timeslice, it's expected
+  // that the last message received keeps the same before and after executing
+  // the Step.
+  EXPECT_TRUE(MessagesAreEqual(secondMessageData, thirdMessageData));
+
+  handle->Resume();
+
+  std::cout << "Waiting to for playback to finish..." << std::endl;
+  handle->WaitUntilFinished();
+  std::cout << " Done waiting..." << std::endl;
+  handle->Stop();
+  std::cout << "Playback finished!" << std::endl;
+
+  // Wait to make sure our callbacks are done processing the incoming messages
+  // (Strangely, Windows throws an exception when this is ~1s or more)
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

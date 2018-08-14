@@ -153,6 +153,10 @@ namespace ignition
         /// \brief Stop playing messages
         public: void Stop();
 
+        /// \brief Step the playback by a given amount of nanoseconds.
+        /// \pre Playback must be paused.
+        public: void Step(std::chrono::nanoseconds _stepDuration);
+
         /// \brief Pauses the playback
         public: void Pause();
 

@@ -128,10 +128,16 @@ class PlaybackHandle::Implementation
 
   /// \brief Begin playing messages in another thread
   /// \param[in] _batch The messages to be played back
-  public: void StartPlayback(Batch _batch);
+  public: void StartPlayback();
 
   /// \brief Stop the playback
   public: void Stop();
+
+  /// \brief
+  public: void Step(std::chrono::nanoseconds _stepSize);
+
+  /// \brief
+  public: void WaitUntil(std::chrono::nanoseconds _targetTime);
 
   /// \brief Pauses the playback
   public: void Pause();
@@ -177,11 +183,23 @@ class PlaybackHandle::Implementation
   /// \brief True if the thread should be paused
   public: std::atomic_bool paused;
 
-  /// \brief a mutex to use when waiting for playback to finish
+  // \brief Current time in the playback frame
+  public: std::chrono::nanoseconds timePlayback;
+
+  // \brief Time until next step in the playback frame
+  public: std::chrono::nanoseconds timeBoundary;
+
+  // \brief Time read from the next message to playback
+  public: std::chrono::nanoseconds timeCurrentMessage;
+
+  // \brief Time at which ocurred the last event in the realtime frame
+  public: std::chrono::nanoseconds timeLastEvent;
+
+  /// \brief A mutex to use when waiting for playback to be resumed
   public: std::mutex pauseMutex;
 
   /// \brief Condition variable to wake up the playback thread if it's waiting
-  /// to publish the next message.
+  /// to get out of a pause state
   public: std::condition_variable pauseConditionVariable;
 
   /// \brief thread running playback
@@ -192,6 +210,13 @@ class PlaybackHandle::Implementation
 
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
+
+  // \brief Set of messages to be played-back
+  public: Batch batch;
+
+  // \brief Iterator to loop over the messages found in batch
+  public: Batch::iterator currentMsgIter;
+
 };
 
 //////////////////////////////////////////////////
@@ -371,22 +396,26 @@ PlaybackHandle::Implementation::Implementation(
   : stop(true),
     finished(false),
     paused(false),
-    logFile(_logFile)
+    logFile(_logFile),
+    batch(logFile->QueryMessages(TopicList::Create(_topics))),
+    currentMsgIter(batch.begin())
+
 {
   this->node.reset(new transport::Node(_nodeOptions));
 
   for (const std::string &topic : _topics)
+  {
     this->AddTopic(topic);
+  }
 
   std::this_thread::sleep_for(_waitAfterAdvertising);
 
-  Batch batch = this->logFile->QueryMessages(TopicList::Create(_topics));
-  if (batch.begin() == batch.end())
+  if (this->batch.begin() == this->batch.end())
   {
     LWRN("There are no messages to play\n");
   }
 
-  this->StartPlayback(std::move(batch));
+  this->StartPlayback();
 }
 
 //////////////////////////////////////////////////
@@ -442,119 +471,129 @@ void PlaybackHandle::Implementation::WaitUntilFinished()
   }
 }
 
+
 //////////////////////////////////////////////////
-void PlaybackHandle::Implementation::StartPlayback(Batch _batch)
+void PlaybackHandle::Implementation::StartPlayback()
 {
   this->stop = false;
 
-  // Dev Note: batch is being initialized via the move-constructor within the
-  // capture statement, as if it were being declared and constructed as
-  // `auto batch{std::move(_batch)}`.
-  //
-  // For now, we need to use the move constructor because Batch does not yet
-  // support copy construction. Also, the object named `_batch` will go out of
-  // scope while this lambda is still in use, so we cannot rely on capturing it
-  // by reference.
-  this->playbackThread = std::thread(
-    [this, batch{std::move(_batch)}] () mutable
+  // Set time boundary to infinite, which will get overwritten on a step request
+  this->timeBoundary = std::chrono::nanoseconds::max();
+
+  this->timeLastEvent = std::chrono::steady_clock::now().time_since_epoch();
+  this->timeCurrentMessage = this->currentMsgIter->TimeReceived();
+
+  // Set time in the playback frame equal to the first message in batch
+  // so that it gets played back right after playback starts
+  this->timePlayback = this->currentMsgIter->TimeReceived();
+
+  this->playbackThread = std::thread([this] () mutable
     {
-      bool publishedFirstMessage = false;
-
-      // Get current elapsed on monotonic clock
-      const std::chrono::nanoseconds startTime(
-          std::chrono::steady_clock::now().time_since_epoch());
-      std::chrono::nanoseconds firstMsgTime;
-
-      std::chrono::nanoseconds totalTimePaused(0);
-
-      std::lock_guard<std::mutex> playbackLock(this->logFileMutex);
-      for (const Message &msg : batch)
-      {
-        // Publish the first message right away, all others delay
-        if (publishedFirstMessage)
-        {
-          const std::chrono::nanoseconds target =
-              msg.TimeReceived() - firstMsgTime;
-
-          // This will get initialized at if(!FinishedWaiting()) because the
-          // FinishedWaiting lambda is capturing this by reference.
-          std::chrono::nanoseconds now;
-
-          // We create a lambda to test whether this thread needs to keep
-          // waiting. This is used as a predicate by the
-          // condition_variable::wait_for(~) function to avoid spurious wakeups.
-          auto FinishedWaiting = [this, &startTime, &target, &totalTimePaused,
-                                  &now]() -> bool
-          {
-            // Calculate the time considering the offset generated by a pause.
-            now =
-                std::chrono::steady_clock::now().time_since_epoch() -
-                totalTimePaused - startTime;
-
-            return target <= now || this->stop;
-          };
-
+      while(this->currentMsgIter != this->batch.end()) {
+        // If not executing a requested step (regular non-paused playback flow)
+        if(this->timeCurrentMessage <= this->timeBoundary) {
+          // The timeDelta becomes the time remaining until next message
+          const std::chrono::nanoseconds timeDelta(
+              this->timeCurrentMessage - this->timePlayback);
+          const std::chrono::nanoseconds timeToWaitUntil(
+              this->timeLastEvent + timeDelta);
+           // Wait until target time is reached or playback is stopped
+          WaitUntil(timeToWaitUntil);
+          // Lock if paused
           if (this->paused)
           {
             std::unique_lock<std::mutex> lk(this->pauseMutex);
-            const std::chrono::nanoseconds startTimePaused(
-              std::chrono::steady_clock::now().time_since_epoch());
-            // If paused, the thread will be blocked here.
+            // If paused, the thread will be blocked here
             this->pauseConditionVariable.wait(lk,
               [this]{return !this->paused.load();});
-            // Calculate how much time has been paused.
-            const std::chrono::nanoseconds elapsedTimePaused(
-              std::chrono::steady_clock::now().time_since_epoch() -
-              startTimePaused);
-            totalTimePaused += elapsedTimePaused;
+            this->timeLastEvent =
+                std::chrono::steady_clock::now().time_since_epoch();
+            // Abort current iteration after coming back from pause
+            continue;
           }
-
-          if (!FinishedWaiting())
-          {
-            // Passing a lock to wait_for is just a formality (we don't actually
-            // want to unlock any mutex while waiting), so we create a temporary
-            // mutex and lock to satisfy the function.
-            //
-            // According to the C++11 standard, it is undefined behavior to pass
-            // different mutexes into the condition_variable::wait_for()
-            // function of the same condition_variable instance from different
-            // threads. However, this current thread should be the only thread
-            // that is ever waiting on stopConditionVariable because we are
-            // keeping playbackLock locked this whole time. Therefore, it's okay
-            // for it lock its own local, unique mutex.
-            //
-            // This is really a substitute for the sleep_for function. This
-            // alternative allows us to interrupt the sleep in case the user
-            // calls Playback::Stop() while we are waiting between messages.
-            std::mutex tempMutex;
-            std::unique_lock<std::mutex> tempLock(tempMutex);
-            this->stopConditionVariable.wait_for(
-                  tempLock, target - now, FinishedWaiting);
-          }
+          // Publish the message
+          LDBG("publishing\n");
+          this->publishers[
+            this->currentMsgIter->Topic()][
+              this->currentMsgIter->Type()].PublishRaw(
+                this->currentMsgIter->Data(), this->currentMsgIter->Type());
+          // Advance iterator to next message
+          ++this->currentMsgIter;
+          this->timePlayback = this->timeCurrentMessage;
+          this->timeLastEvent =
+              std::chrono::steady_clock::now().time_since_epoch();
+          this->timeCurrentMessage = currentMsgIter->TimeReceived();
         }
-        else
-        {
-          publishedFirstMessage = true;
-          firstMsgTime = msg.TimeReceived();
+        // If a custom step has been requested, always from a paused state,
+        // playback gets resumed until the step requested is completed,
+        // then goes back to paused.
+        else {
+          // The timeDelta is equal to the step size passed to the step function
+          const std::chrono::nanoseconds timeDelta(
+              this->timeBoundary - this->timePlayback);
+          // Target time in the realtime frame
+          const std::chrono::nanoseconds timeToWaitUntil(
+              this->timeLastEvent + timeDelta);
+          WaitUntil(timeToWaitUntil);
+          // Advance time to boundary in playback frame
+          this->timePlayback = this->timeBoundary;
+          this->timeLastEvent =
+              std::chrono::steady_clock::now().time_since_epoch();
+          this->timeBoundary = std::chrono::nanoseconds::max();
+          this->Pause();
         }
-
-        // If the stop order was received, break the loop.
-        if (this->stop)
-        {
-          break;
-        }
-        // Actually publish the message
-        LDBG("publishing\n");
-        this->publishers[msg.Topic()][msg.Type()].PublishRaw(
-            msg.Data(), msg.Type());
       }
-      {
-        this->finished = true;
-        std::lock_guard<std::mutex> lk(this->waitMutex);
-        this->stop = true;
-      }
+      this->finished = true;
       this->waitConditionVariable.notify_all();
-    });
+    }
+  );
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::WaitUntil(
+    const std::chrono::nanoseconds targetTime)
+{
+  const auto waitStartTime =
+    std::chrono::steady_clock::now().time_since_epoch();
+
+  // Lambda used as predicate below to check for spurious wake-ups
+  auto FinishedWaiting = [this, &targetTime]() -> bool
+  {
+    const auto now =
+      std::chrono::steady_clock::now().time_since_epoch();
+    return targetTime <= now || this->stop;
+  };
+
+  // Passing a lock to wait_for is just a formality (we don't actually
+  // want to unlock any mutex while waiting), so we create a temporary
+  // mutex and lock to satisfy the function.
+  //
+  // According to the C++11 standard, it is undefined behavior to pass
+  // different mutexes into the condition_variable::wait_for()
+  // function of the same condition_variable instance from different
+  // threads. However, this current thread should be the only thread
+  // that is ever waiting on stopConditionVariable because we are
+  // keeping playbackLock locked this whole time. Therefore, it's okay
+  // for it lock its own local, unique mutex.
+  //
+  // This is really a substitute for the sleep_for function. This
+  // alternative allows us to interrupt the sleep in case the user
+  // calls Playback::Stop() while we are waiting between messages.
+  std::mutex tempMutex;
+  std::unique_lock<std::mutex> tempLock(tempMutex);
+
+  // Wait until reaching targetTime or until a stop signal is received
+  this->stopConditionVariable.wait_for(
+      tempLock, targetTime - waitStartTime, FinishedWaiting);
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::Step(
+    const std::chrono::nanoseconds _stepSize)
+{
+  if(_stepSize.count() == 0) return;
+  this->timeBoundary = this->timePlayback + _stepSize;
+  this->Resume();
 }
 
 //////////////////////////////////////////////////
@@ -586,6 +625,14 @@ void PlaybackHandle::Implementation::Pause()
   if (!this->paused)
   {
     this->paused = true;
+    // Advance time in the playback frame to the moment when pause started
+    this->timePlayback = this->timePlayback +
+        std::chrono::steady_clock::now().time_since_epoch() -
+        this->timeLastEvent;
+    // Update last event time in the realtime frame.
+    this->timeLastEvent = std::chrono::steady_clock::now().time_since_epoch();
+    this->timeBoundary = std::chrono::nanoseconds::max();
+
   }
 }
 
@@ -628,6 +675,12 @@ void PlaybackHandle::Pause()
 }
 
 //////////////////////////////////////////////////
+void PlaybackHandle::Step(std::chrono::nanoseconds _stepSize)
+{
+  this->dataPtr->Step(_stepSize);
+}
+
+//////////////////////////////////////////////////
 void PlaybackHandle::Resume()
 {
   this->dataPtr->Resume();
@@ -652,8 +705,7 @@ bool PlaybackHandle::Finished() const
 }
 
 //////////////////////////////////////////////////
-PlaybackHandle::PlaybackHandle(
-  std::unique_ptr<Implementation> &&_internal) // NOLINT
+PlaybackHandle::PlaybackHandle(std::unique_ptr<Implementation> &&_internal)
   : dataPtr(std::move(_internal))
 {
   // Do nothing
