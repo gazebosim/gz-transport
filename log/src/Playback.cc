@@ -134,11 +134,14 @@ class PlaybackHandle::Implementation
 
   /// \brief Step the playback by a given amount of nanoseconds
   /// \pre Playback must be previously paused
-  public: void Step(std::chrono::nanoseconds _stepSize);
+  /// \param[in] _stepDuration Length of the step in nanoseconds
+  public: void Step(std::chrono::nanoseconds _stepDuration);
 
   /// \brief Puts the calling thread to sleep until a given time is achieved.
   /// In this case it returns true. If a pause or stop state is triggered,
   /// the wait state gets immediately aborted and the function returns false.
+  /// \param[in] _targetTime Time at which the wait must finish. Measured in
+  /// POSIX time (time since epoch) in nanoseconds
   public: bool WaitUntil(std::chrono::nanoseconds _targetTime);
 
   /// \brief Pauses the playback
@@ -599,10 +602,10 @@ bool PlaybackHandle::Implementation::WaitUntil(
 
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::Step(
-    const std::chrono::nanoseconds _stepSize)
+    const std::chrono::nanoseconds _stepDuration)
 {
-  if (_stepSize.count() == 0) return;
-  this->boundaryTime = this->playbackTime + _stepSize;
+  if (_stepDuration.count() == 0) return;
+  this->boundaryTime = this->playbackTime + _stepDuration;
   this->Resume();
 }
 
@@ -685,9 +688,9 @@ void PlaybackHandle::Pause()
 }
 
 //////////////////////////////////////////////////
-void PlaybackHandle::Step(std::chrono::nanoseconds _stepSize)
+void PlaybackHandle::Step(std::chrono::nanoseconds _stepDuration)
 {
-  this->dataPtr->Step(_stepSize);
+  this->dataPtr->Step(_stepDuration);
 }
 
 //////////////////////////////////////////////////

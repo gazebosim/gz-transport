@@ -155,6 +155,7 @@ namespace ignition
 
         /// \brief Step the playback by a given amount of nanoseconds
         /// \pre Playback must be paused
+        /// \param[in] _stepDuration Length of the step in nanoseconds
         public: void Step(std::chrono::nanoseconds _stepDuration);
 
         /// \brief Pauses the playback
