@@ -2,6 +2,10 @@
 
 ### Ignition Transport 5.X.X
 
+1. Added the ability to Step the advance of the playback from within the log
+   replayer.
+   * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)
+
 1. Added the ability to Pause/Resume playback from the log replayer.
    * [Pull request 334](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/334)
 
