@@ -136,6 +136,11 @@ class PlaybackHandle::Implementation
   /// \pre Playback must be previously paused
   /// \param[in] _stepDuration Length of the step in nanoseconds
   public: void Step(const std::chrono::nanoseconds &_stepDuration);
+  /// \brief Seek the playback to a given time
+  /// \pre Playback must be paused
+  /// \param[in] _newStartTime Time at which the playback should go
+  public: void Seek(std::chrono::nanoseconds &_newStartTime,
+                    const std::unordered_set<std::string> &_topicNames);
 
   /// \brief Puts the calling thread to sleep until a given time is achieved.
   /// \param[in] _targetTime Time at which the wait must finish. Measured in
@@ -213,14 +218,23 @@ class PlaybackHandle::Implementation
   /// \brief log file to play from
   public: std::shared_ptr<Log> logFile;
 
+  /// \brief List of topics currently tracked
+  public: const std::unordered_set<std::string> trackedTopics;
+
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
 
   // \brief Set of messages to be played-back
   public: Batch batch;
 
+  // \brief Mutex to operate the batch variable in a thread-safe way
+  public: std::mutex batchMutex;
+
   // \brief Iterator to loop over the messages found in batch
-  public: Batch::iterator messageIter;
+  public: Batch::iterator currentMsgIter;
+
+  // \brief The wall clock time of the first message in batch
+  public: const std::chrono::nanoseconds firstMessageTime;
 };
 
 //////////////////////////////////////////////////
@@ -401,9 +415,10 @@ PlaybackHandle::Implementation::Implementation(
     finished(false),
     paused(false),
     logFile(_logFile),
+    trackedTopics(_topics),
     batch(logFile->QueryMessages(TopicList::Create(_topics))),
-    messageIter(batch.begin())
-
+    currentMsgIter(batch.begin()),
+    firstMessageTime(currentMsgIter->TimeReceived())
 {
   this->node.reset(new transport::Node(_nodeOptions));
 
@@ -485,15 +500,15 @@ void PlaybackHandle::Implementation::StartPlayback()
   this->boundaryTime = std::chrono::nanoseconds::max();
 
   this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
-  this->nextMessageTime = this->messageIter->TimeReceived();
+  this->nextMessageTime = this->currentMsgIter->TimeReceived();
 
   // Set time in the playback frame equal to the first message in batch
   // so that it gets played back right after playback starts
-  this->playbackTime = this->messageIter->TimeReceived();
+  this->playbackTime = this->currentMsgIter->TimeReceived();
 
   this->playbackThread = std::thread([this] () mutable
     {
-      while (!this->stop && (this->messageIter != this->batch.end())) {
+      while (!this->stop && (this->currentMsgIter != this->batch.end())) {
         // Lock if paused
         if (this->paused)
         {
@@ -516,22 +531,25 @@ void PlaybackHandle::Implementation::StartPlayback()
               this->lastEventTime + timeDelta);
           // Wait until target time is reached or playback is stopped/paused
           // In the latter case, break the iteration step
-          if (!this->WaitUntil(timeToWaitUntil))
+          if (!WaitUntil(timeToWaitUntil))
           {
             continue;
           }
           // Publish the message
+	  {
+	  std::unique_lock<std::mutex> lk(this->batchMutex);
           LDBG("publishing\n");
           this->publishers[
-            this->messageIter->Topic()][
-              this->messageIter->Type()].PublishRaw(
-                this->messageIter->Data(), this->messageIter->Type());
+            this->currentMsgIter->Topic()][
+              this->currentMsgIter->Type()].PublishRaw(
+                this->currentMsgIter->Data(), this->currentMsgIter->Type());
           // Advance iterator to next message
-          ++this->messageIter;
+          ++this->currentMsgIter;
           this->playbackTime = this->nextMessageTime;
           this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
-          this->nextMessageTime = messageIter->TimeReceived();
+          this->nextMessageTime = currentMsgIter->TimeReceived();
+	  }
         }
         // If a custom step has been requested, always from a paused state,
         // playback gets resumed until the step requested is completed,
@@ -546,7 +564,7 @@ void PlaybackHandle::Implementation::StartPlayback()
               this->lastEventTime + timeDelta);
           // Wait until target time is reached or playback is stopped/paused
           // In the latter case, break the iteration step
-          if (!this->WaitUntil(timeToWaitUntil))
+          if (!WaitUntil(timeToWaitUntil))
           {
             continue;
           }
@@ -591,7 +609,7 @@ bool PlaybackHandle::Implementation::WaitUntil(
   std::mutex tempMutex;
   std::unique_lock<std::mutex> tempLock(tempMutex);
 
-  // Wait until reaching _targetTime or until a stop signal is received.
+  // Wait until reaching targetTime or until a stop signal is received.
   // The function will return true if the wait finished with a timeout state,
   // (having successfully achieved the time to wait) or false if the predicate
   // evaluates to true, which means that a pause or stop order was received,
@@ -602,11 +620,35 @@ bool PlaybackHandle::Implementation::WaitUntil(
 
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::Step(
-    const std::chrono::nanoseconds &_stepDuration)
+    const std::chrono::nanoseconds _stepDuration)
 {
   if (_stepDuration.count() == 0) return;
   this->boundaryTime = this->playbackTime + _stepDuration;
   this->Resume();
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::Seek(
+    const std::chrono::nanoseconds _newStartTime,
+    const std::unordered_set<std::string> &_topicNames)
+{
+  if (this->stop) {
+    std::cout << "No se puede sikear cuando esta parado!" << std::endl;
+    return;
+  }
+  const QualifiedTime beginTime(this->firstMessageTime + _newStartTime);
+  const QualifiedTime endTime(std::chrono::nanoseconds::max());
+  const QualifiedTimeRange timeRange(beginTime, endTime);
+  {
+    std::unique_lock<std::mutex> lk(this->batchMutex);
+    this->batch = this->logFile->QueryMessages(
+	TopicList::Create(_topicNames, timeRange));
+    this->currentMsgIter = this->batch.begin();
+  }
+  this->playbackTime = this->currentMsgIter->TimeReceived();
+  this->nextMessageTime = this->currentMsgIter->TimeReceived();
+  this->boundaryTime = std::chrono::nanoseconds::max();
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
 }
 
 //////////////////////////////////////////////////
@@ -684,13 +726,19 @@ void PlaybackHandle::Stop()
 //////////////////////////////////////////////////
 void PlaybackHandle::Pause()
 {
-  this->dataPtr->Pause();
+  this->dataPtr->Pause()/
 }
 
 //////////////////////////////////////////////////
-void PlaybackHandle::Step(const std::chrono::nanoseconds &_stepDuration)
+-void PlaybackHandle::Step(const std::chrono::nanoseconds &_stepDuration)
 {
   this->dataPtr->Step(_stepDuration);
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Seek(const std::chrono::nanoseconds _newStartTime)
+{
+  this->dataPtr->Seek(_newStartTime, this->dataPtr->trackedTopics);
 }
 
 //////////////////////////////////////////////////

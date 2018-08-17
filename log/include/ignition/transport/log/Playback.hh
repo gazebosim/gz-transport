@@ -158,6 +158,11 @@ namespace ignition
         /// \param[in] _stepDuration Length of the step in nanoseconds
         public: void Step(const std::chrono::nanoseconds &_stepDuration);
 
+        /// \brief Seek the playback to a given time
+        /// \pre Playback must be paused
+        /// \param[in] _newStartTime Time at which the playback should go
+        public: void Seek(std::chrono::nanoseconds _newStartTime);
+
         /// \brief Pauses the playback
         public: void Pause();
 

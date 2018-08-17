@@ -203,6 +203,14 @@ MsgIter::~MsgIter()
 // }
 
 //////////////////////////////////////////////////
+MsgIter& MsgIter::operator=(MsgIter &&_other) { // NOLINT
+  if (this != &_other) {
+    this->dataPtr = std::move(_other.dataPtr);
+  }
+  return *this;
+}
+
+//////////////////////////////////////////////////
 MsgIter &MsgIter::operator++()
 {
   this->dataPtr->StepStatement();

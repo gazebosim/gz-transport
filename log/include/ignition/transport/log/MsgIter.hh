@@ -79,6 +79,10 @@ namespace ignition
         /// \return false if the two iterator point to the same message
         public: bool operator!=(const MsgIter &_other) const;
 
+        /// \brief Move assignement operator
+        /// \param[in] _other the new iterator that is replacing the current one
+        public: MsgIter& operator=(MsgIter&& _other);
+
         /// \brief Dereference Operator
         /// \return a reference to the message this is pointing to
         public: const Message &operator*() const;
