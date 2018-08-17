@@ -604,11 +604,11 @@ TEST(playback, ReplayStep)
 
   const auto handle = playback.Start();
 
-  // Wait until approximately half of the chirps have been played back
-  std::this_thread::sleep_for(
-        std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms *
-          numChirps / 4));
+  std::chrono::milliseconds totalDurationMs(
+      ignition::transport::log::test::DelayBetweenChirps_ms * numChirps);
+
+  // Wait until approximately an tenth of the chirps have been played back
+  std::this_thread::sleep_for(totalDurationMs / 10);
 
   // Pause Playback
   handle->Pause();
@@ -621,32 +621,29 @@ TEST(playback, ReplayStep)
 
   std::cout << "Stepping playback..." << std::endl;
 
-  // Step for 1 millisecond
-  handle->Step(std::chrono::nanoseconds(1000000));
+  // Step for 10 milliseconds
+  handle->Step(std::chrono::milliseconds(10));
 
-  // Wait for an arbitrary amount of time after stepping to ensure it had enough
-  // time to finish.
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // Wait for incomingData to catch up with the played back messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   const MessageInformation secondMessageData{incomingData.back()};
 
   // The last message received after the Step was executed must differ from
-  // the one received before executing the Step of 1 millisecond.
+  // the one received before executing it
   EXPECT_FALSE(MessagesAreEqual(firstMessageData, secondMessageData));
 
-  // Step for another 1 millisecond
-  handle->Step(std::chrono::nanoseconds(1000000));
+  // Step for 10 milliseconds
+  handle->Step(std::chrono::milliseconds(10));
 
   // Wait for incomingData to catch up with the played back messages
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Make a copy of the last received message
   const MessageInformation thirdMessageData{incomingData.back()};
 
-  // Since the size of the Step was small (0.1 milliseconds), and assuming there
-  // were no messages to playback in such a small timeslice, it's expected
-  // that the last message received keeps the same before and after executing
-  // the Step.
+  // The last message received after the Step was executed must differ from
+  // the one received before executing it
   EXPECT_FALSE(MessagesAreEqual(secondMessageData, thirdMessageData));
 
   handle->Resume();
