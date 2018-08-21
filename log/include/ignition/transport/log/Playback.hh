@@ -161,7 +161,7 @@ namespace ignition
         /// \brief Seek the playback to a given time
         /// \pre Playback must be paused
         /// \param[in] _newStartTime Time at which the playback should go
-        public: void Seek(std::chrono::nanoseconds _newStartTime);
+        public: void Seek(const std::chrono::nanoseconds &_newStartTime);
 
         /// \brief Pauses the playback
         public: void Pause();
