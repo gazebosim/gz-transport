@@ -51,8 +51,10 @@ Batch::Batch(Batch &&_old)  // NOLINT
 }
 
 //////////////////////////////////////////////////
-Batch& Batch::operator=(Batch &&_other) { // NOLINT
-  if (this != &_other) {
+Batch &Batch::operator=(Batch &&_other) // NOLINT
+{
+  if (this != &_other)
+  {
     this->dataPtr = std::move(_other.dataPtr);
   }
   return *this;

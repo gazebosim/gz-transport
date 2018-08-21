@@ -608,7 +608,7 @@ bool PlaybackHandle::Implementation::WaitUntil(
   std::mutex tempMutex;
   std::unique_lock<std::mutex> tempLock(tempMutex);
 
-  // Wait until reaching targetTime or until a stop signal is received.
+  // Wait until reaching _targetTime or until a stop signal is received.
   // The function will return true if the wait finished with a timeout state,
   // (having successfully achieved the time to wait) or false if the predicate
   // evaluates to true, which means that a pause or stop order was received,
