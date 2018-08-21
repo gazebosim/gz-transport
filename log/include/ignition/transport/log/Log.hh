@@ -104,6 +104,18 @@ namespace ignition
         public: Batch QueryMessages(
             const QueryOptions &_options = AllTopics());
 
+        /// \brief Get start time of the log, or in other words the
+        /// time of the first message found in the log
+        /// \return start time of the log, or zero if the log is not
+        /// valid or if data retrieval failed.
+        public: std::chrono::nanoseconds StartTime() const;
+
+        /// \brief Get end time of the log, or in other words the
+        /// time of the first message found in the log
+        /// \return end time of the log, or zero if the log is not
+        /// valid or if data retrieval failed.
+        public: std::chrono::nanoseconds EndTime() const;
+
         /// \internal Implementation for this class
         private: class Implementation;
 

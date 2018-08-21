@@ -188,6 +188,12 @@ class PlaybackHandle::Implementation
   /// \brief True if the thread should be paused
   public: std::atomic_bool paused;
 
+  // \brief Start time in the playback frame
+  public: std::chrono::nanoseconds playbackStartTime;
+
+  // \brief End time in the playback frame
+  public: std::chrono::nanoseconds playbackEndTime;
+
   // \brief Current time in the playback frame
   public: std::chrono::nanoseconds playbackTime;
 
@@ -484,12 +490,15 @@ void PlaybackHandle::Implementation::StartPlayback()
   // Set time boundary to infinite, which will get overwritten on a step request
   this->boundaryTime = std::chrono::nanoseconds::max();
 
-  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
-  this->nextMessageTime = this->messageIter->TimeReceived();
-
   // Set time in the playback frame equal to the first message in batch
   // so that it gets played back right after playback starts
-  this->playbackTime = this->messageIter->TimeReceived();
+  this->playbackStartTime = this->logFile->StartTime();
+  this->playbackTime = this->playbackStartTime;
+  this->playbackEndTime = this->logFile->EndTime();
+
+  this->nextMessageTime = this->messageIter->TimeReceived();
+
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
 
   this->playbackThread = std::thread([this] () mutable
     {
@@ -715,6 +724,24 @@ void PlaybackHandle::WaitUntilFinished()
 bool PlaybackHandle::Finished() const
 {
   return this->dataPtr->finished;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::StartTime() const
+{
+  return this->dataPtr->playbackStartTime;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::CurrentTime() const
+{
+  return this->dataPtr->playbackTime;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::EndTime() const
+{
+  return this->dataPtr->playbackEndTime;
 }
 
 //////////////////////////////////////////////////

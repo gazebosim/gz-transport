@@ -174,6 +174,12 @@ namespace ignition
         /// \return true if all messages have finished playing; false otherwise.
         public: bool Finished() const;
 
+        public: std::chrono::nanoseconds StartTime() const;
+
+        public: std::chrono::nanoseconds CurrentTime() const;
+
+        public: std::chrono::nanoseconds EndTime() const;
+
         /// \brief Destructor
         public: ~PlaybackHandle();
 
