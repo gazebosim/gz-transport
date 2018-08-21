@@ -81,7 +81,7 @@ namespace ignition
 
         /// \brief Move assignement operator
         /// \param[in] _other the new iterator that is replacing the current one
-        public: MsgIter& operator=(MsgIter&& _other);
+        public: MsgIter& operator=(MsgIter&& _other); // NOLINT
 
         /// \brief Dereference Operator
         /// \return a reference to the message this is pointing to

@@ -49,7 +49,7 @@ namespace ignition
 
         /// \brief Move assignement operator
         /// \param[in] _other the new iterator that is replacing the current one
-        public: Batch& operator=(Batch&& _other);
+        public: Batch& operator=(Batch&& _other); // NOLINT
 
         /// \brief destructor
         public: ~Batch();
