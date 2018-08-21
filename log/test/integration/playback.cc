@@ -707,9 +707,6 @@ TEST(playback, ReplaySeek)
   ignition::transport::log::Playback playback(logName);
   recorder.Stop();
 
-  // Make a copy of the data so we can compare it later
-  std::vector<MessageInformation> originalData = incomingData;
-
   // Clear out the old data so we can recreate it during the playback
   incomingData.clear();
 
