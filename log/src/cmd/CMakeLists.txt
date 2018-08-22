@@ -15,9 +15,9 @@ configure_file(
   "${cmd_log_script_configured_test}"
   @ONLY)
 
-file(GENERATE
-  OUTPUT "${cmd_log_script_generated_test}"
-  INPUT  "${cmd_log_script_configured_test}")
+#file(GENERATE
+#  OUTPUT "${cmd_log_script_generated_test}"
+#  INPUT  "${cmd_log_script_configured_test}")
 
 # Used for internal testing.
 set(ign_log_ruby_path "${cmd_log_script_generated_test}")
