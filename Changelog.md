@@ -2,6 +2,9 @@
 
 ### Ignition Transport 5.X.X
 
+1. Exposed Log and log Playback time information.
+   * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/342)
+
 1. Added the ability to Step the advance of the playback from within the log
    replayer.
    * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)

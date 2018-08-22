@@ -174,10 +174,16 @@ namespace ignition
         /// \return true if all messages have finished playing; false otherwise.
         public: bool Finished() const;
 
+        /// \brief Gets start time of the log being played
+        /// \return start time of the log, in nanoseconds
         public: std::chrono::nanoseconds StartTime() const;
 
+        /// \brief Gets current time of the log being played
+        /// \return current time of the log playback, in nanoseconds
         public: std::chrono::nanoseconds CurrentTime() const;
 
+        /// \brief Gets end time of the log being played
+        /// \return end time of the log, in nanoseconds
         public: std::chrono::nanoseconds EndTime() const;
 
         /// \brief Destructor
