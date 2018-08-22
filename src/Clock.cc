@@ -27,24 +27,31 @@ using namespace ignition::transport;
 //////////////////////////////////////////////////
 class ignition::transport::NetworkClock::Implementation
 {
-  /// \brief Implementation constructor, taking the name
-  /// of the clock topic and the time base (i.e. message
-  /// field) to be used.
+  /// \brief Implementation constructor.
+  /// \param[in] _topicName Name of the ignition::msgs::Clock type
+  /// topic to be used
+  /// \param[in] _timeBase Time base for this clock, defaults to
+  /// simulation time
   public: Implementation(const std::string &_topicName,
-                         NetworkClock::TimeBase _timeBase);
+                         const NetworkClock::TimeBase _timeBase);
 
-  /// \brief Gets current clock time, in nanoseconds.
-  /// \remarks Reads are synchronized.
+  /// \brief Gets clock time
+  /// \return Current clock time, in nanoseconds
+  /// \remarks Reads are synchronized
   public: std::chrono::nanoseconds Time();
 
-  /// \brief Sets current clock time, in nanoseconds.
-  public: void SetTime(std::chrono::nanoseconds _time);
+  /// \brief Sets and distributes the given clock time
+  /// \param[in] _time The clock time to be set
+  /// \remarks No clock arbitration is performed
+  public: void SetTime(const std::chrono::nanoseconds _time);
 
-  /// \brief Updates current clock time from a message.
-  /// \remarks Writes are synchronized.
+  /// \brief Updates current clock time from a message
+  /// \param[in] _msg Message to update clock time from
+  /// \remarks Writes are synchronized
   public: void UpdateTimeFromMessage(const ignition::msgs::Time &_msg);
 
   /// \brief Clock message subscriber callback.
+  /// \param[in] _msg Received clock message
   public: void OnClockMessageReceived(const ignition::msgs::Clock &_msg);
 
   /// \brief Current clock time, in nanoseconds.
@@ -196,14 +203,15 @@ bool NetworkClock::IsReady() const {
 //////////////////////////////////////////////////
 class ignition::transport::WallClock::Implementation
 {
-  /// \brief Default constructor.
+  /// \brief Default constructor
   public: Implementation();
 
-  /// \brief Gets current clock time, in nanoseconds.
+  /// \brief Gets clock time
+  /// \return Current clock time, in nanoseconds
   public: std::chrono::nanoseconds Time() const;
 
   /// \brief Offset duration for a monotonic clock to
-  /// become an UTC one, in nanoseconds.
+  /// become an UTC one, in nanoseconds
   public: std::chrono::nanoseconds wallMinusMono;
 };
 

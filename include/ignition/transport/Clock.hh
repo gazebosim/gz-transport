@@ -35,10 +35,12 @@ namespace ignition
       /// \brief A Clock interface for time tracking
       class IGNITION_TRANSPORT_VISIBLE Clock
       {
-        /// \brief Current clock time, in nanoseconds
+        /// \brief Gets clock time
+        /// \return Current clock time, in nanoseconds
         public: virtual std::chrono::nanoseconds Time() const = 0;
 
-        /// \brief True if clock is ready to be used, false otherwise
+        /// \brief Checks whether the clock is ready to be used or not.
+        /// \return True if clock is ready to be used, false otherwise
         public: virtual bool IsReady() const = 0;
 
         /// \brief Virtual destructor
@@ -65,7 +67,7 @@ namespace ignition
         /// \param[in] _timeBase Time base for this clock, defaults to
         /// simulation time
         public: explicit NetworkClock(const std::string &_topicName,
-                                      TimeBase _timeBase = TimeBase::SIM);
+                                      const TimeBase _timeBase = TimeBase::SIM);
 
         /// \brief Destructor
         public: ~NetworkClock();
@@ -73,9 +75,10 @@ namespace ignition
         // Documentation inherited
         public: std::chrono::nanoseconds Time() const override;
 
-        /// \brief Sets and distributes given \p _time for this clock
+        /// \brief Sets and distributes the given clock time
+        /// \param[in] _time The clock time to be set
         /// \remarks No clock arbitration is performed
-        public: void SetTime(std::chrono::nanoseconds _time);
+        public: void SetTime(const std::chrono::nanoseconds _time);
 
         // Documentation inherited
         public: bool IsReady() const override;
@@ -88,10 +91,11 @@ namespace ignition
       };
 
       //////////////////////////////////////////////////
-      /// \brief A Clock implementation that leverages host OS time APIs.
+      /// \brief A Clock implementation that leverages host OS time APIs
       class IGNITION_TRANSPORT_VISIBLE WallClock : public Clock
       {
-        /// \brief Returns system wall clock instance (a singleton).
+        /// \brief Returns system wall clock interface
+        /// \return The sole wall clock instance (a singleton)
         public: static WallClock* Instance();
 
         // Documentation inherited
@@ -100,7 +104,7 @@ namespace ignition
         // Documentation inherited
         public: bool IsReady() const override;
 
-        /// \internal Private singleton constructor.
+        /// \internal Private singleton constructor
         private: WallClock();
 
         /// \brief Destructor
