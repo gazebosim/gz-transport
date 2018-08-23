@@ -725,26 +725,40 @@ TEST(playback, ReplaySeek)
 
   handle->Pause();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   using namespace std::chrono_literals;
 
-  // Seek to time 3ms and step 2ms from that point of time
-  handle->Seek(3ms);
-  handle->Step(2ms);
+  // Seek to time after about 10 messages have been published
+  // and play two messages from that point of time.
+  handle->Seek(std::chrono::milliseconds(
+      ignition::transport::log::test::DelayBetweenChirps_ms * 10));
+  handle->Step(std::chrono::milliseconds(
+      ignition::transport::log::test::DelayBetweenChirps_ms * 2));
+
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
   const MessageInformation firstMessageData{incomingData.back()};
 
   handle->Resume();
-  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+  // Play about 5 messages before pausing again
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(
+        ignition::transport::log::test::DelayBetweenChirps_ms * 5));
 
   handle->Pause();
+
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   const MessageInformation secondMessageData{incomingData.back()};
 
   EXPECT_FALSE(MessagesAreEqual(firstMessageData, secondMessageData));
 
-  // Seek to time 2ms and step 3ms from that point of time
-  handle->Seek(2ms);
-  handle->Step(3ms);
+  // Seek to time after about 10 messages have been published
+  // and play two messages from that point of time.
+  handle->Seek(std::chrono::milliseconds(
+      ignition::transport::log::test::DelayBetweenChirps_ms * 10));
+  handle->Step(std::chrono::milliseconds(
+      ignition::transport::log::test::DelayBetweenChirps_ms * 2));
+
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
   const MessageInformation thirdMessageData{incomingData.back()};
 
