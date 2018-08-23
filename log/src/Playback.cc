@@ -137,6 +137,10 @@ class PlaybackHandle::Implementation
   /// \param[in] _stepDuration Length of the step in nanoseconds
   public: void Step(const std::chrono::nanoseconds &_stepDuration);
 
+  /// \brief Jump current playback time to a specific elapsed time
+  /// \param[in] _newElapsedTime Elapsed time at which playback will jump
+  public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
+
   /// \brief Puts the calling thread to sleep until a given time is achieved.
   /// \param[in] _targetTime Time at which the wait must finish. Measured in
   /// POSIX time (time since epoch) in nanoseconds
@@ -213,14 +217,23 @@ class PlaybackHandle::Implementation
   /// \brief log file to play from
   public: std::shared_ptr<Log> logFile;
 
+  /// \brief List of topics currently tracked
+  public: const std::unordered_set<std::string> trackedTopics;
+
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
 
   // \brief Set of messages to be played-back
   public: Batch batch;
 
+  // \brief Mutex to operate the batch variable in a thread-safe way
+  public: std::mutex batchMutex;
+
   // \brief Iterator to loop over the messages found in batch
   public: Batch::iterator messageIter;
+
+  // \brief The wall clock time of the first message in batch
+  public: const std::chrono::nanoseconds firstMessageTime;
 };
 
 //////////////////////////////////////////////////
@@ -401,9 +414,10 @@ PlaybackHandle::Implementation::Implementation(
     finished(false),
     paused(false),
     logFile(_logFile),
+    trackedTopics(_topics),
     batch(logFile->QueryMessages(TopicList::Create(_topics))),
-    messageIter(batch.begin())
-
+    messageIter(batch.begin()),
+    firstMessageTime(messageIter->TimeReceived())
 {
   this->node.reset(new transport::Node(_nodeOptions));
 
@@ -521,6 +535,8 @@ void PlaybackHandle::Implementation::StartPlayback()
             continue;
           }
           // Publish the message
+          {
+          std::unique_lock<std::mutex> lk(this->batchMutex);
           LDBG("publishing\n");
           this->publishers[
             this->messageIter->Topic()][
@@ -532,6 +548,7 @@ void PlaybackHandle::Implementation::StartPlayback()
           this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
           this->nextMessageTime = messageIter->TimeReceived();
+          }
         }
         // If a custom step has been requested, always from a paused state,
         // playback gets resumed until the step requested is completed,
@@ -607,6 +624,30 @@ void PlaybackHandle::Implementation::Step(
   if (_stepDuration.count() == 0) return;
   this->boundaryTime = this->playbackTime + _stepDuration;
   this->Resume();
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::Seek(
+    const std::chrono::nanoseconds &_newElapsedTime)
+{
+  if (this->stop)
+  {
+    LERR("Seek can't be called from a stopped playback.\n");
+    return;
+  }
+  const QualifiedTime beginTime(this->firstMessageTime + _newElapsedTime);
+  const QualifiedTime endTime(std::chrono::nanoseconds::max());
+  const QualifiedTimeRange timeRange(beginTime, endTime);
+  {
+    std::unique_lock<std::mutex> lk(this->batchMutex);
+    this->batch = this->logFile->QueryMessages(
+        TopicList::Create(this->trackedTopics, timeRange));
+    this->messageIter = this->batch.begin();
+  }
+  this->playbackTime = this->messageIter->TimeReceived();
+  this->nextMessageTime = this->messageIter->TimeReceived();
+  this->boundaryTime = std::chrono::nanoseconds::max();
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
 }
 
 //////////////////////////////////////////////////
@@ -691,6 +732,12 @@ void PlaybackHandle::Pause()
 void PlaybackHandle::Step(const std::chrono::nanoseconds &_stepDuration)
 {
   this->dataPtr->Step(_stepDuration);
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Seek(const std::chrono::nanoseconds &_newElapsedTime)
+{
+  this->dataPtr->Seek(_newElapsedTime);
 }
 
 //////////////////////////////////////////////////

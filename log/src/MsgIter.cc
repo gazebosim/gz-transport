@@ -196,11 +196,14 @@ MsgIter::~MsgIter()
 }
 
 //////////////////////////////////////////////////
-// TODO
-// MsgIter &MsgIter::operator=(const MsgIter &_orig)
-// {
-//   dataPtr.reset(new MsgIterPrivate(*(_orig.dataPtr)));
-// }
+MsgIter &MsgIter::operator=(MsgIter &&_other) // NOLINT
+{
+  if (this != &_other)
+  {
+    this->dataPtr = std::move(_other.dataPtr);
+  }
+  return *this;
+}
 
 //////////////////////////////////////////////////
 MsgIter &MsgIter::operator++()
