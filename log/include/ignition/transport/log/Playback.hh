@@ -153,8 +153,12 @@ namespace ignition
         /// \brief Stop playing messages
         public: void Stop();
 
+        /// \brief Jump current playback time to a specific elapsed time
+        /// \param[in] _newElapsedTime Elapsed time at which playback will jump
+        public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
+
         /// \brief Step the playback by a given amount of nanoseconds
-        /// \pre Playback must be paused
+        /// \pre Playback must be previously paused
         /// \param[in] _stepDuration Length of the step in nanoseconds
         public: void Step(const std::chrono::nanoseconds &_stepDuration);
 

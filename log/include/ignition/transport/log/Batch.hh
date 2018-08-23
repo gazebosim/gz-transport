@@ -47,6 +47,11 @@ namespace ignition
         /// \param[in] _old the instance being moved into this one
         public: Batch(Batch &&_old);  // NOLINT
 
+        /// \brief Move assignement operator
+        /// \param[in] _other the new Batch replacing the current one
+        /// \return The updated Batch instance.
+        public: Batch& operator=(Batch &&_other); // NOLINT
+
         /// \brief destructor
         public: ~Batch();
 
