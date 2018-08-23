@@ -48,8 +48,9 @@ namespace ignition
         public: Batch(Batch &&_old);  // NOLINT
 
         /// \brief Move assignement operator
-        /// \param[in] _other the new iterator that is replacing the current one
-        public: Batch& operator=(Batch&& _other); // NOLINT
+        /// \param[in] _other the new Batch replacing the current one
+        /// \return The updated Batch instance.
+        public: Batch& operator=(Batch &&_other); // NOLINT
 
         /// \brief destructor
         public: ~Batch();

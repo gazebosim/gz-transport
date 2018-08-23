@@ -80,8 +80,9 @@ namespace ignition
         public: bool operator!=(const MsgIter &_other) const;
 
         /// \brief Move assignement operator
-        /// \param[in] _other the new iterator that is replacing the current one
-        public: MsgIter& operator=(MsgIter&& _other); // NOLINT
+        /// \param[in] _other the new iterator replacing the current one
+        /// \return The updated MsgIter.
+        public: MsgIter& operator=(MsgIter &&_other); // NOLINT
 
         /// \brief Dereference Operator
         /// \return a reference to the message this is pointing to
