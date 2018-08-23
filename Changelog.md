@@ -5,6 +5,10 @@
 1. Added support for alternative clock sources during log recording.
    * [Pull request 340](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/340)
 
+1. Added the ability to Seek within the log playback, which makes possible to
+   jump to any valid time point of the reproduction.
+   * [Pull request 341](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/341)
+
 1. Added the ability to Step the advance of the playback from within the log
    replayer.
    * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)
