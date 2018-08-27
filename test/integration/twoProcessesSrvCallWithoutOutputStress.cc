@@ -34,7 +34,7 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplierIncreasing_aux");
+    "twoProcessesSrvCallWithoutOutputRpInc_aux.cc");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
