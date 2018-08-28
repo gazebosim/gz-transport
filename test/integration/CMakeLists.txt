@@ -48,7 +48,7 @@ set(auxiliary_files
   twoProcessesSrvCallWithoutInputReplier_aux
   twoProcessesSrvCallWithoutInputReplierIncreasing_aux
   twoProcessesSrvCallWithoutOutputReplier_aux
-  twoProcessesSrvCallWithoutOutputRpInc_aux.cc
+  twoProcessesSrvCallWithoutOutputRpInc_aux
 )
 
 # Build the auxiliary files.
