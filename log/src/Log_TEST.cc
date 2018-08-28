@@ -202,6 +202,35 @@ TEST(Log, Insert2Get1MessageByTopic)
 }
 
 //////////////////////////////////////////////////
+TEST(Log, CheckLogTimes)
+{
+  log::Log logFile;
+  ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
+
+  const std::string data1("first_data");
+  EXPECT_TRUE(logFile.InsertMessage(
+      1s,
+      "/a/topic/name",
+      "a.message.type",
+      reinterpret_cast<const void *>(data1.c_str()),
+      data1.size()));
+
+  EXPECT_EQ(1s, logFile.StartTime());
+  EXPECT_EQ(1s, logFile.EndTime());
+
+  const std::string data2("second_data");
+  EXPECT_TRUE(logFile.InsertMessage(
+      10s,
+      "/another/topic/name",
+      "another.message.type",
+      reinterpret_cast<const void *>(data2.c_str()),
+      data2.size()));
+  EXPECT_EQ(1s, logFile.StartTime());
+  EXPECT_EQ(10s, logFile.EndTime());
+}
+
+
+//////////////////////////////////////////////////
 TEST(Log, CheckVersion)
 {
   log::Log logFile;

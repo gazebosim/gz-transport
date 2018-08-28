@@ -147,12 +147,17 @@ TEST(playback, ReplayLog)
   }
 
   const auto handle = playback.Start();
-
   std::cout << "Waiting to for playback to finish..." << std::endl;
   handle->WaitUntilFinished();
   std::cout << " Done waiting..." << std::endl;
   handle->Stop();
   std::cout << "Playback finished!" << std::endl;
+
+  // Ensure playback times are reasonable.
+  const std::chrono::milliseconds expected_duration{
+    numChirps * ignition::transport::log::test::DelayBetweenChirps_ms};
+  EXPECT_GE(handle->EndTime() - handle->StartTime(), expected_duration);
+  EXPECT_EQ(handle->EndTime(), handle->CurrentTime());
 
   // Wait to make sure our callbacks are done processing the incoming messages
   // (Strangely, Windows throws an exception when this is ~1s or more)
