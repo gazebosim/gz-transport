@@ -534,6 +534,72 @@ Batch Log::QueryMessages(const QueryOptions &_options)
 }
 
 //////////////////////////////////////////////////
+std::chrono::nanoseconds Log::StartTime() const
+{
+  if (!this->Valid())
+  {
+    LERR("Cannot get start time of an invalid log.\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Compile the statement
+  const char* const getStartTimeStatement =
+      "SELECT MIN(time_recv) AS start_time FROM messages;";
+  raii_sqlite3::Statement statement(*(this->dataPtr->db),
+                                    getStartTimeStatement);
+  if (!statement)
+  {
+    LERR("Failed to compile start time query statement\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Try to run it
+  int resultCode = sqlite3_step(statement.Handle());
+  if (resultCode != SQLITE_ROW)
+  {
+    LERR("Database has no messages\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Return start time found.
+  sqlite_int64 startTimeAsInt = sqlite3_column_int64(statement.Handle(), 0);
+  return std::chrono::nanoseconds(startTimeAsInt);
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds Log::EndTime() const
+{
+  if (!this->Valid())
+  {
+    LERR("Cannot get end time of an invalid log.\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Compile the statement
+  const char* const getEndTimeStatement =
+      "SELECT MAX(time_recv) AS end_time FROM messages;";
+  raii_sqlite3::Statement statement(*(this->dataPtr->db),
+                                    getEndTimeStatement);
+  if (!statement)
+  {
+    LERR("Failed to compile end time query statement\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Try to run it
+  int resultCode = sqlite3_step(statement.Handle());
+  if (resultCode != SQLITE_ROW)
+  {
+    LERR("Database has no messages\n");
+    return std::chrono::nanoseconds::zero();
+  }
+
+  // Return end time found.
+  sqlite_int64 endTimeAsInt = sqlite3_column_int64(statement.Handle(), 0);
+  return std::chrono::nanoseconds(endTimeAsInt);
+}
+
+//////////////////////////////////////////////////
 std::string Log::Version() const
 {
   if (!this->Valid())

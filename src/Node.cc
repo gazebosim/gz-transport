@@ -509,9 +509,6 @@ Node::~Node()
   // The list of subscribed topics should be empty.
   assert(this->SubscribedTopics().empty());
 
-  // The list of advertised topics should be empty.
-  assert(this->AdvertisedTopics().empty());
-
   // Unadvertise all my services.
   auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)

@@ -5,6 +5,9 @@
 1. Added support for alternative clock sources during log recording.
    * [Pull request 340](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/340)
 
+1. Exposed Log and log Playback time information.
+   * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/342)
+
 1. Added the ability to Seek within the log playback, which makes possible to
    jump to any valid time point of the reproduction.
    * [Pull request 341](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/341)
