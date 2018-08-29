@@ -70,7 +70,7 @@ namespace ignition
                                       const TimeBase _timeBase = TimeBase::SIM);
 
         /// \brief Destructor
-        public: ~NetworkClock();
+        public: ~NetworkClock() override;
 
         // Documentation inherited
         public: std::chrono::nanoseconds Time() const override;
@@ -108,7 +108,7 @@ namespace ignition
         private: WallClock();
 
         /// \brief Destructor
-        private: ~WallClock();
+        private: ~WallClock() override;
 
         /// \internal Implementation of this class
         private: class Implementation;

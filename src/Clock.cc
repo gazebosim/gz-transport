@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <iostream>
 #include <mutex>
 
 #include <ignition/msgs.hh>
@@ -118,6 +119,8 @@ void NetworkClock::Implementation::SetTime(std::chrono::nanoseconds _time)
       std::cerr << "Invalid clock time base\n";
       return;
   }
+  // Distributes clock message to every subscriber,
+  // including this very same object.
   this->pub.Publish(msg);
 }
 

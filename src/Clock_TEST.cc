@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 #include <ignition/msgs.hh>
@@ -30,7 +31,7 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 /// \brief Check WallClock functionality.
-TEST(ClockTests, WallClock)
+TEST(ClockTest, WallClock)
 {
   const transport::WallClock *clock =
       transport::WallClock::Instance();
@@ -44,32 +45,102 @@ TEST(ClockTests, WallClock)
 }
 
 //////////////////////////////////////////////////
+
+// Alias for convenience.
+using TimeBase = transport::NetworkClock::TimeBase;
+
+/// \brief A test fixture for transport::NetworkClock related tests,
+/// parameterized by transport::NetworkClock::TimeBase.
+class NetworkClockTest : public ::testing::TestWithParam<TimeBase>
+{
+  /// \brief Makes an ignition::msgs::Clock message out of the
+  /// given @p _secs and @p _nsecs.
+  /// \param[in] _secs Seconds for the message to be made.
+  /// \param[in] _nsecs Nanoseconds for the message to be made.
+  /// \return An ignition::msgs::Clock message.
+  protected: ignition::msgs::Clock MakeClockMessage(
+      const std::chrono::seconds& _secs,
+      const std::chrono::nanoseconds& _nsecs)
+  {
+    ignition::msgs::Clock clockMsg;
+    switch (GetParam())
+    {
+      case TimeBase::SIM:
+        clockMsg.mutable_sim()->set_sec(_secs.count());
+        clockMsg.mutable_sim()->set_nsec(_nsecs.count());
+        clockMsg.mutable_real()->set_sec(_secs.count() * 2);
+        clockMsg.mutable_system()->set_sec(_secs.count() * 4);
+        break;
+      case TimeBase::REAL:
+        clockMsg.mutable_sim()->set_sec(_secs.count() / 2);
+        clockMsg.mutable_real()->set_sec(_secs.count());
+        clockMsg.mutable_real()->set_nsec(_nsecs.count());
+        clockMsg.mutable_system()->set_sec(_secs.count() * 2);
+        break;
+      case TimeBase::SYS:
+        clockMsg.mutable_sim()->set_sec(_secs.count() / 4);
+        clockMsg.mutable_real()->set_sec(_secs.count() / 2);
+        clockMsg.mutable_system()->set_sec(_secs.count());
+        clockMsg.mutable_system()->set_nsec(_nsecs.count());
+        break;
+      default:
+        break;
+    }
+    return clockMsg;
+  }
+};
+
+//////////////////////////////////////////////////
 /// \brief Check NetworkClock functionality.
-TEST(ClockTests, NetworkClock)
+TEST_P(NetworkClockTest, Functionality)
 {
   const std::string clockTopicName{"/clock"};
-  transport::NetworkClock sim_clock(
-      clockTopicName, transport::NetworkClock::TimeBase::SIM);
-  EXPECT_FALSE(sim_clock.IsReady());
+  transport::NetworkClock clock(clockTopicName, GetParam());
+  EXPECT_FALSE(clock.IsReady());
   transport::Node node;
-  transport::Node::Publisher clock_pub =
+  transport::Node::Publisher clockPub =
       node.Advertise<ignition::msgs::Clock>(clockTopicName);
-  const std::chrono::milliseconds sleepTime(100);
-  ignition::msgs::Clock clock_msg;
-  clock_pub.Publish(clock_msg);
+  const std::chrono::milliseconds sleepTime{100};
+  clockPub.Publish(ignition::msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
-  EXPECT_FALSE(sim_clock.IsReady());
-  const std::chrono::seconds expectedSecs(54321);
-  const std::chrono::nanoseconds expectedNsecs(12345);
-  clock_msg.mutable_sim()->set_sec(expectedSecs.count());
-  clock_msg.mutable_sim()->set_nsec(expectedNsecs.count());
-  clock_pub.Publish(clock_msg);
+  EXPECT_FALSE(clock.IsReady());
+  const std::chrono::seconds expectedSecs{54321};
+  const std::chrono::nanoseconds expectedNsecs{12345};
+  clockPub.Publish(MakeClockMessage(expectedSecs, expectedNsecs));
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
-  EXPECT_TRUE(sim_clock.IsReady());
-  EXPECT_EQ(sim_clock.Time(), expectedSecs + expectedNsecs);
-  sim_clock.SetTime(expectedSecs + expectedNsecs * 2);
+  EXPECT_TRUE(clock.IsReady());
+  EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs);
+  clock.SetTime(expectedSecs + expectedNsecs * 2);
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
-  EXPECT_EQ(sim_clock.Time(), expectedSecs + expectedNsecs * 2);
+  EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs * 2);
+}
+
+INSTANTIATE_TEST_CASE_P(TestAllTimeBases, NetworkClockTest,
+                        ::testing::Values(TimeBase::SIM,
+                                          TimeBase::REAL,
+                                          TimeBase::SYS));
+
+/// \brief Check NetworkClock functionality.
+TEST(ClockTest, BadNetworkClock)
+{
+  const std::string badClockTopicName{"//bad-clock"};
+  const transport::NetworkClock badTopicClock(badClockTopicName);
+  EXPECT_FALSE(badTopicClock.IsReady());
+  const transport::NetworkClock::TimeBase badTimebase =
+      static_cast<transport::NetworkClock::TimeBase>(-1);
+  const std::string clockTopicName{"/clock"};
+  transport::NetworkClock badTimebaseClock(clockTopicName, badTimebase);
+  EXPECT_FALSE(badTimebaseClock.IsReady());
+  transport::Node node;
+  transport::Node::Publisher clockPub =
+      node.Advertise<ignition::msgs::Clock>(clockTopicName);
+  const std::chrono::milliseconds sleepTime{100};
+  clockPub.Publish(ignition::msgs::Clock());
+  std::this_thread::sleep_for(sleepTime);
+  EXPECT_FALSE(badTimebaseClock.IsReady());
+  badTimebaseClock.SetTime(std::chrono::seconds(10));
+  std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
+  EXPECT_FALSE(badTimebaseClock.IsReady());
 }
 
 //////////////////////////////////////////////////
