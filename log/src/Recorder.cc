@@ -24,6 +24,7 @@
 #include <set>
 #include <vector>
 
+#include <ignition/transport/Clock.hh>
 #include <ignition/transport/Discovery.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
@@ -77,14 +78,14 @@ class ignition::transport::log::Recorder::Implementation
   /// \brief mutex for thread safety when evaluating newly advertised topics
   public: std::mutex topicMutex;
 
-  /// \brief Value added to steady_clock giving time in UTC
-  public: std::chrono::nanoseconds wallMinusMono;
-
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
 
   /// \brief node used to create subscriptions
   public: Node node;
+
+  /// \brief Clock to synchronize and stamp messages with.
+  public: const Clock *clock;
 
   /// \brief callback used on every subscriber
   public: RawCallback rawCallback;
@@ -96,12 +97,8 @@ class ignition::transport::log::Recorder::Implementation
 //////////////////////////////////////////////////
 Recorder::Implementation::Implementation()
 {
-  // Set the offset used to get UTC from steady clock
-  std::chrono::nanoseconds wallStartNS(std::chrono::seconds(std::time(NULL)));
-  std::chrono::nanoseconds monoStartNS(
-      std::chrono::steady_clock::now().time_since_epoch());
-  this->wallMinusMono = wallStartNS - monoStartNS;
-
+  // Use wall clock for synchronization by default.
+  this->clock = ignition::transport::WallClock::Instance();
   // Make a lambda to wrap a member function callback
   this->rawCallback = [this](
       const char *_data, std::size_t _len, const transport::MessageInfo &_info)
@@ -127,13 +124,11 @@ void Recorder::Implementation::OnMessageReceived(
           std::size_t _len,
           const ignition::transport::MessageInfo &_info)
 {
-  // Get time RX using monotonic
-  std::chrono::nanoseconds nowNS(
-      std::chrono::steady_clock::now().time_since_epoch());
-  // monotonic -> utc in nanoseconds
-  std::chrono::nanoseconds utcNS = this->wallMinusMono + nowNS;
-
   LDBG("RX'" << _info.Topic() << "'[" << _info.Type() << "]\n");
+
+  if (!this->clock->IsReady()) {
+    LWRN("Clock isn't ready yet. Dropping message\n");
+  }
 
   std::lock_guard<std::mutex> lock(this->logFileMutex);
 
@@ -141,7 +136,7 @@ void Recorder::Implementation::OnMessageReceived(
   // or after Stop() has been called. If it is a nullptr, then we are not
   // recording anything yet, so we can just skip inserting the message.
   if (this->logFile && !this->logFile->InsertMessage(
-        utcNS,
+        this->clock->Time(),
         _info.Topic(),
         _info.Type(),
         reinterpret_cast<const void *>(_data),
@@ -252,6 +247,17 @@ Recorder::~Recorder()
   {
     this->Stop();
   }
+}
+
+//////////////////////////////////////////////////
+RecorderError Recorder::Sync(const Clock *_clockIn) {
+  if (this->dataPtr->logFile)
+  {
+    LERR("Recording is already in progress\n");
+    return RecorderError::ALREADY_RECORDING;
+  }
+  this->dataPtr->clock = _clockIn;
+  return RecorderError::SUCCESS;
 }
 
 //////////////////////////////////////////////////

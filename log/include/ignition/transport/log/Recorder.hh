@@ -23,6 +23,7 @@
 #include <set>
 #include <string>
 
+#include <ignition/transport/Clock.hh>
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
@@ -61,6 +62,14 @@ namespace ignition
 
         /// \brief destructor
         public: ~Recorder();
+
+        /// \brief Synchronize recording with the given clock.
+        /// \param[in] _clockIn clock to synchronize and stamp
+        /// incoming messages with
+        /// \return SUCCESS if the clock was successfully changed,
+        /// ALREADY_RECORDING if a recording is already in progress.
+        /// \remarks Clock lifetime must exceed that of this Recorder.
+        public: RecorderError Sync(const Clock *_clockIn);
 
         /// \brief Begin recording topics
         /// \param[in] _file path to log file
