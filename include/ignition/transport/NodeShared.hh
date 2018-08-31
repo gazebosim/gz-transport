@@ -138,7 +138,8 @@ namespace ignition
       /// subscribers they have.
       public: struct SubscriberInfo : public HandlerInfo
       {
-        /// \brief True iff this Publisher has any remote subscribers
+        /// \brief True if this Publisher has any remote subscribers
+        // cppcheck-suppress unusedStructMember
         public: bool haveRemote;
 
         // Friendship declaration
