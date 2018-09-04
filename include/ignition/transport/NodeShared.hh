@@ -138,7 +138,7 @@ namespace ignition
       /// subscribers they have.
       public: struct SubscriberInfo : public HandlerInfo
       {
-        /// \brief True iff this Publisher has any remote subscribers
+        /// \brief True if this Publisher has any remote subscribers
         // cppcheck-suppress unusedStructMember
         public: bool haveRemote;
 
@@ -255,12 +255,6 @@ namespace ignition
       /// \brief Replier socket identity.
       public: Uuid replierId;
 
-      /// \brief Port used by the message discovery layer.
-      public: static const int kMsgDiscPort = 11317;
-
-      /// \brief Port used by the service discovery layer.
-      public: static const int kSrvDiscPort = 11318;
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
@@ -275,6 +269,12 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: mutable std::recursive_mutex mutex;
+
+      /// \brief Port used by the message discovery layer.
+      public: static const int kMsgDiscPort = 11317;
+
+      /// \brief Port used by the service discovery layer.
+      public: static const int kSrvDiscPort = 11318;
 
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage<MessagePublisher> connections;
@@ -345,9 +345,6 @@ namespace ignition
 
       public: HandlerWrapper localSubscribers;
 
-      /// \brief Print activity to stdout.
-      public: int verbose;
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
@@ -359,6 +356,9 @@ namespace ignition
 
       /// \brief Pending service call requests.
       public: HandlerStorage<IReqHandler> requests;
+
+      /// \brief Print activity to stdout.
+      public: int verbose;
 
       /// \brief My pub/sub address.
       public: std::string myAddress;

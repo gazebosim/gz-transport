@@ -2234,6 +2234,18 @@ TEST(NodeTest, WrongTopicRemap)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check that we destruct a Node object before a Node::Publisher.
+TEST(NodePubTest, DestructionOrder)
+{
+  transport::Node::Publisher pub;
+
+  {
+    transport::Node node;
+    pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  }
+}
+
+//////////////////////////////////////////////////
 /// \brief Create a separate thread, block it calling waitForShutdown() and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
