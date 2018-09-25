@@ -16,9 +16,9 @@
 */
 
 #include <chrono>
+#include <ctime>
 #include <iostream>
 #include <mutex>
-#include <ctime>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport/Clock.hh>
