@@ -9,7 +9,8 @@ set (test_sources
 
 if (IGNITION-TOOLS_BINARY_DIRS)
   ign_build_tests(TYPE UNIT SOURCES ${test_sources}
-    TEST_LIST test_list)
+    TEST_LIST test_list
+    LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
   foreach(test ${test_list})
 

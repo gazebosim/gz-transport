@@ -26,8 +26,8 @@
 
 using namespace ignition;
 
-static std::string g_partition;
-static std::string g_topic = "/foo";
+static std::string g_partition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 TEST(twoProcSrvCallWithoutInput, ThousandCalls)

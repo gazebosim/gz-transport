@@ -136,8 +136,17 @@ namespace ignition
         /// \internal Implementation of this class
         private: class Implementation;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private implementation
         private: std::unique_ptr<Implementation> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
 
       //////////////////////////////////////////////////
@@ -153,8 +162,12 @@ namespace ignition
         /// \brief Stop playing messages
         public: void Stop();
 
+        /// \brief Jump current playback time to a specific elapsed time
+        /// \param[in] _newElapsedTime Elapsed time at which playback will jump
+        public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
+
         /// \brief Step the playback by a given amount of nanoseconds
-        /// \pre Playback must be paused
+        /// \pre Playback must be previously paused
         /// \param[in] _stepDuration Length of the step in nanoseconds
         public: void Step(const std::chrono::nanoseconds &_stepDuration);
 
@@ -174,6 +187,18 @@ namespace ignition
         /// \return true if all messages have finished playing; false otherwise.
         public: bool Finished() const;
 
+        /// \brief Gets start time of the log being played
+        /// \return start time of the log, in nanoseconds
+        public: std::chrono::nanoseconds StartTime() const;
+
+        /// \brief Gets current time of the log being played
+        /// \return current time of the log playback, in nanoseconds
+        public: std::chrono::nanoseconds CurrentTime() const;
+
+        /// \brief Gets end time of the log being played
+        /// \return end time of the log, in nanoseconds
+        public: std::chrono::nanoseconds EndTime() const;
+
         /// \brief Destructor
         public: ~PlaybackHandle();
 
@@ -187,8 +212,17 @@ namespace ignition
         private: PlaybackHandle(
           std::unique_ptr<Implementation> &&_internal); // NOLINT
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal Pointer to implementation class
         private: std::unique_ptr<Implementation> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

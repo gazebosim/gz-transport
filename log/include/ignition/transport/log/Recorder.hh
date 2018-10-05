@@ -23,6 +23,7 @@
 #include <set>
 #include <string>
 
+#include <ignition/transport/Clock.hh>
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
@@ -62,6 +63,14 @@ namespace ignition
         /// \brief destructor
         public: ~Recorder();
 
+        /// \brief Synchronize recording with the given clock.
+        /// \param[in] _clockIn clock to synchronize and stamp
+        /// incoming messages with
+        /// \return SUCCESS if the clock was successfully changed,
+        /// ALREADY_RECORDING if a recording is already in progress.
+        /// \remarks Clock lifetime must exceed that of this Recorder.
+        public: RecorderError Sync(const Clock *_clockIn);
+
         /// \brief Begin recording topics
         /// \param[in] _file path to log file
         /// \return NO_ERROR if recording was successfully started. If the file
@@ -100,8 +109,17 @@ namespace ignition
         /// \internal Implementation of this class
         private: class Implementation;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal Pointer to the implementation
         private: std::unique_ptr<Implementation> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

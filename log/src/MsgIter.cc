@@ -115,7 +115,7 @@ void MsgIterPrivate::StepStatement()
 
     if (returnCode == SQLITE_ROW)
     {
-      // TODO get data and create message in the dereference operators
+      // TODO(anyone) get data and create message in the dereference operators
       // Assumes statement has column order:
       // messages id (0), timeRecv(1), topics name(2),
       // message_type name(3), message data(4)
@@ -168,11 +168,12 @@ MsgIter::MsgIter()
 }
 
 //////////////////////////////////////////////////
-// TODO
+// TODO(anyone)
 // MsgIter::MsgIter(const MsgIter &_orig)
 //   : dataPtr(new MsgIterPrivate)
 // {
-//   // TODO this copy constructor needs to create a new statement starting
+//   // TODO(anyone) this copy constructor needs to create a new statement
+//   // starting
 //   // at the current row id
 // }
 
@@ -196,11 +197,14 @@ MsgIter::~MsgIter()
 }
 
 //////////////////////////////////////////////////
-// TODO
-// MsgIter &MsgIter::operator=(const MsgIter &_orig)
-// {
-//   dataPtr.reset(new MsgIterPrivate(*(_orig.dataPtr)));
-// }
+MsgIter &MsgIter::operator=(MsgIter &&_other) // NOLINT
+{
+  if (this != &_other)
+  {
+    this->dataPtr = std::move(_other.dataPtr);
+  }
+  return *this;
+}
 
 //////////////////////////////////////////////////
 MsgIter &MsgIter::operator++()
@@ -210,16 +214,16 @@ MsgIter &MsgIter::operator++()
 }
 
 //////////////////////////////////////////////////
-// TODO
+// TODO(anyone)
 // MsgIter MsgIter::operator++(int)
 // {
 // }
 
 //////////////////////////////////////////////////
-// TODO
+// TODO(anyone)
 bool MsgIter::operator==(const MsgIter &_other) const
 {
-  // TODO this won't work once this class has a proper copy constructor
+  // TODO(anyone) this won't work once this class has a proper copy constructor
   // It's only good enough to compare this with an empty iterator
   return this->dataPtr->statement.get() == _other.dataPtr->statement.get();
 }

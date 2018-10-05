@@ -24,6 +24,7 @@
 #endif
 
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -31,7 +32,7 @@
 #include <thread>
 #include <vector>
 
-// ToDo: Remove after fixing the warnings.
+// TODO(anyone): Remove after fixing the warnings.
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
@@ -60,7 +61,7 @@
 using namespace ignition;
 using namespace transport;
 
-const std::string kIgnAuthDomain = "ign-auth";
+const char kIgnAuthDomain[] = "ign-auth";
 
 // Enum that encapsulates the possible values for ZeroMQ's setsocketopt
 // for ZMQ_PLAIN_SERVER. A value of 1 enables
@@ -318,7 +319,7 @@ void NodeShared::RecvMsgUpdate()
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      // ToDo(caguero): Use this as extra metadata for the subscriber.
+      // TODO(caguero): Use this as extra metadata for the subscriber.
       if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
@@ -1254,7 +1255,7 @@ void NodeSharedPrivate::SecurityOnNewConnection()
   std::string user, pass;
 
   // Set username and pass if they exist
-  // \todo: This will cause the subscriber to connect only to secure
+  // \todo(anyone): This will cause the subscriber to connect only to secure
   // connections. Would be nice if the subscriber could still connect to
   // unsecure connections. This might require an unsecure and secure
   // subscriber.
@@ -1283,8 +1284,8 @@ void NodeSharedPrivate::SecurityInit()
     this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
         &asPlainSecurityServer, sizeof(asPlainSecurityServer));
 
-    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
-        kIgnAuthDomain.size());
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain,
+        std::strlen(kIgnAuthDomain));
   }
 }
 
@@ -1348,10 +1349,7 @@ void NodeSharedPrivate::AccessControlHandler()
         sequence = receiveHelper(*sock);
         domain = receiveHelper(*sock);
         address = receiveHelper(*sock);
-
-        // cppcheck-suppress unreadVariable
         routingId = receiveHelper(*sock);
-
         mechanism = receiveHelper(*sock);
         givenUsername = receiveHelper(*sock);
         givenPassword = receiveHelper(*sock);
@@ -1389,7 +1387,7 @@ void NodeSharedPrivate::AccessControlHandler()
         }
 
         // Check the domain
-        if (domain != kIgnAuthDomain)
+        if (std::strcmp(domain.c_str(), kIgnAuthDomain) != 0)
         {
           sendAuthErrorHelper(*sock, "Invalid domain");
           continue;

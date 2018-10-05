@@ -1,9 +1,11 @@
-# Logging
+\page logging Logging
+
+Next Tutorial: \ref envvars
+
+## Overview
 
 In this tutorial, we are going to describe the process of recording and
 playing back a collection of messages.
-
-# Overview
 
 Ignition Transport provides two mechanisms for logging: a C++ API and a set of
 command line utilities as part of the optional `ign` CLI tool (available via
@@ -20,7 +22,7 @@ cd ~/ign_transport_tutorial
 
 ```
 
-# Record
+## Record
 
 Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/record.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite editor:
@@ -121,7 +123,7 @@ function `ignition::transport::waitForShutdown()` captures the appropriate
 signal and blocks the execution until that event occurs. Then, `recorder.Stop()`
 stops the log recording as expected.
 
-# Play back
+## Play back
 
 Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/playback.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite

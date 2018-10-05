@@ -66,9 +66,18 @@ namespace ignition
       /// \return The maximum number of messages per second.
       public: uint64_t MsgsPerSec() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Pointer to private data.
       protected: std::unique_ptr<SubscribeOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }

@@ -45,7 +45,7 @@ namespace ignition
 
         /// \brief Copy Constructor
         /// \param[in] _orig the instance being copied
-        // TODO
+        // TODO(anyone)
         // public: MsgIter(const MsgIter &_orig);
 
         /// \brief Move Constructor
@@ -66,7 +66,7 @@ namespace ignition
 
         /// \brief Postfix increment
         /// \return a reference to a copy of this iterator before incrementing
-        // TODO
+        // TODO(anyone)
         // public: MsgIter operator++(int);
 
         /// \brief Equality operator
@@ -79,6 +79,11 @@ namespace ignition
         /// \return false if the two iterator point to the same message
         public: bool operator!=(const MsgIter &_other) const;
 
+        /// \brief Move assignement operator
+        /// \param[in] _other the new iterator replacing the current one
+        /// \return The updated MsgIter.
+        public: MsgIter& operator=(MsgIter &&_other); // NOLINT
+
         /// \brief Dereference Operator
         /// \return a reference to the message this is pointing to
         public: const Message &operator*() const;
@@ -87,8 +92,17 @@ namespace ignition
         /// \return a pointer to the message this is pointing to
         public: const Message *operator->() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private Implementation Pointer
         public: std::unique_ptr<MsgIterPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
         /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer

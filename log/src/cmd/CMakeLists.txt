@@ -1,7 +1,7 @@
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
-# TODO: We do not currently have tests for the `ign log` command, so this is currently going unused.
+# TODO(anyone): We do not currently have tests for the `ign log` command, so this is currently going unused.
 set(cmd_log_ruby_test_dir "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
 set(cmd_log_script_generated_test "${cmd_log_ruby_test_dir}/cmdlog${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_log_script_configured_test "${cmd_log_script_generated_test}.configured")

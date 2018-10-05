@@ -233,7 +233,8 @@ bool Node::Publisher::HasConnections() const
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
-  /// \todo: Checking "remoteSubscribers.HasTopic()" will return true even
+  /// \todo(anyone): Checking "remoteSubscribers.HasTopic()" will return
+  /// true even
   /// if the subscriber has not successfully authenticated with the
   /// publisher.
   /// See Issue #73
@@ -508,9 +509,6 @@ Node::~Node()
 
   // The list of subscribed topics should be empty.
   assert(this->SubscribedTopics().empty());
-
-  // The list of advertised topics should be empty.
-  assert(this->AdvertisedTopics().empty());
 
   // Unadvertise all my services.
   auto advServices = this->AdvertisedServices();

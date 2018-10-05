@@ -1,4 +1,8 @@
-# Installation
+\page installation Installation
+
+Next Tutorial: \ref nodestopics
+
+## Overview
 
 This page contains instructions to install Ignition Transport on all the
 support platforms including major Linux distributions, Mac OS X and Windows.
@@ -232,26 +236,26 @@ cd build
 
 Configure Ignition Transport (choose either method a or b below):
 
-> A.  Release mode: This will generate optimized code, but will not have
->     debug symbols. Use this mode if you don't need to use GDB.
->
-> ```
-> cmake ../
-> ```
->
-> Note: You can use a custom install path to make it easier to switch
-> between source and debian installs:
->
-> ```
-> cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ../
-> ```
->
-> B. Debug mode: This will generate code with debug symbols. Ignition
-> Transport will run slower, but you'll be able to use GDB.
->
-> ```
-> cmake -DCMAKE_BUILD_TYPE=Debug ../
-> ```
+A.  Release mode: This will generate optimized code, but will not have
+    debug symbols. Use this mode if you don't need to use GDB.
+
+```
+cmake ../
+```
+
+Note: You can use a custom install path to make it easier to switch
+between source and debian installs:
+
+```
+cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ../
+```
+
+B. Debug mode: This will generate code with debug symbols. Ignition
+Transport will run slower, but you'll be able to use GDB.
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug ../
+```
 
 The output from `cmake ../` may generate a number of errors and warnings
 about missing packages. You must install the missing packages that have

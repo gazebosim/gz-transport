@@ -29,8 +29,8 @@ using namespace ignition;
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
 
-static std::string g_partition;
-static std::string g_topic = "/foo";
+static std::string g_partition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_counter = 0;
 
 //////////////////////////////////////////////////

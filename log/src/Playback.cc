@@ -30,8 +30,8 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Playback.hh>
-#include "build_config.hh"
 #include "Console.hh"
+#include "build_config.hh"
 #include "raii-sqlite3.hh"
 
 using namespace ignition::transport;
@@ -137,6 +137,10 @@ class PlaybackHandle::Implementation
   /// \param[in] _stepDuration Length of the step in nanoseconds
   public: void Step(const std::chrono::nanoseconds &_stepDuration);
 
+  /// \brief Jump current playback time to a specific elapsed time
+  /// \param[in] _newElapsedTime Elapsed time at which playback will jump
+  public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
+
   /// \brief Puts the calling thread to sleep until a given time is achieved.
   /// \param[in] _targetTime Time at which the wait must finish. Measured in
   /// POSIX time (time since epoch) in nanoseconds
@@ -188,6 +192,12 @@ class PlaybackHandle::Implementation
   /// \brief True if the thread should be paused
   public: std::atomic_bool paused;
 
+  // \brief Start time in the playback frame
+  public: std::chrono::nanoseconds playbackStartTime;
+
+  // \brief End time in the playback frame
+  public: std::chrono::nanoseconds playbackEndTime;
+
   // \brief Current time in the playback frame
   public: std::chrono::nanoseconds playbackTime;
 
@@ -213,14 +223,23 @@ class PlaybackHandle::Implementation
   /// \brief log file to play from
   public: std::shared_ptr<Log> logFile;
 
+  /// \brief List of topics currently tracked
+  public: const std::unordered_set<std::string> trackedTopics;
+
   /// \brief mutex for thread safety with log file
   public: std::mutex logFileMutex;
 
   // \brief Set of messages to be played-back
   public: Batch batch;
 
+  // \brief Mutex to operate the batch variable in a thread-safe way
+  public: std::mutex batchMutex;
+
   // \brief Iterator to loop over the messages found in batch
   public: Batch::iterator messageIter;
+
+  // \brief The wall clock time of the first message in batch
+  public: const std::chrono::nanoseconds firstMessageTime;
 };
 
 //////////////////////////////////////////////////
@@ -401,9 +420,10 @@ PlaybackHandle::Implementation::Implementation(
     finished(false),
     paused(false),
     logFile(_logFile),
+    trackedTopics(_topics),
     batch(logFile->QueryMessages(TopicList::Create(_topics))),
-    messageIter(batch.begin())
-
+    messageIter(batch.begin()),
+    firstMessageTime(messageIter->TimeReceived())
 {
   this->node.reset(new transport::Node(_nodeOptions));
 
@@ -484,12 +504,15 @@ void PlaybackHandle::Implementation::StartPlayback()
   // Set time boundary to infinite, which will get overwritten on a step request
   this->boundaryTime = std::chrono::nanoseconds::max();
 
-  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
-  this->nextMessageTime = this->messageIter->TimeReceived();
-
   // Set time in the playback frame equal to the first message in batch
   // so that it gets played back right after playback starts
-  this->playbackTime = this->messageIter->TimeReceived();
+  this->playbackStartTime = this->logFile->StartTime();
+  this->playbackTime = this->playbackStartTime;
+  this->playbackEndTime = this->logFile->EndTime();
+
+  this->nextMessageTime = this->messageIter->TimeReceived();
+
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
 
   this->playbackThread = std::thread([this] () mutable
     {
@@ -521,6 +544,8 @@ void PlaybackHandle::Implementation::StartPlayback()
             continue;
           }
           // Publish the message
+          {
+          std::unique_lock<std::mutex> lk(this->batchMutex);
           LDBG("publishing\n");
           this->publishers[
             this->messageIter->Topic()][
@@ -532,6 +557,7 @@ void PlaybackHandle::Implementation::StartPlayback()
           this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
           this->nextMessageTime = messageIter->TimeReceived();
+          }
         }
         // If a custom step has been requested, always from a paused state,
         // playback gets resumed until the step requested is completed,
@@ -607,6 +633,30 @@ void PlaybackHandle::Implementation::Step(
   if (_stepDuration.count() == 0) return;
   this->boundaryTime = this->playbackTime + _stepDuration;
   this->Resume();
+}
+
+//////////////////////////////////////////////////
+void PlaybackHandle::Implementation::Seek(
+    const std::chrono::nanoseconds &_newElapsedTime)
+{
+  if (this->stop)
+  {
+    LERR("Seek can't be called from a stopped playback.\n");
+    return;
+  }
+  const QualifiedTime beginTime(this->firstMessageTime + _newElapsedTime);
+  const QualifiedTime endTime(std::chrono::nanoseconds::max());
+  const QualifiedTimeRange timeRange(beginTime, endTime);
+  {
+    std::unique_lock<std::mutex> lk(this->batchMutex);
+    this->batch = this->logFile->QueryMessages(
+        TopicList::Create(this->trackedTopics, timeRange));
+    this->messageIter = this->batch.begin();
+  }
+  this->playbackTime = this->messageIter->TimeReceived();
+  this->nextMessageTime = this->messageIter->TimeReceived();
+  this->boundaryTime = std::chrono::nanoseconds::max();
+  this->lastEventTime = std::chrono::steady_clock::now().time_since_epoch();
 }
 
 //////////////////////////////////////////////////
@@ -694,6 +744,12 @@ void PlaybackHandle::Step(const std::chrono::nanoseconds &_stepDuration)
 }
 
 //////////////////////////////////////////////////
+void PlaybackHandle::Seek(const std::chrono::nanoseconds &_newElapsedTime)
+{
+  this->dataPtr->Seek(_newElapsedTime);
+}
+
+//////////////////////////////////////////////////
 void PlaybackHandle::Resume()
 {
   this->dataPtr->Resume();
@@ -715,6 +771,24 @@ void PlaybackHandle::WaitUntilFinished()
 bool PlaybackHandle::Finished() const
 {
   return this->dataPtr->finished;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::StartTime() const
+{
+  return this->dataPtr->playbackStartTime;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::CurrentTime() const
+{
+  return this->dataPtr->playbackTime;
+}
+
+//////////////////////////////////////////////////
+std::chrono::nanoseconds PlaybackHandle::EndTime() const
+{
+  return this->dataPtr->playbackEndTime;
 }
 
 //////////////////////////////////////////////////

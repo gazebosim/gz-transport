@@ -1,4 +1,6 @@
-# Nodes and topics
+\page nodestopics Nodes and Topics
+
+Next Tutorial: \ref messages
 
 ## Nodes
 

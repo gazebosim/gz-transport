@@ -47,6 +47,11 @@ namespace ignition
         /// \param[in] _old the instance being moved into this one
         public: Batch(Batch &&_old);  // NOLINT
 
+        /// \brief Move assignement operator
+        /// \param[in] _other the new Batch replacing the current one
+        /// \return The updated Batch instance.
+        public: Batch& operator=(Batch &&_other); // NOLINT
+
         /// \brief destructor
         public: ~Batch();
 
@@ -66,8 +71,17 @@ namespace ignition
         ///   to a valid message
         public: iterator end();
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private implementation
         private: std::unique_ptr<BatchPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
         /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer
