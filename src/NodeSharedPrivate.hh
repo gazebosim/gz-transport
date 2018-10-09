@@ -53,9 +53,6 @@ namespace ignition
       {
       }
 
-      /// A thread pool
-      public: WorkerPool workerPool;
-
       /// \brief Initialize security
       public: void SecurityInit();
 
@@ -118,6 +115,9 @@ namespace ignition
 
       /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
       public: std::mutex exitMutex;
+
+      /// A thread pool
+      public: WorkerPool workerPool;
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
