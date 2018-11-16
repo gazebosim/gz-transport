@@ -109,7 +109,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 
   std::string subscriberPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPubSubSubscriber_aux");
+     "INTEGRATION_twoProcsPubSubSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
@@ -148,7 +148,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 
   std::string subscriberPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPubSubSubscriber_aux");
+     "INTEGRATION_twoProcsPubSubSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
@@ -183,7 +183,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPublisher_aux");
+     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -210,7 +210,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPublisher_aux");
+     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -242,7 +242,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPublisher_aux");
+     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -282,7 +282,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesPublisher_aux");
+     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -424,7 +424,7 @@ TEST(NodeTest, PubThrottled)
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcessesPublisher_aux");
+     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -452,7 +452,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 TEST(twoProcPubSub, TopicList)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcessesPublisher_aux");
+     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -503,7 +503,7 @@ TEST(twoProcPubSub, TopicList)
 TEST(twoProcPubSub, TopicInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcessesPublisher_aux");
+     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
