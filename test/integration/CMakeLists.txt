@@ -45,11 +45,11 @@ set(auxiliary_files
   twoProcsPublisher_aux
   twoProcsPubSubSubscriber_aux
   twoProcsSrvCallReplier_aux
-  twoProcsSrvCallReplierIncreasing_aux
+  twoProcsSrvCallReplierInc_aux
   twoProcsrvCallWithoutInputReplier_aux
-  twoProcsSrvCallWithoutInputReplierIncreasing_aux
+  twoProcsSrvCallWithoutInputReplierInc_aux
   twoProcsSrvCallWithoutOutputReplier_aux
-  twoProcsSrvCallWithoutOutputReplierIncreasing_aux
+  twoProcsSrvCallWithoutOutputReplierInc_aux
 )
 
 # Build the auxiliary files.
