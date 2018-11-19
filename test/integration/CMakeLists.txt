@@ -46,7 +46,7 @@ set(auxiliary_files
   twoProcsPubSubSubscriber_aux
   twoProcsSrvCallReplier_aux
   twoProcsSrvCallReplierInc_aux
-  twoProcsrvCallWithoutInputReplier_aux
+  twoProcsSrvCallWithoutInputReplier_aux
   twoProcsSrvCallWithoutInputReplierInc_aux
   twoProcsSrvCallWithoutOutputReplier_aux
   twoProcsSrvCallWithoutOutputReplierInc_aux
