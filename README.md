@@ -99,14 +99,14 @@ cd build
 make doc
 ```
 
-1. Upload documentation to ignitionrobotics.org.
+Upload documentation to ignitionrobotics.org.
 
 ```
 cd build
 sh upload.sh
 ```
 
-1. If you're creating a new release, then tell ignitionrobotics.org about
+If you're creating a new release, then tell ignitionrobotics.org about
    the new version. For example:
 
 ```
