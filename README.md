@@ -2,7 +2,7 @@
 
 **Maintainer:** caguero AT openrobotics.org
 
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/issues)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-transport.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/issues)
 [![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
