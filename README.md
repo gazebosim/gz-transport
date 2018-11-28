@@ -29,10 +29,6 @@ of libraries designed to rapidly develop robot applications.
 
 * [Source Install](#markdown-header-source-install)
 
-    * [Prerequisites](#markdown-header-prerequisites)
-
-    * [Building from Source](#markdown-header-building-from-source)
-
 [Usage](#markdown-header-usage)
 
 [Documentation](#markdown-header-documentation)
@@ -84,17 +80,17 @@ Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on w
 
 ## Source Install
 
-See the [install][https://ignitionrobotics.org/tutorials/transport/5.0/md__data_ignition_ign-transport_tutorials_02_installation.html]
+See the [install](https://ignitionrobotics.org/tutorials/transport/5.0/md__data_ignition_ign-transport_tutorials_02_installation.html)
 section of the documentation.
 
 # Usage
 
-See [tutorials][https://ignitionrobotics.org/tutorials/transport/5.0/index.html] and the [example directory][https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default]
+See [tutorials](https://ignitionrobotics.org/tutorials/transport/5.0/index.html) and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default)
 in the source code.
 
 # Documentation
 
-See the [documentation page][https://ignitionrobotics.org/api/transport/6.0/index.html].
+Visit the [documentation page](https://ignitionrobotics.org/api/transport/6.0/index.html).
 
 ## Build documentation
 
