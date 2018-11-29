@@ -62,7 +62,8 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get up and running as quickly and painlessly as possible.
+We recommend following the [Binary Install](#markdown-header-binary-install)
+instructions to get up and running as quickly and painlessly as possible.
 
 The [Source Install](#markdown-header-source-install) instructions should be
 used if you need the very latest software improvements, you need to modify the
@@ -76,7 +77,8 @@ On Ubuntu systems, `apt-get` can be used to install `ignition-transport`:
 $ sudo apt install libignition-transport<#>-dev
 ```
 
-Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on which version you need.
+Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
+which version you need.
 
 ## Source Install
 
@@ -85,7 +87,8 @@ section of the documentation.
 
 # Usage
 
-See [tutorials](https://ignitionrobotics.org/tutorials/transport/5.0/index.html) and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default)
+See [tutorials](https://ignitionrobotics.org/tutorials/transport/5.0/index.html)
+and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default)
 in the source code.
 
 # Documentation
@@ -147,8 +150,14 @@ Please see
 
 # Versioning
 
-This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
+This library uses [Semantic Versioning](https://semver.org/). Additionally,
+this library is part of the [Ignition Robotics project](https://ignitionrobotics.org)
+which periodically releases a versioned set of compatible and complimentary
+libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for
+version and release information.
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE]https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+See also the [LICENSE]https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/LICENSE)
+file.
