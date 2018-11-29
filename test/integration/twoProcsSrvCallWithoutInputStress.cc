@@ -30,24 +30,28 @@ static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
+TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplierIncreasing_aux");
+     IGN_TRANSPORT_TEST_DIR,
+     "INTEGRATION_twoProcsSrvCallWithoutInputReplierInc_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
 
-  ignition::msgs::Int32 req;
+  ignition::msgs::Int32 response;
+  bool result;
+  unsigned int timeout = 1000;
   transport::Node node;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   for (int i = 0; i < 15000; i++)
   {
-    req.set_data(i);
-    ASSERT_TRUE(node.Request(g_topic, req));
+    ASSERT_TRUE(node.Request(g_topic, timeout, response, result));
+
+    // Check the service response.
+    ASSERT_TRUE(result);
   }
 
   // Need to kill the responser node running on an external process.

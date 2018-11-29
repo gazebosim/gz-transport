@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,20 @@
 
 using namespace ignition;
 
-static std::string g_partition; // NOLINT(*)
+static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutInput, ThousandCalls)
+TEST(twoProcSrvCall, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesSrvCallWithoutInputReplierIncreasing_aux");
+     "INTEGRATION_twoProcsSrvCallReplierInc_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
+    partition.c_str());
 
+  ignition::msgs::Int32 req;
   ignition::msgs::Int32 response;
   bool result;
   unsigned int timeout = 1000;
@@ -48,10 +49,12 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 
   for (int i = 0; i < 15000; i++)
   {
-    ASSERT_TRUE(node.Request(g_topic, timeout, response, result));
+    req.set_data(i);
+    ASSERT_TRUE(node.Request(g_topic, req, timeout, response, result));
 
     // Check the service response.
     ASSERT_TRUE(result);
+    EXPECT_EQ(i, response.data());
   }
 
   // Need to kill the responser node running on an external process.
@@ -62,10 +65,10 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 int main(int argc, char **argv)
 {
   // Get a random partition name.
-  g_partition = testing::getRandomNumber();
+  partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", g_partition.c_str(), 1);
+  setenv("IGN_PARTITION", partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

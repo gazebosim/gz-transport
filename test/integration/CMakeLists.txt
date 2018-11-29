@@ -3,15 +3,15 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   authPubSub.cc
   scopedTopic.cc
-  twoProcessesPubSub.cc
-  twoProcessesSrvCall.cc
-  twoProcessesSrvCallStress.cc
-  twoProcessesSrvCallSync1.cc
-  twoProcessesSrvCallWithoutInput.cc
-  twoProcessesSrvCallWithoutInputStress.cc
-  twoProcessesSrvCallWithoutInputSync1.cc
-  twoProcessesSrvCallWithoutOutput.cc
-  twoProcessesSrvCallWithoutOutputStress.cc
+  twoProcsPubSub.cc
+  twoProcsSrvCall.cc
+  twoProcsSrvCallStress.cc
+  twoProcsSrvCallSync1.cc
+  twoProcsSrvCallWithoutInput.cc
+  twoProcsSrvCallWithoutInputStress.cc
+  twoProcsSrvCallWithoutInputSync1.cc
+  twoProcsSrvCallWithoutOutput.cc
+  twoProcsSrvCallWithoutOutputStress.cc
 )
 
 # Test symbols having the right name on linux only.
@@ -42,14 +42,14 @@ set(auxiliary_files
   pub_aux
   pub_aux_throttled
   scopedTopicSubscriber_aux
-  twoProcessesPublisher_aux
-  twoProcessesPubSubSubscriber_aux
-  twoProcessesSrvCallReplier_aux
-  twoProcessesSrvCallReplierIncreasing_aux
-  twoProcessesSrvCallWithoutInputReplier_aux
-  twoProcessesSrvCallWithoutInputReplierIncreasing_aux
-  twoProcessesSrvCallWithoutOutputReplier_aux
-  twoProcessesSrvCallWithoutOutputReplierIncreasing_aux
+  twoProcsPublisher_aux
+  twoProcsPubSubSubscriber_aux
+  twoProcsSrvCallReplier_aux
+  twoProcsSrvCallReplierInc_aux
+  twoProcsSrvCallWithoutInputReplier_aux
+  twoProcsSrvCallWithoutInputReplierInc_aux
+  twoProcsSrvCallWithoutOutputReplier_aux
+  twoProcsSrvCallWithoutOutputReplierInc_aux
 )
 
 # Build the auxiliary files.
