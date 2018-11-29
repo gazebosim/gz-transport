@@ -1,4 +1,4 @@
-# Ignition Gazebo : A Robotic Simulator
+# Ignition Transport
 
 **Maintainer:** caguero AT openrobotics.org
 
@@ -159,5 +159,5 @@ version and release information.
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-See also the [LICENSE]https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/LICENSE)
+See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/LICENSE)
 file.
