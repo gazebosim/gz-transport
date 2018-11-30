@@ -47,15 +47,15 @@ of libraries designed to rapidly develop robot applications.
 
 # Features
 
-Ignition Transport is an open source communication library that allows sharing
-data between clients. In our context, a client is called a node. Nodes might be
-running within the same process in the same machine or in machines located in
-different continents. Ignition Transport is multi-platform (Linux, Mac OS X, and
-Windows), so all the low level details, such as data alignment or endianness are
-hidden for you.
+Ignition Transport is an open source communication library that allows
+exchanging data between clients. In our context, a client is called a node.
+Nodes might be running within the same process in the same machine or in
+machines located in different continents. Ignition Transport is multi-platform
+(Linux, Mac OS X, and Windows), so all the low level details, such as data
+alignment or endianness are hidden for you.
 
-Ignition Transport uses Google Protocol buffers as the data type for
-communicating between nodes. Users can define their own messages using the
+Ignition Transport uses Google Protocol buffers as the data serialization format
+for communicating between nodes. Users can define their own messages using the
 Protobuf utils, and then, exchange them between the nodes. Ignition Transport
 discovers, serializes and delivers messages to the destinations using a
 combination of custom code and ZeroMQ.
