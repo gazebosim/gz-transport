@@ -1,6 +1,6 @@
 # Ignition Transport
 
-**Maintainer:** caguero AT openrobotics.org
+**Maintainer:** caguero AT openrobotics DOT org
 
 [![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-transport.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/issues)
 [![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-transport.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests)
@@ -14,10 +14,7 @@ Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/ico
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-windows7-amd64)
 
-Ignition transport is a component in the ignition framework, a set
-of libraries designed to rapidly develop robot applications.
-
-  [http://ignitionrobotics.org](http://ignitionrobotics.org)
+Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
 # Table of Contents
 
@@ -127,16 +124,17 @@ $ make test
 
 # Folder Structure
 
-* `conf`: Configuration file for the integration with the `ign` CLI tool.
-* `example`: Example programs that use most of the Ignition Transport API.
-* `include`: C++ utility header files that get installed with
-`ignition-transport`.
-* `log`: All the code related with Ignition Transport logging.
-* `src`: Source code of the core library.
-* `test`: A directory of tests for the C++ utility component of
-`ignition-transport`.
-* `tools`: Scripts for continuous integration testing.
-* `tutorials`: A set of tutorials about Ignition Transport features.
+```
+ign-transport
+├── conf        Configuration file for the integration with the `ign` CLI tool.
+├── example     Example programs that use most of the Ignition Transport API.
+├── include     Header files that get installed.
+├── log         All the code related with Ignition Transport logging.
+├── src         Source code of the core library.
+├── test        A directory of integration, performance and regression tests.
+├── tools       Scripts for continuous integration testing.
+└── tutorials   A set of tutorials about Ignition Transport features.
+```
 
 # Contributing
 
