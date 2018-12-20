@@ -30,7 +30,6 @@
 #include <queue>
 #include <vector>
 
-#include "WorkerPool.hh"
 #include "ignition/transport/Discovery.hh"
 
 namespace ignition
@@ -54,9 +53,6 @@ namespace ignition
                 replier(new zmq::socket_t(*context, ZMQ_ROUTER))
       {
       }
-
-      /// A thread pool
-      public: WorkerPool workerPool;
 
       /// \brief Initialize security
       public: void SecurityInit();
