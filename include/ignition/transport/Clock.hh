@@ -21,6 +21,8 @@
 #include <memory>
 #include <string>
 
+#include <ignition/utilities/SuppressWarning.hh>
+
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
@@ -86,17 +88,10 @@ namespace ignition
         /// \internal Implementation of this class
         private: class Implementation;
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
         /// \internal Pointer to the implementation of this class
+        IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+        IGN_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
       };
 
       //////////////////////////////////////////////////
@@ -122,17 +117,10 @@ namespace ignition
         /// \internal Implementation of this class
         private: class Implementation;
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
         /// \internal Pointer to the implementation of this class
+        IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+        IGN_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
       };
     }
   }
