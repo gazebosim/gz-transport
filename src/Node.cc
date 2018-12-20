@@ -368,12 +368,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       }
     }
 
-    // Launch local callback in a thread. We get the raw pointer to
-    // the subscription handler because the object itself will change
-    // in this loop.
-    //
-    // This supports asynchronous intraprocess callbacks,
-    // which has the same behavior as interprocess callbacks.
+    // Add the publish message details to the publish queue. The message
+    // will be published asynchronously to the local and raw callbacks.
     {
       std::unique_lock<std::mutex> queueLock(
           this->dataPtr->shared->dataPtr->pubThreadMutex);
