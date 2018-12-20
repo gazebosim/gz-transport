@@ -27,6 +27,7 @@
 #endif
 
 #include <memory>
+#include <queue>
 
 #include "WorkerPool.hh"
 #include "ignition/transport/Discovery.hh"
@@ -121,6 +122,35 @@ namespace ignition
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
+
+      public: std::thread pubThread;
+
+      public: std::mutex pubThreadMutex;
+
+      /// \brief used to signal when new work is available
+      public: std::condition_variable signalNewPub;
+
+      public: class PublishDetails
+              {
+                public: ~PublishDetails()
+                        {
+                          delete this->msgCopy;
+                          this->msgCopy = nullptr;
+                          this->localHandlers.clear();
+                        }
+                public: std::vector<ISubscriptionHandlerPtr> localHandlers;
+                public: std::vector<RawSubscriptionHandlerPtr> rawHandlers;
+
+                public: std::shared_ptr<char> sharedBuffer;
+                public: ProtoMsg *msgCopy = nullptr;
+                public: MessageInfo info;
+                public: std::size_t msgSize;
+              };
+
+
+      public: std::queue<PublishDetails*> pubQueue;
+
+      public: void PublishThread();
     };
     }
   }

@@ -296,57 +296,41 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
+    NodeSharedPrivate::PublishDetails *pubOrder =
+      new NodeSharedPrivate::PublishDetails;
+
     // Create and populate the message information object.
     // This must be a shared pointer so that we can pass it to
     // multiple threads below, and then allow this function to go
     // out of scope.
-    std::shared_ptr<MessageInfo> info = std::make_shared<MessageInfo>(
-        this->dataPtr->CreateMessageInfo());
+    pubOrder->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
+    pubOrder->info.SetType(this->dataPtr->publisher.MsgTypeName());
 
-    std::shared_ptr<ProtoMsg> msgCopy(_msg.New());
-    msgCopy->CopyFrom(_msg);
+    pubOrder->msgCopy = _msg.New();
+    pubOrder->msgCopy->CopyFrom(_msg);
 
     if (subscribers.haveLocal)
     {
-      for (auto &node : subscribers.localHandlers)
+      for (const std::pair<std::string, ISubscriptionHandler_M> &node :
+           subscribers.localHandlers)
       {
-        for (auto &handler : node.second)
+        for (const std::pair<std::string, ISubscriptionHandlerPtr> &handler :
+             node.second)
         {
-          const ISubscriptionHandlerPtr &localHandler = handler.second;
-
-          if (!localHandler)
+          if (!handler.second)
           {
             std::cerr << "Node::Publisher::Publish(): "
                       << "NULL local subscription handler" << std::endl;
             continue;
           }
 
-          if (localHandler->TypeName() != kGenericMessageType &&
-              localHandler->TypeName() != _msg.GetTypeName())
+          if (handler.second->TypeName() != kGenericMessageType &&
+              handler.second->TypeName() != _msg.GetTypeName())
           {
             continue;
           }
 
-          // Launch local callback in a thread. We get the raw pointer to
-          // the subscription handler because the object itself will change
-          // in this loop.
-          //
-          // This supports asynchronous intraprocess callbacks,
-          // which has the same behavior as interprocess callbacks.
-          this->dataPtr->shared->dataPtr->workerPool.AddWork(
-              [localHandler, msgCopy, info] ()
-              {
-                try
-                {
-                  localHandler->RunLocalCallback(*msgCopy, *info);
-                }
-                catch (...)
-                {
-                  std::cerr << "Exception occurred in a local callback "
-                    << "on topic [" << info->Topic() << "] with message ["
-                    << msgCopy->DebugString() << "]" << std::endl;
-                }
-              });
+          pubOrder->localHandlers.push_back(handler.second);
         }
       }
     }
@@ -373,33 +357,32 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          if (!sharedBuffer)
+          if (!pubOrder->sharedBuffer)
           {
+            pubOrder->msgSize = msgSize;
             // If the sharedBuffer has not been created, do so now.
-            sharedBuffer = std::shared_ptr<char>(
+            pubOrder->sharedBuffer = std::shared_ptr<char>(
                   new char[msgSize], std::default_delete<char[]>());
-            memcpy(sharedBuffer.get(), msgBuffer, msgSize);
+            memcpy(pubOrder->sharedBuffer.get(), msgBuffer, msgSize);
           }
-
-          this->dataPtr->shared->dataPtr->workerPool.AddWork(
-              [rawHandler, sharedBuffer, msgSize, info, msgCopy] ()
-              {
-                try
-                {
-                  rawHandler->RunRawCallback(
-                        sharedBuffer.get(), msgSize, *info);
-                }
-                catch (...)
-                {
-                  std::cerr << "Exception occured in a local raw callback "
-                            << "on topic [" << info->Topic() << "] with "
-                            << "message [" << msgCopy->DebugString() << "]"
-                            << std::endl;
-                }
-              });
+          pubOrder->rawHandlers.push_back(rawHandler);
         }
       }
     }
+
+    // Launch local callback in a thread. We get the raw pointer to
+    // the subscription handler because the object itself will change
+    // in this loop.
+    //
+    // This supports asynchronous intraprocess callbacks,
+    // which has the same behavior as interprocess callbacks.
+    {
+      std::unique_lock<std::mutex> queueLock(
+          this->dataPtr->shared->dataPtr->pubThreadMutex);
+      this->dataPtr->shared->dataPtr->pubQueue.push(pubOrder);
+    }
+
+    this->dataPtr->shared->dataPtr->signalNewPub.notify_one();
   }
 
   // Handle remote subscribers.
@@ -987,3 +970,5 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
   return this->dataPtr->SubscribeHelper(_fullyQualifiedTopic);
 }
+
+

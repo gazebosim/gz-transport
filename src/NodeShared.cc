@@ -25,6 +25,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -206,6 +207,9 @@ NodeShared::NodeShared()
   // Start the discovery services.
   this->dataPtr->msgDiscovery->Start();
   this->dataPtr->srvDiscovery->Start();
+
+  this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
+      this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
@@ -215,6 +219,8 @@ NodeShared::~NodeShared()
   this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
   this->dataPtr->exitMutex.unlock();
+  this->dataPtr->signalNewPub.notify_all();
+  this->dataPtr->pubThread.join();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
@@ -1427,3 +1433,63 @@ void NodeSharedPrivate::AccessControlHandler()
   sock->close();
 }
 
+/////////////////////////////////////////////////
+void NodeSharedPrivate::PublishThread()
+{
+  PublishDetails *order = nullptr;
+  while (!this->exit)
+  {
+    {
+      std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
+
+      if (this->pubQueue.empty())
+        this->signalNewPub.wait(queueLock);
+
+      if (this->exit)
+        break;
+
+      order = this->pubQueue.front();
+      this->pubQueue.pop();
+    }
+      for (auto &handler : order->localHandlers)
+      {
+        try
+        {
+          /*auto handle = std::async(std::launch::async,
+                &ISubscriptionHandler::RunLocalCallback, handler.get(),
+              *(order->msgCopy), order->info);
+              */
+          auto handle = std::async(std::launch::async, [&] {
+            handler->RunLocalCallback(*(order->msgCopy), order->info);
+          });
+        }
+        catch (...)
+        {
+          std::cerr << "Exception occurred in a local callback "
+            << "on topic [" << order->info.Topic() << "] with message ["
+            << order->msgCopy->DebugString() << "]" << std::endl;
+        }
+      }
+
+      for (auto &handler : order->rawHandlers)
+      {
+        try
+        {
+          auto handle = std::async(std::launch::async, [&] {
+              handler->RunRawCallback(order->sharedBuffer.get(), order->msgSize,
+                  order->info);
+              });
+        }
+        catch (...)
+        {
+          std::cerr << "Exception occured in a local raw callback "
+            << "on topic [" << order->info.Topic() << "] with "
+            << "message [" << order->msgCopy->DebugString() << "]"
+            << std::endl;
+        }
+      }
+
+    delete order;
+    order = nullptr;
+  }
+}
