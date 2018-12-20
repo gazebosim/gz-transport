@@ -1446,7 +1446,7 @@ void NodeSharedPrivate::PublishThread()
     {
       std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
 
-      // Wait for more messages if the queue is empty. Otherwiser get the
+      // Wait for more messages if the queue is empty. Otherwise get the
       // next message and continue.
       if (this->pubQueue.empty())
         this->signalNewPub.wait(queueLock);
