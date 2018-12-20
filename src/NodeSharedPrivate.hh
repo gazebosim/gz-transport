@@ -135,21 +135,24 @@ namespace ignition
               {
                 public: ~PublishDetails()
                         {
+                          this->localHandlers.clear();
+                          this->rawHandlers.clear();
+
                           delete this->msgCopy;
                           this->msgCopy = nullptr;
-                          this->localHandlers.clear();
                         }
+
                 public: std::vector<ISubscriptionHandlerPtr> localHandlers;
                 public: std::vector<RawSubscriptionHandlerPtr> rawHandlers;
 
-                public: std::shared_ptr<char> sharedBuffer;
+                public: std::shared_ptr<char> sharedBuffer = nullptr;
                 public: ProtoMsg *msgCopy = nullptr;
                 public: MessageInfo info;
-                public: std::size_t msgSize;
+                public: std::size_t msgSize = 0;
               };
 
 
-      public: std::queue<PublishDetails*> pubQueue;
+      public: std::queue<std::unique_ptr<PublishDetails>> pubQueue;
 
       public: void PublishThread();
     };

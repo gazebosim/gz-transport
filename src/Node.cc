@@ -296,8 +296,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    NodeSharedPrivate::PublishDetails *pubOrder =
-      new NodeSharedPrivate::PublishDetails;
+    std::unique_ptr<NodeSharedPrivate::PublishDetails> pubOrder(
+      new NodeSharedPrivate::PublishDetails);
 
     // Create and populate the message information object.
     // This must be a shared pointer so that we can pass it to
@@ -379,7 +379,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       std::unique_lock<std::mutex> queueLock(
           this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push(pubOrder);
+      this->dataPtr->shared->dataPtr->pubQueue.push(std::move(pubOrder));
     }
 
     this->dataPtr->shared->dataPtr->signalNewPub.notify_one();

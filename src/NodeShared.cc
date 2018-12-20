@@ -1436,7 +1436,7 @@ void NodeSharedPrivate::AccessControlHandler()
 /////////////////////////////////////////////////
 void NodeSharedPrivate::PublishThread()
 {
-  PublishDetails *order = nullptr;
+  std::unique_ptr<PublishDetails> order = nullptr;
   while (!this->exit)
   {
     {
@@ -1448,37 +1448,33 @@ void NodeSharedPrivate::PublishThread()
       if (this->exit)
         break;
 
-      order = this->pubQueue.front();
+      order = std::move(this->pubQueue.front());
       this->pubQueue.pop();
     }
-      for (auto &handler : order->localHandlers)
-      {
-        try
-        {
-          /*auto handle = std::async(std::launch::async,
-                &ISubscriptionHandler::RunLocalCallback, handler.get(),
-              *(order->msgCopy), order->info);
-              */
-          auto handle = std::async(std::launch::async, [&] {
-            handler->RunLocalCallback(*(order->msgCopy), order->info);
-          });
-        }
-        catch (...)
-        {
-          std::cerr << "Exception occurred in a local callback "
-            << "on topic [" << order->info.Topic() << "] with message ["
-            << order->msgCopy->DebugString() << "]" << std::endl;
-        }
-      }
 
-      for (auto &handler : order->rawHandlers)
-      {
+    for (auto &handler : order->localHandlers)
+    {
+        std::async(std::launch::async, [&] {
+          try
+          {
+            handler->RunLocalCallback(*(order->msgCopy), order->info);
+          }
+          catch (...)
+          {
+            std::cerr << "Exception occurred in a local callback "
+              << "on topic [" << order->info.Topic() << "] with message ["
+              << order->msgCopy->DebugString() << "]" << std::endl;
+          }
+        });
+    }
+
+    for (auto &handler : order->rawHandlers)
+    {
+      std::async(std::launch::async, [&] {
         try
         {
-          auto handle = std::async(std::launch::async, [&] {
-              handler->RunRawCallback(order->sharedBuffer.get(), order->msgSize,
-                  order->info);
-              });
+          handler->RunRawCallback(order->sharedBuffer.get(), order->msgSize,
+                                  order->info);
         }
         catch (...)
         {
@@ -1487,9 +1483,7 @@ void NodeSharedPrivate::PublishThread()
             << "message [" << order->msgCopy->DebugString() << "]"
             << std::endl;
         }
-      }
-
-    delete order;
-    order = nullptr;
+      });
+    }
   }
 }
