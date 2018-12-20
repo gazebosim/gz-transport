@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <queue>
+#include <vector>
 
 #include "WorkerPool.hh"
 #include "ignition/transport/Discovery.hh"
