@@ -25,7 +25,6 @@
 
 #include <chrono>
 #include <cstring>
-#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -208,6 +207,7 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->Start();
   this->dataPtr->srvDiscovery->Start();
 
+  // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
       this->dataPtr.get());
 }
@@ -219,6 +219,8 @@ NodeShared::~NodeShared()
   this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
   this->dataPtr->exitMutex.unlock();
+
+  // Notify the local pubthread and join.
   this->dataPtr->signalNewPub.notify_all();
   this->dataPtr->pubThread.join();
 
@@ -1436,54 +1438,59 @@ void NodeSharedPrivate::AccessControlHandler()
 /////////////////////////////////////////////////
 void NodeSharedPrivate::PublishThread()
 {
-  std::unique_ptr<PublishDetails> order = nullptr;
+  std::unique_ptr<PublishMsgDetails> msgDetails = nullptr;
+  // Loop until exits
   while (!this->exit)
   {
+    // Lock the mutex, and acquire the next message to be published.
     {
       std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
 
+      // Wait for more messages if the queue is empty. Otherwiser get the
+      // next message and continue.
       if (this->pubQueue.empty())
         this->signalNewPub.wait(queueLock);
 
+      // Stop early on exit.
       if (this->exit)
         break;
 
-      order = std::move(this->pubQueue.front());
+      // Get the message
+      msgDetails = std::move(this->pubQueue.front());
       this->pubQueue.pop();
     }
 
-    for (auto &handler : order->localHandlers)
+    // Send the message to all the local handlers.
+    for (auto &handler : msgDetails->localHandlers)
     {
-        std::async(std::launch::async, [&] {
-          try
-          {
-            handler->RunLocalCallback(*(order->msgCopy), order->info);
-          }
-          catch (...)
-          {
-            std::cerr << "Exception occurred in a local callback "
-              << "on topic [" << order->info.Topic() << "] with message ["
-              << order->msgCopy->DebugString() << "]" << std::endl;
-          }
-        });
+      try
+      {
+        handler->RunLocalCallback(*(msgDetails->msgCopy.get()),
+            msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occurred in a local callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with message ["
+          << msgDetails->msgCopy->DebugString() << "]" << std::endl;
+      }
     }
 
-    for (auto &handler : order->rawHandlers)
+    // Send the message to all the raw handlers.
+    for (auto &handler : msgDetails->rawHandlers)
     {
-      std::async(std::launch::async, [&] {
-        try
-        {
-          handler->RunRawCallback(order->sharedBuffer.get(), order->msgSize,
-                                  order->info);
-        }
-        catch (...)
-        {
-          std::cerr << "Exception occured in a local raw callback "
-            << "on topic [" << order->info.Topic() << "] with "
-            << "message [" << order->msgCopy->DebugString() << "]"
-            << std::endl;
-        }
-      });
+      try
+      {
+        handler->RunRawCallback(msgDetails->sharedBuffer.get(),
+            msgDetails->msgSize, msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occured in a local raw callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with "
+          << "message [" << msgDetails->msgCopy->DebugString() << "]"
+          << std::endl;
+      }
     }
   }
 }

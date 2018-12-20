@@ -296,18 +296,18 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    std::unique_ptr<NodeSharedPrivate::PublishDetails> pubOrder(
-      new NodeSharedPrivate::PublishDetails);
+    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> pubMsgDetails(
+      new NodeSharedPrivate::PublishMsgDetails);
 
     // Create and populate the message information object.
     // This must be a shared pointer so that we can pass it to
     // multiple threads below, and then allow this function to go
     // out of scope.
-    pubOrder->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
-    pubOrder->info.SetType(this->dataPtr->publisher.MsgTypeName());
+    pubMsgDetails->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
+    pubMsgDetails->info.SetType(this->dataPtr->publisher.MsgTypeName());
 
-    pubOrder->msgCopy = _msg.New();
-    pubOrder->msgCopy->CopyFrom(_msg);
+    pubMsgDetails->msgCopy.reset(_msg.New());
+    pubMsgDetails->msgCopy->CopyFrom(_msg);
 
     if (subscribers.haveLocal)
     {
@@ -330,14 +330,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          pubOrder->localHandlers.push_back(handler.second);
+          pubMsgDetails->localHandlers.push_back(handler.second);
         }
       }
     }
 
     if (subscribers.haveRaw)
     {
-      std::shared_ptr<char> sharedBuffer;
       for (auto &node : subscribers.rawHandlers)
       {
         for (auto &handler : node.second)
@@ -357,15 +356,14 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
             continue;
           }
 
-          if (!pubOrder->sharedBuffer)
+          if (!pubMsgDetails->sharedBuffer)
           {
-            pubOrder->msgSize = msgSize;
+            pubMsgDetails->msgSize = msgSize;
             // If the sharedBuffer has not been created, do so now.
-            pubOrder->sharedBuffer = std::shared_ptr<char>(
-                  new char[msgSize], std::default_delete<char[]>());
-            memcpy(pubOrder->sharedBuffer.get(), msgBuffer, msgSize);
+            pubMsgDetails->sharedBuffer.reset(new char[msgSize]);
+            memcpy(pubMsgDetails->sharedBuffer.get(), msgBuffer, msgSize);
           }
-          pubOrder->rawHandlers.push_back(rawHandler);
+          pubMsgDetails->rawHandlers.push_back(rawHandler);
         }
       }
     }
@@ -379,7 +377,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       std::unique_lock<std::mutex> queueLock(
           this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push(std::move(pubOrder));
+      this->dataPtr->shared->dataPtr->pubQueue.push(std::move(pubMsgDetails));
     }
 
     this->dataPtr->shared->dataPtr->signalNewPub.notify_one();
@@ -970,5 +968,3 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
   return this->dataPtr->SubscribeHelper(_fullyQualifiedTopic);
 }
-
-
