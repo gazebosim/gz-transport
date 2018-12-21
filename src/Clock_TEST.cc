@@ -37,11 +37,12 @@ TEST(ClockTest, WallClock)
       transport::WallClock::Instance();
   ASSERT_TRUE(clock != nullptr);
   EXPECT_TRUE(clock->IsReady());
-  const std::chrono::milliseconds sleepTime(100);
+  const std::chrono::nanoseconds sleepTime(100000000);
   const std::chrono::nanoseconds startTime = clock->Time();
   std::this_thread::sleep_for(sleepTime);
   const std::chrono::nanoseconds endTime = clock->Time();
-  EXPECT_GE(endTime - startTime, sleepTime);
+  EXPECT_GE(endTime - startTime, sleepTime) << "Expected["
+    << (endTime-startTime).count() << "] Actual[" << sleepTime.count() << "]\n";
 }
 
 //////////////////////////////////////////////////
