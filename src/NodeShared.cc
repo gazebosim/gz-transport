@@ -206,6 +206,10 @@ NodeShared::NodeShared()
   // Start the discovery services.
   this->dataPtr->msgDiscovery->Start();
   this->dataPtr->srvDiscovery->Start();
+
+  // Create the local publish thread.
+  this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
+      this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
@@ -215,6 +219,10 @@ NodeShared::~NodeShared()
   this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
   this->dataPtr->exitMutex.unlock();
+
+  // Notify the local pubthread and join.
+  this->dataPtr->signalNewPub.notify_all();
+  this->dataPtr->pubThread.join();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
@@ -1427,3 +1435,62 @@ void NodeSharedPrivate::AccessControlHandler()
   sock->close();
 }
 
+/////////////////////////////////////////////////
+void NodeSharedPrivate::PublishThread()
+{
+  std::unique_ptr<PublishMsgDetails> msgDetails = nullptr;
+  // Loop until exits
+  while (!this->exit)
+  {
+    // Lock the mutex, and acquire the next message to be published.
+    {
+      std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
+
+      // Wait for more messages if the queue is empty. Otherwise get the
+      // next message and continue.
+      if (this->pubQueue.empty())
+        this->signalNewPub.wait(queueLock);
+
+      // Stop early on exit.
+      if (this->exit)
+        break;
+
+      // Get the message
+      msgDetails = std::move(this->pubQueue.front());
+      this->pubQueue.pop();
+    }
+
+    // Send the message to all the local handlers.
+    for (auto &handler : msgDetails->localHandlers)
+    {
+      try
+      {
+        handler->RunLocalCallback(*(msgDetails->msgCopy.get()),
+            msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occurred in a local callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with message ["
+          << msgDetails->msgCopy->DebugString() << "]" << std::endl;
+      }
+    }
+
+    // Send the message to all the raw handlers.
+    for (auto &handler : msgDetails->rawHandlers)
+    {
+      try
+      {
+        handler->RunRawCallback(msgDetails->sharedBuffer.get(),
+            msgDetails->msgSize, msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occured in a local raw callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with "
+          << "message [" << msgDetails->msgCopy->DebugString() << "]"
+          << std::endl;
+      }
+    }
+  }
+}

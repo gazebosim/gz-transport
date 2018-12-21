@@ -98,8 +98,8 @@ void NetworkClock::Implementation::SetTime(std::chrono::nanoseconds _time)
 {
   const std::chrono::seconds timeAsSecs =
       std::chrono::duration_cast<std::chrono::seconds>(_time);
-  int secs = std::floor(timeAsSecs.count());
-  int nsecs = std::floor((_time - timeAsSecs).count());
+  int secs = static_cast<int>(std::floor(timeAsSecs.count()));
+  int nsecs = static_cast<int>(std::floor((_time - timeAsSecs).count()));
 
   ignition::msgs::Clock msg;
   switch (this->clockTimeBase)

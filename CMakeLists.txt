@@ -10,6 +10,7 @@ project(ignition-transport6 VERSION 6.0.0)
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
 find_package(ignition-cmake2 REQUIRED)
+set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
