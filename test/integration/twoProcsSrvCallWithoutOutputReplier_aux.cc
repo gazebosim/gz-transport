@@ -16,7 +16,6 @@
 */
 
 #include <chrono>
-#include <climits>
 #include <string>
 #include <ignition/msgs.hh>
 
@@ -26,14 +25,14 @@
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
-static int kForever = INT_MAX;
+static std::string g_topic = "/foo"; // NOLINT(*)
+static int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without output.
 void srvWithoutOutput(const ignition::msgs::Int32 &_req)
 {
-  EXPECT_GE(_req.data(), 0);
+  EXPECT_EQ(_req.data(), g_data);
 }
 
 //////////////////////////////////////////////////
@@ -41,15 +40,7 @@ void runReplier()
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutOutput));
-
-  // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(kForever));
-}
-
-//////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutOuputReplierAux, SrvProcReplier)
-{
-  runReplier();
+  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 
 //////////////////////////////////////////////////
@@ -64,6 +55,5 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
 
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  runReplier();
 }

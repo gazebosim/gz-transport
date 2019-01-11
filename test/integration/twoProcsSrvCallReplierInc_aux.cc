@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <climits>
 #include <string>
 #include <ignition/msgs.hh>
 
@@ -25,22 +26,31 @@
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
-static int g_data = 5;
+static std::string g_topic = "/foo"; // NOLINT(*)
+static int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
-/// \brief Provide a service without output.
-void srvWithoutOutput(const ignition::msgs::Int32 &_req)
+/// \brief Provide a service.
+bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 {
-  EXPECT_EQ(_req.data(), g_data);
+  _rep.set_data(_req.data());
+  return true;
 }
 
 //////////////////////////////////////////////////
 void runReplier()
 {
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutOutput));
-  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
+
+  // Run the node forever. Should be killed by the test that uses this.
+  std::this_thread::sleep_for(std::chrono::milliseconds(Forever));
+}
+
+//////////////////////////////////////////////////
+TEST(twoProcSrvCallReplierAux, SrvProcReplier)
+{
+  runReplier();
 }
 
 //////////////////////////////////////////////////
@@ -55,5 +65,6 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
 
-  runReplier();
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
