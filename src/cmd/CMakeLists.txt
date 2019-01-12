@@ -9,13 +9,13 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 # the build directory.
 set(library_location "$<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>")
 
+# Affected by https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if(NOT WIN32)
 configure_file(
   "cmdtransport.rb.in"
   "${cmd_script_configured_test}"
   @ONLY)
 
-# Affected by https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
-if(NOT WIN32)
 file(GENERATE
   OUTPUT "${cmd_script_generated_test}"
   INPUT  "${cmd_script_configured_test}")
