@@ -10,6 +10,8 @@ set(cmd_log_script_configured_test "${cmd_log_script_generated_test}.configured"
 # within the build directory
 set(log_library_location "$<TARGET_FILE:${log_lib_target}>")
 
+# Affected by https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if(NOT WIN32)
 configure_file(
   "cmdlog.rb.in"
   "${cmd_log_script_configured_test}"
@@ -18,6 +20,7 @@ configure_file(
 file(GENERATE
   OUTPUT "${cmd_log_script_generated_test}"
   INPUT  "${cmd_log_script_configured_test}")
+endif()
 
 # Used for internal testing.
 set(ign_log_ruby_path "${cmd_log_script_generated_test}")
