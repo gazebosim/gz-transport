@@ -14,10 +14,12 @@ configure_file(
   "${cmd_script_configured_test}"
   @ONLY)
 
+# Affected by https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if(NOT WIN32)
 file(GENERATE
   OUTPUT "${cmd_script_generated_test}"
   INPUT  "${cmd_script_configured_test}")
-
+endif()
 
 #===============================================================================
 # Used for the installed version.
