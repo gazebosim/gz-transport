@@ -36,9 +36,12 @@ configure_file(
   "${cmd_script_configured}"
   @ONLY)
 
+# Affected by https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if(NOT WIN32)
 file(GENERATE
   OUTPUT "${cmd_script_generated}"
   INPUT  "${cmd_script_configured}")
+endif()
 
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
