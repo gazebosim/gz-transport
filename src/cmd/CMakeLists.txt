@@ -9,15 +9,17 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 # the build directory.
 set(library_location "$<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>")
 
-configure_file(
-  "cmdtransport.rb.in"
-  "${cmd_script_configured_test}"
-  @ONLY)
+# For Windows see: https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if (NOT WIN32)
+  configure_file(
+    "cmdtransport.rb.in"
+    "${cmd_script_configured_test}"
+    @ONLY)
 
-file(GENERATE
-  OUTPUT "${cmd_script_generated_test}"
-  INPUT  "${cmd_script_configured_test}")
-
+  file(GENERATE
+    OUTPUT "${cmd_script_generated_test}"
+    INPUT  "${cmd_script_configured_test}")
+endif()
 
 #===============================================================================
 # Used for the installed version.
@@ -31,14 +33,17 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 # within the install directory structure.
 set(library_location "../../../${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${PROJECT_LIBRARY_TARGET_NAME}>")
 
-configure_file(
-  "cmdtransport.rb.in"
-  "${cmd_script_configured}"
-  @ONLY)
+# For Windows see: https://bitbucket.org/ignitionrobotics/ign-transport/issues/94
+if (NOT WIN32)
+  configure_file(
+    "cmdtransport.rb.in"
+    "${cmd_script_configured}"
+    @ONLY)
 
-file(GENERATE
-  OUTPUT "${cmd_script_generated}"
-  INPUT  "${cmd_script_configured}")
+  file(GENERATE
+    OUTPUT "${cmd_script_generated}"
+    INPUT  "${cmd_script_configured}")
+endif()
 
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
