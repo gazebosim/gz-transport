@@ -16,7 +16,7 @@
 */
 
 #include <chrono>
-#include <climits>
+#include <cstdlib>
 #include <string>
 #include <ignition/msgs.hh>
 
@@ -26,45 +26,42 @@
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
-static int g_data = 5;
-static int kForever = INT_MAX;
+static std::string g_partition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-/// \brief Provide a service without input.
-bool srvWithoutInput(ignition::msgs::Int32 &_rep)
+TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
-  _rep.set_data(g_data);
-  return true;
-}
+  std::string responser_path = testing::portablePathUnion(
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcsSrvCallWithoutOutputReplierInc_aux");
 
-//////////////////////////////////////////////////
-void runReplier()
-{
+  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
+    g_partition.c_str());
+
+  ignition::msgs::Int32 req;
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
 
-  // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(kForever));
-}
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-//////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutInputReplierAux, SrvProcReplier)
-{
-  runReplier();
+  for (int i = 0; i < 15000; i++)
+  {
+    req.set_data(i);
+    ASSERT_TRUE(node.Request(g_topic, req));
+  }
+
+  // Need to kill the responser node running on an external process.
+  testing::killFork(pi);
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
+  // Get a random partition name.
+  g_partition = testing::getRandomNumber();
 
-  // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  // Set the partition name for this process.
+  setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

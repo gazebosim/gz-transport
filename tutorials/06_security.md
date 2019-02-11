@@ -1,4 +1,8 @@
-# Security
+\page security Security
+
+Next Tutorial: \ref logging
+
+## Overview
 
 Ignition Transport's default mode of communication is unsecure, which means
 no authentication or encryption is used. Unsecure communication is the

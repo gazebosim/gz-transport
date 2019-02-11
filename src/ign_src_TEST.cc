@@ -28,13 +28,13 @@
 using namespace ignition;
 
 // Global constants.
-static const std::string g_topic   = "/topic";
-static const std::string g_service = "/echo";
-static const std::string g_intType = "ign_msgs.Int32";
-static const std::string g_reqData = "data: 10";
+static const std::string g_topic   = "/topic"; // NOLINT(*)
+static const std::string g_service = "/echo"; // NOLINT(*)
+static const std::string g_intType = "ign_msgs.Int32"; // NOLINT(*)
+static const std::string g_reqData = "data: 10"; // NOLINT(*)
 
 // Global variables.
-static std::string     g_partition;
+static std::string     g_partition; // NOLINT(*)
 static std::streambuf *g_stdOutFile;
 static std::streambuf *g_stdErrFile;
 

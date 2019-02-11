@@ -16,7 +16,7 @@
 */
 
 #include <chrono>
-#include <cstdlib>
+#include <climits>
 #include <string>
 #include <ignition/msgs.hh>
 
@@ -26,46 +26,45 @@
 
 using namespace ignition;
 
-static std::string g_partition;
-static std::string g_topic = "/foo";
+static std::string g_topic = "/foo"; // NOLINT(*)
+static int g_data = 5;
+static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutInput, ThousandCalls)
+/// \brief Provide a service without input.
+bool srvWithoutInput(ignition::msgs::Int32 &_rep)
 {
-  std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcessesSrvCallWithoutInputReplierIncreasing_aux");
+  _rep.set_data(g_data);
+  return true;
+}
 
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
-
-  ignition::msgs::Int32 response;
-  bool result;
-  unsigned int timeout = 1000;
+//////////////////////////////////////////////////
+void runReplier()
+{
   transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  // Run the node forever. Should be killed by the test that uses this.
+  std::this_thread::sleep_for(std::chrono::milliseconds(kForever));
+}
 
-  for (int i = 0; i < 15000; i++)
-  {
-    ASSERT_TRUE(node.Request(g_topic, timeout, response, result));
-
-    // Check the service response.
-    ASSERT_TRUE(result);
-  }
-
-  // Need to kill the responser node running on an external process.
-  testing::killFork(pi);
+//////////////////////////////////////////////////
+TEST(twoProcSrvCallWithoutInputReplierAux, SrvProcReplier)
+{
+  runReplier();
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  // Get a random partition name.
-  g_partition = testing::getRandomNumber();
+  if (argc != 2)
+  {
+    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    return -1;
+  }
 
-  // Set the partition name for this process.
-  setenv("IGN_PARTITION", g_partition.c_str(), 1);
+  // Set the partition name for this test.
+  setenv("IGN_PARTITION", argv[1], 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -27,10 +27,10 @@ namespace ignition
     SubscriptionHandlerBase::SubscriptionHandlerBase(
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
-      : hUuid(Uuid().ToString()),
-        opts(_opts),
-        lastCbTimestamp(std::chrono::seconds{0}),
+      : opts(_opts),
         periodNs(0.0),
+        hUuid(Uuid().ToString()),
+        lastCbTimestamp(std::chrono::seconds{0}),
         nUuid(_nUuid)
     {
       if (this->opts.Throttled())

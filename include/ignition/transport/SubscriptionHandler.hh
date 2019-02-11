@@ -86,21 +86,30 @@ namespace ignition
       /// \return true if the callback should be executed or false otherwise.
       protected: bool UpdateThrottling();
 
-      /// \brief Unique handler's UUID.
-      protected: std::string hUuid;
-
       /// \brief Subscribe options.
       protected: SubscribeOptions opts;
-
-      /// \brief Timestamp of the last callback executed.
-      protected: Timestamp lastCbTimestamp;
 
       /// \brief If throttling is enabled, the minimum period for receiving a
       /// message in nanoseconds.
       protected: double periodNs;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+      /// \brief Unique handler's UUID.
+      protected: std::string hUuid;
+
+      /// \brief Timestamp of the last callback executed.
+      protected: Timestamp lastCbTimestamp;
+
       /// \brief Node UUID.
       private: std::string nUuid;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
 
     /// \class ISubscriptionHandler SubscriptionHandler.hh
@@ -339,9 +348,19 @@ namespace ignition
       public: ~RawSubscriptionHandler();
 
       private: class Implementation;
+
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Pointer to the implementation of the class
       private: std::unique_ptr<Implementation> pimpl;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }

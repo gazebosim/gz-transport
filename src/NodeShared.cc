@@ -24,6 +24,7 @@
 #endif
 
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -31,7 +32,7 @@
 #include <thread>
 #include <vector>
 
-// ToDo: Remove after fixing the warnings.
+// TODO(anyone): Remove after fixing the warnings.
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
@@ -60,7 +61,7 @@
 using namespace ignition;
 using namespace transport;
 
-const std::string kIgnAuthDomain = "ign-auth";
+const char kIgnAuthDomain[] = "ign-auth";
 
 // Enum that encapsulates the possible values for ZeroMQ's setsocketopt
 // for ZMQ_PLAIN_SERVER. A value of 1 enables
@@ -205,6 +206,10 @@ NodeShared::NodeShared()
   // Start the discovery services.
   this->dataPtr->msgDiscovery->Start();
   this->dataPtr->srvDiscovery->Start();
+
+  // Create the local publish thread.
+  this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
+      this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
@@ -214,6 +219,10 @@ NodeShared::~NodeShared()
   this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
   this->dataPtr->exitMutex.unlock();
+
+  // Notify the local pubthread and join.
+  this->dataPtr->signalNewPub.notify_all();
+  this->dataPtr->pubThread.join();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
@@ -318,7 +327,7 @@ void NodeShared::RecvMsgUpdate()
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      // ToDo(caguero): Use this as extra metadata for the subscriber.
+      // TODO(caguero): Use this as extra metadata for the subscriber.
       if (!this->dataPtr->subscriber->recv(&msg, 0))
         return;
       // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
@@ -1254,7 +1263,7 @@ void NodeSharedPrivate::SecurityOnNewConnection()
   std::string user, pass;
 
   // Set username and pass if they exist
-  // \todo: This will cause the subscriber to connect only to secure
+  // \todo(anyone): This will cause the subscriber to connect only to secure
   // connections. Would be nice if the subscriber could still connect to
   // unsecure connections. This might require an unsecure and secure
   // subscriber.
@@ -1283,8 +1292,8 @@ void NodeSharedPrivate::SecurityInit()
     this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
         &asPlainSecurityServer, sizeof(asPlainSecurityServer));
 
-    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain.c_str(),
-        kIgnAuthDomain.size());
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain,
+        std::strlen(kIgnAuthDomain));
   }
 }
 
@@ -1389,7 +1398,7 @@ void NodeSharedPrivate::AccessControlHandler()
         }
 
         // Check the domain
-        if (domain != kIgnAuthDomain)
+        if (std::strcmp(domain.c_str(), kIgnAuthDomain) != 0)
         {
           sendAuthErrorHelper(*sock, "Invalid domain");
           continue;
@@ -1429,3 +1438,62 @@ void NodeSharedPrivate::AccessControlHandler()
   sock->close();
 }
 
+/////////////////////////////////////////////////
+void NodeSharedPrivate::PublishThread()
+{
+  std::unique_ptr<PublishMsgDetails> msgDetails = nullptr;
+  // Loop until exits
+  while (!this->exit)
+  {
+    // Lock the mutex, and acquire the next message to be published.
+    {
+      std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
+
+      // Wait for more messages if the queue is empty. Otherwise get the
+      // next message and continue.
+      if (this->pubQueue.empty())
+        this->signalNewPub.wait(queueLock);
+
+      // Stop early on exit.
+      if (this->exit)
+        break;
+
+      // Get the message
+      msgDetails = std::move(this->pubQueue.front());
+      this->pubQueue.pop();
+    }
+
+    // Send the message to all the local handlers.
+    for (auto &handler : msgDetails->localHandlers)
+    {
+      try
+      {
+        handler->RunLocalCallback(*(msgDetails->msgCopy.get()),
+            msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occurred in a local callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with message ["
+          << msgDetails->msgCopy->DebugString() << "]" << std::endl;
+      }
+    }
+
+    // Send the message to all the raw handlers.
+    for (auto &handler : msgDetails->rawHandlers)
+    {
+      try
+      {
+        handler->RunRawCallback(msgDetails->sharedBuffer.get(),
+            msgDetails->msgSize, msgDetails->info);
+      }
+      catch (...)
+      {
+        std::cerr << "Exception occured in a local raw callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with "
+          << "message [" << msgDetails->msgCopy->DebugString() << "]"
+          << std::endl;
+      }
+    }
+  }
+}

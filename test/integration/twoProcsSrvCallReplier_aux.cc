@@ -14,34 +14,33 @@
  * limitations under the License.
  *
 */
+
 #include <chrono>
 #include <string>
 #include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
+#include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-/// \brief A publisher node.
-void advertiseAndPublish()
+/// \brief Provide a service.
+bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 {
-  ignition::msgs::Vector3d msg;
-  msg.set_x(1.0);
-  msg.set_y(2.0);
-  msg.set_z(3.0);
+  _rep.set_data(_req.data());
+  return true;
+}
 
+//////////////////////////////////////////////////
+void runReplier()
+{
   transport::Node node;
-
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  pub.Publish(msg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-  pub.Publish(msg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
+  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 }
 
 //////////////////////////////////////////////////
@@ -56,5 +55,5 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
 
-  advertiseAndPublish();
+  runReplier();
 }

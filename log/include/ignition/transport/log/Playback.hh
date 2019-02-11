@@ -136,8 +136,17 @@ namespace ignition
         /// \internal Implementation of this class
         private: class Implementation;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private implementation
         private: std::unique_ptr<Implementation> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
 
       //////////////////////////////////////////////////
@@ -203,8 +212,17 @@ namespace ignition
         private: PlaybackHandle(
           std::unique_ptr<Implementation> &&_internal); // NOLINT
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \internal Pointer to implementation class
         private: std::unique_ptr<Implementation> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

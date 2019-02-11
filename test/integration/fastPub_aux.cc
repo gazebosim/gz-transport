@@ -23,7 +23,7 @@
 
 using namespace ignition;
 
-static std::string g_topic = "/foo";
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief A publisher node.

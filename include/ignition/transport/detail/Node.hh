@@ -18,9 +18,8 @@
 #ifndef IGNITION_TRANSPORT_DETAIL_NODE_HH_
 #define IGNITION_TRANSPORT_DETAIL_NODE_HH_
 
+#include <memory>
 #include <string>
-
-#include <ignition/transport/Node.hh>
 
 namespace ignition
 {

@@ -88,8 +88,17 @@ namespace ignition
         /// \return The time the message was received
         public: const std::chrono::nanoseconds &TimeReceived() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private Implementation Pointer
         private: std::unique_ptr<MessagePrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

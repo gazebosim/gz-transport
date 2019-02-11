@@ -19,7 +19,9 @@
 #define IGN_TRANSPORT_HANDLERSTORAGE_HH_
 
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/TransportTypes.hh"
@@ -39,7 +41,7 @@ namespace ignition
       /// \brief Stores all the service call data for each topic. The key of
       /// _data is the topic name. The value is another map, where the key is
       /// the node UUID and the value is a smart pointer to the handler.
-      /// \TODO: Carlos, review this names and fix them
+      /// \TODO(Carlos) review this names and fix them
       using UUIDHandler_M = std::map<std::string, std::shared_ptr<T>>;
       using UUIDHandler_Collection_M = std::map<std::string, UUIDHandler_M>;
 

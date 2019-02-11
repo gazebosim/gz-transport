@@ -522,7 +522,7 @@ Batch Log::QueryMessages(const QueryOptions &_options)
   const log::Descriptor *desc = this->Descriptor();
 
   // Make sure the log has been initialized.
-  // TODO: Should we print a warning here?
+  // TODO(anyone): Should we print a warning here?
   if (!desc)
     return Batch();
 

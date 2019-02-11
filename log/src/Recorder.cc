@@ -32,9 +32,9 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/TransportTypes.hh>
 
-#include "build_config.hh"
 #include "Console.hh"
 #include "raii-sqlite3.hh"
+#include "build_config.hh"
 
 using namespace ignition::transport;
 using namespace ignition::transport::log;

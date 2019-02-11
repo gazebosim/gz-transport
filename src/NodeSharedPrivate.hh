@@ -27,8 +27,9 @@
 #endif
 
 #include <memory>
+#include <queue>
+#include <vector>
 
-#include "WorkerPool.hh"
 #include "ignition/transport/Discovery.hh"
 
 namespace ignition
@@ -52,9 +53,6 @@ namespace ignition
                 replier(new zmq::socket_t(*context, ZMQ_ROUTER))
       {
       }
-
-      /// A thread pool
-      public: WorkerPool workerPool;
 
       /// \brief Initialize security
       public: void SecurityInit();
@@ -121,6 +119,58 @@ namespace ignition
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;
+
+      ////////////////////////////////////////////////////////////////
+      /////// The following is for asynchronous publication of ///////
+      /////// messages to local subscribers.                    ///////
+      ////////////////////////////////////////////////////////////////
+
+      /// \brief Encapsulates information needed to publish a message. An
+      /// instance of this class is pushed onto a publish queue, pubQueue, when
+      /// a message is published through Node::Publisher::Publish.
+      /// The pubThread processes the pubQueue in the
+      /// NodeSharedPrivate::PublishThread function.
+      ///
+      /// A producer-consumer mechanism is used to send messages so that
+      /// Node::Publisher::Publish function does not block while executing
+      /// local subscriber callbacks.
+      public: struct PublishMsgDetails
+              {
+                /// \brief All the local subscription handlers.
+                public: std::vector<ISubscriptionHandlerPtr> localHandlers;
+
+                /// \brief All the raw handlers.
+                public: std::vector<RawSubscriptionHandlerPtr> rawHandlers;
+
+                /// \brief Buffer for the raw handlers.
+                public: std::unique_ptr<char[]> sharedBuffer = nullptr;
+
+                /// \brief Msg copy for the local handlers.
+                public: std::unique_ptr<ProtoMsg> msgCopy = nullptr;
+
+                /// \brief Message size.
+                // cppcheck-suppress unusedStructMember
+                public: std::size_t msgSize = 0;
+
+                /// \brief Information about the topic and type.
+                public: MessageInfo info;
+              };
+
+      /// \brief Publish thread used to process the pubQueue.
+      public: std::thread pubThread;
+
+      /// \brief Mutex to protect the pubThread and pubQueue.
+      public: std::mutex pubThreadMutex;
+
+      /// \brief Queue onto which new messages are pushed. The pubThread
+      /// will pop off the messages and send them to local subscribers.
+      public: std::queue<std::unique_ptr<PublishMsgDetails>> pubQueue;
+
+      /// \brief used to signal when new work is available
+      public: std::condition_variable signalNewPub;
+
+      /// \brief Handles local publication of messages on the pubQueue.
+      public: void PublishThread();
     };
     }
   }

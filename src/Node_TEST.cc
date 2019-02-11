@@ -35,10 +35,10 @@
 
 using namespace ignition;
 
-static std::string partition;
-static std::string g_FQNPartition;
-static std::string g_topic = "/foo";
-static std::string g_topic_remap = "/bar";
+static std::string partition; // NOLINT(*)
+static std::string g_FQNPartition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
+static std::string g_topic_remap = "/bar"; // NOLINT(*)
 static std::mutex exitMutex;
 static std::mutex cbMutex;
 static std::condition_variable cbCondition;
@@ -104,7 +104,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 }
 
 //////////////////////////////////////////////////
-void rawCbInfo(const char *_msgData, const int _size,
+void rawCbInfo(const char *_msgData, const size_t _size,
                const ignition::transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);

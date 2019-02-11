@@ -20,8 +20,8 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
-static std::string partition;
-static std::string g_FQNPartition;
+static std::string partition; // NOLINT(*)
+static std::string g_FQNPartition; // NOLINT(*)
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

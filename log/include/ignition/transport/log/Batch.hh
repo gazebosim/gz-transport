@@ -71,8 +71,17 @@ namespace ignition
         ///   to a valid message
         public: iterator end();
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::*
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Private implementation
         private: std::unique_ptr<BatchPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
         /// \brief Construct with private implementation
         /// \param[in] _pimpl a private implementation pointer

@@ -29,7 +29,7 @@
 using namespace ignition;
 
 static bool cbExecuted;
-static std::string g_topic = "/foo";
+static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.

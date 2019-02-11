@@ -9,6 +9,7 @@ ign_build_tests(
     query.cc
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}-log
+    ${EXTRA_TEST_LIB_DEPS}
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )
@@ -50,6 +51,7 @@ foreach(source_file ${aux})
       ${PROJECT_LIBRARY_TARGET_NAME}
       ${log_lib_target}
       gtest
+      ${EXTRA_TEST_LIB_DEPS}
   )
 
   if(UNIX)

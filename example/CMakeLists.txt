@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 project(ignition-transport-examples)
 
 # Find the Ignition_Transport library
-find_package(ignition-transport5 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport5_VERSION_MAJOR})
+find_package(ignition-transport6 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 # Message generation. Only required when using custom Protobuf messages.
 find_package(Protobuf REQUIRED)

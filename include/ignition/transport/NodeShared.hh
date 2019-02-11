@@ -255,6 +255,12 @@ namespace ignition
       /// \brief Replier socket identity.
       public: Uuid replierId;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Process UUID.
       public: std::string pUuid;
 
@@ -278,6 +284,9 @@ namespace ignition
 
       /// \brief Remote subscribers.
       public: TopicStorage<MessagePublisher> remoteSubscribers;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief This struct wraps up the two different types of subscription
       /// handlers: normal (deserialized) and raw (serialized). This wrapper
@@ -336,6 +345,12 @@ namespace ignition
 
       public: HandlerWrapper localSubscribers;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Service call repliers.
       public: HandlerStorage<IRepHandler> repliers;
 
@@ -362,7 +377,9 @@ namespace ignition
 
       /// \brief Internal data pointer.
       private: std::unique_ptr<NodeSharedPrivate> dataPtr;
-
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       private: friend Node;
       private: friend NodePrivate;
     };

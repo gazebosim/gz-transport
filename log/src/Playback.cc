@@ -30,8 +30,8 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Playback.hh>
-#include "build_config.hh"
 #include "Console.hh"
+#include "build_config.hh"
 #include "raii-sqlite3.hh"
 
 using namespace ignition::transport;

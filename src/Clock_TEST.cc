@@ -37,11 +37,12 @@ TEST(ClockTest, WallClock)
       transport::WallClock::Instance();
   ASSERT_TRUE(clock != nullptr);
   EXPECT_TRUE(clock->IsReady());
-  const std::chrono::milliseconds sleepTime(100);
+  const std::chrono::nanoseconds sleepTime(100000000);
   const std::chrono::nanoseconds startTime = clock->Time();
   std::this_thread::sleep_for(sleepTime);
   const std::chrono::nanoseconds endTime = clock->Time();
-  EXPECT_GE(endTime - startTime, sleepTime);
+  EXPECT_GE(endTime - startTime, sleepTime) << "Expected["
+    << (endTime-startTime).count() << "] Actual[" << sleepTime.count() << "]\n";
 }
 
 //////////////////////////////////////////////////
@@ -107,18 +108,22 @@ TEST_P(NetworkClockTest, Functionality)
   const std::chrono::seconds expectedSecs{54321};
   const std::chrono::nanoseconds expectedNsecs{12345};
   clockPub.Publish(MakeClockMessage(expectedSecs, expectedNsecs));
-  std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
+
+  // Wait for clock distribution
+  std::this_thread::sleep_for(sleepTime);
   EXPECT_TRUE(clock.IsReady());
   EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs);
   clock.SetTime(expectedSecs + expectedNsecs * 2);
-  std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
+
+  // Wait for clock distribution
+  std::this_thread::sleep_for(sleepTime);
   EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs * 2);
 }
 
 INSTANTIATE_TEST_CASE_P(TestAllTimeBases, NetworkClockTest,
                         ::testing::Values(TimeBase::SIM,
                                           TimeBase::REAL,
-                                          TimeBase::SYS));
+                                          TimeBase::SYS),); // NOLINT
 
 /// \brief Check NetworkClock functionality.
 TEST(ClockTest, BadNetworkClock)

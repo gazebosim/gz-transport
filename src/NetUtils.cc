@@ -199,6 +199,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       struct ifreq ifIdx;
       memset(&ifIdx, 0, sizeof(struct ifreq));
       strncpy(ifIdx.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+      // cppcheck-suppress ConfigurationNotChecked
       if (ioctl(sockfd, SIOCGIFINDEX, &ifIdx) < 0)
       {
         std::cerr << "Error requesting SIOCGIFINDEX for ["
@@ -337,7 +338,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     }
     return result;
 #else
-    // @todo Fix IP determination in the case where getifaddrs() isn't
+    // @todo(anyone) Fix IP determination in the case where getifaddrs() isn't
     // available.
     std::cerr <<
       "You don't have the getifaddrs() call; I'm assuming that your IP "
@@ -353,7 +354,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   {
 #ifdef _WIN32
     WSADATA wsaData;
-    WSAStartup(MAKEWORD(2,2), &wsaData);
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
     char hostname[200 + 1];

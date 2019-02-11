@@ -1,4 +1,6 @@
-# Introduction
+\page introduction Introduction
+
+Next Tutorial: \ref installation
 
 ## What is Ignition Transport?
 

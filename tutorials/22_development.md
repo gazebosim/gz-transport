@@ -1,4 +1,6 @@
-# Development
+\page development Development
+
+## Overview
 
 The purpose of this section is to describe the internal design of Ignition
 Transport. You don't need to read this section if you just want to use the
