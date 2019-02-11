@@ -15,7 +15,7 @@ set(IGN_CMAKE_VER ${ignition-cmake1_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project()
 
 #============================================================================
 # Set project-specific options
