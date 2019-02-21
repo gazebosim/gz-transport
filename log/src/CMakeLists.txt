@@ -33,7 +33,7 @@ if(MSVC)
 endif()
 
 # Set install instructions for the sql schema, and configure the build to use it
-set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
+set(SCHEMA_INSTALL_BASE ${IGN_DATA_INSTALL_DIR})
 install(DIRECTORY ../sql DESTINATION ${SCHEMA_INSTALL_BASE})
 set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${SCHEMA_INSTALL_BASE}/sql)
 configure_file(build_config.hh.in build_config.hh @ONLY)
