@@ -1362,6 +1362,9 @@ void NodeSharedPrivate::AccessControlHandler()
         givenUsername = receiveHelper(*sock);
         givenPassword = receiveHelper(*sock);
 
+        // eliminate unused variable warning when debug statements are commented
+        (void)routingId;
+
         // Debug statements
         // std::cout << "Version[" << version << "]\n";
         // std::cout << "Sequence[" << sequence << "]\n";

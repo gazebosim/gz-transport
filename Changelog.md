@@ -1,6 +1,6 @@
 ## Ignition Transport 6
 
-1. Upgrade to proto3 and c++17.
+1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
 
 ## Ignition Transport 5
