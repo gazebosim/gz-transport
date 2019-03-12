@@ -71,10 +71,20 @@ namespace ignition
       /// \param[in] _newRelays A new set of relays.
       public: void SetRelays(const std::vector<std::string> &_newRelays);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \internal
       /// \brief Pointer to private data.
-      private: std::unique_ptr<DiscoveryOptionsPrivate> dataPtr;
+      protected: std::unique_ptr<DiscoveryOptionsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
+    }
   }
 }
 #endif

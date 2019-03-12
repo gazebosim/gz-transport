@@ -116,12 +116,11 @@ namespace ignition
           heartbeatInterval(kDefHeartbeatInterval),
           connectionCb(nullptr),
           disconnectionCb(nullptr),
-          verbose(_verbose),
           initialized(false),
           numHeartbeatsUninitialized(0),
           exit(false),
           enabled(false),
-          options(_options),
+          options(_options)
       {
         std::string ignIp;
         if (env("IGN_IP", ignIp) && !ignIp.empty())
@@ -213,7 +212,7 @@ namespace ignition
           inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
-        if (this->verbose)
+        if (this->options.Verbose())
           this->PrintCurrentState();
       }
 
@@ -698,7 +697,7 @@ namespace ignition
           {
             this->RecvDiscoveryUpdate();
 
-            if (this->verbose)
+            if (this->options.Verbose())
               this->PrintCurrentState();
           }
 
@@ -736,7 +735,7 @@ namespace ignition
         srcAddr = inet_ntoa(clntAddr.sin_addr);
         srcPort = ntohs(clntAddr.sin_port);
 
-        if (this->verbose)
+        if (this->options.Verbose())
         {
           std::cout << "\nReceived discovery update from " << srcAddr << ": "
                     << srcPort << std::endl;
@@ -985,7 +984,7 @@ namespace ignition
           }
         }
 
-        if (this->Verbose())
+        if (this->options.Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
                     << " msg [" << topic << "]" << std::endl;
@@ -1004,13 +1003,6 @@ namespace ignition
       private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
-      }
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enabled or false otherwise.
-      private: bool Verbose() const
-      {
-        return this->verbose;
       }
 
       /// \brief Get the discovery protocol version.
@@ -1136,9 +1128,6 @@ namespace ignition
       /// from a node in a while, its entries in 'info' will be invalided. The
       /// key is the process uuid.
       protected: std::map<std::string, Timestamp> activity;
-
-      /// \brief Print discovery information to stdout.
-      private: bool verbose;
 
       /// \brief UDP socket used for sending/receiving discovery messages.
       private: std::vector<int> sockets;
