@@ -64,6 +64,7 @@
 #include <vector>
 
 #include "ignition/transport/config.hh"
+#include "ignition/transport/DiscoveryOptions.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
@@ -103,10 +104,10 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _port UDP port used for discovery traffic.
-      /// \param[in] _verbose true for enabling verbose mode.
+      /// \param[in] _options Optional discovery options.
       public: Discovery(const std::string &_pUuid,
                         const int _port,
-                        const bool _verbose = false)
+                        const DiscoveryOptions &_options = DiscoveryOptions())
         : port(_port),
           hostAddr(determineHost()),
           pUuid(_pUuid),
@@ -119,7 +120,8 @@ namespace ignition
           initialized(false),
           numHeartbeatsUninitialized(0),
           exit(false),
-          enabled(false)
+          enabled(false),
+          options(_options),
       {
         std::string ignIp;
         if (env("IGN_IP", ignIp) && !ignIp.empty())
@@ -1176,6 +1178,9 @@ namespace ignition
 
       /// \brief When true, the service is enabled.
       private: bool enabled;
+
+      /// \brief Discovery options.
+      private: DiscoveryOptions options;
     };
 
     /// \def MsgDiscovery
