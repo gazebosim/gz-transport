@@ -212,6 +212,18 @@ namespace ignition
           inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
+        // Set 'relayAddrs' to the list of unicast relays.
+        for (auto const relayAddr : this->options.Relays())
+        {
+          sockaddr_in addr;
+          memset(&addr, 0, sizeof(addr));
+          addr.sin_family = AF_INET;
+          addr.sin_addr.s_addr = inet_addr(relayAddr.c_str());
+          addr.sin_port = htons(static_cast<u_short>(this->port));
+
+          this->relayAddrs.push_back(addr);
+        }
+
         if (this->options.Verbose())
           this->PrintCurrentState();
       }
@@ -984,6 +996,20 @@ namespace ignition
           }
         }
 
+        // Send the discovery message to the unicast relays.
+        for (const auto &sockAddr : this->relayAddrs)
+        {
+          if (sendto(this->sockets.at(0), reinterpret_cast<const raw_type *>(
+            reinterpret_cast<unsigned char*>(&buffer[0])),
+            msgLength, 0,
+            reinterpret_cast<const sockaddr *>(&sockAddr),
+            sizeof(sockAddr)) != msgLength)
+          {
+            std::cerr << "Exception sending a message" << std::endl;
+            return;
+          }
+        }
+
         if (this->options.Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
@@ -1134,6 +1160,9 @@ namespace ignition
 
       /// \brief Internet socket address for sending to the multicast group.
       private: sockaddr_in mcastAddr;
+
+      /// \brief Collection of sockets addresses used for the relays.
+      private: std::vector<sockaddr_in> relayAddrs;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       private: mutable std::mutex mutex;
