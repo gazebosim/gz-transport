@@ -160,11 +160,14 @@ NodeShared::NodeShared()
   Uuid uuid;
   this->pUuid = uuid.ToString();
 
+  DiscoveryOptions opts;
+  opts.SetVerbose(this->verbose);
+
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
-      new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
+      new MsgDiscovery(this->pUuid, this->kMsgDiscPort, opts));
   this->dataPtr->srvDiscovery.reset(
-      new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
+      new SrvDiscovery(this->pUuid, this->kSrvDiscPort, opts));
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())

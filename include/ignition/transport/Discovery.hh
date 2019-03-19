@@ -212,8 +212,18 @@ namespace ignition
           inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
+        std::vector<std::string> relays;
+        if (std::string ignRelay; env("IGN_RELAY", ignRelay) &&
+                                  !ignRelay.empty())
+        {
+          relays = transport::split(ignRelay, ':');
+        }
+
+        if (relays.empty())
+          relays = this->options.Relays();
+
         // Set 'relayAddrs' to the list of unicast relays.
-        for (auto const relayAddr : this->options.Relays())
+        for (auto const relayAddr : relays)
         {
           sockaddr_in addr;
           memset(&addr, 0, sizeof(addr));
@@ -790,6 +800,8 @@ namespace ignition
           disconnectCb = this->disconnectionCb;
         }
 
+        std::cout << "Dispatch recv" << std::endl;
+
         switch (header.Type())
         {
           case AdvType:
@@ -823,6 +835,7 @@ namespace ignition
           }
           case SubType:
           {
+            std::cout << "SUB received" << std::endl;
             // Read the rest of the fields.
             SubscriptionMsg subMsg;
             subMsg.Unpack(pBody);
@@ -983,18 +996,18 @@ namespace ignition
 
         // Send the discovery message to the multicast group through all the
         // sockets.
-        for (const auto &sock : this->Sockets())
-        {
-          if (sendto(sock, reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
-            msgLength, 0,
-            reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
-            sizeof(*(this->MulticastAddr()))) != msgLength)
-          {
-            std::cerr << "Exception sending a message" << std::endl;
-            return;
-          }
-        }
+        // for (const auto &sock : this->Sockets())
+        // {
+        //   if (sendto(sock, reinterpret_cast<const raw_type *>(
+        //     reinterpret_cast<unsigned char*>(&buffer[0])),
+        //     msgLength, 0,
+        //     reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
+        //     sizeof(*(this->MulticastAddr()))) != msgLength)
+        //   {
+        //     std::cerr << "Exception sending a message" << std::endl;
+        //     return;
+        //   }
+        // }
 
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
