@@ -44,6 +44,9 @@ namespace ignition
     static const uint8_t NewConnection  = 6;
     static const uint8_t EndConnection  = 7;
 
+    // Flags.
+    static const uint16_t FlagRelay = 0b000000000000'0001;
+
     /// \brief Used for debugging the message type received/send.
     static const std::vector<std::string> MsgTypesStr =
     {
