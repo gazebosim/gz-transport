@@ -79,6 +79,15 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+
+    /// \brief Options for sending discovery messages.
+    enum class tDestinationType
+    {
+      UNICAST,
+      MULTICAST,
+      ALL
+    };
+
     //
     /// \internal
     /// \brief Discovery helper function to poll sockets.
@@ -244,7 +253,7 @@ namespace ignition
 
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
-        this->SendMsg(ByeType,
+        this->SendMsg(tDestinationType::ALL, ByeType,
           Publisher("", "", this->pUuid, "", AdvertiseOptions()));
 
         // Close sockets.
@@ -302,7 +311,7 @@ namespace ignition
         // Only advertise a message outside this process if the scope
         // is not 'Process'
         if (_publisher.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(AdvType, _publisher);
+          this->SendMsg(tDestinationType::ALL, AdvType, _publisher);
 
         return true;
       }
@@ -337,7 +346,7 @@ namespace ignition
         pub.SetPUuid(this->pUuid);
 
         // Send a discovery request.
-        this->SendMsg(SubType, pub);
+        this->SendMsg(tDestinationType::ALL, SubType, pub);
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
@@ -412,7 +421,7 @@ namespace ignition
         // Only unadvertise a message outside this process if the scope
         // is not 'Process'.
         if (inf.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(UnadvType, inf);
+          this->SendMsg(tDestinationType::ALL, UnadvType, inf);
 
         return true;
       }
@@ -639,7 +648,7 @@ namespace ignition
         }
 
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        this->SendMsg(HeartbeatType, pub);
+        this->SendMsg(tDestinationType::ALL, HeartbeatType, pub);
 
         std::map<std::string, std::vector<Pub>> nodes;
         {
@@ -652,7 +661,7 @@ namespace ignition
         for (const auto &topic : nodes)
         {
           for (const auto &node : topic.second)
-            this->SendMsg(AdvType, node);
+            this->SendMsg(tDestinationType::ALL, AdvType, node);
         }
 
         {
@@ -765,11 +774,19 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg)
       {
+        std::cout << "Message received" << std::endl;
+        // Forward the entire message to the relays via unicast.
+        ssize_t len;
+        memcpy(&len, _msg, sizeof(len));
+        // this->SendBytesUnicast(_msg, len);
+
         Header header;
-        char *pBody = _msg;
+        // char *pBody = _msg;
+        char *pBody = _msg + sizeof(ssize_t);
 
         // Create the header from the raw bytes.
-        header.Unpack(_msg);
+        header.Unpack(_msg + sizeof(ssize_t));
+        // header.Unpack(_msg);
         pBody += header.HeaderLength();
 
         // Discard the message if the wire protocol is different than mine.
@@ -792,12 +809,11 @@ namespace ignition
           disconnectCb = this->disconnectionCb;
         }
 
-        std::cout << "Dispatch recv" << std::endl;
-
         switch (header.Type())
         {
           case AdvType:
           {
+            std::cout << "ADV type received" << std::endl;
             // Read the rest of the fields.
             transport::AdvertiseMessage<Pub> advMsg;
             advMsg.Unpack(pBody);
@@ -827,7 +843,6 @@ namespace ignition
           }
           case SubType:
           {
-            std::cout << "SUB received" << std::endl;
             // Read the rest of the fields.
             SubscriptionMsg subMsg;
             subMsg.Unpack(pBody);
@@ -857,7 +872,7 @@ namespace ignition
               }
 
               // Answer an ADVERTISE message.
-              this->SendMsg(AdvType, nodeInfo);
+              this->SendMsg(tDestinationType::ALL, AdvType, nodeInfo);
             }
 
             break;
@@ -935,13 +950,15 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       private: template<typename T>
-      void SendMsg(const uint8_t _type,
+      void SendMsg(const tDestinationType &_destType,
+                   const uint8_t _type,
                    const T &_pub,
                    const uint16_t _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
+        // auto msgLength = 0;
+        ssize_t lengthField = 0;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -955,9 +972,11 @@ namespace ignition
             transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(advMsg.MsgLength());
-            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = static_cast<int>(advMsg.MsgLength());
+            // buffer.resize(advMsg.MsgLength());
+            buffer.resize(advMsg.MsgLength() + sizeof(lengthField));
+            // advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+            advMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
+            // msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -966,18 +985,22 @@ namespace ignition
             SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(subMsg.MsgLength());
-            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = static_cast<int>(subMsg.MsgLength());
+            // buffer.resize(subMsg.MsgLength());
+            buffer.resize(subMsg.MsgLength() + sizeof(lengthField));
+            subMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
+            // subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
+            // msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:
           case ByeType:
           {
             // Allocate a buffer and serialize the message.
-            buffer.resize(header.HeaderLength());
-            header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = header.HeaderLength();
+            // buffer.resize(header.HeaderLength());
+            buffer.resize(header.HeaderLength() + sizeof(lengthField));
+            header.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
+            // header.Pack(reinterpret_cast<char*>(&buffer[0]));
+            // msgLength = header.HeaderLength();
             break;
           }
           default:
@@ -986,40 +1009,68 @@ namespace ignition
             return;
         }
 
-        // Send the discovery message to the multicast group through all the
-        // sockets.
-        // for (const auto &sock : this->Sockets())
-        // {
-        //   if (sendto(sock, reinterpret_cast<const raw_type *>(
-        //     reinterpret_cast<unsigned char*>(&buffer[0])),
-        //     msgLength, 0,
-        //     reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
-        //     sizeof(*(this->MulticastAddr()))) != msgLength)
-        //   {
-        //     std::cerr << "Exception sending a message" << std::endl;
-        //     return;
-        //   }
-        // }
+        lengthField = static_cast<ssize_t>(buffer.size());
+        memcpy(&buffer[0], &lengthField, sizeof(lengthField));
 
-        // Send the discovery message to the unicast relays.
-        for (const auto &sockAddr : this->relayAddrs)
+        if (_destType == tDestinationType::MULTICAST ||
+            _destType == tDestinationType::ALL)
         {
-          if (sendto(this->sockets.at(0), reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
-            msgLength, 0,
-            reinterpret_cast<const sockaddr *>(&sockAddr),
-            sizeof(sockAddr)) != msgLength)
-          {
-            std::cerr << "Exception sending a message" << std::endl;
-            return;
-          }
+          this->SendBytesMulticast(&buffer[0], buffer.size());
         }
 
-        if (this->options.Verbose())
+        // Send the discovery message to the unicast relays.
+        if (_destType == tDestinationType::UNICAST ||
+            _destType == tDestinationType::ALL)
+        {
+          this->SendBytesUnicast(&buffer[0], buffer.size());
+        }
+
+        // if (this->options.Verbose())
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
                     << " msg [" << topic << "]" << std::endl;
         }
+      }
+
+      /// \brief ToDo.
+      private: void SendBytesUnicast(const char *_buffer, ssize_t _len) const
+      {
+        // Send the discovery message to the unicast relays.
+        for (const auto &sockAddr : this->relayAddrs)
+        {
+          auto sent = sendto(this->sockets.at(0), reinterpret_cast<const raw_type *>(
+            reinterpret_cast<const unsigned char*>(_buffer)),
+            _len, 0,
+            reinterpret_cast<const sockaddr *>(&sockAddr),
+            sizeof(sockAddr));
+
+          if (sent != _len)
+          {
+            std::cerr << "Exception sending a unicast message" << std::endl;
+            std::cerr << "Sent: " << sent << std::endl;
+            std::cerr << "Expected: " << _len << std::endl;
+            return;
+          }
+        }
+      }
+
+      /// \brief ToDo.
+      private: void SendBytesMulticast(const char *_buffer, ssize_t _len) const
+      {
+        // // Send the discovery message to the multicast group through all the
+        // // sockets.
+        // for (const auto &sock : this->Sockets())
+        // {
+        //   if (sendto(sock, reinterpret_cast<const raw_type *>(
+        //     reinterpret_cast<const unsigned char*>(_buffer)),
+        //     _len, 0,
+        //     reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
+        //     sizeof(*(this->MulticastAddr()))) != _len)
+        //   {
+        //     std::cerr << "Exception sending a multicast message" << std::endl;
+        //     return;
+        //   }
+        // }
       }
 
       /// \brief Get the list of sockets used for discovery.

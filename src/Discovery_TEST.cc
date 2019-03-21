@@ -214,7 +214,7 @@ TEST(DiscoveryTest, TestAdvertise)
   // Create two discovery nodes simulating they are in different processes.
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
   DiscoveryOptions opts;
-  opts.SetVerbose(true);
+  // opts.SetVerbose(true);
   transport::Discovery<MessagePublisher> Discovery2(pUuid2, g_msgPort, opts);
 
   // Register one callback for receiving notifications.

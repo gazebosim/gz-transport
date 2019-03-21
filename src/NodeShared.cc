@@ -161,7 +161,7 @@ NodeShared::NodeShared()
   this->pUuid = uuid.ToString();
 
   DiscoveryOptions opts;
-  opts.SetVerbose(this->verbose);
+  //opts.SetVerbose(this->verbose);
 
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(

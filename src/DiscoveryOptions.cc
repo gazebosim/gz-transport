@@ -21,10 +21,35 @@
 #include "ignition/transport/DiscoveryOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
-#include "DiscoveryOptionsPrivate.hh"
-
 using namespace ignition;
 using namespace transport;
+
+namespace ignition
+{
+  namespace transport
+  {
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    {
+    /// \class DiscoveryOptionsPrivate DiscoveryOptionsPrivate.hh
+    /// ignition/transport/DiscoveryOptionsPrivate.hh
+    /// \brief Private data for the SubscribeOptions class.
+    class DiscoveryOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: DiscoveryOptionsPrivate() = default;
+
+      /// \brief Destructor.
+      public: virtual ~DiscoveryOptionsPrivate() = default;
+
+      /// \brief True for enabling debug.
+      public: bool verbose = false;
+
+      /// \brief Collection of discovery relays.
+      public: std::vector<std::string> relays;
+    };
+    }
+  }
+}
 
 //////////////////////////////////////////////////
 DiscoveryOptions::DiscoveryOptions()
