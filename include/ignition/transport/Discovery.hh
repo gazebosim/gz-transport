@@ -793,6 +793,12 @@ namespace ignition
         if (this->kWireVersion != header.Version())
           return;
 
+        auto recvPUuid = header.PUuid();
+
+        // Discard our own discovery messages.
+        if (recvPUuid == this->pUuid)
+          return;
+
         uint16_t flags = header.Flags();
 
         // Forwarding:
@@ -800,7 +806,8 @@ namespace ignition
         //   - From multicast group -> to unicast peers.
         if (flags & FlagRelay)
         {
-          //std::cout << "Relaying to my multicast friends" << std::endl;
+          if (this->port == 10317)
+            std::cout << "Relaying to my multicast friends" << std::endl;
           // Unset the RELAY flag in the header and set the NO_RELAY.
           flags &= ~FlagRelay;
           flags |= FlagNoRelay;
@@ -821,11 +828,6 @@ namespace ignition
           this->SendBytesUnicast(_msg, len);
         }
 
-        auto recvPUuid = header.PUuid();
-
-        // Discard our own discovery messages.
-        if (recvPUuid == this->pUuid)
-          return;
 
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
@@ -1061,6 +1063,7 @@ namespace ignition
         }
 
         // if (this->options.Verbose())
+        if (this->port == 10317)
         {
           std::cout << "\t* Sending " << MsgTypesStr[_type]
                     << " msg [" << topic << "]" << std::endl;
@@ -1070,20 +1073,6 @@ namespace ignition
       /// \brief ToDo.
       private: void SendBytesUnicast(char *_buffer, ssize_t _len)
       {
-        // // Set the RELAY flag in the header.
-        // Header header;
-        // char *headerPtr = _buffer + sizeof(ssize_t);
-        // header.Unpack(headerPtr);
-        // uint16_t flags = header.Flags();
-
-        // if (flags & FlagNoRelay)
-        //   flags &= ~FlagRelay;
-        // else
-        //  flags |= FlagRelay;
-
-        // header.SetFlags(flags);
-        // header.Pack(headerPtr);
-
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
         {
