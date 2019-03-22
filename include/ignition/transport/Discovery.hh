@@ -326,7 +326,7 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Discover(const std::string &_topic) const
+      public: bool Discover(const std::string &_topic)
       {
         DiscoveryCallback<Pub> cb;
         bool found;
@@ -774,11 +774,9 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg)
       {
-        std::cout << "Message received" << std::endl;
         // Forward the entire message to the relays via unicast.
         ssize_t len;
         memcpy(&len, _msg, sizeof(len));
-        // this->SendBytesUnicast(_msg, len);
 
         Header header;
         // char *pBody = _msg;
@@ -788,6 +786,21 @@ namespace ignition
         header.Unpack(_msg + sizeof(ssize_t));
         // header.Unpack(_msg);
         pBody += header.HeaderLength();
+
+        // Forwarding:
+        //   - From a unicast peer  -> to multicast group.
+        //   - From multicast group -> to unicast peers.
+        if (header.Flags() & FlagRelay)
+        {
+          std::cout << "Relaying to my multicast friends" << std::endl;
+          this->SendBytesMulticast(_msg, len);
+
+          // A unicast peer contacted me. I need to save its address for
+          // sending future messages in the future.
+          this->AddRelayAddress(_fromIp);
+        }
+        else
+          this->SendBytesUnicast(_msg, len);
 
         // Discard the message if the wire protocol is different than mine.
         if (this->kWireVersion != header.Version())
@@ -953,7 +966,7 @@ namespace ignition
       void SendMsg(const tDestinationType &_destType,
                    const uint8_t _type,
                    const T &_pub,
-                   const uint16_t _flags = 0) const
+                   const uint16_t _flags = 0)
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -1033,8 +1046,17 @@ namespace ignition
       }
 
       /// \brief ToDo.
-      private: void SendBytesUnicast(const char *_buffer, ssize_t _len) const
+      private: void SendBytesUnicast(char *_buffer, ssize_t _len)
       {
+        // Set the RELAY flag in the header.
+        Header header;
+        char *headerPtr = _buffer + sizeof(ssize_t);
+        header.Unpack(headerPtr);
+        uint16_t flags = header.Flags();
+        flags |= FlagRelay;
+        header.SetFlags(flags);
+        header.Pack(headerPtr);
+
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
         {
@@ -1055,22 +1077,31 @@ namespace ignition
       }
 
       /// \brief ToDo.
-      private: void SendBytesMulticast(const char *_buffer, ssize_t _len) const
+      private: void SendBytesMulticast(char *_buffer, ssize_t _len)
       {
-        // // Send the discovery message to the multicast group through all the
-        // // sockets.
-        // for (const auto &sock : this->Sockets())
-        // {
-        //   if (sendto(sock, reinterpret_cast<const raw_type *>(
-        //     reinterpret_cast<const unsigned char*>(_buffer)),
-        //     _len, 0,
-        //     reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
-        //     sizeof(*(this->MulticastAddr()))) != _len)
-        //   {
-        //     std::cerr << "Exception sending a multicast message" << std::endl;
-        //     return;
-        //   }
-        // }
+        // Unset the RELAY flag in the header.
+        Header header;
+        char *headerPtr = _buffer + sizeof(ssize_t);
+        header.Unpack(headerPtr);
+        uint16_t flags = header.Flags();
+        flags &= ~FlagRelay;
+        header.SetFlags(flags);
+        header.Pack(headerPtr);
+
+        // Send the discovery message to the multicast group through all the
+        // sockets.
+        for (const auto &sock : this->Sockets())
+        {
+          if (sendto(sock, reinterpret_cast<const raw_type *>(
+            reinterpret_cast<const unsigned char*>(_buffer)),
+            _len, 0,
+            reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
+            sizeof(*(this->MulticastAddr()))) != _len)
+          {
+            std::cerr << "Exception sending a multicast message" << std::endl;
+            return;
+          }
+        }
       }
 
       /// \brief Get the list of sockets used for discovery.
