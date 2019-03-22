@@ -64,7 +64,6 @@
 #include <vector>
 
 #include "ignition/transport/config.hh"
-#include "ignition/transport/DiscoveryOptions.hh"
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
@@ -79,7 +78,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-
     /// \brief Options for sending discovery messages.
     enum class tDestinationType
     {
@@ -116,7 +114,7 @@ namespace ignition
       /// \param[in] _options Optional discovery options.
       public: Discovery(const std::string &_pUuid,
                         const int _port,
-                        const DiscoveryOptions &_options = DiscoveryOptions())
+                        const bool _verbose = false)
         : port(_port),
           hostAddr(determineHost()),
           pUuid(_pUuid),
@@ -125,11 +123,11 @@ namespace ignition
           heartbeatInterval(kDefHeartbeatInterval),
           connectionCb(nullptr),
           disconnectionCb(nullptr),
+          verbose(_verbose),
           initialized(false),
           numHeartbeatsUninitialized(0),
           exit(false),
-          enabled(false),
-          options(_options)
+          enabled(false)
       {
         std::string ignIp;
         if (env("IGN_IP", ignIp) && !ignIp.empty())
@@ -228,14 +226,11 @@ namespace ignition
           relays = transport::split(ignRelay, ':');
         }
 
-        if (relays.empty())
-          relays = this->options.Relays();
-
         // Register all unicast relays.
         for (auto const relayAddr : relays)
           this->AddRelayAddress(relayAddr);
 
-        if (this->options.Verbose())
+        if (this->verbose)
           this->PrintCurrentState();
       }
 
@@ -720,7 +715,7 @@ namespace ignition
           {
             this->RecvDiscoveryUpdate();
 
-            if (this->options.Verbose())
+            if (this->verbose)
               this->PrintCurrentState();
           }
 
@@ -758,7 +753,7 @@ namespace ignition
         srcAddr = inet_ntoa(clntAddr.sin_addr);
         srcPort = ntohs(clntAddr.sin_port);
 
-        if (this->options.Verbose())
+        if (this->verbose)
         {
           std::cout << "\nReceived discovery update from " << srcAddr << ": "
                     << srcPort << std::endl;
@@ -806,8 +801,8 @@ namespace ignition
         //   - From multicast group -> to unicast peers.
         if (flags & FlagRelay)
         {
-          if (this->port == 10317)
-            std::cout << "Relaying to my multicast friends" << std::endl;
+          // if (this->port == 10317)
+          //   std::cout << "Relaying to my multicast friends" << std::endl;
           // Unset the RELAY flag in the header and set the NO_RELAY.
           flags &= ~FlagRelay;
           flags |= FlagNoRelay;
@@ -1062,12 +1057,12 @@ namespace ignition
           this->SendBytesUnicast(&buffer[0], buffer.size());
         }
 
-        // if (this->options.Verbose())
-        if (this->port == 10317)
-        {
-          std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << topic << "]" << std::endl;
-        }
+        // if (this->verbose)
+        // if (this->port == 10317)
+        // {
+        //   std::cout << "\t* Sending " << MsgTypesStr[_type]
+        //             << " msg [" << topic << "]" << std::endl;
+        // }
       }
 
       /// \brief ToDo.
@@ -1076,8 +1071,9 @@ namespace ignition
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
         {
-          auto sent = sendto(this->sockets.at(0), reinterpret_cast<const raw_type *>(
-            reinterpret_cast<const unsigned char*>(_buffer)),
+          auto sent = sendto(this->sockets.at(0),
+            reinterpret_cast<const raw_type *>(
+              reinterpret_cast<const unsigned char*>(_buffer)),
             _len, 0,
             reinterpret_cast<const sockaddr *>(&sockAddr),
             sizeof(sockAddr));
@@ -1123,6 +1119,13 @@ namespace ignition
       private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
+      }
+
+      /// \brief Get the verbose mode.
+      /// \return True when verbose mode is enabled or false otherwise.
+      private: bool Verbose() const
+      {
+        return this->verbose;
       }
 
       /// \brief Get the discovery protocol version.
@@ -1269,6 +1272,9 @@ namespace ignition
       /// key is the process uuid.
       protected: std::map<std::string, Timestamp> activity;
 
+      /// \brief Print discovery information to stdout.
+      private: bool verbose;
+
       /// \brief UDP socket used for sending/receiving discovery messages.
       private: std::vector<int> sockets;
 
@@ -1310,9 +1316,6 @@ namespace ignition
 
       /// \brief When true, the service is enabled.
       private: bool enabled;
-
-      /// \brief Discovery options.
-      private: DiscoveryOptions options;
     };
 
     /// \def MsgDiscovery
