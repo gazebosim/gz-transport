@@ -46,7 +46,8 @@ int main(int argc, char **argv)
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  std::string topic = "/foo";
+  // std::string topic = "/foo";
+  std::string topic = argv[2];
 
   auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
   if (!pub)

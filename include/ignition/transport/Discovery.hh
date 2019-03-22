@@ -778,33 +778,48 @@ namespace ignition
         ssize_t len;
         memcpy(&len, _msg, sizeof(len));
 
+        char *headerPtr = _msg + sizeof(ssize_t);
         Header header;
         // char *pBody = _msg;
         char *pBody = _msg + sizeof(ssize_t);
 
         // Create the header from the raw bytes.
         header.Unpack(_msg + sizeof(ssize_t));
+
         // header.Unpack(_msg);
         pBody += header.HeaderLength();
+
+        // Discard the message if the wire protocol is different than mine.
+        if (this->kWireVersion != header.Version())
+          return;
+
+        uint16_t flags = header.Flags();
 
         // Forwarding:
         //   - From a unicast peer  -> to multicast group.
         //   - From multicast group -> to unicast peers.
-        if (header.Flags() & FlagRelay)
+        if (flags & FlagRelay)
         {
-          std::cout << "Relaying to my multicast friends" << std::endl;
+          //std::cout << "Relaying to my multicast friends" << std::endl;
+          // Unset the RELAY flag in the header and set the NO_RELAY.
+          flags &= ~FlagRelay;
+          flags |= FlagNoRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
           this->SendBytesMulticast(_msg, len);
 
           // A unicast peer contacted me. I need to save its address for
           // sending future messages in the future.
           this->AddRelayAddress(_fromIp);
-        }
-        else
-          this->SendBytesUnicast(_msg, len);
-
-        // Discard the message if the wire protocol is different than mine.
-        if (this->kWireVersion != header.Version())
           return;
+        }
+        else if (!(flags & FlagNoRelay))
+        {
+          flags |= FlagRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
+          this->SendBytesUnicast(_msg, len);
+        }
 
         auto recvPUuid = header.PUuid();
 
@@ -826,7 +841,7 @@ namespace ignition
         {
           case AdvType:
           {
-            std::cout << "ADV type received" << std::endl;
+            // std::cout << "ADV type received" << std::endl;
             // Read the rest of the fields.
             transport::AdvertiseMessage<Pub> advMsg;
             advMsg.Unpack(pBody);
@@ -1024,6 +1039,7 @@ namespace ignition
 
         lengthField = static_cast<ssize_t>(buffer.size());
         memcpy(&buffer[0], &lengthField, sizeof(lengthField));
+        char *headerPtr = &buffer[0] + sizeof(lengthField);
 
         if (_destType == tDestinationType::MULTICAST ||
             _destType == tDestinationType::ALL)
@@ -1035,6 +1051,12 @@ namespace ignition
         if (_destType == tDestinationType::UNICAST ||
             _destType == tDestinationType::ALL)
         {
+          // Set the RELAY flag in the header.
+          // char *headerPtr = _buffer + sizeof(ssize_t);
+          uint16_t flags = header.Flags();
+          flags |= FlagRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
           this->SendBytesUnicast(&buffer[0], buffer.size());
         }
 
@@ -1048,14 +1070,19 @@ namespace ignition
       /// \brief ToDo.
       private: void SendBytesUnicast(char *_buffer, ssize_t _len)
       {
-        // Set the RELAY flag in the header.
-        Header header;
-        char *headerPtr = _buffer + sizeof(ssize_t);
-        header.Unpack(headerPtr);
-        uint16_t flags = header.Flags();
-        flags |= FlagRelay;
-        header.SetFlags(flags);
-        header.Pack(headerPtr);
+        // // Set the RELAY flag in the header.
+        // Header header;
+        // char *headerPtr = _buffer + sizeof(ssize_t);
+        // header.Unpack(headerPtr);
+        // uint16_t flags = header.Flags();
+
+        // if (flags & FlagNoRelay)
+        //   flags &= ~FlagRelay;
+        // else
+        //  flags |= FlagRelay;
+
+        // header.SetFlags(flags);
+        // header.Pack(headerPtr);
 
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
@@ -1079,15 +1106,6 @@ namespace ignition
       /// \brief ToDo.
       private: void SendBytesMulticast(char *_buffer, ssize_t _len)
       {
-        // Unset the RELAY flag in the header.
-        Header header;
-        char *headerPtr = _buffer + sizeof(ssize_t);
-        header.Unpack(headerPtr);
-        uint16_t flags = header.Flags();
-        flags &= ~FlagRelay;
-        header.SetFlags(flags);
-        header.Pack(headerPtr);
-
         // Send the discovery message to the multicast group through all the
         // sockets.
         for (const auto &sock : this->Sockets())
