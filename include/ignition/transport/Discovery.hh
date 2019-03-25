@@ -111,7 +111,7 @@ namespace ignition
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
       /// \param[in] _port UDP port used for discovery traffic.
-      /// \param[in] _options Optional discovery options.
+      /// \param[in] _verbose true for enabling verbose mode.
       public: Discovery(const std::string &_pUuid,
                         const int _port,
                         const bool _verbose = false)
@@ -838,7 +838,6 @@ namespace ignition
         {
           case AdvType:
           {
-            // std::cout << "ADV type received" << std::endl;
             // Read the rest of the fields.
             transport::AdvertiseMessage<Pub> advMsg;
             advMsg.Unpack(pBody);
@@ -982,7 +981,6 @@ namespace ignition
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        // auto msgLength = 0;
         ssize_t lengthField = 0;
         std::vector<char> buffer;
 
@@ -997,11 +995,8 @@ namespace ignition
             transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
-            // buffer.resize(advMsg.MsgLength());
             buffer.resize(advMsg.MsgLength() + sizeof(lengthField));
-            // advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
             advMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
-            // msgLength = static_cast<int>(advMsg.MsgLength());
             break;
           }
           case SubType:
@@ -1010,22 +1005,16 @@ namespace ignition
             SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
-            // buffer.resize(subMsg.MsgLength());
             buffer.resize(subMsg.MsgLength() + sizeof(lengthField));
             subMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
-            // subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            // msgLength = static_cast<int>(subMsg.MsgLength());
             break;
           }
           case HeartbeatType:
           case ByeType:
           {
             // Allocate a buffer and serialize the message.
-            // buffer.resize(header.HeaderLength());
             buffer.resize(header.HeaderLength() + sizeof(lengthField));
             header.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
-            // header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            // msgLength = header.HeaderLength();
             break;
           }
           default:
@@ -1049,7 +1038,6 @@ namespace ignition
             _destType == tDestinationType::ALL)
         {
           // Set the RELAY flag in the header.
-          // char *headerPtr = _buffer + sizeof(ssize_t);
           uint16_t flags = header.Flags();
           flags |= FlagRelay;
           header.SetFlags(flags);
@@ -1057,12 +1045,11 @@ namespace ignition
           this->SendBytesUnicast(&buffer[0], buffer.size());
         }
 
-        // if (this->verbose)
-        // if (this->port == 10317)
-        // {
-        //   std::cout << "\t* Sending " << MsgTypesStr[_type]
-        //             << " msg [" << topic << "]" << std::endl;
-        // }
+        if (this->verbose)
+        {
+          std::cout << "\t* Sending " << MsgTypesStr[_type]
+                    << " msg [" << topic << "]" << std::endl;
+        }
       }
 
       /// \brief ToDo.
@@ -1081,8 +1068,6 @@ namespace ignition
           if (sent != _len)
           {
             std::cerr << "Exception sending a unicast message" << std::endl;
-            std::cerr << "Sent: " << sent << std::endl;
-            std::cerr << "Expected: " << _len << std::endl;
             return;
           }
         }
@@ -1281,7 +1266,7 @@ namespace ignition
       /// \brief Internet socket address for sending to the multicast group.
       private: sockaddr_in mcastAddr;
 
-      /// \brief Collection of sockets addresses used for the relays.
+      /// \brief Collection of socket addresses used as remote relays.
       private: std::vector<sockaddr_in> relayAddrs;
 
       /// \brief Mutex to guarantee exclusive access between the threads.

@@ -53,8 +53,8 @@ namespace ignition
       while (pos2 != std::string::npos)
       {
         pieces.push_back(_orig.substr(pos1, pos2-pos1));
-        pos1 = pos2+1;
-        pos2 = _orig.find(_delim, pos2+1);
+        pos1 = pos2 + 1;
+        pos2 = _orig.find(_delim, pos2 + 1);
       }
       pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
       return pieces;

@@ -44,8 +44,10 @@ namespace ignition
     static const uint8_t NewConnection  = 6;
     static const uint8_t EndConnection  = 7;
 
-    // Flags.
+    // Flag set when a discovery message is relayed.
     static const uint16_t FlagRelay   = 0b000000000000'0001;
+    // Flag set when we want to avoid to relay a discovery message.
+    // This is used to avoid loops.
     static const uint16_t FlagNoRelay = 0b000000000000'0010;
 
     /// \brief Used for debugging the message type received/send.
