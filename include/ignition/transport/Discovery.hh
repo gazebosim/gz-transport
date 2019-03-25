@@ -321,7 +321,7 @@ namespace ignition
       /// \param[in] _topic Topic name requested.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Discover(const std::string &_topic)
+      public: bool Discover(const std::string &_topic) const
       {
         DiscoveryCallback<Pub> cb;
         bool found;
@@ -769,20 +769,14 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg)
       {
-        // Forward the entire message to the relays via unicast.
+        // Entire length of the package in octets.
         ssize_t len;
         memcpy(&len, _msg, sizeof(len));
 
+        // Create the header from the raw bytes.
         char *headerPtr = _msg + sizeof(ssize_t);
         Header header;
-        // char *pBody = _msg;
-        char *pBody = _msg + sizeof(ssize_t);
-
-        // Create the header from the raw bytes.
-        header.Unpack(_msg + sizeof(ssize_t));
-
-        // header.Unpack(_msg);
-        pBody += header.HeaderLength();
+        header.Unpack(headerPtr);
 
         // Discard the message if the wire protocol is different than mine.
         if (this->kWireVersion != header.Version())
@@ -797,12 +791,10 @@ namespace ignition
         uint16_t flags = header.Flags();
 
         // Forwarding:
-        //   - From a unicast peer  -> to multicast group.
-        //   - From multicast group -> to unicast peers.
+        //   - From a unicast peer  -> to multicast group (with NO_RELAY flag).
+        //   - From multicast group -> to unicast peers (with RELAY flag).
         if (flags & FlagRelay)
         {
-          // if (this->port == 10317)
-          //   std::cout << "Relaying to my multicast friends" << std::endl;
           // Unset the RELAY flag in the header and set the NO_RELAY.
           flags &= ~FlagRelay;
           flags |= FlagNoRelay;
@@ -833,6 +825,8 @@ namespace ignition
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
         }
+
+        char *pBody = headerPtr + header.HeaderLength();
 
         switch (header.Type())
         {
@@ -977,7 +971,7 @@ namespace ignition
       void SendMsg(const tDestinationType &_destType,
                    const uint8_t _type,
                    const T &_pub,
-                   const uint16_t _flags = 0)
+                   const uint16_t _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
@@ -1053,7 +1047,7 @@ namespace ignition
       }
 
       /// \brief ToDo.
-      private: void SendBytesUnicast(char *_buffer, ssize_t _len)
+      private: void SendBytesUnicast(char *_buffer, ssize_t _len) const
       {
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
@@ -1074,7 +1068,7 @@ namespace ignition
       }
 
       /// \brief ToDo.
-      private: void SendBytesMulticast(char *_buffer, ssize_t _len)
+      private: void SendBytesMulticast(char *_buffer, ssize_t _len) const
       {
         // Send the discovery message to the multicast group through all the
         // sockets.
