@@ -81,8 +81,11 @@ namespace ignition
     /// \brief Options for sending discovery messages.
     enum class tDestinationType
     {
+      /// \brief Send data via unicast only.
       UNICAST,
+      /// \brief Send data via multicast only.
       MULTICAST,
+      /// \brief Send data via unicast and multicast.
       ALL
     };
 
@@ -220,8 +223,8 @@ namespace ignition
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
-        if (std::string ignRelay;
-            env("IGN_RELAY", ignRelay) && !ignRelay.empty())
+        std::string ignRelay = "";
+        if (env("IGN_RELAY", ignRelay) && !ignRelay.empty())
         {
           relays = transport::split(ignRelay, ':');
         }
@@ -770,11 +773,11 @@ namespace ignition
                                          char *_msg)
       {
         // Entire length of the package in octets.
-        ssize_t len;
+        uint16_t len;
         memcpy(&len, _msg, sizeof(len));
 
         // Create the header from the raw bytes.
-        char *headerPtr = _msg + sizeof(ssize_t);
+        char *headerPtr = _msg + sizeof(len);
         Header header;
         header.Unpack(headerPtr);
 
@@ -975,7 +978,7 @@ namespace ignition
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        ssize_t lengthField = 0;
+        uint16_t lengthField = 0u;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -1017,7 +1020,7 @@ namespace ignition
             return;
         }
 
-        lengthField = static_cast<ssize_t>(buffer.size());
+        lengthField = static_cast<uint16_t>(buffer.size());
         memcpy(&buffer[0], &lengthField, sizeof(lengthField));
         char *headerPtr = &buffer[0] + sizeof(lengthField);
 
@@ -1046,8 +1049,11 @@ namespace ignition
         }
       }
 
-      /// \brief ToDo.
-      private: void SendBytesUnicast(char *_buffer, ssize_t _len) const
+      /// \brief Send bytes through all unicast relays.
+      /// \param[in] _buffer Data.
+      /// \param[in] _len Length in bytes.
+      private: void SendBytesUnicast(char *_buffer,
+                                     uint16_t _len) const
       {
         // Send the discovery message to the unicast relays.
         for (const auto &sockAddr : this->relayAddrs)
@@ -1067,8 +1073,11 @@ namespace ignition
         }
       }
 
-      /// \brief ToDo.
-      private: void SendBytesMulticast(char *_buffer, ssize_t _len) const
+      /// \brief Send bytes through the multicast group.
+      /// \param[in] _buffer Data.
+      /// \param[in] _len Length in bytes.
+      private: void SendBytesMulticast(char *_buffer,
+                                       uint16_t _len) const
       {
         // Send the discovery message to the multicast group through all the
         // sockets.
@@ -1098,13 +1107,6 @@ namespace ignition
       private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
-      }
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enabled or false otherwise.
-      private: bool Verbose() const
-      {
-        return this->verbose;
       }
 
       /// \brief Get the discovery protocol version.
@@ -1207,7 +1209,7 @@ namespace ignition
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      private: static const uint8_t kWireVersion = 8;
+      private: static const uint8_t kWireVersion = 9;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
