@@ -28,7 +28,7 @@ Install Ignition Transport:
 
 ```
 sudo apt-get update
-sudo apt-get install libignition-transport4-dev
+sudo apt-get install libignition-transport6-dev
 ```
 
 ## Mac OS X
@@ -53,7 +53,7 @@ Run the following commands:
 
 ```
 brew tap osrf/simulation
-brew install ignition-transport4
+brew install ignition-transport6
 ```
 
 ## Windows
@@ -205,13 +205,13 @@ requester
 ### Install from sources (Ubuntu Linux)
 
 For compiling the latest version of Ignition Transport you will need an
-Ubuntu distribution equal to 14.04.2 (Trusty) or newer.
+Ubuntu distribution equal to 18.04 (Bionic) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 
 ```
-sudo apt-get remove libignition-transport4-dev
+sudo apt-get remove libignition-transport6-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:
