@@ -22,6 +22,8 @@ RUN apt-get update \
         libsqlite3-dev \
         g++-8 \
         sudo \
+        gnupg \
+        lsb-release \
  && apt-get clean
 
 # Use GCC 8
@@ -62,38 +64,15 @@ RUN export DEBIAN_FRONTEND=noninteractive \
  && sudo dpkg-reconfigure --frontend noninteractive tzdata \
  && sudo apt-get clean
 
-# lcov
-RUN git clone https://github.com/linux-test-project/lcov.git \
- && cd lcov \
- && sudo make install \
- && cd ..
-
-# Ignition cmake
-RUN hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b ign-cmake2 \
- && cd ign-cmake \
- && mkdir build \
- && cd build \
- && cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
- && sudo make -j4 install \
- && cd ../..
-
-# Ignition math
-RUN hg clone http://bitbucket.org/ignitionrobotics/ign-math -b ign-math6 \
- && cd ign-math \
- && mkdir build \
- && cd build \
- && cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
- && sudo make -j4 install \
- && cd ../..
-
-# Ignition msgs
-RUN hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b ign-msgs3 \
- && cd ign-msgs \
- && mkdir build \
- && cd build \
- && cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
- && sudo make -j4 install \
- && cd ../..
+# Install Ignition dependencies
+RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
+ && sudo /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -' \
+ && sudo apt-get update \
+ && sudo apt-get install -y \
+    libignition-cmake2-dev \
+    libignition-math6-dev \
+    libignition-msgs3-dev \
+ && sudo apt-get clean
 
 # Ignition transport
 RUN hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b new_horizons \
