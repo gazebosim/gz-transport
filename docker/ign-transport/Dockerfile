@@ -24,6 +24,7 @@ RUN apt-get update \
         sudo \
         gnupg \
         lsb-release \
+        wget \
  && apt-get clean
 
 # Use GCC 8
