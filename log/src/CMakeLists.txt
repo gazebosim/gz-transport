@@ -52,4 +52,6 @@ target_include_directories(${log_lib_target}
     # while being built.
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 
-add_subdirectory(cmd)
+if(NOT WIN32)
+  add_subdirectory(cmd)
+endif()
