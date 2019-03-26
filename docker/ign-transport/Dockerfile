@@ -1,5 +1,5 @@
-# Ubuntu 18.04 with nvidia-docker2 beta opengl support
-FROM nvidia/opengl:1.0-glvnd-devel-ubuntu18.04
+# Ubuntu 18.04
+FROM ubuntu:bionic
 
 # Tools I find useful during development
 RUN apt-get update \

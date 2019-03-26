@@ -29,8 +29,9 @@ Download the [build.bash](https://bitbucket.org/ignitionrobotics/ign-transport/r
 
 ```{.sh}
 wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/build.bash
-https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/run.bash
-https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/ign-transport/Dockerfile -O ign-transport
+wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/run.bash
+wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+chmod +x build.bash run.bash
 ```
 
 Now, it's time to build the Docker image:
@@ -38,12 +39,12 @@ Now, it's time to build the Docker image:
 ./build.bash ign-transport
 ```
 
-The next step is to run your Docker container:
+Run your Docker container:
 ```
 ./run.bash ign-transport
 ```
 
-Inside the docker image, go to the `example` directory:
+Inside the docker instance, go to the `example` directory:
 ```
 cd ign-transport/example/build
 ```
@@ -111,7 +112,9 @@ IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
 ```
 
 You shouldn't receive anything as the discovery messages are not reaching both
-nodes. Now, setup your host to relay messages to the node running inside your
+nodes.
+
+Now, setup your host to relay messages to the node running inside your
 Docker container. For that purpose, you'll need to know the IP address used
 in your Docker container. Run the `ifconfig` command inside your Docker
 instance:
@@ -135,7 +138,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
 ```
 
 Go back to your terminal in the host and configure the environment variable
-IGN_RELAY with the IP address inside the container.
+`IGN_RELAY` with the IP address used inside the container.
 
 ```
 IGN_RELAY=172.17.0.3 IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
