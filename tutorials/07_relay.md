@@ -1,4 +1,4 @@
-\page services Services
+\page relay Relay
 
 Next Tutorial: \ref logging
 
@@ -146,3 +146,21 @@ IGN_RELAY=172.17.0.3 IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
 
 Now, you should receive the messages, as your node in the host is directly
 relaying the discovery messages inside your Docker instance via unicast.
+
+## Known limitations
+
+Keep in mind that the end points of all the nodes should be reachable both
+ways. The relay feature will overcome the UDP multicast limitation but remember
+that after the discovery phase the nodes will exchange data directly using a
+different set of end points. These end points should be reachable from any node,
+otherwise the communication will not work.
+
+Example: Imagine that you're running a publisher in your home machine.
+Tipically, you'll be using a private IP address behind your home router doing
+NAT. If you try to run a subscriber node inside a computer over the internet
+using a public IP, things will not work even using `IGN_RELAY`. The discovery
+protocol will reach the subscriber and back (thanks to the NAT), but things will
+stop at that point. The real data exchange will not be possible, as the
+subscriber will not be able to communicate with the publisher's endpoint using
+a private IP address. A solution to this problem is to create a VPN to create
+the abstraction that both machines are within the same local network.
