@@ -33,7 +33,7 @@ if(MSVC)
 endif()
 
 # Set install instructions for the sql schema, and configure the build to use it
-set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
+set(SCHEMA_INSTALL_BASE ${IGN_DATA_INSTALL_DIR})
 install(DIRECTORY ../sql DESTINATION ${SCHEMA_INSTALL_BASE})
 set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${SCHEMA_INSTALL_BASE}/sql)
 configure_file(build_config.hh.in build_config.hh @ONLY)
@@ -52,4 +52,6 @@ target_include_directories(${log_lib_target}
     # while being built.
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 
-add_subdirectory(cmd)
+if(NOT WIN32)
+  add_subdirectory(cmd)
+endif()
