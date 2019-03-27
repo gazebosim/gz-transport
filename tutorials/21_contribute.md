@@ -8,7 +8,7 @@ Ignition Transport is an open source project based on the Apache License
 Version 2.0, and is maintained by hardworking developers for everyone's benefit.
 If you would like to contribute software patches, read on to find out how.
 You'll probably want to check out the [Development
-Section](https://ignitionrobotics.org/tutorials/transport/4.0/index.html) for
+Section](https://ignitionrobotics.org/api/transport/6.0/tutorials.html) for
 learning about the internal design of the library when planning your
 contribution.
 
@@ -287,7 +287,7 @@ which can be obtained:
 
 <b>Medium level of debugging support</b>
 
-  This can be obtained installing the `libignition-transport4-dbg` package or
+  This can be obtained installing the `libignition-transport6-dbg` package or
   compiling Ignition Transport from source using the `RELWITHDEBINFO`
   `CMAKE_BUILD_TYPE` mode (which is the default if no mode is provided). This
   will set up `-O2` optimization level but provide debugging symbols. This
