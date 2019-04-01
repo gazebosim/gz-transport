@@ -6,10 +6,10 @@ Next Tutorial: \ref logging
 
 In this tutorial, we are going to create two nodes that are not able to
 communicate with the default configuration of Ignition Transport. This
-limitation arises when the nodes are separated by a router, tipically when they
+limitation arises when the nodes are separated by a router, typically when they
 are part of different local networks. Routers do not propagate UDP multicast
 traffic and this is the reason for this limitation. We'll create a scenario to
-simulate this configuration, and then, we'll enable the relay capabilities of
+simulate this configuration, and then we'll enable the relay capabilities of
 Ignition Transport to make the communication possible.
 
 ```{.sh}
@@ -156,7 +156,7 @@ different set of end points. These end points should be reachable from any node,
 otherwise the communication will not work.
 
 Example: Imagine that you're running a publisher in your home machine.
-Tipically, you'll be using a private IP address behind your home router doing
+Typically, you'll be using a private IP address behind your home router doing
 NAT. If you try to run a subscriber node inside a computer over the internet
 using a public IP, things will not work even using `IGN_RELAY`. The discovery
 protocol will reach the subscriber and back (thanks to the NAT), but things will

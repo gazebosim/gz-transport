@@ -230,7 +230,7 @@ namespace ignition
         }
 
         // Register all unicast relays.
-        for (auto const relayAddr : relays)
+        for (auto const &relayAddr : relays)
           this->AddRelayAddress(relayAddr);
 
         if (this->verbose)
