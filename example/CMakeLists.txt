@@ -30,6 +30,16 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
   endif()
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
+  add_executable(publisher_c publisher_c.cc)
+  target_link_libraries(publisher_c ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
+  add_executable(subscriber_c subscriber_c.cc)
+  target_link_libraries(subscriber_c ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   add_executable(publisher publisher.cc)
   target_link_libraries(publisher ignition-transport${IGN_TRANSPORT_VER}::core)
