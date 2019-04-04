@@ -39,7 +39,7 @@ IgnTransportNode ignTransportInit(void)
 }
 
 /////////////////////////////////////////////////
-bool ignTransportPublish(IgnTransportNode _node, const char *_topic,
+int ignTransportPublish(IgnTransportNode _node, const char *_topic,
                          const void *_data, const char *_msgType)
 {
   if (_node >= 0 && _node < static_cast<int>(nodes.size()))
@@ -52,14 +52,14 @@ bool ignTransportPublish(IgnTransportNode _node, const char *_topic,
 
     // Publishe the message.
     return publishers[key].PublishRaw(
-        reinterpret_cast<const char*>(_data), _msgType);
+        reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
   }
 
-  return false;
+  return 1;
 }
 
 /////////////////////////////////////////////////
-bool ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
+int ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
     void (*_callback)(const char *, const size_t, const char *))
 {
   if (_node >= 0 && _node < static_cast<int>(nodes.size()))
@@ -69,10 +69,10 @@ bool ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
           const size_t _size,
           const ignition::transport::MessageInfo &_info) -> void {
         _callback(_msg, _size, _info.Type().c_str());
-        });
+        }) ? 0 : 1;
   }
 
-  return false;
+  return 1;
 }
 
 /////////////////////////////////////////////////

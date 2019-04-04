@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   const char *topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  if (!ignTransportSubscribe(node, topic, cb))
+  if (ignTransportSubscribe(node, topic, cb) != 0)
   {
     printf("Error subscribing to topic %s.\n", topic);
     return -1;

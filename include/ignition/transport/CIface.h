@@ -32,16 +32,16 @@ extern "C" {
   /// \param[in] _topic Topic on which to publish the message.
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
-  /// \return True on success.
-  bool ignTransportPublish(IgnTransportNode _node, const char *_topic,
+  /// \return 0 on success.
+  int ignTransportPublish(IgnTransportNode _node, const char *_topic,
                          const void *_data, const char *_msgType);
 
   /// \brief Subscribe to a topic, and register a callback.
   /// \param[in] _node Id of a node.
   /// \param[in] _topic Name of the topic.
   /// \param[in] _callback The function to call when a message is received.
-  /// \return True on success.
-  bool ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
+  /// \return 0 on success.
+  int ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
       void (*_callback)(const char *, const size_t, const char *));
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
