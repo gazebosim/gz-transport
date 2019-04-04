@@ -27,7 +27,7 @@ extern "C" {
   /// \brief Initialize a transport node.
   IgnTransportNode ignTransportInit(void);
 
-  /// \brief Publishe a message on a topic.
+  /// \brief Publishes a message on a topic.
   /// \param[in] _node Id of a node.
   /// \param[in] _topic Topic on which to publish the message.
   /// \param[in] _data Byte array of serialized data to publish.
