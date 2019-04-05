@@ -30,7 +30,7 @@
 #endif
 
 #include "ignition/transport/config.hh"
-#include "ignition/transport/ign.hh"
+#include "ign.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
 
