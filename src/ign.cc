@@ -251,7 +251,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
 
 //////////////////////////////////////////////////
 extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
-  const double _duration)
+  const double _duration, int _count)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -259,9 +259,16 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
     return;
   }
 
-  std::function<void(const ProtoMsg&)> cb = [](const ProtoMsg &_msg)
+  std::mutex mutex;
+  std::condition_variable condition;
+  int count = 0;
+
+  std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &_msg)
   {
+    std::lock_guard<std::mutex> lock(mutex);
     std::cout << _msg.DebugString() << std::endl;
+    ++count;
+    condition.notify_one();
   };
 
   Node node;
@@ -275,8 +282,20 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
     return;
   }
 
-  // Wait forever.
-  ignition::transport::waitForShutdown();
+  // Wait forever if _count <= 0. Otherwise wait for a specific number of
+  // messages.
+  if (_count <= 0)
+  {
+    ignition::transport::waitForShutdown();
+  }
+  else
+  {
+    while (count < _count)
+    {
+      std::unique_lock<std::mutex> lock(mutex);
+      condition.wait(lock, [&]{return count >= _count;});
+    }
+  }
 }
 
 //////////////////////////////////////////////////

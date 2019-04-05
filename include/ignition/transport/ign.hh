@@ -64,10 +64,16 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
                                                          const char *_reqData);
 
 /// \brief External hook to execute 'ign topic -e' from the command line.
+/// The _duration parameter overrides the _count parameter.
 /// \param[in] _topic Topic name.
-/// \param[in] _duration Duration (seconds) to run.
+/// \param[in] _duration Duration (seconds) to run. A value <= 0 indicates
+/// no time limit. The _duration parameter overrides the _count parameter.
+/// \param[in] _count Number of messages to echo and then stop. A value <= 0
+/// indicates no limit. The _duration parameter overrides the _count
+/// parameter.
 extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
-                                                        const double _duration);
+                                                        const double _duration,
+                                                        int _count);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
