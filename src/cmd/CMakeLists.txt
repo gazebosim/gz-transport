@@ -14,9 +14,11 @@ configure_file(
   "${cmd_script_configured_test}"
   @ONLY)
 
-# file(GENERATE
-#  OUTPUT "${cmd_script_generated_test}"
-#  INPUT  "${cmd_script_configured_test}")
+if(NOT WIN32)
+  file(GENERATE
+    OUTPUT "${cmd_script_generated_test}"
+    INPUT  "${cmd_script_configured_test}")
+endif()
 
 
 #===============================================================================
