@@ -29,8 +29,8 @@ using namespace ignition;
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
 
-static std::string g_partition;
-static std::string g_topic = "/foo";
+static std::string g_partition; // NOLINT(*)
+static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_counter = 0;
 
 //////////////////////////////////////////////////
@@ -52,7 +52,7 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 
   std::string responser_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
@@ -84,7 +84,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     g_partition.c_str());
@@ -135,7 +135,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcessesSrvCallWithoutOutputReplier_aux");
+    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     g_partition.c_str());

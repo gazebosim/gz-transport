@@ -31,8 +31,8 @@ using namespace ignition;
 static bool cbExecuted;
 static bool cbRawExecuted;
 static bool cb2Executed;
-static std::string g_topic = "/foo";
-static std::string data = "bar";
+static std::string g_topic = "/foo"; // NOLINT(*)
+static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
@@ -45,7 +45,7 @@ void cb(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void cbRaw(const char *_msgData, const int _size,
+void cbRaw(const char *_msgData, const size_t _size,
            const ignition::transport::MessageInfo &_info)
 {
   ignition::msgs::Vector3d v;
