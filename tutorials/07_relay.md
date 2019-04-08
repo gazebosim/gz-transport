@@ -49,7 +49,7 @@ Inside the docker instance, go to the `example` directory:
 cd ign-transport/example/build
 ```
 
-Back to your guest, make sure that you have Ignition Tools and net-tools
+Back on your host, make sure that you have Ignition Tools and net-tools
 installed:
 ```
 sudo apt install ignition-tools net-tools
