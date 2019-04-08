@@ -69,11 +69,15 @@ COMMANDS = {  'topic' =>
                        "                             Requires -t.\n"           +
                        "                                                    \n"+
                        "  -d [--duration] arg        Duration (seconds) to run"+
-                       ". Applicable with echo. This will override -n.\n"      +
+                       ". Applicable with \n"                                  +
+                       "                             echo. This will override "+
+                       "-n.\n"                                                 +
                        "                                                    \n"+
-                       "  -n [--num] arg             Number of messages to "   +
-                       " echo and then exit. <=0 implies infinite messages. "  +
-                       " Applicable with echo. This is overriden by -d.\n"     +
+                       "  -n [--num] arg             Number of messages"       +
+                       " echo and then exit. \n                             "  +
+                       "<=0 implies infinite messages. Applicable with \n"     +
+                       "                             echo. This is overriden " +
+                       "by -d.\n"                                              +
                        "                                                    \n"+
                        COMMON_OPTIONS,
               'service' =>
