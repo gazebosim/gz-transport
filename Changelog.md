@@ -2,7 +2,7 @@
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit.
-   * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/xxx)
+   * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/367)
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
