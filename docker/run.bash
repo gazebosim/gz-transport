@@ -85,10 +85,7 @@ docker run -it \
   -v "/tmp/.X11-unix:/tmp/.X11-unix" \
   -v "/etc/localtime:/etc/localtime:ro" \
   -v "/dev/input:/dev/input" \
-  -v "/opt/sublime_text_3:/opt/sublime_text_3" \
-  --privileged \
   --rm \
-  --runtime=nvidia \
   --security-opt seccomp=unconfined \
   $DOCKER_OPTS \
   $IMG
