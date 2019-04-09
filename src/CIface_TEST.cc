@@ -15,7 +15,6 @@
  *
 */
 #include <ignition/msgs/stringmsg.pb.h>
-#include "ignition/transport/Node.hh"
 
 #include "gtest/gtest.h"
 #include "ignition/transport/CIface.h"
@@ -61,7 +60,8 @@ TEST(CIfaceTest, PubSub)
   // Serialize the message.
   msg.SerializeToArray(buffer, size);
 
-  ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
+  EXPECT_EQ(0,
+    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
 
   EXPECT_TRUE(cbExecuted);
 
@@ -69,11 +69,13 @@ TEST(CIfaceTest, PubSub)
 
   // Unsubscribe
   ASSERT_EQ(0, ignTransportUnsubscribe(node, topic));
-  ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
+  EXPECT_EQ(0,
+    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_FALSE(cbExecuted);
 
   free(buffer);
   ignTransportNodeDestroy(&node);
+  EXPECT_EQ(nullptr, node);
 }
 
 //////////////////////////////////////////////////
