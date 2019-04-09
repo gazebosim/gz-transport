@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
   // Zzzzzz.
   ignTransportWaitForShutdown();
-  ignTransportNodeDestroy(node);
+  ignTransportNodeDestroy(&node);
 
   return 0;
 }

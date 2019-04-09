@@ -25,12 +25,13 @@ extern "C" {
   struct IgnTransportNode;
 
   /// \brief Create a transport node.
-  /// \return A pointer to a new transport node.
+  /// \return A pointer to a new transport node. Do not manually delete this
+  /// pointer, instead use ignTransportNodeDestroy.
   IgnTransportNode *ignTransportNodeCreate();
 
   /// \brief Destroy a transport node.
-  /// \param[in, out] The transport node to destroy.
-  void ignTransportNodeDestroy(IgnTransportNode *_node);
+  /// \param[in, out] _node The transport node to destroy.
+  void ignTransportNodeDestroy(IgnTransportNode **_node);
 
   /// \brief Publishes a message on a topic.
   /// \param[in] _node Pointer to a node.
@@ -51,6 +52,12 @@ extern "C" {
   int ignTransportSubscribe(IgnTransportNode *_node,
                             const char *_topic,
                    void (*_callback)(const char *, const size_t, const char *));
+
+  /// \brief Unsubscribe from a topic.
+  /// \param[in] _node Pointer to a node.
+  /// \param[in] _topic Name of the topic.
+  /// \return 0 on success.
+  int ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic);
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
   /// Note that this function registers a signal handler. Do not use this

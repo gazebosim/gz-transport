@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   }
 
   free(buffer);
-  ignTransportNodeDestroy(node);
+  ignTransportNodeDestroy(&node);
 
   return 0;
 }

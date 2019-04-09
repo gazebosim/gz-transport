@@ -40,12 +40,12 @@ IgnTransportNode *ignTransportNodeCreate()
 }
 
 /////////////////////////////////////////////////
-void ignTransportNodeDestroy(IgnTransportNode *_node)
+void ignTransportNodeDestroy(IgnTransportNode **_node)
 {
-  if (_node)
+  if (*_node)
   {
-    delete _node;
-    _node = nullptr;
+    delete *_node;
+    *_node = nullptr;
   }
 }
 
@@ -80,6 +80,16 @@ int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
                     _callback(_msg, _size, _info.Type().c_str());
                   }) ? 0 : 1;
 }
+
+/////////////////////////////////////////////////
+int ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic)
+{
+  if (!_node)
+    return 1;
+
+  return _node->nodePtr->Unsubscribe(_topic) ? 0 : 1;
+}
+
 
 /////////////////////////////////////////////////
 void ignTransportWaitForShutdown()
