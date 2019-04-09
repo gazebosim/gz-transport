@@ -25,7 +25,7 @@ void cb(const char *_data, const size_t _size, const char *_msgType)
   ignition::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
 
-  printf("Msg length: %ld bytes\n", _size);
+  printf("Msg length: %zu bytes\n", _size);
   printf("Msg type: %s\n", _msgType);
   printf("Msg contents: %s\n", msg.data().c_str());
 }
@@ -34,7 +34,7 @@ void cb(const char *_data, const size_t _size, const char *_msgType)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  IgnTransportNode node = ignTransportInit();
+  IgnTransportNode *node = ignTransportNodeCreate();
   const char *topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
@@ -46,6 +46,7 @@ int main(int argc, char **argv)
 
   // Zzzzzz.
   ignTransportWaitForShutdown();
+  ignTransportNodeDestroy(node);
 
   return 0;
 }

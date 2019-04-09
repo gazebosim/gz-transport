@@ -39,7 +39,7 @@ int main(int argc, char **argv)
   signal(SIGTERM, signalHandler);
 
   // Create a transport node.
-  IgnTransportNode node = ignTransportInit();
+  IgnTransportNode *node = ignTransportNodeCreate();
 
   const char *topic = "/foo";
 
@@ -66,6 +66,7 @@ int main(int argc, char **argv)
   }
 
   free(buffer);
+  ignTransportNodeDestroy(node);
 
   return 0;
 }

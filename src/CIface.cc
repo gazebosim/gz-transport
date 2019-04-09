@@ -15,64 +15,70 @@
  *
 */
 
+#include <map>
 #include <memory>
-#include <vector>
 
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/CIface.h"
 
-// All of the nodes.
-static std::vector<std::unique_ptr<ignition::transport::Node>> nodes;
+/// \brief A wrapper to store an Ignition Transport node and its publishers.
+struct IgnTransportNode
+{
+  /// \brief Pointer to the node.
+  std::unique_ptr<ignition::transport::Node> nodePtr;
 
-// Map of the publishers.
-// Key: pair of node Id and topic name. A node Id is generated from the
-// ignTransportInit function.
-// Value: A node publisher.
-static std::map<std::pair<IgnTransportNode, const char *>,
-  ignition::transport::Node::Publisher> publishers;
+  /// \brief All publishers of this node.
+  std::map<std::string, ignition::transport::Node::Publisher> publishers;
+};
 
 /////////////////////////////////////////////////
-IgnTransportNode ignTransportInit(void)
+IgnTransportNode *ignTransportNodeCreate()
 {
-  nodes.push_back(std::make_unique<ignition::transport::Node>());
-  return nodes.size() - 1;
+  IgnTransportNode *ignTransportNode = new IgnTransportNode();
+  ignTransportNode->nodePtr = std::make_unique<ignition::transport::Node>();
+  return ignTransportNode;
 }
 
 /////////////////////////////////////////////////
-int ignTransportPublish(IgnTransportNode _node, const char *_topic,
-                         const void *_data, const char *_msgType)
+void ignTransportNodeDestroy(IgnTransportNode *_node)
 {
-  if (_node >= 0 && _node < static_cast<int>(nodes.size()))
+  if (_node)
   {
-    std::pair<IgnTransportNode, const char *> key(_node, _topic);
-
-    // Create a publisher if one does not exist.
-    if (publishers.find(key) == publishers.end())
-      publishers[key] = nodes[_node]->Advertise(_topic, _msgType);
-
-    // Publishe the message.
-    return publishers[key].PublishRaw(
-        reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+    delete _node;
+    _node = nullptr;
   }
-
-  return 1;
 }
 
 /////////////////////////////////////////////////
-int ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
+int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
+    const void *_data, const char *_msgType)
+{
+  if (!_node)
+    return 1;
+
+  // Create a publisher if one does not exist.
+  if (_node->publishers.find(_topic) == _node->publishers.end())
+    _node->publishers[_topic] = _node->nodePtr->Advertise(_topic, _msgType);
+
+  // Publish the message.
+  return _node->publishers[_topic].PublishRaw(
+    reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+}
+
+/////////////////////////////////////////////////
+int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
     void (*_callback)(const char *, const size_t, const char *))
 {
-  if (_node >= 0 && _node < static_cast<int>(nodes.size()))
-  {
-    return nodes[_node]->SubscribeRaw(_topic,
-        [_callback](const char *_msg,
-          const size_t _size,
-          const ignition::transport::MessageInfo &_info) -> void {
-        _callback(_msg, _size, _info.Type().c_str());
-        }) ? 0 : 1;
-  }
+  if (!_node)
+    return 1;
 
-  return 1;
+  return _node->nodePtr->SubscribeRaw(_topic,
+      [_callback](const char *_msg,
+                  const size_t _size,
+                  const ignition::transport::MessageInfo &_info) -> void
+                  {
+                    _callback(_msg, _size, _info.Type().c_str());
+                  }) ? 0 : 1;
 }
 
 /////////////////////////////////////////////////

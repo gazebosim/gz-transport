@@ -15,34 +15,42 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_CIFACE_HH_
-#define IGN_TRANSPORT_CIFACE_HH_
+#ifndef INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
+#define INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  /// \brief Id of a transport node.
-  typedef int32_t IgnTransportNode;
+  /// \brief A transport node.
+  struct IgnTransportNode;
 
-  /// \brief Initialize a transport node.
-  IgnTransportNode ignTransportInit(void);
+  /// \brief Create a transport node.
+  /// \return A pointer to a new transport node.
+  IgnTransportNode *ignTransportNodeCreate();
+
+  /// \brief Destroy a transport node.
+  /// \param[in, out] The transport node to destroy.
+  void ignTransportNodeDestroy(IgnTransportNode *_node);
 
   /// \brief Publishes a message on a topic.
-  /// \param[in] _node Id of a node.
+  /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Topic on which to publish the message.
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
-  int ignTransportPublish(IgnTransportNode _node, const char *_topic,
-                         const void *_data, const char *_msgType);
+  int ignTransportPublish(IgnTransportNode *_node,
+                          const char *_topic,
+                          const void *_data,
+                          const char *_msgType);
 
   /// \brief Subscribe to a topic, and register a callback.
-  /// \param[in] _node Id of a node.
+  /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Name of the topic.
   /// \param[in] _callback The function to call when a message is received.
   /// \return 0 on success.
-  int ignTransportSubscribe(IgnTransportNode _node, const char *_topic,
-      void (*_callback)(const char *, const size_t, const char *));
+  int ignTransportSubscribe(IgnTransportNode *_node,
+                            const char *_topic,
+                   void (*_callback)(const char *, const size_t, const char *));
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
   /// Note that this function registers a signal handler. Do not use this
@@ -53,4 +61,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif  // INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
