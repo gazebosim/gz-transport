@@ -79,7 +79,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     /// \brief Options for sending discovery messages.
-    enum class tDestinationType
+    enum class DestinationType
     {
       /// \brief Send data via unicast only.
       UNICAST,
@@ -251,7 +251,7 @@ namespace ignition
 
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
-        this->SendMsg(tDestinationType::ALL, ByeType,
+        this->SendMsg(DestinationType::ALL, ByeType,
           Publisher("", "", this->pUuid, "", AdvertiseOptions()));
 
         // Close sockets.
@@ -309,7 +309,7 @@ namespace ignition
         // Only advertise a message outside this process if the scope
         // is not 'Process'
         if (_publisher.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(tDestinationType::ALL, AdvType, _publisher);
+          this->SendMsg(DestinationType::ALL, AdvType, _publisher);
 
         return true;
       }
@@ -344,7 +344,7 @@ namespace ignition
         pub.SetPUuid(this->pUuid);
 
         // Send a discovery request.
-        this->SendMsg(tDestinationType::ALL, SubType, pub);
+        this->SendMsg(DestinationType::ALL, SubType, pub);
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
@@ -419,7 +419,7 @@ namespace ignition
         // Only unadvertise a message outside this process if the scope
         // is not 'Process'.
         if (inf.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(tDestinationType::ALL, UnadvType, inf);
+          this->SendMsg(DestinationType::ALL, UnadvType, inf);
 
         return true;
       }
@@ -646,7 +646,7 @@ namespace ignition
         }
 
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        this->SendMsg(tDestinationType::ALL, HeartbeatType, pub);
+        this->SendMsg(DestinationType::ALL, HeartbeatType, pub);
 
         std::map<std::string, std::vector<Pub>> nodes;
         {
@@ -659,7 +659,7 @@ namespace ignition
         for (const auto &topic : nodes)
         {
           for (const auto &node : topic.second)
-            this->SendMsg(tDestinationType::ALL, AdvType, node);
+            this->SendMsg(DestinationType::ALL, AdvType, node);
         }
 
         {
@@ -793,9 +793,15 @@ namespace ignition
 
         uint16_t flags = header.Flags();
 
-        // Forwarding:
+        // Forwarding summary:
         //   - From a unicast peer  -> to multicast group (with NO_RELAY flag).
         //   - From multicast group -> to unicast peers (with RELAY flag).
+
+        // If the RELAY flag is set, this discovery message is coming via a
+        // unicast transmission. In this case, we don't process it, we just
+        // forward it to the multicast group, and it will be dispatched once
+        // received there. Note that we also unset the RELAY flag and set the
+        // NO_RELAY flag, to avoid forwarding the message anymore.
         if (flags & FlagRelay)
         {
           // Unset the RELAY flag in the header and set the NO_RELAY.
@@ -810,6 +816,11 @@ namespace ignition
           this->AddRelayAddress(_fromIp);
           return;
         }
+        // If we are receiving this discovery message via the multicast channel
+        // and the NO_RELAY flag is not set, we forward this message via unicast
+        // to all our relays. Note that this is the most common case, where we
+        // receive a regular multicast message and we forward it to any remote
+        // relays.
         else if (!(flags & FlagNoRelay))
         {
           flags |= FlagRelay;
@@ -817,7 +828,6 @@ namespace ignition
           header.Pack(headerPtr);
           this->SendBytesUnicast(_msg, len);
         }
-
 
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
@@ -893,7 +903,7 @@ namespace ignition
               }
 
               // Answer an ADVERTISE message.
-              this->SendMsg(tDestinationType::ALL, AdvType, nodeInfo);
+              this->SendMsg(DestinationType::ALL, AdvType, nodeInfo);
             }
 
             break;
@@ -971,7 +981,7 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       private: template<typename T>
-      void SendMsg(const tDestinationType &_destType,
+      void SendMsg(const DestinationType &_destType,
                    const uint8_t _type,
                    const T &_pub,
                    const uint16_t _flags = 0) const
@@ -1024,15 +1034,15 @@ namespace ignition
         memcpy(&buffer[0], &lengthField, sizeof(lengthField));
         char *headerPtr = &buffer[0] + sizeof(lengthField);
 
-        if (_destType == tDestinationType::MULTICAST ||
-            _destType == tDestinationType::ALL)
+        if (_destType == DestinationType::MULTICAST ||
+            _destType == DestinationType::ALL)
         {
           this->SendBytesMulticast(&buffer[0], buffer.size());
         }
 
         // Send the discovery message to the unicast relays.
-        if (_destType == tDestinationType::UNICAST ||
-            _destType == tDestinationType::ALL)
+        if (_destType == DestinationType::UNICAST ||
+            _destType == DestinationType::ALL)
         {
           // Set the RELAY flag in the header.
           uint16_t flags = header.Flags();
