@@ -24,13 +24,13 @@ install Docker following any of the existing guides available
 ([here](https://bitbucket.org/osrf/vrx/wiki/tutorials/installDocker)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/example/docker/build.bash), [run.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/example/docker/run.bash) and
-[Dockerfile](https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/example/docker/ign-transport/Dockerfile) files.
+Download the [build.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/build.bash), [run.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/run.bash) and
+[Dockerfile](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/ign-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/build.bash
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/run.bash
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/new_horizons/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/build.bash
+wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/run.bash
+wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
