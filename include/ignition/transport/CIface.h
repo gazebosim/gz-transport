@@ -48,10 +48,21 @@ extern "C" {
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Name of the topic.
   /// \param[in] _callback The function to call when a message is received.
+  /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int ignTransportSubscribe(IgnTransportNode *_node,
-                            const char *_topic,
-                   void (*_callback)(const char *, const size_t, const char *));
+  int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
+                void (*_callback)(const char *, size_t, const char *, void *),
+                void *_userData);
+
+  /// \brief Subscribe to a topic, and register a callback.
+  /// \param[in] _node Pointer to a node.
+  /// \param[in] _topic Name of the topic.
+  /// \param[in] _callback The function to call when a message is received.
+  /// \param[in] _userData Arbitrary user data pointer.
+  /// \return 0 on success.
+  int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
+                void (*_callback)(char *, size_t, char *, void *),
+                void *_userData);
 
   /// \brief Unsubscribe from a topic.
   /// \param[in] _node Pointer to a node.

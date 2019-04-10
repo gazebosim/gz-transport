@@ -67,17 +67,36 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
 
 /////////////////////////////////////////////////
 int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
-    void (*_callback)(const char *, const size_t, const char *))
+    void (*_callback)(const char *, size_t, const char *, void *),
+    void *_userData)
 {
   if (!_node)
     return 1;
 
   return _node->nodePtr->SubscribeRaw(_topic,
-      [_callback](const char *_msg,
+      [_callback, _userData](const char *_msg,
                   const size_t _size,
                   const ignition::transport::MessageInfo &_info) -> void
                   {
-                    _callback(_msg, _size, _info.Type().c_str());
+                    _callback(_msg, _size, _info.Type().c_str(), _userData);
+                  }) ? 0 : 1;
+}
+
+/////////////////////////////////////////////////
+int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
+    void (*_callback)(char *, size_t, char *, void *), void *_userData)
+{
+  if (!_node)
+    return 1;
+
+  return _node->nodePtr->SubscribeRaw(_topic,
+      [_callback, _userData](const char *_msg,
+                  const size_t _size,
+                  const ignition::transport::MessageInfo &_info) -> void
+                  {
+                    _callback(const_cast<char *>(_msg), _size,
+                              const_cast<char *>(_info.Type().c_str()),
+                              _userData);
                   }) ? 0 : 1;
 }
 

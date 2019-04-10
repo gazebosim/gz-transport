@@ -20,30 +20,58 @@
 #include "ignition/transport/CIface.h"
 #include "ignition/transport/test_config.h"
 
-static bool cbExecuted;
+static int count;
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const char *_data, const size_t _size, const char *_msgType)
+void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
 {
+  int *userData = static_cast<int*>(_userData);
+
+  ASSERT_NE(nullptr, userData);
+  EXPECT_EQ(42, *userData);
+
   ignition::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
-  cbExecuted = true;
+  ++count;
+}
+
+//////////////////////////////////////////////////
+/// \brief Function called each time a topic update is received.
+void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
+{
+  int *userData = static_cast<int*>(_userData);
+
+  ASSERT_NE(nullptr, userData);
+  EXPECT_EQ(42, *userData);
+
+  ignition::msgs::StringMsg msg;
+  msg.ParseFromArray(_data, _size);
+  EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+  EXPECT_EQ(msg.data(), "HELLO");
+  ++count;
 }
 
 //////////////////////////////////////////////////
 TEST(CIfaceTest, PubSub)
 {
-  cbExecuted = false;
+  count = 0;
   IgnTransportNode *node = ignTransportNodeCreate();
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
 
+  int userData = 42;
+
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribe(node, topic, cb));
+  ASSERT_EQ(0, ignTransportSubscribe(node, topic, cb, &userData));
+
+  // Subscribe
+  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+        const_cast<char *>(topic), cbNonConst, &userData));
+
 
   // Prepare the message.
   ignition::msgs::StringMsg msg;
@@ -63,15 +91,15 @@ TEST(CIfaceTest, PubSub)
   EXPECT_EQ(0,
     ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
 
-  EXPECT_TRUE(cbExecuted);
+  EXPECT_EQ(2, count);
 
-  cbExecuted = false;
+  count = 0;
 
   // Unsubscribe
   ASSERT_EQ(0, ignTransportUnsubscribe(node, topic));
   EXPECT_EQ(0,
     ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
-  EXPECT_FALSE(cbExecuted);
+  EXPECT_EQ(0, count);
 
   free(buffer);
   ignTransportNodeDestroy(&node);
