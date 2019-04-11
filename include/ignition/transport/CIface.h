@@ -18,6 +18,8 @@
 #ifndef INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
 #define INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
 
+#include "ignition/transport/Export.hh"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,11 +29,12 @@ extern "C" {
   /// \brief Create a transport node.
   /// \return A pointer to a new transport node. Do not manually delete this
   /// pointer, instead use ignTransportNodeDestroy.
-  IgnTransportNode *ignTransportNodeCreate();
+  IgnTransportNode IGNITION_TRANSPORT_VISIBLE *ignTransportNodeCreate();
 
   /// \brief Destroy a transport node.
   /// \param[in, out] _node The transport node to destroy.
-  void ignTransportNodeDestroy(IgnTransportNode **_node);
+  void IGNITION_TRANSPORT_VISIBLE
+  ignTransportNodeDestroy(IgnTransportNode **_node);
 
   /// \brief Publishes a message on a topic.
   /// \param[in] _node Pointer to a node.
@@ -39,10 +42,11 @@ extern "C" {
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
-  int ignTransportPublish(IgnTransportNode *_node,
-                          const char *_topic,
-                          const void *_data,
-                          const char *_msgType);
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportPublish(IgnTransportNode *_node,
+                      const char *_topic,
+                      const void *_data,
+                      const char *_msgType);
 
   /// \brief Subscribe to a topic, and register a callback.
   /// \param[in] _node Pointer to a node.
@@ -50,7 +54,9 @@ extern "C" {
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportSubscribe(IgnTransportNode *_node,
+                const char *_topic,
                 void (*_callback)(const char *, size_t, const char *, void *),
                 void *_userData);
 
@@ -60,24 +66,25 @@ extern "C" {
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
-                void (*_callback)(char *, size_t, char *, void *),
-                void *_userData);
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
+                            void (*_callback)(char *, size_t, char *, void *),
+                            void *_userData);
 
   /// \brief Unsubscribe from a topic.
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Name of the topic.
   /// \return 0 on success.
-  int ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic);
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic);
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
   /// Note that this function registers a signal handler. Do not use this
   /// function if you want to manage yourself SIGINT/SIGTERM.
-  void ignTransportWaitForShutdown();
+  void IGNITION_TRANSPORT_VISIBLE ignTransportWaitForShutdown();
 
 #ifdef __cplusplus
 }
 #endif
 
-// INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
-#endif
+#endif  // INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
