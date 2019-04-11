@@ -20,7 +20,8 @@
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const char *_data, const size_t _size, const char *_msgType)
+void cb(const char *_data, const size_t _size, const char *_msgType,
+        void *_userData)
 {
   ignition::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
@@ -38,7 +39,7 @@ int main(int argc, char **argv)
   const char *topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  if (ignTransportSubscribe(node, topic, cb) != 0)
+  if (ignTransportSubscribe(node, topic, cb, nullptr) != 0)
   {
     printf("Error subscribing to topic %s.\n", topic);
     return -1;

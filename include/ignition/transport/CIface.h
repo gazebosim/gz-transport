@@ -22,7 +22,7 @@
 extern "C" {
 #endif
   /// \brief A transport node.
-  struct IgnTransportNode;
+  typedef struct IgnTransportNode IgnTransportNode;
 
   /// \brief Create a transport node.
   /// \return A pointer to a new transport node. Do not manually delete this
