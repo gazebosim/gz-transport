@@ -1629,7 +1629,7 @@ def CheckForHeaderGuard(filename, lines, error):
     ParseNolintSuppressions(filename, lines[endif_linenum], endif_linenum,
                             error)
     error(filename, endif_linenum, 'build/header_guard', error_level,
-          '#endif line should be "#endif  // %s"' % cppvar)
+          '#endif line should be \'#endif  // %s\'' % cppvar)
 
 
 def CheckForBadCharacters(filename, lines, error):
