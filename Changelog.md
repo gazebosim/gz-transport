@@ -1,5 +1,8 @@
 ## Ignition Transport 7
 
+1. The `ign.hh` file is not longer installed.
+    * [Pull request 368](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/368)
+
 1. Added start of C interface, currently it supports only pub/sub.
    * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
 
