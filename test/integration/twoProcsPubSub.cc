@@ -361,7 +361,7 @@ TEST(twoProcPubSub, FastPublisher)
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at higher frequency than the rate set
 /// by the subscriber.
-TEST(NodeTest, SubThrottled)
+TEST(twoProcPubSub, SubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux");
@@ -392,7 +392,7 @@ TEST(NodeTest, SubThrottled)
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at a throttled frequency.
-TEST(NodeTest, PubThrottled)
+TEST(twoProcPubSub, PubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
      IGN_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux_throttled");

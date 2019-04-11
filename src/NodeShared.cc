@@ -1441,10 +1441,10 @@ void NodeSharedPrivate::AccessControlHandler()
 /////////////////////////////////////////////////
 void NodeSharedPrivate::PublishThread()
 {
-  std::unique_ptr<PublishMsgDetails> msgDetails = nullptr;
   // Loop until exits
   while (!this->exit)
   {
+    std::unique_ptr<PublishMsgDetails> msgDetails = nullptr;
     // Lock the mutex, and acquire the next message to be published.
     {
       std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);

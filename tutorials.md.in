@@ -12,10 +12,11 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 4. \subpage messages "Messages"
 5. \subpage services "Services"
 6. \subpage security "Security"
-7. \subpage logging "Logging"
-8. \subpage envvars "Environment Variables"
-9. \subpage contribute "How to contribute"
-10. \subpage development "Development"
+7. \subpage relay "Relay"
+8. \subpage logging "Logging"
+9. \subpage envvars "Environment Variables"
+10. \subpage contribute "How to contribute"
+11. \subpage development "Development"
 
 
 ## License

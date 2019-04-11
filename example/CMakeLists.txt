@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(ignition-transport-examples)
 
 # Find the Ignition_Transport library
-find_package(ignition-transport6 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
+find_package(ignition-transport7 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 # Message generation. Only required when using custom Protobuf messages.
 find_package(Protobuf REQUIRED)
@@ -28,6 +28,16 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
       ignition-transport${IGN_TRANSPORT_VER}::core
       ${gflags_LIBRARIES})
   endif()
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
+  add_executable(publisher_c publisher_c.cc)
+  target_link_libraries(publisher_c ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
+  add_executable(subscriber_c subscriber_c.cc)
+  target_link_libraries(subscriber_c ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
