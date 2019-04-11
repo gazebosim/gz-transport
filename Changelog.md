@@ -2,6 +2,12 @@
 
 ### Ignition Transport 7.X.X
 
+1. Added start of C interface, currently it supports only pub/sub.
+   * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
+
+1. Introduce `IGN_RELAY`.
+   * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
+
 1. Upgrade to ignition-msgs4.
    * [Pull request 371](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/371)
 

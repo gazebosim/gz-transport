@@ -23,6 +23,7 @@
 #include <cstring>
 #include <limits>
 #include <string>
+#include <vector>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
@@ -42,7 +43,15 @@ namespace ignition
     /// \param[out] _value Value if the variable was found.
     /// \return True if the variable was found or false otherwise.
     bool IGNITION_TRANSPORT_VISIBLE env(const std::string &_name,
-             std::string &_value);
+                                        std::string &_value);
+
+    /// \brief split at a one character delimiter to get a vector of something
+    /// \param[in] _orig The string to split
+    /// \param[in] _delim a character to split the string at
+    /// \returns vector of split pieces of the string excluding the delimiter
+    std::vector<std::string> IGNITION_TRANSPORT_VISIBLE split(
+        const std::string &_orig,
+        char _delim);
 
     // Use safer functions on Windows
     #ifdef _MSC_VER
