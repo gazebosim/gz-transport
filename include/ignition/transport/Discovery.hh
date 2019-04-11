@@ -78,6 +78,17 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    /// \brief Options for sending discovery messages.
+    enum class DestinationType
+    {
+      /// \brief Send data via unicast only.
+      UNICAST,
+      /// \brief Send data via multicast only.
+      MULTICAST,
+      /// \brief Send data via unicast and multicast.
+      ALL
+    };
+
     //
     /// \internal
     /// \brief Discovery helper function to poll sockets.
@@ -211,6 +222,17 @@ namespace ignition
           inet_addr(this->kMulticastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
+        std::vector<std::string> relays;
+        std::string ignRelay = "";
+        if (env("IGN_RELAY", ignRelay) && !ignRelay.empty())
+        {
+          relays = transport::split(ignRelay, ':');
+        }
+
+        // Register all unicast relays.
+        for (auto const &relayAddr : relays)
+          this->AddRelayAddress(relayAddr);
+
         if (this->verbose)
           this->PrintCurrentState();
       }
@@ -229,7 +251,7 @@ namespace ignition
 
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
-        this->SendMsg(ByeType,
+        this->SendMsg(DestinationType::ALL, ByeType,
           Publisher("", "", this->pUuid, "", AdvertiseOptions()));
 
         // Close sockets.
@@ -287,7 +309,7 @@ namespace ignition
         // Only advertise a message outside this process if the scope
         // is not 'Process'
         if (_publisher.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(AdvType, _publisher);
+          this->SendMsg(DestinationType::ALL, AdvType, _publisher);
 
         return true;
       }
@@ -322,7 +344,7 @@ namespace ignition
         pub.SetPUuid(this->pUuid);
 
         // Send a discovery request.
-        this->SendMsg(SubType, pub);
+        this->SendMsg(DestinationType::ALL, SubType, pub);
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
@@ -397,7 +419,7 @@ namespace ignition
         // Only unadvertise a message outside this process if the scope
         // is not 'Process'.
         if (inf.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(UnadvType, inf);
+          this->SendMsg(DestinationType::ALL, UnadvType, inf);
 
         return true;
       }
@@ -624,7 +646,7 @@ namespace ignition
         }
 
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        this->SendMsg(HeartbeatType, pub);
+        this->SendMsg(DestinationType::ALL, HeartbeatType, pub);
 
         std::map<std::string, std::vector<Pub>> nodes;
         {
@@ -637,7 +659,7 @@ namespace ignition
         for (const auto &topic : nodes)
         {
           for (const auto &node : topic.second)
-            this->SendMsg(AdvType, node);
+            this->SendMsg(DestinationType::ALL, AdvType, node);
         }
 
         {
@@ -750,12 +772,14 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg)
       {
-        Header header;
-        char *pBody = _msg;
+        // Entire length of the package in octets.
+        uint16_t len;
+        memcpy(&len, _msg, sizeof(len));
 
         // Create the header from the raw bytes.
-        header.Unpack(_msg);
-        pBody += header.HeaderLength();
+        char *headerPtr = _msg + sizeof(len);
+        Header header;
+        header.Unpack(headerPtr);
 
         // Discard the message if the wire protocol is different than mine.
         if (this->kWireVersion != header.Version())
@@ -767,6 +791,44 @@ namespace ignition
         if (recvPUuid == this->pUuid)
           return;
 
+        uint16_t flags = header.Flags();
+
+        // Forwarding summary:
+        //   - From a unicast peer  -> to multicast group (with NO_RELAY flag).
+        //   - From multicast group -> to unicast peers (with RELAY flag).
+
+        // If the RELAY flag is set, this discovery message is coming via a
+        // unicast transmission. In this case, we don't process it, we just
+        // forward it to the multicast group, and it will be dispatched once
+        // received there. Note that we also unset the RELAY flag and set the
+        // NO_RELAY flag, to avoid forwarding the message anymore.
+        if (flags & FlagRelay)
+        {
+          // Unset the RELAY flag in the header and set the NO_RELAY.
+          flags &= ~FlagRelay;
+          flags |= FlagNoRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
+          this->SendBytesMulticast(_msg, len);
+
+          // A unicast peer contacted me. I need to save its address for
+          // sending future messages in the future.
+          this->AddRelayAddress(_fromIp);
+          return;
+        }
+        // If we are receiving this discovery message via the multicast channel
+        // and the NO_RELAY flag is not set, we forward this message via unicast
+        // to all our relays. Note that this is the most common case, where we
+        // receive a regular multicast message and we forward it to any remote
+        // relays.
+        else if (!(flags & FlagNoRelay))
+        {
+          flags |= FlagRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
+          this->SendBytesUnicast(_msg, len);
+        }
+
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
@@ -776,6 +838,8 @@ namespace ignition
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
         }
+
+        char *pBody = headerPtr + header.HeaderLength();
 
         switch (header.Type())
         {
@@ -839,7 +903,7 @@ namespace ignition
               }
 
               // Answer an ADVERTISE message.
-              this->SendMsg(AdvType, nodeInfo);
+              this->SendMsg(DestinationType::ALL, AdvType, nodeInfo);
             }
 
             break;
@@ -917,13 +981,14 @@ namespace ignition
       /// but they will in the future for specifying things like compression,
       /// or encryption.
       private: template<typename T>
-      void SendMsg(const uint8_t _type,
+      void SendMsg(const DestinationType &_destType,
+                   const uint8_t _type,
                    const T &_pub,
                    const uint16_t _flags = 0) const
       {
         // Create the header.
         Header header(this->Version(), _pub.PUuid(), _type, _flags);
-        auto msgLength = 0;
+        uint16_t lengthField = 0u;
         std::vector<char> buffer;
 
         std::string topic = _pub.Topic();
@@ -937,9 +1002,8 @@ namespace ignition
             transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(advMsg.MsgLength());
-            advMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = static_cast<int>(advMsg.MsgLength());
+            buffer.resize(advMsg.MsgLength() + sizeof(lengthField));
+            advMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
             break;
           }
           case SubType:
@@ -948,18 +1012,16 @@ namespace ignition
             SubscriptionMsg subMsg(header, topic);
 
             // Allocate a buffer and serialize the message.
-            buffer.resize(subMsg.MsgLength());
-            subMsg.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = static_cast<int>(subMsg.MsgLength());
+            buffer.resize(subMsg.MsgLength() + sizeof(lengthField));
+            subMsg.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
             break;
           }
           case HeartbeatType:
           case ByeType:
           {
             // Allocate a buffer and serialize the message.
-            buffer.resize(header.HeaderLength());
-            header.Pack(reinterpret_cast<char*>(&buffer[0]));
-            msgLength = header.HeaderLength();
+            buffer.resize(header.HeaderLength() + sizeof(lengthField));
+            header.Pack(reinterpret_cast<char*>(&buffer[sizeof(lengthField)]));
             break;
           }
           default:
@@ -968,25 +1030,78 @@ namespace ignition
             return;
         }
 
+        lengthField = static_cast<uint16_t>(buffer.size());
+        memcpy(&buffer[0], &lengthField, sizeof(lengthField));
+        char *headerPtr = &buffer[0] + sizeof(lengthField);
+
+        if (_destType == DestinationType::MULTICAST ||
+            _destType == DestinationType::ALL)
+        {
+          this->SendBytesMulticast(&buffer[0], buffer.size());
+        }
+
+        // Send the discovery message to the unicast relays.
+        if (_destType == DestinationType::UNICAST ||
+            _destType == DestinationType::ALL)
+        {
+          // Set the RELAY flag in the header.
+          uint16_t flags = header.Flags();
+          flags |= FlagRelay;
+          header.SetFlags(flags);
+          header.Pack(headerPtr);
+          this->SendBytesUnicast(&buffer[0], buffer.size());
+        }
+
+        if (this->verbose)
+        {
+          std::cout << "\t* Sending " << MsgTypesStr[_type]
+                    << " msg [" << topic << "]" << std::endl;
+        }
+      }
+
+      /// \brief Send bytes through all unicast relays.
+      /// \param[in] _buffer Data.
+      /// \param[in] _len Length in bytes.
+      private: void SendBytesUnicast(char *_buffer,
+                                     uint16_t _len) const
+      {
+        // Send the discovery message to the unicast relays.
+        for (const auto &sockAddr : this->relayAddrs)
+        {
+          auto sent = sendto(this->sockets.at(0),
+            reinterpret_cast<const raw_type *>(
+              reinterpret_cast<const unsigned char*>(_buffer)),
+            _len, 0,
+            reinterpret_cast<const sockaddr *>(&sockAddr),
+            sizeof(sockAddr));
+
+          if (sent != _len)
+          {
+            std::cerr << "Exception sending a unicast message" << std::endl;
+            return;
+          }
+        }
+      }
+
+      /// \brief Send bytes through the multicast group.
+      /// \param[in] _buffer Data.
+      /// \param[in] _len Length in bytes.
+      private: void SendBytesMulticast(char *_buffer,
+                                       uint16_t _len) const
+      {
         // Send the discovery message to the multicast group through all the
         // sockets.
         for (const auto &sock : this->Sockets())
         {
           if (sendto(sock, reinterpret_cast<const raw_type *>(
-            reinterpret_cast<unsigned char*>(&buffer[0])),
-            msgLength, 0,
+            reinterpret_cast<const unsigned char*>(_buffer)),
+            _len, 0,
             reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
-            sizeof(*(this->MulticastAddr()))) != msgLength)
+            sizeof(*(this->MulticastAddr()))) != _len)
           {
-            std::cerr << "Exception sending a message" << std::endl;
+            std::cerr << "Exception sending a multicast message" << std::endl;
             return;
           }
-        }
-
-        if (this->Verbose())
-        {
-          std::cout << "\t* Sending " << MsgTypesStr[_type]
-                    << " msg [" << topic << "]" << std::endl;
         }
       }
 
@@ -1002,13 +1117,6 @@ namespace ignition
       private: const sockaddr_in *MulticastAddr() const
       {
         return &this->mcastAddr;
-      }
-
-      /// \brief Get the verbose mode.
-      /// \return True when verbose mode is enabled or false otherwise.
-      private: bool Verbose() const
-      {
-        return this->verbose;
       }
 
       /// \brief Get the discovery protocol version.
@@ -1065,6 +1173,26 @@ namespace ignition
         return true;
       }
 
+      /// \brief Register a new relay address.
+      /// \param[in] _ip New IP address.
+      private: void AddRelayAddress(const std::string &_ip)
+      {
+        // Sanity check: Make sure that this IP address is not already saved.
+        for (auto const &addr : this->relayAddrs)
+        {
+          if (addr.sin_addr.s_addr == inet_addr(_ip.c_str()))
+            return;
+        }
+
+        sockaddr_in addr;
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr(_ip.c_str());
+        addr.sin_port = htons(static_cast<u_short>(this->port));
+
+        this->relayAddrs.push_back(addr);
+      }
+
       /// \brief Default activity interval value (ms.).
       /// \sa ActivityInterval.
       /// \sa SetActivityInterval.
@@ -1091,7 +1219,7 @@ namespace ignition
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      private: static const uint8_t kWireVersion = 8;
+      private: static const uint8_t kWireVersion = 9;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
@@ -1143,6 +1271,9 @@ namespace ignition
 
       /// \brief Internet socket address for sending to the multicast group.
       private: sockaddr_in mcastAddr;
+
+      /// \brief Collection of socket addresses used as remote relays.
+      private: std::vector<sockaddr_in> relayAddrs;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       private: mutable std::mutex mutex;

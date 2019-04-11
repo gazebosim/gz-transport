@@ -1,5 +1,8 @@
 ## Ignition Transport 7
 
+1. Introduce `IGN_RELAY`.
+   * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
+
 ## Ignition Transport 6
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.

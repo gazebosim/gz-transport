@@ -1,6 +1,6 @@
 \page security Security
 
-Next Tutorial: \ref logging
+Next Tutorial: \ref relay
 
 ## Overview
 

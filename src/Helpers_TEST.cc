@@ -40,6 +40,53 @@ TEST(HelpersTest, env)
   EXPECT_EQ(name, value);
 }
 
+/////////////////////////////////////////////////
+TEST(HelpersTest, SplitNoDelimiterPresent)
+{
+  char delim = ':';
+  std::string orig = "Hello World!";
+  std::vector<std::string> pieces = transport::split(orig, delim);
+  ASSERT_LT(0u, pieces.size());
+  EXPECT_EQ(1u, pieces.size());
+  EXPECT_EQ(orig, pieces[0]);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, SplitOneDelimiterInMiddle)
+{
+  char delim = ' ';
+  std::string orig = "Hello World!";
+  std::vector<std::string> pieces = transport::split(orig, delim);
+  ASSERT_LT(1u, pieces.size());
+  EXPECT_EQ(2u, pieces.size());
+  EXPECT_EQ("Hello", pieces[0]);
+  EXPECT_EQ("World!", pieces[1]);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, SplitOneDelimiterAtBeginning)
+{
+  char delim = ':';
+  std::string orig = ":Hello World!";
+  std::vector<std::string> pieces = transport::split(orig, delim);
+  ASSERT_LT(1u, pieces.size());
+  EXPECT_EQ(2u, pieces.size());
+  EXPECT_EQ("", pieces[0]);
+  EXPECT_EQ("Hello World!", pieces[1]);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, SplitOneDelimiterAtEnd)
+{
+  char delim = '!';
+  std::string orig = "Hello World!";
+  std::vector<std::string> pieces = transport::split(orig, delim);
+  ASSERT_LT(1u, pieces.size());
+  EXPECT_EQ(2u, pieces.size());
+  EXPECT_EQ("Hello World", pieces[0]);
+  EXPECT_EQ("", pieces[1]);
+}
+
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
