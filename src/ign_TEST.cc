@@ -392,6 +392,32 @@ TEST(ignTest, TopicEcho)
   testing::waitAndCleanupFork(pi);
 }
 
+//////////////////////////////////////////////////
+/// \brief Check 'ign topic -e -n 1' running the publisher on a separate
+/// process.
+TEST(ignTest, TopicEchoNum)
+{
+  // Launch a new publisher process that advertises a topic.
+  std::string publisher_path = testing::portablePathUnion(
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcsPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    g_partition.c_str());
+
+  // Check the 'ign topic -e -n' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(
+    ign + " topic -e -t /foo -n 1 " + g_ignVersion);
+
+  EXPECT_TRUE(output.find("x: 1") != std::string::npos);
+  EXPECT_TRUE(output.find("y: 2") != std::string::npos);
+  EXPECT_TRUE(output.find("z: 3") != std::string::npos);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
 /////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
