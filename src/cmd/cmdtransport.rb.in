@@ -73,12 +73,13 @@ COMMANDS = {  'topic' =>
                        "                             echo. This will override "+
                        "-n.\n"                                                 +
                        "                                                    \n"+
-                       "  -n [--num] arg             Number of messages"       +
-                       " echo and then exit. \n                             "  +
+                       "  -n [--num] arg             Number of messages to "   +
+                       "echo and then exit. A value \n"                        +
+                       "                             "                         +
                        "<=0 implies infinite messages. Applicable with \n"     +
-                       "                             echo. This is overriden " +
-                       "by -d.\n"                                              +
-                       "                                                    \n"+
+                       "                             "                         +
+                       "echo. This is overriden by -d.\n"                      +
+                       "\n"                                                    +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"                 +
