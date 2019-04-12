@@ -11,7 +11,7 @@ release will remove the deprecated code.
 ### Removed
 
 1. The `ign.hh` file is not longer installed.
-    * [Pull request 368](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/368)
+    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/367)
 
 ## Ignition Transport 4.X to 5.X
 

@@ -393,7 +393,7 @@ TEST(ignTest, TopicEcho)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -e -n 1' running the publisher on a separate
+/// \brief Check 'ign topic -e -n 2' running the publisher on a separate
 /// process.
 TEST(ignTest, TopicEchoNum)
 {
