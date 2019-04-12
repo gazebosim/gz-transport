@@ -1,5 +1,6 @@
 ## Ignition Transport 7
 
+### Ignition Transport 7.X.X
 1. The `ign.hh` file is not longer installed.
     * [Pull request 368](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/368)
 
@@ -9,7 +10,12 @@
 1. Introduce `IGN_RELAY`.
    * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
 
+1. Upgrade to ignition-msgs4.
+   * [Pull request 371](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/371)
+
 ## Ignition Transport 6
+
+### Ignition Transport 6.0.0
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
