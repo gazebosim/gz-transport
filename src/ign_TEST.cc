@@ -408,11 +408,28 @@ TEST(ignTest, TopicEchoNum)
   // Check the 'ign topic -e -n' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
   std::string output = custom_exec_str(
-    ign + " topic -e -t /foo -n 1 " + g_ignVersion);
+    ign + " topic -e -t /foo -n 2 " + g_ignVersion);
 
-  EXPECT_TRUE(output.find("x: 1") != std::string::npos);
-  EXPECT_TRUE(output.find("y: 2") != std::string::npos);
-  EXPECT_TRUE(output.find("z: 3") != std::string::npos);
+  size_t pos = output.find("x: 1");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("x: 1", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("x: 1", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
+
+  pos = output.find("y: 2");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("y: 2", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("y: 2", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
+
+  pos = output.find("z: 3");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("z: 3", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("z: 3", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
