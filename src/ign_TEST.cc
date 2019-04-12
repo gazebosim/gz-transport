@@ -25,9 +25,9 @@
 
 using namespace ignition;
 
-static std::string g_partition;
-static std::string g_topicCBStr;
-static const std::string g_ignVersion("--force-version " +
+static std::string g_partition; // NOLINT(*)
+static std::string g_topicCBStr; // NOLINT(*)
+static const std::string g_ignVersion("--force-version " + // NOLINT(*)
   std::string(IGN_VERSION_FULL));
 
 /////////////////////////////////////////////////
