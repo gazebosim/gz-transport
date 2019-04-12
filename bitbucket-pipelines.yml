@@ -21,12 +21,14 @@ pipelines:
           - make install
           - cd ..
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" > /etc/apt/sources.list.d/gazebo-stable.list
+          # Enable nightly
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-nightly `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-nightly.list
           - apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
             libignition-cmake2-dev
             libignition-math6-dev
-            libignition-msgs3-dev
+            libignition-msgs4-dev
             libignition-tools-dev
           # Ignition Transport
           - mkdir build

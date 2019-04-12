@@ -1,8 +1,23 @@
-## Ignition Transport 6
+## Ignition Transport 7
+
+### Ignition Transport 7.X.X
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit.
    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/367)
+
+1. Added start of C interface, currently it supports only pub/sub.
+   * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
+
+1. Introduce `IGN_RELAY`.
+   * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
+
+1. Upgrade to ignition-msgs4.
+   * [Pull request 371](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/371)
+
+## Ignition Transport 6
+
+### Ignition Transport 6.0.0
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
