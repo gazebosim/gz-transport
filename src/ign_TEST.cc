@@ -25,9 +25,9 @@
 
 using namespace ignition;
 
-static std::string g_partition;
-static std::string g_topicCBStr;
-static const std::string g_ignVersion("--force-version " +
+static std::string g_partition; // NOLINT(*)
+static std::string g_topicCBStr; // NOLINT(*)
+static const std::string g_ignVersion("--force-version " + // NOLINT(*)
   std::string(IGN_VERSION_FULL));
 
 /////////////////////////////////////////////////
@@ -387,6 +387,49 @@ TEST(ignTest, TopicEcho)
   EXPECT_TRUE(output.find("x: 1") != std::string::npos);
   EXPECT_TRUE(output.find("y: 2") != std::string::npos);
   EXPECT_TRUE(output.find("z: 3") != std::string::npos);
+
+  // Wait for the child process to return.
+  testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign topic -e -n 2' running the publisher on a separate
+/// process.
+TEST(ignTest, TopicEchoNum)
+{
+  // Launch a new publisher process that advertises a topic.
+  std::string publisher_path = testing::portablePathUnion(
+    IGN_TRANSPORT_TEST_DIR,
+    "INTEGRATION_twoProcsPublisher_aux");
+
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    g_partition.c_str());
+
+  // Check the 'ign topic -e -n' command.
+  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string output = custom_exec_str(
+    ign + " topic -e -t /foo -n 2 " + g_ignVersion);
+
+  size_t pos = output.find("x: 1");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("x: 1", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("x: 1", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
+
+  pos = output.find("y: 2");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("y: 2", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("y: 2", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
+
+  pos = output.find("z: 3");
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("z: 3", pos + 4);
+  EXPECT_TRUE(pos != std::string::npos);
+  pos = output.find("z: 3", pos + 4);
+  EXPECT_TRUE(pos == std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);

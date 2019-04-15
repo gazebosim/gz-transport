@@ -6,6 +6,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Transport 6.X to 7.X
+
+### Removed
+
+1. The `ign.hh` file is not longer installed.
+    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/367)
+
 ## Ignition Transport 4.X to 5.X
 
 ## Ignition Transport 3.X to 4.X

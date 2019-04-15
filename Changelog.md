@@ -2,6 +2,11 @@
 
 ### Ignition Transport 7.X.X
 
+1. Added a `-n` argument to the echo command line tool, where `-n` can be used
+   to specify the number of messages to echo and then exit. Made the
+   `ign.hh` header file private (not installed).
+   * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/367)
+
 1. Added start of C interface, currently it supports only pub/sub.
    * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
 

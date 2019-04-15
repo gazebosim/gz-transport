@@ -69,8 +69,17 @@ COMMANDS = {  'topic' =>
                        "                             Requires -t.\n"           +
                        "                                                    \n"+
                        "  -d [--duration] arg        Duration (seconds) to run"+
-                       ". Applicable with echo.\n"                             +
+                       ". Applicable with \n"                                  +
+                       "                             echo. This will override "+
+                       "-n.\n"                                                 +
                        "                                                    \n"+
+                       "  -n [--num] arg             Number of messages to "   +
+                       "echo and then exit. A value \n"                        +
+                       "                             "                         +
+                       "<=0 implies infinite messages. Applicable with \n"     +
+                       "                             "                         +
+                       "echo. This is overriden by -d.\n"                      +
+                       "\n"                                                    +
                        COMMON_OPTIONS,
               'service' =>
                        "Print information about services.\n\n"                 +
@@ -193,6 +202,11 @@ class Cmd
         options['duration'] = d
       end
 
+      opts.on('-n num', '--num', Integer,
+              'Number of messages to echo') do |n|
+        options['num'] = n
+      end
+
     end
     begin
       opt_parser.parse!(args)
@@ -288,12 +302,17 @@ class Cmd
             puts 'Try ign topic --help'
           else
             duration = -1.0
+            count = -1
             if options.key?('duration')
               duration = options['duration']
             end
-            Importer.extern 'void cmdTopicEcho(const char*, double)'
+            if options.key?('num')
+              count = options['num']
+            end
+
+            Importer.extern 'void cmdTopicEcho(const char*, double, int)'
             topic = options['topic']
-            Importer.cmdTopicEcho(topic, duration.to_f)
+            Importer.cmdTopicEcho(topic, duration.to_f, count.to_i)
           end
         else
           puts 'Command error: I do not have an implementation '\
