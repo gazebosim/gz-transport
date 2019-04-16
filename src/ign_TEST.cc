@@ -34,7 +34,13 @@ static const std::string g_ignVersion("--force-version " + // NOLINT(*)
 std::string custom_exec_str(std::string _cmd)
 {
   _cmd += " 2>&1";
-  FILE *pipe = popen(_cmd.c_str(), "r");
+  FILE *pipe;
+
+#ifdef _WIN32
+  pipe = _popen(_cmd.c_str(), "r");
+#else
+  pipe = popen(_cmd.c_str(), "r");
+#endif
 
   if (!pipe)
     return "ERROR";
@@ -48,7 +54,12 @@ std::string custom_exec_str(std::string _cmd)
       result += buffer;
   }
 
+#ifdef _WIN32
+  _pclose(pipe);
+#else
   pclose(pipe);
+#endif
+
   return result;
 }
 
