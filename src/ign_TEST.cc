@@ -23,6 +23,11 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
+#ifdef _MSC_VER
+#    define popen _popen
+#    define pclose _pclose
+#endif
+
 using namespace ignition;
 
 static std::string g_partition; // NOLINT(*)
@@ -34,13 +39,8 @@ static const std::string g_ignVersion("--force-version " + // NOLINT(*)
 std::string custom_exec_str(std::string _cmd)
 {
   _cmd += " 2>&1";
-  FILE *pipe;
 
-#ifdef _WIN32
-  pipe = _popen(_cmd.c_str(), "r");
-#else
-  pipe = popen(_cmd.c_str(), "r");
-#endif
+  FILE *pipe = popen(_cmd.c_str(), "r");
 
   if (!pipe)
     return "ERROR";
@@ -54,11 +54,7 @@ std::string custom_exec_str(std::string _cmd)
       result += buffer;
   }
 
-#ifdef _WIN32
-  _pclose(pipe);
-#else
   pclose(pipe);
-#endif
 
   return result;
 }
