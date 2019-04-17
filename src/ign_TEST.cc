@@ -39,7 +39,6 @@ static const std::string g_ignVersion("--force-version " + // NOLINT(*)
 std::string custom_exec_str(std::string _cmd)
 {
   _cmd += " 2>&1";
-
   FILE *pipe = popen(_cmd.c_str(), "r");
 
   if (!pipe)
@@ -55,7 +54,6 @@ std::string custom_exec_str(std::string _cmd)
   }
 
   pclose(pipe);
-
   return result;
 }
 
