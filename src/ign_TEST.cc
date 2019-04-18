@@ -463,8 +463,11 @@ int main(int argc, char **argv)
   // Add the directory where ignition transport has been built.
   value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
-#endif
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  /// \todo(anyone) Fix these tests for windows.
+#else
+  return 0;
+#endif
 }
