@@ -456,7 +456,6 @@ int main(int argc, char **argv)
 
   // Make sure that we load the library recently built and not the one installed
   // in your system.
-#ifndef _WIN32
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
   ignition::transport::env("LD_LIBRARY_PATH", value);
@@ -466,8 +465,4 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-  /// \todo(anyone) Fix these tests for windows.
-#else
-  return 0;
-#endif
 }
