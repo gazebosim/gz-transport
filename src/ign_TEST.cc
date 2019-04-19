@@ -23,6 +23,11 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
+#ifdef _MSC_VER
+#    define popen _popen
+#    define pclose _pclose
+#endif
+
 using namespace ignition;
 
 static std::string g_partition; // NOLINT(*)
@@ -451,14 +456,12 @@ int main(int argc, char **argv)
 
   // Make sure that we load the library recently built and not the one installed
   // in your system.
-#ifndef _WIN32
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
   ignition::transport::env("LD_LIBRARY_PATH", value);
   // Add the directory where ignition transport has been built.
   value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
-#endif
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
