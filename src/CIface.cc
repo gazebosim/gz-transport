@@ -58,11 +58,13 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
 
   // Create a publisher if one does not exist.
   if (_node->publishers.find(_topic) == _node->publishers.end())
+  {
     _node->publishers[_topic] = _node->nodePtr->Advertise(_topic, _msgType);
 
-  // \todo(anyone) Change this sleep to a WaitForSubscribers() call.
-  // See issue #47
-  std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    // \todo(anyone) Change this sleep to a WaitForSubscribers() call.
+    // See issue #47
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+  }
 
   // Publish the message.
   return _node->publishers[_topic].PublishRaw(
