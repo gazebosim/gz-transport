@@ -78,7 +78,7 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
       reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
   }
 
-  return 1;
+  return 0;
 }
 
 /////////////////////////////////////////////////
