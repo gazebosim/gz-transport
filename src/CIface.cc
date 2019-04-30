@@ -50,8 +50,8 @@ void ignTransportNodeDestroy(IgnTransportNode **_node)
 }
 
 /////////////////////////////////////////////////
-int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
-    const void *_data, const char *_msgType)
+int ignTransportAdvertise(IgnTransportNode *_node, const char *_topic,
+    const char *_msgType)
 {
   if (!_node)
     return 1;
@@ -60,9 +60,25 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
   if (_node->publishers.find(_topic) == _node->publishers.end())
     _node->publishers[_topic] = _node->nodePtr->Advertise(_topic, _msgType);
 
-  // Publish the message.
-  return _node->publishers[_topic].PublishRaw(
-    reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+  return 0;
+}
+
+/////////////////////////////////////////////////
+int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
+    const void *_data, const char *_msgType)
+{
+  if (!_node)
+    return 1;
+
+  // Create a publisher if one does not exist.
+  if (ignTransportAdvertise(_node, _topic, _msgType) == 0)
+  {
+    // Publish the message.
+    return _node->publishers[_topic].PublishRaw(
+      reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+  }
+
+  return 1;
 }
 
 /////////////////////////////////////////////////
