@@ -42,9 +42,8 @@ extern "C" {
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
   int IGNITION_TRANSPORT_VISIBLE
-  ignTransportPublish(IgnTransportNode *_node,
+  ignTransportAdvertise(IgnTransportNode *_node,
                       const char *_topic,
-                      const void *_data,
                       const char *_msgType);
 
 
