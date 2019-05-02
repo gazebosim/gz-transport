@@ -53,6 +53,20 @@ void ignTransportNodeDestroy(IgnTransportNode **_node)
 }
 
 /////////////////////////////////////////////////
+int ignTransportAdvertise(IgnTransportNode *_node, const char *_topic,
+    const char *_msgType)
+{
+  if (!_node)
+    return 1;
+
+  // Create a publisher if one does not exist.
+  if (_node->publishers.find(_topic) == _node->publishers.end())
+    _node->publishers[_topic] = _node->nodePtr->Advertise(_topic, _msgType);
+
+  return 0;
+}
+
+/////////////////////////////////////////////////
 int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
     const void *_data, const char *_msgType)
 {
@@ -60,18 +74,14 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
     return 1;
 
   // Create a publisher if one does not exist.
-  if (_node->publishers.find(_topic) == _node->publishers.end())
+  if (ignTransportAdvertise(_node, _topic, _msgType) == 0)
   {
-    _node->publishers[_topic] = _node->nodePtr->Advertise(_topic, _msgType);
-
-    // \todo(anyone) Change this sleep to a WaitForSubscribers() call.
-    // See issue #47
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    // Publish the message.
+    return _node->publishers[_topic].PublishRaw(
+      reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
   }
 
-  // Publish the message.
-  return _node->publishers[_topic].PublishRaw(
-    reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+  return 1;
 }
 
 /////////////////////////////////////////////////

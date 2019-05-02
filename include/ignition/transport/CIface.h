@@ -40,6 +40,17 @@ extern "C" {
   void IGNITION_TRANSPORT_VISIBLE
   ignTransportNodeDestroy(IgnTransportNode **_node);
 
+  /// \brief Advertise a topic.
+  /// \param[in] _node Pointer to a node.
+  /// \param[in] _topic Topic on which to publish the message.
+  /// \param[in] _msgType Name of the message type.
+  /// \return 0 on success.
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportAdvertise(IgnTransportNode *_node,
+                      const char *_topic,
+                      const char *_msgType);
+
+
   /// \brief Publishes a message on a topic.
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Topic on which to publish the message.
