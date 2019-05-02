@@ -1151,7 +1151,7 @@ namespace ignition
               std::cerr << "\tEPIPE - The  local  end  has  been  shut  down "
                << "on a connection oriented socket.\n";
             else
-              std::cerr << "\tUnknown error\n";
+              std::cerr << "\tUnknown error[" << errno << "]\n";
 #endif
             return;
           }
