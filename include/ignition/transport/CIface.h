@@ -27,9 +27,13 @@ extern "C" {
   typedef struct IgnTransportNode IgnTransportNode;
 
   /// \brief Create a transport node.
+  /// \param[in] _partition Optional name of the partition to use.
+  /// Use nullptr to use the default value, which is specified via the
+  /// IGN_PARTITION environment variable.
   /// \return A pointer to a new transport node. Do not manually delete this
   /// pointer, instead use ignTransportNodeDestroy.
-  IgnTransportNode IGNITION_TRANSPORT_VISIBLE *ignTransportNodeCreate();
+  IgnTransportNode IGNITION_TRANSPORT_VISIBLE *ignTransportNodeCreate(
+      const char *_partition);
 
   /// \brief Destroy a transport node.
   /// \param[in, out] _node The transport node to destroy.
