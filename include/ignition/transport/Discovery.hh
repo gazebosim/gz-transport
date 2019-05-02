@@ -17,6 +17,8 @@
 
 #ifndef IGNITION_TRANSPORT_DISCOVERY_HH_
 #define IGNITION_TRANSPORT_DISCOVERY_HH_
+#include <errno.h>
+#include <string.h>
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
@@ -41,8 +43,6 @@
   #include <netinet/in.h>
   // Type used for raw data on this platform
   using raw_type = void;
-
-  #include <errno.h>
 #endif
 
 #ifdef _WIN32
@@ -1101,58 +1101,12 @@ namespace ignition
             reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
             sizeof(*(this->MulticastAddr()))) != _len)
           {
-            std::cerr << "Exception sending a multicast message:" << std::endl;
-#ifndef _WIN32
-            if (errno == EACCES)
-              std::cerr << "\tEACCES - Write permission is denied\n";
-            else if (errno == EAGAIN || errno == EWOULDBLOCK)
-              std::cerr << "\tEAGAIN - The  socket  is  marked  nonblocking "
-                << "and the requested operation would block.\n";
-            else if (errno == EALREADY)
-              std::cerr << "\tEALREADY - Another Fast Open is in progress.\n";
-            else if (errno == EBADF)
-              std::cerr << "\tEBADF - sockfd is not a valid open file "
-                << "descriptor.\n";
-            else if (errno == ECONNRESET)
-              std::cerr << "\tECONNRESET - Connection reset by peer.\n";
-            else if (errno == EDESTADDRREQ)
-              std::cerr << "\tEDESTADDRREQ - The socket is not "
-                << "connection-mode, and no peer address is set.\n";
-            else if (errno ==  EFAULT)
-              std::cerr << "\tEFAULT - An invalid user space address was "
-                << "specified for an argument.\n";
-            else if (errno == EINTR)
-              std::cerr << "\tEINTR - A signal occurred before any  data "
-               << " was transmitted.\n";
-            else if (errno == EINVAL)
-              std::cerr << "\tEINVAL - nvalid argument passed.\n";
-            else if (errno == EISCONN)
-              std::cerr << "\tEISCONN - The connection-mode socket was "
-                << "connected already but a recipient was specified.\n";
-            else if (errno == EMSGSIZE)
-              std::cerr << "\tEMSGSIZE - The  socket  type  requires that "
-                << "message be sent atomically, and the size of the message "
-                << "to be sent made this impossible.\n";
-            else if (errno == ENOBUFS)
-              std::cerr << "\tENOBUFS - The output queue for a network "
-                << "interface was full.\n";
-            else if (errno == ENOMEM)
-              std::cerr << "\tENOMEM - No memory available.\n";
-            else if (errno == ENOTCONN)
-              std::cerr << "\tENOTCONN - The socket is not connected, and no "
-                << "target has been given.";
-            else if (errno == ENOTSOCK)
-              std::cerr << "\tENOTSOCK - The file descriptor sockfd does not "
-                << "refer to a socket.\n";
-            else if (errno == ENOTSOCK)
-              std::cerr << "\tEOPNOTSUPP - Some bit in the flags argument is "
-                << "inappropriate for  the  socket type.\n";
-            else if (errno == EPIPE)
-              std::cerr << "\tEPIPE - The  local  end  has  been  shut  down "
-               << "on a connection oriented socket.\n";
-            else
-              std::cerr << "\tUnknown error[" << errno << "]\n";
-#endif
+            // Ignore EPERM errors
+            //if (errno != EPERM)
+            {
+              std::cerr << "Exception sending a multicast message:"
+                << strerror(errno) << std::endl;
+            }
             return;
           }
         }
