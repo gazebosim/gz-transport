@@ -58,7 +58,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
 TEST(CIfaceTest, PubSub)
 {
   count = 0;
-  IgnTransportNode *node = ignTransportNodeCreate();
+  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
@@ -104,6 +104,65 @@ TEST(CIfaceTest, PubSub)
   free(buffer);
   ignTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
+}
+
+//////////////////////////////////////////////////
+TEST(CIfaceTest, PubSubPartitions)
+{
+  count = 0;
+  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
+  IgnTransportNode *nodeBar = ignTransportNodeCreate("bar");
+  EXPECT_NE(nullptr, node);
+
+  const char *topic = "/foo";
+
+  int userData = 42;
+
+  // Subscribe on "bar" topic
+  ASSERT_EQ(0, ignTransportSubscribe(nodeBar, topic, cb, &userData));
+
+  // Subscribe
+  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+        const_cast<char *>(topic), cbNonConst, &userData));
+
+  // Prepare the message.
+  ignition::msgs::StringMsg msg;
+  msg.set_data("HELLO");
+
+  // Get the size of the serialized message
+  int size = msg.ByteSize();
+
+  // Allocate space for the serialized message
+  void *buffer = malloc(size);
+
+  ASSERT_NE(nullptr, buffer);
+
+  // Serialize the message.
+  msg.SerializeToArray(buffer, size);
+
+  // Publish on "bar" partition
+  EXPECT_EQ(0,
+    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+  EXPECT_EQ(1, count);
+
+  // Publish on default partition
+  EXPECT_EQ(0,
+    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+  EXPECT_EQ(2, count);
+
+  count = 0;
+
+  // Unsubscribe
+  ASSERT_EQ(0, ignTransportUnsubscribe(nodeBar, topic));
+  EXPECT_EQ(0,
+    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+  EXPECT_EQ(0, count);
+
+  free(buffer);
+  ignTransportNodeDestroy(&node);
+  EXPECT_EQ(nullptr, node);
+  ignTransportNodeDestroy(&nodeBar);
+  EXPECT_EQ(nullptr, nodeBar);
 }
 
 //////////////////////////////////////////////////

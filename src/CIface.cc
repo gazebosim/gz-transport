@@ -32,10 +32,13 @@ struct IgnTransportNode
 };
 
 /////////////////////////////////////////////////
-IgnTransportNode *ignTransportNodeCreate()
+IgnTransportNode *ignTransportNodeCreate(const char *_partition)
 {
   IgnTransportNode *ignTransportNode = new IgnTransportNode();
-  ignTransportNode->nodePtr = std::make_unique<ignition::transport::Node>();
+  ignition::transport::NodeOptions opts;
+  if (_partition)
+    opts.SetPartition(_partition);
+  ignTransportNode->nodePtr = std::make_unique<ignition::transport::Node>(opts);
   return ignTransportNode;
 }
 

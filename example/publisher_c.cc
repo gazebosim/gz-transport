@@ -39,7 +39,8 @@ int main(int argc, char **argv)
   signal(SIGTERM, signalHandler);
 
   // Create a transport node.
-  IgnTransportNode *node = ignTransportNodeCreate();
+  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
+  IgnTransportNode *nodeRed = ignTransportNodeCreate("red");
 
   const char *topic = "/foo";
 
@@ -56,17 +57,34 @@ int main(int argc, char **argv)
   // Serialize the message.
   msg.SerializeToArray(buffer, size);
 
+  // Prepare the message.
+  ignition::msgs::StringMsg msgRed;
+  msgRed.set_data("RED HELLO");
+
+  // Get the size of the serialized message
+  int sizeRed = msgRed.ByteSize();
+
+  // Allocate space for the serialized message
+  void *bufferRed = malloc(sizeRed);
+
+  // Serialize the message.
+  msgRed.SerializeToArray(bufferRed, sizeRed);
+
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
     ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
+    ignTransportPublish(nodeRed, topic, bufferRed,
+        msgRed.GetTypeName().c_str());
 
     printf("Publishing hello on topic %s.\n", topic);
     sleep(1);
   }
 
   free(buffer);
+  free(bufferRed);
   ignTransportNodeDestroy(&node);
+  ignTransportNodeDestroy(&nodeRed);
 
   return 0;
 }
