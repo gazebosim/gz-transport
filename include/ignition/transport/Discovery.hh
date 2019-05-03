@@ -17,6 +17,8 @@
 
 #ifndef IGNITION_TRANSPORT_DISCOVERY_HH_
 #define IGNITION_TRANSPORT_DISCOVERY_HH_
+#include <errno.h>
+#include <string.h>
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
@@ -978,7 +980,19 @@ namespace ignition
             reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
             sizeof(*(this->MulticastAddr()))) != msgLength)
           {
-            std::cerr << "Exception sending a message" << std::endl;
+            // Ignore EPERM and ENOBUFS errors.
+            //
+            // See issue #106
+            //
+            // Rationale drawn from:
+            //
+            // * https://groups.google.com/forum/#!topic/comp.protocols.tcp-ip/Qou9Sfgr77E
+            // * https://stackoverflow.com/questions/16555101/sendto-dgrams-do-not-block-for-enobufs-on-osx
+            if (errno != EPERM && errno != ENOBUFS)
+            {
+              std::cerr << "Exception sending a message:"
+                << strerror(errno) << std::endl;
+            }
             return;
           }
         }
