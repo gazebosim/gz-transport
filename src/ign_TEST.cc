@@ -328,7 +328,7 @@ TEST(ignTest, TopicPublish)
       " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
       g_ignVersion);
 
-  ASSERT_TRUE(output.empty());
+  ASSERT_TRUE(output.empty()) << output;
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   EXPECT_EQ(g_topicCBStr, "good_value");
