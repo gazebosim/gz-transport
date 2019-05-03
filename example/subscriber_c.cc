@@ -25,16 +25,16 @@ void cb(const char *_data, const size_t _size, const char *_msgType,
 {
   ignition::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  const char *part;
+  const char *partition;
 
   if (_userData)
-    part = static_cast<const char *>(_userData);
+    partition = static_cast<const char *>(_userData);
   else
-    part = "null";
+    partition = "null";
 
-  printf("Partition[%s] Msg length: %zu bytes\n", part, _size);
-  printf("Partition[%s] Msg type: %s\n", part, _msgType);
-  printf("Partition[%s] Msg contents: %s\n", part, msg.data().c_str());
+  printf("Partition[%s] Msg length: %zu bytes\n", partition, _size);
+  printf("Partition[%s] Msg type: %s\n", partition, _msgType);
+  printf("Partition[%s] Msg contents: %s\n", partition, msg.data().c_str());
 }
 
 //////////////////////////////////////////////////

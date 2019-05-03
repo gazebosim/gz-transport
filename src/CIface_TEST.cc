@@ -125,7 +125,6 @@ TEST(CIfaceTest, PubSubPartitions)
   ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
         const_cast<char *>(topic), cbNonConst, &userData));
 
-
   // Prepare the message.
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
@@ -162,7 +161,10 @@ TEST(CIfaceTest, PubSubPartitions)
   free(buffer);
   ignTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
+  ignTransportNodeDestroy(&nodeBar);
+  EXPECT_EQ(nullptr, nodeBar);
 }
+
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {

@@ -82,7 +82,9 @@ int main(int argc, char **argv)
   }
 
   free(buffer);
+  free(bufferRed);
   ignTransportNodeDestroy(&node);
+  ignTransportNodeDestroy(&nodeRed);
 
   return 0;
 }
