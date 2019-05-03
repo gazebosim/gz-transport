@@ -4,7 +4,7 @@
 
 1. Added ability to specify partition information on a node through the
    CIface.
-   * [Pull request 368](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/368)
+   * [Pull request 378](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/378)
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
