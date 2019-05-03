@@ -1101,8 +1101,15 @@ namespace ignition
             reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
             sizeof(*(this->MulticastAddr()))) != _len)
           {
-            // Ignore EPERM errors
-            //if (errno != EPERM)
+            // Ignore EPERM and ENOBUFS errors.
+            //
+            // See issue #106
+            //
+            // Rationale drawn from:
+            //
+            // * https://groups.google.com/forum/#!topic/comp.protocols.tcp-ip/Qou9Sfgr77E
+            // * https://stackoverflow.com/questions/16555101/sendto-dgrams-do-not-block-for-enobufs-on-osx
+            if (errno != EPERM && errno != ENOBUFS)
             {
               std::cerr << "Exception sending a multicast message:"
                 << strerror(errno) << std::endl;
