@@ -1,5 +1,17 @@
 ## Ignition Transport 6
 
+### Ignition Transport 6.X.X
+
+1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for ign tool files
+   * [Pull request 380](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/380)
+   * [Issue 106](https://bitbucket.org/ignitionrobotics/ign-transport/issue/106)
+
+1. Skip `cmd*.rb` generation on windows to fix build
+   * [Pull request 363](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/363)
+   * [Issue 94](https://bitbucket.org/ignitionrobotics/ign-transport/issue/94)
+
+### Ignition Transport 6.0.0
+
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
 
