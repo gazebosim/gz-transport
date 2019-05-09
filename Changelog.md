@@ -6,6 +6,9 @@
    CIface.
    * [Pull request 378](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/378)
 
+1. Added ability to advertise a topic through the CIface.
+   * [Pull request 377](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/377)
+
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
    `ign.hh` header file private (not installed).
@@ -13,6 +16,8 @@
 
 1. Added start of C interface, currently it supports only pub/sub.
    * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
+   * [Pull request 370](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/370)
+   * [Pull request 373](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/373)
 
 1. Introduce `IGN_RELAY`.
    * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
