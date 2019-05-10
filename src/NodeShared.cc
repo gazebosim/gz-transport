@@ -1451,6 +1451,9 @@ void NodeSharedPrivate::PublishThread()
           [&]{return !this->pubQueue.empty() || this->exit;});
       }
 
+      if (this->pubQueue.empty())
+        continue;
+
       // Stop early on exit.
       if (this->exit)
         break;
