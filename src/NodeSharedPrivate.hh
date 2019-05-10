@@ -26,6 +26,7 @@
 #pragma warning(pop)
 #endif
 
+#include <atomic>
 #include <memory>
 #include <queue>
 #include <vector>
@@ -112,10 +113,7 @@ namespace ignition
       //////////////////////////////////////////////////
 
       /// \brief When true, the reception thread will finish.
-      public: bool exit = false;
-
-      /// \brief Mutex to guarantee exclusive access to the 'exit' variable.
-      public: std::mutex exitMutex;
+      public: std::atomic<bool> exit = false;
 
       /// \brief Timeout used for receiving messages (ms.).
       public: static const int Timeout = 250;

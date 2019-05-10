@@ -58,6 +58,7 @@
 # pragma warning(disable: 4503)
 #endif
 
+using namespace std::chrono_literals;
 using namespace ignition;
 using namespace transport;
 
@@ -216,9 +217,7 @@ NodeShared::NodeShared()
 NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
-  this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
-  this->dataPtr->exitMutex.unlock();
 
   // Notify the local pubthread and join.
   this->dataPtr->signalNewPub.notify_all();
@@ -268,11 +267,8 @@ void NodeShared::RunReceptionTask()
       this->RecvSrvResponse();
 
     // Is it time to exit?
-    {
-      std::lock_guard<std::mutex> lock(this->dataPtr->exitMutex);
-      if (this->dataPtr->exit)
-        exitLoop = true;
-    }
+    if (this->dataPtr->exit)
+      exitLoop = true;
   }
 }
 
@@ -1422,11 +1418,8 @@ void NodeSharedPrivate::AccessControlHandler()
       }
 
       // Is it time to exit?
-      {
-        std::lock_guard<std::mutex> lock(this->exitMutex);
-        if (this->exit)
-          exitLoop = true;
-      }
+      if (this->exit)
+        exitLoop = true;
     }
   }
   catch (...)
@@ -1452,7 +1445,11 @@ void NodeSharedPrivate::PublishThread()
       // Wait for more messages if the queue is empty. Otherwise get the
       // next message and continue.
       if (this->pubQueue.empty())
-        this->signalNewPub.wait(queueLock);
+      {
+        auto now = std::chrono::system_clock::now();
+        this->signalNewPub.wait_until(queueLock, now + 200ms,
+          [&]{return !this->pubQueue.empty() || this->exit;});
+      }
 
       // Stop early on exit.
       if (this->exit)
