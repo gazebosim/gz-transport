@@ -1447,7 +1447,7 @@ void NodeSharedPrivate::PublishThread()
       if (this->pubQueue.empty())
       {
         auto now = std::chrono::system_clock::now();
-        this->signalNewPub.wait_until(queueLock, now + 200ms,
+        this->signalNewPub.wait_until(queueLock, now + 500ms,
           [&]{return !this->pubQueue.empty() || this->exit;});
       }
 
