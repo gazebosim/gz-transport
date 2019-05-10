@@ -6,6 +6,9 @@
    CIface.
    * [Pull request 378](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/378)
 
+1. Added ability to advertise a topic through the CIface.
+   * [Pull request 377](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/377)
+
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
    `ign.hh` header file private (not installed).
@@ -13,6 +16,8 @@
 
 1. Added start of C interface, currently it supports only pub/sub.
    * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
+   * [Pull request 370](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/370)
+   * [Pull request 373](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/373)
 
 1. Introduce `IGN_RELAY`.
    * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
@@ -21,6 +26,16 @@
    * [Pull request 371](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/371)
 
 ## Ignition Transport 6
+
+### Ignition Transport 6.X.X
+
+1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for ign tool files
+   * [Pull request 380](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/380)
+   * [Issue 106](https://bitbucket.org/ignitionrobotics/ign-transport/issue/106)
+
+1. Skip `cmd*.rb` generation on windows to fix build
+   * [Pull request 363](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/363)
+   * [Issue 94](https://bitbucket.org/ignitionrobotics/ign-transport/issue/94)
 
 ### Ignition Transport 6.0.0
 
