@@ -25,25 +25,28 @@ void cb(const char *_data, const size_t _size, const char *_msgType,
 {
   ignition::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  const char *partition;
+  const char *userData;
 
   if (_userData)
-    partition = static_cast<const char *>(_userData);
+    userData = static_cast<const char *>(_userData);
   else
-    partition = "null";
+    userData = "null";
 
-  printf("Partition[%s] Msg length: %zu bytes\n", partition, _size);
-  printf("Partition[%s] Msg type: %s\n", partition, _msgType);
-  printf("Partition[%s] Msg contents: %s\n", partition, msg.data().c_str());
+  printf("UseData[%s] Msg length: %zu bytes\n", userData, _size);
+  printf("UseData[%s] Msg type: %s\n", userData, _msgType);
+  printf("UseData[%s] Msg contents: %s\n", userData, msg.data().c_str());
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   const char *partName = "red";
+  const char *throttled = "throttled";
+
   // Create a transport node.
   IgnTransportNode *node = ignTransportNodeCreate(nullptr);
   IgnTransportNode *nodeRed = ignTransportNodeCreate(partName);
+  IgnTransportNode *nodeThrottled = ignTransportNodeCreate(nullptr);
 
   const char *topic = "/foo";
 
@@ -61,6 +64,18 @@ int main(int argc, char **argv)
     printf("Error subscribing to topic %s.\n", topic);
     return -1;
   }
+
+  SubscribeOpts opts;
+  opts.msgsPerSec = 1;
+
+  // Subscribe to a topic by registering a callback.
+  if (ignTransportSubscribeOptions(
+        node, topic, opts, cb, const_cast<char*>(throttled)) != 0)
+  {
+    printf("Error subscribing to topic %s.\n", topic);
+    return -1;
+  }
+
 
   // Zzzzzz.
   ignTransportWaitForShutdown();
