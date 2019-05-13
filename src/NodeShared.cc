@@ -58,6 +58,7 @@
 # pragma warning(disable: 4503)
 #endif
 
+using namespace std::chrono_literals;
 using namespace ignition;
 using namespace transport;
 
@@ -216,9 +217,7 @@ NodeShared::NodeShared()
 NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
-  this->dataPtr->exitMutex.lock();
   this->dataPtr->exit = true;
-  this->dataPtr->exitMutex.unlock();
 
   // Notify the local pubthread and join.
   this->dataPtr->signalNewPub.notify_all();
@@ -236,8 +235,7 @@ NodeShared::~NodeShared()
 //////////////////////////////////////////////////
 void NodeShared::RunReceptionTask()
 {
-  bool exitLoop = false;
-  while (!exitLoop)
+  while (!this->dataPtr->exit)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -266,13 +264,6 @@ void NodeShared::RunReceptionTask()
       this->RecvSrvRequest();
     if (items[3].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
-
-    // Is it time to exit?
-    {
-      std::lock_guard<std::mutex> lock(this->dataPtr->exitMutex);
-      if (this->dataPtr->exit)
-        exitLoop = true;
-    }
   }
 }
 
@@ -1327,14 +1318,13 @@ void NodeSharedPrivate::AccessControlHandler()
     std::string givenPassword;
     std::string version;
 
-    bool exitLoop = false;
     zmq::pollitem_t items[] =
     {
       {static_cast<void*>(*sock), 0, ZMQ_POLLIN, 0},
     };
 
     // Process
-    while (!exitLoop)
+    while (!this->exit)
     {
       try
       {
@@ -1420,13 +1410,6 @@ void NodeSharedPrivate::AccessControlHandler()
           sendAuthErrorHelper(*sock, "Invalid username or password");
         }
       }
-
-      // Is it time to exit?
-      {
-        std::lock_guard<std::mutex> lock(this->exitMutex);
-        if (this->exit)
-          exitLoop = true;
-      }
     }
   }
   catch (...)
@@ -1452,7 +1435,14 @@ void NodeSharedPrivate::PublishThread()
       // Wait for more messages if the queue is empty. Otherwise get the
       // next message and continue.
       if (this->pubQueue.empty())
-        this->signalNewPub.wait(queueLock);
+      {
+        auto now = std::chrono::system_clock::now();
+        this->signalNewPub.wait_until(queueLock, now + 500ms,
+          [&]{return !this->pubQueue.empty() || this->exit;});
+      }
+
+      if (this->pubQueue.empty())
+        continue;
 
       // Stop early on exit.
       if (this->exit)
