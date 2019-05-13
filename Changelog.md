@@ -2,6 +2,8 @@
 
 ### Ignition Transport 7.X.X
 
+### Ignition Transport 7.0.0
+
 1. Fix fast constructor-destructor deadlock race condition.
     * [Pull request 384](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/384)
 
