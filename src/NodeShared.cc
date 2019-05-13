@@ -235,8 +235,7 @@ NodeShared::~NodeShared()
 //////////////////////////////////////////////////
 void NodeShared::RunReceptionTask()
 {
-  bool exitLoop = false;
-  while (!exitLoop)
+  while (!this->dataPtr->exit)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
@@ -265,10 +264,6 @@ void NodeShared::RunReceptionTask()
       this->RecvSrvRequest();
     if (items[3].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
-
-    // Is it time to exit?
-    if (this->dataPtr->exit)
-      exitLoop = true;
   }
 }
 
@@ -1323,14 +1318,13 @@ void NodeSharedPrivate::AccessControlHandler()
     std::string givenPassword;
     std::string version;
 
-    bool exitLoop = false;
     zmq::pollitem_t items[] =
     {
       {static_cast<void*>(*sock), 0, ZMQ_POLLIN, 0},
     };
 
     // Process
-    while (!exitLoop)
+    while (!this->exit)
     {
       try
       {
@@ -1416,10 +1410,6 @@ void NodeSharedPrivate::AccessControlHandler()
           sendAuthErrorHelper(*sock, "Invalid username or password");
         }
       }
-
-      // Is it time to exit?
-      if (this->exit)
-        exitLoop = true;
     }
   }
   catch (...)
