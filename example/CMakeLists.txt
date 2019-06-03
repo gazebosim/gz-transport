@@ -6,11 +6,13 @@ project(ignition-transport-examples)
 find_package(ignition-transport7 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
-# Message generation. Only required when using custom Protobuf messages.
-find_package(Protobuf REQUIRED)
-add_subdirectory(msgs)
-set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
-                            PROPERTIES GENERATED TRUE)
+if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
+  # Message generation. Only required when using custom Protobuf messages.
+  find_package(Protobuf REQUIRED)
+  add_subdirectory(msgs)
+  set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES GENERATED TRUE)
+endif()
+
 include_directories(${CMAKE_BINARY_DIR})
 
 # Generate examples
