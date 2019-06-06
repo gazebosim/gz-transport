@@ -16,13 +16,11 @@ pipelines:
           - g++ -v
           - gcov -v
           # lcov
-          - git clone https://github.com/linux-test-project/lcov.git
+          - git clone https://github.com/linux-test-project/lcov.git -b v1.14
           - cd lcov
           - make install
           - cd ..
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" > /etc/apt/sources.list.d/gazebo-stable.list
-          # Enable prerelease
-          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
