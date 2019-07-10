@@ -8,7 +8,7 @@ ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-    ignition-cmake${IGN_CMAKE_VER}::utilities
+    ignition-cmake${IGNITION_CMAKE_VERSION_MAJOR}::utilities
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
   PRIVATE
     ${ZeroMQ_TARGET}
