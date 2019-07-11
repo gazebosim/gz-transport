@@ -2,59 +2,66 @@
 
 ### Ignition Transport 5.X.X
 
+1.  Use `IGNITION_CMAKE_VERSION_MAJOR` in target name instead of `IGN_CMAKE_VER` to work
+    around ign-cmake bug.
+    * [Pull request 392](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/392)
+    * [ign-cmake issue 61](https://bitbucket.org/ignitionrobotics/ign-cmake/issues/61)
+
+### Ignition Transport 5.0.0
+
 1. Added support for alternative clock sources during log recording.
-   * [Pull request 340](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/340)
+    * [Pull request 340](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/340)
 
 1. Exposed Log and log Playback time information.
-   * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/342)
+    * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/342)
 
 1. Added the ability to Seek within the log playback, which makes possible to
    jump to any valid time point of the reproduction.
-   * [Pull request 341](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/341)
+    * [Pull request 341](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/341)
 
 1. Added the ability to Step the advance of the playback from within the log
    replayer.
-   * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)
+    * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)
 
 1. Added the ability to Pause/Resume playback from the log replayer.
-   * [Pull request 334](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/334)
+    * [Pull request 334](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/334)
 
 1. Added support for topic remapping when running "ign log playback". Note that
    the string ":=" is not allowed now as part of a partition, namespace or topic
    anymore.
-   * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/331)
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/331)
 
 1. Added the ability to remap topic names.
-   * [Pull request 330](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/330)
+    * [Pull request 330](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/330)
 
 1. Prevent the log recorder from subscribing to topics that have already
    been added.
-   * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
+    * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
 
 1. Added log::Recorder::Topics that returns the set of added topics.
-   * [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/328)
+    * [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/328)
 
 1. Added log::Recorder::Filename that returns the name of the log file.
-   * [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/327)
+    * [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/327)
 
 1. Added a logging tutorial
-   * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+    * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
 
 1. Added a migration guide for helping with the transition between major
    versions
-   * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
+    * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
 
 1. Converted ignition-transport-log into a component
-   * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
+    * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
 
 1. Added inline versioned namespace to the log library
-   * [Pull request 303](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/303)
+    * [Pull request 303](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/303)
 
 1. Added inline versioned namespace to the main library
-   * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
+    * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
 
 1. Added --force option to 'ign log record'
-   * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
+    * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
 
 ## Ignition Transport 4
 
@@ -64,34 +71,34 @@
     * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/314)
 
 1. Refactored Playback to return a PlaybackHandle from Start()
-   * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
+    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
 
 1. Added command line tool for the logging features
-   * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
+    * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
 
 1. Added examples using logging features
-   * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
+    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
 
 1. Added integration tests for recording
-   * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
+    * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
 
 1. Added ability to play back ignition transport topics
-   * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
+    * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
 
 1. Added ability to record ignition transport topics
-   * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
+    * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
 
 1. Added ability to query log messages by topic name and time received
-   * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
+    * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
 
 1. Added ability to get all messages from a log file
-   * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
+    * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
 
 1. Added ability to insert messages into a sqlite3 based log file
-   * [Pull request 270](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/270)
+    * [Pull request 270](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/270)
 
 1. Added TopicUtils::DecomposeFullyQualifiedTopic()
-   * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
+    * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
 
