@@ -81,9 +81,9 @@
 
 namespace testing
 {
-  /// \brief Join _str1 and _str2 considering both as storing system paths.
-  /// \param[in] _str1 string containing a path.
-  /// \param[in] _str2 string containing a path.
+  /// \brief Join str1 and str2 considering both as storing system paths.
+  /// \param[in] str1 string containing a path.
+  /// \param[in] str2 string containing a path.
   /// \return The string representation of the union of two paths.
   std::string portablePathUnion(const std::string str1, const std::string str2)
   {
