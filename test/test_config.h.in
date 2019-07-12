@@ -88,18 +88,18 @@ namespace testing
   std::string portablePathUnion(const std::string str1, const std::string str2)
   {
 #ifdef _WIN32_
-   using namespace std::experimental::filesystem::v1;
-   return (path(str1) / path(str2)).string();
+    using namespace std::experimental::filesystem::v1;
+    return (path(str1) / path(str2)).string();
 #else
-    //Ugly as hell but trying to avoid boost::filesystem
+    // Ugly as hell but trying to avoid boost::filesystem
     return str1 + "/" + str2;
 #endif
   }
 
 #ifdef _WIN32
-   using forkHandlerType = PROCESS_INFORMATION;
+  using forkHandlerType = PROCESS_INFORMATION;
 #else
-   using forkHandlerType = pid_t;
+  using forkHandlerType = pid_t;
 #endif
 
   /// \brief create a new process and run command on it. This function is
