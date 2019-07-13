@@ -27,6 +27,10 @@ endif()
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list)
 
+if(TARGET UNIT_Clock_TEST)
+  target_compile_features(UNIT_Clock_TEST PUBLIC cxx_variadic_macros)
+endif()
+
 foreach(test ${test_list})
 
   # Inform each test of its output directory so it knows where to call the
