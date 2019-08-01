@@ -394,6 +394,7 @@ void NodeShared::TriggerSubscriberCallbacks(
   MessageInfo info;
   info.SetTopicAndPartition(_topic);
   info.SetType(_msgType);
+  info.SetIntraProcess(true);
 
   if (_handlerInfo.haveRaw)
   {

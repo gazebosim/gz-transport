@@ -99,6 +99,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
   EXPECT_EQ(_msg.data(), data);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
   EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+  EXPECT_TRUE(_info.IntraProcess());
   cbExecuted = true;
   ++counter;
 }
@@ -109,6 +110,7 @@ void rawCbInfo(const char *_msgData, const size_t _size,
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
+  EXPECT_TRUE(_info.IntraProcess());
   cbExecuted = true;
 
   ignition::msgs::Int32 msg;
@@ -279,6 +281,7 @@ class MyTestClass
     EXPECT_EQ(_msg.data(), data);
     EXPECT_EQ(g_FQNPartition, _info.Partition());
     EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+    EXPECT_TRUE(_info.IntraProcess());
     this->callbackExecuted = true;
   };
 
@@ -885,6 +888,7 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
     EXPECT_EQ(_msg.data(), data);
     EXPECT_EQ(g_FQNPartition, _info.Partition());
     EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+    EXPECT_TRUE(_info.IntraProcess());
     std::lock_guard<std::mutex> lk(cbMutex);
     executed = true;
     cbCondition.notify_all();

@@ -305,6 +305,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     // out of scope.
     pubMsgDetails->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
     pubMsgDetails->info.SetType(this->dataPtr->publisher.MsgTypeName());
+    pubMsgDetails->info.SetIntraProcess(true);
 
     pubMsgDetails->msgCopy.reset(_msg.New());
     pubMsgDetails->msgCopy->CopyFrom(_msg);
