@@ -107,6 +107,28 @@ namespace ignition
 
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
+      ///
+      /// \return True if it is okay to publish, false otherwise.
+      public: bool ThrottledUpdateReady() const
+      {
+        if (!this->publisher.Options().Throttled())
+          return true;
+
+        Timestamp now = std::chrono::steady_clock::now();
+        auto elapsed = now - this->lastCbTimestamp;
+        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() < this->periodNs)
+        {
+          return false;
+        }
+        return true;
+      }
+
+      /// \brief Check if this Publisher is ready to send an update based on
+      /// publication settings and the clock.
+      ///
+      /// This additionally advances the internal timestamp by one period.
+      ///
       /// \return True if it is okay to publish, false otherwise.
       public: bool UpdateThrottling()
       {
@@ -456,6 +478,12 @@ bool Node::Publisher::PublishRaw(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::ThrottledUpdateReady() const
+{
+  return this->dataPtr->ThrottledUpdateReady();
 }
 
 //////////////////////////////////////////////////
