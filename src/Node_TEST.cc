@@ -1925,6 +1925,8 @@ TEST(NodeTest, SubThrottled)
 
   for (auto i = 0; i < 3; ++i)
   {
+    // Should always be true, because this is unthrottled.
+    EXPECT_TRUE(pub.ThrottledUpdateReady());
     EXPECT_TRUE(pub.Publish(msg));
 
     // Rate: 10 msgs/sec.
@@ -1956,10 +1958,13 @@ TEST(NodeTest, PubThrottled)
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-
+  // Should be true the first time
+  EXPECT_TRUE(pub.ThrottledUpdateReady());
   for (auto i = 0; i < 3; ++i)
   {
     EXPECT_TRUE(pub.Publish(msg));
+    // False afterwards, because targeting 1 msg/second.
+    EXPECT_FALSE(pub.ThrottledUpdateReady());
 
     // Rate: 10 msgs/sec.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
