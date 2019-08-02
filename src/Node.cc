@@ -107,25 +107,38 @@ namespace ignition
 
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
+      ///
       /// \return True if it is okay to publish, false otherwise.
-      public: bool UpdateThrottling()
+      public: bool ThrottledUpdateReady() const
       {
-        std::lock_guard<std::mutex> lk(this->mutex);
         if (!this->publisher.Options().Throttled())
           return true;
 
         Timestamp now = std::chrono::steady_clock::now();
 
-        // Elapsed time since the last callback execution.
+        std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() >= this->periodNs;
+      }
+
+      /// \brief Check if this Publisher is ready to send an update based on
+      /// publication settings and the clock.
+      ///
+      /// This additionally advances the internal timestamp by one period.
+      ///
+      /// \return True if it is okay to publish, false otherwise.
+      public: bool UpdateThrottling()
+      {
+        if (!this->publisher.Options().Throttled())
+          return true;
+
+        if (!this->ThrottledUpdateReady())
           return false;
-        }
 
         // Update the last callback execution.
-        this->lastCbTimestamp = now;
+        std::lock_guard<std::mutex> lk(this->mutex);
+        this->lastCbTimestamp = std::chrono::steady_clock::now();
         return true;
       }
 
@@ -178,7 +191,7 @@ namespace ignition
       public: double periodNs = 0.0;
 
       /// \brief Mutex to protect the node::publisher from race conditions.
-      public: std::mutex mutex;
+      public: mutable std::mutex mutex;
     };
     }
   }
@@ -461,6 +474,12 @@ bool Node::Publisher::PublishRaw(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::ThrottledUpdateReady() const
+{
+  return this->dataPtr->ThrottledUpdateReady();
 }
 
 //////////////////////////////////////////////////
