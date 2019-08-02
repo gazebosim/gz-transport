@@ -2,6 +2,9 @@
 
 ### Ignition Transport 7.1.0
 
+1. Added method for determining if a throttled publisher is ready to publish.
+    * [Pull request 395](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/395)
+
 1. Add intraprocess field to MessageInfo. The intraprocess field indicates whether the message is coming from a node within this process.
     * [Pull request 394](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/394)
 
