@@ -115,6 +115,8 @@ namespace ignition
           return true;
 
         Timestamp now = std::chrono::steady_clock::now();
+
+        std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
         if (std::chrono::duration_cast<std::chrono::nanoseconds>(
               elapsed).count() < this->periodNs)
@@ -132,13 +134,13 @@ namespace ignition
       /// \return True if it is okay to publish, false otherwise.
       public: bool UpdateThrottling()
       {
-        std::lock_guard<std::mutex> lk(this->mutex);
         if (!this->publisher.Options().Throttled())
           return true;
 
         Timestamp now = std::chrono::steady_clock::now();
 
         // Elapsed time since the last callback execution.
+        std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
         if (std::chrono::duration_cast<std::chrono::nanoseconds>(
               elapsed).count() < this->periodNs)
@@ -200,7 +202,7 @@ namespace ignition
       public: double periodNs = 0.0;
 
       /// \brief Mutex to protect the node::publisher from race conditions.
-      public: std::mutex mutex;
+      public: mutable std::mutex mutex;
     };
     }
   }
