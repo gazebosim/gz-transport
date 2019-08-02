@@ -1,6 +1,6 @@
 ## Ignition Transport 7
 
-### Ignition Transport 7.X.X
+### Ignition Transport 7.1.0
 
 ### Ignition Transport 7.0.0
 
