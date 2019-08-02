@@ -305,6 +305,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     // out of scope.
     pubMsgDetails->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
     pubMsgDetails->info.SetType(this->dataPtr->publisher.MsgTypeName());
+    pubMsgDetails->info.SetIntraProcess(true);
 
     pubMsgDetails->msgCopy.reset(_msg.New());
     pubMsgDetails->msgCopy->CopyFrom(_msg);
@@ -430,9 +431,13 @@ bool Node::Publisher::PublishRaw(
   const NodeShared::SubscriberInfo &subscribers =
       this->dataPtr->shared->CheckSubscriberInfo(topic, _msgType);
 
+  MessageInfo info;
+  info.SetTopicAndPartition(topic);
+  info.SetType(_msgType);
+  info.SetIntraProcess(true);
+
   // Trigger local subscribers.
-  this->dataPtr->shared->TriggerSubscriberCallbacks(
-        topic, _msgData, _msgType, subscribers);
+  this->dataPtr->shared->TriggerCallbacks(info, _msgData, subscribers);
 
   // Remote subscribers. Note that the data is already presumed to be
   // serialized, so we just pass it along for publication.

@@ -340,7 +340,10 @@ void NodeShared::RecvMsgUpdate()
     handlerInfo = this->CheckHandlerInfo(topic);
   }
 
-  this->TriggerSubscriberCallbacks(topic, data, msgType, handlerInfo);
+  MessageInfo info;
+  info.SetTopicAndPartition(topic);
+  info.SetType(msgType);
+  this->TriggerCallbacks(info, data, handlerInfo);
 }
 
 //////////////////////////////////////////////////
@@ -388,12 +391,21 @@ void NodeShared::TriggerSubscriberCallbacks(
     const std::string &_msgType,
     const HandlerInfo &_handlerInfo)
 {
-  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
-    return;
-
   MessageInfo info;
   info.SetTopicAndPartition(_topic);
   info.SetType(_msgType);
+
+  this->TriggerCallbacks(info, _msgData, _handlerInfo);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerCallbacks(
+    const MessageInfo &_info,
+    const std::string &_msgData,
+    const HandlerInfo &_handlerInfo)
+{
+  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
+    return;
 
   if (_handlerInfo.haveRaw)
   {
@@ -404,10 +416,11 @@ void NodeShared::TriggerSubscriberCallbacks(
         const RawSubscriptionHandlerPtr &rawHandler = handler.second;
         if (rawHandler)
         {
-          if (rawHandler->TypeName() == _msgType ||
+          if (rawHandler->TypeName() == _info.Type() ||
               rawHandler->TypeName() == kGenericMessageType)
           {
-            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(), info);
+            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(),
+                _info);
           }
         }
         else
@@ -430,7 +443,7 @@ void NodeShared::TriggerSubscriberCallbacks(
         const ISubscriptionHandlerPtr &localHandler = handler.second;
         if (localHandler)
         {
-          if (localHandler->TypeName() == _msgType ||
+          if (localHandler->TypeName() == _info.Type() ||
               localHandler->TypeName() == kGenericMessageType)
           {
             if (!msg)
@@ -438,7 +451,7 @@ void NodeShared::TriggerSubscriberCallbacks(
               // If the message has not been deserialized yet, do it now since
               // we have allegedly found a subscriber which should be able to
               // do it.
-              msg = localHandler->CreateMsg(_msgData, _msgType);
+              msg = localHandler->CreateMsg(_msgData, _info.Type());
 
               if (!msg)
               {
@@ -451,7 +464,7 @@ void NodeShared::TriggerSubscriberCallbacks(
               }
             }
 
-            localHandler->RunLocalCallback(*msg, info);
+            localHandler->RunLocalCallback(*msg, _info);
           }
         }
         else

@@ -65,6 +65,7 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
   EXPECT_EQ(_msg.GetTypeName(), _info.Type());
+  EXPECT_FALSE(_info.IntraProcess());
   cbInfoExecuted = true;
   ++counter;
 }
