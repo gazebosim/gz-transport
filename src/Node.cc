@@ -111,17 +111,13 @@ namespace ignition
       /// \return True if it is okay to publish, false otherwise.
       public: bool ThrottledUpdateReady() const
       {
-        if (!this->publisher.Options().Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-        auto elapsed = now - this->lastCbTimestamp;
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
-          return false;
-        }
-        return true;
+        std::lock_guard<std::mutex> lk(this->mutex);
+        // Return true if the publisher is not throttled, or if enough
+        // time has elapsed.
+        return !this->publisher.Options().Throttled() ||
+          (std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() -
+            this->lastCbTimestamp).count() >= this->periodNs);
       }
 
       /// \brief Check if this Publisher is ready to send an update based on
@@ -200,7 +196,7 @@ namespace ignition
       public: double periodNs = 0.0;
 
       /// \brief Mutex to protect the node::publisher from race conditions.
-      public: std::mutex mutex;
+      public: mutable std::mutex mutex;
     };
     }
   }
