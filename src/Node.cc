@@ -118,12 +118,8 @@ namespace ignition
 
         std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
-          return false;
-        }
-        return true;
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() >= this->periodNs;
       }
 
       /// \brief Check if this Publisher is ready to send an update based on
