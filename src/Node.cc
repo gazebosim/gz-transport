@@ -128,13 +128,13 @@ namespace ignition
       /// \return True if it is okay to publish, false otherwise.
       public: bool UpdateThrottling()
       {
-        std::lock_guard<std::mutex> lk(this->mutex);
         if (!this->publisher.Options().Throttled())
           return true;
 
         Timestamp now = std::chrono::steady_clock::now();
 
         // Elapsed time since the last callback execution.
+        std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
         if (std::chrono::duration_cast<std::chrono::nanoseconds>(
               elapsed).count() < this->periodNs)
