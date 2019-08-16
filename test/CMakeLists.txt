@@ -9,6 +9,7 @@ configure_file (test_config.h.in ${PROJECT_BINARY_DIR}/include/ignition/transpor
 
 # Build gtest
 add_library(gtest STATIC gtest/src/gtest-all.cc)
+target_compile_features(gtest PUBLIC cxx_variadic_macros)
 add_library(gtest_main STATIC gtest/src/gtest_main.cc)
 target_link_libraries(gtest_main gtest)
 set(GTEST_LIBRARY "${PROJECT_BINARY_DIR}/test/libgtest.a")

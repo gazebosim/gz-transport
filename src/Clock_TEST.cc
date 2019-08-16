@@ -118,7 +118,7 @@ TEST_P(NetworkClockTest, Functionality)
 INSTANTIATE_TEST_CASE_P(TestAllTimeBases, NetworkClockTest,
                         ::testing::Values(TimeBase::SIM,
                                           TimeBase::REAL,
-                                          TimeBase::SYS));
+                                          TimeBase::SYS),); // NOLINT
 
 /// \brief Check NetworkClock functionality.
 TEST(ClockTest, BadNetworkClock)
