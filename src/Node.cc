@@ -632,7 +632,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(fullyQualifiedTopic.size());
       memcpy(msg.data(), fullyQualifiedTopic.data(),
         fullyQualifiedTopic.size());
-#ifdef ZMQ_CPP11
+#ifdef IGN_ZMQ_POST_4_3_1
       socket.send(msg, zmq::send_flags::sndmore);
 #else
       socket.send(msg, ZMQ_SNDMORE);
@@ -640,7 +640,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(this->dataPtr->shared->myAddress.size());
       memcpy(msg.data(), this->dataPtr->shared->myAddress.data(),
              this->dataPtr->shared->myAddress.size());
-#ifdef ZMQ_CPP11
+#ifdef IGN_ZMQ_POST_4_3_1
       socket.send(msg, zmq::send_flags::sndmore);
 #else
       socket.send(msg, ZMQ_SNDMORE);
@@ -649,7 +649,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(this->dataPtr->nUuid.size());
       memcpy(msg.data(), this->dataPtr->nUuid.data(),
              this->dataPtr->nUuid.size());
-#ifdef ZMQ_CPP11
+#ifdef IGN_ZMQ_POST_4_3_1
       socket.send(msg, zmq::send_flags::sndmore);
 #else
       socket.send(msg, ZMQ_SNDMORE);
@@ -658,7 +658,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       msg.rebuild(kGenericMessageType.size());
       memcpy(msg.data(), kGenericMessageType.data(),
              kGenericMessageType.size());
-#ifdef ZMQ_CPP11
+#ifdef IGN_ZMQ_POST_4_3_1
       socket.send(msg, zmq::send_flags::sndmore);
 #else
       socket.send(msg, ZMQ_SNDMORE);
@@ -667,7 +667,7 @@ bool Node::Unsubscribe(const std::string &_topic)
       std::string data = std::to_string(EndConnection);
       msg.rebuild(data.size());
       memcpy(msg.data(), data.data(), data.size());
-#ifdef ZMQ_CPP11
+#ifdef IGN_ZMQ_POST_4_3_1
       socket.send(msg, zmq::send_flags::none);
 #else
       socket.send(msg, 0);
