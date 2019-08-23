@@ -33,6 +33,7 @@
 // Avoid using deprecated message receive function when possible
 #if ZMQ_VERSION >= 40301
 #define IGN_ZMQ_POST_4_3_1
+#pragma message ( "ZMQ_VERSION:" ZMQ_VERSION )
 #endif
 
 namespace ignition
