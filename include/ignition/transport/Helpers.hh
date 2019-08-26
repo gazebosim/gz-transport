@@ -30,10 +30,17 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-// Avoid using deprecated message receive function when possible
-#if ZMQ_VERSION >= 40301
-#define IGN_ZMQ_POST_4_3_1
-#pragma message ( "ZMQ_VERSION:" ZMQ_VERSION )
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+// Avoid using deprecated message send/receive function when possible.
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
+//#define IGN_ZMQ_POST_4_3_1
+#pragma message "(MAJOR) ZMQ_VERSION:" STR(ZMQ_VERSION)
+MAJOR
+#else
+#pragma message "(MINOR) ZMQ_VERSION:" STR(ZMQ_VERSION)
+MINOR
 #endif
 
 namespace ignition
