@@ -27,6 +27,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
