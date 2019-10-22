@@ -92,6 +92,12 @@ class ignition::transport::log::Log::Implementation
 
   /// \brief Name of the log file.
   public: std::string filename = "";
+
+  /// \brief Time of the first message in the log file.
+  public: std::chrono::nanoseconds startTime = std::chrono::nanoseconds(-1);
+
+  /// \brief Time of the last message in the log file.
+  public: std::chrono::nanoseconds endTime = std::chrono::nanoseconds(-1);
 };
 
 //////////////////////////////////////////////////
@@ -536,10 +542,16 @@ Batch Log::QueryMessages(const QueryOptions &_options)
 //////////////////////////////////////////////////
 std::chrono::nanoseconds Log::StartTime() const
 {
+  // Short circuit if we already looked up the start time once.
+  if (this->dataPtr->startTime >= std::chrono::nanoseconds::zero())
+    return this->dataPtr->startTime;
+
+  this->dataPtr->startTime = std::chrono::nanoseconds::zero();
+
   if (!this->Valid())
   {
     LERR("Cannot get start time of an invalid log.\n");
-    return std::chrono::nanoseconds::zero();
+    return this->dataPtr->startTime;
   }
 
   // Compile the statement
@@ -550,29 +562,40 @@ std::chrono::nanoseconds Log::StartTime() const
   if (!statement)
   {
     LERR("Failed to compile start time query statement\n");
-    return std::chrono::nanoseconds::zero();
+    return this->dataPtr->startTime;
   }
 
   // Try to run it
   int resultCode = sqlite3_step(statement.Handle());
-  if (resultCode != SQLITE_ROW)
+  if (resultCode == SQLITE_CORRUPT)
+  {
+    LERR("Database is corrupt, playback may fail or be truncated.");
+  }
+  else if (resultCode != SQLITE_ROW)
   {
     LERR("Database has no messages\n");
-    return std::chrono::nanoseconds::zero();
+    return this->dataPtr->startTime;
   }
 
   // Return start time found.
   sqlite_int64 startTimeAsInt = sqlite3_column_int64(statement.Handle(), 0);
-  return std::chrono::nanoseconds(startTimeAsInt);
+  this->dataPtr->startTime = std::chrono::nanoseconds(startTimeAsInt);
+  return this->dataPtr->startTime;
 }
 
 //////////////////////////////////////////////////
 std::chrono::nanoseconds Log::EndTime() const
 {
+  // Short circuit if we already looked up the end time once.
+  if (this->dataPtr->endTime >= std::chrono::nanoseconds::zero())
+    return this->dataPtr->endTime;
+
+  this->dataPtr->endTime = std::chrono::nanoseconds::zero();
+
   if (!this->Valid())
   {
     LERR("Cannot get end time of an invalid log.\n");
-    return std::chrono::nanoseconds::zero();
+    return this->dataPtr->endTime;
   }
 
   // Compile the statement
@@ -583,20 +606,49 @@ std::chrono::nanoseconds Log::EndTime() const
   if (!statement)
   {
     LERR("Failed to compile end time query statement\n");
-    return std::chrono::nanoseconds::zero();
+    return this->dataPtr->endTime;
   }
 
   // Try to run it
   int resultCode = sqlite3_step(statement.Handle());
-  if (resultCode != SQLITE_ROW)
+  sqlite_int64 endTimeAsInt = 0;
+
+  if (resultCode == SQLITE_CORRUPT)
+  {
+    LERR("Database is corrupt, retrieving last valid message." \
+         "Playback may fail or be truncated.");
+
+    // If the database is corrupt, then we need to iterate over the valid
+    // messages until we get the to corrupt statement. The timestamp
+    // of the last valid message is returned.
+    const char* const getAllTimesStatement =
+      "SELECT time_recv AS end_time FROM messages;";
+    raii_sqlite3::Statement statementAll(*(this->dataPtr->db),
+        getAllTimesStatement);
+
+    if (!statementAll)
+    {
+      LERR("Failed to compile end time all query statement\n");
+      return this->dataPtr->endTime;
+    }
+
+    // Iterate until we get to the corrupt line.
+    while (sqlite3_step(statementAll.Handle()) != SQLITE_CORRUPT)
+      endTimeAsInt = sqlite3_column_int64(statementAll.Handle(), 0);
+  }
+  else if (resultCode != SQLITE_ROW)
   {
     LERR("Database has no messages\n");
-    return std::chrono::nanoseconds::zero();
+  }
+  else
+  {
+    endTimeAsInt = sqlite3_column_int64(statement.Handle(), 0);
   }
 
+  this->dataPtr->endTime = std::chrono::nanoseconds(endTimeAsInt);
+
   // Return end time found.
-  sqlite_int64 endTimeAsInt = sqlite3_column_int64(statement.Handle(), 0);
-  return std::chrono::nanoseconds(endTimeAsInt);
+  return this->dataPtr->endTime;
 }
 
 //////////////////////////////////////////////////
