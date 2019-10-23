@@ -15,6 +15,7 @@
  *
 */
 
+#include <csignal>
 #include <iostream>
 #include <regex>
 
@@ -27,6 +28,7 @@
 #include "LogCommandAPI.hh"
 
 using namespace ignition;
+ignition::transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////
 int verbosity(int _level)
@@ -71,6 +73,12 @@ int recordTopics(const char *_file, const char *_pattern)
 }
 
 //////////////////////////////////////////////////
+void playbackSignHandler(int)
+{
+  g_playbackHandler->Stop();
+}
+
+//////////////////////////////////////////////////
 int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
   const char *_remap)
 {
@@ -111,12 +119,15 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
 
   std::this_thread::sleep_for(std::chrono::milliseconds(_wait_ms));
 
-  ignition::transport::log::PlaybackHandlePtr handler = player.Start();
-  if (!handler)
+  std::signal(SIGINT, playbackSignHandler);
+  std::signal(SIGTERM, playbackSignHandler);
+
+  g_playbackHandler = player.Start();
+  if (!g_playbackHandler)
     return FAILED_TO_OPEN;
 
   // Wait until playback finishes
-  handler->WaitUntilFinished();
+  g_playbackHandler->WaitUntilFinished();
   LDBG("Shutting down\n");
   return SUCCESS;
 }
