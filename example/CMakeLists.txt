@@ -102,7 +102,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
     ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core
@@ -111,7 +112,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_dependencies(publisher_custom_msg protobuf_compilation)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
   target_link_libraries(subscriber_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core
