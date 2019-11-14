@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport7 VERSION 7.0.0)
+project(ignition-transport8 VERSION 8.0.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -15,7 +15,7 @@ set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project()
+ign_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -62,8 +62,8 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs4 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
+ign_find_package(ignition-msgs5 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
