@@ -521,6 +521,7 @@ void MessagePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
   Publisher::SetFromDiscovery(_msg);
   this->ctrl = _msg.pub().msg_pub().ctrl();
   this->msgTypeName = _msg.pub().msg_pub().msg_type();
+  this->msgOpts.SetScope(Publisher::Options().Scope());
   if (!_msg.pub().msg_pub().throttled())
     this->msgOpts.SetMsgsPerSec(kUnthrottled);
   else
@@ -759,6 +760,7 @@ void ServicePublisher::FillDiscovery(msgs::Discovery &_msg) const
 void ServicePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
 {
   Publisher::SetFromDiscovery(_msg);
+  this->srvOpts.SetScope(Publisher::Options().Scope());
   this->socketId = _msg.pub().srv_pub().socket_id();
   this->reqTypeName = _msg.pub().srv_pub().request_type();
   this->repTypeName = _msg.pub().srv_pub().response_type();
