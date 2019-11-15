@@ -29,7 +29,7 @@ pipelines:
             libignition-tools-dev
             # libignition-msgs5-dev
           # Install ign-msgs
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b discovery
           - cd ign-msgs
           - mkdir build
           - cd build
