@@ -24,7 +24,6 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
@@ -256,6 +255,7 @@ TEST(DiscoveryTest, TestAdvertise)
   EXPECT_TRUE(discovery1.Advertise(publisher3));
 
   waitForCallback(MaxIters, Nap, connectionExecuted);
+
 
   EXPECT_TRUE(connectionExecuted);
   EXPECT_FALSE(disconnectionExecuted);

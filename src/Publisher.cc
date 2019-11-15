@@ -21,6 +21,7 @@
 #include <string>
 
 #include "ignition/transport/AdvertiseOptions.hh"
+#include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -106,6 +107,10 @@ void Publisher::SetOptions(const AdvertiseOptions &_opts)
 {
   this->opts = _opts;
 }
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 //////////////////////////////////////////////////
 size_t Publisher::Pack(char *_buffer) const
@@ -252,6 +257,56 @@ size_t Publisher::MsgLength() const
   return this->MsgLengthInternal() +
          this->opts.MsgLength();
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
+
+//////////////////////////////////////////////////
+void Publisher::FillDiscovery(msgs::Discovery &_msg) const
+{
+  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+  pub->set_topic(this->Topic());
+  pub->set_address(this->Addr());
+  pub->set_process_uuid(this->PUuid());
+  pub->set_node_uuid(this->NUuid());
+
+  switch (this->opts.Scope())
+  {
+    case Scope_t::PROCESS:
+      pub->set_scope(msgs::Discovery::Publisher::PROCESS);
+      break;
+    case Scope_t::HOST:
+      pub->set_scope(msgs::Discovery::Publisher::HOST);
+      break;
+    default:
+    case Scope_t::ALL:
+      pub->set_scope(msgs::Discovery::Publisher::ALL);
+      break;
+  }
+}
+
+//////////////////////////////////////////////////
+void Publisher::SetFromDiscovery(const msgs::Discovery &_msg)
+{
+  this->topic = _msg.pub().topic();
+  this->addr = _msg.pub().address();
+  this->pUuid = _msg.pub().process_uuid();
+  this->nUuid = _msg.pub().node_uuid();
+
+  switch (_msg.pub().scope())
+  {
+    case msgs::Discovery::Publisher::PROCESS:
+      this->opts.SetScope(Scope_t::PROCESS);
+      break;
+    case msgs::Discovery::Publisher::HOST:
+      this->opts.SetScope(Scope_t::HOST);
+      break;
+    default:
+    case msgs::Discovery::Publisher::ALL:
+      this->opts.SetScope(Scope_t::ALL);
+      break;
+  }
+}
 
 //////////////////////////////////////////////////
 size_t Publisher::MsgLengthInternal() const
@@ -306,6 +361,10 @@ MessagePublisher::MessagePublisher(const MessagePublisher &_other)
   (*this) = _other;
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 //////////////////////////////////////////////////
 size_t MessagePublisher::Pack(char *_buffer) const
 {
@@ -402,6 +461,10 @@ size_t MessagePublisher::MsgLength() const
          sizeof(uint16_t) + this->msgTypeName.size() +
          this->msgOpts.MsgLength();
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
+
 
 //////////////////////////////////////////////////
 std::string MessagePublisher::Ctrl() const
@@ -437,6 +500,31 @@ const AdvertiseMessageOptions& MessagePublisher::Options() const
 void MessagePublisher::SetOptions(const AdvertiseMessageOptions &_opts)
 {
   this->msgOpts = _opts;
+}
+
+//////////////////////////////////////////////////
+void MessagePublisher::FillDiscovery(msgs::Discovery &_msg) const
+{
+  Publisher::FillDiscovery(_msg);
+  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+
+  // Message options
+  pub->mutable_msg_pub()->set_ctrl(this->Ctrl());
+  pub->mutable_msg_pub()->set_msg_type(this->MsgTypeName());
+  pub->mutable_msg_pub()->set_throttled(this->msgOpts.Throttled());
+  pub->mutable_msg_pub()->set_msgs_per_sec(this->msgOpts.MsgsPerSec());
+}
+
+//////////////////////////////////////////////////
+void MessagePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
+{
+  Publisher::SetFromDiscovery(_msg);
+  this->ctrl = _msg.pub().msg_pub().ctrl();
+  this->msgTypeName = _msg.pub().msg_pub().msg_type();
+  if (!_msg.pub().msg_pub().throttled())
+    this->msgOpts.SetMsgsPerSec(kUnthrottled);
+  else
+    this->msgOpts.SetMsgsPerSec(_msg.pub().msg_pub().msgs_per_sec());
 }
 
 //////////////////////////////////////////////////
@@ -484,6 +572,10 @@ ServicePublisher::ServicePublisher(const ServicePublisher &_other)
   (*this) = _other;
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 //////////////////////////////////////////////////
 size_t ServicePublisher::Pack(char *_buffer) const
 {
@@ -599,6 +691,9 @@ size_t ServicePublisher::MsgLength() const
          sizeof(uint16_t) + this->repTypeName.size() +
          this->srvOpts.MsgLength();
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 
 //////////////////////////////////////////////////
 std::string ServicePublisher::SocketId() const
@@ -646,6 +741,27 @@ const AdvertiseServiceOptions& ServicePublisher::Options() const
 void ServicePublisher::SetOptions(const AdvertiseServiceOptions &_opts)
 {
   this->srvOpts = _opts;
+}
+
+//////////////////////////////////////////////////
+void ServicePublisher::FillDiscovery(msgs::Discovery &_msg) const
+{
+  Publisher::FillDiscovery(_msg);
+  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+
+  // Service publisher info
+  pub->mutable_srv_pub()->set_socket_id(this->SocketId());
+  pub->mutable_srv_pub()->set_request_type(this->ReqTypeName());
+  pub->mutable_srv_pub()->set_response_type(this->RepTypeName());
+}
+
+//////////////////////////////////////////////////
+void ServicePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
+{
+  Publisher::SetFromDiscovery(_msg);
+  this->socketId = _msg.pub().srv_pub().socket_id();
+  this->reqTypeName = _msg.pub().srv_pub().request_type();
+  this->repTypeName = _msg.pub().srv_pub().response_type();
 }
 
 //////////////////////////////////////////////////

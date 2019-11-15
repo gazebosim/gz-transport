@@ -6,6 +6,15 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Transport 7.X to 8.X
+
+1. The discovery wire protocol changed to use ignition::msgs::Discovery
+   instead of C-structs. The Packet.hh header file is deprecated, which
+   contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
+   version of the wire protocal has bumped from 9 to 10. This means Ignition
+   Transport 8+ will not work with Ignition Transport 7 and below.
+    * [Pull request X](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/X)
+
 ## Ignition Transport 6.X to 7.X
 
 ### Removed
