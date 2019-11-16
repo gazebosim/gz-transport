@@ -119,16 +119,16 @@ namespace ignition
       /// \param[out] _buffer Destination buffer in which the options
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       /// \brief Deserialize and set the options. The input buffer is
       /// unpacked and used to set this object's options.
       /// \param[in] _buffer Input buffer with the data to be deserialized.
-      public: size_t Unpack(const char *_buffer);
+      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      public: size_t IGN_DEPRECATED(8) MsgLength() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -218,15 +218,15 @@ namespace ignition
       /// \param[out] _buffer Destination buffer in which the options
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       /// \brief Unserialize the options.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(const char *_buffer);
+      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      public: size_t IGN_DEPRECATED(8) MsgLength() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -290,15 +290,15 @@ namespace ignition
       /// \param[out] _buffer Destination buffer in which the options
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: size_t Pack(char *_buffer) const;
+      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       /// \brief Unserialize the options.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t Unpack(const char *_buffer);
+      public: size_t IGN_DEPRECATED(8)  Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: size_t MsgLength() const;
+      public: size_t IGN_DEPRECATED(8)  MsgLength() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

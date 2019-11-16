@@ -122,6 +122,10 @@ void AdvertiseOptions::SetScope(const Scope_t &_scope)
   this->dataPtr->scope = _scope;
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 //////////////////////////////////////////////////
 size_t AdvertiseOptions::Pack(char *_buffer) const
 {
@@ -163,6 +167,9 @@ size_t AdvertiseOptions::MsgLength() const
 {
   return sizeof(uint8_t);
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 
 //////////////////////////////////////////////////
 AdvertiseMessageOptions::AdvertiseMessageOptions()
@@ -226,6 +233,10 @@ void AdvertiseMessageOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 //////////////////////////////////////////////////
 size_t AdvertiseMessageOptions::Pack(char *_buffer) const
 {
@@ -283,7 +294,9 @@ size_t AdvertiseMessageOptions::MsgLength() const
   return AdvertiseOptions::MsgLength() +
          sizeof(this->dataPtr->msgsPerSec);
 }
-
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 
 //////////////////////////////////////////////////
 AdvertiseServiceOptions::AdvertiseServiceOptions()
@@ -327,6 +340,10 @@ bool AdvertiseServiceOptions::operator!=(
   return !(*this == _other);
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 //////////////////////////////////////////////////
 size_t AdvertiseServiceOptions::Pack(char *_buffer) const
 {
@@ -370,3 +387,6 @@ size_t AdvertiseServiceOptions::MsgLength() const
 {
   return AdvertiseOptions::MsgLength();
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif

@@ -98,6 +98,11 @@ TEST(AdvertiseOptionsTest, accessors)
 /// \brief Check the serialization of an AdvertiseOptions object.
 TEST(PacketTest, optionsIO)
 {
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   AdvertiseOptions opts1;
   opts1.SetScope(Scope_t::PROCESS);
   std::vector<char> buffer(opts1.MsgLength());
@@ -118,6 +123,9 @@ TEST(PacketTest, optionsIO)
 
   // Try to unpack passing a NULL buffer.
   EXPECT_EQ(opts2.Unpack(nullptr), 0u);
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -216,6 +224,11 @@ TEST(AdvertiseOptionsTest, msgAccessors)
 /// \brief Check the serialization of an AdvertiseMessageOptions object.
 TEST(PacketTest, msgOptionsIO)
 {
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   AdvertiseMessageOptions opts1;
   opts1.SetScope(Scope_t::PROCESS);
   opts1.SetMsgsPerSec(10u);
@@ -237,6 +250,9 @@ TEST(PacketTest, msgOptionsIO)
 
   // Try to unpack passing a NULL buffer.
   EXPECT_EQ(opts2.Unpack(nullptr), 0u);
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -310,6 +326,10 @@ TEST(AdvertiseOptionsTest, srvAccessors)
 /// \brief Check the serialization of an AdvertiseServiceOptions object.
 TEST(PacketTest, srvOptionsIO)
 {
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
   AdvertiseServiceOptions opts1;
   opts1.SetScope(Scope_t::PROCESS);
   std::vector<char> buffer(opts1.MsgLength());
@@ -330,6 +350,9 @@ TEST(PacketTest, srvOptionsIO)
 
   // Try to unpack passing a NULL buffer.
   EXPECT_EQ(opts2.Unpack(nullptr), 0u);
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif
 }
 
 //////////////////////////////////////////////////
