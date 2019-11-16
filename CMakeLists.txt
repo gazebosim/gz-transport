@@ -76,7 +76,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools1 QUIET)
+ign_find_package(ignition-tools QUIET)
 
 #--------------------------------------
 # Find SQLite3
