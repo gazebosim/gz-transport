@@ -6,6 +6,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Transport 7.X to 8.X
+
+### Deprecated
+
+1. NodeShared::TriggerSubscriberCallbacks
+    * [Pull request 404](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/404)
+
 ## Ignition Transport 6.X to 7.X
 
 ### Removed
