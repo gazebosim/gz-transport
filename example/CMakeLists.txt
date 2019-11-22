@@ -6,11 +6,13 @@ project(ignition-transport-examples)
 find_package(ignition-transport8 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
-# Message generation. Only required when using custom Protobuf messages.
-find_package(Protobuf REQUIRED)
-add_subdirectory(msgs)
-set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
-                            PROPERTIES GENERATED TRUE)
+if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
+  # Message generation. Only required when using custom Protobuf messages.
+  find_package(Protobuf REQUIRED)
+  add_subdirectory(msgs)
+  set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES GENERATED TRUE)
+endif()
+
 include_directories(${CMAKE_BINARY_DIR})
 
 # Generate examples
@@ -102,7 +104,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
     ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core
@@ -111,7 +114,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_dependencies(publisher_custom_msg protobuf_compilation)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
   target_link_libraries(subscriber_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core

@@ -147,6 +147,16 @@ namespace ignition
 
         /// \brief Check if message publication is throttled. If so, verify
         /// whether the next message should be published or not.
+        ///
+        /// This may be used to skip resource or time-intensive operations
+        /// in the case that the message won't be published.
+        ///
+        /// \return true if the message should be published or false otherwise.
+        /// Additionally always returns true if the topic is not throttled.
+        public: bool ThrottledUpdateReady() const;
+
+        /// \brief Check if message publication is throttled. If so, verify
+        /// whether the next message should be published or not.
         /// \return true if the message should be published or false otherwise.
         private: bool UpdateThrottling();
 

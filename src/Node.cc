@@ -107,25 +107,38 @@ namespace ignition
 
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
+      ///
       /// \return True if it is okay to publish, false otherwise.
-      public: bool UpdateThrottling()
+      public: bool ThrottledUpdateReady() const
       {
-        std::lock_guard<std::mutex> lk(this->mutex);
         if (!this->publisher.Options().Throttled())
           return true;
 
         Timestamp now = std::chrono::steady_clock::now();
 
-        // Elapsed time since the last callback execution.
+        std::lock_guard<std::mutex> lk(this->mutex);
         auto elapsed = now - this->lastCbTimestamp;
-        if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() < this->periodNs)
-        {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+              elapsed).count() >= this->periodNs;
+      }
+
+      /// \brief Check if this Publisher is ready to send an update based on
+      /// publication settings and the clock.
+      ///
+      /// This additionally advances the internal timestamp by one period.
+      ///
+      /// \return True if it is okay to publish, false otherwise.
+      public: bool UpdateThrottling()
+      {
+        if (!this->publisher.Options().Throttled())
+          return true;
+
+        if (!this->ThrottledUpdateReady())
           return false;
-        }
 
         // Update the last callback execution.
-        this->lastCbTimestamp = now;
+        std::lock_guard<std::mutex> lk(this->mutex);
+        this->lastCbTimestamp = std::chrono::steady_clock::now();
         return true;
       }
 
@@ -178,7 +191,7 @@ namespace ignition
       public: double periodNs = 0.0;
 
       /// \brief Mutex to protect the node::publisher from race conditions.
-      public: std::mutex mutex;
+      public: mutable std::mutex mutex;
     };
     }
   }
@@ -305,6 +318,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     // out of scope.
     pubMsgDetails->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
     pubMsgDetails->info.SetType(this->dataPtr->publisher.MsgTypeName());
+    pubMsgDetails->info.SetIntraProcess(true);
 
     pubMsgDetails->msgCopy.reset(_msg.New());
     pubMsgDetails->msgCopy->CopyFrom(_msg);
@@ -430,9 +444,13 @@ bool Node::Publisher::PublishRaw(
   const NodeShared::SubscriberInfo &subscribers =
       this->dataPtr->shared->CheckSubscriberInfo(topic, _msgType);
 
+  MessageInfo info;
+  info.SetTopicAndPartition(topic);
+  info.SetType(_msgType);
+  info.SetIntraProcess(true);
+
   // Trigger local subscribers.
-  this->dataPtr->shared->TriggerSubscriberCallbacks(
-        topic, _msgData, _msgType, subscribers);
+  this->dataPtr->shared->TriggerCallbacks(info, _msgData, subscribers);
 
   // Remote subscribers. Note that the data is already presumed to be
   // serialized, so we just pass it along for publication.
@@ -456,6 +474,12 @@ bool Node::Publisher::PublishRaw(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::ThrottledUpdateReady() const
+{
+  return this->dataPtr->ThrottledUpdateReady();
 }
 
 //////////////////////////////////////////////////
