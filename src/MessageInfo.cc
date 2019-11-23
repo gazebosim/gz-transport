@@ -47,6 +47,9 @@ namespace ignition
 
       /// \brief Partition name.
       public: std::string partition = "";
+
+      /// \brief Was the message sent via intra-process?
+      public: bool isIntraProcess = false;
     };
     }
   }
@@ -119,4 +122,16 @@ bool MessageInfo::SetTopicAndPartition(const std::string &_fullyQualifiedName)
         _fullyQualifiedName,
         this->dataPtr->partition,
         this->dataPtr->topic);
+}
+
+//////////////////////////////////////////////////
+bool MessageInfo::IntraProcess() const
+{
+  return this->dataPtr->isIntraProcess;
+}
+
+//////////////////////////////////////////////////
+void MessageInfo::SetIntraProcess(bool _value)
+{
+  this->dataPtr->isIntraProcess = _value;
 }
