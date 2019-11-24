@@ -30,8 +30,7 @@
   DETAIL_IGN_TRANSPORT_TEST_DIR
 #endif
 
-#ifndef __APPLE__
-#include <experimental/filesystem>
+#ifndef __APPLE
 #include <filesystem>
 #endif
 
