@@ -99,17 +99,32 @@ TEST(MessageInfoTest, SetTopicAndPartition)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check [Set]InterProcess().
+TEST(MessageInfoTest, InterProcess)
+{
+  transport::MessageInfo info;
+  EXPECT_FALSE(info.IntraProcess());
+
+  info.SetIntraProcess(true);
+  EXPECT_TRUE(info.IntraProcess());
+  info.SetIntraProcess(false);
+  EXPECT_FALSE(info.IntraProcess());
+}
+
+//////////////////////////////////////////////////
 /// \brief Check Copy constructor.
 TEST(MessageInfoTest, CopyConstructor)
 {
   transport::MessageInfo info;
   info.SetTopicAndPartition("@/a_partition@/b_topic");
+  info.SetIntraProcess(true);
   transport::MessageInfo infoCopy(info);
 
   EXPECT_EQ("/a_partition", info.Partition());
   EXPECT_EQ("/b_topic", info.Topic());
   EXPECT_EQ("/a_partition", infoCopy.Partition());
   EXPECT_EQ("/b_topic", infoCopy.Topic());
+  EXPECT_TRUE(infoCopy.IntraProcess());
 }
 
 //////////////////////////////////////////////////

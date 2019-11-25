@@ -26,8 +26,16 @@ pipelines:
           - apt-get -y install
             libignition-cmake2-dev
             libignition-math6-dev
-            libignition-msgs4-dev
             libignition-tools-dev
+            # libignition-msgs5-dev
+          # Install ign-msgs
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
+          - cd ign-msgs
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
           # Ignition Transport
           - mkdir build
           - cd build

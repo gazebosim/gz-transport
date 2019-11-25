@@ -81,6 +81,14 @@ namespace ignition
       /// \sa TopicUtils::FullyQualifiedName
       public: bool SetTopicAndPartition(const std::string &_fullyQualifiedName);
 
+      /// \brief Whether the message is coming from a node within this process.
+      /// \return True when intra-process, false otherwise.
+      public: bool IntraProcess() const;
+
+      /// \brief Set whether this message is intra-process or not.
+      /// \param[in] _value The intra-process value.
+      public: void SetIntraProcess(bool _value);
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
