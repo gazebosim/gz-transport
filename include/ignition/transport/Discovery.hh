@@ -796,8 +796,6 @@ namespace ignition
         if (recvPUuid == this->pUuid)
           return;
 
-        // uint16_t flags = header.Flags();
-
         // Forwarding summary:
         //   - From a unicast peer  -> to multicast group (with NO_RELAY flag).
         //   - From multicast group -> to unicast peers (with RELAY flag).
@@ -807,7 +805,6 @@ namespace ignition
         // forward it to the multicast group, and it will be dispatched once
         // received there. Note that we also unset the RELAY flag and set the
         // NO_RELAY flag, to avoid forwarding the message anymore.
-        // if (flags & FlagRelay)
         if (msg.has_flags() && msg.flags().relay())
         {
           // Unset the RELAY flag in the header and set the NO_RELAY.
@@ -846,7 +843,6 @@ namespace ignition
           case msgs::Discovery::ADVERTISE:
           {
             // Read the rest of the fields.
-            // transport::AdvertiseMessage<Pub> advMsg;
             Pub publisher;
             publisher.SetFromDiscovery(msg);
 
@@ -950,7 +946,6 @@ namespace ignition
           case msgs::Discovery::UNADVERTISE:
           {
             // Read the address.
-            // transport::AdvertiseMessage<Pub> advMsg;
             Pub publisher;
             publisher.SetFromDiscovery(msg);
 
