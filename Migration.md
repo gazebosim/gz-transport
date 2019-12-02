@@ -13,6 +13,13 @@ release will remove the deprecated code.
 1. NodeShared::TriggerSubscriberCallbacks
     * [Pull request 404](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/404)
 
+1. The discovery wire protocol changed to use ignition::msgs::Discovery
+   instead of C-structs. The Packet.hh header file is deprecated, which
+   contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
+   version of the wire protocal has bumped from 9 to 10. This means Ignition
+   Transport 8+ will not work with Ignition Transport 7 and below.
+    * [Pull request 403](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/403)
+
 ## Ignition Transport 6.X to 7.X
 
 ### Removed

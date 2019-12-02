@@ -82,13 +82,6 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.NUuid(),   g_nuuid);
   EXPECT_EQ(publisher.Options(), g_opts1);
 
-  size_t msgLength = sizeof(uint16_t) + publisher.Topic().size() +
-                     sizeof(uint16_t) + publisher.Addr().size()  +
-                     sizeof(uint16_t) + publisher.PUuid().size() +
-                     sizeof(uint16_t) + publisher.NUuid().size() +
-                     sizeof(uint8_t);
-  EXPECT_EQ(publisher.MsgLength(), msgLength);
-
   // Copy constructor.
   Publisher pub2(publisher);
 
@@ -98,13 +91,6 @@ TEST(PublisherTest, Publisher)
   // [In]Equality operators.
   EXPECT_TRUE(publisher == pub3);
   EXPECT_FALSE(publisher != pub3);
-
-  msgLength = sizeof(uint16_t) + pub2.Topic().size() +
-              sizeof(uint16_t) + pub2.Addr().size()  +
-              sizeof(uint16_t) + pub2.PUuid().size() +
-              sizeof(uint16_t) + pub2.NUuid().size() +
-              sizeof(uint8_t);
-  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   publisher.SetTopic(g_newTopic);
@@ -118,13 +104,6 @@ TEST(PublisherTest, Publisher)
   EXPECT_EQ(publisher.PUuid(),   g_newPUuid);
   EXPECT_EQ(publisher.NUuid(),   g_newNUuid);
   EXPECT_EQ(publisher.Options(), g_opts2);
-
-  msgLength = sizeof(uint16_t) + publisher.Topic().size() +
-              sizeof(uint16_t) + publisher.Addr().size()  +
-              sizeof(uint16_t) + publisher.PUuid().size() +
-              sizeof(uint16_t) + publisher.NUuid().size() +
-              sizeof(uint8_t);
-  EXPECT_EQ(publisher.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
@@ -135,19 +114,15 @@ TEST(PublisherTest, PublisherIO)
 
   // Try to pack an empty publisher.
   Publisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   Publisher publisher(g_topic, g_addr, g_puuid, g_nuuid, g_opts1);
-
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  msgs::Discovery msg;
+  publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.
   Publisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  otherPublisher.SetFromDiscovery(msg);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(),   otherPublisher.Topic());
@@ -155,12 +130,6 @@ TEST(PublisherTest, PublisherIO)
   EXPECT_EQ(publisher.PUuid(),   otherPublisher.PUuid());
   EXPECT_EQ(publisher.NUuid(),   otherPublisher.NUuid());
   EXPECT_EQ(publisher.Options(), otherPublisher.Options());
-
-  // Try to pack passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -201,22 +170,10 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(pub1.MsgTypeName(), g_msgTypeName);
   EXPECT_EQ(pub1.Options(),     g_msgOpts1);
 
-  size_t msgLength = pub1.Publisher::MsgLength() - g_opts1.MsgLength() +
-                     sizeof(uint16_t) + pub1.Ctrl().size()             +
-                     sizeof(uint16_t) + pub1.MsgTypeName().size()      +
-                     g_msgOpts1.MsgLength();
-  EXPECT_EQ(pub1.MsgLength(), msgLength);
-
   // [In]Equality operators.
   MessagePublisher pub2(pub1);
   EXPECT_TRUE(pub1 == pub2);
   EXPECT_FALSE(pub1 != pub2);
-
-  msgLength = pub2.Publisher::MsgLength() - g_opts1.MsgLength() +
-              sizeof(uint16_t) + pub2.Ctrl().size()             +
-              sizeof(uint16_t) + pub2.MsgTypeName().size()      +
-              g_msgOpts1.MsgLength();
-  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   pub1.SetTopic(g_newTopic);
@@ -234,11 +191,6 @@ TEST(PublisherTest, MessagePublisher)
   EXPECT_EQ(pub1.NUuid(),       g_newNUuid);
   EXPECT_EQ(pub1.MsgTypeName(), g_newMsgTypeName);
   EXPECT_EQ(pub1.Options(),     g_msgOpts2);
-  msgLength = pub1.Publisher::MsgLength() - g_opts1.MsgLength() +
-    sizeof(uint16_t) + pub1.Ctrl().size()        +
-    sizeof(uint16_t) + pub1.MsgTypeName().size() +
-    g_msgOpts2.MsgLength();;
-  EXPECT_EQ(pub1.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
@@ -249,20 +201,17 @@ TEST(PublisherTest, MessagePublisherIO)
 
   // Try to pack an empty publisher.
   MessagePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   MessagePublisher publisher(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid,
     g_msgTypeName, g_msgOpts2);
 
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  msgs::Discovery msg;
+  publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.
   MessagePublisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  otherPublisher.SetFromDiscovery(msg);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(),       otherPublisher.Topic());
@@ -272,12 +221,6 @@ TEST(PublisherTest, MessagePublisherIO)
   EXPECT_EQ(publisher.NUuid(),       otherPublisher.NUuid());
   EXPECT_EQ(publisher.MsgTypeName(), otherPublisher.MsgTypeName());
   EXPECT_EQ(publisher.Options(),     otherPublisher.Options());
-
-  // Try to pack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }
 
 //////////////////////////////////////////////////
@@ -323,24 +266,11 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(pub1.ReqTypeName(), g_reqTypeName);
   EXPECT_EQ(pub1.RepTypeName(), g_repTypeName);
   EXPECT_EQ(pub1.Options().Scope(), g_scope);
-  size_t msgLength = pub1.Publisher::MsgLength() - g_opts1.MsgLength() +
-    sizeof(uint16_t) + pub1.SocketId().size()    +
-    sizeof(uint16_t) + pub1.ReqTypeName().size() +
-    sizeof(uint16_t) + pub1.RepTypeName().size() +
-    g_srvOpts1.MsgLength();
-  EXPECT_EQ(pub1.MsgLength(), msgLength);
 
   ServicePublisher pub2(pub1);
 
   EXPECT_TRUE(pub1 == pub2);
   EXPECT_FALSE(pub1 != pub2);
-
-  msgLength = pub2.Publisher::MsgLength() - g_opts1.MsgLength() +
-    sizeof(uint16_t) + pub2.SocketId().size()    +
-    sizeof(uint16_t) + pub2.ReqTypeName().size() +
-    sizeof(uint16_t) + pub2.RepTypeName().size() +
-    g_srvOpts1.MsgLength();
-  EXPECT_EQ(pub2.MsgLength(), msgLength);
 
   // Modify the publisher's member variables.
   pub1.SetTopic(g_newTopic);
@@ -360,12 +290,6 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_EQ(pub1.ReqTypeName(), g_newReqTypeName);
   EXPECT_EQ(pub1.RepTypeName(), g_newRepTypeName);
   EXPECT_EQ(pub1.Options(),     g_srvOpts2);
-  msgLength = pub1.Publisher::MsgLength() - g_opts1.MsgLength() +
-    sizeof(uint16_t) + pub1.SocketId().size()    +
-    sizeof(uint16_t) + pub1.ReqTypeName().size() +
-    sizeof(uint16_t) + pub1.RepTypeName().size() +
-    g_srvOpts2.MsgLength();
-  EXPECT_EQ(pub1.MsgLength(), msgLength);
 }
 
 //////////////////////////////////////////////////
@@ -376,20 +300,17 @@ TEST(PublisherTest, ServicePublisherIO)
 
   // Try to pack an empty publisher.
   ServicePublisher emptyPublisher;
-  std::vector<char> buffer(emptyPublisher.MsgLength());
-  EXPECT_EQ(emptyPublisher.Pack(&buffer[0]), 0u);
 
   // Pack a Publisher.
   ServicePublisher publisher(g_topic, g_addr, g_socketId, g_puuid, g_nuuid,
     g_reqTypeName, g_repTypeName, g_srvOpts2);
 
-  buffer.resize(publisher.MsgLength());
-  size_t bytes = publisher.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, publisher.MsgLength());
+  msgs::Discovery msg;
+  publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.
   ServicePublisher otherPublisher;
-  otherPublisher.Unpack(&buffer[0]);
+  otherPublisher.SetFromDiscovery(msg);
 
   // Check that after Pack() and Unpack() the Publisher remains the same.
   EXPECT_EQ(publisher.Topic(), otherPublisher.Topic());
@@ -400,12 +321,6 @@ TEST(PublisherTest, ServicePublisherIO)
   EXPECT_EQ(publisher.ReqTypeName(), otherPublisher.ReqTypeName());
   EXPECT_EQ(publisher.RepTypeName(), otherPublisher.RepTypeName());
   EXPECT_EQ(publisher.Options(), otherPublisher.Options());
-
-  // Try to pack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Pack(nullptr), 0u);
-
-  // Try to unpack a header passing a NULL buffer.
-  EXPECT_EQ(otherPublisher.Unpack(nullptr), 0u);
 }
 
 //////////////////////////////////////////////////

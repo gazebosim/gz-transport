@@ -45,7 +45,6 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/Packet.hh"
 #include "ignition/transport/RepHandler.hh"
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
@@ -515,7 +514,7 @@ void NodeShared::RecvControlUpdate()
     return;
   }
 
-  if (std::stoi(data) == NewConnection)
+  if (std::stoi(data) == ignition::msgs::Discovery::NEW_CONNECTION)
   {
     if (this->verbose)
     {
@@ -529,7 +528,7 @@ void NodeShared::RecvControlUpdate()
       AdvertiseMessageOptions());
     this->remoteSubscribers.AddPublisher(remoteNode);
   }
-  else if (std::stoi(data) == EndConnection)
+  else if (std::stoi(data) == ignition::msgs::Discovery::END_CONNECTION)
   {
     if (this->verbose)
     {
@@ -991,7 +990,8 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         memcpy(msg.data(), type.data(), type.size());
         socket.send(msg, ZMQ_SNDMORE);
 
-        std::string data = std::to_string(NewConnection);
+        std::string data =
+          std::to_string(ignition::msgs::Discovery::NEW_CONNECTION);
         msg.rebuild(data.size());
         memcpy(msg.data(), data.data(), data.size());
         socket.send(msg, 0);

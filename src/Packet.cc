@@ -15,6 +15,13 @@
  *
 */
 
+// This whole file is deprecated in version 8 of Ignition Transport. Please
+// remove this file in Version 9.
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -254,3 +261,6 @@ size_t SubscriptionMsg::Unpack(const char *_buffer)
 
   return sizeof(topicLength) + static_cast<size_t>(topicLength);
 }
+#ifndef _WIN32
+  #pragma GCC diagnostic pop
+#endif

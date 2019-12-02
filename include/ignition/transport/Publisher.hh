@@ -18,6 +18,8 @@
 #ifndef IGN_TRANSPORT_PUBLISHER_HH_
 #define IGN_TRANSPORT_PUBLISHER_HH_
 
+#include <ignition/msgs/discovery.pb.h>
+
 #include <iostream>
 #include <string>
 
@@ -118,15 +120,23 @@ namespace ignition
       /// \param[out] _buffer Destination buffer in which the publisher
       /// will be serialized.
       /// \return Number of bytes serialized.
-      public: virtual size_t Pack(char *_buffer) const;
+      public: virtual size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       /// \brief Unserialize the publisher.
       /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: virtual size_t Unpack(const char *_buffer);
+      public: virtual size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
 
       /// \brief Get the total length of the message.
       /// \return Return the length of the message in bytes.
-      public: virtual size_t MsgLength() const;
+      public: virtual size_t IGN_DEPRECATED(8) MsgLength() const;
+
+      /// \brief Populate a discovery message.
+      /// \param[in] _msg Message to fill.
+      public: virtual void FillDiscovery(msgs::Discovery &_msg) const;
+
+      /// \brief Set data from a discovery message.
+      /// \param[in] _msg Discovery message.
+      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
 
       /// \brief Equality operator. This function checks if the given
       /// publisher has identical Topic, Addr, PUuid, NUuid, and Scope
@@ -166,19 +176,19 @@ namespace ignition
       /// \brief Serialize all fields except the advertise options. This is
       /// useful when we are serializing a derived class that contains its own
       /// advertise options.
-      protected: size_t PackInternal(char *_buffer) const;
+      protected: size_t IGN_DEPRECATED(8) PackInternal(char *_buffer) const;
 
       /// \brief Unserialize all fields except the advertise options. This is
       /// useful when we are unserializing a derived class that contains its own
       /// advertise options.
-      protected: size_t UnpackInternal(const char *_buffer);
+      protected: size_t IGN_DEPRECATED(8) UnpackInternal(const char *_buffer);
 
       /// \brief Get the total length of the message without counting the
       /// advertised options. This is useful when [un]serializing a derived
       /// publisher because we want to ignore the advertised options in the base
       /// publisher.
       /// \return Return the length of the message in bytes.
-      protected: size_t MsgLengthInternal() const;
+      protected: size_t IGN_DEPRECATED(8) MsgLengthInternal() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -238,13 +248,13 @@ namespace ignition
       public: virtual ~MessagePublisher() = default;
 
       // Documentation inherited.
-      public: virtual size_t Pack(char *_buffer) const;
+      public: virtual size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       // Documentation inherited.
-      public: virtual size_t Unpack(const char *_buffer);
+      public: virtual size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
 
       // Documentation inherited.
-      public: virtual size_t MsgLength() const;
+      public: virtual size_t IGN_DEPRECATED(8) MsgLength() const;
 
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
@@ -275,6 +285,14 @@ namespace ignition
       /// \param[in] _opts New advertised options.
       /// \sa Options.
       public: void SetOptions(const AdvertiseMessageOptions &_opts);
+
+      /// \brief Populate a discovery message.
+      /// \param[in] _msg Message to fill.
+      public: virtual void FillDiscovery(msgs::Discovery &_msg) const final;
+
+      /// \brief Set data from a discovery message.
+      /// \param[in] _msg Discovery message.
+      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -365,13 +383,13 @@ namespace ignition
       public: virtual ~ServicePublisher() = default;
 
       // Documentation inherited.
-      public: size_t Pack(char *_buffer) const;
+      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
 
       // Documentation inherited.
-      public: size_t Unpack(const char *_buffer);
+      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
 
       // Documentation inherited.
-      public: size_t MsgLength() const;
+      public: size_t IGN_DEPRECATED(8) MsgLength() const;
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
@@ -413,6 +431,15 @@ namespace ignition
       /// \sa Options.
       public: void SetOptions(const AdvertiseServiceOptions &_opts);
 
+      /// \brief Populate a discovery message.
+      /// \param[in] _msg Message to fill.
+      public: virtual void FillDiscovery(msgs::Discovery &_msg) const final;
+
+      /// \brief Populate a discovery message.
+      /// \brief Set data from a discovery message.
+      /// \param[in] _msg Discovery message.
+      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
       /// \param[in] _msg ServicePublisher to write to the stream.
@@ -452,7 +479,7 @@ namespace ignition
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// ZeroMQ socket ID used by this publisher.
+      /// \brief ZeroMQ socket ID used by this publisher.
       private: std::string socketId;
 
       /// \brief The name of the request's protobuf message advertised.

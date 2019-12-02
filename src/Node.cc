@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <ignition/msgs/discovery.pb.h>
 
 #include <algorithm>
 #include <cassert>
@@ -26,6 +27,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+
 
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
@@ -649,7 +651,7 @@ bool Node::Unsubscribe(const std::string &_topic)
              kGenericMessageType.size());
       socket.send(msg, ZMQ_SNDMORE);
 
-      std::string data = std::to_string(EndConnection);
+      std::string data = std::to_string(msgs::Discovery::END_CONNECTION);
       msg.rebuild(data.size());
       memcpy(msg.data(), data.data(), data.size());
       socket.send(msg, 0);

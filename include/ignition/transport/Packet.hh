@@ -27,6 +27,9 @@
 #include "ignition/transport/Export.hh"
 #include "ignition/transport/Publisher.hh"
 
+// This whole file is deprecated in version 8 of Ignition Transport. Please
+// remove this file in Version 9.
+
 namespace ignition
 {
   namespace transport
@@ -60,18 +63,20 @@ namespace ignition
     /// \class Header Packet.hh ignition/transport/Packet.hh
     /// \brief Header included in each discovery message containing the version
     /// of the discovery protocol, the process UUID of the sender node, the type
-    // of message (ADV, SUB, ... ) and optional flags.
+    /// of message (ADV, SUB, ... ) and optional flags.
+    /// \deprecated This class is deprecated. Discovery uses the
+    /// ignition::msgs::Discovery message.
     class IGNITION_TRANSPORT_VISIBLE Header
     {
       /// \brief Constructor.
-      public: Header() = default;
+      public: IGN_DEPRECATED(8) Header() = default;
 
       /// \brief Constructor.
       /// \param[in] _version Version of the discovery protocol.
       /// \param[in] _pUuid Every process has a unique UUID.
       /// \param[in] _type Message type (ADVERTISE, SUBSCRIPTION, ...)
       /// \param[in] _flags Optional flags included in the header.
-      public: Header(const uint16_t _version,
+      public: IGN_DEPRECATED(8) Header(const uint16_t _version,
                      const std::string &_pUuid,
                      const uint8_t _type,
                      const uint16_t _flags = 0);
@@ -174,16 +179,19 @@ namespace ignition
     /// \class SubscriptionMsg Packet.hh ignition/transport/Packet.hh
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
+    /// \deprecated This class is deprecated. Discovery uses the
+    /// ignition::msgs::Discovery message.
     class IGNITION_TRANSPORT_VISIBLE SubscriptionMsg
     {
       /// \brief Constructor.
-      public: SubscriptionMsg() = default;
+      public: IGN_DEPRECATED(8) SubscriptionMsg() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _topic Topic name.
-      public: SubscriptionMsg(const transport::Header &_header,
-                              const std::string &_topic);
+      public: IGN_DEPRECATED(8) SubscriptionMsg(
+                  const transport::Header &_header,
+                  const std::string &_topic);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -254,16 +262,17 @@ namespace ignition
     /// contains the name of the protobuf message type advertised. This message
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
-
+    /// \deprecated This class is deprecated. Discovery uses the
+    /// ignition::msgs::Discovery message.
     template <class T> class AdvertiseMessage
     {
       /// \brief Constructor.
-      public: AdvertiseMessage() = default;
+      public: IGN_DEPRECATED(8) AdvertiseMessage() = default;
 
       /// \brief Constructor.
       /// \param[in] _header Message header.
       /// \param[in] _publisher Contains the topic name, UUIDs, addresses.
-      public: AdvertiseMessage(const Header &_header,
+      public: IGN_DEPRECATED(8) AdvertiseMessage(const Header &_header,
                                const T &_publisher)
         : header(_header),
           publisher(_publisher)
@@ -338,6 +347,13 @@ namespace ignition
           return 0;
 
         return this->publisher.MsgLength();
+      }
+
+      /// \brief Set from discovery message.
+      /// \param[in] _msg Discovery message.
+      public: void SetFromDiscovery(const msgs::Discovery &_msg)
+      {
+        this->publisher.SetFromDiscovery(_msg);
       }
 
       /// \brief Stream insertion operator.
