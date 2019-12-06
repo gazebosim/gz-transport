@@ -1080,7 +1080,23 @@ namespace ignition
       /// \param[in] _msg Discovery message.
       private: void SendUnicast(const msgs::Discovery &_msg) const
       {
-        uint16_t msgSize = _msg.ByteSize();
+        uint16_t msgSize;
+
+        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+        // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION < 30010000
+        int msgSizeFull = _msg.ByteSize();
+#else
+        size_t msgSizeFull = _msg.ByteSizeLong();
+#endif
+        if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
+        {
+          std::cerr << "Discovery message too large to send. Discovery won't "
+            << "work. This shouldn't happen.\n";
+          return;
+        }
+        msgSize = msgSizeFull;
+
         uint16_t totalSize = sizeof(msgSize) + msgSize;
         char *buffer = static_cast<char *>(new char[totalSize]);
         memcpy(&buffer[0], &msgSize, sizeof(msgSize));
@@ -1117,7 +1133,23 @@ namespace ignition
       /// \param[in] _msg Discovery message.
       private: void SendMulticast(const msgs::Discovery &_msg) const
       {
-        uint16_t msgSize = _msg.ByteSize();
+        uint16_t msgSize;
+
+        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+        // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION < 30010000
+        int msgSizeFull = _msg.ByteSize();
+#else
+        size_t msgSizeFull = _msg.ByteSizeLong();
+#endif
+        if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
+        {
+          std::cerr << "Discovery message too large to send. Discovery won't "
+            << "work. This shouldn't happen.\n";
+          return;
+        }
+
+        msgSize = msgSizeFull;
         uint16_t totalSize = sizeof(msgSize) + msgSize;
         char *buffer = static_cast<char *>(new char[totalSize]);
         memcpy(&buffer[0], &msgSize, sizeof(msgSize));
@@ -1270,7 +1302,7 @@ namespace ignition
       private: const int kTimeout = 250;
 
       /// \brief Longest string to receive.
-      private: static const int kMaxRcvStr =
+      private: static const uint16_t kMaxRcvStr =
                std::numeric_limits<uint16_t>::max();
 
       /// \brief Wire protocol version. Bump up the version number if you modify
