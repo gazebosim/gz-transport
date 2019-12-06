@@ -1084,7 +1084,7 @@ namespace ignition
 
         // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
         // became deprecated.
-#if GOOGLE_PROTOBUF_VERSION < 30010000
+#if GOOGLE_PROTOBUF_VERSION < 3001000
         int msgSizeFull = _msg.ByteSize();
 #else
         size_t msgSizeFull = _msg.ByteSizeLong();
@@ -1137,7 +1137,7 @@ namespace ignition
 
         // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
         // became deprecated.
-#if GOOGLE_PROTOBUF_VERSION < 30010000
+#if GOOGLE_PROTOBUF_VERSION < 3001000
         int msgSizeFull = _msg.ByteSize();
 #else
         size_t msgSizeFull = _msg.ByteSizeLong();
