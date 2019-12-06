@@ -60,6 +60,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -749,15 +750,13 @@ namespace ignition
       /// \brief Method in charge of receiving the discovery updates.
       private: void RecvDiscoveryUpdate()
       {
-        std::string srcAddr;
-        uint16_t srcPort;
+        char rcvStr[Discovery::kMaxRcvStr];
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
 
-        char rcvStr[std::numeric_limits<uint16_t>::max()];
         uint16_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
-              std::numeric_limits<uint16_t>::max(), 0,
+              this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
               reinterpret_cast<socklen_t *>(&addrLen));
         if (received > 0)
@@ -789,8 +788,8 @@ namespace ignition
           // If-condition for version 8+
           if (len + sizeof(len) == received)
           {
-            srcAddr = inet_ntoa(clntAddr.sin_addr);
-            srcPort = ntohs(clntAddr.sin_port);
+            std::string srcAddr = inet_ntoa(clntAddr.sin_addr);
+            uint16_t srcPort = ntohs(clntAddr.sin_port);
 
             if (this->verbose)
             {
@@ -798,8 +797,7 @@ namespace ignition
                 << srcAddr << ": " << srcPort << std::endl;
             }
 
-            this->DispatchDiscoveryMsg(srcAddr,
-                std::string(rcvStr + sizeof(len), len));
+            this->DispatchDiscoveryMsg(srcAddr, rcvStr + sizeof(len), len);
           }
         }
         else if (received < 0)
@@ -812,15 +810,16 @@ namespace ignition
       /// \brief Parse a discovery message received via the UDP socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
+      /// \param[in] _len Entire length of the package in octets.
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                         const std::string &_msg)
+                                         char *_msg, uint16_t _len)
       {
         ignition::msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
         // older (or newer) format.
-        if (!msg.ParseFromString(_msg))
+        if (!msg.ParseFromArray(_msg, _len))
           return;
 
         // Discard the message if the wire protocol is different than mine.
@@ -1012,7 +1011,6 @@ namespace ignition
           default:
           {
             std::cerr << "Unknown message type [" << msg.type() << "].\n";
-            std::cerr << msg.DebugString() << std::endl;
             break;
           }
         }
@@ -1272,7 +1270,8 @@ namespace ignition
       private: const int kTimeout = 250;
 
       /// \brief Longest string to receive.
-      private: static const int kMaxRcvStr = 65536;
+      private: static const int kMaxRcvStr =
+               std::numeric_limits<uint16_t>::max();
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
