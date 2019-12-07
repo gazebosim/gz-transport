@@ -154,9 +154,16 @@ TEST(playback, ReplayLog)
   std::cout << "Playback finished!" << std::endl;
 
   // Ensure playback times are reasonable.
-  const std::chrono::milliseconds expected_duration{
+  const std::chrono::milliseconds expectedDuration{
     numChirps * ignition::transport::log::test::DelayBetweenChirps_ms};
-  EXPECT_GE(handle->EndTime() - handle->StartTime(), expected_duration);
+  // Windows uses system clock for sleep, and playback uses a steady clock.
+  // This can lead to errors.
+#ifdef _WIN32
+  EXPECT_GE((handle->EndTime() - handle->StartTime()).count(),
+      expectedDuration.count() * 0.5);
+#else
+  EXPECT_GE(handle->EndTime() - handle->StartTime(), expectedDuration);
+#endif
   EXPECT_EQ(handle->EndTime(), handle->CurrentTime());
 
   // Wait to make sure our callbacks are done processing the incoming messages

@@ -60,6 +60,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -750,41 +751,76 @@ namespace ignition
       private: void RecvDiscoveryUpdate()
       {
         char rcvStr[Discovery::kMaxRcvStr];
-        std::string srcAddr;
-        uint16_t srcPort;
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
 
-        if ((recvfrom(this->sockets.at(0),
+        uint16_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
               this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
-              reinterpret_cast<socklen_t *>(&addrLen))) < 0)
+              reinterpret_cast<socklen_t *>(&addrLen));
+        if (received > 0)
+        {
+          uint16_t len = 0;
+          memcpy(&len, &rcvStr[0], sizeof(len));
+
+          // Ignition Transport delimits each discovery message with a
+          // frame_delimiter that contains byte size information.
+          // A discovery message has the form:
+          //
+          // <frame_delimiter><frame_body>
+          //
+          // Ignition Transport version < 8 sends a frame delimiter that
+          // contains the value of sizeof(frame_delimiter)
+          // + sizeof(frame_body). In other words, the frame_delimiter
+          // contains a value that represents the total size of the
+          // frame_body and frame_delimiter in bytes.
+          //
+          // Ignition Transport version >= 8 sends a frame_delimiter
+          // that contains the value of sizeof(frame_body). In other
+          // words, the frame_delimiter contains a value that represents
+          // the total size of only the frame_body.
+          //
+          // It is possible that two incompatible versions of Ignition
+          // Transport exist on the same network. If we receive an
+          // unexpected size, then we ignore the message.
+
+          // If-condition for version 8+
+          if (len + sizeof(len) == received)
+          {
+            std::string srcAddr = inet_ntoa(clntAddr.sin_addr);
+            uint16_t srcPort = ntohs(clntAddr.sin_port);
+
+            if (this->verbose)
+            {
+              std::cout << "\nReceived discovery update from "
+                << srcAddr << ": " << srcPort << std::endl;
+            }
+
+            this->DispatchDiscoveryMsg(srcAddr, rcvStr + sizeof(len), len);
+          }
+        }
+        else if (received < 0)
         {
           std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
-                    << std::endl;
-          return;
+            << std::endl;
         }
-        srcAddr = inet_ntoa(clntAddr.sin_addr);
-        srcPort = ntohs(clntAddr.sin_port);
-
-        if (this->verbose)
-        {
-          std::cout << "\nReceived discovery update from " << srcAddr << ": "
-                    << srcPort << std::endl;
-        }
-
-        this->DispatchDiscoveryMsg(srcAddr, rcvStr);
       }
 
       /// \brief Parse a discovery message received via the UDP socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
+      /// \param[in] _len Entire length of the package in octets.
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                         char *_msg)
+                                         char *_msg, uint16_t _len)
       {
         ignition::msgs::Discovery msg;
-        msg.ParseFromString(std::string(_msg));
+
+        // Parse the message, and return if parsing failed. Parsing could
+        // fail when another discovery node is publishing messages using an
+        // older (or newer) format.
+        if (!msg.ParseFromArray(_msg, _len))
+          return;
 
         // Discard the message if the wire protocol is different than mine.
         if (this->kWireVersion != msg.version())
@@ -974,7 +1010,7 @@ namespace ignition
           }
           default:
           {
-            std::cerr << "Unknown message type [" << msg.type() << "]\n";
+            std::cerr << "Unknown message type [" << msg.type() << "].\n";
             break;
           }
         }
@@ -1044,9 +1080,28 @@ namespace ignition
       /// \param[in] _msg Discovery message.
       private: void SendUnicast(const msgs::Discovery &_msg) const
       {
-        int msgSize = _msg.ByteSize();
-        char *buffer = static_cast<char *>(new char[msgSize]);
-        if (_msg.SerializeToArray(buffer, msgSize))
+        uint16_t msgSize;
+
+        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+        // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION < 3001000
+        int msgSizeFull = _msg.ByteSize();
+#else
+        size_t msgSizeFull = _msg.ByteSizeLong();
+#endif
+        if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
+        {
+          std::cerr << "Discovery message too large to send. Discovery won't "
+            << "work. This shouldn't happen.\n";
+          return;
+        }
+        msgSize = msgSizeFull;
+
+        uint16_t totalSize = sizeof(msgSize) + msgSize;
+        char *buffer = static_cast<char *>(new char[totalSize]);
+        memcpy(&buffer[0], &msgSize, sizeof(msgSize));
+
+        if (_msg.SerializeToArray(buffer + sizeof(msgSize), msgSize))
         {
           // Send the discovery message to the unicast relays.
           for (const auto &sockAddr : this->relayAddrs)
@@ -1054,11 +1109,11 @@ namespace ignition
             auto sent = sendto(this->sockets.at(0),
               reinterpret_cast<const raw_type *>(
                 reinterpret_cast<const unsigned char*>(buffer)),
-              msgSize, 0,
+              totalSize, 0,
               reinterpret_cast<const sockaddr *>(&sockAddr),
               sizeof(sockAddr));
 
-            if (sent != msgSize)
+            if (sent != totalSize)
             {
               std::cerr << "Exception sending a unicast message" << std::endl;
               break;
@@ -1078,9 +1133,28 @@ namespace ignition
       /// \param[in] _msg Discovery message.
       private: void SendMulticast(const msgs::Discovery &_msg) const
       {
-        int msgSize = _msg.ByteSize();
-        char *buffer = static_cast<char *>(new char[msgSize]);
-        if (_msg.SerializeToArray(buffer, msgSize))
+        uint16_t msgSize;
+
+        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+        // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION < 3001000
+        int msgSizeFull = _msg.ByteSize();
+#else
+        size_t msgSizeFull = _msg.ByteSizeLong();
+#endif
+        if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
+        {
+          std::cerr << "Discovery message too large to send. Discovery won't "
+            << "work. This shouldn't happen.\n";
+          return;
+        }
+
+        msgSize = msgSizeFull;
+        uint16_t totalSize = sizeof(msgSize) + msgSize;
+        char *buffer = static_cast<char *>(new char[totalSize]);
+        memcpy(&buffer[0], &msgSize, sizeof(msgSize));
+
+        if (_msg.SerializeToArray(buffer + sizeof(msgSize), msgSize))
         {
           // Send the discovery message to the multicast group through all the
           // sockets.
@@ -1088,9 +1162,9 @@ namespace ignition
           {
             if (sendto(sock, reinterpret_cast<const raw_type *>(
               reinterpret_cast<const unsigned char*>(buffer)),
-              msgSize, 0,
+              totalSize, 0,
               reinterpret_cast<const sockaddr *>(this->MulticastAddr()),
-              sizeof(*(this->MulticastAddr()))) != msgSize)
+              sizeof(*(this->MulticastAddr()))) != totalSize)
             {
               // Ignore EPERM and ENOBUFS errors.
               //
@@ -1228,7 +1302,8 @@ namespace ignition
       private: const int kTimeout = 250;
 
       /// \brief Longest string to receive.
-      private: static const int kMaxRcvStr = 65536;
+      private: static const uint16_t kMaxRcvStr =
+               std::numeric_limits<uint16_t>::max();
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
