@@ -248,12 +248,15 @@ showing that your subscriber is receiving the topic updates:
 
 ```{.sh}
 caguero@turtlebot:~/ign_transport_tutorial/build$ ./subscriber
-Data: [helloWorld]
-Data: [helloWorld]
-Data: [helloWorld]
-Data: [helloWorld]
-Data: [helloWorld]
-Data: [helloWorld]
+Msg: HELLO
+
+Msg: HELLO
+
+Msg: HELLO
+
+Msg: HELLO
+
+Msg: HELLO
 ```
 
 ## Advertise Options
