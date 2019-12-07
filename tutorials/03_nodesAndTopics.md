@@ -1,6 +1,7 @@
 \page nodestopics Nodes and Topics
 
 Next Tutorial: \ref messages
+Previous Tutorial: \ref installation
 
 ## Nodes
 

@@ -1,6 +1,7 @@
 \page envvars Environment Variables
 
 Next Tutorial: \ref contribute
+Previous Tutorial: \ref logging
 
 ## Overview
 

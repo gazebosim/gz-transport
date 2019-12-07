@@ -1,6 +1,7 @@
 \page contribute How to contribute
 
 Next Tutorial: \ref development
+Previous Tutorial: \ref envvars
 
 ## Overview
 
