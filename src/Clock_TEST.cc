@@ -41,7 +41,14 @@ TEST(ClockTest, WallClock)
   const std::chrono::nanoseconds startTime = clock->Time();
   std::this_thread::sleep_for(sleepTime);
   const std::chrono::nanoseconds endTime = clock->Time();
-  EXPECT_GE(endTime - startTime, sleepTime) << "Expected["
+  // Windows uses system clock for sleep, and transport::WallClock uses
+  // steady_clock. This can lead to errors.
+#ifdef _WIN32
+  const std::chrono::nanoseconds expectedSleepTime(99000000);
+#else
+  const std::chrono::nanoseconds expectedSleepTime(100000000);
+#endif
+  EXPECT_GE(endTime - startTime, expectedSleepTime) << "Expected["
     << (endTime-startTime).count() << "] Actual[" << sleepTime.count() << "]\n";
 }
 

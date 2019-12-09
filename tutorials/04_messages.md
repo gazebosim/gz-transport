@@ -105,7 +105,7 @@ if (!pub)
 ```
 
 First of all we declare a *Node* that will offer some of the transport
-functionality. In our case, we are interested on publishing topic updates, so
+functionality. In our case, we are interested in publishing topic updates, so
 the first step is to announce our topic name and its type. Once a topic name is
 advertised, we can start publishing periodic messages using the publisher
 object.
@@ -132,8 +132,8 @@ The method *Publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/subscriber.cc) file within the `ign_transport_tutorial`
-folder and open it with your favorite editor:
+Download the [subscriber.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/subscriber.cc)
+file into the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
@@ -264,7 +264,7 @@ Msg: HELLO
 
 We can specify some options before we publish the messages. One such option is
 to specify the number of messages published per topic per second. It is optional
-to use but it can be handy in situations like where we want to control the rate
+to use but it can be handy in situations like when we want to control the rate
 of messages published per topic.
 
 We can declare the throttling option using the following code :
@@ -294,20 +294,20 @@ We can declare the throttling option using the following code :
 ```
 
 In this section of code, we declare an *AdvertiseMessageOptions* object and use it
-to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
-name is opts and message rate specified is 1 msg/sec.
+to pass message rate as an argument to *SetMsgsPerSec()* method. In our case, the object
+name is opts and the message rate specified is 1 msg/sec.
 
 ```{.cpp}
   auto pub = node.Advertise<ignition::msgs::StringMsg>(topic, opts);
 ```
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
-as argument to *Advertise()* method.
+as an argument to the *Advertise()* method.
 
 
 ## Subscribe Options
 
-A similar option has also been provided to the Subscriber node which enables it
+A similar option is also available for the Subscriber node which enables it
 to control the rate of incoming messages from a specific topic. While subscribing
 to a topic, we can use this option to control the number of messages received per
 second from that particular topic.
@@ -317,6 +317,7 @@ We can declare the throttling option using the following code :
 ```{.cpp}
   // Create a transport node and subscribe to a topic with throttling enabled.
   ignition::transport::Node node;
+  std::string topic = "/foo";
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
@@ -331,18 +332,18 @@ We can declare the throttling option using the following code :
 ```
 
 In this section of code, we declare a *SubscribeOptions* object and use it
-to pass message rate as argument to *SetMsgsPerSec()* method. In our case, the object
-name is opts and message rate specified is 1 msg/sec. Then, we subscribe to the topic
-using *Subscribe()* method with opts passed as arguments to it.
+to pass message rate as an argument to the *SetMsgsPerSec()* method. In our case, the object
+name is opts and the message rate specified is 1 msg/sec. Then, we subscribe to the topic
+using the *Subscribe()* method with opts passed as an argument to it.
 
 ##Generic subscribers
 
-As you have seen in the previous examples so far, the callbacks used by the
+As you have seen in the examples so far, the callbacks used by the
 subscribers contain a specific protobuf parameter, such as
 `ignition::msgs::StringMsg`. As the name of this section suggests, it is also
 possible to create a generic subscriber callback that can receive messages of
 different types. This use case might be interesting if you are building a bridge
-between Ignition Transport and other protocol or if you want to just print the
+between Ignition Transport and another protocol or if you want to just print the
 content of a generic protobuf message using `DebugString()`, among other use
 cases.
 
@@ -402,7 +403,7 @@ void cb(const google::protobuf::Message &_msg,
 Here, we use the generic callback function signature. Note the use of
 `google::protobuf::Message` as the message type in the subscription callback
 function ``cb()``. It enables us to receive topic updates with different message
-types, such as `Int32`, `String` from the subscribed topic.
+types, such as `Int32` or `String` from the subscribed topic.
 Furthermore, we don't need to worry about the type of the topic advertised while
 specifying the callback function. The parameter
 `ignition::transport::MessageInfo &_info` provides some information about the
@@ -563,7 +564,7 @@ From terminal 2:
 It's possible to set some global node options that will affect both publishers
 and subscribers. One of these options is topic remapping. A topic remap
 consists of a pair of topic names. The first name is the original topic name to
-be replaced. The second name is the new topic to use, instead. As an example,
+be replaced. The second name is the new topic name to use instead. As an example,
 imagine that you recorded a collection of messages published over topic `/foo`.
 Maybe in the future, you want to play back the log file but remapping the topic
 `/foo` to `/bar`. This way, all messages will be published over the `/bar`
@@ -576,9 +577,10 @@ We can declare the topic remapping option using the following code:
   ignition::transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap("/foo", "/bar");
   ignition::transport::Node node(nodeOptions);
+  std::string topic = "/foo";
 ```
 
-You can modify any of the publisher examples to add this option:
+You can modify any of the publisher examples to add this option.
 
 From terminal 1:
 
@@ -594,5 +596,5 @@ ign topic --echo -t /bar
 
 And you should receive all the messages coming in terminal 2.
 
-The command `ign log playback` also supports the notion of topic remapping. See
-`ign log playback -h` for further details (need Ignition Tools).
+The command `ign log playback` also supports the notion of topic remapping. Run
+`ign log playback -h` in your terminal for further details (requires Ignition Tools).

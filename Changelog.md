@@ -5,6 +5,10 @@
 1. Upgrade to ignition-msgs5.
     * [Pull request 402](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/402)
 
+1. Utilize protobuf messages for discovery.
+    * [Pull request 403](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/403)
+    * [Pull request 408](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/408)
+
 ## Ignition Transport 7
 
 ### Ignition Transport 7.1.0
