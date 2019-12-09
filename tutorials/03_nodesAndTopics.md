@@ -5,9 +5,9 @@ Next Tutorial: \ref messages
 ## Nodes
 
 The communication in Ignition Transport follows a pure distributed architecture.
-There is no central process, broker or similar structure. Instead, all the nodes in the
-network can act as publishers, subscribers, provide services and request
-services.
+There is no central process, broker or similar central structure. Instead, all
+the nodes in the network can act as publishers, subscribers, provide services and
+request services.
 
 A publisher is a node that produces information and a subscriber is a node that
 consumes information. There are two ways to communicate in Ignition Transport.
@@ -15,7 +15,7 @@ First, we could use a publish/subscribe approach, where a
 node advertises a topic, and then publishes periodic updates. On the other
 side, one or more nodes subscribe to the same topic registering a function that
 will be executed each time a new message is received. An alternative
-communication paradigm is based on [service calls](/ign-transport/tutorials/05_services),
+communication paradigm is based on [service calls](05_services.html),
 covered in another tutorial. A service call is a remote service that a node offers
 to the rest of the nodes. A node can request a service in a similar way a local
 function is executed.
@@ -30,7 +30,7 @@ subscribe to the same topic and will receive the messages containing the image.
 A node could also offer an echo service in the topic `/echo`. Any node
 interested in this service will request a service call on topic `/echo`. The
 service call will accept arguments and will return a result. In our [echo
-service example](/ign-transport/tutorials/05_services), the result will be similar 
+service example](05_services.html), the result will be similar 
 to the input parameter passed to the service.
 
 There are some rules to follow when selecting a topic name. It should be any
