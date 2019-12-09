@@ -1,6 +1,7 @@
 \page installation Installation
 
 Next Tutorial: \ref nodestopics
+Previous Tutorial: \ref introduction
 
 ## Overview
 

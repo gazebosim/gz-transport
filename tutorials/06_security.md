@@ -1,6 +1,7 @@
 \page security Security
 
 Next Tutorial: \ref relay
+Previous Tutorial: \ref services
 
 ## Overview
 
@@ -30,7 +31,7 @@ Two environment variables are used to enable authentications:
 2. `IGN_TRANSPORT_PASSWORD` : The password 
 
 When both `IGN_TRANSPORT_USERNAME` and `IGN_TRANSPORT_PASSWORD` are set,
-then authentication is enabled for a process. Every publisher in a secure
+the authentication is enabled for a process. Every publisher in a secure
 process will require subscribers to provide the correct username and
 password. Also, every subscriber will only connect to secure publishers. 
 
