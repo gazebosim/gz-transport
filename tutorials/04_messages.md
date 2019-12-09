@@ -315,6 +315,7 @@ We can declare the throttling option using the following code :
 ```{.cpp}
   // Create a transport node and subscribe to a topic with throttling enabled.
   ignition::transport::Node node;
+  std::string topic = "/foo";
   ignition::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
