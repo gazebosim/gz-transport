@@ -1,6 +1,6 @@
 ## Ignition Transport 8
 
-### Ignition Transport 8.X.X
+### Ignition Transport 8.0.0 (2019-12-10)
 
 1. Upgrade to ignition-msgs5.
     * [Pull request 402](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/402)
