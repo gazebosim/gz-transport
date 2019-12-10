@@ -5,20 +5,20 @@ Previous Tutorial: \ref logging
 
 ## Overview
 
-In a similar way you can programatically customize the behavior of your
+Similar to how you can programatically customize the behavior of your
 nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Ignition Transport.
-Next you can see a description of the available environment variables:
+Below are descriptions of the available environment variables:
 
 * **IGN_PARTITION**
     * *Value allowed*: Any partition value
     * *Description*: Specifies a partition name for all the nodes declared
     inside this process. Note that an alternative partition name  declared
     programatically and  passed to the constructor of a Node class will take
-    priorityover *IGN_PARTITION*.
+    priority over *IGN_PARTITION*.
 * **IGN_IP**
     * *Value allowed*: Any local IP address
-    * *Description*: This setting is needed in situations where you have
+    * *Description*: When you have
     multiple IP addresses for a computer and need to force Ignition
     Transport to use a particular one. This setting is only required if you
     advertise a topic or a service. If you are only subscribed to topics or
@@ -27,7 +27,7 @@ Next you can see a description of the available environment variables:
     the search of the topic/service.
 * **IGN_RELAY**
     * *Value allowed*: Colon delimited list of IP addresses
-    * *Description*: This setting is needed when you want to connect the nodes
+    * *Description*: Connects the nodes
     of two or more different networks separated by routers. Routers do not
     forward UDP multicast traffic, so the regular discovery protocol only works
     when nodes are within the same local network. If you feel the need to
