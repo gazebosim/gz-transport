@@ -23,8 +23,8 @@ applications that work).
 ### Steps to follow
 
 
-1.  Are you sure? Has your idea already been done, or maybe someone is
-    already working on it?
+1.  Has your idea already been done, or maybe someone is
+    already working on it? Are you sure?
 
     Check the [issue
     tracker](https://bitbucket.org/ignitionrobotics/ign-transport).
@@ -107,7 +107,7 @@ applications that work).
 
 14. Done, phew.
 
-    Once you have met all the requirements, you're code will be merged. Thanks
+    Once you have met all the requirements, your code will be merged. Thanks
     for improving Ignition Transport!
 
 ### Internal Developers
@@ -276,7 +276,7 @@ code coverage report. You'll need
 In order to provide meaningful backtraces when using a debugger, such as GDB,
 Ignition Transport should be compiled with debugging support enabled. When using
 the ubuntu packages, specially the `-dbg` package, this support is limited but
-could be enough in most of the situations. This are the three level of traces
+could be enough in most of the situations. These are the three level of traces
 which can be obtained:
 
 <b>Maximum level of debugging support</b>
@@ -299,7 +299,7 @@ which can be obtained:
   This one is present in package versions (no `-dbg` package present) or
   compiling Ignition Transport from source using the `RELEASE`
   `CMAKE_BUILD_TYPE` option. This will set up the maximum level of optimizations
-  and does not provide any debugging symbol information. This traces are
+  and does not provide any debugging symbol information. These traces are
   particularly difficult to follow.
 
 ## Code Check
