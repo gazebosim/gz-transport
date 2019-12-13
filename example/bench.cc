@@ -56,12 +56,69 @@ DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
 DEFINE_bool(p, false, "Publishing node");
+DEFINE_unit64(f, 0, "Flood the network with extra publishers and subscribers");
 DEFINE_uint64(i, 1000, "Number of iterations");
 DEFINE_string(o, "", "Output filename");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
 bool gStop = false;
+
+class FloodPub
+{
+  public: FloodPub(uint64_t _count)
+  {
+    // Create flood publishers
+    for (uint64_t i = 0; i < _count; ++i)
+    {
+      std::ostringstream stream;
+      stream << "/benchmark/flood/"  << i;
+      this->floodPubs.push_back(
+          this->node.Advertise<ignition::msgs::Bytes>(stream.str()));
+    }
+  }
+
+  public: ~FloodPub()
+  {
+    this->Stop();
+    this->runThread.join();
+  }
+
+  public: void Run()
+  {
+    if (!this->running)
+      this->runThread = std::thread(&FloodPub::RunLoop, this);
+  }
+
+  public: void Stop()
+  {
+    this->running = false;
+  }
+
+  private: void RunLoop()
+  {
+    ignition::msgs::Bytes msg;
+    int size = 1000;
+    char *byteData = new char[size];
+    std::memset(byteData, '0', size);
+    msg.set_data(byteData);
+
+    this->running = true;
+    while (this->running)
+    {
+      for (std::vector<ignition::transport::Node::Publisher> &pub :
+           this->floodPubs)
+      {
+        pub.Publish(msg);
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+
+  private: std::thread runThread;
+  private: bool running{false};
+  private: std::vector<ignition::transport::Node::Publisher> floodPubs;
+};
 
 /// \brief The ReplyTester subscribes to the benchmark topics, and relays
 /// incoming messages on a corresponding "reply" topic.
@@ -184,7 +241,7 @@ class PubTester
   }
 
   /// \brief Create the publishers and subscribers.
-  public: void Init()
+  public: void Init(uint64_t _flood)
   {
     // Throughput publisher
     this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
@@ -316,7 +373,7 @@ class PubTester
       this->condition.wait(lk, [this] {
           return gStop || this->msgCount >= this->sentMsgs;});
 
-      // Computer the number of microseconds
+      // Compute the number of microseconds
       uint64_t duration =
         std::chrono::duration_cast<std::chrono::microseconds>(
             this->timeEnd - timeStart).count();
@@ -572,7 +629,14 @@ int main(int argc, char **argv)
   // Run the publisher
   else if (FLAGS_p)
   {
-    gPubTester.Init();
+    if (FLAGS_F > 0)
+    {
+      FloodPub floodPub(FLAGS_f);
+      floodPub.Run();
+    }
+
+    gPubTester.Init(LAGS_);
+
     if (FLAGS_t)
       gPubTester.Throughput();
     else
