@@ -211,7 +211,7 @@ class ReplyTester
     }
 
     this->prevStamp = _msg.header().stamp().sec();
-    std::cout << _msg.header().stamp().sec() << std::endl;
+    // Debug:: std::cout << _msg.header().stamp().sec() << std::endl;
 
     this->throughputPub.Publish(_msg);
   }
@@ -398,7 +398,7 @@ class PubTester
       for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
         this->msg.mutable_header()->mutable_stamp()->set_sec(i);
-        std::cout << this->msg.header().stamp().sec() << std::endl;
+        // Debug: std::cout << this->msg.header().stamp().sec() << std::endl;
         this->throughputPub.Publish(this->msg);
       }
 
