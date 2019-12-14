@@ -56,13 +56,33 @@ DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
 DEFINE_bool(p, false, "Publishing node");
-DEFINE_unit64(f, 0, "Flood the network with extra publishers and subscribers");
+DEFINE_uint64(f, 0, "Flood the network with extra publishers and subscribers");
 DEFINE_uint64(i, 1000, "Number of iterations");
 DEFINE_string(o, "", "Output filename");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
 bool gStop = false;
+
+class FloodSub
+{
+  public: FloodSub(uint64_t _count)
+  {
+    // Create flood publishers
+    for (uint64_t i = 0; i < _count; ++i)
+    {
+      std::ostringstream stream;
+      stream << "/benchmark/flood/"  << i;
+      this->node.Subscribe(stream.str(), &FloodSub::OnMsg, this);
+    }
+  }
+
+  public: void OnMsg(const ignition::msgs::Bytes &_msg)
+  {
+  }
+
+  private: ignition::transport::Node node;
+};
 
 class FloodPub
 {
@@ -76,18 +96,15 @@ class FloodPub
       this->floodPubs.push_back(
           this->node.Advertise<ignition::msgs::Bytes>(stream.str()));
     }
+    if (!this->floodPubs.empty())
+      this->runThread = std::thread(&FloodPub::RunLoop, this);
   }
 
   public: ~FloodPub()
   {
     this->Stop();
-    this->runThread.join();
-  }
-
-  public: void Run()
-  {
-    if (!this->running)
-      this->runThread = std::thread(&FloodPub::RunLoop, this);
+    if (this->runThread.joinable())
+      this->runThread.join();
   }
 
   public: void Stop()
@@ -106,8 +123,7 @@ class FloodPub
     this->running = true;
     while (this->running)
     {
-      for (std::vector<ignition::transport::Node::Publisher> &pub :
-           this->floodPubs)
+      for (ignition::transport::Node::Publisher &pub : this->floodPubs)
       {
         pub.Publish(msg);
       }
@@ -115,6 +131,7 @@ class FloodPub
     }
   }
 
+  private: ignition::transport::Node node;
   private: std::thread runThread;
   private: bool running{false};
   private: std::vector<ignition::transport::Node::Publisher> floodPubs;
@@ -182,6 +199,20 @@ class ReplyTester
   /// \param[in] _msg Incoming message of variable size.
   private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
   {
+    if (this->prevStamp > 0 && _msg.header().stamp().sec() != 0)
+    {
+      if (_msg.header().stamp().sec() != this->prevStamp+1)
+      {
+        std::cerr << "Received[" << _msg.header().stamp().sec()
+          << "] Expected[" << this->prevStamp+1 << "]\n";
+
+        throw std::unexpected;
+      }
+    }
+
+    this->prevStamp = _msg.header().stamp().sec();
+    std::cout << _msg.header().stamp().sec() << std::endl;
+
     this->throughputPub.Publish(_msg);
   }
 
@@ -200,6 +231,8 @@ class ReplyTester
 
   /// \brief The latency publisher
   private: ignition::transport::Node::Publisher latencyPub;
+
+  private: int prevStamp = 0;
 };
 
 /// \brief The PubTester is used to collect data on latency or throughput.
@@ -241,7 +274,7 @@ class PubTester
   }
 
   /// \brief Create the publishers and subscribers.
-  public: void Init(uint64_t _flood)
+  public: void Init()
   {
     // Throughput publisher
     this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
@@ -364,6 +397,8 @@ class PubTester
       // Send all the messages as fast as possible
       for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
+        this->msg.mutable_header()->mutable_stamp()->set_sec(i);
+        std::cout << this->msg.header().stamp().sec() << std::endl;
         this->throughputPub.Publish(this->msg);
       }
 
@@ -385,6 +420,7 @@ class PubTester
       (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t\t"
                 << (this->totalBytes * 1e-6) / seconds << "\t"
                 << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
+      this->expectedStamp = 0;
     }
   }
 
@@ -481,6 +517,13 @@ class PubTester
 
     // Add to the total messages received.
     this->msgCount++;
+    if (_msg.header().stamp().sec() != this->expectedStamp)
+    {
+      std::cerr << "Received[" << _msg.header().stamp().sec()
+        << "] Expected[" << this->expectedStamp << "]\n";
+      throw std::unexpected;
+    }
+    this->expectedStamp++;
 
     // Notify Throughput() when all messages have been received.
     if (this->msgCount >= this->sentMsgs)
@@ -564,6 +607,8 @@ class PubTester
 
   /// \brief Output filename or empty string for console output.
   private: std::string filename = "";
+
+  private: int expectedStamp = 0;
 };
 
 // The PubTester is global so that the signal handler can easily kill it.
@@ -622,6 +667,8 @@ int main(int argc, char **argv)
   // Run the responder
   if (FLAGS_r)
   {
+    FloodSub floodSub(FLAGS_f);
+
     ReplyTester replyTester;
     std::unique_lock<std::mutex> lk(gMutex);
     gCondition.wait(lk, []{return gStop;});
@@ -629,13 +676,9 @@ int main(int argc, char **argv)
   // Run the publisher
   else if (FLAGS_p)
   {
-    if (FLAGS_F > 0)
-    {
-      FloodPub floodPub(FLAGS_f);
-      floodPub.Run();
-    }
+    FloodPub floodPub(FLAGS_f);
 
-    gPubTester.Init(LAGS_);
+    gPubTester.Init();
 
     if (FLAGS_t)
       gPubTester.Throughput();

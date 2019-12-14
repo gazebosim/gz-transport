@@ -28,7 +28,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
     add_executable(bench bench.cc)
     target_link_libraries(bench
       ignition-transport${IGN_TRANSPORT_VER}::core
-      ${gflags_LIBRARIES})
+      ${gflags_LIBRARIES}
+      pthread)
   endif()
 endif()
 

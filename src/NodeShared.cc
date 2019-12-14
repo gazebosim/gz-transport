@@ -950,6 +950,10 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
           topic.data(), topic.size());
 
+      int queueVal = 0;
+      this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
+          &queueVal, sizeof(queueVal));
+
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
 
@@ -1121,6 +1125,11 @@ bool NodeShared::InitializeSockets()
     int lingerVal = 0;
     this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
         &lingerVal, sizeof(lingerVal));
+
+    int queueVal = 0;
+    this->dataPtr->publisher->setsockopt(ZMQ_SNDHWM,
+        &queueVal, sizeof(queueVal));
+
     this->dataPtr->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
     this->dataPtr->publisher->getsockopt(ZMQ_LAST_ENDPOINT,
