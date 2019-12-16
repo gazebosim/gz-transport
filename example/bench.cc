@@ -66,7 +66,7 @@ bool gStop = false;
 
 class FloodSub
 {
-  public: FloodSub(uint64_t _count)
+  public: explicit FloodSub(uint64_t _count)
   {
     // Create flood publishers
     for (uint64_t i = 0; i < _count; ++i)
@@ -86,7 +86,7 @@ class FloodSub
 
 class FloodPub
 {
-  public: FloodPub(uint64_t _count)
+  public: explicit FloodPub(uint64_t _count)
   {
     // Create flood publishers
     for (uint64_t i = 0; i < _count; ++i)
