@@ -258,6 +258,10 @@ int64_t Log::Implementation::InsertOrGetTopicId(
     return -1;
   }
 
+  // Reset startTime and endTime
+  this->startTime = std::chrono::nanoseconds(-1);
+  this->endTime = std::chrono::nanoseconds(-1);
+
   int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
@@ -341,6 +345,11 @@ bool Log::Implementation::InsertMessage(
     LERR("Failed to bind topic_id: " << returnCode << "\n");
     return false;
   }
+
+  // Reset startTime and endTime
+  this->startTime = std::chrono::nanoseconds(-1);
+  this->endTime = std::chrono::nanoseconds(-1);
+
 
   // Execute the statement
   returnCode = sqlite3_step(statement.Handle());
