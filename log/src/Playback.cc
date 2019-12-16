@@ -108,11 +108,15 @@ class PlaybackHandle::Implementation
   /// \param[in] _topics A set of all topics to publish
   /// \param[in] _waitAfterAdvertising How long to wait after advertising the
   /// topics
+  /// \param[in] _msgWaiting True to wait between publication of
+  /// messages based on the message timestamps. False to playback
+  /// messages as fast as possible. Default value is true.
   public: Implementation(
       const std::shared_ptr<Log> &_logFile,
       const std::unordered_set<std::string> &_topics,
       const std::chrono::nanoseconds &_waitAfterAdvertising,
-      const NodeOptions &_nodeOptions);
+      const NodeOptions &_nodeOptions,
+      bool _msgWaiting);
 
   /// \brief Look through the types of data that _topic can publish and create
   /// a publisher for each type.
@@ -240,6 +244,11 @@ class PlaybackHandle::Implementation
 
   // \brief The wall clock time of the first message in batch
   public: const std::chrono::nanoseconds firstMessageTime;
+
+  /// \brief True to wait between publication of
+  /// messages based on the message timestamps. False to playback
+  /// messages as fast as possible.
+  public: bool msgWaiting = true;
 };
 
 //////////////////////////////////////////////////
@@ -264,7 +273,8 @@ Playback::~Playback()
 
 //////////////////////////////////////////////////
 PlaybackHandlePtr Playback::Start(
-    const std::chrono::nanoseconds &_waitAfterAdvertising) const
+    const std::chrono::nanoseconds &_waitAfterAdvertising,
+    bool _msgWaiting) const
 {
   if (!this->dataPtr->logFile->Valid())
   {
@@ -303,7 +313,7 @@ PlaybackHandlePtr Playback::Start(
         new PlaybackHandle(
           std::make_unique<PlaybackHandle::Implementation>(
             this->dataPtr->logFile, topics, _waitAfterAdvertising,
-            this->dataPtr->nodeOptions)));
+            this->dataPtr->nodeOptions, _msgWaiting)));
 
   // We only need to store this if sqlite3 was not compiled in threadsafe mode.
   if (!kSqlite3Threadsafe)
@@ -415,7 +425,8 @@ PlaybackHandle::Implementation::Implementation(
     const std::shared_ptr<Log> &_logFile,
     const std::unordered_set<std::string> &_topics,
     const std::chrono::nanoseconds &_waitAfterAdvertising,
-    const NodeOptions &_nodeOptions)
+    const NodeOptions &_nodeOptions,
+    bool _msgWaiting)
   : stop(true),
     finished(false),
     paused(false),
@@ -423,7 +434,8 @@ PlaybackHandle::Implementation::Implementation(
     trackedTopics(_topics),
     batch(logFile->QueryMessages(TopicList::Create(_topics))),
     messageIter(batch.begin()),
-    firstMessageTime(messageIter->TimeReceived())
+    firstMessageTime(messageIter->TimeReceived()),
+    msgWaiting(_msgWaiting)
 {
   this->node.reset(new transport::Node(_nodeOptions));
 
@@ -539,7 +551,7 @@ void PlaybackHandle::Implementation::StartPlayback()
               this->lastEventTime + timeDelta);
           // Wait until target time is reached or playback is stopped/paused
           // In the latter case, break the iteration step
-          if (!this->WaitUntil(timeToWaitUntil))
+          if (this->msgWaiting && !this->WaitUntil(timeToWaitUntil))
           {
             continue;
           }

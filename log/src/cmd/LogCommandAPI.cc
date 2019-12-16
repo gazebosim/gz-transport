@@ -80,7 +80,7 @@ void playbackSignHandler(int)
 
 //////////////////////////////////////////////////
 int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
-  const char *_remap)
+  const char *_remap, int _fast)
 {
   std::regex regexPattern;
   try
@@ -122,7 +122,11 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
   std::signal(SIGINT, playbackSignHandler);
   std::signal(SIGTERM, playbackSignHandler);
 
-  g_playbackHandler = player.Start();
+  if (_fast)
+    g_playbackHandler = player.Start(std::chrono::seconds(1), false);
+  else
+    g_playbackHandler = player.Start(std::chrono::seconds(1), true);
+
   if (!g_playbackHandler)
     return FAILED_TO_OPEN;
 
