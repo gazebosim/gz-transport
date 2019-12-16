@@ -98,7 +98,7 @@ namespace testing
     // Ugly as hell but trying to avoid boost::filesystem
     return _str1 + "/" + _str2;
 #else
-    #if __GNUC__ < 8
+    #ifndef _WIN32 && if __GNUC__ < 8
       using namespace std::experimental::filesystem;
     #else
       using namespace std::filesystem;
