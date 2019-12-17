@@ -740,46 +740,72 @@ namespace ignition
       private: void RecvDiscoveryUpdate()
       {
         char rcvStr[Discovery::kMaxRcvStr];
-        std::string srcAddr;
-        uint16_t srcPort;
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
-
-        if ((recvfrom(this->sockets.at(0),
+        uint16_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
               this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
-              reinterpret_cast<socklen_t *>(&addrLen))) < 0)
+              reinterpret_cast<socklen_t *>(&addrLen));
+
+        if (received > 0)
+        {
+          uint16_t len;
+          memcpy(&len, rcvStr, sizeof(len));
+
+          // Ignition Transport delimits each discovery message with a
+          // frame_delimiter that contains byte size information.
+          // A discovery message has the form:
+          //
+          // <frame_delimiter><frame_body>
+          //
+          // Ignition Transport version < 8 sends a frame delimiter that
+          // contains the value of sizeof(frame_delimiter)
+          // + sizeof(frame_body). In other words, the frame_delimiter
+          // contains a value that represents the total size of the
+          // frame_body and frame_delimiter in bytes.
+          //
+          // Ignition Transport version >= 8 sends a frame_delimiter
+          // that contains the value of sizeof(frame_body). In other
+          // words, the frame_delimiter contains a value that represents
+          // the total size of only the frame_body.
+          //
+          // It is possible that two incompatible versions of Ignition
+          // Transport exist on the same network. If we receive an
+          // unexpected size, then we ignore the message.
+
+          // If-condition for version <= 7
+          if (len == received)
+          {
+            std::string srcAddr = inet_ntoa(clntAddr.sin_addr);
+            uint16_t srcPort = ntohs(clntAddr.sin_port);
+
+            if (this->verbose)
+            {
+              std::cout << "\nReceived discovery update from "
+                << srcAddr << ": " << srcPort << std::endl;
+            }
+
+            this->DispatchDiscoveryMsg(srcAddr, rcvStr, len);
+          }
+        }
+        else if (received < 0)
         {
           std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
                     << std::endl;
-          return;
         }
-        srcAddr = inet_ntoa(clntAddr.sin_addr);
-        srcPort = ntohs(clntAddr.sin_port);
-
-        if (this->verbose)
-        {
-          std::cout << "\nReceived discovery update from " << srcAddr << ": "
-                    << srcPort << std::endl;
-        }
-
-        this->DispatchDiscoveryMsg(srcAddr, rcvStr);
       }
 
 
       /// \brief Parse a discovery message received via the UDP socket
       /// \param[in] _fromIp IP address of the message sender.
       /// \param[in] _msg Received message.
+      /// \param[in] _len Entire length of the package in octets.
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
-                                         char *_msg)
+                                         char *_msg, uint16_t _len)
       {
-        // Entire length of the package in octets.
-        uint16_t len;
-        memcpy(&len, _msg, sizeof(len));
-
         // Create the header from the raw bytes.
-        char *headerPtr = _msg + sizeof(len);
+        char *headerPtr = _msg + sizeof(_len);
         Header header;
         header.Unpack(headerPtr);
 
@@ -811,7 +837,7 @@ namespace ignition
           flags |= FlagNoRelay;
           header.SetFlags(flags);
           header.Pack(headerPtr);
-          this->SendBytesMulticast(_msg, len);
+          this->SendBytesMulticast(_msg, _len);
 
           // A unicast peer contacted me. I need to save its address for
           // sending future messages in the future.
@@ -828,7 +854,7 @@ namespace ignition
           flags |= FlagRelay;
           header.SetFlags(flags);
           header.Pack(headerPtr);
-          this->SendBytesUnicast(_msg, len);
+          this->SendBytesUnicast(_msg, _len);
         }
 
         // Update timestamp and cache the callbacks.
