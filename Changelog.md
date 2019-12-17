@@ -2,6 +2,11 @@
 
 ### Ignition Transport 7.X.X
 
+### Ignition Transport 7.2.1
+
+1. Updates to C interface subscription options.
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
 ### Ignition Transport 7.2.0
 
 1. Support playback of corrupt log files.
