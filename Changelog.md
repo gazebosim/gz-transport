@@ -2,6 +2,11 @@
 
 ### Ignition Transport 7.X.X
 
+### Ignition Transport 7.2.1
+
+1. Fix Ciface typedef for go compiler.
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
 ### Ignition Transport 7.2.0
 
 1. Support playback of corrupt log files.
@@ -18,7 +23,6 @@
 
 1. Added topic subscription to the C interface.
    * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
-   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
 
 1. Added fast log playback, where messages are published without waiting.
     * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
