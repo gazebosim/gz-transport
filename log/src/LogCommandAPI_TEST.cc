@@ -35,17 +35,21 @@ TEST(LogCommandAPI, RecordBadRegex)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackBadRegex)
 {
-  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0, ""));
+  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0, "", true));
 }
 
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, PlaybackBadRemap)
 {
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo"));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:="));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:= "));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, ":=/bar"));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " :=/bar"));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo", true));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:=",
+        false));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:= ",
+        true));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, ":=/bar",
+        false));
+  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " :=/bar",
+        true));
 }
 
 //////////////////////////////////////////////////
@@ -58,7 +62,7 @@ TEST(LogCommandAPI, RecordFailedToOpen)
 TEST(LogCommandAPI, PlaybackFailedToOpen)
 {
   EXPECT_EQ(FAILED_TO_OPEN,
-    playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0, ""));
+    playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0, "", false));
 }
 
 //////////////////////////////////////////////////

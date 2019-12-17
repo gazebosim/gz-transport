@@ -1,6 +1,14 @@
 ## Ignition Transport 7
 
+### Ignition Transport 7.x.x
+
+1. Support playback of corrupt log files.
+    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+
 ### Ignition Transport 7.1.0
+
+1. Added fast log playback, where messages are published without waiting.
+    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
 
 1. Added method for determining if a throttled publisher is ready to publish.
     * [Pull request 395](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/395)
@@ -12,6 +20,9 @@
 
 1. Fix fast constructor-destructor deadlock race condition.
     * [Pull request 384](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/384)
+
+1. Added topic subscription to the C interface.
+   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
 
 1. Added ability to specify partition information on a node through the
    CIface.
