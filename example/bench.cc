@@ -64,8 +64,15 @@ std::condition_variable gCondition;
 std::mutex gMutex;
 bool gStop = false;
 
+/// \brief A class that subscribes to all of the `/benchmark/flood/*`
+/// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
+/// line argument. Flooding adds <num> extra publishers and subscribers. The
+/// purpose is to "flood" the network with extra messages while performing
+/// benchmark analyis.
 class FloodSub
 {
+  /// \brief Create the subscribers.
+  /// \param[in] _count The number of subscribers to create.
   public: explicit FloodSub(uint64_t _count)
   {
     // Create flood publishers
@@ -77,15 +84,25 @@ class FloodSub
     }
   }
 
-  public: void OnMsg(const ignition::msgs::Bytes &_msg)
+  /// \brief Dummy callback.
+  /// \param[in] _msg The message.
+  public: void OnMsg(const ignition::msgs::Bytes & /*_msg*/)
   {
   }
 
+  /// \brief Communication node.
   private: ignition::transport::Node node;
 };
 
+/// \brief A class that publishes on a number of `/benchmark/flood/*`
+/// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
+/// line argument. Flooding adds <num> extra publishers and subscribers. The
+/// purpose is to "flood" the network with extra messages while performing
+/// benchmark analyis.
 class FloodPub
 {
+  /// \brief Create a number of publishers.
+  /// \param[in] _count Number of publishers to create.
   public: explicit FloodPub(uint64_t _count)
   {
     // Create flood publishers
@@ -100,6 +117,7 @@ class FloodPub
       this->runThread = std::thread(&FloodPub::RunLoop, this);
   }
 
+  /// \brief Destructor.
   public: ~FloodPub()
   {
     this->Stop();
@@ -107,11 +125,13 @@ class FloodPub
       this->runThread.join();
   }
 
+  /// \brief Stop the publishers.
   public: void Stop()
   {
     this->running = false;
   }
 
+  /// \brief Run the publishers.
   private: void RunLoop()
   {
     ignition::msgs::Bytes msg;
@@ -131,9 +151,16 @@ class FloodPub
     }
   }
 
+  /// \brief Communication node.
   private: ignition::transport::Node node;
+
+  /// \brief Run thread.
   private: std::thread runThread;
+
+  /// \brief True when running.
   private: bool running{false};
+
+  /// \brief The publishers.
   private: std::vector<ignition::transport::Node::Publisher> floodPubs;
 };
 
