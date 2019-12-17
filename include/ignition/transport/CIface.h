@@ -23,11 +23,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  struct SubscribeOpts
+  typedef struct SubscribeOpts
   {
     // cppcheck-suppress unusedStructMember
     unsigned int msgsPerSec;
-  };
+  } SubscribeOpts;
 
   /// \brief A transport node.
   typedef struct IgnTransportNode IgnTransportNode;
