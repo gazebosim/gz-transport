@@ -15,7 +15,7 @@ First, we could use a publish/subscribe approach, where a
 node advertises a topic, and then publishes periodic updates. On the other
 side, one or more nodes subscribe to the same topic registering a function that
 will be executed each time a new message is received. An alternative
-communication paradigm is based on [service calls](05_services.html),
+communication paradigm is based on service calls (\ref services),
 covered in another tutorial. A service call is a remote service that a node offers
 to the rest of the nodes. A node can request a service in a similar way a local
 function is executed.
@@ -29,8 +29,8 @@ new message on this topic every time a new image is available. Other nodes will
 subscribe to the same topic and will receive the messages containing the image.
 A node could also offer an echo service in the topic `/echo`. Any node
 interested in this service will request a service call on topic `/echo`. The
-service call will accept arguments and will return a result. In our [echo
-service example](05_services.html), the result will be similar 
+service call will accept arguments and will return a result. In our echo
+service example (\ref services), the result will be similar 
 to the input parameter passed to the service.
 
 There are some rules to follow when selecting a topic name. It should be any
