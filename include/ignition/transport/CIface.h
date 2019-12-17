@@ -25,6 +25,7 @@ extern "C" {
 #endif
   struct SubscribeOpts
   {
+    // cppcheck-suppress unusedStructMember
     unsigned int msgsPerSec;
   };
 
