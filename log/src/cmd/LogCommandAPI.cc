@@ -73,7 +73,7 @@ int recordTopics(const char *_file, const char *_pattern)
 }
 
 //////////////////////////////////////////////////
-void playbackSignHandler(int)
+void playbackSignHandler(int) // NOLINT
 {
   g_playbackHandler->Stop();
 }
