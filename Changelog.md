@@ -1,9 +1,22 @@
 ## Ignition Transport 7
 
+### Ignition Transport 7.X.X
+
+### Ignition Transport 7.2.1
+
+1. Updates to C interface subscription options.
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
 ### Ignition Transport 7.2.0
 
 1. Support playback of corrupt log files.
     * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+
+1. Add signal handler to log playback.
+    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+
+1. Ignore incompatible discovery messages and reduce console spam. 
+    * [Pull request 409](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/409)
 
 1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions. 
     * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
