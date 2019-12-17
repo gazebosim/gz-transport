@@ -62,6 +62,9 @@ namespace ignition
         /// \param[in] _waitAfterAdvertising How long to wait before the
         /// publications begin after advertising the topics that will be played
         /// back.
+        /// \param[in] _msgWaiting True to wait between publication of
+        /// messages based on the message timestamps. False to playback
+        /// messages as fast as possible. Default value is true.
         ///
         /// \note The topic discovery process will need some time before
         /// publishing begins, or else subscribers in other processes will miss
@@ -88,7 +91,8 @@ namespace ignition
         // TODO(MXG): When we can use C++17, add a [[nodiscard]] attribute here.
         public: PlaybackHandlePtr Start(
           const std::chrono::nanoseconds &_waitAfterAdvertising =
-            std::chrono::seconds(1)) const;
+            std::chrono::seconds(1),
+            bool _msgWaiting = true) const;
 
         /// \brief Check if this Playback object has a valid log to play back
         /// \return true if this has a valid log to play back, otherwise false.
