@@ -23,7 +23,6 @@
 
 1. Added topic subscription to the C interface.
    * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
-   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
 
 1. Added fast log playback, where messages are published without waiting.
     * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
