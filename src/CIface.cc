@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/CIface.h"
 
 /// \brief A wrapper to store an Ignition Transport node and its publishers.
@@ -100,6 +101,31 @@ int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
                     _callback(_msg, _size, _info.Type().c_str(), _userData);
                   }) ? 0 : 1;
 }
+
+/////////////////////////////////////////////////
+int ignTransportSubscribeOptions(IgnTransportNode *_node, const char *_topic,
+    SubscribeOpts _opts,
+    void (*_callback)(const char *, size_t, const char *, void *),
+    void *_userData)
+{
+  if (!_node)
+    return 1;
+
+  ignition::transport::SubscribeOptions opts;
+  opts.SetMsgsPerSec(_opts.msgsPerSec);
+
+  return _node->nodePtr->SubscribeRaw(
+      _topic,
+      [_callback, _userData](const char *_msg,
+        const size_t _size,
+        const ignition::transport::MessageInfo &_info) -> void
+        {
+          _callback(_msg, _size, _info.Type().c_str(), _userData);
+        },
+      ignition::transport::kGenericMessageType,
+      opts) ? 0 : 1;
+}
+
 
 /////////////////////////////////////////////////
 int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,

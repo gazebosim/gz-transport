@@ -13,6 +13,9 @@
 1. Fix fast constructor-destructor deadlock race condition.
     * [Pull request 384](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/384)
 
+1. Added topic subscription to the C interface.
+   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
+
 1. Added ability to specify partition information on a node through the
    CIface.
     * [Pull request 378](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/378)

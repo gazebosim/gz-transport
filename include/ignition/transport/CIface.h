@@ -23,6 +23,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+  struct SubscribeOpts
+  {
+    unsigned int msgsPerSec;
+  };
+
   /// \brief A transport node.
   typedef struct IgnTransportNode IgnTransportNode;
 
@@ -72,6 +77,18 @@ extern "C" {
   int IGNITION_TRANSPORT_VISIBLE
   ignTransportSubscribe(IgnTransportNode *_node,
                 const char *_topic,
+                void (*_callback)(const char *, size_t, const char *, void *),
+                void *_userData);
+
+  /// \brief Subscribe to a topic, and register a callback.
+  /// \param[in] _node Pointer to a node.
+  /// \param[in] _topic Name of the topic.
+  /// \param[in] _callback The function to call when a message is received.
+  /// \param[in] _userData Arbitrary user data pointer.
+  /// \return 0 on success.
+  int IGNITION_TRANSPORT_VISIBLE
+  ignTransportSubscribeOptions(IgnTransportNode *_node,
+                const char *_topic, SubscribeOpts _opts,
                 void (*_callback)(const char *, size_t, const char *, void *),
                 void *_userData);
 
