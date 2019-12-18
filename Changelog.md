@@ -2,6 +2,9 @@
 
 ### Ignition Transport 7.X.X
 
+1. Improve compiler support for c++ filesystem.
+   * [Pull request 422](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/422)
+
 ### Ignition Transport 7.2.1
 
 1. Updates to C interface subscription options.
@@ -15,10 +18,10 @@
 1. Add signal handler to log playback.
     * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
 
-1. Ignore incompatible discovery messages and reduce console spam. 
+1. Ignore incompatible discovery messages and reduce console spam.
     * [Pull request 409](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/409)
 
-1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions. 
+1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
     * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
 
 1. Added topic subscription to the C interface.
