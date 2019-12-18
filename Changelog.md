@@ -2,6 +2,9 @@
 
 ### Ignition Transport 8.X.X
 
+1. Improve compiler support for c++ filesystem.
+    * [Pull request 420](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/420)
+
 1. Support playback of corrupt log files.
     * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
 
