@@ -1,5 +1,7 @@
 \page development Development
 
+Previous Tutorial: \ref contribute
+
 ## Overview
 
 The purpose of this section is to describe the internal design of Ignition
@@ -33,7 +35,7 @@ diagram:
                     ==================================================
 
 
-Next, are the most important components of the library:
+The most important components of the library:
 
 1.  Node.
 
@@ -58,9 +60,9 @@ Next, are the most important components of the library:
     are they located (similar to a DNS service). `Discovery` uses a custom
     protocol and UDP multicast for communicating with other `Discovery`
     instances. These instances can be located on the same or different machines
-    over the same LAN. At this point is not possible to discover a `Node`
-    outside of the LAN, this is a future request that will eventually be added
-    to the library.
+    over the same LAN. Currently, it is not possible to discover a `Node`
+    outside of the LAN. This feature will eventually be added
+    to the library in the future.
 
 ## Discovery service
 
@@ -71,7 +73,7 @@ and the topics that they manage.
 
 The Discovery class implements the protocol for distributed node discovery. The
 topics are plain strings (`/echo`, `/my_robot/camera`) and this layer learns
-about the meta information associated to each topic. The topic location, the
+about the meta information associated with each topic. The topic location, the
 unique identifier of the node providing a service or its process are some
 examples of the information that the discovery component learns for each topic.
 The main responsibility of the discovery is to keep an updated list of active
@@ -98,16 +100,16 @@ network. The symmetric `Unadvertise()` will notify that a topic won't be offered
 anymore.
 
 `Discover()` is used to learn about a given topic as soon as possible.
-It's important to remark about the "as soon as possible" because
-discovery will eventually learn about all the topics but this might take
+It's important to emphasize "as soon as possible" because
+discovery will eventually learn about all the topics, but this might take
 some time (depending on your configuration). If a client needs to know
 about a particular topic, `Discover()` will trigger a discovery request
 that will reduce the time needed to discover the information about a
 topic.
 
 As you can imagine, exchanging messages over the network can be slow and we
-cannot block the users waiting for discovery information. We don't even know
-how many nodes are on the network so it would be hard and really slow to block
+cannot block the users waiting for discovery information. The number of nodes on 
+a network isn't always known, so it would be difficult and slow to block
 and return all the information to our users when available. The way we tackle
 the notification inside `Discovery` is through callbacks. A discovery user needs
 to register two callbacks: one for receiving notifications when new topics are
@@ -131,7 +133,7 @@ the discovery service. We store what we call a `Publisher`, which contains the
 topic name and all the associated meta-data.
 
 Each publisher advertises the topic with a specific scope as described
-[here](https://ignitionrobotics.org/tutorials/transport/4.0/md__data_ignition_ign-transport_tutorials_nodesAndTopics.html).
+[here](03_nodesAndTopics.html).
 If the topic's scope is `PROCESS`, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an `ADVERTISE` message
 with the following format:
@@ -196,7 +198,7 @@ The value of the `Message Type` field in the header is `SUBSCRIBE`.
 All discovery instances listening on the same port where the `SUBSCRIBE` message
 was sent will receive the message. Each discovery instance with a local topic
 registered should answer with an `ADVERTISE` message. The answer is a multicast
-message too that should be received by all discovery instances.
+message that should also be received by all discovery instances.
 
 ### Topic update
 
@@ -211,7 +213,7 @@ Alternatively, we could replace the send of all `ADVERTISE` messages with one
 Upon reception, all other discovery instances should update all their entries
 associated with the received process UUID. Although this approach is more
 efficient and saves some messages sent over the network, it prevents a discovery
-instance to learn about topics available without explicitly asking for them. We
+instance from learning about topics available without explicitly asking for them. We
 think this is a good feature to have. For example, an introspection tool that
 shows all the topics available can take advantage of this feature without any
 prior knowledge.
@@ -223,7 +225,7 @@ maximum time that an entry should be stored in memory without hearing an
 timestamp associated with it.
 
 When a discovery instance terminates, it should notify through the discovery
-channel that all its topics need to invalidated. This is performed by sending a
+channel that all its topics need to be invalidated. This is performed by sending a
 `BYE` message with the following format:
 
     BYE
@@ -290,6 +292,6 @@ requests.
 
 Note that the result of `determineInterfaces()` can be manually set by using the
 `IGN_IP` environment variable, as described
-[here](https://ignitionrobotics.org/tutorials/transport/4.0/md__data_ignition_ign-transport_tutorials_env_variables.html).
+[here](20_env_variables.html).
 This will essentially ignore other network interfaces, isolating all discovery
 traffic through the specified interface.

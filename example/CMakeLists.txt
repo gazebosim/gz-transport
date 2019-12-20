@@ -28,7 +28,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
     add_executable(bench bench.cc)
     target_link_libraries(bench
       ignition-transport${IGN_TRANSPORT_VER}::core
-      ${gflags_LIBRARIES})
+      ${gflags_LIBRARIES}
+      pthread)
   endif()
 endif()
 
@@ -36,10 +37,19 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
   add_executable(publisher_c publisher_c.cc)
   target_link_libraries(publisher_c ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c_fast.cc")
+  add_executable(publisher_c_fast publisher_c_fast.cc)
+  target_link_libraries(publisher_c_fast ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
   add_executable(subscriber_c subscriber_c.cc)
   target_link_libraries(subscriber_c ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
+  add_executable(subscriber_c_slow subscriber_c_slow.cc)
+  target_link_libraries(subscriber_c_slow ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")

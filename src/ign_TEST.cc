@@ -129,7 +129,9 @@ TEST(ignTest, TopicInfo)
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
-  EXPECT_TRUE(infoFound);
+  EXPECT_TRUE(infoFound) << "OUTPUT["
+    << output << "] Size[" << output.size()
+    << "]. Expected Size=50" << std::endl;
   EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
