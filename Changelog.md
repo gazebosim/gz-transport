@@ -10,6 +10,7 @@
 
 1. Support playback of corrupt log files.
     * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+    * [Pull request 425](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/425)
 
 1. Add signal handler to log playback.
     * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
