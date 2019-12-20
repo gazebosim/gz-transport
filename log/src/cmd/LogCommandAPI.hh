@@ -45,9 +45,11 @@ extern "C"
   /// \param[in] _pattern ECMAScript regular expression to match against topics
   /// \param[in] _wait_ms How long to wait before the publications begin after
   /// advertising the topics that will be played back (milliseconds)
+  /// \param[in] _fast Set to > 0 to disable wait between messages.
   int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
     const char *_file,
     const char *_pattern,
     const int _wait_ms,
-    const char *_remap);
+    const char *_remap,
+    int _fast);
 }
