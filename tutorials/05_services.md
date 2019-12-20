@@ -1,6 +1,7 @@
 \page services Services
 
 Next Tutorial: \ref security
+Previous Tutorial: \ref messages
 
 ## Overview
 
@@ -569,7 +570,7 @@ request timed out or reached the service provider and ``result`` shows if the
 service was successfully executed.
 
 We also have the async version for service request without input. You should
-download [requester_no_input.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/requester_no_input.cc>)
+download [requester_async_no_input.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/requester_async_no_input.cc>)
 file within the ``ign_transport_tutorial`` folder.
 
 ## Building the code
@@ -622,12 +623,13 @@ showing that your requesters have received their responses:
 
 ```{.sh}
 $ ./requester
-Response: [Hello World!]
+Response: [HELLO]
 ```
 
 ```{.sh}
 $ ./requester_async
-Response: [Hello World!]
+Press <CTRL-C> to exit
+Response: [HELLO]
 ```
 
 For running the oneway examples, open two terminals and from your ``build/``
@@ -679,6 +681,7 @@ showing that you have received a response:
 
 ```{.sh}
 $ ./requester_no_input
+Press <CTRL-C> to exit
 Response: [This is it! This is the answer. It says here...that a bolt of
 lightning is going to strike the clock tower at precisely 10:04pm, next
 Saturday night! If...If we could somehow...harness this lightning...channel
