@@ -95,40 +95,6 @@ TEST(AdvertiseOptionsTest, accessors)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the serialization of an AdvertiseOptions object.
-TEST(PacketTest, optionsIO)
-{
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-  AdvertiseOptions opts1;
-  opts1.SetScope(Scope_t::PROCESS);
-  std::vector<char> buffer(opts1.MsgLength());
-
-  // Pack.
-  auto bytes = opts1.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, opts1.MsgLength());
-
-  // Unpack .
-  AdvertiseOptions opts2;
-  opts2.Unpack(&buffer[0]);
-
-  // Check that after Pack() and Unpack() the objects remain the same.
-  EXPECT_TRUE(opts1 == opts2);
-
-  // Try to pack passing a NULL buffer.
-  EXPECT_EQ(opts2.Pack(nullptr), 0u);
-
-  // Try to unpack passing a NULL buffer.
-  EXPECT_EQ(opts2.Unpack(nullptr), 0u);
-#ifndef _WIN32
-  #pragma GCC diagnostic pop
-#endif
-}
-
-//////////////////////////////////////////////////
 /// \brief Check the default constructor.
 TEST(AdvertiseOptionsTest, msgDefConstructor)
 {
@@ -221,41 +187,6 @@ TEST(AdvertiseOptionsTest, msgAccessors)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the serialization of an AdvertiseMessageOptions object.
-TEST(PacketTest, msgOptionsIO)
-{
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-  AdvertiseMessageOptions opts1;
-  opts1.SetScope(Scope_t::PROCESS);
-  opts1.SetMsgsPerSec(10u);
-  std::vector<char> buffer(opts1.MsgLength());
-
-  // Pack.
-  auto bytes = opts1.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, opts1.MsgLength());
-
-  // Unpack .
-  AdvertiseMessageOptions opts2;
-  opts2.Unpack(&buffer[0]);
-
-  // Check that after Pack() and Unpack() the objects remain the same.
-  EXPECT_TRUE(opts1 == opts2);
-
-  // Try to pack passing a NULL buffer.
-  EXPECT_EQ(opts2.Pack(nullptr), 0u);
-
-  // Try to unpack passing a NULL buffer.
-  EXPECT_EQ(opts2.Unpack(nullptr), 0u);
-#ifndef _WIN32
-  #pragma GCC diagnostic pop
-#endif
-}
-
-//////////////////////////////////////////////////
 /// \brief Check the default constructor.
 TEST(AdvertiseOptionsTest, srvDefConstructor)
 {
@@ -320,39 +251,6 @@ TEST(AdvertiseOptionsTest, srvAccessors)
   EXPECT_EQ(opts.Scope(), Scope_t::ALL);
   opts.SetScope(Scope_t::HOST);
   EXPECT_EQ(opts.Scope(), Scope_t::HOST);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check the serialization of an AdvertiseServiceOptions object.
-TEST(PacketTest, srvOptionsIO)
-{
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  AdvertiseServiceOptions opts1;
-  opts1.SetScope(Scope_t::PROCESS);
-  std::vector<char> buffer(opts1.MsgLength());
-
-  // Pack.
-  auto bytes = opts1.Pack(&buffer[0]);
-  EXPECT_EQ(bytes, opts1.MsgLength());
-
-  // Unpack .
-  AdvertiseServiceOptions opts2;
-  opts2.Unpack(&buffer[0]);
-
-  // Check that after Pack() and Unpack() the objects remain the same.
-  EXPECT_TRUE(opts1 == opts2);
-
-  // Try to pack passing a NULL buffer.
-  EXPECT_EQ(opts2.Pack(nullptr), 0u);
-
-  // Try to unpack passing a NULL buffer.
-  EXPECT_EQ(opts2.Unpack(nullptr), 0u);
-#ifndef _WIN32
-  #pragma GCC diagnostic pop
-#endif
 }
 
 //////////////////////////////////////////////////

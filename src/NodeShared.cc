@@ -384,20 +384,6 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
 }
 
 //////////////////////////////////////////////////
-void NodeShared::TriggerSubscriberCallbacks(
-    const std::string &_topic,
-    const std::string &_msgData,
-    const std::string &_msgType,
-    const HandlerInfo &_handlerInfo)
-{
-  MessageInfo info;
-  info.SetTopicAndPartition(_topic);
-  info.SetType(_msgType);
-
-  this->TriggerCallbacks(info, _msgData, _handlerInfo);
-}
-
-//////////////////////////////////////////////////
 void NodeShared::TriggerCallbacks(
     const MessageInfo &_info,
     const std::string &_msgData,
