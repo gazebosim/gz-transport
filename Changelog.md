@@ -2,6 +2,9 @@
 
 ### Ignition Transport 8.X.X
 
+1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
+    * [Pull request 423](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/423)
+
 1. Improve compiler support for c++ filesystem.
     * [Pull request 420](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/420)
 
