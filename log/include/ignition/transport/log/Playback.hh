@@ -87,9 +87,7 @@ namespace ignition
         ///
         /// If an error prevents the playback from starting, this will return a
         /// nullptr.
-        //
-        // TODO(MXG): When we can use C++17, add a [[nodiscard]] attribute here.
-        public: PlaybackHandlePtr Start(
+        public: [[nodiscard]] PlaybackHandlePtr Start(
           const std::chrono::nanoseconds &_waitAfterAdvertising =
             std::chrono::seconds(1),
             bool _msgWaiting = true) const;

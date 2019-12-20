@@ -79,13 +79,13 @@ which version you need.
 
 ## Source Install
 
-See the [install](https://ignitionrobotics.org/tutorials/transport/5.0/md__data_ignition_ign-transport_tutorials_02_installation.html)
+See the [install](https://ignitionrobotics.org/api/transport/8.0/installation.html)
 section of the documentation.
 
 # Usage
 
-See [tutorials](https://ignitionrobotics.org/tutorials/transport/5.0/index.html)
-and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default)
+See [tutorials](https://ignitionrobotics.org/api/transport/8.0/tutorials.html)
+and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/src/default/example/?at=default)
 in the source code.
 
 ## Known issue of command line tools
@@ -119,7 +119,7 @@ This issue is tracked [here](https://bitbucket.org/ignitionrobotics/ign-tools/is
 
 # Documentation
 
-Visit the [documentation page](https://ignitionrobotics.org/api/transport/6.0/index.html).
+Visit the [documentation page](https://ignitionrobotics.org/api/transport/8.0/index.html).
 
 ## Build documentation
 
