@@ -2,6 +2,11 @@
 
 ### Ignition Transport 7.X.X
 
+### Ignition Transport 7.2.2
+
+1. Restore original Playback::Start and add overload with new parameter to fix ABI.
+    * [Pull request 427](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/427)
+
 1. Improve compiler support for c++ filesystem.
    * [Pull request 422](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/422)
 
