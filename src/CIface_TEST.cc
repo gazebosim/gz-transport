@@ -78,7 +78,13 @@ TEST(CIfaceTest, PubSub)
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
+#if GOOGLE_PROTOBUF_VERSION < 3001000
   int size = msg.ByteSize();
+#else
+  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+  // became deprecated.
+  int size = msg.ByteSizeLong();
+#endif
 
   // Allocate space for the serialized message
   void *buffer = malloc(size);
@@ -130,7 +136,13 @@ TEST(CIfaceTest, PubSubPartitions)
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
+#if GOOGLE_PROTOBUF_VERSION < 3001000
   int size = msg.ByteSize();
+#else
+  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
+  // became deprecated.
+  int size = msg.ByteSizeLong();
+#endif
 
   // Allocate space for the serialized message
   void *buffer = malloc(size);

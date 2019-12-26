@@ -2,11 +2,15 @@
 
 ### Ignition Transport 8.X.X
 
+1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
+    * [Pull request 423](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/423)
+
 1. Improve compiler support for c++ filesystem.
     * [Pull request 420](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/420)
 
 1. Support playback of corrupt log files.
     * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+    * [Pull request 425](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/425)
 
 1. Add signal handler to log playback.
     * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)

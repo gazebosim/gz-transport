@@ -278,7 +278,7 @@ tools for recording and playing back messages.
 Next is how you can record a set of messages using `ign`:
 
 ```{.sh}
-ign log record --file tutorial.tlog
+ign log record --force --file tutorial.tlog
 ```
 
 And here's how you can play back the previous log file using `ign`:
