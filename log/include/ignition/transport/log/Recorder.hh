@@ -106,6 +106,16 @@ namespace ignition
         /// AddTopic functions.
         public: const std::set<std::string> &Topics() const;
 
+        /// \brief Get the maximum size of the queue that is used to store data
+        /// from topic callbacks.
+        /// \return Current maximum queue size
+        public: std::size_t MaxQueueSize() const;
+
+        /// \brief Set the maximum size of the queue that is used to store data
+        /// from topic callbacks.
+        /// \param[in] _size Queue size
+        public: void SetMaxQueueSize(std::size_t _size);
+
         /// \internal Implementation of this class
         private: class Implementation;
 

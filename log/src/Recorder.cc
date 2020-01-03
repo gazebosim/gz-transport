@@ -15,14 +15,18 @@
  *
 */
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <regex>
 #include <set>
+#include <utility>
 #include <vector>
+#include <thread>
 
 #include <ignition/transport/Clock.hh>
 #include <ignition/transport/Discovery.hh>
@@ -45,6 +49,9 @@ class ignition::transport::log::Recorder::Implementation
   /// \brief constructor
   public: Implementation();
 
+  /// \brief Destructor
+  public: ~Implementation();
+
   /// \brief Subscriber callback
   /// \param[in] _data Data of the message
   /// \param[in] _len The size of the message data
@@ -63,6 +70,16 @@ class ignition::transport::log::Recorder::Implementation
 
   /// \sa Recorder::AddTopic(const std::regex&)
   public: int64_t AddTopic(const std::regex &_pattern);
+
+  /// \brief Worker thread function that writes data from the dataQueue to the
+  /// database
+  public: void DataWriterThread();
+
+  /// \brief Start the data writer thread
+  public: void StartDataWriter();
+
+  /// \brief Stop the data writer thread
+  public: void StopDataWriter();
 
   /// \brief log file or nullptr if not recording
   public: std::unique_ptr<Log> logFile;
@@ -92,6 +109,32 @@ class ignition::transport::log::Recorder::Implementation
 
   /// \brief Object for discovering new publishers as they advertise themselves
   public: std::unique_ptr<MsgDiscovery> discovery;
+
+  /// \brief Size of the queue that is used to store data from topic callbacks.
+  public: std::atomic<std::size_t> maxQueueSize{10};
+
+  /// \brief This is a temporary FIFO queue that is used to store data from
+  /// callbacks until they are written to disk.  If the queue fills up before
+  /// the dataWriter thread has a chance to process it, old data will be
+  /// overwritten. Thus, it is important to set the queue size appropriately for
+  /// your application.
+  public: std::deque<std::pair<std::vector<char>, transport::MessageInfo>>
+              dataQueue;
+
+  /// \brief Mutex to synchronize access to dataQueue
+  public: std::mutex dataQueueMutex;
+
+  /// \brief Condition variable to synchronize access to dataQueue
+  public: std::condition_variable dataQueueCondVar;
+
+  /// \brief Handle to worker thread that writes data from the dataQueue to the
+  /// database
+  public: std::thread dataWriter;
+
+  /// \brief State of dataWriter thread.
+  /// True: Data writer thread has started or is starting.
+  /// False: Data writer thread has not started or is shutting down.
+  public: std::atomic<bool> dataWriterState{false};
 };
 
 //////////////////////////////////////////////////
@@ -119,6 +162,71 @@ Recorder::Implementation::Implementation()
 }
 
 //////////////////////////////////////////////////
+Recorder::Implementation::~Implementation()
+{
+  this->StopDataWriter();
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::DataWriterThread()
+{
+  while (this->dataWriterState)
+  {
+    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
+    if (this->dataQueue.empty())
+    {
+      this->dataQueueCondVar.wait(lock,
+        [this]
+        {
+          return !this->dataQueue.empty() || !this->dataWriterState;
+        });
+
+      if (this->dataQueue.empty())
+      {
+        continue;
+      }
+    }
+
+    const auto data = std::move(this->dataQueue.front());
+    this->dataQueue.pop_front();
+    lock.unlock();
+
+    std::lock_guard<std::mutex> logLock(this->logFileMutex);
+    // Note: this->logFile will only be a nullptr before Start() has been
+    // called or after Stop() has been called. If it is a nullptr, then we are
+    // not recording anything yet, so we can just skip inserting the message.
+    if (this->logFile &&
+        !this->logFile->InsertMessage(
+            this->clock->Time(), data.second.Topic(), data.second.Type(),
+            reinterpret_cast<const void *>(data.first.data()),
+            data.first.size()))
+    {
+      LWRN("Failed to insert message into log file\n");
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::StartDataWriter()
+{
+  this->dataWriterState = true;
+  this->dataWriter =
+      std::thread(&Recorder::Implementation::DataWriterThread, this);
+}
+
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::StopDataWriter()
+{
+  this->dataWriterState = false;
+  this->dataQueueCondVar.notify_one();
+  if (this->dataWriter.joinable())
+  {
+    this->dataWriter.join();
+  }
+}
+
+//////////////////////////////////////////////////
 void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
@@ -130,19 +238,18 @@ void Recorder::Implementation::OnMessageReceived(
     LWRN("Clock isn't ready yet. Dropping message\n");
   }
 
-  std::lock_guard<std::mutex> lock(this->logFileMutex);
-
-  // Note: this->logFile will only be a nullptr before Start() has been called
-  // or after Stop() has been called. If it is a nullptr, then we are not
-  // recording anything yet, so we can just skip inserting the message.
-  if (this->logFile && !this->logFile->InsertMessage(
-        this->clock->Time(),
-        _info.Topic(),
-        _info.Type(),
-        reinterpret_cast<const void *>(_data),
-        _len))
+  // Don't store anything in the queue unless the data writer has started, which
+  // happens when Recorder::Start is called.
+  if (this->dataWriterState)
   {
-    LWRN("Failed to insert message into log file\n");
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    std::vector<char> tmp(_data, _data+_len);
+    this->dataQueue.emplace_back(std::move(tmp), _info);
+    if (this->dataQueue.size() > this->maxQueueSize)
+    {
+      this->dataQueue.pop_front();
+    }
+    this->dataQueueCondVar.notify_one();
   }
 }
 
@@ -278,6 +385,7 @@ RecorderError Recorder::Start(const std::string &_file)
     return RecorderError::FAILED_TO_OPEN;
   }
 
+  this->dataPtr->StartDataWriter();
   LMSG("Started recording to [" << _file << "]\n");
 
   return RecorderError::SUCCESS;
@@ -286,6 +394,7 @@ RecorderError Recorder::Start(const std::string &_file)
 //////////////////////////////////////////////////
 void Recorder::Stop()
 {
+  this->dataPtr->StopDataWriter();
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   this->dataPtr->logFile.reset(nullptr);
 }
@@ -313,4 +422,23 @@ std::string Recorder::Filename() const
 const std::set<std::string> &Recorder::Topics() const
 {
   return this->dataPtr->alreadySubscribed;
+}
+
+//////////////////////////////////////////////////
+std::size_t Recorder::MaxQueueSize() const
+{
+  return this->dataPtr->maxQueueSize;
+}
+
+//////////////////////////////////////////////////
+void Recorder::SetMaxQueueSize(std::size_t _size)
+{
+  if (_size > 0)
+  {
+    this->dataPtr->maxQueueSize = _size;
+  }
+  else
+  {
+    LERR("Max queue size must be greater than 0\n");
+  }
 }

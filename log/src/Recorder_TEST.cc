@@ -90,6 +90,21 @@ TEST(Record, AddTopicRegex)
 }
 
 //////////////////////////////////////////////////
+TEST(Record, SetMaxQueueSize)
+{
+  transport::log::Recorder recorder;
+  recorder.SetMaxQueueSize(20);
+  EXPECT_EQ(20u, recorder.MaxQueueSize());
+
+  // Try setting to zero. It should keep the previous size
+  recorder.SetMaxQueueSize(0);
+  EXPECT_EQ(20u, recorder.MaxQueueSize());
+
+  recorder.SetMaxQueueSize(40);
+  EXPECT_EQ(40u, recorder.MaxQueueSize());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

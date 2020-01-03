@@ -272,6 +272,96 @@ TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 }
 
 //////////////////////////////////////////////////
+/// Test that that the order of disk write is the same as publication. The test
+/// publishes data very quickly so that the Recorder will be forced to use its
+/// data queue.
+TEST(recorder, DataWriterQueue)
+{
+  // Remember to include a leading slash so that the VerifyTopic lambda below
+  // will work correctly. ign-transport automatically adds a leading slash to
+  // topics that don't specify one.
+  std::string topic{"/foo"};
+
+  ignition::transport::log::Recorder recorder;
+  recorder.SetMaxQueueSize(100);
+  EXPECT_TRUE(recorder.Filename().empty());
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+            recorder.AddTopic(topic));
+
+  const std::string logName =
+    "file:recorderDataWriterQueue?mode=memory&cache=shared";
+
+  EXPECT_EQ(recorder.Start(logName),
+            ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
+
+  using MsgType = ignition::transport::log::test::ChirpMsgType;
+
+  ignition::transport::Node node;
+  auto pub = node.Advertise<MsgType>(topic);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const int numChirps = 50;
+  for (int i = 0; i < numChirps; ++i)
+  {
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+
+  // Sleep so data writer can start writing to file
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Open log before stopping so sqlite memory database is shared
+  ignition::transport::log::Log log;
+  EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
+
+  {
+    int count = 0;
+
+    for (const auto &msg : log.QueryMessages())
+    {
+      VerifyMessage(msg, count, 1,
+          [&](const std::string &_topic)
+          {
+          return topic == _topic;
+          });
+      ++count;
+    }
+
+    EXPECT_EQ(numChirps, count);
+  }
+
+  // Publish again and ensure that the recorder doesn't write to the file
+  for (int i = 0; i < numChirps; ++i)
+  {
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+  {
+    int count = 0;
+    for (const auto &msg : log.QueryMessages())
+    {
+      VerifyMessage(msg, count, 1,
+          [&](const std::string &_topic)
+          {
+          return topic == _topic;
+          });
+      ++count;
+    }
+    EXPECT_EQ(numChirps, count);
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name to avoid topic collisions between processes.
