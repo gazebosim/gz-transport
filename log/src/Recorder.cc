@@ -170,8 +170,6 @@ Recorder::Implementation::~Implementation()
 //////////////////////////////////////////////////
 void Recorder::Implementation::DataWriterThread()
 {
-  this->dataWriterState = true;
-
   while (this->dataWriterState)
   {
     std::unique_lock<std::mutex> lock(this->dataQueueMutex);
@@ -211,6 +209,8 @@ void Recorder::Implementation::DataWriterThread()
 //////////////////////////////////////////////////
 void Recorder::Implementation::StartDataWriter()
 {
+  this->dataWriterState = true;
+
   this->dataWriter =
       std::thread(&Recorder::Implementation::DataWriterThread, this);
 }
