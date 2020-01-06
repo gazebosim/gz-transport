@@ -2,6 +2,9 @@
 
 ### Ignition Transport 7.X.X
 
+1. Write to disk from a background thread in log recorder
+    * [Pull request 428](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/428)
+
 ### Ignition Transport 7.2.2
 
 1. Restore original Playback::Start and add overload with new parameter to fix ABI.
