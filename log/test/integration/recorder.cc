@@ -272,7 +272,7 @@ TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 }
 
 //////////////////////////////////////////////////
-/// Test that that the order of disk write is the same as publication. The test
+/// Test that the order of disk write is the same as publication. The test
 /// publishes data very quickly so that the Recorder will be forced to use its
 /// data queue.
 TEST(recorder, DataWriterQueue)
@@ -361,6 +361,79 @@ TEST(recorder, DataWriterQueue)
   }
 }
 
+
+//////////////////////////////////////////////////
+/// Test that clock is properly recorded
+TEST(recorder, DataWriterQueueClockUpdates)
+{
+  // Remember to include a leading slash so that the VerifyTopic lambda below
+  // will work correctly. ign-transport automatically adds a leading slash to
+  // topics that don't specify one.
+  std::string topic{"/foo"};
+
+  ignition::transport::log::Recorder recorder;
+  recorder.SetMaxQueueSize(100);
+  EXPECT_TRUE(recorder.Filename().empty());
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+            recorder.AddTopic(topic));
+
+  const std::string logName =
+    "file:recorderDataWriterQueueClockUpdates?mode=memory&cache=shared";
+
+  using MsgType = ignition::transport::log::test::ChirpMsgType;
+
+  ignition::transport::Node node;
+  auto pub = node.Advertise<MsgType>(topic);
+
+  const std::string clockTopic{"/test_clock"};
+  auto clockPub = node.Advertise<MsgType>(clockTopic);
+
+  ignition::transport::NetworkClock clock(clockTopic);
+  recorder.Sync(&clock);
+
+  EXPECT_EQ(recorder.Start(logName),
+            ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const int numChirps = 50;
+  for (int i = 0; i < numChirps; ++i)
+  {
+    clock.SetTime(i * std::chrono::nanoseconds(1000));
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+
+  // Sleep so data writer can start writing to file
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Open log before stopping so sqlite memory database is shared
+  ignition::transport::log::Log log;
+  EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
+
+  {
+    int count = 0;
+    std::chrono::nanoseconds lastTs{0};
+
+    for (const auto &msg : log.QueryMessages())
+    {
+      std::chrono::nanoseconds expectedStamp{count == 0 ? 0 : 1000};
+
+      EXPECT_EQ(expectedStamp.count(), (msg.TimeReceived() - lastTs).count())
+          << "Msg time: " << msg.TimeReceived().count();
+      lastTs = msg.TimeReceived();
+      ++count;
+    }
+
+    EXPECT_EQ(numChirps, count);
+  }
+}
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
