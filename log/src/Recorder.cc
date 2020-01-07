@@ -113,13 +113,29 @@ class ignition::transport::log::Recorder::Implementation
   /// \brief Size of the queue that is used to store data from topic callbacks.
   public: std::atomic<std::size_t> maxQueueSize{10};
 
+  /// \brief Data type stored in dataQueue
+  public: struct LogData
+  {
+    /// \brief Constructor
+    LogData(std::chrono::nanoseconds _stamp, std::vector<char> &&_msgData,
+            const transport::MessageInfo &_msgInfo)
+        : stamp(_stamp), msgData(std::move(_msgData)), msgInfo(_msgInfo)
+    {
+    }
+    /// \brief Time stamp of when the message was received by the log recorder
+    std::chrono::nanoseconds stamp;
+    /// Serialized message data
+    std::vector<char> msgData;
+    /// Extra information about the message, such as its topic.
+    transport::MessageInfo msgInfo;
+  };
+
   /// \brief This is a temporary FIFO queue that is used to store data from
   /// callbacks until they are written to disk.  If the queue fills up before
   /// the dataWriter thread has a chance to process it, old data will be
   /// overwritten. Thus, it is important to set the queue size appropriately for
   /// your application.
-  public: std::deque<std::pair<std::vector<char>, transport::MessageInfo>>
-              dataQueue;
+  public: std::deque<LogData> dataQueue;
 
   /// \brief Mutex to synchronize access to dataQueue
   public: std::mutex dataQueueMutex;
@@ -187,7 +203,7 @@ void Recorder::Implementation::DataWriterThread()
       }
     }
 
-    const auto data = std::move(this->dataQueue.front());
+    const auto logData = std::move(this->dataQueue.front());
     this->dataQueue.pop_front();
     lock.unlock();
 
@@ -197,9 +213,9 @@ void Recorder::Implementation::DataWriterThread()
     // not recording anything yet, so we can just skip inserting the message.
     if (this->logFile &&
         !this->logFile->InsertMessage(
-            this->clock->Time(), data.second.Topic(), data.second.Type(),
-            reinterpret_cast<const void *>(data.first.data()),
-            data.first.size()))
+            logData.stamp, logData.msgInfo.Topic(), logData.msgInfo.Type(),
+            reinterpret_cast<const void *>(logData.msgData.data()),
+            logData.msgData.size()))
     {
       LWRN("Failed to insert message into log file\n");
     }
@@ -245,7 +261,7 @@ void Recorder::Implementation::OnMessageReceived(
   {
     std::lock_guard<std::mutex> lock(this->dataQueueMutex);
     std::vector<char> tmp(_data, _data+_len);
-    this->dataQueue.emplace_back(std::move(tmp), _info);
+    this->dataQueue.emplace_back(this->clock->Time(), std::move(tmp), _info);
     if (this->dataQueue.size() > this->maxQueueSize)
     {
       this->dataQueue.pop_front();
