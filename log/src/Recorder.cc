@@ -184,66 +184,6 @@ Recorder::Implementation::~Implementation()
 }
 
 //////////////////////////////////////////////////
-void Recorder::Implementation::DataWriterThread()
-{
-  while (this->dataWriterState)
-  {
-    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
-    if (this->dataQueue.empty())
-    {
-      this->dataQueueCondVar.wait(lock,
-        [this]
-        {
-          return !this->dataQueue.empty() || !this->dataWriterState;
-        });
-
-      if (this->dataQueue.empty())
-      {
-        continue;
-      }
-    }
-
-    const auto logData = std::move(this->dataQueue.front());
-    this->dataQueue.pop_front();
-    lock.unlock();
-
-    std::lock_guard<std::mutex> logLock(this->logFileMutex);
-    // Note: this->logFile will only be a nullptr before Start() has been
-    // called or after Stop() has been called. If it is a nullptr, then we are
-    // not recording anything yet, so we can just skip inserting the message.
-    if (this->logFile &&
-        !this->logFile->InsertMessage(
-            logData.stamp, logData.msgInfo.Topic(), logData.msgInfo.Type(),
-            reinterpret_cast<const void *>(logData.msgData.data()),
-            logData.msgData.size()))
-    {
-      LWRN("Failed to insert message into log file\n");
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void Recorder::Implementation::StartDataWriter()
-{
-  this->dataWriterState = true;
-
-  this->dataWriter =
-      std::thread(&Recorder::Implementation::DataWriterThread, this);
-}
-
-
-//////////////////////////////////////////////////
-void Recorder::Implementation::StopDataWriter()
-{
-  this->dataWriterState = false;
-  this->dataQueueCondVar.notify_one();
-  if (this->dataWriter.joinable())
-  {
-    this->dataWriter.join();
-  }
-}
-
-//////////////////////////////////////////////////
 void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
@@ -350,6 +290,65 @@ int64_t Recorder::Implementation::AddTopic(const std::regex &_pattern)
   this->patterns.push_back(_pattern);
 
   return numSubscriptions;
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::DataWriterThread()
+{
+  while (this->dataWriterState)
+  {
+    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
+    if (this->dataQueue.empty())
+    {
+      this->dataQueueCondVar.wait(lock,
+        [this]
+        {
+          return !this->dataQueue.empty() || !this->dataWriterState;
+        });
+
+      if (this->dataQueue.empty())
+      {
+        continue;
+      }
+    }
+
+    const auto logData = std::move(this->dataQueue.front());
+    this->dataQueue.pop_front();
+    lock.unlock();
+
+    std::lock_guard<std::mutex> logLock(this->logFileMutex);
+    // Note: this->logFile will only be a nullptr before Start() has been
+    // called or after Stop() has been called. If it is a nullptr, then we are
+    // not recording anything yet, so we can just skip inserting the message.
+    if (this->logFile &&
+        !this->logFile->InsertMessage(
+            logData.stamp, logData.msgInfo.Topic(), logData.msgInfo.Type(),
+            reinterpret_cast<const void *>(logData.msgData.data()),
+            logData.msgData.size()))
+    {
+      LWRN("Failed to insert message into log file\n");
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::StartDataWriter()
+{
+  this->dataWriterState = true;
+
+  this->dataWriter =
+      std::thread(&Recorder::Implementation::DataWriterThread, this);
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::StopDataWriter()
+{
+  this->dataWriterState = false;
+  this->dataQueueCondVar.notify_one();
+  if (this->dataWriter.joinable())
+  {
+    this->dataWriter.join();
+  }
 }
 
 //////////////////////////////////////////////////
