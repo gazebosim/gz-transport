@@ -46,6 +46,23 @@ using namespace ignition::transport::log;
 /// \brief Private implementation
 class ignition::transport::log::Recorder::Implementation
 {
+  /// \brief Data type stored in dataQueue
+  public: struct LogData
+  {
+    /// \brief Constructor
+    LogData(std::chrono::nanoseconds _stamp, std::vector<char> &&_msgData,
+            const transport::MessageInfo &_msgInfo)
+        : stamp(_stamp), msgData(std::move(_msgData)), msgInfo(_msgInfo)
+    {
+    }
+    /// \brief Time stamp of when the message was received by the log recorder
+    std::chrono::nanoseconds stamp;
+    /// Serialized message data
+    std::vector<char> msgData;
+    /// Extra information about the message, such as its topic.
+    transport::MessageInfo msgInfo;
+  };
+
   /// \brief constructor
   public: Implementation();
 
@@ -85,6 +102,13 @@ class ignition::transport::log::Recorder::Implementation
   /// \param[in] _len The amount to decrement
   public: void DecrementBufferSize(std::size_t _len);
 
+  /// \brief Write any data left in the queue to the log file
+  public: void FlushDataQueue();
+
+  /// \brief Write data to log file
+  /// \param[in] _logData data to be written
+  public: void WriteToLogFile(const LogData &_logData);
+
   /// \brief log file or nullptr if not recording
   public: std::unique_ptr<Log> logFile;
 
@@ -123,23 +147,6 @@ class ignition::transport::log::Recorder::Implementation
   /// `dataQueueMutex` to protect it.
   public: std::size_t bufferSize{0};
 
-  /// \brief Data type stored in dataQueue
-  public: struct LogData
-  {
-    /// \brief Constructor
-    LogData(std::chrono::nanoseconds _stamp, std::vector<char> &&_msgData,
-            const transport::MessageInfo &_msgInfo)
-        : stamp(_stamp), msgData(std::move(_msgData)), msgInfo(_msgInfo)
-    {
-    }
-    /// \brief Time stamp of when the message was received by the log recorder
-    std::chrono::nanoseconds stamp;
-    /// Serialized message data
-    std::vector<char> msgData;
-    /// Extra information about the message, such as its topic.
-    transport::MessageInfo msgInfo;
-  };
-
   /// \brief This is a temporary FIFO queue that is used to store data from
   /// callbacks until they are written to disk. If the queue fills up before
   /// the dataWriter thread has a chance to process it, old data will be
@@ -163,6 +170,10 @@ class ignition::transport::log::Recorder::Implementation
   /// True: Data writer thread has started or is starting.
   /// False: Data writer thread has not started or is shutting down.
   public: std::atomic<bool> dataWriterState{false};
+
+  /// \brief Whether the OnMessageReceived should stop queuing received
+  /// messages. This will be set to true when `Recorder::Stop` is called
+  public: std::atomic<bool> stopQueue{false};
 };
 
 //////////////////////////////////////////////////
@@ -339,20 +350,10 @@ void Recorder::Implementation::DataWriterThread()
 
     const auto logData = std::move(this->dataQueue.front());
     this->dataQueue.pop_front();
+    // Unlock before locking another mutex.
     lock.unlock();
 
-    std::lock_guard<std::mutex> logLock(this->logFileMutex);
-    // Note: this->logFile will only be a nullptr before Start() has been
-    // called or after Stop() has been called. If it is a nullptr, then we are
-    // not recording anything yet, so we can just skip inserting the message.
-    if (this->logFile &&
-        !this->logFile->InsertMessage(
-            logData.stamp, logData.msgInfo.Topic(), logData.msgInfo.Type(),
-            reinterpret_cast<const void *>(logData.msgData.data()),
-            logData.msgData.size()))
-    {
-      LWRN("Failed to insert message into log file\n");
-    }
+    this->WriteToLogFile(logData);
   }
 }
 
@@ -390,6 +391,45 @@ void Recorder::Implementation::DecrementBufferSize(std::size_t _len)
         "This should not happen\n");
     this->bufferSize = 0;
   }
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::FlushDataQueue()
+{
+  while (true)
+  {
+    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
+    if (this->dataQueue.empty())
+      return;
+
+    const auto logData = std::move(this->dataQueue.front());
+    this->dataQueue.pop_front();
+    // Unlock before locking another mutex.
+    lock.unlock();
+
+    this->WriteToLogFile(logData);
+  }
+}
+
+//////////////////////////////////////////////////
+void Recorder::Implementation::WriteToLogFile(const LogData &_logData)
+{
+  std::lock_guard<std::mutex> logLock(this->logFileMutex);
+  // Note: this->logFile will only be a nullptr before Start() has been
+  // called or after Stop() has been called. If it is a nullptr, then we are
+  // not recording anything yet, so we can just skip inserting the message.
+  if (this->logFile &&
+      !this->logFile->InsertMessage(
+        _logData.stamp, _logData.msgInfo.Topic(), _logData.msgInfo.Type(),
+        reinterpret_cast<const void *>(_logData.msgData.data()),
+        _logData.msgData.size()))
+  {
+    LWRN("Failed to insert message into log file\n");
+  }
+  // TODO(anyone) It would be nice for testing to simulate long delays
+  // associated with disk writes. In the mean time, a sleep can be added here
+  // for testing.
+  // std::this_thread::sleep_for(std::chrono::milliseconds(30));
 }
 
 //////////////////////////////////////////////////
@@ -451,7 +491,17 @@ RecorderError Recorder::Start(const std::string &_file)
 //////////////////////////////////////////////////
 void Recorder::Stop()
 {
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
+    // If the logFile is null, the recorder has already stopped.
+    if (nullptr == this->dataPtr->logFile)
+      return;
+  }
+  this->dataPtr->stopQueue = true;
   this->dataPtr->StopDataWriter();
+  // If there is any data left in the dataQueue, write it all to disk
+  this->dataPtr->FlushDataQueue();
+
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   this->dataPtr->logFile.reset(nullptr);
 }

@@ -77,7 +77,9 @@ namespace ignition
         /// already existed, this will return FAILED_TO_OPEN.
         public: RecorderError Start(const std::string &_file);
 
-        /// \brief Stop recording topics
+        /// \brief Stop recording topics. This function will block if there is
+        /// any data in the internal buffer that has not yet been written to
+        /// disk.
         public: void Stop();
 
         /// \brief Add a topic to be recorded (exact match only)

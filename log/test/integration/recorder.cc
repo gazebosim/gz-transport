@@ -313,8 +313,8 @@ TEST(recorder, DataWriterQueue)
     pub.Publish(msg);
   }
 
-  // Sleep so data writer can start writing to file
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
@@ -409,8 +409,8 @@ TEST(recorder, DataWriterQueueClockUpdates)
     pub.Publish(msg);
   }
 
-  // Sleep so data writer can start writing to file
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
@@ -483,8 +483,8 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
     pub.Publish(msg);
   }
 
-  // Sleep so data writer can start writing to file
-  std::this_thread::sleep_for(std::chrono::seconds(3));
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
   ignition::transport::log::Log log;
