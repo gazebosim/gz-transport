@@ -110,7 +110,7 @@ namespace ignition
 
         /// \brief Get the buffer size of the queue that is used to store data
         /// from topic callbacks.
-        /// \return Current buffer size
+        /// \return Current buffer size in MB.
         public: std::size_t BufferSize() const;
 
         /// \brief Set the maximum size (in MB) of the buffer that is used to
