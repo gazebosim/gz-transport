@@ -50,7 +50,7 @@ class ignition::transport::log::Recorder::Implementation
   public: struct LogData
   {
     /// \brief Constructor
-    LogData(std::chrono::nanoseconds _stamp, std::vector<char> &&_msgData,
+    LogData(std::chrono::nanoseconds _stamp, std::vector<char> &&_msgData, // NOLINT
             const transport::MessageInfo &_msgInfo)
         : stamp(_stamp), msgData(std::move(_msgData)), msgInfo(_msgInfo)
     {
