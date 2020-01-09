@@ -106,15 +106,17 @@ namespace ignition
         /// AddTopic functions.
         public: const std::set<std::string> &Topics() const;
 
-        /// \brief Get the maximum size of the queue that is used to store data
+        /// \brief Get the buffer size of the queue that is used to store data
         /// from topic callbacks.
-        /// \return Current maximum queue size
-        public: std::size_t MaxQueueSize() const;
+        /// \return Current buffer size
+        public: std::size_t BufferSize() const;
 
-        /// \brief Set the maximum size of the queue that is used to store data
-        /// from topic callbacks.
-        /// \param[in] _size Queue size
-        public: void SetMaxQueueSize(std::size_t _size);
+        /// \brief Set the maximum size (in MB) of the buffer that is used to
+        /// store data from topic callbacks. When the buffer reaches this size,
+        /// the recorder will start dropping older messages to make room for new
+        /// ones.
+        /// \param[in] _size Buffer size in MB
+        public: void SetBufferSize(std::size_t _size);
 
         /// \internal Implementation of this class
         private: class Implementation;

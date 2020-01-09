@@ -90,18 +90,17 @@ TEST(Record, AddTopicRegex)
 }
 
 //////////////////////////////////////////////////
-TEST(Record, SetMaxQueueSize)
+TEST(Record, SetBufferSize)
 {
   transport::log::Recorder recorder;
-  recorder.SetMaxQueueSize(20);
-  EXPECT_EQ(20u, recorder.MaxQueueSize());
+  recorder.SetBufferSize(20);
+  EXPECT_EQ(20u, recorder.BufferSize());
 
-  // Try setting to zero. It should keep the previous size
-  recorder.SetMaxQueueSize(0);
-  EXPECT_EQ(20u, recorder.MaxQueueSize());
+  recorder.SetBufferSize(0);
+  EXPECT_EQ(0u, recorder.BufferSize());
 
-  recorder.SetMaxQueueSize(40);
-  EXPECT_EQ(40u, recorder.MaxQueueSize());
+  recorder.SetBufferSize(40);
+  EXPECT_EQ(40u, recorder.BufferSize());
 }
 
 //////////////////////////////////////////////////

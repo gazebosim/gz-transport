@@ -81,6 +81,10 @@ class ignition::transport::log::Recorder::Implementation
   /// \brief Stop the data writer thread
   public: void StopDataWriter();
 
+  /// \brief Decrement buffer size by given amount
+  /// \param[in] _len The amount to decrement
+  public: void DecrementBufferSize(std::size_t _len);
+
   /// \brief log file or nullptr if not recording
   public: std::unique_ptr<Log> logFile;
 
@@ -110,8 +114,14 @@ class ignition::transport::log::Recorder::Implementation
   /// \brief Object for discovering new publishers as they advertise themselves
   public: std::unique_ptr<MsgDiscovery> discovery;
 
-  /// \brief Size of the queue that is used to store data from topic callbacks.
-  public: std::atomic<std::size_t> maxQueueSize{10};
+  /// \brief Maximum size of the buffer (in bytes) that is used to store data
+  /// from topic callbacks.
+  public: std::atomic<std::size_t> maxBufferSize{1000<<20};
+
+  /// \brief Current size of the buffer (in bytes). This is computed everytime
+  /// data is added or removed from the queue. Because of that, we'll use
+  /// `dataQueueMutex` to protect it.
+  public: std::size_t bufferSize{0};
 
   /// \brief Data type stored in dataQueue
   public: struct LogData
@@ -131,13 +141,15 @@ class ignition::transport::log::Recorder::Implementation
   };
 
   /// \brief This is a temporary FIFO queue that is used to store data from
-  /// callbacks until they are written to disk.  If the queue fills up before
+  /// callbacks until they are written to disk. If the queue fills up before
   /// the dataWriter thread has a chance to process it, old data will be
   /// overwritten. Thus, it is important to set the queue size appropriately for
-  /// your application.
+  /// your application. The maximum size of this queue is determined by
+  /// `maxBufferSize`. The current size of the buffer is calculated from
+  /// `msgData`.
   public: std::deque<LogData> dataQueue;
 
-  /// \brief Mutex to synchronize access to dataQueue
+  /// \brief Mutex to synchronize access to dataQueue and bufferSize
   public: std::mutex dataQueueMutex;
 
   /// \brief Condition variable to synchronize access to dataQueue
@@ -199,13 +211,26 @@ void Recorder::Implementation::OnMessageReceived(
   // happens when Recorder::Start is called.
   if (this->dataWriterState)
   {
-    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
     std::vector<char> tmp(_data, _data+_len);
-    this->dataQueue.emplace_back(this->clock->Time(), std::move(tmp), _info);
-    if (this->dataQueue.size() > this->maxQueueSize)
+
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    // If the maxBufferSize is zero, we have an infinite queue
+    if (this->maxBufferSize > 0)
     {
-      this->dataQueue.pop_front();
+      // Only pop if we have a message in the queue.
+      if ((this->bufferSize + _len > this->maxBufferSize) &&
+          !this->dataQueue.empty())
+      {
+        this->DecrementBufferSize(this->dataQueue.front().msgData.size());
+        this->dataQueue.pop_front();
+      }
     }
+
+    this->bufferSize += _len;
+    // If the message being added here is larger than maxBufferSize, it should
+    // still be recorded. It just means that the buffer cannot hold another
+    // message until it is recorded.
+    this->dataQueue.emplace_back(this->clock->Time(), std::move(tmp), _info);
     this->dataQueueCondVar.notify_one();
   }
 }
@@ -352,6 +377,22 @@ void Recorder::Implementation::StopDataWriter()
 }
 
 //////////////////////////////////////////////////
+void Recorder::Implementation::DecrementBufferSize(std::size_t _len)
+{
+  if (this->bufferSize >= _len)
+  {
+    this->bufferSize -= _len;
+  }
+  else
+  {
+    // This shouldn't happen
+    LERR("Buffer size was decremented to a value less than zero. "
+        "This should not happen\n");
+    this->bufferSize = 0;
+  }
+}
+
+//////////////////////////////////////////////////
 Recorder::Recorder()
   : dataPtr(new Implementation)
 {
@@ -441,20 +482,15 @@ const std::set<std::string> &Recorder::Topics() const
 }
 
 //////////////////////////////////////////////////
-std::size_t Recorder::MaxQueueSize() const
+std::size_t Recorder::BufferSize() const
 {
-  return this->dataPtr->maxQueueSize;
+  // Shift by 20 to convert to MB
+  return this->dataPtr->maxBufferSize >> 20;
 }
 
 //////////////////////////////////////////////////
-void Recorder::SetMaxQueueSize(std::size_t _size)
+void Recorder::SetBufferSize(std::size_t _size)
 {
-  if (_size > 0)
-  {
-    this->dataPtr->maxQueueSize = _size;
-  }
-  else
-  {
-    LERR("Max queue size must be greater than 0\n");
-  }
+  // Shift by 20 to convert to bytes
+  this->dataPtr->maxBufferSize = _size << 20;
 }
