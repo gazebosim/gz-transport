@@ -500,7 +500,9 @@ void Recorder::Stop()
   this->dataPtr->stopQueue = true;
   this->dataPtr->StopDataWriter();
   // If there is any data left in the dataQueue, write it all to disk
+  LMSG("Log Recorder finalizing log file. This might take some time...");
   this->dataPtr->FlushDataQueue();
+  LMSG("Done\n");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);
   this->dataPtr->logFile.reset(nullptr);
