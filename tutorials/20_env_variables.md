@@ -10,12 +10,6 @@ nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Ignition Transport.
 Below are descriptions of the available environment variables:
 
-* **IGN_PARTITION**
-    * *Value allowed*: Any partition value
-    * *Description*: Specifies a partition name for all the nodes declared
-    inside this process. Note that an alternative partition name  declared
-    programatically and  passed to the constructor of a Node class will take
-    priority over *IGN_PARTITION*.
 * **IGN_IP**
     * *Value allowed*: Any local IP address
     * *Description*: When you have
@@ -25,6 +19,12 @@ Below are descriptions of the available environment variables:
     requesting services you don't need to use this option because the
     discovery service will try all the available network interfaces during
     the search of the topic/service.
+* **IGN_PARTITION**
+    * *Value allowed*: Any partition value
+    * *Description*: Specifies a partition name for all the nodes declared
+    inside this process. Note that an alternative partition name  declared
+    programatically and  passed to the constructor of a Node class will take
+    priority over *IGN_PARTITION*.
 * **IGN_RELAY**
     * *Value allowed*: Colon delimited list of IP addresses
     * *Description*: Connects the nodes
@@ -35,23 +35,33 @@ Below are descriptions of the available environment variables:
     address of another node from the other network. Note that only one IP_RELAY
     link is needed for bidirectional communication between nodes of two
     different networks.
-* **IGN_VERBOSE**
-    * *Value allowed*: 1/0
-    * *Description*: Show debug information.
-* **IGN_TRANSPORT_USERNAME**
-    * *Value allowed*: Any string value
-    * *Description*: A username, used in combination with
-    *IGN_TRANSPORT_PASSWORD*, for basic authentication. Authentication is
-    enabled when both *IGN_TRANSPORT_USERNAME* and *IGN_TRANSPORT_PASSWORD*
-    are specified.
+* **IGN_TRANSPORT_LOG_SQL_PATH**
+    * *Value allowed*: Any path
+    * *Description*: Path to the SQL files used by logging. This does not
+    normally need to be set. It is useful to developers who are testing changes
+    to the schema, and it is used by unit tests.
 * **IGN_TRANSPORT_PASSWORD**
     * *Value allowed*: Any string value
     * *Description*: A password, used in combination with
     *IGN_TRANSPORT_USERNAME*, for basic authentication. Authentication is
     enabled when both *IGN_TRANSPORT_USERNAME* and *IGN_TRANSPORT_PASSWORD*
     are specified.
-* **IGN_TRANSPORT_LOG_SQL_PATH**
-    * *Value allowed*: Any path
-    * *Description*: Path to the SQL files used by logging. This does not
-    normally need to be set. It is useful to developers who are testing changes
-    to the schema, and it is used by unit tests.
+* **IGN_TRANSPORT_RCVHWM**
+    * *Value allowed*: Any non-negative number.
+    * *Description*: Specifies the capacity of the buffer (High Water Mark)
+    that stores incoming Ignition Transport messages. Note that this is a global
+    queue shared by all subscribers within the same process.
+* **IGN_TRANSPORT_SNDHWM**
+    * *Value allowed*: Any non-negative number.
+    * *Description*: Specifies the capacity of the buffer (High Water Mark)
+    that stores outgoing Ignition Transport messages. Note that this is a global
+    queue shared by all publishers within the same process.
+* **IGN_TRANSPORT_USERNAME**
+    * *Value allowed*: Any string value
+    * *Description*: A username, used in combination with
+    *IGN_TRANSPORT_PASSWORD*, for basic authentication. Authentication is
+    enabled when both *IGN_TRANSPORT_USERNAME* and *IGN_TRANSPORT_PASSWORD*
+    are specified.
+* **IGN_VERBOSE**
+    * *Value allowed*: 1/0
+    * *Description*: Show debug information.
