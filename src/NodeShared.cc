@@ -1122,6 +1122,40 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
         &lingerVal, sizeof(lingerVal));
 
+    // Set the capacity of the buffer for receiving messages.
+    std::string ignRcvHwm;
+    int rcvQueueVal = 0;
+    if (env("IGN_TRANSPORT_RCVHWM", ignRcvHwm))
+    {
+      try
+      {
+        rcvQueueVal = std::stoi(ignRcvHwm);
+      }
+      catch (std::invalid_argument &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to a non-negative number. Using ["
+                  << rcvQueueVal << "] instead." << std::endl;
+      }
+      catch (std::out_of_range &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to a non-negative number. This number is "
+                  << "out of range. Using [" << rcvQueueVal << "] instead."
+                  << std::endl;
+      }
+      if (rcvQueueVal < 0)
+      {
+        rcvQueueVal = 0;
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to a non-negative number. This number is "
+                  << "negative. Using [" << rcvQueueVal << "] instead."
+                  << std::endl;
+      }
+    }
+    this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
+          &rcvQueueVal, sizeof(rcvQueueVal));
+
     // Set the capacity of the buffer for sending messages.
     std::string ignSndHwm;
     int sndQueueVal = 0;
@@ -1155,40 +1189,6 @@ bool NodeShared::InitializeSockets()
     }
     this->dataPtr->publisher->setsockopt(ZMQ_SNDHWM,
         &sndQueueVal, sizeof(sndQueueVal));
-
-    // Set the capacity of the buffer for receiving messages.
-    std::string ignRcvHwm;
-    int rcvQueueVal = 0;
-    if (env("IGN_TRANSPORT_RCVHWM", ignRcvHwm))
-    {
-      try
-      {
-        rcvQueueVal = std::stoi(ignRcvHwm);
-      }
-      catch (std::invalid_argument &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. Using ["
-                  << rcvQueueVal << "] instead." << std::endl;
-      }
-      catch (std::out_of_range &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. This number is "
-                  << "out of range. Using [" << rcvQueueVal << "] instead."
-                  << std::endl;
-      }
-      if (rcvQueueVal < 0)
-      {
-        rcvQueueVal = 0;
-        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. This number is "
-                  << "negative. Using [" << rcvQueueVal << "] instead."
-                  << std::endl;
-      }
-    }
-    this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
-          &rcvQueueVal, sizeof(rcvQueueVal));
 
     this->dataPtr->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
