@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <optional>
+#include <numeric>
 
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
