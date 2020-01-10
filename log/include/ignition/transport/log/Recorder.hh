@@ -77,7 +77,9 @@ namespace ignition
         /// already existed, this will return FAILED_TO_OPEN.
         public: RecorderError Start(const std::string &_file);
 
-        /// \brief Stop recording topics
+        /// \brief Stop recording topics. This function will block if there is
+        /// any data in the internal buffer that has not yet been written to
+        /// disk.
         public: void Stop();
 
         /// \brief Add a topic to be recorded (exact match only)
@@ -105,6 +107,18 @@ namespace ignition
         /// \return The set of topic names that have been added using the
         /// AddTopic functions.
         public: const std::set<std::string> &Topics() const;
+
+        /// \brief Get the buffer size of the queue that is used to store data
+        /// from topic callbacks.
+        /// \return Current buffer size in MB.
+        public: std::size_t BufferSize() const;
+
+        /// \brief Set the maximum size (in MB) of the buffer that is used to
+        /// store data from topic callbacks. When the buffer reaches this size,
+        /// the recorder will start dropping older messages to make room for new
+        /// ones.
+        /// \param[in] _size Buffer size in MB
+        public: void SetBufferSize(std::size_t _size);
 
         /// \internal Implementation of this class
         private: class Implementation;
