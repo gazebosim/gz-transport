@@ -246,6 +246,20 @@ namespace ignition
       /// \sa Pass through to bool Advertise(const Pub &_publisher)
       public: bool AdvertisePublisher(const ServicePublisher &_publisher);
 
+      /// \brief Get the capacity of the buffer (High Water Mark)
+      /// that stores incoming Ignition Transport messages. Note that this is a
+      /// global queue shared by all subscribers within the same process.
+      /// \return The buffer of incoming messages (units are messages) or -1 if
+      /// the socket cannot be queried.
+      public: int RcvHwm();
+
+      /// \brief Get the capacity of the buffer (High Water Mark)
+      /// that stores outgoing Ignition Transport messages. Note that this is a
+      /// global queue shared by all publishers within the same process.
+      /// \return The buffer of outgoing messages (units are messages) or -1 if
+      /// the socket cannot be queried.
+      public: int SndHwm();
+
       /// \brief Constructor.
       protected: NodeShared();
 

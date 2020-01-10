@@ -57,6 +57,20 @@ namespace ignition
     // Forward declarations.
     class NodePrivate;
 
+    /// \brief Get the capacity of the buffer (High Water Mark)
+    /// that stores incoming Ignition Transport messages. Note that this is a
+    /// global queue shared by all subscribers within the same process.
+    /// \return The buffer of incoming messages (units are messages) or -1 if
+    /// the socket cannot be queried.
+    int IGNITION_TRANSPORT_VISIBLE rcvHwm();
+
+    /// \brief Get the capacity of the buffer (High Water Mark)
+    /// that stores outgoing Ignition Transport messages. Note that this is a
+    /// global queue shared by all publishers within the same process.
+    /// \return The buffer of outgoing messages (units are messages) or -1 if
+    /// the socket cannot be queried.
+    int IGNITION_TRANSPORT_VISIBLE sndHwm();
+
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.

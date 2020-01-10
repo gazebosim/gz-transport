@@ -76,6 +76,18 @@ namespace ignition
     }
 
     //////////////////////////////////////////////////
+    int rcvHwm()
+    {
+      return NodeShared::Instance()->RcvHwm();
+    }
+
+    //////////////////////////////////////////////////
+    int sndHwm()
+    {
+      return NodeShared::Instance()->SndHwm();
+    }
+
+    //////////////////////////////////////////////////
     void waitForShutdown()
     {
       // Install a signal handler for SIGINT and SIGTERM.
