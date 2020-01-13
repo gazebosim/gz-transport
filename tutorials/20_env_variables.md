@@ -49,12 +49,20 @@ Next you can see a description of the available environment variables:
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
     that stores incoming Ignition Transport messages. Note that this is a global
-    queue shared by all subscribers within the same process.
+    queue shared by all subscribers within the same process. A value of 0 means
+    "infinite" capacity. As you can guess, there's no such thing as an infinite
+    buffer, so your buffer will grow until you run out of memory (and probably
+    crash). If your buffer reaches the maximum capacity data will be dropped.
+    * *Default value*: 0.
 * **IGN_TRANSPORT_SNDHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
     that stores outgoing Ignition Transport messages. Note that this is a global
-    queue shared by all publishers within the same process.
+    queue shared by all publishers within the same process. A value of 0 means
+    "infinite" capacity. As you can guess, there's no such thing as an infinite
+    buffer, so your buffer will grow until you run out of memory (and probably
+    crash). If your buffer reaches the maximum capacity data will be dropped.
+    * *Default value*: 0.
 * **IGN_TRANSPORT_USERNAME**
     * *Value allowed*: Any string value
     * *Description*: A username, used in combination with
