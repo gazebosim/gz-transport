@@ -288,7 +288,7 @@ which can be obtained:
 
 <b>Medium level of debugging support</b>
 
-  This can be obtained installing the `libignition-transport8-dbg` package or
+  This can be obtained installing the `libignition-transport9-dbg` package or
   compiling Ignition Transport from source using the `RELWITHDEBINFO`
   `CMAKE_BUILD_TYPE` mode (which is the default if no mode is provided). This
   will set up `-O2` optimization level but provide debugging symbols. This

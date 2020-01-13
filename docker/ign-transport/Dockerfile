@@ -76,7 +76,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get clean
 
 # Ignition transport
-RUN hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b ign-transport8 \
+RUN hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b ign-transport9 \
  && cd ign-transport \
  && mkdir build \
  && cd build \
