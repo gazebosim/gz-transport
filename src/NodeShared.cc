@@ -1134,13 +1134,13 @@ bool NodeShared::InitializeSockets()
       catch (std::invalid_argument &_e)
       {
         std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. Using ["
+                  << ignRcvHwm << "] to an integer number. Using ["
                   << rcvQueueVal << "] instead." << std::endl;
       }
       catch (std::out_of_range &_e)
       {
         std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. This number is "
+                  << ignRcvHwm << "] to an integer number. This number is "
                   << "out of range. Using [" << rcvQueueVal << "] instead."
                   << std::endl;
       }
@@ -1168,13 +1168,13 @@ bool NodeShared::InitializeSockets()
       catch (std::invalid_argument &_e)
       {
         std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignSndHwm << "] to a non-negative number. Using ["
+                  << ignSndHwm << "] to an integer number. Using ["
                   << sndQueueVal << "] instead." << std::endl;
       }
       catch (std::out_of_range &_e)
       {
         std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignSndHwm << "] to a non-negative number. This number is "
+                  << ignSndHwm << "] to an integer number. This number is "
                   << "out of range. Using [" << sndQueueVal << "] instead."
                   << std::endl;
       }
