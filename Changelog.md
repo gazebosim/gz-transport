@@ -13,6 +13,9 @@
 1. Improve compiler support for c++ filesystem.
    * [Pull request 422](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/422)
 
+1. Added support for configuring message buffers via environment variables.
+   * [Pull request 430](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/430)
+
 ### Ignition Transport 7.2.1
 
 1. Updates to C interface subscription options.

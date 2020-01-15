@@ -950,10 +950,6 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
           topic.data(), topic.size());
 
-      int queueVal = 0;
-      this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
-          &queueVal, sizeof(queueVal));
-
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
 
@@ -1126,9 +1122,73 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
         &lingerVal, sizeof(lingerVal));
 
-    int queueVal = 0;
+    // Set the capacity of the buffer for receiving messages.
+    std::string ignRcvHwm;
+    int rcvQueueVal = 0;
+    if (env("IGN_TRANSPORT_RCVHWM", ignRcvHwm))
+    {
+      try
+      {
+        rcvQueueVal = std::stoi(ignRcvHwm);
+      }
+      catch (std::invalid_argument &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to an integer number. Using ["
+                  << rcvQueueVal << "] instead." << std::endl;
+      }
+      catch (std::out_of_range &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to an integer number. This number is "
+                  << "out of range. Using [" << rcvQueueVal << "] instead."
+                  << std::endl;
+      }
+      if (rcvQueueVal < 0)
+      {
+        rcvQueueVal = 0;
+        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
+                  << ignRcvHwm << "] to a non-negative number. This number is "
+                  << "negative. Using [" << rcvQueueVal << "] instead."
+                  << std::endl;
+      }
+    }
+    this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
+          &rcvQueueVal, sizeof(rcvQueueVal));
+
+    // Set the capacity of the buffer for sending messages.
+    std::string ignSndHwm;
+    int sndQueueVal = 0;
+    if (env("IGN_TRANSPORT_SNDHWM", ignSndHwm))
+    {
+      try
+      {
+        sndQueueVal = std::stoi(ignSndHwm);
+      }
+      catch (std::invalid_argument &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
+                  << ignSndHwm << "] to an integer number. Using ["
+                  << sndQueueVal << "] instead." << std::endl;
+      }
+      catch (std::out_of_range &_e)
+      {
+        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
+                  << ignSndHwm << "] to an integer number. This number is "
+                  << "out of range. Using [" << sndQueueVal << "] instead."
+                  << std::endl;
+      }
+      if (sndQueueVal < 0)
+      {
+        sndQueueVal = 0;
+        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
+                  << ignSndHwm << "] to a non-negative number. This number is "
+                  << "negative. Using [" << sndQueueVal << "] instead."
+                  << std::endl;
+      }
+    }
     this->dataPtr->publisher->setsockopt(ZMQ_SNDHWM,
-        &queueVal, sizeof(queueVal));
+        &sndQueueVal, sizeof(sndQueueVal));
 
     this->dataPtr->publisher->bind(anyTcpEp.c_str());
     size_t size = sizeof(bindEndPoint);
@@ -1195,6 +1255,40 @@ bool NodeShared::DiscoverService(const std::string &_topic) const
 bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 {
   return this->dataPtr->srvDiscovery->Advertise(_publisher);
+}
+
+/////////////////////////////////////////////////
+int NodeShared::RcvHwm()
+{
+  int rcvHwm;
+  size_t rcvHwmSize = sizeof(rcvHwm);
+  try
+  {
+    this->dataPtr->subscriber->getsockopt(ZMQ_RCVHWM, &rcvHwm, &rcvHwmSize);
+  }
+  catch (zmq::error_t &_e)
+  {
+    return -1;
+  }
+
+  return rcvHwm;
+}
+
+/////////////////////////////////////////////////
+int NodeShared::SndHwm()
+{
+  int sndHwm;
+  size_t sndHwmSize = sizeof(sndHwm);
+  try
+  {
+    this->dataPtr->publisher->getsockopt(ZMQ_SNDHWM, &sndHwm, &sndHwmSize);
+  }
+  catch (zmq::error_t &_e)
+  {
+    return -1;
+  }
+
+  return sndHwm;
 }
 
 //////////////////////////////////////////////////

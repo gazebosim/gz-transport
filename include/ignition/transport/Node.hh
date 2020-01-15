@@ -57,6 +57,28 @@ namespace ignition
     // Forward declarations.
     class NodePrivate;
 
+    /// \brief Get the capacity of the buffer (High Water Mark)
+    /// that stores incoming Ignition Transport messages. Note that this is a
+    /// global queue shared by all subscribers within the same process.
+    /// \return The capacity of the buffer storing incoming messages (units are
+    /// messages). A value of 0 indicates an unlimited buffer and -1
+    /// that the socket cannot be queried. The default buffer size is unlimited.
+    /// As you can guess, there's no such thing as an infinite buffer, so your
+    /// buffer will grow until you run out of memory (and probably crash).
+    /// If your buffer reaches the maximum capacity data will be dropped.
+    int IGNITION_TRANSPORT_VISIBLE rcvHwm();
+
+    /// \brief Get the capacity of the buffer (High Water Mark)
+    /// that stores outgoing Ignition Transport messages. Note that this is a
+    /// global queue shared by all publishers within the same process.
+    /// \return The capacity of the buffer storing outgoing messages (units are
+    /// messages). A value of 0 indicates an unlimited buffer and -1
+    /// that the socket cannot be queried. The default buffer size is unlimited.
+    /// As you can guess, there's no such thing as an infinite buffer, so your
+    /// buffer will grow until you run out of memory (and probably crash).
+    /// If your buffer reaches the maximum capacity data will be dropped.
+    int IGNITION_TRANSPORT_VISIBLE sndHwm();
+
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
