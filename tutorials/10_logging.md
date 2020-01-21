@@ -25,7 +25,7 @@ cd ~/ign_transport_tutorial
 
 ## Record
 
-Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/record.cc)
+Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport9/example/record.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -126,7 +126,7 @@ stops the log recording as expected.
 
 ## Play back
 
-Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/playback.cc)
+Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport9/example/playback.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite
 editor:
 
@@ -215,7 +215,7 @@ thread until all messages have been published.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/CMakeLists.txt)
+Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport9/example/CMakeLists.txt)
 file within the `ign_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
