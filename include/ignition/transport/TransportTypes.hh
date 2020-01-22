@@ -172,6 +172,14 @@ namespace ignition
 
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobuf.Message";
+
+    /// \brief The high water mark of the recieve message buffer.
+    /// \sa NodeShared::RcvHwm
+    const int kDefaultRcvHwm = 1000;
+
+    /// \brief The high water mark of the send message buffer.
+    /// \sa NodeShared::SndHwm
+    const int kDefaultSndHwm = 1000;
     }
   }
 }

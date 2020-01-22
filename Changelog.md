@@ -2,6 +2,10 @@
 
 ### Ignition Transport 7.x.x
 
+1. Set default message buffer sizes to 1000, for both send and receive
+   buffers.
+   * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/xxx)
+
 ### Ignition Transport 7.3.0
 
 1. Write to disk from a background thread in log recorder
