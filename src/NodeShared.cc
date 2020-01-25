@@ -1124,7 +1124,7 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for receiving messages.
     std::string ignRcvHwm;
-    int rcvQueueVal = 0;
+    int rcvQueueVal = kDefaultRcvHwm;
     if (env("IGN_TRANSPORT_RCVHWM", ignRcvHwm))
     {
       try
@@ -1146,7 +1146,7 @@ bool NodeShared::InitializeSockets()
       }
       if (rcvQueueVal < 0)
       {
-        rcvQueueVal = 0;
+        rcvQueueVal = kDefaultRcvHwm;
         std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
                   << ignRcvHwm << "] to a non-negative number. This number is "
                   << "negative. Using [" << rcvQueueVal << "] instead."
@@ -1158,7 +1158,7 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for sending messages.
     std::string ignSndHwm;
-    int sndQueueVal = 0;
+    int sndQueueVal = kDefaultSndHwm;
     if (env("IGN_TRANSPORT_SNDHWM", ignSndHwm))
     {
       try
@@ -1180,7 +1180,7 @@ bool NodeShared::InitializeSockets()
       }
       if (sndQueueVal < 0)
       {
-        sndQueueVal = 0;
+        sndQueueVal = kDefaultSndHwm;
         std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
                   << ignSndHwm << "] to a non-negative number. This number is "
                   << "negative. Using [" << sndQueueVal << "] instead."
