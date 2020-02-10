@@ -367,11 +367,11 @@ namespace ignition
       /// \param[in] _header Message header.
       /// \param[in] _nUuid Node UUID.
       /// \param[in] _topic Topic name.
-      /// \param[in] _type Topic type.
+      /// \param[in] _typeName Topic type.
       public: ConnectionMsg(const transport::Header &_header,
                             const std::string &_nUuid,
                             const std::string &_topic,
-                            const std::string &_type);
+                            const std::string &_typeName);
 
       /// \brief Get the message header.
       /// \return Reference to the message header.
@@ -451,7 +451,7 @@ namespace ignition
 #pragma warning(disable: 4251)
 #endif
       /// \brief Node UUID.
-      private: std::string nodeUUID = "";
+      private: std::string nUuid = "";
 
       /// \brief Topic.
       private: std::string topic = "";

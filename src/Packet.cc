@@ -254,3 +254,174 @@ size_t SubscriptionMsg::Unpack(const char *_buffer)
 
   return sizeof(topicLength) + static_cast<size_t>(topicLength);
 }
+
+//////////////////////////////////////////////////
+ConnectionMsg::ConnectionMsg(const transport::Header &_header,
+    const std::string &_nUuid, const std::string &_topic,
+    const std::string &_typeName)
+{
+  this->SetHeader(_header);
+  this->SetNUuid(_nUuid);
+  this->SetTopic(_topic);
+  this->SetTypeName(_typeName);
+}
+
+//////////////////////////////////////////////////
+transport::Header ConnectionMsg::Header() const
+{
+  return this->header;
+}
+
+//////////////////////////////////////////////////
+std::string ConnectionMsg::NUuid() const
+{
+  return this->nUuid;
+}
+
+//////////////////////////////////////////////////
+std::string ConnectionMsg::Topic() const
+{
+  return this->topic;
+}
+
+//////////////////////////////////////////////////
+std::string ConnectionMsg::TypeName() const
+{
+  return this->typeName;
+}
+
+//////////////////////////////////////////////////
+void ConnectionMsg::SetHeader(const transport::Header &_header)
+{
+  this->header = _header;
+}
+
+//////////////////////////////////////////////////
+void ConnectionMsg::SetNUuid(const std::string &_nUuid)
+{
+  this->nUuid = _nUuid;
+}
+
+//////////////////////////////////////////////////
+void ConnectionMsg::SetTopic(const std::string &_topic)
+{
+  this->topic = _topic;
+}
+
+//////////////////////////////////////////////////
+void ConnectionMsg::SetTypeName(const std::string &_typeName)
+{
+  this->typeName = _typeName;
+}
+
+//////////////////////////////////////////////////
+size_t ConnectionMsg::MsgLength() const
+{
+  return this->header.HeaderLength()       +
+     sizeof(uint16_t) + this->nUuid.size() +
+     sizeof(uint16_t) + this->topic.size() +
+     sizeof(uint16_t) + this->typeName.size();
+}
+
+//////////////////////////////////////////////////
+size_t ConnectionMsg::Pack(char *_buffer) const
+{
+  // Pack the header.
+  size_t headerLen = this->Header().Pack(_buffer);
+  if (headerLen == 0)
+    return 0;
+
+  if (this->nUuid == "")
+  {
+    std::cerr << "ConnectionMsg::Pack() error: You're trying to pack a "
+              << "message with an empty node UUID" << std::endl;
+    return 0;
+  }
+
+  if (this->topic == "")
+  {
+    std::cerr << "ConnectionMsg::Pack() error: You're trying to pack a "
+              << "message with an empty topic" << std::endl;
+    return 0;
+  }
+
+  if (this->typeName == "")
+  {
+    std::cerr << "ConnectionMsg::Pack() error: You're trying to pack a "
+              << "message with an empty topic type" << std::endl;
+    return 0;
+  }
+
+  _buffer += headerLen;
+
+  // Pack the node UUID length.
+  uint16_t nUUIDLength = static_cast<uint16_t>(this->nUuid.size());
+  memcpy(_buffer, &nUUIDLength, sizeof(nUUIDLength));
+  _buffer += sizeof(nUUIDLength);
+
+  // Pack the node UUID.
+  memcpy(_buffer, this->nUuid.data(), static_cast<size_t>(nUUIDLength));
+  _buffer += nUUIDLength;
+
+  // Pack the topic length.
+  uint16_t topicLength = static_cast<uint16_t>(this->topic.size());
+  memcpy(_buffer, &topicLength, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+
+  // Pack the topic.
+  memcpy(_buffer, this->topic.data(), static_cast<size_t>(topicLength));
+  _buffer += topicLength;
+
+  // Pack the topic type length.
+  uint16_t typeNameLength = static_cast<uint16_t>(this->typeName.size());
+  memcpy(_buffer, &typeNameLength, sizeof(typeNameLength));
+  _buffer += sizeof(typeNameLength);
+
+  // Pack the topic length.
+  memcpy(_buffer, this->typeName.data(), static_cast<size_t>(typeNameLength));
+  _buffer += typeNameLength;
+
+  return this->MsgLength();
+}
+
+//////////////////////////////////////////////////
+size_t ConnectionMsg::Unpack(const char *_buffer)
+{
+  // null buffer.
+  if (!_buffer)
+  {
+    std::cerr << "ConnectionMsg::UnpackBody() error: NULL input buffer"
+              << std::endl;
+    return 0;
+  }
+
+  // Unpack the node UUID length.
+  uint16_t nUuidLength;
+  memcpy(&nUuidLength, _buffer, sizeof(nUuidLength));
+  _buffer += sizeof(nUuidLength);
+
+  // Unpack the node UUID.
+  this->nUuid = std::string(_buffer, _buffer + nUuidLength);
+  _buffer += nUuidLength;
+
+  // Unpack the topic length.
+  uint16_t topicLength;
+  memcpy(&topicLength, _buffer, sizeof(topicLength));
+  _buffer += sizeof(topicLength);
+
+  // Unpack the topic.
+  this->topic = std::string(_buffer, _buffer + topicLength);
+  _buffer += topicLength;
+
+  // Unpack the topic type length.
+  uint16_t typeNameLength;
+  memcpy(&typeNameLength, _buffer, sizeof(typeNameLength));
+  _buffer += sizeof(typeNameLength);
+
+  // Unpack the topic type.
+  this->typeName = std::string(_buffer, _buffer + typeNameLength);
+
+  return sizeof(nUuidLength)    + static_cast<size_t>(nUuidLength) +
+         sizeof(topicLength)    + static_cast<size_t>(topicLength) +
+         sizeof(typeNameLength) + static_cast<size_t>(typeNameLength);
+}
