@@ -652,3 +652,113 @@ TEST(PacketTest, AdvertiseSrvIO)
   // Try to unpack an AdvertiseSrv passing a NULL buffer.
   EXPECT_EQ(otherAdvSrv.Unpack(nullptr), 0u);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check the basic API for creating/reading a NewConnection message.
+TEST(PacketTest, BasicConnectionAPI)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  Header otherHeader(version, pUuid, NewConnection, 3);
+
+  std::string nUuid     = "nuuid_test";
+  std::string topic     = "topic_test";
+  std::string typeName  = "type_test";
+  ConnectionMsg connectionMsg(otherHeader, nUuid, topic, typeName);
+
+  // Check getters.
+  EXPECT_EQ(nUuid, connectionMsg.NUuid());
+  EXPECT_EQ(topic, connectionMsg.Topic());
+  EXPECT_EQ(typeName, connectionMsg.TypeName());
+
+  size_t msgLength = connectionMsg.Header().HeaderLength() +
+    sizeof(uint16_t) + nUuid.size() +
+    sizeof(uint16_t) + topic.size() +
+    sizeof(uint16_t) + typeName.size();
+  EXPECT_EQ(msgLength, connectionMsg.MsgLength());
+
+  // Check setters.
+  nUuid = "a_new_UUID_test";
+  connectionMsg.SetNUuid(nUuid);
+  EXPECT_EQ(nUuid, connectionMsg.NUuid());
+
+  topic = "a_new_topic_test";
+  connectionMsg.SetTopic(topic);
+  EXPECT_EQ(topic, connectionMsg.Topic());
+
+  typeName = "a_new_topic_type_test";
+  connectionMsg.SetTypeName(typeName);
+  EXPECT_EQ(typeName, connectionMsg.TypeName());
+
+  // Check << operator
+  std::ostringstream output;
+  output << connectionMsg;
+  std::string expectedOutput =
+    "--------------------------------------\n"
+    "Header:\n"
+    "\tVersion: 1\n"
+    "\tProcess UUID: Process-UUID-1\n"
+    "\tType: NEW_CONNECTION\n"
+    "\tFlags: 3\n"
+    "Body:\n"
+    "\tNode UUID: [a_new_UUID_test]\n"
+    "\tTopic: [a_new_topic_test]\n"
+    "\tType: [a_new_topic_type_test]\n";
+
+  EXPECT_EQ(expectedOutput, output.str());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the serialization and unserialization of a NewConnection msg.
+TEST(PacketTest, ConnectionIO)
+{
+  std::string pUuid = "Process-UUID-1";
+  uint8_t version   = 1;
+
+  // Try to pack an empty ConnectionMsg.
+  ConnectionMsg emptyMsg;
+  std::vector<char> buffer(emptyMsg.MsgLength());
+  EXPECT_EQ(0u, emptyMsg.Pack(&buffer[0]));
+
+  // Pack a ConnectionMsg with an empty topic.
+  Header otherHeader(version, pUuid, SubType, 3);
+  ConnectionMsg incompleteMsg(otherHeader, "", "", "");
+  buffer.resize(incompleteMsg.MsgLength());
+  EXPECT_EQ(0u, incompleteMsg.Pack(&buffer[0]));
+
+  // Pack a ConnectionMsg.
+  std::string nUuid = "node_UUID_test";
+  std::string topic = "topic_test";
+  std::string typeName = "type_name_test";
+  ConnectionMsg connectionMsg(otherHeader, nUuid, topic, typeName);
+  buffer.resize(connectionMsg.MsgLength());
+  size_t bytes = connectionMsg.Pack(&buffer[0]);
+  EXPECT_EQ(bytes, connectionMsg.MsgLength());
+
+  // Unpack a ConnectionMsg.
+  Header header;
+  ConnectionMsg otherConnectionMsg;
+  size_t headerBytes = header.Unpack(&buffer[0]);
+  EXPECT_EQ(headerBytes, static_cast<size_t>(header.HeaderLength()));
+  otherConnectionMsg.SetHeader(header);
+  char *pBody = &buffer[0] + header.HeaderLength();
+  size_t bodyBytes = otherConnectionMsg.Unpack(pBody);
+
+  // Check that after Pack() and Unpack() the data does not change.
+  EXPECT_EQ(otherConnectionMsg.NUuid(), connectionMsg.NUuid());
+  EXPECT_EQ(otherConnectionMsg.Topic(), connectionMsg.Topic());
+  EXPECT_EQ(otherConnectionMsg.TypeName(), connectionMsg.TypeName());
+  EXPECT_EQ(otherConnectionMsg.MsgLength() -
+            otherConnectionMsg.Header().HeaderLength(),
+            connectionMsg.MsgLength() -
+            connectionMsg.Header().HeaderLength());
+  EXPECT_EQ(bodyBytes, otherConnectionMsg.MsgLength() -
+            otherConnectionMsg.Header().HeaderLength());
+
+  // Try to pack a ConnectionMsg passing a NULL buffer.
+  EXPECT_EQ(0u, otherConnectionMsg.Pack(nullptr));
+
+  // Try to unpack a ConnectionMsg passing a NULL buffer.
+  EXPECT_EQ(0u, otherConnectionMsg.Unpack(nullptr));
+}
