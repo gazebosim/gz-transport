@@ -374,6 +374,18 @@ namespace ignition
         return true;
       }
 
+      /// \brief ToDo.
+      public: void Register(const MessagePublisher &_pub) const
+      {
+        this->SendMsg(DestinationType::ALL, NewConnection, _pub);
+      }
+
+      /// \brief ToDo.
+      public: void Unregister(const MessagePublisher &_pub) const
+      {
+        this->SendMsg(DestinationType::ALL, EndConnection, _pub);
+      }
+
       /// \brief Get the discovery information.
       /// \return Reference to the discovery information object.
       public: const TopicStorage<Pub> &Info() const
@@ -510,6 +522,20 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->disconnectionCb = _cb;
+      }
+
+      /// \brief ToDo.
+      public: void RegistrationsCb(const DiscoveryCallback<Pub> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->registrationCb = _cb;
+      }
+
+      /// \brief ToDo.
+      public: void UnregistrationsCb(const DiscoveryCallback<Pub> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->unregistrationCb = _cb;
       }
 
       /// \brief Print the current discovery state.
@@ -860,11 +886,15 @@ namespace ignition
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
+        DiscoveryCallback<Pub> registerCb;
+        DiscoveryCallback<Pub> unregisterCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
+          registerCb = this->registrationCb;
+          unregisterCb = this->unregistrationCb;
         }
 
         char *pBody = headerPtr + header.HeaderLength();
@@ -933,6 +963,32 @@ namespace ignition
               // Answer an ADVERTISE message.
               this->SendMsg(DestinationType::ALL, AdvType, nodeInfo);
             }
+
+            break;
+          }
+          case NewConnection:
+          {
+            std::cout << "Processing NewConnection message [" <<
+              recvPUuid << "]" << std::endl;
+            // Read the rest of the fields.
+            transport::AdvertiseMessage<Pub> advMsg;
+            advMsg.Unpack(pBody);
+
+            if (registerCb)
+              registerCb(advMsg.Publisher());
+
+            break;
+          }
+          case EndConnection:
+          {
+            std::cout << "Processing EndConnection message [" <<
+              recvPUuid << "]" << std::endl;
+            // Read the rest of the fields.
+            transport::AdvertiseMessage<Pub> advMsg;
+            advMsg.Unpack(pBody);
+
+            if (unregisterCb)
+              unregisterCb(advMsg.Publisher());
 
             break;
           }
@@ -1025,8 +1081,10 @@ namespace ignition
         {
           case AdvType:
           case UnadvType:
+          case NewConnection:
+          case EndConnection:
           {
-            // Create the [UN]ADVERTISE message.
+            // Create the [UN]ADVERTISE/NewConnection/EndConnection message.
             transport::AdvertiseMessage<T> advMsg(header, _pub);
 
             // Allocate a buffer and serialize the message.
@@ -1293,6 +1351,12 @@ namespace ignition
 
       /// \brief Callback executed when new topics are invalid.
       private: DiscoveryCallback<Pub> disconnectionCb;
+
+      /// \brief ToDo.
+      private: DiscoveryCallback<Pub> registrationCb;
+
+      /// \brief ToDo.
+      private: DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;

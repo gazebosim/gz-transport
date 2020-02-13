@@ -220,6 +220,14 @@ namespace ignition
       /// \param[in] _pub Information of the publisher in charge of the service.
       public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
 
+      /// \brief Callback executed when a remote subscriber connects.
+      /// \param[in] _pub Information of the remote subscriber.
+      public: void OnNewRegistration(const MessagePublisher &_pub);
+
+      /// \brief Callback executed when a remote subscriber unregisters.
+      /// \param[in] _pub Information of the remote subscriber.
+      public: void OnEndRegistration(const MessagePublisher &_pub);
+
       /// \brief Pass through to bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const
       /// \param[in] _topic Service name.
