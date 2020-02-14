@@ -524,14 +524,18 @@ namespace ignition
         this->disconnectionCb = _cb;
       }
 
-      /// \brief ToDo.
+      /// \brief Register a callback to receive an event when a new remote
+      /// node subscribes to a topic in this process.
+      /// \param[in] _cb Function callback.
       public: void RegistrationsCb(const DiscoveryCallback<Pub> &_cb)
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->registrationCb = _cb;
       }
 
-      /// \brief ToDo.
+      /// \brief Register a callback to receive an event when a remote
+      /// node unsubscribes to a topic in this process.
+      /// \param[in] _cb Function callback.
       public: void UnregistrationsCb(const DiscoveryCallback<Pub> &_cb)
       {
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -968,8 +972,6 @@ namespace ignition
           }
           case NewConnection:
           {
-            std::cout << "Processing NewConnection message [" <<
-              recvPUuid << "]" << std::endl;
             // Read the rest of the fields.
             transport::AdvertiseMessage<Pub> advMsg;
             advMsg.Unpack(pBody);
@@ -981,8 +983,6 @@ namespace ignition
           }
           case EndConnection:
           {
-            std::cout << "Processing EndConnection message [" <<
-              recvPUuid << "]" << std::endl;
             // Read the rest of the fields.
             transport::AdvertiseMessage<Pub> advMsg;
             advMsg.Unpack(pBody);
@@ -1352,11 +1352,11 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       private: DiscoveryCallback<Pub> disconnectionCb;
 
-      /// \brief ToDo.
-      private: DiscoveryCallback<Pub> registrationCb;
+      /// \brief Callback execute when a new remote subscriber is registered.
+      private: inline static DiscoveryCallback<Pub> registrationCb;
 
-      /// \brief ToDo.
-      private: DiscoveryCallback<Pub> unregistrationCb;
+      /// \brief Callback execute when a new remote subscriber is unregistered.
+      private: inline static DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
