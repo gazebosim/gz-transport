@@ -625,11 +625,15 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->shared->myAddress,
-    "unused", this->dataPtr->shared->pUuid, this->dataPtr->nUuid,
-    kGenericMessageType, AdvertiseMessageOptions());
+  for (auto &proc : addresses)
+  {
+    std::string dstPUuid = proc.first;
+    MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->shared->myAddress,
+      dstPUuid, this->dataPtr->shared->pUuid, this->dataPtr->nUuid,
+      kGenericMessageType, AdvertiseMessageOptions());
 
-  this->Shared()->dataPtr->msgDiscovery->Unregister(pub);
+    this->Shared()->dataPtr->msgDiscovery->Unregister(pub);
+  }
 
   return true;
 }

@@ -374,13 +374,15 @@ namespace ignition
         return true;
       }
 
-      /// \brief ToDo.
+      /// \brief Register a node in this process as a remote subscriber.
+      /// \param[in] _pub Contains information about the subscriber.
       public: void Register(const MessagePublisher &_pub) const
       {
         this->SendMsg(DestinationType::ALL, NewConnection, _pub);
       }
 
-      /// \brief ToDo.
+      /// \brief Unregister a node in this process as a remote subscriber.
+      /// \param[in] _pub Contains information about the subscriber.
       public: void Unregister(const MessagePublisher &_pub) const
       {
         this->SendMsg(DestinationType::ALL, EndConnection, _pub);

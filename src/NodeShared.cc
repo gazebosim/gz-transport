@@ -893,6 +893,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     MessagePublisher pub(_pub);
     pub.SetPUuid(this->pUuid);
 
+    // Hack: We use this field to store the PUuid of the topic publisher.
+    pub.SetCtrl(_pub.PUuid());
+
     std::vector<std::string> handlerNodeUuids =
         this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
     for (const std::string &nodeUuid : handlerNodeUuids)
@@ -1008,6 +1011,10 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
 {
+  // Discard the message if the destination PUUID is not me.
+  if (_pub.Ctrl() != this->pUuid)
+    return;
+
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
 
@@ -1026,6 +1033,10 @@ void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 {
+  // Discard the message if the destination PUUID is not me.
+  if (_pub.Ctrl() != this->pUuid)
+    return;
+
   std::string topic = _pub.Topic();
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
