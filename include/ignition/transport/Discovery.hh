@@ -374,14 +374,14 @@ namespace ignition
         return true;
       }
 
-      /// \brief Register a node in this process as a remote subscriber.
+      /// \brief Register a node from this process as a remote subscriber.
       /// \param[in] _pub Contains information about the subscriber.
       public: void Register(const MessagePublisher &_pub) const
       {
         this->SendMsg(DestinationType::ALL, NewConnection, _pub);
       }
 
-      /// \brief Unregister a node in this process as a remote subscriber.
+      /// \brief Unregister a node from this process as a remote subscriber.
       /// \param[in] _pub Contains information about the subscriber.
       public: void Unregister(const MessagePublisher &_pub) const
       {
@@ -527,7 +527,7 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive an event when a new remote
-      /// node subscribes to a topic in this process.
+      /// node subscribes to a topic within this process.
       /// \param[in] _cb Function callback.
       public: void RegistrationsCb(const DiscoveryCallback<Pub> &_cb)
       {
@@ -536,7 +536,7 @@ namespace ignition
       }
 
       /// \brief Register a callback to receive an event when a remote
-      /// node unsubscribes to a topic in this process.
+      /// node unsubscribes to a topic within this process.
       /// \param[in] _cb Function callback.
       public: void UnregistrationsCb(const DiscoveryCallback<Pub> &_cb)
       {
@@ -1354,10 +1354,12 @@ namespace ignition
       /// \brief Callback executed when new topics are invalid.
       private: DiscoveryCallback<Pub> disconnectionCb;
 
-      /// \brief Callback execute when a new remote subscriber is registered.
+      /// \brief Callback executed when a new remote subscriber is registered.
+      /// ToDo: Remove static when possible.
       private: inline static DiscoveryCallback<Pub> registrationCb;
 
-      /// \brief Callback execute when a new remote subscriber is unregistered.
+      /// \brief Callback executed when a new remote subscriber is unregistered.
+      /// ToDo: Remove static when possible.
       private: inline static DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Addressing information.

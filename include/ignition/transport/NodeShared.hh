@@ -187,6 +187,7 @@ namespace ignition
 
       /// \brief Method in charge of receiving the control updates (when a new
       /// remote subscriber notifies its presence for example).
+      /// ToDo: Remove this function when possible.
       public: void RecvControlUpdate();
 
       /// \brief Method in charge of receiving the service call requests.
