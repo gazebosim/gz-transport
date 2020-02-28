@@ -261,9 +261,9 @@ namespace ignition
       /// \return The capacity of the buffer storing incoming messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1
       /// that the socket cannot be queried. The default buffer size is
-      /// unlimited.
-      /// As you can guess, there's no such thing as an infinite buffer, so your
-      /// buffer will grow until you run out of memory (and probably crash).
+      /// contained in the #kDefaultRcvHwm variable.
+      /// If the buffer is set to unlimited, then your buffer will grow until
+      /// you run out of memory (and probably crash).
       /// If your buffer reaches the maximum capacity data will be dropped.
       public: int RcvHwm();
 
@@ -273,9 +273,9 @@ namespace ignition
       /// \return The capacity of the buffer storing outgoing messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1
       /// that the socket cannot be queried. The default buffer size is
-      /// unlimited.
-      /// As you can guess, there's no such thing as an infinite buffer, so your
-      /// buffer will grow until you run out of memory (and probably crash).
+      /// contained in the #kDefaultSndHwm variable.
+      /// If the buffer is set to unlimited, then your buffer will grow until
+      /// you run out of memory (and probably crash).
       /// If your buffer reaches the maximum capacity data will be dropped.
       public: int SndHwm();
 
