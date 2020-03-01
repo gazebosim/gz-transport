@@ -938,7 +938,10 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   }
   else
   {
-    this->remoteSubscribers.DelPublishersByProc(procUuid);
+    // Note: We deliberately don't remove the list of remote subscribers
+    // for this process. Remote nodes might suffer package delays (due to WiFi
+    // or traffic load) and if we remove them, they won't be able to receive
+    // data anymore.
 
     MsgAddresses_M info;
     if (!this->connections.Publishers(topic, info))
