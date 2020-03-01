@@ -2246,14 +2246,14 @@ TEST(NodeTest, WrongTopicRemap)
 /// \brief Check the high water mark of the receiving message buffer.
 TEST(NodeTest, RcvHwm)
 {
-  EXPECT_EQ(0, ignition::transport::rcvHwm());
+  EXPECT_EQ(ignition::transport::kDefaultRcvHwm, ignition::transport::rcvHwm());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the high water mark of the sending message buffer.
 TEST(NodeTest, SndHwm)
 {
-  EXPECT_EQ(0, ignition::transport::sndHwm());
+  EXPECT_EQ(ignition::transport::kDefaultSndHwm, ignition::transport::sndHwm());
 }
 
 //////////////////////////////////////////////////

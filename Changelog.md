@@ -2,6 +2,15 @@
 
 ### Ignition Transport 7.x.x
 
+1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
+   message delivery during `connect`. This approach would fail if the delay
+   between nodes was too large.
+   * [Pull request 436](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/436)
+
+1. Set default message buffer sizes to 1000, for both send and receive
+   buffers.
+   * [Pull request 433](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/433)
+
 ### Ignition Transport 7.3.0
 
 1. Write to disk from a background thread in log recorder

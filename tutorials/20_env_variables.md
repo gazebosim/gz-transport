@@ -53,7 +53,7 @@ Next you can see a description of the available environment variables:
     "infinite" capacity. As you can guess, there's no such thing as an infinite
     buffer, so your buffer will grow until you run out of memory (and probably
     crash). If your buffer reaches the maximum capacity data will be dropped.
-    * *Default value*: 0.
+    * *Default value*: 1000.
 * **IGN_TRANSPORT_SNDHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
@@ -62,7 +62,7 @@ Next you can see a description of the available environment variables:
     "infinite" capacity. As you can guess, there's no such thing as an infinite
     buffer, so your buffer will grow until you run out of memory (and probably
     crash). If your buffer reaches the maximum capacity data will be dropped.
-    * *Default value*: 0.
+    * *Default value*: 1000.
 * **IGN_TRANSPORT_USERNAME**
     * *Value allowed*: Any string value
     * *Description*: A username, used in combination with
