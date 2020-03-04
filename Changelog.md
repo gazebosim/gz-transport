@@ -1,6 +1,6 @@
 ## Ignition Transport 7
 
-### Ignition Transport 7.x.x
+### Ignition Transport 7.4.0 (2020-03-04)
 
 1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
    message delivery during `connect`. This approach would fail if the delay
