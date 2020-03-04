@@ -176,7 +176,6 @@ NodeShared::NodeShared()
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Process UUID: " << this->pUuid << std::endl;
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
-    std::cout << "Bind at: [" << this->myControlAddress << "] for control\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
     std::cout << "Identity for receiving srv. requests: ["
               << this->replierId.ToString() << "]" << std::endl;
@@ -194,6 +193,12 @@ NodeShared::NodeShared()
   // Set the callback to notify discovery updates (invalid topics).
   this->dataPtr->msgDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
+
+  this->dataPtr->msgDiscovery->RegistrationsCb(
+      std::bind(&NodeShared::OnNewRegistration, this, std::placeholders::_1));
+
+  this->dataPtr->msgDiscovery->UnregistrationsCb(
+      std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
 
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
@@ -241,7 +246,6 @@ void NodeShared::RunReceptionTask()
     zmq::pollitem_t items[] =
     {
       {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->control), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
@@ -259,10 +263,8 @@ void NodeShared::RunReceptionTask()
     if (items[0].revents & ZMQ_POLLIN)
       this->RecvMsgUpdate();
     if (items[1].revents & ZMQ_POLLIN)
-      this->RecvControlUpdate();
-    if (items[2].revents & ZMQ_POLLIN)
       this->RecvSrvRequest();
-    if (items[3].revents & ZMQ_POLLIN)
+    if (items[2].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
   }
 }
@@ -477,70 +479,6 @@ void NodeShared::TriggerCallbacks(
 //////////////////////////////////////////////////
 void NodeShared::RecvControlUpdate()
 {
-  zmq::message_t msg(0);
-  std::string topic;
-  std::string procUuid;
-  std::string nodeUuid;
-  std::string type;
-  std::string data;
-
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
-  try
-  {
-    if (!this->dataPtr->control->recv(&msg, 0))
-      return;
-    topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-    if (!this->dataPtr->control->recv(&msg, 0))
-      return;
-    procUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-    if (!this->dataPtr->control->recv(&msg, 0))
-      return;
-    nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-    if (!this->dataPtr->control->recv(&msg, 0))
-      return;
-    type = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-
-    if (!this->dataPtr->control->recv(&msg, 0))
-      return;
-    data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
-  }
-  catch(const zmq::error_t &_error)
-  {
-    std::cerr << "NodeShared::RecvControlUpdate() error: "
-              << _error.what() << std::endl;
-    return;
-  }
-
-  if (std::stoi(data) == NewConnection)
-  {
-    if (this->verbose)
-    {
-      std::cout << "Registering a new remote connection" << std::endl;
-      std::cout << "\tProc UUID: [" << procUuid << "]" << std::endl;
-      std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
-    }
-
-    // Register that we have another remote subscriber.
-    MessagePublisher remoteNode(topic, "", "", procUuid, nodeUuid, type,
-      AdvertiseMessageOptions());
-    this->remoteSubscribers.AddPublisher(remoteNode);
-  }
-  else if (std::stoi(data) == EndConnection)
-  {
-    if (this->verbose)
-    {
-      std::cout << "Registering the end of a remote connection" << std::endl;
-      std::cout << "\tProc UUID: " << procUuid << std::endl;
-      std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
-    }
-
-    // Delete a remote subscriber.
-    this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nodeUuid);
-  }
 }
 
 //////////////////////////////////////////////////
@@ -919,13 +857,9 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 //////////////////////////////////////////////////
 void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
-  std::string ctrl = _pub.Ctrl();
   std::string procUuid = _pub.PUuid();
-  std::string type = _pub.MsgTypeName();
 
   if (this->verbose)
   {
@@ -933,73 +867,44 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     std::cout << _pub;
   }
 
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
   // Check if we are interested in this topic.
   if (this->localSubscribers.HasSubscriber(topic) &&
       this->pUuid.compare(procUuid) != 0)
   {
-    try
+    // Handle security
+    this->dataPtr->SecurityOnNewConnection();
+
+    // I am not connected to the process.
+    if (!this->connections.HasPublisher(addr))
+      this->dataPtr->subscriber->connect(addr.c_str());
+
+    // Add a new filter for the topic.
+    this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
+        topic.data(), topic.size());
+
+    // Register the new connection with the publisher.
+    this->connections.AddPublisher(_pub);
+
+    if (this->verbose)
+      std::cout << "\t* Connected to [" << addr << "] for data\n";
+
+    MessagePublisher pub(_pub);
+    pub.SetPUuid(this->pUuid);
+
+    // Hack: We use this field to store the PUuid of the topic publisher.
+    pub.SetCtrl(_pub.PUuid());
+
+    std::vector<std::string> handlerNodeUuids =
+        this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
+    for (const std::string &nodeUuid : handlerNodeUuids)
     {
-      // Handle security
-      this->dataPtr->SecurityOnNewConnection();
+      pub.SetNUuid(nodeUuid);
 
-      // I am not connected to the process.
-      if (!this->connections.HasPublisher(addr))
-        this->dataPtr->subscriber->connect(addr.c_str());
-
-      // Add a new filter for the topic.
-      this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
-          topic.data(), topic.size());
-
-      // Register the new connection with the publisher.
-      this->connections.AddPublisher(_pub);
-
-      // Send a message to the publisher's control socket to notify it
+      // Send a message to the publisher notify it
       // about all my remoteSubscribers.
-      zmq::socket_t socket(*this->dataPtr->context, ZMQ_DEALER);
-
-      if (this->verbose)
-      {
-        std::cout << "\t* Connected to [" << addr << "] for data\n";
-        std::cout << "\t* Connected to [" << ctrl << "] for control\n";
-      }
-
-      int lingerVal = 300;
-      socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-      socket.connect(ctrl.c_str());
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-      std::vector<std::string> handlerNodeUuids =
-          this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
-
-      for (const std::string &nodeUuid : handlerNodeUuids)
-      {
-        zmq::message_t msg;
-        msg.rebuild(topic.size());
-        memcpy(msg.data(), topic.data(), topic.size());
-        socket.send(msg, ZMQ_SNDMORE);
-
-        msg.rebuild(this->pUuid.size());
-        memcpy(msg.data(), this->pUuid.data(), this->pUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
-
-        msg.rebuild(nodeUuid.size());
-        memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-        socket.send(msg, ZMQ_SNDMORE);
-
-        msg.rebuild(type.size());
-        memcpy(msg.data(), type.data(), type.size());
-        socket.send(msg, ZMQ_SNDMORE);
-
-        std::string data = std::to_string(NewConnection);
-        msg.rebuild(data.size());
-        memcpy(msg.data(), data.data(), data.size());
-        socket.send(msg, 0);
-      }
-    }
-    // The remote node might not be available when we are connecting.
-    catch(const zmq::error_t& /*ze*/)
-    {
+      this->dataPtr->msgDiscovery->Register(pub);
     }
   }
 }
@@ -1033,7 +938,10 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   }
   else
   {
-    this->remoteSubscribers.DelPublishersByProc(procUuid);
+    // Note: We deliberately don't remove the list of remote subscribers
+    // for this process. Remote nodes might suffer package delays (due to WiFi
+    // or traffic load) and if we remove them, they won't be able to receive
+    // data anymore.
 
     MsgAddresses_M info;
     if (!this->connections.Publishers(topic, info))
@@ -1101,6 +1009,51 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::cout << "Service call disconnection callback" << std::endl;
     std::cout << _pub;
   }
+}
+
+//////////////////////////////////////////////////
+void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
+{
+  // Discard the message if the destination PUUID is not me.
+  if (_pub.Ctrl() != this->pUuid)
+    return;
+
+  std::string procUuid = _pub.PUuid();
+  std::string nodeUuid = _pub.NUuid();
+
+  if (this->verbose)
+  {
+    std::cout << "Registering a new remote connection" << std::endl;
+    std::cout << "\tProc UUID: [" << procUuid << "]" << std::endl;
+    std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
+  }
+
+  // Add a remote subscriber.
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  this->remoteSubscribers.AddPublisher(_pub);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
+{
+  // Discard the message if the destination PUUID is not me.
+  if (_pub.Ctrl() != this->pUuid)
+    return;
+
+  std::string topic = _pub.Topic();
+  std::string procUuid = _pub.PUuid();
+  std::string nodeUuid = _pub.NUuid();
+
+  if (this->verbose)
+  {
+    std::cout << "Registering the end of a remote connection" << std::endl;
+    std::cout << "\tProc UUID: " << procUuid << std::endl;
+    std::cout << "\tNode UUID: [" << nodeUuid << "]" << std::endl;
+  }
+
+  // Delete a remote subscriber.
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nodeUuid);
 }
 
 //////////////////////////////////////////////////
@@ -1195,11 +1148,6 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->publisher->getsockopt(ZMQ_LAST_ENDPOINT,
         &bindEndPoint, &size);
     this->myAddress = bindEndPoint;
-
-    // Control socket listening in a random port.
-    this->dataPtr->control->bind(anyTcpEp.c_str());
-    this->dataPtr->control->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myControlAddress = bindEndPoint;
 
     // ResponseReceiver socket listening in a random port.
     std::string id = this->responseReceiverId.ToString();
