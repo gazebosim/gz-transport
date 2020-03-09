@@ -1,6 +1,6 @@
 ## Ignition Transport 7
 
-### Ignition Transport 7.x.x
+### Ignition Transport 7.4.0 (2020-03-09)
 
 1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
    message delivery during `connect`. This approach would fail if the delay
@@ -10,6 +10,9 @@
 1. Set default message buffer sizes to 1000, for both send and receive
    buffers.
    * [Pull request 433](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/433)
+
+1. Added support for configuring message buffers via environment variables.
+   * [Pull request 430](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/430)
 
 ### Ignition Transport 7.3.0
 
@@ -21,9 +24,6 @@
 
 1. Improve compiler support for c++ filesystem.
    * [Pull request 422](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/422)
-
-1. Added support for configuring message buffers via environment variables.
-   * [Pull request 430](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/430)
 
 ### Ignition Transport 7.2.1
 
