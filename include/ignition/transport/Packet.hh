@@ -236,8 +236,7 @@ namespace ignition
       private: transport::Header header;
 
 #ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::string
+// Disable warning C4251 which is triggered by std::string
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
@@ -254,7 +253,6 @@ namespace ignition
     /// contains the name of the protobuf message type advertised. This message
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
-
     template <class T> class AdvertiseMessage
     {
       /// \brief Constructor.

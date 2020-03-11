@@ -77,6 +77,18 @@ namespace ignition
     }
 
     //////////////////////////////////////////////////
+    int rcvHwm()
+    {
+      return NodeShared::Instance()->RcvHwm();
+    }
+
+    //////////////////////////////////////////////////
+    int sndHwm()
+    {
+      return NodeShared::Instance()->SndHwm();
+    }
+
+    //////////////////////////////////////////////////
     void waitForShutdown()
     {
       // Install a signal handler for SIGINT and SIGTERM.
@@ -616,64 +628,12 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   for (auto &proc : addresses)
   {
-    for (auto &node : proc.second)
-    {
-      zmq::socket_t socket(*this->dataPtr->shared->dataPtr->context,
-          ZMQ_DEALER);
+    std::string dstPUuid = proc.first;
+    MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->shared->myAddress,
+      dstPUuid, this->dataPtr->shared->pUuid, this->dataPtr->nUuid,
+      kGenericMessageType, AdvertiseMessageOptions());
 
-      // Set ZMQ_LINGER to 0 means no linger period. Pending messages will be
-      // discarded immediately when the socket is closed. That avoids infinite
-      // waits if the publisher is disconnected.
-      int lingerVal = 200;
-      socket.setsockopt(ZMQ_LINGER, &lingerVal, sizeof(lingerVal));
-
-      socket.connect(node.Ctrl().c_str());
-
-      zmq::message_t msg;
-      msg.rebuild(fullyQualifiedTopic.size());
-      memcpy(msg.data(), fullyQualifiedTopic.data(),
-        fullyQualifiedTopic.size());
-#ifdef IGN_ZMQ_POST_4_3_1
-      socket.send(msg, zmq::send_flags::sndmore);
-#else
-      socket.send(msg, ZMQ_SNDMORE);
-#endif
-      msg.rebuild(this->dataPtr->shared->myAddress.size());
-      memcpy(msg.data(), this->dataPtr->shared->myAddress.data(),
-             this->dataPtr->shared->myAddress.size());
-#ifdef IGN_ZMQ_POST_4_3_1
-      socket.send(msg, zmq::send_flags::sndmore);
-#else
-      socket.send(msg, ZMQ_SNDMORE);
-#endif
-
-      msg.rebuild(this->dataPtr->nUuid.size());
-      memcpy(msg.data(), this->dataPtr->nUuid.data(),
-             this->dataPtr->nUuid.size());
-#ifdef IGN_ZMQ_POST_4_3_1
-      socket.send(msg, zmq::send_flags::sndmore);
-#else
-      socket.send(msg, ZMQ_SNDMORE);
-#endif
-
-      msg.rebuild(kGenericMessageType.size());
-      memcpy(msg.data(), kGenericMessageType.data(),
-             kGenericMessageType.size());
-#ifdef IGN_ZMQ_POST_4_3_1
-      socket.send(msg, zmq::send_flags::sndmore);
-#else
-      socket.send(msg, ZMQ_SNDMORE);
-#endif
-
-      std::string data = std::to_string(EndConnection);
-      msg.rebuild(data.size());
-      memcpy(msg.data(), data.data(), data.size());
-#ifdef IGN_ZMQ_POST_4_3_1
-      socket.send(msg, zmq::send_flags::none);
-#else
-      socket.send(msg, 0);
-#endif
-    }
+    this->Shared()->dataPtr->msgDiscovery->Unregister(pub);
   }
 
   return true;
@@ -969,7 +929,8 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
       this->Shared()->myAddress,
-      this->Shared()->myControlAddress,
+      // this->Shared()->myControlAddress,
+      "unused",
       this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
 
   if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))

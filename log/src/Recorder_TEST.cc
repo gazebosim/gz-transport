@@ -90,6 +90,20 @@ TEST(Record, AddTopicRegex)
 }
 
 //////////////////////////////////////////////////
+TEST(Record, SetBufferSize)
+{
+  transport::log::Recorder recorder;
+  recorder.SetBufferSize(20);
+  EXPECT_EQ(20u, recorder.BufferSize());
+
+  recorder.SetBufferSize(0);
+  EXPECT_EQ(0u, recorder.BufferSize());
+
+  recorder.SetBufferSize(40);
+  EXPECT_EQ(40u, recorder.BufferSize());
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

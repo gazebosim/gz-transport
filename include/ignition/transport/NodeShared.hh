@@ -187,6 +187,7 @@ namespace ignition
 
       /// \brief Method in charge of receiving the control updates (when a new
       /// remote subscriber notifies its presence for example).
+      /// ToDo: Remove this function when possible.
       public: void RecvControlUpdate();
 
       /// \brief Method in charge of receiving the service call requests.
@@ -220,6 +221,14 @@ namespace ignition
       /// \param[in] _pub Information of the publisher in charge of the service.
       public: void OnNewSrvDisconnection(const ServicePublisher &_pub);
 
+      /// \brief Callback executed when a remote subscriber connects.
+      /// \param[in] _pub Information of the remote subscriber.
+      public: void OnNewRegistration(const MessagePublisher &_pub);
+
+      /// \brief Callback executed when a remote subscriber unregisters.
+      /// \param[in] _pub Information of the remote subscriber.
+      public: void OnEndRegistration(const MessagePublisher &_pub);
+
       /// \brief Pass through to bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const
       /// \param[in] _topic Service name.
@@ -245,6 +254,30 @@ namespace ignition
       /// (e.g. if the discovery has not been started).
       /// \sa Pass through to bool Advertise(const Pub &_publisher)
       public: bool AdvertisePublisher(const ServicePublisher &_publisher);
+
+      /// \brief Get the capacity of the buffer (High Water Mark)
+      /// that stores incoming Ignition Transport messages. Note that this is a
+      /// global queue shared by all subscribers within the same process.
+      /// \return The capacity of the buffer storing incoming messages (units
+      /// are messages). A value of 0 indicates an unlimited buffer and -1
+      /// that the socket cannot be queried. The default buffer size is
+      /// contained in the #kDefaultRcvHwm variable.
+      /// If the buffer is set to unlimited, then your buffer will grow until
+      /// you run out of memory (and probably crash).
+      /// If your buffer reaches the maximum capacity data will be dropped.
+      public: int RcvHwm();
+
+      /// \brief Get the capacity of the buffer (High Water Mark)
+      /// that stores outgoing Ignition Transport messages. Note that this is a
+      /// global queue shared by all publishers within the same process.
+      /// \return The capacity of the buffer storing outgoing messages (units
+      /// are messages). A value of 0 indicates an unlimited buffer and -1
+      /// that the socket cannot be queried. The default buffer size is
+      /// contained in the #kDefaultSndHwm variable.
+      /// If the buffer is set to unlimited, then your buffer will grow until
+      /// you run out of memory (and probably crash).
+      /// If your buffer reaches the maximum capacity data will be dropped.
+      public: int SndHwm();
 
       /// \brief Constructor.
       protected: NodeShared();

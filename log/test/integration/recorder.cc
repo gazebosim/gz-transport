@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
+#include <numeric>
+
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
@@ -269,6 +272,260 @@ TEST(recorder, BeginRecordingPatternBeforeAdvertisement)
 TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 {
   RecordPatternBeforeAdvertisement(std::regex(".*"));
+}
+
+//////////////////////////////////////////////////
+/// Test that the order of disk write is the same as publication. The test
+/// publishes data very quickly so that the Recorder will be forced to use its
+/// data queue.
+TEST(recorder, DataWriterQueue)
+{
+  // Remember to include a leading slash so that the VerifyTopic lambda below
+  // will work correctly. ign-transport automatically adds a leading slash to
+  // topics that don't specify one.
+  std::string topic{"/foo"};
+
+  ignition::transport::log::Recorder recorder;
+  recorder.SetBufferSize(100);
+  EXPECT_TRUE(recorder.Filename().empty());
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+            recorder.AddTopic(topic));
+
+  const std::string logName =
+    "file:recorderDataWriterQueue?mode=memory&cache=shared";
+
+  EXPECT_EQ(recorder.Start(logName),
+            ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
+
+  using MsgType = ignition::transport::log::test::ChirpMsgType;
+
+  ignition::transport::Node node;
+  auto pub = node.Advertise<MsgType>(topic);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const int numChirps = 50;
+  for (int i = 0; i < numChirps; ++i)
+  {
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Open log before stopping so sqlite memory database is shared
+  ignition::transport::log::Log log;
+  EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
+
+  {
+    int count = 0;
+
+    for (const auto &msg : log.QueryMessages())
+    {
+      VerifyMessage(msg, count, 1,
+          [&](const std::string &_topic)
+          {
+          return topic == _topic;
+          });
+      ++count;
+    }
+
+    EXPECT_EQ(numChirps, count);
+  }
+
+  // Publish again and ensure that the recorder doesn't write to the file
+  for (int i = 0; i < numChirps; ++i)
+  {
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+  {
+    int count = 0;
+    for (const auto &msg : log.QueryMessages())
+    {
+      VerifyMessage(msg, count, 1,
+          [&](const std::string &_topic)
+          {
+          return topic == _topic;
+          });
+      ++count;
+    }
+    EXPECT_EQ(numChirps, count);
+  }
+}
+
+
+//////////////////////////////////////////////////
+/// Test that clock is properly recorded
+TEST(recorder, DataWriterQueueClockUpdates)
+{
+  // Remember to include a leading slash so that the VerifyTopic lambda below
+  // will work correctly. ign-transport automatically adds a leading slash to
+  // topics that don't specify one.
+  std::string topic{"/foo"};
+
+  ignition::transport::log::Recorder recorder;
+  recorder.SetBufferSize(100);
+  EXPECT_TRUE(recorder.Filename().empty());
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+            recorder.AddTopic(topic));
+
+  const std::string logName =
+    "file:recorderDataWriterQueueClockUpdates?mode=memory&cache=shared";
+
+  using MsgType = ignition::transport::log::test::ChirpMsgType;
+
+  ignition::transport::Node node;
+  auto pub = node.Advertise<MsgType>(topic);
+
+  const std::string clockTopic{"/test_clock"};
+  auto clockPub = node.Advertise<MsgType>(clockTopic);
+
+  ignition::transport::NetworkClock clock(clockTopic);
+  recorder.Sync(&clock);
+
+  EXPECT_EQ(recorder.Start(logName),
+            ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const int numChirps = 50;
+  for (int i = 0; i < numChirps; ++i)
+  {
+    clock.SetTime(i * std::chrono::nanoseconds(1000));
+    MsgType msg;
+    // Sending a 0 causes an error because it serializes to a zero length
+    // message.
+    msg.set_data(i+1);
+    pub.Publish(msg);
+  }
+
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Open log before stopping so sqlite memory database is shared
+  ignition::transport::log::Log log;
+  EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
+
+  {
+    int count = 0;
+    std::chrono::nanoseconds lastTs{0};
+
+    for (const auto &msg : log.QueryMessages())
+    {
+      std::chrono::nanoseconds expectedStamp{count == 0 ? 0 : 1000};
+
+      EXPECT_EQ(expectedStamp.count(), (msg.TimeReceived() - lastTs).count())
+          << "Msg time: " << msg.TimeReceived().count();
+      lastTs = msg.TimeReceived();
+      ++count;
+    }
+
+    EXPECT_EQ(numChirps, count);
+  }
+}
+
+//////////////////////////////////////////////////
+/// Test various buffer size settings.
+void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
+                            int _numChirps)
+{
+  // Remember to include a leading slash so that the VerifyTopic lambda below
+  // will work correctly. ign-transport automatically adds a leading slash to
+  // topics that don't specify one.
+  std::string topic{"/foo"};
+
+  ignition::transport::log::Recorder recorder;
+  if (_bufferSize.has_value())
+  {
+    recorder.SetBufferSize(*_bufferSize);
+  }
+  EXPECT_TRUE(recorder.Filename().empty());
+  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+            recorder.AddTopic(topic));
+
+  const std::string logName =
+    "file:recorderDataWriterQueueBufferSize?mode=memory&cache=shared";
+
+  using MsgType = ignition::msgs::Int32_V;
+
+  ignition::transport::Node node;
+  auto pub = node.Advertise<MsgType>(topic);
+
+  EXPECT_EQ(recorder.Start(logName),
+            ignition::transport::log::RecorderError::SUCCESS);
+
+  EXPECT_EQ(logName, recorder.Filename());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // Publish 50 messages each larger than 1MB.
+  std::size_t sentMsgSize = 0;
+  for (int i = 0; i < _numChirps; ++i)
+  {
+    // Number of ints to get a message size larger than 1MB.
+    std::size_t numInts = 1000000;
+    MsgType msg;
+    msg.mutable_data()->Resize(numInts, 0);
+    // Fill with sequence to avoid compression
+    std::iota(msg.mutable_data()->begin(), msg.mutable_data()->end(), i);
+    sentMsgSize += msg.SerializeAsString().size();
+    pub.Publish(msg);
+  }
+
+  // Sleep so data writer can get the message
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Open log before stopping so sqlite memory database is shared
+  ignition::transport::log::Log log;
+  EXPECT_TRUE(log.Open(logName));
+  recorder.Stop();
+
+  int count = 0;
+  std::size_t recvdMsgSize = 0;
+  for (const auto &logMsg : log.QueryMessages())
+  {
+    ++count;
+    recvdMsgSize += logMsg.Data().size();
+  }
+
+  EXPECT_EQ(sentMsgSize, recvdMsgSize);
+  EXPECT_EQ(_numChirps, count);
+}
+
+//////////////////////////////////////////////////
+/// Test default buffer size setting
+TEST(recorder, DataWriterQueueDefaultBufferSize)
+{
+  TestBufferSizeSettings(std::nullopt, 50);
+}
+
+//////////////////////////////////////////////////
+/// Test infinite buffer size setting
+TEST(recorder, DataWriterQueueInfiniteBufferSize)
+{
+  TestBufferSizeSettings(0, 50);
+}
+
+//////////////////////////////////////////////////
+/// Test that if we send data that is larger than the buffer size, it will
+/// still get recorded
+TEST(recorder, DataWriterQueueLargeMessages)
+{
+  TestBufferSizeSettings(1, 1);
 }
 
 //////////////////////////////////////////////////

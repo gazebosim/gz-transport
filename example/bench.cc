@@ -56,12 +56,113 @@ DEFINE_bool(t, false, "Throughput testing");
 DEFINE_bool(l, false, "Latency testing");
 DEFINE_bool(r, false, "Relay node");
 DEFINE_bool(p, false, "Publishing node");
+DEFINE_uint64(f, 0, "Flood the network with extra publishers and subscribers");
 DEFINE_uint64(i, 1000, "Number of iterations");
 DEFINE_string(o, "", "Output filename");
 
 std::condition_variable gCondition;
 std::mutex gMutex;
 bool gStop = false;
+
+/// \brief A class that subscribes to all of the `/benchmark/flood/*`
+/// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
+/// line argument. Flooding adds <num> extra publishers and subscribers. The
+/// purpose is to "flood" the network with extra messages while performing
+/// benchmark analyis.
+class FloodSub
+{
+  /// \brief Create the subscribers.
+  /// \param[in] _count The number of subscribers to create.
+  public: explicit FloodSub(uint64_t _count)
+  {
+    // Create flood publishers
+    for (uint64_t i = 0; i < _count; ++i)
+    {
+      std::ostringstream stream;
+      stream << "/benchmark/flood/"  << i;
+      this->node.Subscribe(stream.str(), &FloodSub::OnMsg, this);
+    }
+  }
+
+  /// \brief Dummy callback.
+  /// \param[in] _msg The message.
+  public: void OnMsg(const ignition::msgs::Bytes & /*_msg*/)
+  {
+  }
+
+  /// \brief Communication node.
+  private: ignition::transport::Node node;
+};
+
+/// \brief A class that publishes on a number of `/benchmark/flood/*`
+/// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
+/// line argument. Flooding adds <num> extra publishers and subscribers. The
+/// purpose is to "flood" the network with extra messages while performing
+/// benchmark analyis.
+class FloodPub
+{
+  /// \brief Create a number of publishers.
+  /// \param[in] _count Number of publishers to create.
+  public: explicit FloodPub(uint64_t _count)
+  {
+    // Create flood publishers
+    for (uint64_t i = 0; i < _count; ++i)
+    {
+      std::ostringstream stream;
+      stream << "/benchmark/flood/"  << i;
+      this->floodPubs.push_back(
+          this->node.Advertise<ignition::msgs::Bytes>(stream.str()));
+    }
+    if (!this->floodPubs.empty())
+      this->runThread = std::thread(&FloodPub::RunLoop, this);
+  }
+
+  /// \brief Destructor.
+  public: ~FloodPub()
+  {
+    this->Stop();
+    if (this->runThread.joinable())
+      this->runThread.join();
+  }
+
+  /// \brief Stop the publishers.
+  public: void Stop()
+  {
+    this->running = false;
+  }
+
+  /// \brief Run the publishers.
+  private: void RunLoop()
+  {
+    ignition::msgs::Bytes msg;
+    int size = 1000;
+    char *byteData = new char[size];
+    std::memset(byteData, '0', size);
+    msg.set_data(byteData);
+
+    this->running = true;
+    while (this->running)
+    {
+      for (ignition::transport::Node::Publisher &pub : this->floodPubs)
+      {
+        pub.Publish(msg);
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+
+  /// \brief Communication node.
+  private: ignition::transport::Node node;
+
+  /// \brief Run thread.
+  private: std::thread runThread;
+
+  /// \brief True when running.
+  private: bool running{false};
+
+  /// \brief The publishers.
+  private: std::vector<ignition::transport::Node::Publisher> floodPubs;
+};
 
 /// \brief The ReplyTester subscribes to the benchmark topics, and relays
 /// incoming messages on a corresponding "reply" topic.
@@ -125,6 +226,20 @@ class ReplyTester
   /// \param[in] _msg Incoming message of variable size.
   private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
   {
+    if (this->prevStamp > 0 && _msg.header().stamp().sec() != 0)
+    {
+      if (_msg.header().stamp().sec() != this->prevStamp+1)
+      {
+        std::cerr << "Received[" << _msg.header().stamp().sec()
+          << "] Expected[" << this->prevStamp+1 << "]\n";
+
+        throw std::unexpected;
+      }
+    }
+
+    this->prevStamp = _msg.header().stamp().sec();
+    // Debug:: std::cout << _msg.header().stamp().sec() << std::endl;
+
     this->throughputPub.Publish(_msg);
   }
 
@@ -143,6 +258,8 @@ class ReplyTester
 
   /// \brief The latency publisher
   private: ignition::transport::Node::Publisher latencyPub;
+
+  private: int prevStamp = 0;
 };
 
 /// \brief The PubTester is used to collect data on latency or throughput.
@@ -307,6 +424,8 @@ class PubTester
       // Send all the messages as fast as possible
       for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
       {
+        this->msg.mutable_header()->mutable_stamp()->set_sec(i);
+        // Debug: std::cout << this->msg.header().stamp().sec() << std::endl;
         this->throughputPub.Publish(this->msg);
       }
 
@@ -316,7 +435,7 @@ class PubTester
       this->condition.wait(lk, [this] {
           return gStop || this->msgCount >= this->sentMsgs;});
 
-      // Computer the number of microseconds
+      // Compute the number of microseconds
       uint64_t duration =
         std::chrono::duration_cast<std::chrono::microseconds>(
             this->timeEnd - timeStart).count();
@@ -328,6 +447,7 @@ class PubTester
       (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t\t"
                 << (this->totalBytes * 1e-6) / seconds << "\t"
                 << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
+      this->expectedStamp = 0;
     }
   }
 
@@ -424,6 +544,13 @@ class PubTester
 
     // Add to the total messages received.
     this->msgCount++;
+    if (_msg.header().stamp().sec() != this->expectedStamp)
+    {
+      std::cerr << "Received[" << _msg.header().stamp().sec()
+        << "] Expected[" << this->expectedStamp << "]\n";
+      throw std::unexpected;
+    }
+    this->expectedStamp++;
 
     // Notify Throughput() when all messages have been received.
     if (this->msgCount >= this->sentMsgs)
@@ -507,6 +634,8 @@ class PubTester
 
   /// \brief Output filename or empty string for console output.
   private: std::string filename = "";
+
+  private: int expectedStamp = 0;
 };
 
 // The PubTester is global so that the signal handler can easily kill it.
@@ -565,6 +694,8 @@ int main(int argc, char **argv)
   // Run the responder
   if (FLAGS_r)
   {
+    FloodSub floodSub(FLAGS_f);
+
     ReplyTester replyTester;
     std::unique_lock<std::mutex> lk(gMutex);
     gCondition.wait(lk, []{return gStop;});
@@ -572,7 +703,10 @@ int main(int argc, char **argv)
   // Run the publisher
   else if (FLAGS_p)
   {
+    FloodPub floodPub(FLAGS_f);
+
     gPubTester.Init();
+
     if (FLAGS_t)
       gPubTester.Throughput();
     else

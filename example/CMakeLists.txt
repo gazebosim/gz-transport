@@ -6,11 +6,13 @@ project(ignition-transport-examples)
 find_package(ignition-transport7 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
-# Message generation. Only required when using custom Protobuf messages.
-find_package(Protobuf REQUIRED)
-add_subdirectory(msgs)
-set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
-                            PROPERTIES GENERATED TRUE)
+if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
+  # Message generation. Only required when using custom Protobuf messages.
+  find_package(Protobuf REQUIRED)
+  add_subdirectory(msgs)
+  set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES GENERATED TRUE)
+endif()
+
 include_directories(${CMAKE_BINARY_DIR})
 
 # Generate examples
@@ -26,7 +28,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
     add_executable(bench bench.cc)
     target_link_libraries(bench
       ignition-transport${IGN_TRANSPORT_VER}::core
-      ${gflags_LIBRARIES})
+      ${gflags_LIBRARIES}
+      pthread)
   endif()
 endif()
 
@@ -34,10 +37,19 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
   add_executable(publisher_c publisher_c.cc)
   target_link_libraries(publisher_c ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
+if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c_fast.cc")
+  add_executable(publisher_c_fast publisher_c_fast.cc)
+  target_link_libraries(publisher_c_fast ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
   add_executable(subscriber_c subscriber_c.cc)
   target_link_libraries(subscriber_c ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
+  add_executable(subscriber_c_slow subscriber_c_slow.cc)
+  target_link_libraries(subscriber_c_slow ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
@@ -102,7 +114,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
     ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core
@@ -111,7 +124,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_dependencies(publisher_custom_msg protobuf_compilation)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
+if (TARGET protobuf_compilation AND
+    EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
   target_link_libraries(subscriber_custom_msg
     ignition-transport${IGN_TRANSPORT_VER}::core

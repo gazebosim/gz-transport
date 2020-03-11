@@ -35,12 +35,7 @@
 
 // Avoid using deprecated message send/receive function when possible.
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
-//#define IGN_ZMQ_POST_4_3_1
-#pragma message ("MAJOR ZMQ_VERSION:" STR(ZMQ_VERSION))
-MAJOR
-//#else
-//#pragma message ("MINOR ZMQ_VERSION:" STR(ZMQ_VERSION))
-//MINOR
+  #define IGN_ZMQ_POST_4_3_1
 #endif
 
 namespace ignition

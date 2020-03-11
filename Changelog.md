@@ -1,5 +1,55 @@
 ## Ignition Transport 7
 
+### Ignition Transport 7.4.0 (2020-03-09)
+
+1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
+   message delivery during `connect`. This approach would fail if the delay
+   between nodes was too large.
+   * [Pull request 436](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/436)
+
+1. Set default message buffer sizes to 1000, for both send and receive
+   buffers.
+   * [Pull request 433](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/433)
+
+1. Added support for configuring message buffers via environment variables.
+   * [Pull request 430](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/430)
+
+### Ignition Transport 7.3.0
+
+1. Write to disk from a background thread in log recorder
+    * [Pull request 428](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/428)
+
+1. Restore original Playback::Start and add overload with new parameter to fix ABI.
+    * [Pull request 427](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/427)
+
+1. Improve compiler support for c++ filesystem.
+   * [Pull request 422](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/422)
+
+### Ignition Transport 7.2.1
+
+1. Updates to C interface subscription options.
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
+### Ignition Transport 7.2.0
+
+1. Support playback of corrupt log files.
+    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+
+1. Add signal handler to log playback.
+    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+
+1. Ignore incompatible discovery messages and reduce console spam.
+    * [Pull request 409](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/409)
+
+1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
+    * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
+
+1. Added topic subscription to the C interface.
+   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
+
+1. Added fast log playback, where messages are published without waiting.
+    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
+
 ### Ignition Transport 7.1.0
 
 1. Added method for determining if a throttled publisher is ready to publish.

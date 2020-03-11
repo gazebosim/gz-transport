@@ -84,11 +84,43 @@ namespace ignition
         ///
         /// If an error prevents the playback from starting, this will return a
         /// nullptr.
-        //
-        // TODO(MXG): When we can use C++17, add a [[nodiscard]] attribute here.
-        public: PlaybackHandlePtr Start(
+        public:  [[nodiscard]] PlaybackHandlePtr Start(
           const std::chrono::nanoseconds &_waitAfterAdvertising =
             std::chrono::seconds(1)) const;
+
+        /// \brief Begin playing messages. TODO: combine these two functions in
+        /// ign-transport9.
+        /// \param[in] _waitAfterAdvertising How long to wait before the
+        /// publications begin after advertising the topics that will be played
+        /// back.
+        /// \param[in] _msgWaiting True to wait between publication of
+        /// messages based on the message timestamps. False to playback
+        /// messages as fast as possible. Default value is true.
+        ///
+        /// \note The topic discovery process will need some time before
+        /// publishing begins, or else subscribers in other processes will miss
+        /// the outgoing messages. The default value is recommended unless you
+        /// are confident in the timing of your system.
+        ///
+        /// \remark If your application uses another library that uses sqlite3,
+        /// it may be unsafe to start multiple simultaneous PlaybackHandles from
+        /// the same Playback instance, because they will interact with the same
+        /// sqlite3 database in multiple threads (see https://www.sqlite.org/threadsafe.html).
+        /// In most cases there should be no issue, but if you or a library you
+        /// are using calls sqlite3_config(~) to change the threading mode to
+        /// Single-thread or Multi-thread (instead of the default setting of
+        /// Seralized), then starting multiple simultaneous playbacks from the
+        /// same log file could be dangerous.
+        ///
+        /// \return A handle for managing the playback of the log. You must hold
+        /// onto this object in order for the playback to continue, or else it
+        /// will be cut short.
+        ///
+        /// If an error prevents the playback from starting, this will return a
+        /// nullptr.
+        public: [[nodiscard]] PlaybackHandlePtr Start(
+          const std::chrono::nanoseconds &_waitAfterAdvertising,
+          bool _msgWaiting) const;
 
         /// \brief Check if this Playback object has a valid log to play back
         /// \return true if this has a valid log to play back, otherwise false.

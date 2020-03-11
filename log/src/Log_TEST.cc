@@ -21,6 +21,8 @@
 #include <unordered_set>
 
 #include "ignition/transport/log/Log.hh"
+#include "ignition/transport/test_config.h"
+#include "ignition/transport/log/test_config.h"
 #include "gtest/gtest.h"
 
 using namespace ignition;
@@ -244,6 +246,18 @@ TEST(Log, NullDescriptorUnopenedLog)
   log::Log logFile;
   EXPECT_EQ(nullptr, logFile.Descriptor());
 }
+
+//////////////////////////////////////////////////
+TEST(Log, OpenCorruptDatabase)
+{
+  log::Log logFile;
+  std::string path =
+    testing::portablePathUnion(IGN_TRANSPORT_LOG_TEST_PATH, "data");
+  path = testing::portablePathUnion(path, "state.tlog");
+  logFile.Open(path);
+  EXPECT_EQ(4806000000ns, logFile.EndTime());
+}
+
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
