@@ -297,7 +297,11 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         publisherTopic, publisherMsgType);
 
   // The serialized message size and buffer.
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+  const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSizeLong());
+#else
   const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSize());
+#endif
   char *msgBuffer = nullptr;
 
   // Only serialize the message if we have a raw subscriber or a remote
