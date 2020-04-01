@@ -2,10 +2,72 @@
 
 ### Ignition Transport 8.X.X
 
+1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
+    * [Pull request 423](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/423)
+
+1. Improve compiler support for c++ filesystem.
+    * [Pull request 420](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/420)
+
+1. Support playback of corrupt log files.
+    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+    * [Pull request 425](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/425)
+
+1. Add signal handler to log playback.
+    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+
+1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
+    * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
+
+1. Added topic subscription to the C interface.
+   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
+1. Added fast log playback, where messages are published without waiting.
+    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
+
+### Ignition Transport 8.0.0 (2019-12-10)
+
 1. Upgrade to ignition-msgs5.
     * [Pull request 402](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/402)
 
+1. Utilize protobuf messages for discovery.
+    * [Pull request 403](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/403)
+
+1. Ignore incompatible discovery messages and reduce console spam.
+    * [Pull request 408](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/408)
+
+1. Improve compiler support for c++ filesystem.
+    * [Pull request 405](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/405)
+    * [Pull request 406](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/406)
+
 ## Ignition Transport 7
+
+### Ignition Transport 7.X.X
+
+### Ignition Transport 7.2.1
+
+1. Updates to C interface subscription options.
+   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+
+### Ignition Transport 7.2.0
+
+1. Support playback of corrupt log files.
+    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+
+1. Add signal handler to log playback.
+    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+
+1. Ignore incompatible discovery messages and reduce console spam.
+    * [Pull request 409](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/409)
+
+1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
+    * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
+
+1. Added topic subscription to the C interface.
+   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
+
+1. Added fast log playback, where messages are published without waiting.
+    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
 
 ### Ignition Transport 7.1.0
 

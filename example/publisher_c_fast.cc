@@ -49,13 +49,7 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
   int size = msg.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
-  int size = msg.ByteSizeLong();
-#endif
 
   // Allocate space for the serialized message
   void *buffer = malloc(size);
@@ -68,13 +62,7 @@ int main(int argc, char **argv)
   msgRed.set_data("RED HELLO");
 
   // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
   int sizeRed = msgRed.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
-  int sizeRed = msgRed.ByteSizeLong();
-#endif
 
   // Allocate space for the serialized message
   void *bufferRed = malloc(sizeRed);
@@ -82,7 +70,7 @@ int main(int argc, char **argv)
   // Serialize the message.
   msgRed.SerializeToArray(bufferRed, sizeRed);
 
-  // Publish messages at 1Hz.
+  // Publish messages as fast as possible.
   while (!g_terminatePub)
   {
     ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
@@ -90,7 +78,6 @@ int main(int argc, char **argv)
         msgRed.GetTypeName().c_str());
 
     printf("Publishing hello on topic %s.\n", topic);
-    sleep(1);
   }
 
   free(buffer);

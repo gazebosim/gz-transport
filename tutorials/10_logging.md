@@ -1,6 +1,7 @@
 \page logging Logging
 
 Next Tutorial: \ref envvars
+Previous Tutorial: \ref relay
 
 ## Overview
 
@@ -24,7 +25,7 @@ cd ~/ign_transport_tutorial
 
 ## Record
 
-Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/record.cc)
+Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/record.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -125,7 +126,7 @@ stops the log recording as expected.
 
 ## Play back
 
-Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/playback.cc)
+Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/playback.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite
 editor:
 
@@ -214,7 +215,7 @@ thread until all messages have been published.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/CMakeLists.txt)
+Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport8/example/CMakeLists.txt)
 file within the `ign_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
@@ -238,7 +239,7 @@ Open two new terminals and from your `build/` directory run the recorder.
 From terminal 1:
 
 ```{.sh}
-./example_record tutorial.tlog
+./log_record tutorial.tlog
 Press Ctrl+C to finish recording.
   Recording...
 ```
@@ -260,7 +261,7 @@ ign topic -t /foo -e
 And from terminal 1, playback your log file:
 
 ```{.sh}
-./example_playback tutorial.tlog
+./log_playback tutorial.tlog
 ```
 
 You should receive one message in terminal 2:
@@ -277,7 +278,7 @@ tools for recording and playing back messages.
 Next is how you can record a set of messages using `ign`:
 
 ```{.sh}
-ign log record --file tutorial.tlog
+ign log record --force --file tutorial.tlog
 ```
 
 And here's how you can play back the previous log file using `ign`:
@@ -286,4 +287,11 @@ And here's how you can play back the previous log file using `ign`:
 ign log playback --file tutorial.tlog
 ```
 
-For further options, check `ign log record -h` and `ign log playback -h`.
+For further options, try running:
+```{.sh}
+ign log record -h
+```
+and
+```{.sh}
+ign log playback -h
+```
