@@ -1,5 +1,11 @@
 ## Ignition Transport 7
 
+### Ignition Transport 7.x.x (202x-xx-xx)
+
+1. Handle `getpwduid_r` error cases. This addresses issue #118. Solution was
+   created in pull request #441 by Poh Zhi-Ee.
+   * [Pull request 444](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/444)
+
 ### Ignition Transport 7.4.0 (2020-03-09)
 
 1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
