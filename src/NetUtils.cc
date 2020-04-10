@@ -40,6 +40,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
+#include "ignition/transport/Uuid.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
@@ -380,7 +381,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 #else
     struct passwd pd;
     struct passwd *pdResult;
-    std::string result = "unknown";
+    Uuid uuid;
+    std::string result = "error-" + uuid.ToString();
 
     // Get the username via getpwuid_r, and retry on failure.
     // Refer to the manpage for error cases:
@@ -390,6 +392,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     // repeated attempts.
     for (int count = 0; count < 10; ++count)
     {
+      errno = 0;
       if (getpwuid_r(getuid(), &pd, buffer, bufferLen, &pdResult) == 0)
       {
         // Success. Store the username and break.

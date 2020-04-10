@@ -1181,6 +1181,7 @@ namespace ignition
         // sockets.
         for (const auto &sock : this->Sockets())
         {
+          errno = 0;
           if (sendto(sock, reinterpret_cast<const raw_type *>(
             reinterpret_cast<const unsigned char*>(_buffer)),
             _len, 0,
