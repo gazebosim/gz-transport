@@ -395,9 +395,16 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       errno = 0;
       if (getpwuid_r(getuid(), &pd, buffer, bufferLen, &pdResult) == 0)
       {
-        // Success. Store the username and break.
-        result = pd.pw_name;
-        break;
+        if (pdResult != nullptr)
+        {
+          // Success. Store the username and break.
+          result = pd.pw_name;
+          break;
+        }
+        else
+        {
+          std::cerr << "Error getting username: no matching password record.\n";
+        }
       }
       else
       {
