@@ -23,7 +23,7 @@ service, whereas the other node will be the service consumer requesting an
 Responser
 =========
 
-Download the `responser.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser.cc>`_ file within the ``ign_transport_tutorial``
+Download the `responser.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -137,7 +137,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 Synchronous requester
 =====================
 
-Download the `requester.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester.cc>`_ file within the ``ign_transport_tutorial``
+Download the `requester.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -236,7 +236,7 @@ message.
 Asynchronous requester
 ======================
 
-Download the `requester_async.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_async.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
+Download the `requester_async.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_async.cc>`_ file within the ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 .. code-block:: cpp
 
@@ -328,7 +328,7 @@ oneway service to process service requests without sending back responses.
 Oneway services don't accept any output parameters nor the requests have to wait
 for the response.
 
-Download the `responser_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
+Download the `responser_oneway.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -405,7 +405,7 @@ This case is similar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
-Download the `requester_oneway.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_oneway.cc>`_ file within the ``ign_transport_tutorial``
+Download the `requester_oneway.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_oneway.cc>`_ file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 .. code-block:: cpp
@@ -466,7 +466,7 @@ Service without input parameter
 Sometimes we want to receive some result but don't have any input parameter to
 send.
 
-Download the `responser_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_no_input.cc>`_
+Download the `responser_no_input.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/responser_no_input.cc>`_
  file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -552,7 +552,7 @@ Empty requester sync and async
 This case is similar to the service without input parameter. We don't send any
 request.
 
-Download the `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
+Download the `requester_no_input.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
 file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -596,13 +596,13 @@ request timed out or reached the service provider and ``result`` shows if the
 service was successfully executed.
 
 We also have the async version for service request without input. You should
-download `requester_no_input.cc <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
+download `requester_no_input.cc <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/requester_no_input.cc>`_
 file within the ``ign_transport_tutorial`` folder.
 
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder. Then, download `CMakeLists.txt <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://bitbucket.org/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
+Download the `CMakeLists.txt <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder. Then, download `CMakeLists.txt <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
 the ``ign_transport_tutorial`` directory.
