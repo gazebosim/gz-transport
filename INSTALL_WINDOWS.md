@@ -46,7 +46,7 @@ directory that has the source files. Here is an example:
 
 1. Clone and prepare the Ignition Math dependency:
 
-        hg clone https://bitbucket.org/ignitionrobotics/ign-math
+        git clone https://github.com/ignitionrobotics/ign-math
         cd ign-math
         mkdir build
 
@@ -62,7 +62,7 @@ directory that has the source files. Here is an example:
 
 1. Clone and prepare the Ignition Msgs dependency:
 
-        hg clone https://bitbucket.org/ignitionrobotics/ign-msgs
+        git clone https://github.com/ignitionrobotics/ign-msgs
         cd ign-msgs
         mkdir build
 
@@ -74,7 +74,7 @@ directory that has the source files. Here is an example:
 
 1. Clone ign-transport:
 
-        hg clone https://bitbucket.org/ignitionrobotics/ign-transport
+        git clone https://github.com/ignitionrobotics/ign-transport
         cd ign-transport
         mkdir build
 
