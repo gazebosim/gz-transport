@@ -186,8 +186,8 @@ NodeShared::~NodeShared()
     this->threadReception.join();
 
   // Explicitly reset discovery to prevent callbacks.
-  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
-  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // See https://github.com/osrf/gazebo/issues/1976/ and
+  // https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/139.
   // Do not merge forward.
   this->discovery.reset();
 
@@ -212,8 +212,8 @@ NodeShared::~NodeShared()
   }
 
   // Explicitly reset discovery to prevent callbacks.
-  // See https://bitbucket.org/osrf/gazebo/issues/1976/ and
-  // https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/139.
+  // See https://github.com/osrf/gazebo/issues/1976/ and
+  // https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/139.
   // Do not merge forward.
   this->discovery.reset();
 
