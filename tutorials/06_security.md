@@ -37,7 +37,7 @@ password. Also, every subscriber will only connect to secure publishers.
 ### Example
 
 First, let's test unsecure communication. This example requires
-[ign-tools](https://bitbucket.org/ignitionrobotics/ign-tools).
+[ign-tools](https://github.com/ignitionrobotics/ign-tools).
 
 1. Open a terminal, and echo topic `/foo`.
 ```
