@@ -3,42 +3,42 @@
 ### Ignition Transport 8.X.X
 
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
-    * [Pull request 423](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/423)
+    * [BitBucket pull request 423](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/423)
 
 1. Improve compiler support for c++ filesystem.
-    * [Pull request 420](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/420)
+    * [BitBucket pull request 420](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/420)
 
 1. Support playback of corrupt log files.
-    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
-    * [Pull request 425](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/425)
+    * [BitBucket pull request 398](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/398)
+    * [BitBucket pull request 425](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/425)
 
 1. Add signal handler to log playback.
-    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+    * [BitBucket pull request 399](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/399)
 
 1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
-    * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
+    * [BitBucket pull request 416](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/416)
 
 1. Added topic subscription to the C interface.
-   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
-   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+    * [BitBucket pull request 385](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/385)
+    * [BitBucket pull request 417](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/417)
 
 1. Added fast log playback, where messages are published without waiting.
-    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
+    * [BitBucket pull request 401](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/401)
 
 ### Ignition Transport 8.0.0 (2019-12-10)
 
 1. Upgrade to ignition-msgs5.
-    * [Pull request 402](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/402)
+    * [BitBucket pull request 402](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/402)
 
 1. Utilize protobuf messages for discovery.
-    * [Pull request 403](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/403)
+    * [BitBucket pull request 403](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/403)
 
 1. Ignore incompatible discovery messages and reduce console spam.
-    * [Pull request 408](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/408)
+    * [BitBucket pull request 408](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/408)
 
 1. Improve compiler support for c++ filesystem.
-    * [Pull request 405](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/405)
-    * [Pull request 406](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/406)
+    * [BitBucket pull request 405](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/405)
+    * [BitBucket pull request 406](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/406)
 
 ## Ignition Transport 7
 
@@ -47,203 +47,203 @@
 ### Ignition Transport 7.2.1
 
 1. Updates to C interface subscription options.
-   * [Pull request 417](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/417)
+    * [BitBucket pull request 417](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/417)
 
 ### Ignition Transport 7.2.0
 
 1. Support playback of corrupt log files.
-    * [Pull request 398](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/398)
+    * [BitBucket pull request 398](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/398)
 
 1. Add signal handler to log playback.
-    * [Pull request 399](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/399)
+    * [BitBucket pull request 399](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/399)
 
 1. Ignore incompatible discovery messages and reduce console spam.
-    * [Pull request 409](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/409)
+    * [BitBucket pull request 409](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/409)
 
 1. Added additional publishers and subscribers to the `bench` example program in order to simulate high network traffic conditions.
-    * [Pull request 416](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/416)
+    * [BitBucket pull request 416](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/416)
 
 1. Added topic subscription to the C interface.
-   * [Pull request 385](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/385)
+    * [BitBucket pull request 385](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/385)
 
 1. Added fast log playback, where messages are published without waiting.
-    * [Pull request 401](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/401)
+    * [BitBucket pull request 401](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/401)
 
 ### Ignition Transport 7.1.0
 
 1. Added method for determining if a throttled publisher is ready to publish.
-    * [Pull request 395](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/395)
+    * [BitBucket pull request 395](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/395)
 
 1. Add intraprocess field to MessageInfo. The intraprocess field indicates whether the message is coming from a node within this process.
-    * [Pull request 394](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/394)
+    * [BitBucket pull request 394](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/394)
 
 ### Ignition Transport 7.0.0
 
 1. Fix fast constructor-destructor deadlock race condition.
-    * [Pull request 384](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/384)
+    * [BitBucket pull request 384](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/384)
 
 1. Added ability to specify partition information on a node through the
    CIface.
-    * [Pull request 378](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/378)
+    * [BitBucket pull request 378](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/378)
 
 1. Added ability to advertise a topic through the CIface.
-    * [Pull request 377](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/377)
+    * [BitBucket pull request 377](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/377)
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
    `ign.hh` header file private (not installed).
-    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/367)
+    * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 1. Added start of C interface, currently it supports only pub/sub.
-    * [Pull request 366](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/366)
-    * [Pull request 370](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/370)
-    * [Pull request 373](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/373)
+    * [BitBucket pull request 366](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/366)
+    * [BitBucket pull request 370](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/370)
+    * [BitBucket pull request 373](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/373)
 
 1. Introduce `IGN_RELAY`.
-    * [Pull request 364](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/364)
+    * [BitBucket pull request 364](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/364)
 
 1. Upgrade to ignition-msgs4.
-    * [Pull request 371](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/371)
+    * [BitBucket pull request 371](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/371)
 
 ## Ignition Transport 6
 
 ### Ignition Transport 6.X.X
 
 1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for ign tool files
-    * [Pull request 380](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/380)
-    * [Issue 106](https://bitbucket.org/ignitionrobotics/ign-transport/issue/106)
+    * [BitBucket pull request 380](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/380)
+    * [Issue 106](https://github.com/ignitionrobotics/ign-transport/issues/106)
 
 1. Skip `cmd*.rb` generation on windows to fix build
-    * [Pull request 363](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/363)
-    * [Issue 94](https://bitbucket.org/ignitionrobotics/ign-transport/issue/94)
+    * [BitBucket pull request 363](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/363)
+    * [Issue 94](https://github.com/ignitionrobotics/ign-transport/issues/94)
 
 ### Ignition Transport 6.0.0
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
-    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/312)
+    * [BitBucket pull request 312](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/312)
 
 ## Ignition Transport 5
 
 ### Ignition Transport 5.X.X
 
 1. Added support for alternative clock sources during log recording.
-    * [Pull request 340](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/340)
+    * [BitBucket pull request 340](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/340)
 
 1. Exposed Log and log Playback time information.
-    * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/342)
+    * [BitBucket pull request 342](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/342)
 
 1. Added the ability to Seek within the log playback, which makes possible to
    jump to any valid time point of the reproduction.
-    * [Pull request 341](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/341)
+    * [BitBucket pull request 341](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/341)
 
 1. Added the ability to Step the advance of the playback from within the log
    replayer.
-    * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/339)
+    * [BitBucket pull request 339](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/339)
 
 1. Added the ability to Pause/Resume playback from the log replayer.
-    * [Pull request 334](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/334)
+    * [BitBucket pull request 334](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/334)
 
 1. Added support for topic remapping when running "ign log playback". Note that
    the string ":=" is not allowed now as part of a partition, namespace or topic
    anymore.
-    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/331)
+    * [BitBucket pull request 331](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/331)
 
 1. Added the ability to remap topic names.
-    * [Pull request 330](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/330)
+    * [BitBucket pull request 330](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/330)
 
 1. Prevent the log recorder from subscribing to topics that have already
    been added.
-    * [Pull request 329](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/329)
+    * [BitBucket pull request 329](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/329)
 
 1. Added log::Recorder::Topics that returns the set of added topics.
-    * [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/328)
+    * [BitBucket pull request 328](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/328)
 
 1. Added log::Recorder::Filename that returns the name of the log file.
-    * [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/327)
+    * [BitBucket pull request 327](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/327)
 
 1. Added a logging tutorial
-    * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/311)
+    * [BitBucket pull request 311](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/311)
 
 1. Added a migration guide for helping with the transition between major
    versions
-    * [Pull request 310](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/310)
+    * [BitBucket pull request 310](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/310)
 
 1. Converted ignition-transport-log into a component
-    * [Pull request 298](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/298)
+    * [BitBucket pull request 298](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/298)
 
 1. Added inline versioned namespace to the log library
-    * [Pull request 303](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/303)
+    * [BitBucket pull request 303](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/303)
 
 1. Added inline versioned namespace to the main library
-    * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/301)
+    * [BitBucket pull request 301](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/301)
 
 1. Added --force option to 'ign log record'
-    * [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/325)
+    * [BitBucket pull request 325](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/325)
 
 ## Ignition Transport 4
 
 ### Ignition Transport 4.X.X
 
 1. Ignore subinterfaces when using determineInterfaces().
-    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/314)
+    * [BitBucket pull request 314](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/314)
 
 1. Refactored Playback to return a PlaybackHandle from Start()
-    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/302)
+    * [BitBucket pull request 302](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/302)
 
 1. Added command line tool for the logging features
-    * [Pull request 276](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/276)
+    * [BitBucket pull request 276](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/276)
 
 1. Added examples using logging features
-    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/279)
+    * [BitBucket pull request 279](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/279)
 
 1. Added integration tests for recording
-    * [Pull request 275](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/275)
+    * [BitBucket pull request 275](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/275)
 
 1. Added ability to play back ignition transport topics
-    * [Pull request 274](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/274)
+    * [BitBucket pull request 274](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/274)
 
 1. Added ability to record ignition transport topics
-    * [Pull request 273](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/273)
+    * [BitBucket pull request 273](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/273)
 
 1. Added ability to query log messages by topic name and time received
-    * [Pull request 272](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/272)
+    * [BitBucket pull request 272](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/272)
 
 1. Added ability to get all messages from a log file
-    * [Pull request 271](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/271)
+    * [BitBucket pull request 271](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/271)
 
 1. Added ability to insert messages into a sqlite3 based log file
-    * [Pull request 270](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/270)
+    * [BitBucket pull request 270](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/270)
 
 1. Added TopicUtils::DecomposeFullyQualifiedTopic()
-    * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/269)
+    * [BitBucket pull request 269](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/269)
 
 ### Ignition Transport 4.0.0 (2018-01-XX)
 
 1. Basic authentication for topics.
-    * [Pull request 236](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests/236)
+    * [BitBucket pull request 236](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/236)
 
 1. Upgrade to ign-cmake.
-    * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/239)
+    * [BitBucket pull request 239](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/239)
 
 1. Added a benchmark program to test latency and throughput.
-    * [Pull request 225](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/225)
+    * [BitBucket pull request 225](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/225)
 
 1. Support publication and receipt of raw serialized data.
-    * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
+    * [BitBucket pull request 251](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/251)
 
 1. Use zero copy when publishing messages.
-    * [Pull request 229](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/229)
+    * [BitBucket pull request 229](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/229)
 
 1. Added publishing and receiving messages as raw bytes
-    * [Pull request 251](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/251)
+    * [BitBucket pull request 251](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/251)
 
 1. Updated service responder callbacks to return a boolean value. The
    existing functions have been deprecated.
-    * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
-    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
+    * [BitBucket pull request 260](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/260)
+    * [BitBucket pull request 228](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/228)
 
 1. Hide ZMQ from public interfaces
-    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/224)
+    * [BitBucket pull request 224](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/224)
 
 ## Ignition Transport 3
 
@@ -254,120 +254,120 @@
 ### Ignition Transport 3.1.0 (2017-11-29)
 
 1. Documentation improvements
-    * [Pull request 199](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/199)
-    * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/200)
-    * [Pull request 203](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/203)
-    * [Pull request 206](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/206)
-    * [Pull request 197](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/197)
-    * [Pull request 219](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/219)
-    * [Issue 63](https://bitbucket.org/ignitionrobotics/ign-transport/issues/63)
-    * [Issue 67](https://bitbucket.org/ignitionrobotics/ign-transport/issues/67)
+    * [BitBucket pull request 199](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/199)
+    * [BitBucket pull request 200](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/200)
+    * [BitBucket pull request 203](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/203)
+    * [BitBucket pull request 206](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/206)
+    * [BitBucket pull request 197](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/197)
+    * [BitBucket pull request 219](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/219)
+    * [Issue 63](https://github.com/ignitionrobotics/ign-transport/issues/63)
+    * [Issue 67](https://github.com/ignitionrobotics/ign-transport/issues/67)
 
 1. Workaround for the ghost Msbuild warning in Jenkins plugin
-    * [Pull request 205](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/205)
+    * [BitBucket pull request 205](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/205)
 
 1. Added tests for ign.cc
-    * [Pull request 209](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/209)
+    * [BitBucket pull request 209](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/209)
 
 1. Remove manual setting of flags for dynamic linking of the Windows CRT library
-    * [Pull request 210](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/210)
+    * [BitBucket pull request 210](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/210)
 
 1. Add BUILD_TESTING CMake option and tests target
-    * [Pull request 208](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/208)
+    * [BitBucket pull request 208](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/208)
 
 1. Remove unused statement from Header::Unpack
-    * [Pull request 212](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/212)
+    * [BitBucket pull request 212](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/212)
 
 1. Port cmake fixes from sdformat
-    * [Pull request 213](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/213)
+    * [BitBucket pull request 213](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/213)
 
 1. Clean up DefaultFlags.cmake
-    * [Pull request 214](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/214)
+    * [BitBucket pull request 214](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/214)
 
 1. Add the new const methods to overloaded bool operator
-    * [Pull request 217](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/217)
+    * [BitBucket pull request 217](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/217)
 
 1. SubscriptionHandler.hh fix std::move compiler warning
-    * [Pull request 222](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/222)
+    * [BitBucket pull request 222](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/222)
 
 1. Fix ign topic|service fails on MacOS X if system integrity protection is enabled
-    * [Pull request 227](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/227)
-    * [Issue 72](https://bitbucket.org/ignitionrobotics/ign-transport/issues/72)
+    * [BitBucket pull request 227](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/227)
+    * [Issue 72](https://github.com/ignitionrobotics/ign-transport/issues/72)
 
 ### Ignition Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
-    * [Pull request 194](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/194)
+    * [BitBucket pull request 194](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/194)
 
 1. Support for an optional MessageInfo parameter in the user callbacks for
    receiving messages. This parameter provides some information about the
    message received (e.g.: topic name).
-    * [Pull request 191](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/191)
+    * [BitBucket pull request 191](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/191)
 
 1. Added `Node::Publisher::HasConnections` function that can be used to
    check if a Publisher has subscribers.
-    * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/190)
+    * [BitBucket pull request 190](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/190)
 
 1. Add ign topic --echo command line tool.
-    * [Pull request 189](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/189)
+    * [BitBucket pull request 189](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/189)
 
 1. Support a generic callback signature for receiving messages of any type.
-    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/188)
+    * [BitBucket pull request 188](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/188)
 
 1. Node::Unadvertise(), Node::Publish() and Node::TopicsAdvertised() removed.
    Node::Advertise() returns a Node::Publisher object that can be used for
    publishing messages. When this object runs out of scope the topic is
    unadvertised.
-    * [Pull request 186](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/186)
-    * [Pull request 185](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/185)
-    * [Pull request 184](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/184)
+    * [BitBucket pull request 186](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/186)
+    * [BitBucket pull request 185](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/185)
+    * [BitBucket pull request 184](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/184)
 
 1. Create AdvertiseMessageOptions and AdvertiseServiceOptions classes.
-    * [Pull request 184](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/184)
+    * [BitBucket pull request 184](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/184)
 
 1. Subscription options added. The first option is to provide the ability to
    set the received message rate on the subscriber side.
-    * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/174)
+    * [BitBucket pull request 174](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/174)
 
 1. Added ign service --req <args ...> for requesting services using the command line.
-    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/172)
+    * [BitBucket pull request 172](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/172)
 
 1. Do not allow to advertise a topic that is currently advertised on the same node.
-   See [issue #54](https://bitbucket.org/ignitionrobotics/ign-transport/issues/54)
-    * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/169)
+   See [issue #54](https://github.com/ignitionrobotics/ign-transport/issues/54)
+    * [BitBucket pull request 169](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/169)
 
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
-    * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)
+    * [BitBucket pull request 171](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/171)
 
 ## Ignition Transport 2.x
 
 1. Fix issue #55.
-    * [Pull request 183](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/183)
+    * [BitBucket pull request 183](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/183)
 
 1. Protobuf3 support added.
-    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/181)
+    * [BitBucket pull request 181](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/181)
 
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
-    * [Pull request 171](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/171)
+    * [BitBucket pull request 171](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/171)
 
 1. Copyright added to `tools/code_check.sh` and `tools/cpplint_to_cppcheckxml.py`
-    * [Pull request 168](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/168)
+    * [BitBucket pull request 168](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/168)
 
 1. Fix case where `std::bad_function_call` could be thrown.
-    * [Pull request 317](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/317)
+    * [BitBucket pull request 317](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/317)
 
 ### Ignition Transport 2.0.0
 
 1. Move ZMQ initialization from constructor to separate function in
    NodeShared.
-    * [Pull request 166](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/166)
+    * [BitBucket pull request 166](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/166)
 
 1. `Node::Advertise` returns a publisher id that can be used to publish messages, as an alternative to remembering topic strings.
-    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/129)
+    * [BitBucket pull request 129](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/129)
 
 ## Ignition Transport 1.x
 
 ### Ignition Transport 1.2.0
 
 1. Removed duplicate code in NetUtils, and improved speed of DNS lookup
-    * [Pull request 128](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/128)
+    * [BitBucket pull request 128](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-request/128)
