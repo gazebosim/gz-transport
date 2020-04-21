@@ -602,7 +602,7 @@ file within the ``ign_transport_tutorial`` folder.
 Building the code
 =================
 
-Download the `CMakeLists.txt <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder. Then, download `CMakeLists.txt <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/CMakeLists.txt>`_ and `stringmsg.proto <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/msgs/stringmsg.proto>`_ inside the ``msgs`` directory.
+Download the `CMakeLists.txt <https://github.com/ignitionrobotics/ign-transport/raw/ign-transport2/example/CMakeLists.txt>`_ file within the ``ign_transport_tutorial`` folder.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
 the ``ign_transport_tutorial`` directory.
