@@ -24,8 +24,8 @@ install Docker following any of the existing guides available
 ([here](https://github.com/osrf/vrx/wiki/tutorials/installDocker)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/raw/master/example/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/raw/master/example/docker/run.bash) and
-[Dockerfile](https://github.com/ignitionrobotics/ign-transport/raw/master/example/docker/ign-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/run.bash) and
+[Dockerfile](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/ign-transport/Dockerfile) files.
 
 ```{.sh}
 wget https://github.com/ignitionrobotics/ign-transport/raw/master/docker/build.bash
