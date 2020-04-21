@@ -42,7 +42,7 @@ Windows `cmd` for configuring and building.  You might also need to [disable the
 
 1. Clone ign-transport:
 
-        hg clone https://bitbucket.org/ignitionrobotics/ign-transport
+        git clone https://github.com/ignitionrobotics/ign-transport
         cd ign-transport
 
 1. In a Windows Command Prompt, load your compiler setup, e.g.:
