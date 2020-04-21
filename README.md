@@ -9,11 +9,6 @@ of libraries designed to rapidly develop robot applications.
 
 ## Continuous integration
 
-Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport).
-
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-transport/default)
-
 [![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=latest)](https://readthedocs.org/projects/ignition-transport/?badge=latest)
 
 
@@ -29,10 +24,10 @@ source:
  - libignition-msgs-dev
  - cmake
  - ruby-ronn
- - mercurial
+ - git
  - C++ compiler with c++11 support (eg. GCC>=4.8).
 
-    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libzmq3-dev cmake ruby-ronn mercurial
+    sudo apt-get install build-essential uuid-dev libprotobuf-dev protobuf-compiler libzmq3-dev cmake ruby-ronn git
 
 1. Setup your computer to accept software from packages.osrfoundation.org.
 
