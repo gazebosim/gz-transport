@@ -22,7 +22,7 @@ cd ~/ign_transport_tutorial/docker
 
 We'll use Docker to configure the environment for this example. Feel free to
 install Docker following any of the existing guides available
-([here](https://github.com/osrf/vrx/wiki/tutorials/installDocker)'s one).
+([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
 Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/raw/ign-transport8/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/raw/ign-transport8/docker/run.bash) and
