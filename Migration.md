@@ -11,21 +11,21 @@ release will remove the deprecated code.
 ### Deprecated
 
 1. NodeShared::TriggerSubscriberCallbacks
-    * [Pull request 404](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/404)
+    * [BitBucket pull request 404](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/404)
 
 1. The discovery wire protocol changed to use ignition::msgs::Discovery
    instead of C-structs. The Packet.hh header file is deprecated, which
    contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
    version of the wire protocal has bumped from 9 to 10. This means Ignition
    Transport 8+ will not work with Ignition Transport 7 and below.
-    * [Pull request 403](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/403)
+    * [BitBucket pull request 403](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/403)
 
 ## Ignition Transport 6.X to 7.X
 
 ### Removed
 
 1. The `ign.hh` file is not longer installed.
-    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/367)
+    * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 ## Ignition Transport 4.X to 5.X
 
@@ -34,6 +34,6 @@ release will remove the deprecated code.
 1. Service responder callbacks passed to `Node::Advertise` should now return
    a boolean value instead of taking in a boolean output parameter. The existing
    functions have been deprecated.
-    * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
-    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
+    * [BitBucket pull request 260](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/260)
+    * [BitBucket pull request 228](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/228)
 
