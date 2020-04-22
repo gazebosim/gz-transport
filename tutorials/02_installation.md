@@ -67,7 +67,7 @@ versions are welcome.
 This installation procedure uses pre-compiled binaries in a local
 workspace. To make things easier, use a MinGW shell for your editing
 work (such as the [Git Bash Shell](https://msysgit.github.io/) with
-[Mercurial](http://tortoisehg.bitbucket.org/download/index.html)), and
+[Git](https://gitforwindows.org/)), and
 only use the Windows cmd for configuring and building. You might also
 need to [disable the Windows
 firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).
@@ -110,7 +110,7 @@ To fix this problem, manually move the nested directories up one level.
 Clone and prepare the Ignition Math dependency:
 
 ```
-hg clone https://bitbucket.org/ignitionrobotics/ign-math
+git clone https://github.com/ignitionrobotics/ign-math
 cd ign-math
 mkdir build
 ```
@@ -132,7 +132,7 @@ nmake install
 Clone and prepare the Ignition Msgs dependency:
 
 ```
-hg clone https://bitbucket.org/ignitionrobotics/ign-msgs
+git clone https://github.com/ignitionrobotics/ign-msgs
 cd ign-msgs
 mkdir build
 ```
@@ -148,7 +148,7 @@ nmake install
 Clone ign-transport:
 
 ```
-hg clone https://bitbucket.org/ignitionrobotics/ign-transport
+git clone https://github.com/ignitionrobotics/ign-transport
 cd ign-transport
 ```
 
@@ -218,13 +218,13 @@ sudo apt-get remove libignition-transport9-dev
 Install prerequisites. A clean Ubuntu system will need:
 
 ```
-sudo apt-get install mercurial cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
 ```
 
 Clone the repository into a directory and go into it:
 
 ```
-hg clone https://bitbucket.org/ignitionrobotics/ign-transport /tmp/ign-transport
+git clone https://github.com/ignitionrobotics/ign-transport /tmp/ign-transport
 cd /tmp/ign-transport
 ```
 
