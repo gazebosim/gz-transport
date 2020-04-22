@@ -2,8 +2,8 @@
 
 **Maintainer:** caguero AT openrobotics DOT org
 
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-transport.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/issues)
-[![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-transport.svg)](https://bitbucket.org/ignitionrobotics/ign-transport/pull-requests)
+[![GitHub open issues](https://img.shields.io/github/issues-raw/ignitionrobotics/ign-transport.svg)](https://github.com/ignitionrobotics/ign-transport/issues)
+[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/ignitionrobotics/ign-transport.svg)](https://github.com/ignitionrobotics/ign-transport/pulls)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -85,7 +85,7 @@ section of the documentation.
 # Usage
 
 See [tutorials](https://ignitionrobotics.org/tutorials/transport/5.0/index.html)
-and the [example directory](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/?at=default)
+and the [example directory](https://github.com/ignitionrobotics/ign-transport/raw/master/example/)
 in the source code.
 
 # Documentation
@@ -139,12 +139,12 @@ ign-transport
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md?at=default&fileviewer=file-view-default).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CODE_OF_CONDUCT.md?at=default&fileviewer=file-view-default).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -157,5 +157,5 @@ version and release information.
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/LICENSE)
+See also the [LICENSE](https://github.com/ignitionrobotics/ign-transport/raw/master/LICENSE)
 file.

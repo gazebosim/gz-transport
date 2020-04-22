@@ -3,7 +3,7 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Skip command line tests for Windows, see
-# https://bitbucket.org/ignitionrobotics/ign-transport/issues/104
+# https://github.com/ignitionrobotics/ign-transport/issues/104
 if (MSVC)
   list(REMOVE_ITEM gtest_sources ign_TEST.cc)
 endif()

@@ -8,7 +8,7 @@ pipelines:
           - apt-get update
           - apt-get -y install
             gnupg lsb-release
-            cmake pkg-config cppcheck git mercurial build-essential curl
+            cmake pkg-config cppcheck git build-essential curl
             libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev
             doxygen ruby-ronn libsqlite3-dev g++-8
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8

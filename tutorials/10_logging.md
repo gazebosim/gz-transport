@@ -9,7 +9,7 @@ playing back a collection of messages.
 
 Ignition Transport provides two mechanisms for logging: a C++ API and a set of
 command line utilities as part of the optional `ign` CLI tool (available via
-[Ignition Tools](https://bitbucket.org/ignitionrobotics/ign-tools)). We use
+[Ignition Tools](https://github.com/ignitionrobotics/ign-tools)). We use
 [SQLite3](https://www.sqlite.org) to create a file containing all the messages
 recorded during a session. You can imagine it as a container where all the
 original messages have been efficiently stored and timestamped.
@@ -24,7 +24,7 @@ cd ~/ign_transport_tutorial
 
 ## Record
 
-Download the [record.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/record.cc)
+Download the [record.cc](https://github.com/ignitionrobotics/ign-transport/blob/master/example/record.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -125,7 +125,7 @@ stops the log recording as expected.
 
 ## Play back
 
-Download the [playback.cc](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/playback.cc)
+Download the [playback.cc](https://github.com/ignitionrobotics/ign-transport/blob/master/example/playback.cc)
 file within the `ign_transport_tutorial` folder and open it with your favorite
 editor:
 
@@ -214,7 +214,7 @@ thread until all messages have been published.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/log/example/CMakeLists.txt)
+Download the [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/blob/master/example/CMakeLists.txt)
 file within the `ign_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within

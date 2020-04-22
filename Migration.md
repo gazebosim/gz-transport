@@ -11,7 +11,7 @@ release will remove the deprecated code.
 ### Removed
 
 1. The `ign.hh` file is not longer installed.
-    * [Pull request 367](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/367)
+    * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 ## Ignition Transport 4.X to 5.X
 
@@ -20,6 +20,5 @@ release will remove the deprecated code.
 1. Service responder callbacks passed to `Node::Advertise` should now return
    a boolean value instead of taking in a boolean output parameter. The existing
    functions have been deprecated.
-    * [Pull request 260](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/260)
-    * [Pull request 228](https://bitbucket.org/ignitionrobotics/ign-transport/pull-request/228)
-
+    * [BitBucket pull request 260](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/260)
+    * [BitBucket pull request 228](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/228)

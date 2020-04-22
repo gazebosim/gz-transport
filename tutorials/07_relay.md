@@ -21,16 +21,16 @@ cd ~/ign_transport_tutorial/docker
 
 We'll use Docker to configure the environment for this example. Feel free to
 install Docker following any of the existing guides available
-([here](https://bitbucket.org/osrf/vrx/wiki/tutorials/installDocker)'s one).
+([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/build.bash), [run.bash](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/run.bash) and
-[Dockerfile](https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/example/docker/ign-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/run.bash) and
+[Dockerfile](https://github.com/ignitionrobotics/ign-transport/blob/master/docker/ign-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/build.bash
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/run.bash
-wget https://bitbucket.org/ignitionrobotics/ign-transport/raw/default/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+wget https://github.com/ignitionrobotics/ign-transport/raw/master/docker/build.bash
+wget https://github.com/ignitionrobotics/ign-transport/raw/master/docker/run.bash
+wget https://github.com/ignitionrobotics/ign-transport/raw/master/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
