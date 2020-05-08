@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-transport/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-transport)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-windows7-amd64)
 
 Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
