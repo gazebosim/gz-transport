@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-default-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-transport/branch/ign-transport8/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-transport)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-windows7-amd64)
 
 Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
@@ -85,7 +85,7 @@ section of the documentation.
 # Usage
 
 See [tutorials](https://ignitionrobotics.org/api/transport/8.0/tutorials.html)
-and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/master/example/)
+and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/ign-transport8/example/)
 in the source code.
 
 ## Known issue of command line tools
