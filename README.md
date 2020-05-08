@@ -9,11 +9,11 @@ of libraries designed to rapidly develop robot applications.
 
 ## Continuous integration
 
-Test coverage: [![codecov](https://codecov.io/bb/ignitionrobotics/ign-transport/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-transport)
+Test coverage: [![codecov](https://codecov.io/gh/ignitionrobotics/ign-transport/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-transport)
 
 ## Documentation
 
-Check [here](http://ignition-transport.readthedocs.io/en/default/).
+Check [here](http://ignition-transport.readthedocs.io/en/master/).
 
 [![Documentation Status](https://readthedocs.org/projects/ignition-transport/badge/?version=default)](https://readthedocs.org/projects/ignition-transport/?badge=default)
 
