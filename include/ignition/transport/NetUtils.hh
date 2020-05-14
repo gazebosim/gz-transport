@@ -62,6 +62,9 @@ namespace ignition
 
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
+    /// On linux and Mac only, if determination
+    /// of your login name failes then a string of the form "error-UUID"
+    /// is returned where UUID is a universally unique identifier.
     std::string IGNITION_TRANSPORT_VISIBLE username();
     }
   }

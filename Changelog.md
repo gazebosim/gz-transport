@@ -42,7 +42,36 @@
 
 ## Ignition Transport 7
 
-### Ignition Transport 7.X.X
+### Ignition Transport 7.x.x (202x-xx-xx)
+
+1. Handle `getpwduid_r` error cases. This addresses issue #118. Solution was
+   created in pull request #441 by Poh Zhi-Ee.
+    * [BitBucket pull request 444](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/444)
+
+### Ignition Transport 7.4.0 (2020-03-09)
+
+1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
+   message delivery during `connect`. This approach would fail if the delay
+   between nodes was too large.
+    * [BitBucket pull request 436](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/436)
+
+1. Set default message buffer sizes to 1000, for both send and receive
+   buffers.
+    * [BitBucket pull request 433](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/433)
+
+1. Added support for configuring message buffers via environment variables.
+    * [BitBucket pull request 430](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/430)
+
+### Ignition Transport 7.3.0
+
+1. Write to disk from a background thread in log recorder
+    * [BitBucket pull request 428](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/428)
+
+1. Restore original Playback::Start and add overload with new parameter to fix ABI.
+    * [BitBucket pull request 427](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/427)
+
+1. Improve compiler support for c++ filesystem.
+    * [BitBucket pull request 422](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/422)
 
 ### Ignition Transport 7.2.1
 

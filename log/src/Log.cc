@@ -48,6 +48,10 @@ class ignition::transport::log::Log::Implementation
   /// \return one of the SQLite error codes
   public: int EndTransactionIfEnoughTimeHasPassed();
 
+  /// \brief End transaction immediately
+  /// \return one of the SQLite error codes
+  public: int EndTransaction();
+
   /// \brief Begin transaction if one isn't already open
   /// \return one of the SQLite error codes
   public: int BeginTransactionIfNotInOne();
@@ -175,6 +179,13 @@ int Log::Implementation::EndTransactionIfEnoughTimeHasPassed()
     return SQLITE_OK;
   }
 
+  // End the transaction
+  return this->EndTransaction();
+}
+
+//////////////////////////////////////////////////
+int Log::Implementation::EndTransaction()
+{
   // End the transaction
   int returnCode = sqlite3_exec(
       this->db->Handle(), "END;", NULL, 0, nullptr);
@@ -380,7 +391,7 @@ Log::~Log()
 {
   if (this->dataPtr && this->dataPtr->inTransaction)
   {
-    this->dataPtr->EndTransactionIfEnoughTimeHasPassed();
+    this->dataPtr->EndTransaction();
   }
 }
 

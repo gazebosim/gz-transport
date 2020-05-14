@@ -48,7 +48,6 @@ namespace ignition
                 context(new zmq::context_t(1)),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-                control(new zmq::socket_t(*context, ZMQ_DEALER)),
                 requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
                 responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
                 replier(new zmq::socket_t(*context, ZMQ_ROUTER))
@@ -82,9 +81,6 @@ namespace ignition
 
       /// \brief ZMQ socket to receive topic updates.
       public: std::unique_ptr<zmq::socket_t> subscriber;
-
-      /// \brief ZMQ socket to receive control updates (new connections, ...).
-      public: std::unique_ptr<zmq::socket_t> control;
 
       /// \brief ZMQ socket for sending service call requests.
       public: std::unique_ptr<zmq::socket_t> requester;

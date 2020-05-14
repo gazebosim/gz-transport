@@ -18,6 +18,8 @@
 #ifndef IGN_TRANSPORT_HELPERS_HH_
 #define IGN_TRANSPORT_HELPERS_HH_
 
+#include <zmq.h>
+
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -27,6 +29,14 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
+
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+// Avoid using deprecated message send/receive function when possible.
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 4, 0)
+  #define IGN_ZMQ_POST_4_4_0
+#endif
 
 namespace ignition
 {

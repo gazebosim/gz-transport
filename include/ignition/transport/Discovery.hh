@@ -379,6 +379,22 @@ namespace ignition
         return true;
       }
 
+      /// \brief Register a node from this process as a remote subscriber.
+      /// \param[in] _pub Contains information about the subscriber.
+      public: void Register(const MessagePublisher &_pub) const
+      {
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::NEW_CONNECTION, _pub);
+      }
+
+      /// \brief Unregister a node from this process as a remote subscriber.
+      /// \param[in] _pub Contains information about the subscriber.
+      public: void Unregister(const MessagePublisher &_pub) const
+      {
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::END_CONNECTION, _pub);
+      }
+
       /// \brief Get the discovery information.
       /// \return Reference to the discovery information object.
       public: const TopicStorage<Pub> &Info() const
@@ -518,6 +534,24 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->disconnectionCb = _cb;
+      }
+
+      /// \brief Register a callback to receive an event when a new remote
+      /// node subscribes to a topic within this process.
+      /// \param[in] _cb Function callback.
+      public: void RegistrationsCb(const DiscoveryCallback<Pub> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->registrationCb = _cb;
+      }
+
+      /// \brief Register a callback to receive an event when a remote
+      /// node unsubscribes to a topic within this process.
+      /// \param[in] _cb Function callback.
+      public: void UnregistrationsCb(const DiscoveryCallback<Pub> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->unregistrationCb = _cb;
       }
 
       /// \brief Print the current discovery state.
@@ -867,11 +901,15 @@ namespace ignition
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
+        DiscoveryCallback<Pub> registerCb;
+        DiscoveryCallback<Pub> unregisterCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
+          registerCb = this->registrationCb;
+          unregisterCb = this->unregistrationCb;
         }
 
         switch (msg.type())
@@ -947,6 +985,28 @@ namespace ignition
               this->SendMsg(DestinationType::ALL,
                   msgs::Discovery::ADVERTISE, nodeInfo);
             }
+
+            break;
+          }
+          case msgs::Discovery::NEW_CONNECTION:
+          {
+            // Read the rest of the fields.
+            Pub publisher;
+            publisher.SetFromDiscovery(msg);
+
+            if (registerCb)
+              registerCb(publisher);
+
+            break;
+          }
+          case msgs::Discovery::END_CONNECTION:
+          {
+            // Read the rest of the fields.
+            Pub publisher;
+            publisher.SetFromDiscovery(msg);
+
+            if (unregisterCb)
+              unregisterCb(publisher);
 
             break;
           }
@@ -1036,6 +1096,8 @@ namespace ignition
         {
           case msgs::Discovery::ADVERTISE:
           case msgs::Discovery::UNADVERTISE:
+          case msgs::Discovery::NEW_CONNECTION:
+          case msgs::Discovery::END_CONNECTION:
           {
             _pub.FillDiscovery(discoveryMsg);
             break;
@@ -1082,12 +1144,10 @@ namespace ignition
       {
         uint16_t msgSize;
 
-        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-        // became deprecated.
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-        int msgSizeFull = _msg.ByteSize();
-#else
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
         size_t msgSizeFull = _msg.ByteSizeLong();
+#else
+        int msgSizeFull = _msg.ByteSize();
 #endif
         if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
         {
@@ -1135,12 +1195,10 @@ namespace ignition
       {
         uint16_t msgSize;
 
-        // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-        // became deprecated.
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-        int msgSizeFull = _msg.ByteSize();
-#else
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
         size_t msgSizeFull = _msg.ByteSizeLong();
+#else
+        int msgSizeFull = _msg.ByteSize();
 #endif
         if (msgSizeFull + sizeof(msgSize) > this->kMaxRcvStr)
         {
@@ -1160,6 +1218,7 @@ namespace ignition
           // sockets.
           for (const auto &sock : this->Sockets())
           {
+            errno = 0;
             if (sendto(sock, reinterpret_cast<const raw_type *>(
               reinterpret_cast<const unsigned char*>(buffer)),
               totalSize, 0,
@@ -1341,6 +1400,14 @@ namespace ignition
 
       /// \brief Callback executed when new topics are invalid.
       private: DiscoveryCallback<Pub> disconnectionCb;
+
+      /// \brief Callback executed when a new remote subscriber is registered.
+      /// ToDo: Remove static when possible.
+      private: inline static DiscoveryCallback<Pub> registrationCb;
+
+      /// \brief Callback executed when a new remote subscriber is unregistered.
+      /// ToDo: Remove static when possible.
+      private: inline static DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;

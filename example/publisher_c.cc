@@ -49,12 +49,10 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-  int size = msg.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
   int size = msg.ByteSizeLong();
+#else
+  int size = msg.ByteSize();
 #endif
 
   // Allocate space for the serialized message
@@ -68,12 +66,10 @@ int main(int argc, char **argv)
   msgRed.set_data("RED HELLO");
 
   // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-  int sizeRed = msgRed.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
   int sizeRed = msgRed.ByteSizeLong();
+#else
+  int sizeRed = msgRed.ByteSize();
 #endif
 
   // Allocate space for the serialized message

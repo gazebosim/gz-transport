@@ -235,7 +235,7 @@ mkdir build
 cd build
 ```
 
-Configure Ignition Transport:
+Configure Ignition Transport (choose either method a or b below):
 
 A.  Release mode (recommended): This will generate optimized code, but will not have
     debug symbols. Use this mode if you don't need to use [GDB](https://www.gnu.org/software/gdb/) (advanced).
