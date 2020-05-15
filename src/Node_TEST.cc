@@ -2242,6 +2242,20 @@ TEST(NodeTest, WrongTopicRemap)
   EXPECT_FALSE(nodeOptions.AddTopicRemap(g_topic, g_topic_remap));
 }
 
+/////////////////////////////////////////////////
+/// \brief Check the high water mark of the receiving message buffer.
+TEST(NodeTest, RcvHwm)
+{
+  EXPECT_EQ(ignition::transport::kDefaultRcvHwm, ignition::transport::rcvHwm());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the high water mark of the sending message buffer.
+TEST(NodeTest, SndHwm)
+{
+  EXPECT_EQ(ignition::transport::kDefaultSndHwm, ignition::transport::sndHwm());
+}
+
 //////////////////////////////////////////////////
 /// \brief Check that we destruct a Node object before a Node::Publisher.
 TEST(NodePubTest, DestructionOrder)

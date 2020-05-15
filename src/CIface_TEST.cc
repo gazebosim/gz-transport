@@ -77,13 +77,10 @@ TEST(CIfaceTest, PubSub)
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
-  // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-  int size = msg.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
   int size = msg.ByteSizeLong();
+#else
+  int size = msg.ByteSize();
 #endif
 
   // Allocate space for the serialized message
@@ -135,13 +132,10 @@ TEST(CIfaceTest, PubSubPartitions)
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
-  // Get the size of the serialized message
-#if GOOGLE_PROTOBUF_VERSION < 3001000
-  int size = msg.ByteSize();
-#else
-  // ByteSizeLong appeared in version 3.1 of Protobuf, and ByteSize
-  // became deprecated.
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
   int size = msg.ByteSizeLong();
+#else
+  int size = msg.ByteSize();
 #endif
 
   // Allocate space for the serialized message
