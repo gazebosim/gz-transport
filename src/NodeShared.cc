@@ -138,10 +138,9 @@ NodeShared *NodeShared::Instance()
   // application exits. We may want to consider a more elegant solution in
   // the future. The zsys_shutdown() function in the czmq library may be able
   // to provide some inspiration for solving this more cleanly.
-
   static NodeShared *instance = nullptr;
 
-  // Create a new singleton of NodeShared if the the process has changed
+  // Create a new singleton of NodeShared if the process has changed
   // (maybe after fork?) so the ZMQ context is not shared between them.
   if (instance == nullptr || instance->pUuid != Uuid().ToString())
   {
