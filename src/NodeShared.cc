@@ -124,7 +124,6 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
-#ifdef _MSC_VER
   // If we compile ign-transport as a shared library on Windows, we should
   // never destruct NodeShared, unfortunately. It seems that WinSock does
   // not behave well during the DLL teardown phase as a program exits, and
@@ -139,12 +138,17 @@ NodeShared *NodeShared::Instance()
   // application exits. We may want to consider a more elegant solution in
   // the future. The zsys_shutdown() function in the czmq library may be able
   // to provide some inspiration for solving this more cleanly.
-  static NodeShared *instance = new NodeShared();
+
+  static NodeShared *instance = nullptr;
+
+  // Create a new singleton of NodeShared if the the process has changed
+  // (maybe after fork?) so the ZMQ context is not shared between them.
+  if (instance == nullptr || instance->pUuid != Uuid().ToString())
+  {
+    instance = new NodeShared();
+  }
+
   return instance;
-#else
-  static NodeShared instance;
-  return &instance;
-#endif
 }
 
 //////////////////////////////////////////////////
