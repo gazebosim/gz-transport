@@ -140,8 +140,9 @@ NodeShared *NodeShared::Instance()
   // to provide some inspiration for solving this more cleanly.
   static NodeShared *instance = nullptr;
 
-  // Create a new singleton of NodeShared if the process has changed
-  // (maybe after fork?) so the ZMQ context is not shared between them.
+  // Create a new instance of NodeShared if the process has changed
+  // (maybe after fork?) so the ZMQ context is not shared between different
+  // processes.
   if (instance == nullptr || instance->pUuid != Uuid().ToString())
   {
     instance = new NodeShared();
