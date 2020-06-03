@@ -275,6 +275,9 @@ namespace ignition
       /// \brief Process UUID.
       public: std::string pUuid;
 
+      /// \brief Process pid.
+      public: pid_t pid;
+
       /// \brief thread in charge of receiving and handling incoming messages.
       public: std::thread threadReception;
 

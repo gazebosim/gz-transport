@@ -32,6 +32,8 @@
 #include <thread>
 #include <vector>
 
+#include <unistd.h>
+
 // TODO(anyone): Remove after fixing the warnings.
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -140,10 +142,14 @@ NodeShared *NodeShared::Instance()
   // to provide some inspiration for solving this more cleanly.
   static NodeShared *instance = nullptr;
 
+  static std::mutex mutex;
+
   // Create a new instance of NodeShared if the process has changed
   // (maybe after fork?) so the ZMQ context is not shared between different
   // processes.
-  if (instance == nullptr || instance->pUuid != Uuid().ToString())
+  std::lock_guard lock(mutex);
+
+  if (instance == nullptr || instance->pid != ::getpid())
   {
     instance = new NodeShared();
   }
@@ -163,6 +169,9 @@ NodeShared::NodeShared()
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
+
+  // Store the process pid
+  this->pid = ::getpid();
 
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
