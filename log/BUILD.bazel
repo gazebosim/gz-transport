@@ -1,0 +1,184 @@
+load(
+    "//ign_bazel:generate_file.bzl",
+    "generate_file",
+)
+
+load(
+    "//ign_bazel:cmake_configure_file.bzl",
+    "cmake_configure_file",
+)
+load(
+    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "ruby_binary",
+    "ruby_library",
+    "ruby_test",
+    "ruby_rspec",
+)
+
+generate_file(
+    name = "include/ignition/transport/log/Export.hh",
+    content = """
+#pragma once
+// IGN_DEPRECATED is defined by all ignition libraries, but the version below
+// is a simplified version.  When mixing the regular ignition libraries and
+// the drake compiled ignition libraries, the compiler throws a warning about
+// the macro being multiply defined.  We undefine it before redefining it here
+// to work around that issue.  Note that the IGNITION_TRANSPORT_LOG_VISIBLE macro
+// shouldn't be defined multiple times, but we undefine it just in case.
+#ifdef IGNITION_TRANSPORT_LOG_VISIBLE
+#undef IGNITION_TRANSPORT_LOG_VISIBLE
+#endif
+#define IGNITION_TRANSPORT_LOG_VISIBLE __attribute__ ((visibility("default")))
+#ifdef IGN_DEPRECATED
+#undef IGN_DEPRECATED
+#endif
+#define IGN_DEPRECATED(version) __attribute__ ((__deprecated__))
+    """,
+    visibility = ["//visibility:private"],
+)
+
+log_library_location = "/usr"
+SCHEMA_INSTALL_PATH = "/tmp"
+PROJECT_MAJOR = 8
+PROJECT_MINOR = 0
+PROJECT_PATCH = 0
+ign_log_ruby_path = "/usr"
+
+# Generates build_config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "build_config",
+    src = "src/build_config.hh.in",
+    out = "include/build_config.hh",
+    cmakelists = ["src/CMakeLists.txt"],
+    defines = [
+        "SCHEMA_INSTALL_PATH=%s" % (SCHEMA_INSTALL_PATH),
+    ],
+    visibility = ["//visibility:private"],
+)  
+
+cmake_configure_file(
+    name = "yaml",
+    src = "src/cmd/transportlog.yaml.in",
+    out = "src/cmd/transportlog.yaml",
+    cmakelists = ["src/CMakeLists.txt"],
+    defines = [
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "ign_log_ruby_path=%s" % [ign_log_ruby_path],
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "ruby",
+    src = "src/cmd/cmdlog.rb.in",
+    out = "src/cmd/cmdlog.rb",
+    cmakelists = ["src/CMakeLists.txt"],
+    defines = [
+        "log_library_location=%s" % [log_library_location],
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ruby_binary(
+    name = "transport-log-ruby",
+    srcs = ["src/cmd/cmdlog.rb"],
+    includes = ["src/cmd"],
+    main = "src/cmd/log.rb",
+    visibility = ["//visibility:public"],
+)
+
+public_headers_no_gen = [
+    "include/ignition/transport/log/Batch.hh",
+    "include/ignition/transport/log/Descriptor.hh",
+    "include/ignition/transport/log/detail/QueryOptions.hh",
+    "include/ignition/transport/log/Log.hh",
+    "include/ignition/transport/log/Message.hh",
+    "include/ignition/transport/log/MsgIter.hh",
+    "include/ignition/transport/log/Playback.hh",
+    "include/ignition/transport/log/QualifiedTime.hh",
+    "include/ignition/transport/log/QueryOptions.hh",
+    "include/ignition/transport/log/Recorder.hh",
+    "include/ignition/transport/log/SqlStatement.hh",
+    "src/cmd/LogCommandAPI.hh",
+    "src/Descriptor.hh",
+]
+
+private_headers = [
+    "src/BatchPrivate.hh",
+    "src/Console.hh",
+    "src/MsgIterPrivate.hh",
+    "src/raii-sqlite3.hh",
+]
+
+sources = [
+    "src/Batch.cc",
+    "src/Console.cc",
+    "src/Descriptor.cc",
+    "src/Log.cc",
+    "src/Message.cc",
+    "src/MsgIter.cc",
+    "src/Playback.cc",
+    "src/QualifiedTime.cc",
+    "src/QueryOptions.cc",
+    "src/raii-sqlite3.cc",
+    "src/Recorder.cc",
+    "src/SqlStatement.cc",
+    "src/cmd/LogCommandAPI.cc",
+]
+
+test_sources = [
+    "src/Batch_TEST.cc",
+    "src/Descriptor_TEST.cc",
+    "src/Message_TEST.cc",
+    "src/LogCommandAPI_TEST.cc",
+    "src/Log_TEST.cc",
+    "src/Playback_TEST.cc",
+    "src/QualifiedTime_TEST.cc",
+    "src/QueryOptions_TEST.cc",
+    "src/Recorder_TEST.cc",
+    "src/SqlStatement_TEST.cc",
+]
+
+public_headers = public_headers_no_gen + [
+    "include/ignition/transport/log/Export.hh",
+    "include/build_config.hh",
+]
+
+cc_binary(
+    name = "libignition_transport-log.so",
+    srcs = sources + private_headers + public_headers,
+    includes = ["include", "src"],
+    linkopts = ["-Wl,-soname,libignition_transport-log.so", "-lzmq"],
+    linkshared = True,
+    visibility = [],
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_msgs",
+    ],
+)
+
+cc_library(
+    name = "log",
+    srcs = ["libignition_transport-log.so"],
+    hdrs = public_headers,
+    includes = ["include", "src"],
+    visibility = ["//visibility:public"],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_transport/test:test_utils",
+        "//ign_transport/log:log",
+        "//ign_transport/log/test:test_utils",
+        "//ign_transport",
+        "//ign_msgs",
+        "@gtest//:gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in test_sources]

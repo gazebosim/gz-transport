@@ -1,0 +1,232 @@
+load(
+    "//ign_bazel:cmake_configure_file.bzl",
+    "cmake_configure_file",
+)
+load(
+    "//ign_bazel:generate_include_header.bzl",
+    "generate_include_header",
+)
+load(
+    "//ign_bazel:generate_file.bzl",
+    "generate_file",
+)
+
+load(
+    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "ruby_binary",
+    "ruby_library",
+    "ruby_test",
+    "ruby_rspec",
+)
+
+package(default_visibility = ["//visibility:public"])
+
+PROJECT_NAME = "ignition-transport"
+PROJECT_MAJOR = 8
+PROJECT_MINOR = 0
+PROJECT_PATCH = 0
+IGN_DESIGNATION = "/tmp"
+library_location = "/usr"
+IGN_LIBRARY_PATH = "/usr"
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "config",
+    src = "include/ignition/transport/config.hh.in",
+    out = "include/ignition/transport/config.hh",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
+        "PROJECT_MAJOR_VERSION=%d" % (PROJECT_MAJOR),
+        "PROJECT_MINOR_VERSION=%d" % (PROJECT_MINOR),
+        "PROJECT_PATCH_VERSION=%d" % (PROJECT_PATCH),
+        "PROJECT_VERSION_PATCH=%d" % (PROJECT_PATCH),
+        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
+        "PROJECT_VERSION_MINOR=%d" % (PROJECT_MINOR),
+        "PROJECT_VERSION=%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR),
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
+        "PROJECT_NAME=%s" % (PROJECT_NAME),
+        "IGN_DESIGNATION=%s" % (IGN_DESIGNATION),
+    ],
+    visibility = ["//visibility:private"],
+)
+
+cmake_configure_file(
+    name = "yaml",
+    src = "conf/transport.yaml.in",
+    out = "conf/transport.yaml",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
+        "PROJECT_NAME_NO_VERSION_LOWER=%s" % (PROJECT_NAME),
+        "ign_library_path=%s" % (IGN_LIBRARY_PATH),
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "ruby",
+    src = "src/cmd/cmdtransport.rb.in",
+    out = "src/cmd/cmdtransport.rb",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "library_location=%s" % [library_location],
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "IGN_LIBRARY_PATH=%s" % (IGN_LIBRARY_PATH),
+        "IGN_LIBRARY_NAME=%s" % (PROJECT_NAME),
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ruby_binary(
+    name = "transport-ruby",
+    srcs = ["src/cmd/cmdtransport.rb"],
+    includes = ["src/cmd"],
+    main = "src/cmd/cmdtransport.rb",
+    visibility = ["//visibility:public"],
+)
+
+generate_file(
+    name = "include/ignition/transport/Export.hh",
+    content = """
+#pragma once
+// IGN_DEPRECATED is defined by all ignition libraries, but the version below
+// is a simplified version.  When mixing the regular ignition libraries and
+// the drake compiled ignition libraries, the compiler throws a warning about
+// the macro being multiply defined.  We undefine it before redefining it here
+// to work around that issue.  Note that the IGNITION_TRANSPORT_VISIBLE macro
+// shouldn't be defined multiple times, but we undefine it just in case.
+#ifdef IGNITION_TRANSPORT_VISIBLE
+#undef IGNITION_TRANSPORT_VISIBLE
+#endif
+#define IGNITION_TRANSPORT_VISIBLE __attribute__ ((visibility("default")))
+#ifdef IGN_DEPRECATED
+#undef IGN_DEPRECATED
+#endif
+#define IGN_DEPRECATED(version) __attribute__ ((__deprecated__))
+    """,
+    visibility = ["//visibility:private"],
+)
+
+public_headers_no_gen = [
+    "include/ignition/transport/AdvertiseOptions.hh",
+    "include/ignition/transport/CIface.h",
+    "include/ignition/transport/Clock.hh",
+    "include/ignition/transport/Discovery.hh",
+    "include/ignition/transport/HandlerStorage.hh",
+    "include/ignition/transport/Helpers.hh",
+    "include/ignition/transport/MessageInfo.hh",
+    "include/ignition/transport/NetUtils.hh",
+    "include/ignition/transport/Node.hh",
+    "include/ignition/transport/detail/Node.hh",
+    "include/ignition/transport/NodeOptions.hh",
+    "include/ignition/transport/NodeShared.hh",
+    "include/ignition/transport/Packet.hh",
+    "include/ignition/transport/Publisher.hh",
+    "include/ignition/transport/RepHandler.hh",
+    "include/ignition/transport/ReqHandler.hh",
+    "include/ignition/transport/SubscribeOptions.hh",
+    "include/ignition/transport/SubscriptionHandler.hh",
+    "include/ignition/transport/TopicStorage.hh",
+    "include/ignition/transport/TopicUtils.hh",
+    "include/ignition/transport/TransportTypes.hh",
+    "include/ignition/transport/Uuid.hh",
+]
+
+private_headers = [
+    "src/NodeOptionsPrivate.hh",
+    "src/NodePrivate.hh",
+    "src/NodeSharedPrivate.hh",
+    "src/SubscribeOptionsPrivate.hh",
+]
+
+sources = [
+    "src/AdvertiseOptions.cc",
+    "src/CIface.cc",
+    "src/Clock.cc",
+    "src/Discovery.cc",
+    "src/Helpers.cc",
+    "src/ign.cc",
+    "src/MessageInfo.cc",
+    "src/NetUtils.cc",
+    "src/Node.cc",
+    "src/NodeOptions.cc",
+    "src/NodeShared.cc",
+    "src/Packet.cc",
+    "src/Publisher.cc",
+    "src/SubscribeOptions.cc",
+    "src/SubscriptionHandler.cc",
+    "src/TopicUtils.cc",
+    "src/Uuid.cc",
+]
+
+test_sources = [
+    "src/AdvertiseOptions_TEST.cc",
+    "src/CIface_TEST.cc",
+    # "src/Clock_TEST.cc",
+    "src/Discovery_TEST.cc",
+    "src/Helpers_TEST.cc",
+    "src/ign_src_TEST.cc",
+    "src/MessageInfo_TEST.cc",
+    "src/NetUtils_TEST.cc",
+    "src/NodeOptions_TEST.cc",
+    "src/Node_TEST.cc",
+    "src/Publisher_TEST.cc",
+    "src/SubscribeOptions_TEST.cc",
+    "src/TopicStorage_TEST.cc",
+    "src/TopicUtils_TEST.cc",
+    "src/Uuid_TEST.cc",
+]
+
+generate_include_header(
+    name = "transporthh_genrule",
+    out = "include/ignition/transport.hh",
+    hdrs = public_headers_no_gen + [
+        "include/ignition/transport/config.hh",
+        "include/ignition/transport/Export.hh",
+    ],
+)
+
+public_headers = public_headers_no_gen + [
+    "include/ignition/transport/config.hh",
+    "include/ignition/transport/Export.hh",
+    "include/ignition/transport.hh",
+    "src/ign.hh",
+]
+
+cc_binary(
+    name = "libignition_transport.so",
+    srcs = sources + private_headers + public_headers,
+    includes = ["include", "src"],
+    linkopts = ["-Wl,-soname,libignition_transport.so", "-lzmq"],
+    linkshared = True,
+    visibility = [],
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_msgs",
+    ],
+)
+
+cc_library(
+    name = "ign_transport",
+    srcs = ["libignition_transport.so"],
+    hdrs = public_headers,
+    includes = ["include", "src"],
+    visibility = ["//visibility:public"],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_transport/test:test_utils",
+        "//ign_transport",
+        "//ign_msgs",
+        "@gtest//:gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in test_sources]
