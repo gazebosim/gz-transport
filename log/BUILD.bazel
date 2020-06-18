@@ -7,6 +7,12 @@ load(
     "//ign_bazel:cmake_configure_file.bzl",
     "cmake_configure_file",
 )
+
+load(
+    "//ign_bazel:generate_yaml.bzl",
+    "generate_yaml",
+)
+
 load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
     "ruby_binary",
@@ -56,21 +62,19 @@ cmake_configure_file(
     visibility = ["//visibility:private"],
 )  
 
-cmake_configure_file(
-    name = "yaml",
-    src = "src/cmd/transportlog.yaml.in",
-    out = "src/cmd/transportlog.yaml",
-    cmakelists = ["src/CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "ign_log_ruby_path=%s" % [ign_log_ruby_path],
-    ],
-    visibility = ["//visibility:public"],
+cmds = "    - log   : Record or playback topics."
+
+generate_yaml(
+    name = "transport-log",
+    library_name = "log", 
+    library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
+    commands = cmds,
+    ruby_target = "//ign_transport/log:cmdlog.rb",
 )
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
-    name = "ruby",
+    name = "cmdlog.rb",
     src = "src/cmd/cmdlog.rb.in",
     out = "src/cmd/cmdlog.rb",
     cmakelists = ["src/CMakeLists.txt"],

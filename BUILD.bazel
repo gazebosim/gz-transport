@@ -10,6 +10,10 @@ load(
     "//ign_bazel:generate_file.bzl",
     "generate_file",
 )
+load(
+    "//ign_bazel:generate_yaml.bzl",
+    "generate_yaml",
+)
 
 load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
@@ -52,23 +56,21 @@ cmake_configure_file(
     visibility = ["//visibility:private"],
 )
 
-cmake_configure_file(
-    name = "yaml",
-    src = "conf/transport.yaml.in",
-    out = "conf/transport.yaml",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
-        "PROJECT_NAME_NO_VERSION_LOWER=%s" % (PROJECT_NAME),
-        "ign_library_path=%s" % (IGN_LIBRARY_PATH),
-    ],
-    visibility = ["//visibility:public"],
+cmds = "\
+    - topic   : Print information about topics.\n\
+    - service : Print information about services."
+
+generate_yaml(
+    name = "transport",
+    library_name = PROJECT_NAME,
+    library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
+    commands = cmds,
+    ruby_target = "//ign_transport:cmdtransport.rb",
 )
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
-    name = "ruby",
+    name = "cmdtransport.rb",
     src = "src/cmd/cmdtransport.rb.in",
     out = "src/cmd/cmdtransport.rb",
     cmakelists = ["CMakeLists.txt"],
