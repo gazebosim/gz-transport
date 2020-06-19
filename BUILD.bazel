@@ -201,7 +201,7 @@ cc_binary(
     name = "libignition_transport.so",
     srcs = sources + private_headers + public_headers,
     includes = ["include", "src"],
-    linkopts = ["-Wl,-soname,libignition_transport.so", "-lzmq"],
+    linkopts = ["-Wl,-soname,libignition_transport.so", "-lzmq", "-luuid", "-lsqlite3"],
     linkshared = True,
     visibility = [],
     deps = [
