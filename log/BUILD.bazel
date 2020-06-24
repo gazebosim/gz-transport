@@ -38,7 +38,7 @@ generate_file(
 )
 
 log_library_location = "/usr"
-SCHEMA_INSTALL_PATH = "/tmp"
+SCHEMA_INSTALL_PATH = "./ign_transport/log/sql"
 PROJECT_MAJOR = 8
 PROJECT_MINOR = 0
 PROJECT_PATCH = 0
@@ -150,7 +150,7 @@ cc_binary(
     name = "libignition_transport-log.so",
     srcs = sources + private_headers + public_headers,
     includes = ["include", "src"],
-    linkopts = ["-Wl,-soname,libignition_transport-log.so", "-lzmq"],
+    linkopts = ["-Wl,-soname,libignition_transport-log.so", "-lzmq", "-lstdc++fs"],
     linkshared = True,
     visibility = [],
     deps = [
@@ -166,11 +166,20 @@ cc_library(
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_msgs",
+    ],
 )
 
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
+    data = [
+        "//ign_transport/log:sql",
+        "//ign_transport/log/test:data",
+    ],
     deps = [
         "//ign_bazel:utilities",
         "//ign_transport/test:test_utils",
@@ -182,3 +191,5 @@ cc_library(
         "@gtest//:gtest_main",
     ],
 ) for src in test_sources]
+
+exports_files(["sql"])

@@ -166,10 +166,12 @@ sources = [
 test_sources = [
     "src/AdvertiseOptions_TEST.cc",
     "src/CIface_TEST.cc",
-    # "src/Clock_TEST.cc",
+    "src/Clock_TEST.cc",
     "src/Discovery_TEST.cc",
+    "src/HandlerStorage_TEST.cc",
     "src/Helpers_TEST.cc",
     "src/ign_src_TEST.cc",
+    # "src/ign_TEST.cc",
     "src/MessageInfo_TEST.cc",
     "src/NetUtils_TEST.cc",
     "src/NodeOptions_TEST.cc",
@@ -208,6 +210,10 @@ cc_binary(
         "//ign_bazel:utilities",
         "//ign_msgs",
     ],
+    defines = select({
+        ":custom": ["HAVE_IFADDRS"],
+        "//conditions:default": []
+    }),
 )
 
 cc_library(
@@ -216,10 +222,21 @@ cc_library(
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
+    defines = select({
+        ":custom": ["HAVE_IFADDRS"],
+        "//conditions:default": []
+    }),
+)
+
+config_setting(
+    name = "custom",
+    values = {
+        "define": "enable_ifaddrs=true"
+    },
 )
 
 [cc_test(
-    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    name = src.replace("src/", "").replace(".cc", ""),
     srcs = [src],
     deps = [
         "//ign_bazel:utilities",
@@ -228,5 +245,9 @@ cc_library(
         "//ign_msgs",
         "@gtest//:gtest",
         "@gtest//:gtest_main",
+    ],
+    defines = [
+        "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
+        "IGN_TEST_LIBRARY_PATH='\"./ign_transport/test\"'",
     ],
 ) for src in test_sources]

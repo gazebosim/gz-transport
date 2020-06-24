@@ -251,9 +251,14 @@ TEST(Log, NullDescriptorUnopenedLog)
 TEST(Log, OpenCorruptDatabase)
 {
   log::Log logFile;
+  /*
+  std::string transportLogPath = IGN_TRANSPORT_LOG_TEST_PATH;
+  std::string path = transportLogPath + "/data/state.tlog";
+ */
   std::string path =
     testing::portablePathUnion(IGN_TRANSPORT_LOG_TEST_PATH, "data");
   path = testing::portablePathUnion(path, "state.tlog");
+
   logFile.Open(path);
   EXPECT_EQ(4806000000ns, logFile.EndTime());
 }
