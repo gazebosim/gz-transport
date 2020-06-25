@@ -32,9 +32,12 @@ cc_library(
     name = "test_utils",
     srcs = ["ignition/transport/test_config.h"],
     includes = ["."],
+    linkopts = [
+        "-lstdc++fs",
+    ],
     visibility = ["//visibility:public"],
 )
-
+'''
 [
     cc_test(
         name = "INTEGRATION_" + test.split('/')[1].replace('.cc', ''),
@@ -47,6 +50,9 @@ cc_library(
           "@gtest//:gtest_main",
         ],
         includes = [".", "integration"],
+        linkopts = [
+            "-lstdc++fs",
+        ],
         defines = [
             "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
         ],
@@ -54,3 +60,4 @@ cc_library(
 
     ) for test in glob(["integration/*.cc"])
 ]
+'''

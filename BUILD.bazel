@@ -200,10 +200,10 @@ public_headers = public_headers_no_gen + [
 ]
 
 cc_binary(
-    name = "libignition_transport.so",
+    name = "libignition-transport8.so",
     srcs = sources + private_headers + public_headers,
     includes = ["include", "src"],
-    linkopts = ["-Wl,-soname,libignition_transport.so", "-lzmq", "-luuid", "-lsqlite3", "-lstdc++fs"],
+    linkopts = ["-Wl,-soname,libignition-transport8.so", "-lzmq", "-luuid", "-lsqlite3", "-lstdc++fs"],
     linkshared = True,
     visibility = [],
     deps = [
@@ -218,7 +218,7 @@ cc_binary(
 
 cc_library(
     name = "ign_transport",
-    srcs = ["libignition_transport.so"],
+    srcs = ["libignition-transport8.so"],
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
@@ -226,6 +226,9 @@ cc_library(
         ":custom": ["HAVE_IFADDRS"],
         "//conditions:default": []
     }),
+    linkopts = [
+        "-lstdc++fs",
+    ],
 )
 
 config_setting(
@@ -245,6 +248,9 @@ config_setting(
         "//ign_msgs",
         "@gtest//:gtest",
         "@gtest//:gtest_main",
+    ],
+    linkopts = [
+        "-lstdc++fs",
     ],
     defines = [
         "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
