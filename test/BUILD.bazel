@@ -37,7 +37,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
-'''
 [
     cc_test(
         name = "INTEGRATION_" + test.split('/')[1].replace('.cc', ''),
@@ -60,4 +59,3 @@ cc_library(
 
     ) for test in glob(["integration/*.cc"])
 ]
-'''
