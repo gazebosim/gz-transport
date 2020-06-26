@@ -37,25 +37,3 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
-[
-    cc_test(
-        name = "INTEGRATION_" + test.split('/')[1].replace('.cc', ''),
-        srcs = [ test ],
-        deps = [
-          "//ign_msgs",
-          "//ign_transport",
-          ":test_utils",
-          "@gtest//:gtest",
-          "@gtest//:gtest_main",
-        ],
-        includes = [".", "integration"],
-        linkopts = [
-            "-lstdc++fs",
-        ],
-        defines = [
-            "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
-        ],
-        args = ["test"],
-
-    ) for test in glob(["integration/*.cc"])
-]
