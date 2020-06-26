@@ -103,14 +103,8 @@ namespace testing
     #else
       using namespace std::filesystem;
     #endif
-    std::cout << "string 2: " << _str2 << std::endl;
-    std::cout << "returning" << std::endl;
-    std::cout << "path of string 1: " << path(_str1) << std::endl;
-    std::cout << "path of string 2: " << path(_str2) << std::endl;
-    std::cout << "Generated path is " << ((path(_str1) / path(_str2)).string()) << std::endl;
     return (path(_str1) / path(_str2)).string();
 #endif
-    std::cout << "after" << std::endl;
   }
 
 #ifdef _WIN32
