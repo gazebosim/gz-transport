@@ -3,7 +3,7 @@ load(
     "cmake_configure_file",
 )
 
-CMAKE_BINARY_DIR = "/tmp"
+CMAKE_SOURCE_DIR = "./ign_transport"
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
@@ -12,7 +12,7 @@ cmake_configure_file(
     out = "ignition/transport/log/test_config.h",
     cmakelists = ["CMakeLists.txt"],
     defines = [
-        "CMAKE_SOURCE_DIR=%s" % (CMAKE_BINARY_DIR),
+        "CMAKE_SOURCE_DIR=%s" % (CMAKE_SOURCE_DIR),
     ],
     visibility = ["//visibility:private"],
 )
@@ -22,5 +22,7 @@ cc_library(
     srcs = ["ignition/transport/log/test_config.h"],
     includes = ["."],
     visibility = ["//visibility:public"],
+    linkopts = ["-lstdc++fs"],
 )
 
+exports_files(["data"])

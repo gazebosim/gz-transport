@@ -166,10 +166,12 @@ sources = [
 test_sources = [
     "src/AdvertiseOptions_TEST.cc",
     "src/CIface_TEST.cc",
-    # "src/Clock_TEST.cc",
+    "src/Clock_TEST.cc",
     "src/Discovery_TEST.cc",
+    "src/HandlerStorage_TEST.cc",
     "src/Helpers_TEST.cc",
     "src/ign_src_TEST.cc",
+    # "src/ign_TEST.cc",
     "src/MessageInfo_TEST.cc",
     "src/NetUtils_TEST.cc",
     "src/NodeOptions_TEST.cc",
@@ -198,28 +200,46 @@ public_headers = public_headers_no_gen + [
 ]
 
 cc_binary(
-    name = "libignition_transport.so",
+    name = "libignition-transport8.so",
     srcs = sources + private_headers + public_headers,
     includes = ["include", "src"],
-    linkopts = ["-Wl,-soname,libignition_transport.so", "-lzmq", "-luuid", "-lsqlite3"],
+    linkopts = ["-Wl,-soname,libignition-transport8.so", "-lzmq", "-luuid", "-lsqlite3", "-lstdc++fs"],
     linkshared = True,
     visibility = [],
     deps = [
         "//ign_bazel:utilities",
         "//ign_msgs",
     ],
+    defines = select({
+        ":custom": ["HAVE_IFADDRS"],
+        "//conditions:default": []
+    }),
 )
 
 cc_library(
     name = "ign_transport",
-    srcs = ["libignition_transport.so"],
+    srcs = ["libignition-transport8.so"],
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
+    defines = select({
+        ":custom": ["HAVE_IFADDRS"],
+        "//conditions:default": []
+    }),
+    linkopts = [
+        "-lstdc++fs",
+    ],
+)
+
+config_setting(
+    name = "custom",
+    values = {
+        "define": "enable_ifaddrs=true"
+    },
 )
 
 [cc_test(
-    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    name = src.replace("src/", "").replace(".cc", ""),
     srcs = [src],
     deps = [
         "//ign_bazel:utilities",
@@ -228,5 +248,12 @@ cc_library(
         "//ign_msgs",
         "@gtest//:gtest",
         "@gtest//:gtest_main",
+    ],
+    linkopts = [
+        "-lstdc++fs",
+    ],
+    defines = [
+        "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
+        "IGN_TEST_LIBRARY_PATH='\"./ign_transport/test\"'",
     ],
 ) for src in test_sources]
