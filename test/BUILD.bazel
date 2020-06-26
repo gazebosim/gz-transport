@@ -32,6 +32,8 @@ cc_library(
     name = "test_utils",
     srcs = ["ignition/transport/test_config.h"],
     includes = ["."],
+    linkopts = [
+        "-lstdc++fs",
+    ],
     visibility = ["//visibility:public"],
 )
-
