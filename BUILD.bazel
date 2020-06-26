@@ -171,7 +171,7 @@ test_sources = [
     "src/HandlerStorage_TEST.cc",
     "src/Helpers_TEST.cc",
     "src/ign_src_TEST.cc",
-    "src/ign_TEST.cc",
+    # "src/ign_TEST.cc",
     "src/MessageInfo_TEST.cc",
     "src/NetUtils_TEST.cc",
     "src/NodeOptions_TEST.cc",
