@@ -2,6 +2,9 @@
 
 ### Ignition Transport 9.X.X
 
+1. Need ignition-msgs version 6
+   * [Github pull request 149](https://github.com/ignitionrobotics/ign-transport/pull/149/files)
+
 ### Ignition Transport 9.0.0
 
 ## Ignition Transport 8.X
