@@ -22,7 +22,6 @@
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-
 #include <google/protobuf/stubs/common.h>
 
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
