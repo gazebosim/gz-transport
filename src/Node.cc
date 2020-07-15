@@ -619,7 +619,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscribers
       .HasSubscriber(fullyQualifiedTopic))
   {
-#if CPPZMQ_VERSION >= 4007000
+#if (CPPZMQ_VERSION >= 40700)
     this->dataPtr->shared->dataPtr->subscriber->set(
       zmq::sockopt::unsubscribe, fullyQualifiedTopic);
 #else
