@@ -15,11 +15,11 @@
  *
 */
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 

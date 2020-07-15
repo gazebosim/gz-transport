@@ -17,11 +17,11 @@
 #ifndef IGN_TRANSPORT_TRANSPORTTYPES_HH_
 #define IGN_TRANSPORT_TRANSPORTTYPES_HH_
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 

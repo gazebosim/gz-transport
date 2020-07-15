@@ -47,7 +47,7 @@
 # include <sys/ioctl.h>
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
   // Disable Windows deprecation warnings
   # pragma warning(push)
   #pragma warning(disable: 4996)
@@ -416,7 +416,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 #endif
   }
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     #pragma warning(pop)
 #endif
 }

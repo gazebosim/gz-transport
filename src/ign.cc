@@ -21,11 +21,11 @@
 #include <string>
 #include <vector>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(push, 0)
 #endif
 #include <ignition/msgs.hh>
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 
@@ -34,7 +34,7 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 # pragma warning(disable: 4503)
 #endif
 

@@ -18,7 +18,7 @@
 #ifndef IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 #define IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
@@ -28,7 +28,7 @@
 #include <google/protobuf/stubs/casts.h>
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 

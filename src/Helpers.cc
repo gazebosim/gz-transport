@@ -30,7 +30,7 @@ namespace ignition
     bool env(const std::string &_name, std::string &_value)
     {
       char *v;
-#ifdef _MSC_VER
+#ifdef _WIN32
       size_t sz = 0;
       _dupenv_s(&v, &sz, _name.c_str());
 #else
