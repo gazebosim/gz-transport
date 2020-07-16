@@ -64,4 +64,3 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-
