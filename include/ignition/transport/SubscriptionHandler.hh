@@ -22,10 +22,11 @@
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#include <google/protobuf/stubs/common.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+#include <google/protobuf/stubs/common.h>
 
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
 #include <google/protobuf/stubs/casts.h>

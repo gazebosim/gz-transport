@@ -90,9 +90,8 @@ ign_find_package(SQLite3
 #============================================================================
 # Configure the build
 #============================================================================
-# ign_configure_build(QUIT_IF_BUILD_ERRORS
-#   COMPONENTS log)
-ign_configure_build()
+ign_configure_build(QUIT_IF_BUILD_ERRORS
+  COMPONENTS log)
 
 #============================================================================
 # ign command line support
