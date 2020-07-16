@@ -13,5 +13,5 @@ jobs:
         id: ci
         uses: ignition-tooling/ubuntu-bionic-ci-action@master
         with:
-          apt-dependencies: 'pkg-config libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev libsqlite3-dev libignition-cmake2-dev libignition-math6-dev libignition-msgs5-dev libignition-tools-dev'
+          apt-dependencies: 'pkg-config libprotobuf-dev protobuf-compiler libprotoc-dev libzmq3-dev uuid-dev libsqlite3-dev libignition-cmake2-dev libignition-math6-dev libignition-msgs6-dev libignition-tools-dev'
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
