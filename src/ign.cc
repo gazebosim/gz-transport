@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <ignition/msgs.hh>
@@ -31,7 +31,7 @@
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 # pragma warning(disable: 4503)
 #endif
 
@@ -301,6 +301,6 @@ extern "C" const char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
   return IGNITION_TRANSPORT_VERSION_FULL;
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif

@@ -17,10 +17,13 @@
 #ifndef IGN_TRANSPORT_TRANSPORTTYPES_HH_
 #define IGN_TRANSPORT_TRANSPORTTYPES_HH_
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <chrono>
 #include <functional>
@@ -180,9 +183,4 @@ namespace ignition
     }
   }
 }
-
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-
 #endif

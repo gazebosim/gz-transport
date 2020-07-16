@@ -15,10 +15,14 @@
  *
 */
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
@@ -32,7 +36,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
   {
-#ifdef _WIN32
+#ifdef _MSC_VER
 // Disable warning C4838
 #pragma warning(push)
 #pragma warning(disable: 4838)
@@ -41,7 +45,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     {
       {0, _sockets.at(0), ZMQ_POLLIN, 0},
     };
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
@@ -60,7 +64,3 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 }
 }
 }
-
-#ifdef _WIN32
-#pragma warning(pop)
-#endif

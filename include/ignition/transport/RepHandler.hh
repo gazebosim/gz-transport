@@ -18,13 +18,17 @@
 #ifndef IGN_TRANSPORT_REPHANDLER_HH_
 #define IGN_TRANSPORT_REPHANDLER_HH_
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
 
 #if GOOGLE_PROTOBUF_VERSION > 2999999
 #include <google/protobuf/stubs/casts.h>
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
 #include <functional>
@@ -218,9 +222,5 @@ namespace ignition
     }
   }
 }
-
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
 
 #endif

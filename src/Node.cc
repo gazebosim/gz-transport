@@ -40,7 +40,7 @@
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(disable: 4503)
 #endif
 

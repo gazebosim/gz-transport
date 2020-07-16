@@ -23,7 +23,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #    define popen _popen
 #    define pclose _pclose
 #endif

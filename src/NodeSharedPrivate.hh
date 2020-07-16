@@ -18,11 +18,11 @@
 #ifndef IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 

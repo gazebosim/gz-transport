@@ -64,7 +64,7 @@ namespace ignition
         char _delim);
 
     // Use safer functions on Windows
-    #ifdef _WIN32
+    #ifdef _MSC_VER
       #define ign_strcat strcat_s
       #define ign_strcpy strcpy_s
       #define ign_sprintf sprintf_s

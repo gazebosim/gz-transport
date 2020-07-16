@@ -15,11 +15,11 @@
  *
 */
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
@@ -33,11 +33,11 @@
 #include <vector>
 
 // TODO(anyone): Remove after fixing the warnings.
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <ignition/msgs.hh>
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
@@ -53,7 +53,7 @@
 
 #include "NodeSharedPrivate.hh"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 # pragma warning(disable: 4503)
 #endif
 
@@ -168,7 +168,7 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   // If we compile ign-transport as a shared library on Windows, we should
   // never destruct NodeShared, unfortunately. It seems that WinSock does
   // not behave well during the DLL teardown phase as a program exits, and

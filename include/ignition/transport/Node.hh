@@ -26,11 +26,11 @@
 #include <vector>
 
 // TODO(anyone): Remove after fixing the warnings
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
 #include <ignition/msgs.hh>
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
