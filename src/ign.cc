@@ -25,9 +25,6 @@
 #pragma warning(push, 0)
 #endif
 #include <ignition/msgs.hh>
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
 
 #include "ign.hh"
 #include "ignition/transport/config.hh"
@@ -303,3 +300,7 @@ extern "C" const char IGNITION_TRANSPORT_VISIBLE  *ignitionVersion()
 {
   return IGNITION_TRANSPORT_VERSION_FULL;
 }
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif

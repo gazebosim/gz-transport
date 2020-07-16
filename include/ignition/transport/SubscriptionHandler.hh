@@ -28,10 +28,6 @@
 #include <google/protobuf/stubs/casts.h>
 #endif
 
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -366,4 +362,8 @@ namespace ignition
   }
 }
 
+#endif
+
+#ifdef _WIN32
+#pragma warning(pop)
 #endif

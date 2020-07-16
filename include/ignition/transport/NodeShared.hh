@@ -22,9 +22,6 @@
 #pragma warning(push, 0)
 #endif
 #include <google/protobuf/message.h>
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
 
 #include <memory>
 #include <mutex>
@@ -430,4 +427,8 @@ namespace ignition
     }
   }
 }
+#endif
+
+#ifdef _WIN32
+#pragma warning(pop)
 #endif
