@@ -7,6 +7,17 @@ ign_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 target_link_libraries(${log_lib_target}
   PRIVATE SQLite3::SQLite3)
 
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  # Fix for protobuf 3.12 - allow big object files
+  add_definitions(/bigobj)
+endif()
+
 # Unit tests
 ign_build_tests(
   TYPE "UNIT"
