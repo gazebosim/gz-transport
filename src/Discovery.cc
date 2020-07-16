@@ -19,10 +19,6 @@
 #pragma warning(push, 0)
 #endif
 #include <zmq.hpp>
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
@@ -64,3 +60,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 }
 }
 }
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
