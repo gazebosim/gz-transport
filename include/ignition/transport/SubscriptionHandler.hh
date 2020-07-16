@@ -23,13 +23,12 @@
 #endif
 #include <google/protobuf/message.h>
 #include <google/protobuf/stubs/common.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
 #include <google/protobuf/stubs/casts.h>
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(pop)
 #endif
 
 #include <chrono>
