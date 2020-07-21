@@ -72,7 +72,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get install -y \
     libignition-cmake2-dev \
     libignition-math6-dev \
-    libignition-msgs5-dev \
+    libignition-msgs6-dev \
  && sudo apt-get clean
 
 # Ignition transport
