@@ -179,7 +179,7 @@ NodeShared *NodeShared::Instance()
   static std::shared_mutex mutex;
   static std::unordered_map<pid_t, NodeShared*> nodeSharedMap;
 
-  // Get current process PID
+  // Get current process PID.
   auto pid = ::getpid();
 
   // Check if there's already a NodeShared instance for this process.
@@ -195,9 +195,9 @@ NodeShared *NodeShared::Instance()
   }
   catch (...)
   {
-    // Two threads from the same process could have arrived here simultaneously,
+    // Multiple threads from the same process could have arrived here simultaneously,
     // so after locking, we need to make sure that there's not an already
-    // constructed instance for this process.
+    // constructed NodeShared instance for this process.
     std::lock_guard write_lock(mutex);
 
     auto iter = nodeSharedMap.find(pid);
