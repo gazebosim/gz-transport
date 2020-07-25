@@ -28,6 +28,7 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -171,22 +172,46 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
+  static std::shared_mutex mutex;
   static std::unordered_map<pid_t, NodeShared*> nodeSharedMap;
+
+  // Create a new instance of NodeShared if the process has changed
+  // (maybe after fork?) so the ZMQ context is not shared between different
+  // processes.
 
   // Get current process PID
   auto pid = ::getpid();
 
-  // Is there a NodeShared instance for this process already?
-  auto iter = nodeSharedMap.find(pid);
-  if (iter != nodeSharedMap.end())
+  // Check if there's a NodeShared instance for this process already.
+  // Use a shared_lock so multiple processes can read simultaneously.
+  // This will only block if there's another process locking exclusively
+  // for writing. Since most of the time the threads will be reading,
+  // we make the read operation faster at the expense of making the write
+  // operation slower. Use exceptions for their zero-cost when successful.
+  try
   {
-    // Yes, return it.
-    return iter->second;
+    std::shared_lock read_lock(mutex);
+    return nodeSharedMap.at(pid);
   }
+  catch (const std::out_of_range& e)
+  {
+    // Two threads from the same process could have arrived here simultaneously,
+    // so after locking, we need to make sure that there's not an already
+    // constructed instance for this process.
+    std::lock_guard write_lock(mutex);
 
-  // No, construct a new NodeShared and return it.
-  auto nodeSharedIter = nodeSharedMap.emplace(pid, new NodeShared);
-  return nodeSharedIter.first->second;
+    auto iter = nodeSharedMap.find(pid);
+    if (iter != nodeSharedMap.end())
+    {
+      // There's already an instance for this process, return it.
+      return iter->second;
+    }
+
+    // No instance, construct a new one.
+    auto newNodeSharedInstance = new NodeShared;
+    nodeSharedMap.insert({pid, newNodeSharedInstance});
+    return newNodeSharedInstance;
+  }
 }
 
 //////////////////////////////////////////////////
