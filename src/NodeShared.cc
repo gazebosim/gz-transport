@@ -33,6 +33,7 @@
 #include <thread>
 #include <vector>
 #include <unordered_map>
+
 #include <unistd.h>
 
 // TODO(anyone): Remove after fixing the warnings.
@@ -172,20 +173,19 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
+  // Create an instance of NodeShared per process so the ZMQ context
+  // is not shared between different processes.
+
   static std::shared_mutex mutex;
   static std::unordered_map<pid_t, NodeShared*> nodeSharedMap;
-
-  // Create a new instance of NodeShared if the process has changed
-  // (maybe after fork?) so the ZMQ context is not shared between different
-  // processes.
 
   // Get current process PID
   auto pid = ::getpid();
 
-  // Check if there's a NodeShared instance for this process already.
-  // Use a shared_lock so multiple processes can read simultaneously.
-  // This will only block if there's another process locking exclusively
-  // for writing. Since most of the time the threads will be reading,
+  // Check if there's already a NodeShared instance for this process.
+  // Use a shared_lock so multiple threads can read simultaneously.
+  // This will only block if there's another thread locking exclusively
+  // for writing. Since most of the time threads will be reading,
   // we make the read operation faster at the expense of making the write
   // operation slower. Use exceptions for their zero-cost when successful.
   try
@@ -193,7 +193,7 @@ NodeShared *NodeShared::Instance()
     std::shared_lock read_lock(mutex);
     return nodeSharedMap.at(pid);
   }
-  catch (const std::out_of_range& e)
+  catch (...)
   {
     // Two threads from the same process could have arrived here simultaneously,
     // so after locking, we need to make sure that there's not an already
@@ -208,9 +208,9 @@ NodeShared *NodeShared::Instance()
     }
 
     // No instance, construct a new one.
-    auto newNodeSharedInstance = new NodeShared;
-    nodeSharedMap.insert({pid, newNodeSharedInstance});
-    return newNodeSharedInstance;
+    auto ret = nodeSharedMap.insert({pid, new NodeShared});
+    assert(ret.second); // Insert operation should be successful.
+    return ret.first->second;
   }
 }
 
