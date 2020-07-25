@@ -55,7 +55,6 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
-
 #include "NodeSharedPrivate.hh"
 
 #ifdef _MSC_VER
