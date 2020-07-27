@@ -189,7 +189,7 @@ NodeShared *NodeShared::Instance()
   // operation slower. Use exceptions for their zero-cost when successful.
   try
   {
-    std::shared_lock read_lock(mutex);
+    std::shared_lock readLock(mutex);
     return nodeSharedMap.at(pid);
   }
   catch (...)
@@ -197,7 +197,7 @@ NodeShared *NodeShared::Instance()
     // Multiple threads from the same process could have arrived here
     // simultaneously, so after locking, we need to make sure that there's
     // not an already constructed NodeShared instance for this process.
-    std::lock_guard write_lock(mutex);
+    std::lock_guard writeLock(mutex);
 
     auto iter = nodeSharedMap.find(pid);
     if (iter != nodeSharedMap.end())
