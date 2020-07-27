@@ -30,7 +30,7 @@
 #include <iostream>
 #include <map>
 #include <mutex>
-#include <shared_mutex>
+#include <shared_mutex>  //NOLINT
 #include <string>
 #include <thread>
 #include <vector>
