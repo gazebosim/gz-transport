@@ -23,6 +23,8 @@
 #pragma warning(pop)
 #endif
 
+#include <unistd.h>
+
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -33,8 +35,6 @@
 #include <thread>
 #include <vector>
 #include <unordered_map>
-
-#include <unistd.h>
 
 // TODO(anyone): Remove after fixing the warnings.
 #ifdef _MSC_VER
@@ -194,9 +194,9 @@ NodeShared *NodeShared::Instance()
   }
   catch (...)
   {
-    // Multiple threads from the same process could have arrived here simultaneously,
-    // so after locking, we need to make sure that there's not an already
-    // constructed NodeShared instance for this process.
+    // Multiple threads from the same process could have arrived here
+    // simultaneously, so after locking, we need to make sure that there's
+    // not an already constructed NodeShared instance for this process.
     std::lock_guard write_lock(mutex);
 
     auto iter = nodeSharedMap.find(pid);
@@ -208,7 +208,7 @@ NodeShared *NodeShared::Instance()
 
     // No instance, construct a new one.
     auto ret = nodeSharedMap.insert({pid, new NodeShared});
-    assert(ret.second); // Insert operation should be successful.
+    assert(ret.second);  // Insert operation should be successful.
     return ret.first->second;
   }
 }
