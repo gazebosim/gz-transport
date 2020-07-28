@@ -165,10 +165,7 @@ std::string TopicUtils::AsValidTopic(const std::string &_topic)
   validTopic = std::regex_replace(validTopic, std::regex(" "), "_");
 
   // Remove special characters and combinations
-  validTopic = std::regex_replace(validTopic, std::regex("@"), "");
-  validTopic = std::regex_replace(validTopic, std::regex("~"), "");
-  validTopic = std::regex_replace(validTopic, std::regex("//"), "");
-  validTopic = std::regex_replace(validTopic, std::regex(":="), "");
+  validTopic = std::regex_replace(validTopic, std::regex("@|~|//|:="), "");
 
   if (!IsValidTopic(validTopic))
   {
