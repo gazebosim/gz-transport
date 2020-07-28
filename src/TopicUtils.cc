@@ -15,6 +15,7 @@
  *
 */
 
+#include <regex>
 #include <string>
 
 #include "ignition/transport/TopicUtils.hh"
@@ -153,4 +154,26 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
   _partition = possiblePartition;
   _namespaceAndTopic = possibleTopic;
   return true;
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::AsValidTopic(const std::string &_topic)
+{
+  std::string validTopic{_topic};
+
+  // Substitute spaces with _
+  validTopic = std::regex_replace(validTopic, std::regex(" "), "_");
+
+  // Remove special characters and combinations
+  validTopic = std::regex_replace(validTopic, std::regex("@"), "");
+  validTopic = std::regex_replace(validTopic, std::regex("~"), "");
+  validTopic = std::regex_replace(validTopic, std::regex("//"), "");
+  validTopic = std::regex_replace(validTopic, std::regex(":="), "");
+
+  if (!IsValidTopic(validTopic))
+  {
+    return std::string();
+  }
+
+  return validTopic;
 }
