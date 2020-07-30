@@ -243,6 +243,55 @@ TEST(TopicUtilsTest, testFullyQualifiedName)
 }
 
 //////////////////////////////////////////////////
+TEST(TopicUtilsTest, asValidTopic)
+{
+  for (auto unmodified :
+    {
+      "/abc",
+      "abc/de",
+      "a",
+      "ABC/",
+      "/abc",
+      "/abc/d",
+      "/abc/d/e",
+      "a(bc)d-e_f=h+i.j"
+    })
+  {
+    auto valid = transport::TopicUtils::AsValidTopic(unmodified);
+    EXPECT_EQ(unmodified, valid);
+    EXPECT_TRUE(transport::TopicUtils::IsValidTopic(valid)) << valid;
+  }
+
+  std::vector<std::pair<std::string, std::string>> modifiedStrings =
+    {
+      {"a b  c", "a_b__c"},
+      {"a@b@c", "abc"},
+      {"a:=b:=c", "abc"},
+      {"a//b/c", "ab/c"},
+      {"a~b~c", "abc"}
+    };
+
+  for (auto modified : modifiedStrings)
+  {
+    auto valid = transport::TopicUtils::AsValidTopic(modified.first);
+    EXPECT_EQ(modified.second, valid);
+    EXPECT_TRUE(transport::TopicUtils::IsValidTopic(valid)) << valid;
+  }
+
+  for (auto fail :
+    {
+      "",
+      "@@@",
+      "~@~",
+    })
+  {
+    auto empty = transport::TopicUtils::AsValidTopic(fail);
+    EXPECT_TRUE(empty.empty());
+    EXPECT_FALSE(transport::TopicUtils::IsValidTopic(empty));
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
