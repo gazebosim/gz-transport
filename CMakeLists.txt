@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport7 VERSION 7.4.0)
+project(ignition-transport7 VERSION 7.5.0)
 
 #============================================================================
 # Find ignition-cmake
