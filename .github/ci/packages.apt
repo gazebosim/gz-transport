@@ -1,6 +1,6 @@
 libignition-cmake2-dev
 libignition-math6-dev
-libignition-msgs4-dev
+libignition-msgs5-dev
 libignition-tools-dev
 libprotobuf-dev
 libprotoc-dev
