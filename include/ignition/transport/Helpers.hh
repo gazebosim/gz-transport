@@ -30,12 +30,16 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-
 // Avoid using deprecated message send/receive function when possible.
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
   #define IGN_ZMQ_POST_4_3_1
+#endif
+
+
+#if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0) 
+  #ifndef UBUNTU_FOCAL
+    #define IGN_CPPZMQ_POST_4_7_0
+  #endif
 #endif
 
 namespace ignition

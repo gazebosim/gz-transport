@@ -12,6 +12,8 @@ project(ignition-transport8 VERSION 8.0.0)
 find_package(ignition-cmake2 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
+
+
 #============================================================================
 # Configure the project
 #============================================================================
@@ -45,6 +47,19 @@ ign_find_package(IgnProtobuf
 #--------------------------------------
 # Find ZeroMQ
 ign_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+  execute_process(COMMAND lsb_release -cs
+    OUTPUT_VARIABLE RELEASE_CODENAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  # Set UBUNTU_FOCAL in config.hh to flag cppzmq workaround.
+  if (${RELEASE_CODENAME} STREQUAL "focal")
+    set(UBUNTU_FOCAL 1)
+  endif()
+
+endif()
 
 #--------------------------------------
 # Find cppzmq
