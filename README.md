@@ -59,28 +59,7 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-We recommend following the [Binary Install](#markdown-header-binary-install)
-instructions to get up and running as quickly and painlessly as possible.
-
-The [Source Install](#markdown-header-source-install) instructions should be
-used if you need the very latest software improvements, you need to modify the
-code, or you plan to make a contribution.
-
-## Binary Install
-
-On Ubuntu systems, `apt-get` can be used to install `ignition-transport`:
-
-```
-$ sudo apt install libignition-transport<#>-dev
-```
-
-Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
-which version you need.
-
-## Source Install
-
-See the [install](https://ignitionrobotics.org/api/transport/8.0/installation.html)
-section of the documentation.
+Review the [tutorial section](tutorials/02_installation.md).
 
 # Usage
 
