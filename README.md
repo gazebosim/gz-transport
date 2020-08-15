@@ -59,7 +59,7 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-Review the [tutorial section](https://ignitionrobotics.org/api/transport/9.0/installation.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/transport/9.0/installation.html).
 
 # Usage
 
