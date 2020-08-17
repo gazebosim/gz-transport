@@ -30,7 +30,7 @@ Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.
 
 [Folder Structure](#folder-structure)
 
-[Contributing](#code-of-contributing)
+[Contributing](#contributing)
 
 [Code of Conduct](#code-of-conduct)
 
