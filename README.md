@@ -18,29 +18,25 @@ Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.
 
 # Table of Contents
 
-[Features](#markdown-header-features)
+[Features](#features)
 
-[Install](#markdown-header-install)
+[Install](#install)
 
-* [Binary Install](#markdown-header-binary-install)
+[Usage](#usage)
 
-* [Source Install](#markdown-header-source-install)
+[Documentation](#documentation)
 
-[Usage](#markdown-header-usage)
+[Testing](#testing)
 
-[Documentation](#markdown-header-documentation)
+[Folder Structure](#folder-structure)
 
-[Testing](#markdown-header-testing)
+[Contributing](#contributing)
 
-[Folder Structure](#markdown-header-folder-structure)
+[Code of Conduct](#code-of-conduct)
 
-[Code of Conduct](#markdown-header-code-of-conduct)
+[Versioning](#versioning)
 
-[Contributing](#markdown-header-code-of-contributing)
-
-[Versioning](#markdown-header-versioning)
-
-[License](#markdown-header-license)
+[License](#license)
 
 # Features
 
