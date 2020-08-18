@@ -23,8 +23,6 @@
 #pragma warning(pop)
 #endif
 
-#include <unistd.h>
-
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -176,10 +174,10 @@ NodeShared *NodeShared::Instance()
   // is not shared between different processes.
 
   static std::shared_mutex mutex;
-  static std::unordered_map<pid_t, NodeShared*> nodeSharedMap;
+  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
 
-  // Get current process PID.
-  auto pid = ::getpid();
+  // Get current process ID.
+  auto pid = getProcessId();
 
   // Check if there's already a NodeShared instance for this process.
   // Use a shared_lock so multiple threads can read simultaneously.
