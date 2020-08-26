@@ -424,7 +424,8 @@ void Recorder::Implementation::WriteToLogFile(const LogData &_logData)
         reinterpret_cast<const void *>(_logData.msgData.data()),
         _logData.msgData.size()))
   {
-    LWRN("Failed to insert message into log file\n");
+    LWRN("Failed to insert message into log file from topic["
+        << _logData.msgInfo.Topic() << "]\n");
   }
   // TODO(anyone) It would be nice for testing to simulate long delays
   // associated with disk writes. In the mean time, a sleep can be added here
