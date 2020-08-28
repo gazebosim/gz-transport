@@ -255,7 +255,8 @@ TEST(Log, OpenCorruptDatabase)
     testing::portablePathUnion(IGN_TRANSPORT_LOG_TEST_PATH, "data");
   path = testing::portablePathUnion(path, "state.tlog");
   logFile.Open(path);
-  EXPECT_EQ(4806000000ns, logFile.EndTime());
+  EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "
+    << logFile.EndTime().count() << "ns";;
 }
 
 

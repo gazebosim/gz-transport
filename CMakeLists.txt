@@ -46,6 +46,20 @@ ign_find_package(IgnProtobuf
 # Find ZeroMQ
 ign_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
 
+if (UNIX AND NOT APPLE)
+  execute_process(COMMAND lsb_release -cs
+    OUTPUT_VARIABLE RELEASE_CODENAME
+    RESULT_VARIABLE LSB_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  if( NOT (${LSB_RESULT} STREQUAL "0"))
+    message(WARNING "lsb_release executable not found. Disabling focal-specific workarounds")
+  elseif (${RELEASE_CODENAME} STREQUAL "focal")
+    set(UBUNTU_FOCAL 1)
+  endif()
+endif()
+
 #--------------------------------------
 # Find cppzmq
 ign_find_package(CPPZMQ REQUIRED PRIVATE
