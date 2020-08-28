@@ -35,9 +35,8 @@
   #define IGN_ZMQ_POST_4_3_1
 #endif
 
-
 // Avoid using deprecated set function when possible
-#if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0) 
+#if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0)
   // Ubuntu Focal (20.04) packages a different "4.7.0"
   #ifndef UBUNTU_FOCAL
     #define IGN_CPPZMQ_POST_4_7_0
