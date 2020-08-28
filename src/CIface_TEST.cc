@@ -77,6 +77,7 @@ TEST(CIfaceTest, PubSub)
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
+  // Get the size of the serialized message
 #if GOOGLE_PROTOBUF_VERSION >= 3004000
   int size = msg.ByteSizeLong();
 #else
@@ -132,6 +133,7 @@ TEST(CIfaceTest, PubSubPartitions)
   ignition::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
+  // Get the size of the serialized message
 #if GOOGLE_PROTOBUF_VERSION >= 3004000
   int size = msg.ByteSizeLong();
 #else
