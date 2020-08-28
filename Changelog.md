@@ -1,6 +1,6 @@
 ## Ignition Transport 8
 
-### Ignition Transport 8.X.X
+### Ignition Transport 8.1.0 (2020-08-28)
 
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
     * [BitBucket pull request 423](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/423)
@@ -39,6 +39,8 @@
 1. Improve compiler support for c++ filesystem.
     * [BitBucket pull request 405](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/405)
     * [BitBucket pull request 406](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/406)
+
+1. This release includes all changes up to 7.5.0.
 
 ## Ignition Transport 7
 
