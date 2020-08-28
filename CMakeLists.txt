@@ -12,8 +12,6 @@ project(ignition-transport8 VERSION 8.0.0)
 find_package(ignition-cmake2 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
-
-
 #============================================================================
 # Configure the project
 #============================================================================

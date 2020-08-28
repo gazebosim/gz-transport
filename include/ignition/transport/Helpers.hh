@@ -18,7 +18,7 @@
 #ifndef IGN_TRANSPORT_HELPERS_HH_
 #define IGN_TRANSPORT_HELPERS_HH_
 
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include <cstdint>
 #include <cstdio>
@@ -36,7 +36,9 @@
 #endif
 
 
+// Avoid using deprecated set function when possible
 #if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0) 
+  // Ubuntu Focal (20.04) packages a different "4.7.0"
   #ifndef UBUNTU_FOCAL
     #define IGN_CPPZMQ_POST_4_7_0
   #endif
