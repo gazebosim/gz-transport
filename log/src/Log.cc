@@ -324,6 +324,14 @@ bool Log::Implementation::InsertMessage(
     const void *_data,
     const std::size_t _len)
 {
+  // \todo Record and playback empty messages. A topic could publish an
+  // Int32 or Int64 message with data=0. In this situation the protobuf
+  // message has size zero. While this is not a problem for protobuf messages,
+  // it is considered an error for SQLite3. We short circuit here in order to
+  // prevent the final LERR in this function from spamming the console.
+  if (_len == 0)
+    return false;
+
   int returnCode;
   const std::string sql =
     "INSERT INTO messages (time_recv, message, topic_id)"
@@ -366,7 +374,8 @@ bool Log::Implementation::InsertMessage(
   returnCode = sqlite3_step(statement.Handle());
   if (returnCode != SQLITE_DONE)
   {
-    LERR("Failed to insert message: " << returnCode << "\n");
+    LERR("Failed to insert message. sqlite3 return code[" << returnCode
+        << "] data[" << _data << "] len[" << _len << "]\n");
     return false;
   }
   return true;
