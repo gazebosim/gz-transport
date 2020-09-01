@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <errno.h>
 
 #ifdef _WIN32
   #include <Winsock2.h>
@@ -39,6 +40,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/NetUtils.hh"
+#include "ignition/transport/Uuid.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
@@ -378,10 +380,39 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     return buffer;
 #else
     struct passwd pd;
-    struct passwd *result;
+    struct passwd *pdResult;
+    Uuid uuid;
+    std::string result = "error-" + uuid.ToString();
 
-    getpwuid_r(getuid(), &pd, buffer, bufferLen, &result);
-    return pd.pw_name;
+    // Get the username via getpwuid_r, and retry on failure.
+    // Refer to the manpage for error cases:
+    // https://linux.die.net/man/3/getpwuid_r
+    //
+    // There can be a general I/O errors, which might get resolved with
+    // repeated attempts.
+    for (int count = 0; count < 10; ++count)
+    {
+      errno = 0;
+      if (getpwuid_r(getuid(), &pd, buffer, bufferLen, &pdResult) == 0)
+      {
+        if (pdResult != nullptr)
+        {
+          // Success. Store the username and break.
+          result = pd.pw_name;
+          break;
+        }
+        else
+        {
+          std::cerr << "Error getting username: no matching password record.\n";
+        }
+      }
+      else
+      {
+        std::cerr << "Error getting username: " << strerror(errno) << std::endl;
+      }
+    }
+
+    return result;
 #endif
   }
 

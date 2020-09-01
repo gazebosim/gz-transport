@@ -18,6 +18,8 @@
 #ifndef IGN_TRANSPORT_HELPERS_HH_
 #define IGN_TRANSPORT_HELPERS_HH_
 
+#include <zmq.hpp>
+
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -27,6 +29,19 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
+
+// Avoid using deprecated message send/receive function when possible.
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
+  #define IGN_ZMQ_POST_4_3_1
+#endif
+
+// Avoid using deprecated set function when possible
+#if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0)
+  // Ubuntu Focal (20.04) packages a different "4.7.0"
+  #ifndef UBUNTU_FOCAL
+    #define IGN_CPPZMQ_POST_4_7_0
+  #endif
+#endif
 
 namespace ignition
 {
