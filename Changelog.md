@@ -11,6 +11,8 @@
 
 ### Ignition Transport 8.X.X
 
+### Ignition Transport 8.1.0 (2020-08-28)
+
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
     * [BitBucket pull request 423](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/423)
 
@@ -49,9 +51,57 @@
     * [BitBucket pull request 405](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/405)
     * [BitBucket pull request 406](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/406)
 
+1. This release includes all changes up to 7.5.0.
+
 ## Ignition Transport 7
 
-### Ignition Transport 7.X.X
+### Ignition Transport 7.x.x (202x-xx-xx)
+
+### Ignition Transport 7.5.0 (2020-07-29)
+
+1. Helper function to get a valid topic name
+    * [Pull request 153](https://github.com/ignitionrobotics/ign-transport/pull/153)
+
+1. GitHub migration
+    * [Pull request 132](https://github.com/ignitionrobotics/ign-transport/pull/132)
+    * [Pull request 123](https://github.com/ignitionrobotics/ign-transport/pull/123)
+    * [Pull request 126](https://github.com/ignitionrobotics/ign-transport/pull/126)
+
+1. Fix ZMQ and Protobuf warnings
+    * [BitBucket pull request 442](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/442)
+    * [BitBucket pull request 438](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/438)
+    * [BitBucket pull request 439](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/439)
+    * [Pull request 150](https://github.com/ignitionrobotics/ign-transport/pull/150)
+    * [Pull request 151](https://github.com/ignitionrobotics/ign-transport/pull/151)
+
+1. Handle `getpwduid_r` error cases. This addresses issue #118. Solution was
+   created in pull request #441 by Poh Zhi-Ee.
+    * [BitBucket pull request 444](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/444)
+
+### Ignition Transport 7.4.0 (2020-03-09)
+
+1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
+   message delivery during `connect`. This approach would fail if the delay
+   between nodes was too large.
+    * [BitBucket pull request 436](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/436)
+
+1. Set default message buffer sizes to 1000, for both send and receive
+   buffers.
+    * [BitBucket pull request 433](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/433)
+
+1. Added support for configuring message buffers via environment variables.
+    * [BitBucket pull request 430](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/430)
+
+### Ignition Transport 7.3.0
+
+1. Write to disk from a background thread in log recorder
+    * [BitBucket pull request 428](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/428)
+
+1. Restore original Playback::Start and add overload with new parameter to fix ABI.
+    * [BitBucket pull request 427](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/427)
+
+1. Improve compiler support for c++ filesystem.
+    * [BitBucket pull request 422](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/422)
 
 ### Ignition Transport 7.2.1
 
