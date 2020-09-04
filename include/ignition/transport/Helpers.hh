@@ -68,6 +68,10 @@ namespace ignition
         const std::string &_orig,
         char _delim);
 
+    /// \brief Portable function to get the id of the current process.
+    /// \returns id of current process
+    unsigned int IGNITION_TRANSPORT_VISIBLE getProcessId();
+
     // Use safer functions on Windows
     #ifdef _MSC_VER
       #define ign_strcat strcat_s

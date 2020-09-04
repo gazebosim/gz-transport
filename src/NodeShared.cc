@@ -28,9 +28,11 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <shared_mutex>  //NOLINT
 #include <string>
 #include <thread>
 #include <vector>
+#include <unordered_map>
 
 // TODO(anyone): Remove after fixing the warnings.
 #ifdef _MSC_VER
@@ -168,27 +170,45 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
-#ifdef _MSC_VER
-  // If we compile ign-transport as a shared library on Windows, we should
-  // never destruct NodeShared, unfortunately. It seems that WinSock does
-  // not behave well during the DLL teardown phase as a program exits, and
-  // this will confuse the ZeroMQ library into thinking that WinSock
-  // misbehaved, causing an assertion in ZeroMQ to fail and throw an exception
-  // while the program exits. This is a known issue:
-  //
-  // https://github.com/zeromq/libzmq/issues/1144
-  //
-  // An easy way of dodging this issue is to never destruct NodeShared. The
-  // Operating System will take care of cleaning up its resources when the
-  // application exits. We may want to consider a more elegant solution in
-  // the future. The zsys_shutdown() function in the czmq library may be able
-  // to provide some inspiration for solving this more cleanly.
-  static NodeShared *instance = new NodeShared();
-  return instance;
-#else
-  static NodeShared instance;
-  return &instance;
-#endif
+  // Create an instance of NodeShared per process so the ZMQ context
+  // is not shared between different processes.
+
+  static std::shared_mutex mutex;
+  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
+
+  // Get current process ID.
+  auto pid = getProcessId();
+
+  // Check if there's already a NodeShared instance for this process.
+  // Use a shared_lock so multiple threads can read simultaneously.
+  // This will only block if there's another thread locking exclusively
+  // for writing. Since most of the time threads will be reading,
+  // we make the read operation faster at the expense of making the write
+  // operation slower. Use exceptions for their zero-cost when successful.
+  try
+  {
+    std::shared_lock readLock(mutex);
+    return nodeSharedMap.at(pid);
+  }
+  catch (...)
+  {
+    // Multiple threads from the same process could have arrived here
+    // simultaneously, so after locking, we need to make sure that there's
+    // not an already constructed NodeShared instance for this process.
+    std::lock_guard writeLock(mutex);
+
+    auto iter = nodeSharedMap.find(pid);
+    if (iter != nodeSharedMap.end())
+    {
+      // There's already an instance for this process, return it.
+      return iter->second;
+    }
+
+    // No instance, construct a new one.
+    auto ret = nodeSharedMap.insert({pid, new NodeShared});
+    assert(ret.second);  // Insert operation should be successful.
+    return ret.first->second;
+  }
 }
 
 //////////////////////////////////////////////////
