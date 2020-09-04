@@ -18,6 +18,12 @@
 #include <cstdlib>
 #include <string>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "ignition/transport/Helpers.hh"
 
 namespace ignition
@@ -58,6 +64,16 @@ namespace ignition
       }
       pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
       return pieces;
+    }
+
+    //////////////////////////////////////////////////
+    unsigned int getProcessId()
+    {
+#ifdef _WIN32
+      return ::GetCurrentProcessId();
+#else
+      return ::getpid();
+#endif
     }
     }
   }
