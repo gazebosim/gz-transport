@@ -16,9 +16,9 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
     ignition-cmake${IGN_CMAKE_VER}::utilities
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
+    CPPZMQ::CPPZMQ
   PRIVATE
     ${ZeroMQ_TARGET}
-    CPPZMQ::CPPZMQ
 )
 
 # Windows system library provides UUID
