@@ -72,11 +72,11 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get install -y \
     libignition-cmake2-dev \
     libignition-math6-dev \
-    libignition-msgs5-dev \
+    libignition-msgs6-dev \
  && sudo apt-get clean
 
 # Ignition transport
-RUN hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b ign-transport8 \
+RUN git clone https://github.com/ignitionrobotics/ign-transport.git \
  && cd ign-transport \
  && mkdir build \
  && cd build \

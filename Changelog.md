@@ -1,6 +1,17 @@
-## Ignition Transport 8
+## Ignition Transport 9.X
+
+### Ignition Transport 9.X.X
+
+1. Need ignition-msgs version 6
+   * [Github pull request 149](https://github.com/ignitionrobotics/ign-transport/pull/149/files)
+
+### Ignition Transport 9.0.0
+
+## Ignition Transport 8.X
 
 ### Ignition Transport 8.X.X
+
+### Ignition Transport 8.1.0 (2020-08-28)
 
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
     * [BitBucket pull request 423](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/423)
@@ -40,9 +51,28 @@
     * [BitBucket pull request 405](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/405)
     * [BitBucket pull request 406](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/406)
 
+1. This release includes all changes up to 7.5.0.
+
 ## Ignition Transport 7
 
 ### Ignition Transport 7.x.x (202x-xx-xx)
+
+### Ignition Transport 7.5.0 (2020-07-29)
+
+1. Helper function to get a valid topic name
+    * [Pull request 153](https://github.com/ignitionrobotics/ign-transport/pull/153)
+
+1. GitHub migration
+    * [Pull request 132](https://github.com/ignitionrobotics/ign-transport/pull/132)
+    * [Pull request 123](https://github.com/ignitionrobotics/ign-transport/pull/123)
+    * [Pull request 126](https://github.com/ignitionrobotics/ign-transport/pull/126)
+
+1. Fix ZMQ and Protobuf warnings
+    * [BitBucket pull request 442](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/442)
+    * [BitBucket pull request 438](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/438)
+    * [BitBucket pull request 439](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/439)
+    * [Pull request 150](https://github.com/ignitionrobotics/ign-transport/pull/150)
+    * [Pull request 151](https://github.com/ignitionrobotics/ign-transport/pull/151)
 
 1. Handle `getpwduid_r` error cases. This addresses issue #118. Solution was
    created in pull request #441 by Poh Zhi-Ee.

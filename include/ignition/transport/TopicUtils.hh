@@ -128,6 +128,14 @@ namespace ignition
         std::string &_partition,
         std::string &_namespaceAndTopic);
 
+      /// \brief Convert a topic name to a valid topic. The input topic is
+      /// modified by:
+      /// * turning white space into `_`.
+      /// * removing special characters and combinations.
+      /// \param[in] _topic Input topic, which may be invalid.
+      /// \return A valid topic, or empty string if not possible to convert.
+      public: static std::string AsValidTopic(const std::string &_topic);
+
       /// \brief The kMaxNameLength specifies the maximum number of characters
       /// allowed in a namespace, a partition name, a topic name, and a fully
       /// qualified topic name.

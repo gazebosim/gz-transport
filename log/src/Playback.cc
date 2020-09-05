@@ -273,13 +273,6 @@ Playback::~Playback()
 
 //////////////////////////////////////////////////
 PlaybackHandlePtr Playback::Start(
-    const std::chrono::nanoseconds &_waitAfterAdvertising) const
-{
-  return this->Start(_waitAfterAdvertising, true);
-}
-
-//////////////////////////////////////////////////
-PlaybackHandlePtr Playback::Start(
     const std::chrono::nanoseconds &_waitAfterAdvertising,
     bool _msgWaiting) const
 {

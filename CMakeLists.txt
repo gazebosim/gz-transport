@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport8 VERSION 8.0.0)
+project(ignition-transport9 VERSION 9.0.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -15,7 +15,7 @@ set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project()
+ign_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -46,6 +46,20 @@ ign_find_package(IgnProtobuf
 # Find ZeroMQ
 ign_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
 
+if (UNIX AND NOT APPLE)
+  execute_process(COMMAND lsb_release -cs
+    OUTPUT_VARIABLE RELEASE_CODENAME
+    RESULT_VARIABLE LSB_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  if( NOT (${LSB_RESULT} STREQUAL "0"))
+    message(WARNING "lsb_release executable not found. Disabling focal-specific workarounds")
+  elseif (${RELEASE_CODENAME} STREQUAL "focal")
+    set(UBUNTU_FOCAL 1)
+  endif()
+endif()
+
 #--------------------------------------
 # Find cppzmq
 ign_find_package(CPPZMQ REQUIRED PRIVATE
@@ -62,8 +76,8 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
+ign_find_package(ignition-msgs6 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs

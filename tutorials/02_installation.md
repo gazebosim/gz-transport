@@ -25,12 +25,14 @@ Setup keys:
 wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
-Install Ignition Transport:
+Install Ignition Transport, `apt-get` can be used to install `ignition-transport`:
 
 ```
-sudo apt-get update
-sudo apt-get install libignition-transport8-dev
+$ sudo apt install libignition-transport<#>-dev
 ```
+
+Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
+which version you need.
 
 ## Mac OS X
 
@@ -54,7 +56,7 @@ Run the following commands:
 
 ```
 brew tap osrf/simulation
-brew install ignition-transport8
+brew install ignition-transport9
 ```
 
 ## Windows
@@ -212,7 +214,7 @@ Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 
 ```
-sudo apt-get remove libignition-transport8-dev
+sudo apt-get remove libignition-transport9-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:

@@ -18,7 +18,7 @@
 #ifndef IGN_TRANSPORT_HELPERS_HH_
 #define IGN_TRANSPORT_HELPERS_HH_
 
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include <cstdint>
 #include <cstdio>
@@ -30,12 +30,17 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-
 // Avoid using deprecated message send/receive function when possible.
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 4, 0)
-  #define IGN_ZMQ_POST_4_4_0
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
+  #define IGN_ZMQ_POST_4_3_1
+#endif
+
+// Avoid using deprecated set function when possible
+#if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0)
+  // Ubuntu Focal (20.04) packages a different "4.7.0"
+  #ifndef UBUNTU_FOCAL
+    #define IGN_CPPZMQ_POST_4_7_0
+  #endif
 #endif
 
 namespace ignition
@@ -62,6 +67,10 @@ namespace ignition
     std::vector<std::string> IGNITION_TRANSPORT_VISIBLE split(
         const std::string &_orig,
         char _delim);
+
+    /// \brief Portable function to get the id of the current process.
+    /// \returns id of current process
+    unsigned int IGNITION_TRANSPORT_VISIBLE getProcessId();
 
     // Use safer functions on Windows
     #ifdef _MSC_VER

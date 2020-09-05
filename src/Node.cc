@@ -619,8 +619,13 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscribers
       .HasSubscriber(fullyQualifiedTopic))
   {
+#ifdef IGN_CPPZMQ_POST_4_7_0
+    this->dataPtr->shared->dataPtr->subscriber->set(
+      zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+#else
     this->dataPtr->shared->dataPtr->subscriber->setsockopt(
       ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
+#endif
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
