@@ -1636,6 +1636,8 @@ void NodeSharedPrivate::AccessControlHandler()
     {
       std::cerr << "Username and password not set. "
                 << "Authentication is disabled\n";
+      sock->close();
+      delete sock;
       return;
     }
 
