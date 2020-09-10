@@ -1761,6 +1761,7 @@ void NodeSharedPrivate::AccessControlHandler()
   }
 
   sock->close();
+  delete sock;
 }
 
 /////////////////////////////////////////////////
