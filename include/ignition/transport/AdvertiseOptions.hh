@@ -114,22 +114,6 @@ namespace ignition
       /// \sa Scope_t.
       public: void SetScope(const Scope_t &_scope);
 
-      /// \brief Serialize the options. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the options
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      /// \brief Deserialize and set the options. The input buffer is
-      /// unpacked and used to set this object's options.
-      /// \param[in] _buffer Input buffer with the data to be deserialized.
-      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t IGN_DEPRECATED(8) MsgLength() const;
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
@@ -213,21 +197,6 @@ namespace ignition
       /// \param[in] _newMsgsPerSec Maximum number of messages per second.
       public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
 
-      /// \brief Serialize the options. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the options
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      /// \brief Unserialize the options.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t IGN_DEPRECATED(8) MsgLength() const;
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
@@ -284,21 +253,6 @@ namespace ignition
         _out << static_cast<AdvertiseOptions>(_other);
         return _out;
       }
-
-      /// \brief Serialize the options. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the options
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      /// \brief Unserialize the options.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: size_t IGN_DEPRECATED(8) MsgLength() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

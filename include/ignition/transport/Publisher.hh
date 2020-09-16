@@ -115,21 +115,6 @@ namespace ignition
       /// \sa Options.
       public: void SetOptions(const AdvertiseOptions &_opts);
 
-      /// \brief Serialize the publisher. The caller has ownership of the
-      /// buffer and is responsible for its [de]allocation.
-      /// \param[out] _buffer Destination buffer in which the publisher
-      /// will be serialized.
-      /// \return Number of bytes serialized.
-      public: virtual size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      /// \brief Unserialize the publisher.
-      /// \param[in] _buffer Input buffer with the data to be unserialized.
-      public: virtual size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      /// \brief Get the total length of the message.
-      /// \return Return the length of the message in bytes.
-      public: virtual size_t IGN_DEPRECATED(8) MsgLength() const;
-
       /// \brief Populate a discovery message.
       /// \param[in] _msg Message to fill.
       public: virtual void FillDiscovery(msgs::Discovery &_msg) const;
@@ -172,23 +157,6 @@ namespace ignition
 
         return _out;
       }
-
-      /// \brief Serialize all fields except the advertise options. This is
-      /// useful when we are serializing a derived class that contains its own
-      /// advertise options.
-      protected: size_t IGN_DEPRECATED(8) PackInternal(char *_buffer) const;
-
-      /// \brief Unserialize all fields except the advertise options. This is
-      /// useful when we are unserializing a derived class that contains its own
-      /// advertise options.
-      protected: size_t IGN_DEPRECATED(8) UnpackInternal(const char *_buffer);
-
-      /// \brief Get the total length of the message without counting the
-      /// advertised options. This is useful when [un]serializing a derived
-      /// publisher because we want to ignore the advertised options in the base
-      /// publisher.
-      /// \return Return the length of the message in bytes.
-      protected: size_t IGN_DEPRECATED(8) MsgLengthInternal() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -246,15 +214,6 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~MessagePublisher() = default;
-
-      // Documentation inherited.
-      public: virtual size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: virtual size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      // Documentation inherited.
-      public: virtual size_t IGN_DEPRECATED(8) MsgLength() const;
 
       /// \brief Get the ZeroMQ control address. This address is used by the
       /// subscribers to notify the publisher about the new subscription.
@@ -381,15 +340,6 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
-
-      // Documentation inherited.
-      public: size_t IGN_DEPRECATED(8) Pack(char *_buffer) const;
-
-      // Documentation inherited.
-      public: size_t IGN_DEPRECATED(8) Unpack(const char *_buffer);
-
-      // Documentation inherited.
-      public: size_t IGN_DEPRECATED(8) MsgLength() const;
 
       /// \brief Get the ZeroMQ socket ID used by this publisher.
       /// \return The socket ID.
