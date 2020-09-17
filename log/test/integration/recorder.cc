@@ -23,6 +23,7 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 
@@ -67,7 +68,8 @@ void VerifyMessage(const ignition::transport::log::Message &_msg,
 //////////////////////////////////////////////////
 /// \brief Begin recording a set of topics before those topics are advertised
 /// or published to.
-TEST(recorder, BeginRecordingTopicsBeforeAdvertisement)
+TEST(recorder,
+  IGN_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. ign-transport automatically adds a leading slash to
