@@ -21,6 +21,7 @@
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 
@@ -94,7 +95,7 @@ bool ExpectSameMessages(
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
-TEST(playback, ReplayLog)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -175,7 +176,7 @@ TEST(playback, ReplayLog)
 
 
 //////////////////////////////////////////////////
-TEST(playback, ReplayNoSuchTopic)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 {
   ignition::transport::log::Recorder recorder;
   const std::string logName =
@@ -194,7 +195,7 @@ TEST(playback, ReplayNoSuchTopic)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
-TEST(playback, ReplayLogRegex)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -261,7 +262,7 @@ TEST(playback, ReplayLogRegex)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back after removing some topics. Verify
 /// that the playback matches the original.
-TEST(playback, RemoveTopic)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -370,7 +371,7 @@ TEST(playback, RemoveTopic)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back. Verify that the playback matches
 /// the original.
-TEST(playback, ReplayLogMoveInstances)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -440,7 +441,7 @@ TEST(playback, ReplayLogMoveInstances)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back calling the Pause and Resume
 /// methods to control the playback flow.
-TEST(playback, ReplayPauseResume)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -562,7 +563,7 @@ TEST(playback, ReplayPauseResume)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back calling the Step method to control
 /// the playback workflow.
-TEST(playback, ReplayStep)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
@@ -678,7 +679,7 @@ TEST(playback, ReplayStep)
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back calling the Seek method to control
 /// the playback workflow.
-TEST(playback, ReplaySeek)
+TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
