@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"
@@ -74,7 +75,7 @@ void topicCB(const ignition::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on a different process.
-TEST(ignTest, TopicList)
+TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
