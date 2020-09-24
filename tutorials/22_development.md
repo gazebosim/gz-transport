@@ -108,7 +108,7 @@ that will reduce the time needed to discover the information about a
 topic.
 
 As you can imagine, exchanging messages over the network can be slow and we
-cannot block the users waiting for discovery information. The number of nodes on 
+cannot block the users waiting for discovery information. The number of nodes on
 a network isn't always known, so it would be difficult and slow to block
 and return all the information to our users when available. The way we tackle
 the notification inside `Discovery` is through callbacks. A discovery user needs
@@ -133,7 +133,7 @@ the discovery service. We store what we call a `Publisher`, which contains the
 topic name and all the associated meta-data.
 
 Each publisher advertises the topic with a specific scope as described
-[here](03_nodesAndTopics.html).
+[here](nodestopics.html).
 If the topic's scope is `PROCESS`, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an `ADVERTISE` message
 with the following format:
