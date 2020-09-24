@@ -40,7 +40,7 @@ Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.
 
 # Features
 
-Ignition `port is an open source communication library that allows
+Ignition Transport is an open source communication library that allows
 exchanging data between clients. In our context, a client is called a node.
 Nodes might be running within the same process in the same machine or in
 machines located in different continents. Ignition Transport is multi-platform
