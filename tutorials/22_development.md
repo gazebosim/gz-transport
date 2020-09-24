@@ -1,6 +1,6 @@
 \page development Development
 
-Previous Tutorial: \ref contribute
+Previous Tutorial: \ref envvars
 
 ## Overview
 
@@ -108,7 +108,7 @@ that will reduce the time needed to discover the information about a
 topic.
 
 As you can imagine, exchanging messages over the network can be slow and we
-cannot block the users waiting for discovery information. The number of nodes on 
+cannot block the users waiting for discovery information. The number of nodes on
 a network isn't always known, so it would be difficult and slow to block
 and return all the information to our users when available. The way we tackle
 the notification inside `Discovery` is through callbacks. A discovery user needs
