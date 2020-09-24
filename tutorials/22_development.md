@@ -133,7 +133,7 @@ the discovery service. We store what we call a `Publisher`, which contains the
 topic name and all the associated meta-data.
 
 Each publisher advertises the topic with a specific scope as described
-[here](03_nodesAndTopics.html).
+[here](nodestopics.html).
 If the topic's scope is `PROCESS`, the discovery won't announce it over the
 network. Otherwise, it will send to the multicast group an `ADVERTISE` message
 with the following format:
