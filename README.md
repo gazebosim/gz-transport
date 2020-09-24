@@ -59,7 +59,7 @@ See the [installation tutorial](https://ignitionrobotics.org/api/transport/9.0/i
 
 # Usage
 
-See [tutorials](https://ignitionrobotics.org/api/transport/8.0/tutorials.html)
+See [tutorials](https://ignitionrobotics.org/api/transport/9.0/tutorials.html)
 and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/master/example/)
 in the source code.
 
