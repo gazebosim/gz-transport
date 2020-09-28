@@ -2,16 +2,70 @@
 
 ### Ignition Transport 9.X.X
 
+### Ignition Transport 9.0.0 (2020-09-29)
+
+1. Fix link in "development" tutorial.
+   * [Github pull request 183](https://github.com/ignitionrobotics/ign-transport/pull/183)
+
+1. Remove contribute tutorial.
+   * [Github pull request 182](https://github.com/ignitionrobotics/ign-transport/pull/182)
+
+1. Update link to the tutorials.
+   * [Github pull request 181](https://github.com/ignitionrobotics/ign-transport/pull/181)
+
+1. Use private access modifier for pImpl variable in MsgIter class.
+   * [Github pull request 179](https://github.com/ignitionrobotics/ign-transport/pull/179)
+
+1. Remove deprecations before 9.x.x release.
+   * [Github pull request 175](https://github.com/ignitionrobotics/ign-transport/pull/175)
+
+1. Make CPPZMQ a PUBLIC dependency.
+   * [Github pull request 173](https://github.com/ignitionrobotics/ign-transport/pull/173)
+
+1. Update codeowners.
+   * [Github pull request 163](https://github.com/ignitionrobotics/ign-transport/pull/163)
+
+1. Removed markdown-header.
+   * [Github pull request 161](https://github.com/ignitionrobotics/ign-transport/pull/161)
+
+1. Removed repeated installation instructions.
+   * [Github pull request 160](https://github.com/ignitionrobotics/ign-transport/pull/160)
+
 1. Need ignition-msgs version 6
    * [Github pull request 149](https://github.com/ignitionrobotics/ign-transport/pull/149/files)
 
-### Ignition Transport 9.0.0
+1. Update link to repo.
+   * [Github pull request 142](https://github.com/ignitionrobotics/ign-transport/pull/142)
+
+1. Fix download link.
+   * [Github pull request 141](https://github.com/ignitionrobotics/ign-transport/pull/141)
+
+1. Workflow updates.
+   * [Github pull request 134](https://github.com/ignitionrobotics/ign-transport/pull/134)
+
+1. Add .gitignore.
+   * [Github pull request 128](https://github.com/ignitionrobotics/ign-transport/pull/128)
+
+1. Update BitBucket links.
+   * [Github pull request 125](https://github.com/ignitionrobotics/ign-transport/pull/125)
 
 ## Ignition Transport 8.X
 
 ### Ignition Transport 8.X.X
 
 ### Ignition Transport 8.1.0 (2020-08-28)
+
+1. Fix mem leak.
+   * [Github pull request 174](https://github.com/ignitionrobotics/ign-transport/pull/174)
+
+1. One NodeShared per process.
+    * [Github pull request 152](https://github.com/ignitionrobotics/ign-transport/pull/152)
+
+1. Remove Windows warnings.
+    * [Github pull request 151](https://github.com/ignitionrobotics/ign-transport/pull/151)
+
+1. Remove warnings on Homebrew.
+    * [Github pull request 150](https://github.com/ignitionrobotics/ign-transport/pull/150)
 
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
     * [BitBucket pull request 423](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/423)
@@ -58,6 +112,15 @@
 ### Ignition Transport 7.x.x (202x-xx-xx)
 
 ### Ignition Transport 7.5.0 (2020-07-29)
+
+1. Disable flaky Mac OS X tests
+    * [Pull request 176](https://github.com/ignitionrobotics/ign-transport/pull/176)
+
+1. Prevent empty messages from spamming the console
+    * [Pull request 164](https://github.com/ignitionrobotics/ign-transport/pull/164)
+
+1. Modernize actions CI
+    * [Pull request 158](https://github.com/ignitionrobotics/ign-transport/pull/158)
 
 1. Helper function to get a valid topic name
     * [Pull request 153](https://github.com/ignitionrobotics/ign-transport/pull/153)
