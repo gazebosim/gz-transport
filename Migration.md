@@ -6,6 +6,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Transport 8.X to 9.X
+
+### Removed
+
+1. Remove deprecations before 9.x.x release
+    * [GitHub pull request 175](https://github.com/ignitionrobotics/ign-transport/pull/175)
+
 ## Ignition Transport 7.X to 8.X
 
 ### Deprecated
