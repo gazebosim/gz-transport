@@ -292,6 +292,6 @@ requests.
 
 Note that the result of `determineInterfaces()` can be manually set by using the
 `IGN_IP` environment variable, as described
-[here](20_env_variables.html).
+[here](envvars.html).
 This will essentially ignore other network interfaces, isolating all discovery
 traffic through the specified interface.
