@@ -42,7 +42,7 @@ tap](https://github.com/osrf/homebrew-simulation). Ignition Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
-purposes of this documentation, I will assume OS X 10.9 or greater is in
+purposes of this documentation, Assuming OS X 10.9 or greater is in
 use. Here are the instructions:
 
 Install homebrew, which should also prompt you to install the XCode
