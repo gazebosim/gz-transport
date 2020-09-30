@@ -31,7 +31,7 @@ Install Ignition Transport, `apt-get` can be used to install `ignition-transport
 $ sudo apt install libignition-transport<#>-dev
 ```
 
-Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
+Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
 which version you need.
 
 ## Mac OS X
