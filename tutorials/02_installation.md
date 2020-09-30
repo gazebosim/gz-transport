@@ -22,7 +22,7 @@ sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `ls
 Setup keys:
 
 ```
-wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
 Install Ignition Transport, `apt-get` can be used to install `ignition-transport`:
