@@ -22,7 +22,7 @@ sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `ls
 Setup keys:
 
 ```
-wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
 Install Ignition Transport, `apt-get` can be used to install `ignition-transport`:
@@ -31,7 +31,7 @@ Install Ignition Transport, `apt-get` can be used to install `ignition-transport
 $ sudo apt install libignition-transport<#>-dev
 ```
 
-Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
+Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
 which version you need.
 
 ## Mac OS X
@@ -42,7 +42,7 @@ tap](https://github.com/osrf/homebrew-simulation). Ignition Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
-purposes of this documentation, I will assume OS X 10.9 or greater is in
+purposes of this documentation, Assuming OS X 10.9 or greater is in
 use. Here are the instructions:
 
 Install homebrew, which should also prompt you to install the XCode
@@ -59,11 +59,11 @@ brew tap osrf/simulation
 brew install ignition-transport9
 ```
 
-## Windows
+## Windows 64bits
 
-At this moment, compilation has been tested on Windows 7 and 8.1 and is
+At this moment, compilation has been tested on Windows 8.1 and 10 and is
 supported when using [Visual Studio
-2013](https://www.visualstudio.com/downloads/). Patches for other
+2019](https://www.visualstudio.com/downloads/). Patches for other
 versions are welcome.
 
 This installation procedure uses pre-compiled binaries in a local
@@ -84,13 +84,12 @@ cd ign-ws
 Download the following dependencies into that directory:
 
   * [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq-noarch.zip)
-  * [Protobuf 2.6.0 (32-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
-  * [Protobuf 2.6.0 (64-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win64-vc12.zip)
+  * [Protobuf 3.4.1 (https://s3.amazonaws.com/osrf-distributions/win32/deps/protobuf-3.4.1-vc15-x64-dll-MD.zip)
+  * [sqlite] 3.22.0 (https://s3.amazonaws.com/osrf-distributions/win32/deps/sqlite-3.22.0-vc15-Win64-dll-MD.zip)
 
 Choose one of these options:
 
-  * [ZeroMQ 4.0.4 (32-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-x86.zip)
-  * [ZeroMQ 4.0.4 (64-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-amd64.zip)
+  * [ZeroMQ 4.2.3](https://s3.amazonaws.com/osrf-distributions/win32/deps/libzmq-4.2.3_cppzmq-4.2.2_vc15-x64-dll-MD.zip)
 
 Unzip each of them. The Windows unzip utility will likely create an
 incorrect directory structure, where a directory with the name of the
@@ -120,7 +119,7 @@ mkdir build
 In a Windows Command Prompt, load your compiler setup, e.g.:
 
 ```
-"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+"C:\Program Files (x86)\Microsoft Visual Studio 19.0\VC\vcvarsall.bat" x86_amd64
 ```
 
 In the Windows Command Prompt, configure and build:
@@ -157,7 +156,7 @@ cd ign-transport
 In a Windows Command Prompt, load your compiler setup, e.g.:
 
 ```
-"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+"C:\Program Files (x86)\Microsoft Visual Studio 19.0\VC\vcvarsall.bat" x86_amd64
 ```
 
 Configure and build:
@@ -180,7 +179,7 @@ the path, even if it contains spaces. E.g., if you're working in
 `C:\My Stuff\ign-ws`:
 
 ```
-set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin
+set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.2.3\bin
 ```
 
 Now build the examples:
