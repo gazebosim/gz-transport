@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(ignition-transport-examples)
 
 # Find the Ignition_Transport library
-find_package(ignition-transport9 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
+find_package(ignition-transport10 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.

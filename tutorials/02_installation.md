@@ -56,8 +56,11 @@ Run the following commands:
 
 ```
 brew tap osrf/simulation
-brew install ignition-transport9
+brew install ignition-transport<#>
 ```
+
+Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
+which version you need.
 
 ## Windows 64bits
 
@@ -213,8 +216,11 @@ Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 
 ```
-sudo apt-get remove libignition-transport9-dev
+sudo apt-get remove libignition-transport<#>-dev
 ```
+
+Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
+which version you installed.
 
 Install prerequisites. A clean Ubuntu system will need:
 
