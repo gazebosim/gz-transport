@@ -1,98 +1,50 @@
 load(
-    "//ign_bazel:cmake_configure_file.bzl",
-    "cmake_configure_file",
-)
-load(
-    "//ign_bazel:generate_include_header.bzl",
+    "//ign_bazel:build_defs.bzl",
+    "IGNITION_FEATURES",
+    "IGNITION_ROOT",
+    "IGNITION_VISIBILITY",
     "generate_include_header",
-)
-load(
-    "//ign_bazel:ign_export_header.bzl",
+    "ign_config_header",
     "ign_export_header",
 )
-
 load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
     "ruby_binary",
     "ruby_library",
-    "ruby_test",
     "ruby_rspec",
+    "ruby_test",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_visibility = IGNITION_VISIBILITY,
+    features = IGNITION_FEATURES,
+)
+
+licenses(["notice"])
+
+exports_files(["LICENSE"])
 
 PROJECT_NAME = "ignition-transport"
-PROJECT_MAJOR = 8
+
+PROJECT_MAJOR = 9
+
 PROJECT_MINOR = 0
+
 PROJECT_PATCH = 0
-IGN_DESIGNATION = "/tmp"
-library_location = "/usr"
-IGN_LIBRARY_PATH = "/usr"
 
 # Generates config.hh based on the version numbers in CMake code.
-cmake_configure_file(
+ign_config_header(
     name = "config",
     src = "include/ignition/transport/config.hh.in",
-    out = "include/ignition/transport/config.hh",
     cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
-        "PROJECT_MAJOR_VERSION=%d" % (PROJECT_MAJOR),
-        "PROJECT_MINOR_VERSION=%d" % (PROJECT_MINOR),
-        "PROJECT_PATCH_VERSION=%d" % (PROJECT_PATCH),
-        "PROJECT_VERSION_PATCH=%d" % (PROJECT_PATCH),
-        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
-        "PROJECT_VERSION_MINOR=%d" % (PROJECT_MINOR),
-        "PROJECT_VERSION=%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR),
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
-        "PROJECT_NAME=%s" % (PROJECT_NAME),
-        "IGN_DESIGNATION=%s" % (IGN_DESIGNATION),
-    ],
-    visibility = ["//visibility:private"],
-)
-
-cmake_configure_file(
-    name = "yaml",
-    src = "conf/transport.yaml.in",
-    out = "conf/transport.yaml",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
-        "PROJECT_NAME_NO_VERSION_LOWER=%s" % (PROJECT_NAME),
-        "ign_library_path=%s" % (IGN_LIBRARY_PATH),
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# Generates config.hh based on the version numbers in CMake code.
-cmake_configure_file(
-    name = "ruby",
-    src = "src/cmd/cmdtransport.rb.in",
-    out = "src/cmd/cmdtransport.rb",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "library_location=%s" % [library_location],
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "IGN_LIBRARY_PATH=%s" % (IGN_LIBRARY_PATH),
-        "IGN_LIBRARY_NAME=%s" % (PROJECT_NAME),
-    ],
-    visibility = ["//visibility:public"],
-)
-
-ruby_binary(
-    name = "transport-ruby",
-    srcs = ["src/cmd/cmdtransport.rb"],
-    includes = ["src/cmd"],
-    main = "src/cmd/cmdtransport.rb",
-    visibility = ["//visibility:public"],
+    project_name = PROJECT_NAME,
+    project_version = (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
 )
 
 ign_export_header(
     name = "include/ignition/transport/Export.hh",
-    lib_name = "ignition-transport",
     export_base = "IGNITION_TRANSPORT",
+    lib_name = "ignition-transport",
     visibility = ["//visibility:private"],
 )
 
@@ -140,7 +92,6 @@ sources = [
     "src/Node.cc",
     "src/NodeOptions.cc",
     "src/NodeShared.cc",
-    "src/Packet.cc",
     "src/Publisher.cc",
     "src/SubscribeOptions.cc",
     "src/SubscriptionHandler.cc",
@@ -184,61 +135,42 @@ public_headers = public_headers_no_gen + [
     "src/ign.hh",
 ]
 
-cc_binary(
-    name = "libignition-transport8.so",
-    srcs = sources + private_headers + public_headers,
-    includes = ["include", "src"],
-    linkopts = ["-Wl,-soname,libignition-transport8.so", "-lzmq", "-luuid", "-lsqlite3", "-lstdc++fs"],
-    linkshared = True,
-    visibility = [],
-    deps = [
-        "//ign_bazel:utilities",
-        "//ign_msgs",
-    ],
-    defines = select({
-        ":custom": ["HAVE_IFADDRS"],
-        "//conditions:default": []
-    }),
-)
-
 cc_library(
     name = "ign_transport",
-    srcs = ["libignition-transport8.so"],
+    srcs = sources + private_headers,
     hdrs = public_headers,
-    includes = ["include", "src"],
-    visibility = ["//visibility:public"],
     defines = select({
         ":custom": ["HAVE_IFADDRS"],
-        "//conditions:default": []
+        "//conditions:default": [],
     }),
-    linkopts = [
-        "-lstdc++fs",
+    includes = ["include"],
+    deps = [
+        "@sqlite3",
+        "@uuid",
+        "@zmq",
+        IGNITION_ROOT + "ign_msgs",
+        IGNITION_ROOT + "ign_bazel:utilities",
     ],
 )
 
 config_setting(
     name = "custom",
     values = {
-        "define": "enable_ifaddrs=true"
+        "define": "enable_ifaddrs=true",
     },
 )
 
 [cc_test(
     name = src.replace("src/", "").replace(".cc", ""),
     srcs = [src],
-    deps = [
-        "//ign_bazel:utilities",
-        "//ign_transport/test:test_utils",
-        "//ign_transport",
-        "//ign_msgs",
-        "@gtest//:gtest",
-        "@gtest//:gtest_main",
-    ],
-    linkopts = [
-        "-lstdc++fs",
-    ],
     defines = [
         "IGN_TRANSPORT_TEST_DIR='\"./ign_transport/test\"'",
         "IGN_TEST_LIBRARY_PATH='\"./ign_transport/test\"'",
+    ],
+    deps = [
+        ":ign_transport",
+        "//ign_transport/test:test_utils",
+        "@gtest",
+        "@gtest//:gtest_main",
     ],
 ) for src in test_sources]

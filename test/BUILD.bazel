@@ -4,12 +4,19 @@ load(
 )
 
 BINARY_DIR = "/tmp"
+
 SOURCE_DIR = "/tmp"
+
 CMAKE_BINARY_DIR = "/tmp"
+
 IGNITION_TOOLS_BINARY_DIRS = "/tmp"
+
 PROJECT_NAME = "ignition-transport"
+
 PROJECT_MAJOR = 8
+
 PROJECT_MINOR = 0
+
 PROJECT_PATCH = 0
 
 # Generates config.hh based on the version numbers in CMake code.
@@ -19,10 +26,10 @@ cmake_configure_file(
     out = "ignition/transport/test_config.h",
     cmakelists = ["CMakeLists.txt"],
     defines = [
-        "PROJECT_BINARY_DIR=%s" % (BINARY_DIR),
-        "PROJECT_SOURCE_DIR=%s" % (SOURCE_DIR),
-        "CMAKE_BINARY_DIR=%s" % (CMAKE_BINARY_DIR),
-        "IGNITION-TOOLS_BINARY_DIRS=%s" % (IGNITION_TOOLS_BINARY_DIRS),
+        "PROJECT_BINARY_DIR=%s" % BINARY_DIR,
+        "PROJECT_SOURCE_DIR=%s" % SOURCE_DIR,
+        "CMAKE_BINARY_DIR=%s" % CMAKE_BINARY_DIR,
+        "IGNITION-TOOLS_BINARY_DIRS=%s" % IGNITION_TOOLS_BINARY_DIRS,
         "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
     ],
     visibility = ["//visibility:private"],
