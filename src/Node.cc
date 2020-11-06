@@ -795,6 +795,41 @@ const NodeOptions &Node::Options() const
 }
 
 //////////////////////////////////////////////////
+std::optional<TopicStatistics> Node::TopicStatistics(
+    const std::string &_topic) const
+{
+  std::string fullyQualifiedTopic;
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), topic, fullyQualifiedTopic))
+  {
+    return std::nullopt;
+  }
+
+
+  return this->dataPtr->shared->TopicStatistics(fullyQualifiedTopic);
+}
+
+//////////////////////////////////////////////////
+bool Node::EnableStatistics(const std::string &_topic, bool _enable)
+{
+  std::string fullyQualifiedTopic;
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), topic, fullyQualifiedTopic))
+  {
+    return false;
+  }
+
+  this->dataPtr->shared->EnableStatistics(fullyQualifiedTopic, _enable);
+  return true;
+}
+
+//////////////////////////////////////////////////
 NodeShared *Node::Shared() const
 {
   return this->dataPtr->shared;

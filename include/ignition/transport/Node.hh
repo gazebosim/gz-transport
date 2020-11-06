@@ -719,6 +719,8 @@ namespace ignition
       /// \return Reference to the current node options.
       public: const NodeOptions &Options() const;
 
+      public: bool EnableStatistics(const std::string &_topic, bool _enable);
+
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.

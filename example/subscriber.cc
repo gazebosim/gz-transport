@@ -24,7 +24,9 @@
 /// \brief Function called each time a topic update is received.
 void cb(const ignition::msgs::StringMsg &_msg)
 {
-  std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
+
+//  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  //std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -32,6 +34,10 @@ int main(int argc, char **argv)
 {
   ignition::transport::Node node;
   std::string topic = "/foo";
+  if (!node.EnableStatistics(topic, true))
+  {
+    std::cout << "Unable to enable stats\n";
+  }
 
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))

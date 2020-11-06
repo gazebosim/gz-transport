@@ -341,12 +341,22 @@ bool NodeShared::Publish(
 {
   try
   {
+    // Create publication metadata.
+    PublicationMetadata meta;
+    // Send the sequence number, which can be used to detect dropped
+    // messages.
+    meta.seq = this->dataPtr->topicPubSeq[_topic]++;
+    // Send the publication time.
+    meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+
     // Create the messages.
     // Note that we use zero copy for passing the message data (msg2).
     zmq::message_t msg0(_topic.data(), _topic.size()),
                    msg1(this->myAddress.data(), this->myAddress.size()),
                    msg2(_data, _dataSize, _ffn, nullptr),
-                   msg3(_msgType.data(), _msgType.size());
+                   msg3(_msgType.data(), _msgType.size()),
+                   msg4(&meta, sizeof(meta));
 
     // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
@@ -355,12 +365,14 @@ bool NodeShared::Publish(
     this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
+    this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
+    this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
 #else
     this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
     this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
     this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg3, 0);
+    this->dataPtr->publisher->send(msg3, ZMQ_SNDMORE);
+    this->dataPtr->publisher->send(msg4, 0);
 #endif
   }
   catch(const zmq::error_t& ze)
@@ -377,9 +389,10 @@ void NodeShared::RecvMsgUpdate()
 {
   zmq::message_t msg(0);
   std::string topic;
-  // std::string sender;
+  std::string sender;
   std::string data;
   std::string msgType;
+  PublicationMetadata *meta;
   HandlerInfo handlerInfo;
 
   {
@@ -402,7 +415,7 @@ void NodeShared::RecvMsgUpdate()
       if (!this->dataPtr->subscriber->recv(&msg, 0))
 #endif
         return;
-      // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+      sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
 #ifdef IGN_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
@@ -419,6 +432,21 @@ void NodeShared::RecvMsgUpdate()
 #endif
         return;
       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+#ifdef IGN_ZMQ_POST_4_3_1
+      if (!this->dataPtr->subscriber->recv(msg))
+#else
+      if (!this->dataPtr->subscriber->recv(&msg, 0))
+#endif
+        return;
+      meta = reinterpret_cast<PublicationMetadata *>(msg.data());
+
+      // Update topic statistics.
+      if (this->dataPtr->enabledTopicStatistics.find(topic) !=
+          this->dataPtr->enabledTopicStatistics.end())
+      {
+        this->dataPtr->topicStats[topic].Update(sender, *meta);
+      }
     }
     catch(const zmq::error_t &_error)
     {
@@ -1832,3 +1860,24 @@ void NodeSharedPrivate::PublishThread()
     }
   }
 }
+
+//////////////////////////////////////////////////
+std::optional<TopicStatistics> NodeShared::TopicStatistics(const std::string &_topic) const
+{
+  if (this->dataPtr->topicStats.find(topic) != this->dataPtr->topicStats)
+    return this->dataPtr->topicStats[topic];
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
+void NodeShared::EnableStatistics(const std::string &_topic, bool _enable)
+{
+  if (_enable)
+    this->dataPtr->enabledTopicStatistics.insert(_topic);
+  else
+  {
+    this->dataPtr->enabledTopicStatistics.extract(_topic);
+    // \todo Also cleanup topicStats.
+  }
+}
+

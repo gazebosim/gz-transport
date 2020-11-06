@@ -278,6 +278,8 @@ namespace ignition
       /// If your buffer reaches the maximum capacity data will be dropped.
       public: int SndHwm();
 
+      public: void EnableStatistics(const std::string &_topic, bool _enable);
+
       /// \brief Constructor.
       protected: NodeShared();
 
