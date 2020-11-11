@@ -10,6 +10,10 @@ nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Ignition Transport.
 Below are descriptions of the available environment variables:
 
+* **IGN_DISCOVERY_IP**
+    * *Value allowed*: Any multicast IP address
+    * *Description*: Multicast IP address used for communicating all the
+    discovery messages.
 * **IGN_IP**
     * *Value allowed*: Any local IP address
     * *Description*: When you have

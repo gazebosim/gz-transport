@@ -220,15 +220,20 @@ NodeShared::NodeShared()
   std::string ignVerbose;
   this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
+  // Set the multicast IP used for discovery.
+  std::string envDiscoveryIp;
+  if (env("IGN_DISCOVERY_IP", envDiscoveryIp) && !envDiscoveryIp.empty())
+    this->discoveryIP = envDiscoveryIp;
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
 
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
-      new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
+      new MsgDiscovery(this->pUuid, this->discoveryIP, this->kMsgDiscPort));
   this->dataPtr->srvDiscovery.reset(
-      new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
+      new SrvDiscovery(this->pUuid, this->discoveryIP, this->kSrvDiscPort));
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
@@ -238,6 +243,10 @@ NodeShared::NodeShared()
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Process UUID: " << this->pUuid << std::endl;
+    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+              << this->kMsgDiscPort << "] for msg discovery\n";
+    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+              << this->kSrvDiscPort << "] for srv discovery\n";
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
     std::cout << "Identity for receiving srv. requests: ["

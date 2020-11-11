@@ -119,12 +119,15 @@ namespace ignition
       /// \brief Constructor.
       /// \param[in] _pUuid This discovery instance will run inside a
       /// transport process. This parameter is the transport process' UUID.
+      /// \param[in] _ip IP address used for discovery traffic.
       /// \param[in] _port UDP port used for discovery traffic.
       /// \param[in] _verbose true for enabling verbose mode.
       public: Discovery(const std::string &_pUuid,
+                        const std::string &_ip,
                         const int _port,
                         const bool _verbose = false)
-        : port(_port),
+        : multicastGroup(_ip),
+          port(_port),
           hostAddr(determineHost()),
           pUuid(_pUuid),
           silenceInterval(kDefSilenceInterval),
@@ -225,7 +228,7 @@ namespace ignition
         memset(&this->mcastAddr, 0, sizeof(this->mcastAddr));
         this->mcastAddr.sin_family = AF_INET;
         this->mcastAddr.sin_addr.s_addr =
-          inet_addr(this->kMulticastGroup.c_str());
+          inet_addr(this->multicastGroup.c_str());
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
@@ -1306,7 +1309,7 @@ namespace ignition
         // position 0 for receiving multicast information.
         struct ip_mreq group;
         group.imr_multiaddr.s_addr =
-          inet_addr(this->kMulticastGroup.c_str());
+          inet_addr(this->multicastGroup.c_str());
         group.imr_interface.s_addr = inet_addr(_ip.c_str());
         if (setsockopt(this->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
           reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
@@ -1355,7 +1358,7 @@ namespace ignition
       private: static const unsigned int kDefSilenceInterval = 3000;
 
       /// \brief IP Address used for multicast.
-      private: const std::string kMulticastGroup = "224.0.0.7";
+      private: std::string multicastGroup;
 
       /// \brief Timeout used for receiving messages (ms.).
       private: const int kTimeout = 250;

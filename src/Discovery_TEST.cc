@@ -37,8 +37,9 @@ static const int MaxIters = 100;
 static const int Nap = 10;
 
 // Global variables used for multiple tests.
-static const int g_msgPort = 11319;
-static const int g_srvPort = 11320;
+static const int g_msgPort    = 11319;
+static const int g_srvPort    = 11320;
+static const std::string g_ip = "224.0.0.7"; // NOLINT(*)
 static std::string g_topic = testing::getRandomNumber(); // NOLINT(*)
 static std::string service = testing::getRandomNumber(); // NOLINT(*)
 static std::string addr1   = "tcp://127.0.0.1:12345"; // NOLINT(*)
@@ -61,9 +62,10 @@ template<typename T> class DiscoveryDerived : public transport::Discovery<T>
 {
   // Documentation inherited.
   public: DiscoveryDerived(const std::string &_pUuid,
+                           const std::string &_ip,
                            const int _port,
                            const bool _verbose = false)
-    : transport::Discovery<T>(_pUuid, _port, _verbose)
+    : transport::Discovery<T>(_pUuid, _ip, _port, _verbose)
   {
   }
 
@@ -152,7 +154,7 @@ TEST(DiscoveryTest, TestBasicAPI)
   unsigned int newHeartbeatInterval  = 400;
 
   // Create a discovery node.
-  Discovery<MessagePublisher> discovery(pUuid1, g_msgPort);
+  Discovery<MessagePublisher> discovery(pUuid1, g_ip, g_msgPort);
 
   discovery.SetSilenceInterval(newSilenceInterval);
   discovery.SetActivityInterval(newActivityInterval);
@@ -169,7 +171,7 @@ TEST(DiscoveryTest, TestBasicAPI)
 /// \brief Try to use the discovery features without calling Start().
 TEST(DiscoveryTest, WithoutCallingStart)
 {
-  Discovery<ServicePublisher> discovery(pUuid1, g_srvPort);
+  Discovery<ServicePublisher> discovery(pUuid1, g_ip, g_srvPort);
   ServicePublisher srvPublisher(service, addr1, id1, pUuid1, nUuid1,
     "reqType", "repType", AdvertiseServiceOptions());
 
@@ -185,8 +187,8 @@ TEST(DiscoveryTest, TestAdvertiseNoResponse)
   reset();
 
   // Create two discovery nodes.
-  MsgDiscovery discovery1(pUuid1, g_msgPort);
-  MsgDiscovery discovery2(pUuid2, g_msgPort);
+  MsgDiscovery discovery1(pUuid1, g_ip, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_ip, g_msgPort);
 
   discovery1.Start();
   discovery2.Start();
@@ -211,8 +213,9 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
-  transport::Discovery<MessagePublisher> Discovery2(pUuid2, g_msgPort, true);
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
+  transport::Discovery<MessagePublisher> Discovery2(
+    pUuid2, g_ip, g_msgPort, true);
 
   // Register one callback for receiving notifications.
   Discovery2.ConnectionsCb(onDiscoveryResponse);
@@ -268,8 +271,8 @@ TEST(DiscoveryTest, TestAdvertiseSameProc)
   reset();
 
   // Create two discovery nodes simulating they are in different processes.
-  MsgDiscovery discovery1(pUuid1, g_msgPort);
-  MsgDiscovery discovery2(pUuid1, g_msgPort);
+  MsgDiscovery discovery1(pUuid1, g_ip, g_msgPort);
+  MsgDiscovery discovery2(pUuid1, g_ip, g_msgPort);
 
   // Register one callback for receiving notifications.
   discovery2.ConnectionsCb(onDiscoveryResponse);
@@ -297,7 +300,7 @@ TEST(DiscoveryTest, TestDiscover)
   reset();
 
   // Create one discovery node and advertise a topic.
-  Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
+  Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   discovery1.Start();
 
   MessagePublisher publisher(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
@@ -305,7 +308,7 @@ TEST(DiscoveryTest, TestDiscover)
   EXPECT_TRUE(discovery1.Advertise(publisher));
 
   // Create a second discovery node that did not see the previous ADV message.
-  MsgDiscovery discovery2(pUuid2, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_ip, g_msgPort);
   discovery2.Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -345,8 +348,8 @@ TEST(DiscoveryTest, TestUnadvertise)
   reset();
 
   // Create two discovery nodes.
-  MsgDiscovery discovery1(pUuid1, g_msgPort);
-  MsgDiscovery discovery2(pUuid2, g_msgPort);
+  MsgDiscovery discovery1(pUuid1, g_ip, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_ip, g_msgPort);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
@@ -391,8 +394,9 @@ TEST(DiscoveryTest, TestNodeBye)
   reset();
 
   // Create two discovery nodes.
-  std::unique_ptr<MsgDiscovery> discovery1(new MsgDiscovery(pUuid1, g_msgPort));
-  MsgDiscovery discovery2(pUuid2, g_msgPort);
+  std::unique_ptr<MsgDiscovery> discovery1(
+    new MsgDiscovery(pUuid1, g_ip, g_msgPort));
+  MsgDiscovery discovery2(pUuid2, g_ip, g_msgPort);
 
   // Register one callback for receiving disconnect notifications.
   discovery2.DisconnectionsCb(onDisconnection);
@@ -431,8 +435,8 @@ TEST(DiscoveryTest, TestTwoPublishersSameTopic)
   reset();
 
   // Create two discovery nodes and advertise the same topic.
-  MsgDiscovery discovery1(pUuid1, g_msgPort);
-  MsgDiscovery discovery2(pUuid2, g_msgPort);
+  MsgDiscovery discovery1(pUuid1, g_ip, g_msgPort);
+  MsgDiscovery discovery2(pUuid2, g_ip, g_msgPort);
 
   MessagePublisher publisher1(g_topic, addr1, ctrl1, pUuid1, nUuid1, "t",
     AdvertiseMessageOptions());
@@ -495,10 +499,10 @@ TEST(DiscoveryTest, TestActivity)
     AdvertiseMessageOptions());
   ServicePublisher srvPublisher(service, addr1, id1, proc2Uuid,
     nUuid2, "reqType", "repType", AdvertiseServiceOptions());
-  DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid, g_msgPort);
+  DiscoveryDerived<MessagePublisher> discovery1(proc1Uuid, g_ip, g_msgPort);
 
   {
-    DiscoveryDerived<MessagePublisher> discovery2(proc2Uuid, g_msgPort);
+    DiscoveryDerived<MessagePublisher> discovery2(proc2Uuid, g_ip, g_msgPort);
 
     discovery1.Start();
     discovery2.Start();
@@ -534,7 +538,7 @@ TEST(DiscoveryTest, WrongIgnIp)
   // Incorrect value for IGN_IP
   setenv("IGN_IP", "127.0.0.0", 1);
 
-  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_msgPort);
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
   // Unset IGN_IP.
