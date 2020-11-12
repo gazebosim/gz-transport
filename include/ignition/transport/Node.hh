@@ -44,6 +44,7 @@
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -720,6 +721,8 @@ namespace ignition
       public: const NodeOptions &Options() const;
 
       public: bool EnableStatistics(const std::string &_topic, bool _enable);
+      public: std::optional<TopicStatistics> TopicStats(
+                  const std::string &_topic) const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).

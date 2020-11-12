@@ -41,6 +41,7 @@
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -279,6 +280,9 @@ namespace ignition
       public: int SndHwm();
 
       public: void EnableStatistics(const std::string &_topic, bool _enable);
+
+      public: std::optional<TopicStatistics> TopicStats(
+                  const std::string &_topic) const;
 
       /// \brief Constructor.
       protected: NodeShared();

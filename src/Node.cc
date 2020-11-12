@@ -795,7 +795,7 @@ const NodeOptions &Node::Options() const
 }
 
 //////////////////////////////////////////////////
-std::optional<TopicStatistics> Node::TopicStatistics(
+std::optional<TopicStatistics> Node::TopicStats(
     const std::string &_topic) const
 {
   std::string fullyQualifiedTopic;
@@ -809,7 +809,7 @@ std::optional<TopicStatistics> Node::TopicStatistics(
   }
 
 
-  return this->dataPtr->shared->TopicStatistics(fullyQualifiedTopic);
+  return this->dataPtr->shared->TopicStats(fullyQualifiedTopic);
 }
 
 //////////////////////////////////////////////////

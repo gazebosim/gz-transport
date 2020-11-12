@@ -1862,10 +1862,11 @@ void NodeSharedPrivate::PublishThread()
 }
 
 //////////////////////////////////////////////////
-std::optional<TopicStatistics> NodeShared::TopicStatistics(const std::string &_topic) const
+std::optional<transport::TopicStatistics> NodeShared::TopicStats(
+    const std::string &_topic) const
 {
-  if (this->dataPtr->topicStats.find(topic) != this->dataPtr->topicStats)
-    return this->dataPtr->topicStats[topic];
+  if (this->dataPtr->topicStats.find(_topic) != this->dataPtr->topicStats.end())
+    return this->dataPtr->topicStats.at(_topic);
   return std::nullopt;
 }
 
