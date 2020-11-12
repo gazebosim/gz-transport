@@ -192,7 +192,7 @@ Recorder::Implementation::Implementation()
 
   this->discovery =
     std::unique_ptr<MsgDiscovery>(new MsgDiscovery(
-      Uuid().ToString(), shared->discoveryIP, shared->kMsgDiscPort));
+      Uuid().ToString(), shared->discoveryIP, shared->msgDiscPort));
 
   DiscoveryCallback<Publisher> cb = [this](const Publisher &_publisher)
   {
