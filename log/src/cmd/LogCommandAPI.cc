@@ -15,9 +15,12 @@
  *
 */
 
+#include "LogCommandAPI.hh"
+
 #include <csignal>
 #include <iostream>
 #include <regex>
+#include <string>
 
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/log/Playback.hh>
@@ -25,7 +28,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/NodeOptions.hh>
 #include "../Console.hh"
-#include "LogCommandAPI.hh"
 
 using namespace ignition;
 ignition::transport::log::PlaybackHandlePtr g_playbackHandler;
