@@ -302,8 +302,7 @@ namespace ignition
       public: mutable std::recursive_mutex mutex;
 
       /// \brief Default IP address used by the message discovery layer.
-      /// \ToDo(caguero): Change to 239.255.0.7 when releasing version 10.
-      public: std::string discoveryIP = "224.0.0.7";
+      public: std::string discoveryIP = "239.255.0.7";
 
       /// \brief Default port used by the message discovery layer.
       public: static const int kDefaultMsgDiscPort = 10317;
