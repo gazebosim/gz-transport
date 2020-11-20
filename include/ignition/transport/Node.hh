@@ -120,6 +120,10 @@ namespace ignition
         /// \param[in] _publisher A message publisher.
         public: explicit Publisher(const MessagePublisher &_publisher);
 
+        /// \brief Copy Constructor.
+        /// \param[in] _publisher A publisher to copy.
+        public: explicit Publisher(const Node::Publisher &_publisher);
+
         /// \brief Destructor.
         public: virtual ~Publisher();
 
@@ -720,7 +724,24 @@ namespace ignition
       /// \return Reference to the current node options.
       public: const NodeOptions &Options() const;
 
-      public: bool EnableStatistics(const std::string &_topic, bool _enable);
+      /// \brief Turn topic statistics on or off.
+      /// \param[in] _topic The name of the topic on which to enable or disable
+      /// statistics.
+      /// \param[in] _enable True to enable statistics, false to disable.
+      /// \param[in] _publicationTopic Topic on which to publish statistic
+      /// information.
+      /// \param[in] _publicationRate Rate at which to publish statistics.
+      public: bool EnableStatistics(const std::string &_topic, bool _enable,
+                  const std::string &_publicationTopic = "/statistics",
+                  uint64_t _publicationRate = 1);
+
+      /// \brief Get the current statistics for a topic. Statistics must
+      /// have been enabled using the EnableStatistics function, otherwise
+      /// the return value will be std::nullopt.
+      /// \param[in] _topic The name of the topic to get statistics for.
+      /// return A TopicStatistics class, or std::nullopt if statistics were
+      /// not enabled.
+      /// \sa  EnableStatistics
       public: std::optional<TopicStatistics> TopicStats(
                   const std::string &_topic) const;
 

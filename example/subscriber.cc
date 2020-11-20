@@ -31,7 +31,7 @@ void cb(const ignition::msgs::StringMsg &_msg)
     node.TopicStats(topic);
   if (stats)
   {
-    std::cout << stats->YamlString() << std::endl;
+    std::cout << stats->DroppedMsgCount() << std::endl;
   }
 //  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   //std::cout << "Msg: " << _msg.data() << std::endl << std::endl;

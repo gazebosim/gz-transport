@@ -1366,7 +1366,7 @@ namespace ignition
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      private: static const uint8_t kWireVersion = 10;
+      private: static const uint8_t kWireVersion = 11;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;

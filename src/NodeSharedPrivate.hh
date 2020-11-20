@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Node.hh"
 
 namespace ignition
 {
@@ -39,6 +40,18 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    /// \brief Metadata for a publication. This is sent as part of the ZMQ
+    /// message for topic statistics.
+    struct PublicationMetadata
+    {
+      /// \brief Publication timestamp.
+      uint64_t stamp = 0;
+
+      /// \brief Sequence number, used to detect dropped messages.
+      uint64_t seq = 0;
+    };
+
     //
     // Private data class for NodeShared.
     class NodeSharedPrivate
@@ -174,7 +187,9 @@ namespace ignition
       public: std::map<std::string, TopicStatistics> topicStats;
 
       /// \brief Set of topics that have statistics enabled.
-      public: std::set<std::string> enabledTopicStatistics;
+      public: std::map<std::string,
+              std::function<void(const TopicStatistics &_stats)>>
+                enabledTopicStatistics;
     };
     }
   }

@@ -445,7 +445,9 @@ void NodeShared::RecvMsgUpdate()
       if (this->dataPtr->enabledTopicStatistics.find(topic) !=
           this->dataPtr->enabledTopicStatistics.end())
       {
-        this->dataPtr->topicStats[topic].Update(sender, *meta);
+        this->dataPtr->topicStats[topic].Update(sender, meta->stamp, meta->seq);
+        this->dataPtr->enabledTopicStatistics[topic](
+            this->dataPtr->topicStats[topic]);
       }
     }
     catch(const zmq::error_t &_error)
@@ -1871,14 +1873,16 @@ std::optional<transport::TopicStatistics> NodeShared::TopicStats(
 }
 
 //////////////////////////////////////////////////
-void NodeShared::EnableStatistics(const std::string &_topic, bool _enable)
+void NodeShared::EnableStatistics(const std::string &_topic, bool _enable,
+    std::function<void(const TopicStatistics &_stats)> _statCb)
 {
   if (_enable)
-    this->dataPtr->enabledTopicStatistics.insert(_topic);
+  {
+    this->dataPtr->enabledTopicStatistics.insert({_topic, _statCb});
+  }
   else
   {
     this->dataPtr->enabledTopicStatistics.extract(_topic);
     // \todo Also cleanup topicStats.
   }
 }
-

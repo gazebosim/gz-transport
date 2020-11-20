@@ -279,8 +279,22 @@ namespace ignition
       /// If your buffer reaches the maximum capacity data will be dropped.
       public: int SndHwm();
 
-      public: void EnableStatistics(const std::string &_topic, bool _enable);
+      /// \brief Turn topic statistics on or off.
+      /// \param[in] _topic The name of the topic on which to enable or disable
+      /// statistics.
+      /// \param[in] _enable True to enable statistics, false to disable.
+      /// \param[in] _cb Callback that is triggered whenever statistics are
+      /// updated.
+      public: void EnableStatistics(const std::string &_topic, bool _enable,
+                  std::function<void(const TopicStatistics &_stats)> _statCb);
 
+      /// \brief Get the current statistics for a topic. Statistics must
+      /// have been enabled using the EnableStatistics function, otherwise
+      /// the return value will be std::nullopt.
+      /// \param[in] _topic The name of the topic to get statistics for.
+      /// return A TopicStatistics class, or std::nullopt if statistics were
+      /// not enabled.
+      /// \sa  EnableStatistics
       public: std::optional<TopicStatistics> TopicStats(
                   const std::string &_topic) const;
 

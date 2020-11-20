@@ -19,18 +19,12 @@
 
 #include <cmath>
 #include <sstream>
+#include <ignition/msgs/statistic.pb.h>
 
 namespace ignition
 {
   namespace transport
   {
-    /// \brief Metadata for a publication.
-    struct PublicationMetadata
-    {
-      uint64_t stamp = 0;
-      uint64_t seq = 0;
-    };
-
     /// \brief Computes the rolling average, min, max, and standard
     /// deviation for a set of samples.
     class Statistics
@@ -110,7 +104,7 @@ namespace ignition
     /// 2. Publication statistics: The publication hz rate, standard
     ///    deviation between publications, min time between publications, and
     ///    max time between publications.
-    /// 3. Receive statistics: The receive hz rate, standard
+    /// 3. Receive statistics: The reception hz rate, standard
     ///    deviation between receiving messages, min time between receiving
     ///    messages, and max time between receiving messages.
     ///
@@ -121,9 +115,10 @@ namespace ignition
     {
       /// \brief Update the topic statistics.
       /// \param[in] _sender Address of the sender.
-      /// \param[in] _meta Metadata for the publication.
+      /// \param[in] _stamp Publication time stamp.
+      /// \param[in] _seq Publication sequence number.
       public: void Update(const std::string &_sender,
-                          const PublicationMetadata &_meta)
+                          uint64_t _stamp, uint64_t _seq)
       {
         // Current wall time
         uint64_t now =
@@ -132,38 +127,98 @@ namespace ignition
 
         if (this->prevPublicationStamp != 0)
         {
-          this->publication.Update(_meta.stamp - this->prevPublicationStamp);
-          this->receive.Update(now - this->prevReceiveStamp);
+          this->publication.Update(_stamp - this->prevPublicationStamp);
+          this->reception.Update(now - this->prevReceptionStamp);
 
-          if (this->seq[_sender] + 1 != _meta.seq)
+          if (this->seq[_sender] + 1 != _seq)
           {
             this->droppedMsgCount++;
           }
         }
 
-        this->prevPublicationStamp = _meta.stamp;
-        this->prevReceiveStamp = now;
+        this->prevPublicationStamp = _stamp;
+        this->prevReceptionStamp = now;
 
-        this->seq[_sender] = _meta.seq;
+        this->seq[_sender] = _seq;
       }
 
       /// \brief Generation a YAML string with the set of statistics.
       /// \return A YAML formatted string with the statistics.
-      public: std::string YamlString() const
+      public: void FillMessage(msgs::Metric &_msg) const
       {
-        std::ostringstream stream;
-        stream << "dropped_message_count: " << this->droppedMsgCount << "\n";
-        stream << "publication_statistics:\n";
-        stream << "  avg_hz: " << 1.0 / (this->publication.Avg() * 1e-3) << "\n"
-               << "  std_deviation: " << this->publication.StdDev() << "\n"
-               << "  min: " << this->publication.Min() << "\n"
-               << "  max: " << this->publication.Max() << "\n";
-        stream << "receive_statistics:\n";
-        stream << "  avg_hz: " << 1.0 / (this->receive.Avg() * 1e-3) << "\n"
-               << "  std_deviation: " << this->receive.StdDev() << "\n"
-               << "  min: " << this->receive.Min() << "\n"
-               << "  max: " << this->receive.Max() << "\n";
-        return stream.str();
+        _msg.set_unit("milliseconds");
+        msgs::Statistic *stat = _msg.add_statistics();
+        stat->set_type(msgs::Statistic::SAMPLE_COUNT);
+        stat->set_name("dropped_message_count");
+        stat->set_value(this->droppedMsgCount);
+
+        // Publication statistics
+        msgs::StatisticsGroup *statGroup = _msg.add_statistics_groups();
+        statGroup->set_name("publication_statistics");
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::AVERAGE);
+        stat->set_name("avg_hz");
+        stat->set_value(1.0 / this->publication.Avg());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::MINIMUM);
+        stat->set_name("min_period");
+        stat->set_value(this->publication.Min());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::MAXIMUM);
+        stat->set_name("max_period");
+        stat->set_value(this->publication.Max());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::STDDEV);
+        stat->set_name("period_standard_devation");
+        stat->set_value(this->publication.StdDev());
+
+        // Receive statistics
+        statGroup = _msg.add_statistics_groups();
+        statGroup->set_name("reception_statistics");
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::AVERAGE);
+        stat->set_name("avg_hz");
+        stat->set_value(1.0 / this->reception.Avg());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::MINIMUM);
+        stat->set_name("min_period");
+        stat->set_value(this->reception.Min());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::MAXIMUM);
+        stat->set_name("max_period");
+        stat->set_value(this->reception.Max());
+
+        stat = statGroup->add_statistics();
+        stat->set_type(msgs::Statistic::STDDEV);
+        stat->set_name("period_standard_devation");
+        stat->set_value(this->reception.StdDev());
+      }
+
+      /// \brief Get the number of dropped messages.
+      /// \return Number of dropped messages.
+      public: uint64_t DroppedMsgCount() const
+      {
+        return this->droppedMsgCount;
+      }
+
+      /// \brief Get statistics about publication of messages.
+      /// \return Publication statistics.
+      public: Statistics PublicationStatistics() const
+      {
+        return this->publication;
+      }
+
+      /// \brief Get the statistics about reception of messages.
+      /// \return Reception statistics.
+      public: Statistics ReceptionStatistics() const
+      {
+        return this->reception;
       }
 
       /// \brief Map of address to sequence numbers. This is used to
@@ -174,7 +229,7 @@ namespace ignition
       private: Statistics publication;
 
       /// \brief Statistics for the subscriber.
-      private: Statistics receive;
+      private: Statistics reception;
 
       /// \brief Total number of dropped messages.
       private: uint64_t droppedMsgCount = 0;
@@ -182,8 +237,8 @@ namespace ignition
       /// \brief Previous publication time stamp.
       private: uint64_t prevPublicationStamp = 0;
 
-      /// \brief Previous received time stamp.
-      private: uint64_t prevReceiveStamp = 0;
+      /// \brief Previous reception time stamp.
+      private: uint64_t prevReceptionStamp = 0;
     };
   }
 }

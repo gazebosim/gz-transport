@@ -15,6 +15,7 @@
  *
 */
 #include <ignition/msgs/discovery.pb.h>
+#include <ignition/msgs/statistic.pb.h>
 
 #include <algorithm>
 #include <cassert>
@@ -117,6 +118,14 @@ namespace ignition
         : shared(NodeShared::Instance()),
           publisher(_publisher)
       {
+      }
+
+      public: explicit PublisherPrivate(const Node::PublisherPrivate *_pub)
+       : shared(NodeShared::Instance()),
+         publisher(_pub->publisher),
+         periodNs(_pub->periodNs)
+      {
+        std::cout << "Copy Constructor!!!\n";
       }
 
       /// \brief Check if this Publisher is ready to send an update based on
@@ -226,6 +235,12 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
     this->dataPtr->periodNs =
       1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
   }
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::Publisher(const Node::Publisher &_publisher)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher.dataPtr.get()))
+{
 }
 
 //////////////////////////////////////////////////
@@ -813,7 +828,8 @@ std::optional<TopicStatistics> Node::TopicStats(
 }
 
 //////////////////////////////////////////////////
-bool Node::EnableStatistics(const std::string &_topic, bool _enable)
+bool Node::EnableStatistics(const std::string &_topic, bool _enable,
+    const std::string &_publicationTopic, uint64_t _publicationRate)
 {
   std::string fullyQualifiedTopic;
   std::string topic = _topic;
@@ -825,7 +841,26 @@ bool Node::EnableStatistics(const std::string &_topic, bool _enable)
     return false;
   }
 
-  this->dataPtr->shared->EnableStatistics(fullyQualifiedTopic, _enable);
+  AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(_publicationRate);
+  this->dataPtr->statPub = this->Advertise(_publicationTopic,
+      "ignition.msgs.Metric", opts);
+
+  // Callback used to publish a statistics message.
+  std::function<void(const TopicStatistics &_stats)> statCb =
+    [=](const TopicStatistics &_stats) mutable
+    {
+      if (this->dataPtr->statPub.ThrottledUpdateReady())
+      {
+        msgs::Metric msg;
+        _stats.FillMessage(msg);
+        this->dataPtr->statPub.Publish(msg);
+      }
+    };
+
+  this->dataPtr->shared->EnableStatistics(fullyQualifiedTopic, _enable,
+      statCb);
+
   return true;
 }
 
