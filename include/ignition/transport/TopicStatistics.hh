@@ -17,68 +17,51 @@
 #ifndef IGN_TRANSPORT_TOPICSTATISTICS_HH_
 #define IGN_TRANSPORT_TOPICSTATISTICS_HH_
 
-#include <cmath>
-#include <sstream>
 #include <ignition/msgs/statistic.pb.h>
+
+#include "ignition/transport/config.hh"
+#include "ignition/transport/Export.hh"
 
 namespace ignition
 {
   namespace transport
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
     /// \brief Computes the rolling average, min, max, and standard
     /// deviation for a set of samples.
     class Statistics
     {
+      /// \brief Default constructor.
+      public: Statistics() = default;
+
+      /// \brief Default destructor.
+      public: ~Statistics() = default;
+
       /// \brief Update with a new sample.
       /// \param[in] _stat New statistic sample.
-      public: void Update(double _stat)
-      {
-        // Increase the sample count.
-        this->count++;
-
-        // Update the rolling average
-        const double currentAvg = this->average;
-        this->average = currentAvg +
-          (_stat - currentAvg) / this->count;
-
-        // Store the min and max.
-        this->min = std::min(this->min, _stat);
-        this->max = std::max(this->max, _stat);
-
-        // Update the variance, used to calculate the standard deviation,
-        // using Welford's algorithm described at
-        // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford%27s_online_algorithm
-        this->sumSquareMeanDist += (_stat - currentAvg) *
-          (_stat - this->average);
-      }
+      public: void Update(double _stat);
 
       /// \brief Get the average value.
       /// \return the average value.
-      public: double Avg() const
-      {
-        return this->average;
-      }
+      public: double Avg() const;
 
       /// \brief Get the standard deviation.
       /// \return The standard deviation.
-      public: double StdDev() const
-      {
-        return std::sqrt(this->sumSquareMeanDist / this->count);
-      }
+      public: double StdDev() const;
 
       /// \brief Get the minimum sample value.
       /// \return The minimum sample value.
-      public: double Min() const
-      {
-        return this->min;
-      }
+      public: double Min() const;
 
       /// \brief Get the maximum sample value.
       /// \return The maximum sample value.
-      public: double Max() const
-      {
-        return this->max;
-      }
+      public: double Max() const;
+
+      /// \brief Get the number of samples.
+      /// \return The number of samples.
+      public: uint64_t Count() const;
 
       /// \brief Count of the samples.
       private: uint64_t count = 0;
@@ -113,113 +96,39 @@ namespace ignition
     /// subscriber.
     class TopicStatistics
     {
+      /// \brief Default constructor.
+      public: TopicStatistics() = default;
+
+      /// \brief Default destructor.
+      public: ~TopicStatistics() = default;
+
       /// \brief Update the topic statistics.
       /// \param[in] _sender Address of the sender.
       /// \param[in] _stamp Publication time stamp.
       /// \param[in] _seq Publication sequence number.
       public: void Update(const std::string &_sender,
-                          uint64_t _stamp, uint64_t _seq)
-      {
-        // Current wall time
-        uint64_t now =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::steady_clock::now().time_since_epoch()).count();
+                          uint64_t _stamp, uint64_t _seq);
 
-        if (this->prevPublicationStamp != 0)
-        {
-          this->publication.Update(_stamp - this->prevPublicationStamp);
-          this->reception.Update(now - this->prevReceptionStamp);
-
-          if (this->seq[_sender] + 1 != _seq)
-          {
-            this->droppedMsgCount++;
-          }
-        }
-
-        this->prevPublicationStamp = _stamp;
-        this->prevReceptionStamp = now;
-
-        this->seq[_sender] = _seq;
-      }
-
-      /// \brief Generation a YAML string with the set of statistics.
-      /// \return A YAML formatted string with the statistics.
-      public: void FillMessage(msgs::Metric &_msg) const
-      {
-        _msg.set_unit("milliseconds");
-        msgs::Statistic *stat = _msg.add_statistics();
-        stat->set_type(msgs::Statistic::SAMPLE_COUNT);
-        stat->set_name("dropped_message_count");
-        stat->set_value(this->droppedMsgCount);
-
-        // Publication statistics
-        msgs::StatisticsGroup *statGroup = _msg.add_statistics_groups();
-        statGroup->set_name("publication_statistics");
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::AVERAGE);
-        stat->set_name("avg_hz");
-        stat->set_value(1.0 / this->publication.Avg());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::MINIMUM);
-        stat->set_name("min_period");
-        stat->set_value(this->publication.Min());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::MAXIMUM);
-        stat->set_name("max_period");
-        stat->set_value(this->publication.Max());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::STDDEV);
-        stat->set_name("period_standard_devation");
-        stat->set_value(this->publication.StdDev());
-
-        // Receive statistics
-        statGroup = _msg.add_statistics_groups();
-        statGroup->set_name("reception_statistics");
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::AVERAGE);
-        stat->set_name("avg_hz");
-        stat->set_value(1.0 / this->reception.Avg());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::MINIMUM);
-        stat->set_name("min_period");
-        stat->set_value(this->reception.Min());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::MAXIMUM);
-        stat->set_name("max_period");
-        stat->set_value(this->reception.Max());
-
-        stat = statGroup->add_statistics();
-        stat->set_type(msgs::Statistic::STDDEV);
-        stat->set_name("period_standard_devation");
-        stat->set_value(this->reception.StdDev());
-      }
+      /// \brief Populate an ignition::msgs::Metric message with topic
+      /// statistics.
+      /// \param[in] _msg Message to populate.
+      public: void FillMessage(msgs::Metric &_msg) const;
 
       /// \brief Get the number of dropped messages.
       /// \return Number of dropped messages.
-      public: uint64_t DroppedMsgCount() const
-      {
-        return this->droppedMsgCount;
-      }
+      public: uint64_t DroppedMsgCount() const;
 
       /// \brief Get statistics about publication of messages.
       /// \return Publication statistics.
-      public: Statistics PublicationStatistics() const
-      {
-        return this->publication;
-      }
+      public: Statistics PublicationStatistics() const;
 
       /// \brief Get the statistics about reception of messages.
       /// \return Reception statistics.
-      public: Statistics ReceptionStatistics() const
-      {
-        return this->reception;
-      }
+      public: Statistics ReceptionStatistics() const;
+
+      /// \brief Get the message age statistics.
+      /// \return Age statistics.
+      public: Statistics AgeStatistics() const;
 
       /// \brief Map of address to sequence numbers. This is used to
       /// identify dropped messages.
@@ -231,6 +140,9 @@ namespace ignition
       /// \brief Statistics for the subscriber.
       private: Statistics reception;
 
+      /// \brief Age statistics.
+      private: Statistics age;
+
       /// \brief Total number of dropped messages.
       private: uint64_t droppedMsgCount = 0;
 
@@ -240,6 +152,7 @@ namespace ignition
       /// \brief Previous reception time stamp.
       private: uint64_t prevReceptionStamp = 0;
     };
+    }
   }
 }
 #endif

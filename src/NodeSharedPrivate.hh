@@ -182,6 +182,9 @@ namespace ignition
       /// \brief Topic publication sequence numbers.
       public: std::map<std::string, uint64_t> topicPubSeq;
 
+      /// \brief True if topic statistics have been enabled.
+      public: bool topicStatsEnabled = false;
+
       /// \brief Statistics for a topic. The key in the map is the topic
       /// name and the value contains the topic statistics.
       public: std::map<std::string, TopicStatistics> topicStats;

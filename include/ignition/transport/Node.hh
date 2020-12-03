@@ -120,10 +120,6 @@ namespace ignition
         /// \param[in] _publisher A message publisher.
         public: explicit Publisher(const MessagePublisher &_publisher);
 
-        /// \brief Copy Constructor.
-        /// \param[in] _publisher A publisher to copy.
-        public: explicit Publisher(const Node::Publisher &_publisher);
-
         /// \brief Destructor.
         public: virtual ~Publisher();
 
@@ -731,7 +727,7 @@ namespace ignition
       /// \param[in] _publicationTopic Topic on which to publish statistic
       /// information.
       /// \param[in] _publicationRate Rate at which to publish statistics.
-      public: bool EnableStatistics(const std::string &_topic, bool _enable,
+      public: bool EnableStats(const std::string &_topic, bool _enable,
                   const std::string &_publicationTopic = "/statistics",
                   uint64_t _publicationRate = 1);
 

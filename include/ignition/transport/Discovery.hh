@@ -857,7 +857,7 @@ namespace ignition
           return;
 
         // Discard the message if the wire protocol is different than mine.
-        if (this->kWireVersion != msg.version())
+        if (this->Version() != msg.version())
           return;
 
         std::string recvPUuid = msg.process_uuid();
@@ -1269,7 +1269,10 @@ namespace ignition
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        return this->kWireVersion;
+        static std::string ignStats;
+        static int topicStats =
+          (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+        return this->kWireVersion + topicStats;
       }
 
       /// \brief Register a new network interface in the discovery system.

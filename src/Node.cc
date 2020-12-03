@@ -120,14 +120,6 @@ namespace ignition
       {
       }
 
-      public: explicit PublisherPrivate(const Node::PublisherPrivate *_pub)
-       : shared(NodeShared::Instance()),
-         publisher(_pub->publisher),
-         periodNs(_pub->periodNs)
-      {
-        std::cout << "Copy Constructor!!!\n";
-      }
-
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
       ///
@@ -235,12 +227,6 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
     this->dataPtr->periodNs =
       1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
   }
-}
-
-//////////////////////////////////////////////////
-Node::Publisher::Publisher(const Node::Publisher &_publisher)
-  : dataPtr(std::make_shared<PublisherPrivate>(_publisher.dataPtr.get()))
-{
 }
 
 //////////////////////////////////////////////////
@@ -828,7 +814,7 @@ std::optional<TopicStatistics> Node::TopicStats(
 }
 
 //////////////////////////////////////////////////
-bool Node::EnableStatistics(const std::string &_topic, bool _enable,
+bool Node::EnableStats(const std::string &_topic, bool _enable,
     const std::string &_publicationTopic, uint64_t _publicationRate)
 {
   std::string fullyQualifiedTopic;
@@ -858,7 +844,7 @@ bool Node::EnableStatistics(const std::string &_topic, bool _enable,
       }
     };
 
-  this->dataPtr->shared->EnableStatistics(fullyQualifiedTopic, _enable,
+  this->dataPtr->shared->EnableStats(fullyQualifiedTopic, _enable,
       statCb);
 
   return true;

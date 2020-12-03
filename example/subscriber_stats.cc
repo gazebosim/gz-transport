@@ -20,19 +20,29 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
+ignition::transport::Node node;
+std::string topic = "/foo";
+
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const ignition::msgs::StringMsg &_msg)
 {
-  std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
+  std::optional<ignition::transport::TopicStatistics> stats =
+    node.TopicStats(topic);
+  if (stats)
+  {
+    std::cout << stats->YamlString() << std::endl;
+  }
+  //std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
-  std::string topic = "/foo";
-  node.EnableStats(topic, true);
+  if (!node.EnableStatistics(topic, true))
+  {
+    std::cout << "Unable to enable stats\n";
+  }
 
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))

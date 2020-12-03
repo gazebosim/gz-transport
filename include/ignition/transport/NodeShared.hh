@@ -285,7 +285,7 @@ namespace ignition
       /// \param[in] _enable True to enable statistics, false to disable.
       /// \param[in] _cb Callback that is triggered whenever statistics are
       /// updated.
-      public: void EnableStatistics(const std::string &_topic, bool _enable,
+      public: void EnableStats(const std::string &_topic, bool _enable,
                   std::function<void(const TopicStatistics &_stats)> _statCb);
 
       /// \brief Get the current statistics for a topic. Statistics must

@@ -64,6 +64,14 @@ Below are descriptions of the available environment variables:
     buffer, so your buffer will grow until you run out of memory (and probably
     crash). If your buffer reaches the maximum capacity data will be dropped.
     * *Default value*: 1000.
+* **IGN_TRANSPORT_TOPIC_STATISTICS**
+    * *Value allowed*: 1/0
+    * *Description*: Enable topic statistics. A value of 1 will eable topic
+    statistics by sending metadata with each message. A node must
+    additionally turn on statistics for a topic in order to produce results.
+    The publish and subscriber must use the same value, otherwise they won't 
+    be able to communicate.
+    * *Default value*: 0
 * **IGN_TRANSPORT_USERNAME**
     * *Value allowed*: Any string value
     * *Description*: A username, used in combination with
