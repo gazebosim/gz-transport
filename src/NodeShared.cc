@@ -352,7 +352,6 @@ bool NodeShared::Publish(
                    msg2(_data, _dataSize, _ffn, nullptr),
                    msg3(_msgType.data(), _msgType.size());
 
-
     // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
@@ -466,7 +465,8 @@ void NodeShared::RecvMsgUpdate()
         if (this->dataPtr->enabledTopicStatistics.find(topic) !=
             this->dataPtr->enabledTopicStatistics.end())
         {
-          this->dataPtr->topicStats[topic].Update(sender, meta->stamp, meta->seq);
+          this->dataPtr->topicStats[topic].Update(sender,
+              meta->stamp, meta->seq);
           this->dataPtr->enabledTopicStatistics[topic](
               this->dataPtr->topicStats[topic]);
         }

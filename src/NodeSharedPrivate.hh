@@ -27,8 +27,10 @@
 #endif
 
 #include <atomic>
+#include <map>
 #include <memory>
 #include <queue>
+#include <string>
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
@@ -43,13 +45,13 @@ namespace ignition
     //
     /// \brief Metadata for a publication. This is sent as part of the ZMQ
     /// message for topic statistics.
-    struct PublicationMetadata
+    class PublicationMetadata
     {
       /// \brief Publication timestamp.
-      uint64_t stamp = 0;
+      public: uint64_t stamp = 0;
 
       /// \brief Sequence number, used to detect dropped messages.
-      uint64_t seq = 0;
+      public: uint64_t seq = 0;
     };
 
     //

@@ -833,6 +833,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
       "ignition.msgs.Metric", opts);
 
   // Callback used to publish a statistics message.
+  // cppcheck-suppress unreadVariable
   std::function<void(const TopicStatistics &_stats)> statCb =
     [=](const TopicStatistics &_stats) mutable
     {

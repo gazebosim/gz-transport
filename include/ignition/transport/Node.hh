@@ -724,8 +724,7 @@ namespace ignition
       /// \param[in] _topic The name of the topic on which to enable or disable
       /// statistics.
       /// \param[in] _enable True to enable statistics, false to disable.
-      /// \param[in] _publicationTopic Topic on which to publish statistic
-      /// information.
+      /// \param[in] _publicationTopic Topic on which to publish statistics.
       /// \param[in] _publicationRate Rate at which to publish statistics.
       public: bool EnableStats(const std::string &_topic, bool _enable,
                   const std::string &_publicationTopic = "/statistics",
@@ -737,7 +736,6 @@ namespace ignition
       /// \param[in] _topic The name of the topic to get statistics for.
       /// return A TopicStatistics class, or std::nullopt if statistics were
       /// not enabled.
-      /// \sa  EnableStatistics
       public: std::optional<TopicStatistics> TopicStats(
                   const std::string &_topic) const;
 

@@ -19,6 +19,9 @@
 
 #include <ignition/msgs/statistic.pb.h>
 
+#include <limits>
+#include <string>
+#include <memory>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
@@ -29,6 +32,9 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
+    // Forward declarations.
+    class TopicStatisticsPrivate;
+
     /// \brief Computes the rolling average, min, max, and standard
     /// deviation for a set of samples.
     class Statistics
@@ -84,8 +90,6 @@ namespace ignition
     /// statistics include:
     ///
     /// 1. Number of dropped messages.
-    /// 2. Publication statistics: The publication hz rate, standard
-    ///    deviation between publications, min time between publications, and
     ///    max time between publications.
     /// 3. Receive statistics: The reception hz rate, standard
     ///    deviation between receiving messages, min time between receiving
@@ -97,10 +101,14 @@ namespace ignition
     class TopicStatistics
     {
       /// \brief Default constructor.
-      public: TopicStatistics() = default;
+      public: TopicStatistics();
+
+      /// \brief Copy constructor.
+      /// \param[in] _stats Statistics to copy.
+      public: TopicStatistics(const TopicStatistics &_stats);
 
       /// \brief Default destructor.
-      public: ~TopicStatistics() = default;
+      public: ~TopicStatistics();
 
       /// \brief Update the topic statistics.
       /// \param[in] _sender Address of the sender.
@@ -129,28 +137,17 @@ namespace ignition
       /// \brief Get the message age statistics.
       /// \return Age statistics.
       public: Statistics AgeStatistics() const;
-
-      /// \brief Map of address to sequence numbers. This is used to
-      /// identify dropped messages.
-      private: std::map<std::string, uint64_t> seq;
-
-      /// \brief Statistics for the publisher.
-      private: Statistics publication;
-
-      /// \brief Statistics for the subscriber.
-      private: Statistics reception;
-
-      /// \brief Age statistics.
-      private: Statistics age;
-
-      /// \brief Total number of dropped messages.
-      private: uint64_t droppedMsgCount = 0;
-
-      /// \brief Previous publication time stamp.
-      private: uint64_t prevPublicationStamp = 0;
-
-      /// \brief Previous reception time stamp.
-      private: uint64_t prevReceptionStamp = 0;
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+      /// \brief Private data pointer.
+      private: std::unique_ptr<TopicStatisticsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }

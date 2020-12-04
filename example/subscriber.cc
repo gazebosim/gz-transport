@@ -32,7 +32,6 @@ int main(int argc, char **argv)
 {
   ignition::transport::Node node;
   std::string topic = "/foo";
-  node.EnableStats(topic, true);
 
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))

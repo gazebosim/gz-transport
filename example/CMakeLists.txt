@@ -52,6 +52,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
   target_link_libraries(subscriber_c_slow ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_stats.cc")
+  add_executable(subscriber_stats subscriber_stats.cc)
+  target_link_libraries(subscriber_stats ignition-transport${IGN_TRANSPORT_VER}::core)
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher.cc")
   add_executable(publisher publisher.cc)
   target_link_libraries(publisher ignition-transport${IGN_TRANSPORT_VER}::core)

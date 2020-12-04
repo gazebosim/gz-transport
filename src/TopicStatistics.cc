@@ -25,6 +25,47 @@
 using namespace ignition;
 using namespace transport;
 
+class ignition::transport::TopicStatisticsPrivate
+{
+  /// \brief Default constructor
+  public: TopicStatisticsPrivate() = default;
+
+  /// \brief Copy constructor
+  /// \param[in] _stats Statistics to copy.
+  public: explicit TopicStatisticsPrivate(const TopicStatisticsPrivate &_stats)
+          : seq(_stats.seq),
+            publication(_stats.publication),
+            reception(_stats.reception),
+            age(_stats.age),
+            droppedMsgCount(_stats.droppedMsgCount),
+            prevPublicationStamp(_stats.prevPublicationStamp),
+            prevReceptionStamp(_stats.prevReceptionStamp)
+  {
+  }
+
+  /// \brief Map of address to sequence numbers. This is used to
+  /// identify dropped messages.
+  public: std::map<std::string, uint64_t> seq;
+
+  /// \brief Statistics for the publisher.
+  public: Statistics publication;
+
+  /// \brief Statistics for the subscriber.
+  public: Statistics reception;
+
+  /// \brief Age statistics.
+  public: Statistics age;
+
+  /// \brief Total number of dropped messages.
+  public: uint64_t droppedMsgCount = 0;
+
+  /// \brief Previous publication time stamp.
+  public: uint64_t prevPublicationStamp = 0;
+
+  /// \brief Previous reception time stamp.
+  public: uint64_t prevReceptionStamp = 0;
+};
+
 //////////////////////////////////////////////////
 void Statistics::Update(double _stat)
 {
@@ -78,6 +119,23 @@ uint64_t Statistics::Count() const
 }
 
 //////////////////////////////////////////////////
+TopicStatistics::TopicStatistics()
+  : dataPtr(new TopicStatisticsPrivate)
+{
+}
+
+//////////////////////////////////////////////////
+TopicStatistics::TopicStatistics(const TopicStatistics &_stats)
+  : dataPtr(new TopicStatisticsPrivate(*(_stats.dataPtr.get())))
+{
+}
+
+//////////////////////////////////////////////////
+TopicStatistics::~TopicStatistics()
+{
+}
+
+//////////////////////////////////////////////////
 void TopicStatistics::Update(const std::string &_sender,
     uint64_t _stamp, uint64_t _seq)
 {
@@ -86,22 +144,23 @@ void TopicStatistics::Update(const std::string &_sender,
     std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
 
-  if (this->prevPublicationStamp != 0)
+  if (this->dataPtr->prevPublicationStamp != 0)
   {
-    this->publication.Update(_stamp - this->prevPublicationStamp);
-    this->reception.Update(now - this->prevReceptionStamp);
-    this->age.Update(now - _stamp);
+    this->dataPtr->publication.Update(_stamp -
+        this->dataPtr->prevPublicationStamp);
+    this->dataPtr->reception.Update(now - this->dataPtr->prevReceptionStamp);
+    this->dataPtr->age.Update(now - _stamp);
 
-    if (this->seq[_sender] + 1 != _seq)
+    if (this->dataPtr->seq[_sender] + 1 != _seq)
     {
-      this->droppedMsgCount++;
+      this->dataPtr->droppedMsgCount++;
     }
   }
 
-  this->prevPublicationStamp = _stamp;
-  this->prevReceptionStamp = now;
+  this->dataPtr->prevPublicationStamp = _stamp;
+  this->dataPtr->prevReceptionStamp = now;
 
-  this->seq[_sender] = _seq;
+  this->dataPtr->seq[_sender] = _seq;
 }
 
 //////////////////////////////////////////////////
@@ -111,7 +170,7 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   msgs::Statistic *stat = _msg.add_statistics();
   stat->set_type(msgs::Statistic::SAMPLE_COUNT);
   stat->set_name("dropped_message_count");
-  stat->set_value(this->droppedMsgCount);
+  stat->set_value(this->dataPtr->droppedMsgCount);
 
   // Publication statistics
   msgs::StatisticsGroup *statGroup = _msg.add_statistics_groups();
@@ -119,22 +178,22 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::AVERAGE);
   stat->set_name("avg_hz");
-  stat->set_value(1.0 / this->publication.Avg());
+  stat->set_value(1.0 / this->dataPtr->publication.Avg());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MINIMUM);
   stat->set_name("min_period");
-  stat->set_value(this->publication.Min());
+  stat->set_value(this->dataPtr->publication.Min());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MAXIMUM);
   stat->set_name("max_period");
-  stat->set_value(this->publication.Max());
+  stat->set_value(this->dataPtr->publication.Max());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::STDDEV);
   stat->set_name("period_standard_devation");
-  stat->set_value(this->publication.StdDev());
+  stat->set_value(this->dataPtr->publication.StdDev());
 
   // Reception statistics
   statGroup = _msg.add_statistics_groups();
@@ -143,22 +202,22 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::AVERAGE);
   stat->set_name("avg_hz");
-  stat->set_value(1.0 / this->reception.Avg());
+  stat->set_value(1.0 / this->dataPtr->reception.Avg());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MINIMUM);
   stat->set_name("min_period");
-  stat->set_value(this->reception.Min());
+  stat->set_value(this->dataPtr->reception.Min());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MAXIMUM);
   stat->set_name("max_period");
-  stat->set_value(this->reception.Max());
+  stat->set_value(this->dataPtr->reception.Max());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::STDDEV);
   stat->set_name("period_standard_devation");
-  stat->set_value(this->reception.StdDev());
+  stat->set_value(this->dataPtr->reception.StdDev());
 
   // Age statistics
   statGroup = _msg.add_statistics_groups();
@@ -167,44 +226,44 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::AVERAGE);
   stat->set_name("avg_age");
-  stat->set_value(this->age.Avg());
+  stat->set_value(this->dataPtr->age.Avg());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MINIMUM);
   stat->set_name("min_age");
-  stat->set_value(this->age.Min());
+  stat->set_value(this->dataPtr->age.Min());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MAXIMUM);
   stat->set_name("max_age");
-  stat->set_value(this->age.Max());
+  stat->set_value(this->dataPtr->age.Max());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::STDDEV);
   stat->set_name("age_standard_devation");
-  stat->set_value(this->age.StdDev());
+  stat->set_value(this->dataPtr->age.StdDev());
 }
 
 //////////////////////////////////////////////////
 uint64_t TopicStatistics::DroppedMsgCount() const
 {
-  return this->droppedMsgCount;
+  return this->dataPtr->droppedMsgCount;
 }
 
 //////////////////////////////////////////////////
 Statistics TopicStatistics::PublicationStatistics() const
 {
-  return this->publication;
+  return this->dataPtr->publication;
 }
 
 //////////////////////////////////////////////////
 Statistics TopicStatistics::ReceptionStatistics() const
 {
-  return this->reception;
+  return this->dataPtr->reception;
 }
 
 //////////////////////////////////////////////////
 Statistics TopicStatistics::AgeStatistics() const
 {
-  return this->age;
+  return this->dataPtr->age;
 }

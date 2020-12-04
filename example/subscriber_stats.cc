@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,22 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
-ignition::transport::Node node;
-std::string topic = "/foo";
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const ignition::msgs::StringMsg &_msg)
 {
-  std::optional<ignition::transport::TopicStatistics> stats =
-    node.TopicStats(topic);
-  if (stats)
-  {
-    std::cout << stats->YamlString() << std::endl;
-  }
-  //std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
+  std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  ignition::transport::Node node;
+  std::string topic = "/foo";
+
+  // Statistics are published on the `/statistics` topic. You echo the
+  // statistics output using `ign topic -et /statistics`.
   if (!node.EnableStatistics(topic, true))
   {
     std::cout << "Unable to enable stats\n";
