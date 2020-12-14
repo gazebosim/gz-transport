@@ -66,10 +66,10 @@ Below are descriptions of the available environment variables:
     * *Default value*: 1000.
 * **IGN_TRANSPORT_TOPIC_STATISTICS**
     * *Value allowed*: 1/0
-    * *Description*: Enable topic statistics. A value of 1 will eable topic
+    * *Description*: Enable topic statistics. A value of 1 will enable topic
     statistics by sending metadata with each message. A node must
     additionally turn on statistics for a topic in order to produce results.
-    The publish and subscriber must use the same value, otherwise they won't 
+    The publish and subscriber must use the same value, otherwise they won't
     be able to communicate.
     * *Default value*: 0
 * **IGN_TRANSPORT_USERNAME**
