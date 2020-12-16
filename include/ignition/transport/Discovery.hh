@@ -1272,7 +1272,7 @@ namespace ignition
         static std::string ignStats;
         static int topicStats =
           (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
-        return this->kWireVersion + topicStats;
+        return this->kWireVersion + (topicStats * 100);
       }
 
       /// \brief Register a new network interface in the discovery system.

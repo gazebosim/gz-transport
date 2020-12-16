@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
   // Statistics are published on the `/statistics` topic. You echo the
   // statistics output using `ign topic -et /statistics`.
-  if (!node.EnableStatistics(topic, true))
+  if (!node.EnableStats(topic, true))
   {
     std::cout << "Unable to enable stats\n";
   }

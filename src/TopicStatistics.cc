@@ -178,7 +178,7 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::AVERAGE);
   stat->set_name("avg_hz");
-  stat->set_value(1.0 / this->dataPtr->publication.Avg());
+  stat->set_value(1000.0 / this->dataPtr->publication.Avg());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MINIMUM);
@@ -202,7 +202,7 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::AVERAGE);
   stat->set_name("avg_hz");
-  stat->set_value(1.0 / this->dataPtr->reception.Avg());
+  stat->set_value(1000.0 / this->dataPtr->reception.Avg());
 
   stat = statGroup->add_statistics();
   stat->set_type(msgs::Statistic::MINIMUM);
