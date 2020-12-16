@@ -20,8 +20,8 @@
 #include <ignition/msgs/statistic.pb.h>
 
 #include <limits>
-#include <string>
 #include <memory>
+#include <string>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
