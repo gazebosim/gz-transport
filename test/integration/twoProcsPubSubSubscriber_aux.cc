@@ -93,7 +93,6 @@ void runSubscriber()
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
 
-
   // Turn on statistics for the first node.
   EXPECT_TRUE(node.EnableStats(g_topic, true, "/statistics", 1000));
   EXPECT_TRUE(node.Subscribe("/statistics", statsCb));
@@ -118,6 +117,7 @@ void runSubscriber()
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cbRawExecuted);
   EXPECT_TRUE(cb2Executed);
+  EXPECT_TRUE(cbStatsExecuted);
 
   // Reset the test flags
   cbExecuted = false;
