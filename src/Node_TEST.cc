@@ -2293,6 +2293,15 @@ TEST(NodeTest, waitForShutdownSIGTERM)
 }
 
 //////////////////////////////////////////////////
+/// \brief Test topic statistics with no statistics available.
+TEST(NodeTest, statistics)
+{
+  transport::Node node;
+  EXPECT_TRUE(node.EnableStats("/test", true));
+  EXPECT_EQ(std::nullopt, node.TopicStats("/test"));
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.
