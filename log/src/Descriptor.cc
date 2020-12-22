@@ -15,10 +15,10 @@
  *
 */
 
+#include "Descriptor.hh"
+
 #include <string>
 #include <utility>
-
-#include "Descriptor.hh"
 
 using namespace ignition::transport::log;
 
