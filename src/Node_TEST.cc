@@ -29,6 +29,7 @@
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
