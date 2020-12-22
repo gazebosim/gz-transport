@@ -108,7 +108,7 @@ namespace ignition
       public: TopicStatistics(const TopicStatistics &_stats);
 
       /// \brief Default destructor.
-      public: ~TopicStatistics();
+      public: virtual ~TopicStatistics();
 
       /// \brief Update the topic statistics.
       /// \param[in] _sender Address of the sender.
