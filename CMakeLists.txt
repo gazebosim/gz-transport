@@ -76,7 +76,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.5)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
