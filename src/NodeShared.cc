@@ -1809,13 +1809,13 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
     {
       numVal = std::stoi(strVal);
     }
-    catch (std::invalid_argument &_e)
+    catch (std::invalid_argument &)
     {
       std::cerr << "Unable to convert " << _envVar << " value ["
                 << strVal << "] to an integer number. Using ["
                 << _defaultValue << "] instead." << std::endl;
     }
-    catch (std::out_of_range &_e)
+    catch (std::out_of_range &)
     {
       std::cerr << "Unable to convert " << _envVar << " value ["
                 << strVal << "] to an integer number. This number is "
