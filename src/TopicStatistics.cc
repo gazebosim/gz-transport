@@ -146,10 +146,11 @@ void TopicStatistics::Update(const std::string &_sender,
 
   if (this->dataPtr->prevPublicationStamp != 0)
   {
-    this->dataPtr->publication.Update(_stamp -
-        this->dataPtr->prevPublicationStamp);
-    this->dataPtr->reception.Update(now - this->dataPtr->prevReceptionStamp);
-    this->dataPtr->age.Update(now - _stamp);
+    this->dataPtr->publication.Update(static_cast<double>(_stamp -
+        this->dataPtr->prevPublicationStamp));
+    this->dataPtr->reception.Update(static_cast<double>(now -
+          this->dataPtr->prevReceptionStamp));
+    this->dataPtr->age.Update(static_cast<double>(now - _stamp));
 
     if (this->dataPtr->seq[_sender] + 1 != _seq)
     {
@@ -170,7 +171,7 @@ void TopicStatistics::FillMessage(msgs::Metric &_msg) const
   msgs::Statistic *stat = _msg.add_statistics();
   stat->set_type(msgs::Statistic::SAMPLE_COUNT);
   stat->set_name("dropped_message_count");
-  stat->set_value(this->dataPtr->droppedMsgCount);
+  stat->set_value(static_cast<double>(this->dataPtr->droppedMsgCount));
 
   // Publication statistics
   msgs::StatisticsGroup *statGroup = _msg.add_statistics_groups();
