@@ -17,7 +17,7 @@ You can find all Ignition Transport versions at [https://ignitionrobotics.org/li
 Setup your computer to accept software from
 *packages.osrfoundation.org*:
 
-```{.sh}
+```
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 ```
 
@@ -206,16 +206,16 @@ conda install zeromq cppzmq --channel conda-forge
 
 Install Ignition dependencies:
 
-You can view the list of dependencies, replacing `<#>` with the desired version:
+You can view available versions and their dependencies:
 
 ```
-conda search libignition-transport<#> --channel conda-forge --info
+conda search libignition-transport* --channel conda-forge --info
 ```
 
 Install dependencies, replacing `<#>` with the desired versions:
 
 ```
-conda install libignition-cmake<#> libignition-msgs<#> --channel conda-forge
+conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --channel conda-forge
 ```
 
 #### Building from Source
