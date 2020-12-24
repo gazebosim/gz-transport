@@ -10,7 +10,9 @@ support platforms including major Linux distributions, Mac OS X and Windows.
 
 You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
 
-## Ubuntu Linux
+## Binary Install
+
+### Ubuntu Linux
 
 Setup your computer to accept software from
 *packages.osrfoundation.org*:
@@ -32,7 +34,10 @@ sudo apt-get update
 sudo apt-get install libignition-transport8-dev
 ```
 
-## Mac OS X
+Be sure to replace `<#>` with a number value, such as `1` or `2`, depending on
+which version you need.
+
+### Mac OS X
 
 Ignition Transport and several of its dependencies can be compiled on OS
 X with [Homebrew](http://brew.sh/) using the [osrf/simulation
@@ -57,153 +62,30 @@ brew tap osrf/simulation
 brew install ignition-transport8
 ```
 
-## Windows
+### Windows
 
-At this moment, compilation has been tested on Windows 7 and 8.1 and is
-supported when using [Visual Studio
-2013](https://www.visualstudio.com/downloads/). Patches for other
-versions are welcome.
+Install [Conda package management system](https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html).
+Miniconda suffices.
 
-This installation procedure uses pre-compiled binaries in a local
-workspace. To make things easier, use a MinGW shell for your editing
-work (such as the [Git Bash Shell](https://msysgit.github.io/) with
-[Git](https://gitforwindows.org/)), and
-only use the Windows cmd for configuring and building. You might also
-need to [disable the Windows
-firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).
-
-Make a directory to work in, e.g.:
+Create if necessary, and activate a Conda environment:
 
 ```
-mkdir ign-ws
-cd ign-ws
+conda create -n ign-ws
+conda activate ign-ws
 ```
 
-Download the following dependencies into that directory:
-
-  * [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq-noarch.zip)
-  * [Protobuf 2.6.0 (32-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win32-vc12.zip)
-  * [Protobuf 2.6.0 (64-bit)](http://packages.osrfoundation.org/win32/deps/protobuf-2.6.0-win64-vc12.zip)
-
-Choose one of these options:
-
-  * [ZeroMQ 4.0.4 (32-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-x86.zip)
-  * [ZeroMQ 4.0.4 (64-bit)](http://packages.osrfoundation.org/win32/deps/zeromq-4.0.4-amd64.zip)
-
-Unzip each of them. The Windows unzip utility will likely create an
-incorrect directory structure, where a directory with the name of the
-zip contains the directory that has the source files. Here is an
-example:
+Install:
 
 ```
-ign-ws/cppzmq-noarch/cppzmq
+conda install libignition-transport<#> --channel conda-forge
 ```
 
-The correct structure is
+Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
+which version you need.
 
-```
-ign-ws/cppzmq
-```
+## Source Install
 
-To fix this problem, manually move the nested directories up one level.
-
-Clone and prepare the Ignition Math dependency:
-
-```
-git clone https://github.com/ignitionrobotics/ign-math
-cd ign-math
-mkdir build
-```
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-```
-"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-math\build
-..\configure
-nmake install
-```
-
-Clone and prepare the Ignition Msgs dependency:
-
-```
-git clone https://github.com/ignitionrobotics/ign-msgs
-cd ign-msgs
-mkdir build
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-msgs\build
-..\configure
-nmake install
-```
-
-Clone ign-transport:
-
-```
-git clone https://github.com/ignitionrobotics/ign-transport
-cd ign-transport
-```
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-```
-"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-```
-
-Configure and build:
-
-```
-mkdir build
-cd build
-..\configure
-nmake
-nmake install
-```
-
-You should now have an installation of ign-transport in
-`ign-ws/ign-transport/build/install`.
-
-Before running any executables, you need to modify your `PATH` to
-include the `bin` subdirectory of ZeroMQ to let Windows find dynamic
-libs (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around
-the path, even if it contains spaces. E.g., if you're working in
-`C:\My Stuff\ign-ws`:
-
-```
-set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin
-```
-
-Now build the examples:
-
-\code
-cd ign-ws\ign-transport\example
-mkdir build
-cd build
-..\configure
-nmake
-\endcode
-
-Now try an example. In one Windows terminal run:
-
-```
-responser
-```
-
-In another Windows terminal run:
-
-```
-requester
-```
-
-### Install from sources (Ubuntu Linux)
+### Ubuntu Linux
 
 For compiling the latest version of Ignition Transport you will need an
 Ubuntu distribution equal to 18.04 (Bionic) or newer.
@@ -290,14 +172,98 @@ modify your `LD_LIBRARY_PATH`:
 echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 ```
 
-### Uninstalling Source-based Install
+#### Uninstalling Source-based Install
 
 If you need to uninstall Ignition Transport or switch back to a
 debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:
 
-\code
+```
 cd /tmp/ign-transport/build
 sudo make uninstall
-\endcode
+```
+
+### Windows
+
+#### Prerequisites
+
+First, follow the [ign-cmake](https://github.com/ignitionrobotics/ign-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+
+Navigate to ``condabin`` if necessary to use the ``conda`` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of ``condabin`` in Anaconda Prompt, ``where conda``).
+
+Activate the Conda environment:
+
+```
+conda activate ign-ws
+```
+
+Install prerequisites:
+
+```
+conda install zeromq cppzmq --channel conda-forge
+```
+
+Install Ignition dependencies:
+
+You can view the list of dependencies, replacing `<#>` with the desired version:
+
+```
+conda search libignition-transport<#> --channel conda-forge --info
+```
+
+Install dependencies, replacing `<#>` with the desired versions:
+
+```
+conda install libignition-cmake<#> libignition-msgs<#> --channel conda-forge
+```
+
+#### Building from Source
+
+1. Navigate to where you would like to build the library, and clone the repository.
+
+    ```
+    # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
+    git clone https://github.com/ignitionrobotics/ign-transport.git
+    ```
+
+1. Configure and build
+
+    ```
+    cd ign-transport
+    mkdir build
+    cd build
+    cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
+    cmake --build . --config Release
+    ```
+
+1. Optionally, install
+
+    ```
+    cmake --install . --config Release
+    ```
+
+1. Optionally, build the examples
+
+   If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``ignition-transport9-config.cmake``.
+   That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\ignition-transport<#>\lib\cmake\ignition-transport<#>``.
+
+   ```
+   cd ign-transport\example
+   mkdir build
+   cd build
+   cmake ..  # Optionally, -DCMAKE_PREFIX_PATH=path\to\cmake\config
+   cmake --build .  # This currently does not succeed
+   ```
+
+   Try an example
+
+   ```
+   responser
+   ```
+
+   In another terminal, run
+
+   ```
+   requester
+   ```
