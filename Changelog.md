@@ -1,6 +1,16 @@
 ## Ignition Transport 7
 
-### Ignition Transport 7.x.x (202x-xx-xx)
+### Ignition Transport 7.5.1 (2020-12-23)
+
+1. CI fixes
+    * [Pull request 158](https://github.com/ignitionrobotics/ign-transport/pull/158)
+    * [Pull request 176](https://github.com/ignitionrobotics/ign-transport/pull/176)
+
+1. Fix codecheck
+    * [Pull request 194](https://github.com/ignitionrobotics/ign-transport/pull/194)
+
+1. Prevent empty messages from spamming the console
+    * [Pull request 164](https://github.com/ignitionrobotics/ign-transport/pull/164)
 
 ### Ignition Transport 7.5.0 (2020-07-29)
 
