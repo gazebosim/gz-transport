@@ -188,8 +188,10 @@ Recorder::Implementation::Implementation()
     this->OnMessageReceived(_data, _len, _info);
   };
 
-  this->discovery = std::unique_ptr<MsgDiscovery>(
-        new MsgDiscovery(Uuid().ToString(), NodeShared::kMsgDiscPort));
+  auto shared = NodeShared::Instance();
+
+  this->discovery = std::make_unique<MsgDiscovery>(
+      Uuid().ToString(), shared->discoveryIP, shared->msgDiscPort);
 
   DiscoveryCallback<Publisher> cb = [this](const Publisher &_publisher)
   {

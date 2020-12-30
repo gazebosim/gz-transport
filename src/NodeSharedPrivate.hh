@@ -29,6 +29,7 @@
 #include <atomic>
 #include <memory>
 #include <queue>
+#include <string>
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
@@ -63,6 +64,16 @@ namespace ignition
       /// \brief Access control handler for plain security.
       /// This function is designed to be run in a thread.
       public: void AccessControlHandler();
+
+      /// \brief Get and validate a non-negative environment variable.
+      /// \param[in] _envVar The name of the environment variable to get.
+      /// \param[in] _defaultValue The default value returned in case the
+      /// environment variable is invalid (e.g.: invalid number,
+      /// negative number).
+      /// \return The value read from the environment variable or the default
+      /// value if the validation wasn't succeed.
+      public: int NonNegativeEnvVar(const std::string &_envVar,
+                                    int _defaultValue) const;
 
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////

@@ -220,15 +220,44 @@ NodeShared::NodeShared()
   std::string ignVerbose;
   this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
+  // Set the multicast IP used for discovery.
+  std::string envDiscoveryIp;
+  if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
+      !envDiscoveryIp.empty())
+  {
+    this->discoveryIP = envDiscoveryIp;
+  }
+
+  // Set the port used for msg discovery.
+  this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
+    "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+
+  // Set the port used for srv discovery.
+  this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
+    "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+
+  // Sanity check: the discovery ports should be unique.
+  if (this->msgDiscPort == this->srvDiscPort)
+  {
+    if (this->msgDiscPort < 65535)
+      this->srvDiscPort++;
+    else
+      this->srvDiscPort--;
+
+    std::cerr << "Your discovery ports are the same [" << this->msgDiscPort
+              << "]. Using [" << this->msgDiscPort << "] for messages and ["
+              << this->srvDiscPort << "] for services" << std::endl;
+  }
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
 
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
-      new MsgDiscovery(this->pUuid, this->kMsgDiscPort));
+      new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
   this->dataPtr->srvDiscovery.reset(
-      new SrvDiscovery(this->pUuid, this->kSrvDiscPort));
+      new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
@@ -238,6 +267,10 @@ NodeShared::NodeShared()
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
     std::cout << "Process UUID: " << this->pUuid << std::endl;
+    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+              << this->msgDiscPort << "] for msg discovery\n";
+    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+              << this->srvDiscPort << "] for srv discovery\n";
     std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
     std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
     std::cout << "Identity for receiving srv. requests: ["
@@ -1267,7 +1300,6 @@ bool NodeShared::InitializeSockets()
     // Initialize security
     this->dataPtr->SecurityInit();
 
-
     int lingerVal = 0;
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::linger, lingerVal);
@@ -1277,36 +1309,9 @@ bool NodeShared::InitializeSockets()
 #endif
 
     // Set the capacity of the buffer for receiving messages.
-    std::string ignRcvHwm;
-    int rcvQueueVal = kDefaultRcvHwm;
-    if (env("IGN_TRANSPORT_RCVHWM", ignRcvHwm))
-    {
-      try
-      {
-        rcvQueueVal = std::stoi(ignRcvHwm);
-      }
-      catch (std::invalid_argument &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to an integer number. Using ["
-                  << rcvQueueVal << "] instead." << std::endl;
-      }
-      catch (std::out_of_range &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to an integer number. This number is "
-                  << "out of range. Using [" << rcvQueueVal << "] instead."
-                  << std::endl;
-      }
-      if (rcvQueueVal < 0)
-      {
-        rcvQueueVal = kDefaultRcvHwm;
-        std::cerr << "Unable to convert IGN_TRANSPORT_RCVHWM value ["
-                  << ignRcvHwm << "] to a non-negative number. This number is "
-                  << "negative. Using [" << rcvQueueVal << "] instead."
-                  << std::endl;
-      }
-    }
+    int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+      "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
 #else
@@ -1315,36 +1320,9 @@ bool NodeShared::InitializeSockets()
 #endif
 
     // Set the capacity of the buffer for sending messages.
-    std::string ignSndHwm;
-    int sndQueueVal = kDefaultSndHwm;
-    if (env("IGN_TRANSPORT_SNDHWM", ignSndHwm))
-    {
-      try
-      {
-        sndQueueVal = std::stoi(ignSndHwm);
-      }
-      catch (std::invalid_argument &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignSndHwm << "] to an integer number. Using ["
-                  << sndQueueVal << "] instead." << std::endl;
-      }
-      catch (std::out_of_range &_e)
-      {
-        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignSndHwm << "] to an integer number. This number is "
-                  << "out of range. Using [" << sndQueueVal << "] instead."
-                  << std::endl;
-      }
-      if (sndQueueVal < 0)
-      {
-        sndQueueVal = kDefaultSndHwm;
-        std::cerr << "Unable to convert IGN_TRANSPORT_SNDHWM value ["
-                  << ignSndHwm << "] to a non-negative number. This number is "
-                  << "negative. Using [" << sndQueueVal << "] instead."
-                  << std::endl;
-      }
-    }
+    int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
+      "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
+
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
 
@@ -1817,4 +1795,41 @@ void NodeSharedPrivate::PublishThread()
       }
     }
   }
+}
+
+/////////////////////////////////////////////////
+int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
+    int _defaultValue) const
+{
+  int numVal = _defaultValue;
+  std::string strVal;
+  if (env(_envVar, strVal))
+  {
+    try
+    {
+      numVal = std::stoi(strVal);
+    }
+    catch (std::invalid_argument &)
+    {
+      std::cerr << "Unable to convert " << _envVar << " value ["
+                << strVal << "] to an integer number. Using ["
+                << _defaultValue << "] instead." << std::endl;
+    }
+    catch (std::out_of_range &)
+    {
+      std::cerr << "Unable to convert " << _envVar << " value ["
+                << strVal << "] to an integer number. This number is "
+                << "out of range. Using [" << _defaultValue << "] instead."
+                << std::endl;
+    }
+    if (numVal < 0)
+    {
+      numVal = _defaultValue;
+      std::cerr << "Unable to convert " << _envVar << " value ["
+                << strVal << "] to a non-negative number. This number is "
+                << "negative. Using [" << _defaultValue << "] instead."
+                << std::endl;
+    }
+  }
+  return numVal;
 }

@@ -10,6 +10,20 @@ nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Ignition Transport.
 Below are descriptions of the available environment variables:
 
+* **IGN_DISCOVERY_MSG_PORT**
+    * *Value allowed*: Any non-negative number in range [0-65535]. In practice
+    you should use the range [1024-65535].
+    * *Description*: UDP port used for message discovery. The default value is
+    10317.
+* **IGN_DISCOVERY_MULTICAST_IP**
+    * *Value allowed*: Any multicast IP address
+    * *Description*: Multicast IP address used for communicating all the
+    discovery messages. The default value is 239.255.0.7.
+* **IGN_DISCOVERY_SRV_PORT**
+    * *Value allowed*: Any non-negative number in range [0-65535]. In practice
+    you should use the range [1024-65535].
+    * *Description*: UDP port used for service discovery. The default value is
+    10318.
 * **IGN_IP**
     * *Value allowed*: Any local IP address
     * *Description*: When you have

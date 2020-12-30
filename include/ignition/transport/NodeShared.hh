@@ -301,11 +301,20 @@ namespace ignition
       /// \brief Mutex to guarantee exclusive access between all threads.
       public: mutable std::recursive_mutex mutex;
 
+      /// \brief Default IP address used by the message discovery layer.
+      public: std::string discoveryIP = "239.255.0.7";
+
+      /// \brief Default port used by the message discovery layer.
+      public: static const int kDefaultMsgDiscPort = 10317;
+
+      /// \brief Default port used by the service discovery layer.
+      public: static const int kDefaultSrvDiscPort = 10318;
+
       /// \brief Port used by the message discovery layer.
-      public: static const int kMsgDiscPort = 10317;
+      public: int msgDiscPort = kDefaultMsgDiscPort;
 
       /// \brief Port used by the service discovery layer.
-      public: static const int kSrvDiscPort = 10318;
+      public: int srvDiscPort = kDefaultSrvDiscPort;
 
       /// \brief Remote connections for pub/sub messages.
       private: TopicStorage<MessagePublisher> connections;
