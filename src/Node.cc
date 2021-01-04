@@ -15,6 +15,7 @@
  *
 */
 #include <ignition/msgs/discovery.pb.h>
+#include <ignition/msgs/statistic.pb.h>
 
 #include <algorithm>
 #include <cassert>
@@ -792,6 +793,62 @@ bool Node::SubscribeRaw(
 const NodeOptions &Node::Options() const
 {
   return this->dataPtr->options;
+}
+
+//////////////////////////////////////////////////
+std::optional<TopicStatistics> Node::TopicStats(
+    const std::string &_topic) const
+{
+  std::string fullyQualifiedTopic;
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), topic, fullyQualifiedTopic))
+  {
+    return std::nullopt;
+  }
+
+
+  return this->dataPtr->shared->TopicStats(fullyQualifiedTopic);
+}
+
+//////////////////////////////////////////////////
+bool Node::EnableStats(const std::string &_topic, bool _enable,
+    const std::string &_publicationTopic, uint64_t _publicationRate)
+{
+  std::string fullyQualifiedTopic;
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), topic, fullyQualifiedTopic))
+  {
+    return false;
+  }
+
+  AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(_publicationRate);
+  this->dataPtr->statPub = this->Advertise(_publicationTopic,
+      "ignition.msgs.Metric", opts);
+
+  // Callback used to publish a statistics message.
+  // cppcheck-suppress unreadVariable
+  std::function<void(const TopicStatistics &_stats)> statCb =
+    [=](const TopicStatistics &_stats) mutable
+    {
+      if (this->dataPtr->statPub.ThrottledUpdateReady())
+      {
+        msgs::Metric msg;
+        _stats.FillMessage(msg);
+        this->dataPtr->statPub.Publish(msg);
+      }
+    };
+
+  this->dataPtr->shared->EnableStats(fullyQualifiedTopic, _enable,
+      statCb);
+
+  return true;
 }
 
 //////////////////////////////////////////////////

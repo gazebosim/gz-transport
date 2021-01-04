@@ -27,11 +27,14 @@
 #endif
 
 #include <atomic>
+#include <map>
 #include <memory>
 #include <queue>
+#include <string>
 #include <vector>
 
 #include "ignition/transport/Discovery.hh"
+#include "ignition/transport/Node.hh"
 
 namespace ignition
 {
@@ -39,6 +42,18 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    //
+    /// \brief Metadata for a publication. This is sent as part of the ZMQ
+    /// message for topic statistics.
+    class PublicationMetadata
+    {
+      /// \brief Publication timestamp.
+      public: uint64_t stamp = 0;
+
+      /// \brief Sequence number, used to detect dropped messages.
+      public: uint64_t seq = 0;
+    };
+
     //
     // Private data class for NodeShared.
     class NodeSharedPrivate
@@ -165,6 +180,21 @@ namespace ignition
 
       /// \brief Handles local publication of messages on the pubQueue.
       public: void PublishThread();
+
+      /// \brief Topic publication sequence numbers.
+      public: std::map<std::string, uint64_t> topicPubSeq;
+
+      /// \brief True if topic statistics have been enabled.
+      public: bool topicStatsEnabled = false;
+
+      /// \brief Statistics for a topic. The key in the map is the topic
+      /// name and the value contains the topic statistics.
+      public: std::map<std::string, TopicStatistics> topicStats;
+
+      /// \brief Set of topics that have statistics enabled.
+      public: std::map<std::string,
+              std::function<void(const TopicStatistics &_stats)>>
+                enabledTopicStatistics;
     };
     }
   }
