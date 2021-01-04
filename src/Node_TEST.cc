@@ -29,6 +29,7 @@
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeOptions.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
@@ -2290,6 +2291,15 @@ TEST(NodeTest, waitForShutdownSIGTERM)
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGTERM);
   aThread.join();
+}
+
+//////////////////////////////////////////////////
+/// \brief Test topic statistics with no statistics available.
+TEST(NodeTest, statistics)
+{
+  transport::Node node;
+  EXPECT_TRUE(node.EnableStats("/test", true));
+  EXPECT_EQ(std::nullopt, node.TopicStats("/test"));
 }
 
 //////////////////////////////////////////////////
