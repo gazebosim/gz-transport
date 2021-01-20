@@ -285,7 +285,8 @@ TEST(twoProcSrvCall, ServiceList)
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed2).count(), 2);
 
-  EXPECT_LE(elapsed2, elapsed1);
+  EXPECT_LE(elapsed2, elapsed1) << "Elapsed2[" << elapsed2.count()
+    << "] Elapsed1[" << elapsed1.count() << "]";
 
   reset();
 

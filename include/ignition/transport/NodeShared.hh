@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -41,6 +42,7 @@
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 #include "ignition/transport/TopicStorage.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
@@ -264,6 +266,24 @@ namespace ignition
       /// you run out of memory (and probably crash).
       /// If your buffer reaches the maximum capacity data will be dropped.
       public: int SndHwm();
+
+      /// \brief Turn topic statistics on or off.
+      /// \param[in] _topic The name of the topic on which to enable or disable
+      /// statistics.
+      /// \param[in] _enable True to enable statistics, false to disable.
+      /// \param[in] _cb Callback that is triggered whenever statistics are
+      /// updated.
+      public: void EnableStats(const std::string &_topic, bool _enable,
+                  std::function<void(const TopicStatistics &_stats)> _cb);
+
+      /// \brief Get the current statistics for a topic. Statistics must
+      /// have been enabled using the EnableStatistics function, otherwise
+      /// the return value will be std::nullopt.
+      /// \param[in] _topic The name of the topic to get statistics for.
+      /// \return A TopicStatistics class, or std::nullopt if statistics were
+      /// not enabled.
+      public: std::optional<TopicStatistics> TopicStats(
+                  const std::string &_topic) const;
 
       /// \brief Constructor.
       protected: NodeShared();

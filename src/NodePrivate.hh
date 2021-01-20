@@ -71,6 +71,9 @@ namespace ignition
 
       /// \brief Custom options for this node.
       public: NodeOptions options;
+
+      /// \brief Statistics publisher.
+      public: Node::Publisher statPub;
     };
     }
   }

@@ -29,6 +29,7 @@
 using namespace ignition;
 
 static bool cbExecuted;
+static bool cbStatsExecuted;
 static bool cbRawExecuted;
 static bool cb2Executed;
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -72,9 +73,16 @@ void cb2(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
+void statsCb(const ignition::msgs::Metric & /*_msg*/)
+{
+  cbStatsExecuted = true;
+}
+
+//////////////////////////////////////////////////
 void runSubscriber()
 {
   cbExecuted = false;
+  cbStatsExecuted = false;
   cbRawExecuted = false;
   cb2Executed = false;
 
@@ -84,6 +92,10 @@ void runSubscriber()
   // Add some normal subscriptions to `node` and `node2`
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
+
+  // Turn on statistics for the first node.
+  EXPECT_TRUE(node.EnableStats(g_topic, true, "/statistics", 1000));
+  EXPECT_TRUE(node.Subscribe("/statistics", statsCb));
 
   // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
@@ -105,6 +117,7 @@ void runSubscriber()
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cbRawExecuted);
   EXPECT_TRUE(cb2Executed);
+  EXPECT_TRUE(cbStatsExecuted);
 
   // Reset the test flags
   cbExecuted = false;
@@ -147,6 +160,7 @@ int main(int argc, char **argv)
 
   // Set the partition name for this test.
   setenv("IGN_PARTITION", argv[1], 1);
+  setenv("IGN_TRANSPORT_TOPIC_STATISTICS", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
