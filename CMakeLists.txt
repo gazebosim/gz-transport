@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport9 VERSION 9.0.0)
+project(ignition-transport9 VERSION 9.1.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -76,7 +76,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED)
+ign_find_package(ignition-msgs6 REQUIRED VERSION 6.2)
 set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
