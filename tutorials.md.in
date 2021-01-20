@@ -17,6 +17,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 9. \subpage envvars "Environment Variables"
 10. \subpage contribute "How to contribute"
 11. \subpage development "Development"
+12. \subpage topicstatistics "Topic Statistics"
 
 
 ## License
