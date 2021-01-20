@@ -237,7 +237,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
     cmake --build . --config Release
     ```
 
-1. Optionally, install
+1. Optionally, install. You will likely need to run a terminal with admin privileges for this call to succeed.
 
     ```
     cmake --install . --config Release
@@ -253,7 +253,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
    mkdir build
    cd build
    cmake ..  # Optionally, -DCMAKE_PREFIX_PATH=path\to\cmake\config
-   cmake --build .  # This currently does not succeed
+   cmake --build . --config Release
    ```
 
    Try an example
