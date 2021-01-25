@@ -2,12 +2,6 @@
 # "gtest_sources" variable.
 ign_get_libsources_and_unittests(sources gtest_sources)
 
-# Skip command line tests for Windows, see
-# https://github.com/ignitionrobotics/ign-transport/issues/104
-if (MSVC)
-  list(REMOVE_ITEM gtest_sources ign_TEST.cc)
-endif()
-
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
   # by a class are not being exported. These generated source files have private
@@ -66,6 +60,5 @@ if(MSVC)
 endif()
 
 # Command line support.
-if(NOT WIN32)
-  add_subdirectory(cmd)
-endif()
+add_subdirectory(cmd)
+add_subdirectory(ign)
