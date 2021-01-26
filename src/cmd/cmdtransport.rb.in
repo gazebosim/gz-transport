@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Copyright (C) 2014 Open Source Robotics Foundation
 #
@@ -14,353 +14,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
-if RUBY_VERSION.split('.')[0] < '2'
-  require 'dl'
-  require 'dl/import'
-  include DL
-else
-  require 'fiddle'
-  require 'fiddle/import'
-  include Fiddle
-end
-
 require 'optparse'
 
 # Constants.
 LIBRARY_NAME = '@library_location@'
+EXE_NAME = '@exe_location@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
-COMMON_OPTIONS =
-               "  -h [ --help ]              Print this help message.\n"\
-               "                                                    \n"        +
-               "  --force-version <VERSION>  Use a specific library version.\n"\
-               "                                                    \n"        +
-               '  --versions                 Show the available versions.'
-COMMANDS = {  'topic' =>
-                       "Print information about topics.\n\n"                   +
-                       "  ign topic [options]\n\n"                             +
-                       "Options:\n\n"                                          +
-                       "  -i [ --info ]              Get info about a topic.\n"+
-                       "                             Requires the -t option.\n"+
-                       "                                                    \n"+
-                       "  -l [ --list ]              List all topics.\n"       +
-                       "                                                    \n"+
-                       "  -t [ --topic ] arg         Name of a topic.\n"       +
-                       "                             Required with -i, -p.\n"  +
-                       "                                                    \n"+
-                       "  -m [ --msgtype ] arg       Type of message to "      +
-                       "publish.\n"                                            +
-                       "                             Arg is a message type.\n" +
-                       "                             Required with -p.\n"      +
-                       "                                                    \n"+
-                       "  -p [ --pub ] arg           Publish a message.\n"     +
-                       "                             arg is the message data." +
-                       " The format expected is\n                            " +
-                       " the same used by Protobuf DebugString(). E.g.:\n\n"   +
-                       "                               ign topic -t /foo -m "  +
-                       "  ignition.msgs.StringMsg\n                          " +
-                       "     -p \'data:\"Custom data\"\'\n\n"                  +
-                       "                             Requires -t and -m.\n"    +
-                       "                                                    \n"+
-                       "  -e [ --echo ]              Output data to screen."   +
-                       " E.g.:\n\n"                                            +
-                       "                               ign topic -e -t /foo\n" +
-                       "                                                    \n"+
-                       "                             Requires -t.\n"           +
-                       "                                                    \n"+
-                       "  -d [--duration] arg        Duration (seconds) to run"+
-                       ". Applicable with \n"                                  +
-                       "                             echo. This will override "+
-                       "-n.\n"                                                 +
-                       "                                                    \n"+
-                       "  -n [--num] arg             Number of messages to "   +
-                       "echo and then exit. A value \n"                        +
-                       "                             "                         +
-                       "<=0 implies infinite messages. Applicable with \n"     +
-                       "                             "                         +
-                       "echo. This is overriden by -d.\n"                      +
-                       "\n"                                                    +
-                       COMMON_OPTIONS,
-              'service' =>
-                       "Print information about services.\n\n"                 +
-                       "  ign service [options]\n\n"                           +
-                       "Options:\n\n"                                          +
-                       "  -i [ --info ]              Get info about a service."+
-                       "\n"                                                    +
-                       "                             Requires the -s option.\n"+
-                       "                                                    \n"+
-                       "  -l [ --list ]              List all services.\n"     +
-                       "                                                    \n"+
-                       "  -s [ --service ] arg       Name of a service.\n"     +
-                       "                             Arg is a service name.\n" +
-                       "                             Required with -i, -r.\n"  +
-                       "                                                    \n"+
-                       "  -r [ --req ] arg           Request a service.\n"     +
-                       "                             Arg is the input data."   +
-                       " The format expected is\n                            " +
-                       " the same used by Protobuf DebugString(). E.g.:\n\n"   +
-                       "                               ign service -s /echo\n" +
-                       "                               --reqtype ignition.msgs"+
-                       ".StringMsg\n"                                          +
-                       "                               --reptype ignition.msgs"+
-                       ".StringMsg\n"                                          +
-                       "                               --timeout 2000 --req \'"+
-                       "data: \"Hello\"\n\n"                                   +
-                       "                             Requires -s, --timeout,\n"+
-                       "                             --reqtype, --reptype.\n"  +
-                       "                                                    \n"+
-                       "  --timeout arg              Timeout in milliseconds." +
-                       "\n                             Arg is a timeout in "   +
-                       "milliseconds.\n"                                       +
-                       "                             Required with -r.\n"      +
-                       "                                                    \n"+
-                       "  --reqtype arg              Type of a request.\n"     +
-                       "                             Arg is the request type." +
-                       "                                                  \n\n"+
-                       "  --reptype arg              Type of a response.\n"    +
-                       "                             Arg is the response type."+
-                       "                                                  \n\n"+
-                       COMMON_OPTIONS
-            }
 
 #
 # Class for the Ignition transport command line tools.
 #
 class Cmd
-  #
-  # Return a structure describing the options.
-  #
-  def parse(args)
-    options = {}
-
-    usage = COMMANDS[args[0]]
-
-    # Read the command line arguments.
-    opt_parser = OptionParser.new do |opts|
-      opts.banner = usage
-
-      opts.on('-h', '--help', 'Print this help message') do
-        puts usage
-        exit(0)
-      end
-      opts.on('-l', '--list', 'Print information about topics') do |l|
-        options['list'] = l
-      end
-
-      opts.on('-t topic', '--topic', String,
-              'Topic name') do |t|
-        options['topic'] = t
-      end
-
-      opts.on('-s service', '--service', String,
-              'Service name') do |t|
-        options['service'] = t
-      end
-
-      opts.on('-m type', '--msgtype', String,
-              'Message type') do |t|
-        options['msgtype'] = t
-      end
-
-      opts.on('-p data', '--pub', String,
-              'Publish a message') do |t|
-        options['pub'] = t
-      end
-
-      opts.on('-i', '--info', String,
-              'Print information about a topic') do |t|
-        options['info'] = t
-      end
-
-      opts.on('-r data', '--req', String,
-              'Request a data') do |t|
-        options['req'] = t
-      end
-
-      opts.on('--timeout data', Integer,
-              'Timeout') do |t|
-        options['timeout'] = t
-      end
-
-      opts.on('--reqtype type', String,
-              'Request type') do |t|
-        options['reqtype'] = t
-      end
-
-      opts.on('--reptype type', String,
-              'Response type') do |t|
-        options['reptype'] = t
-      end
-
-      opts.on('-e', '--echo', String,
-              'Output topic data to screen') do |e|
-        options['echo'] = e
-      end
-
-      opts.on('-d secs', '--duration', Float,
-              'Duration (seconds) to run') do |d|
-        options['duration'] = d
-      end
-
-      opts.on('-n num', '--num', Integer,
-              'Number of messages to echo') do |n|
-        options['num'] = n
-      end
-
-    end
-    begin
-      opt_parser.parse!(args)
-    rescue
-      puts usage
-      exit(-1)
-    end
-
-    # Check that there is at least one command and there is a plugin that knows
-    # how to handle it.
-    if ARGV.empty? || !COMMANDS.key?(ARGV[0]) ||
-       options.empty?
-      puts usage
-      exit(-1)
-    end
-
-    options['command'] = ARGV[0]
-
-    options
-  end  # parse()
-
   def execute(args)
-    options = parse(args)
-
-    # puts 'Parsed:'
-    # puts options
-
     # Read the plugin that handles the command.
-    if LIBRARY_NAME[0] == '/'
+    if EXE_NAME[0] == '/'
       # If the first character is a slash, we'll assume that we've been given an
       # absolute path to the library. This is only used during test mode.
-      plugin = LIBRARY_NAME
+      exe_name = EXE_NAME 
     else
       # We're assuming that the library path is relative to the current
       # location of this script.
-      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+      exe_name = File.expand_path(File.join(File.dirname(__FILE__), EXE_NAME))
     end
     conf_version = LIBRARY_VERSION
-
-    begin
-      Importer.dlload plugin
-    rescue DLError
-      puts "Library error: [#{plugin}] not found."
-      exit(-1)
-    end
-
-    # Read the library version.
-    Importer.extern 'char* ignitionVersion()'
-    begin
-      plugin_version = Importer.ignitionVersion.to_s
-    rescue DLError
-      puts "Library error: Problem running 'ignitionVersion()' from #{plugin}."
-      exit(-1)
-    end
+    exe_version = `#{exe_name} --version`.strip
 
     # Sanity check: Verify that the version of the yaml file matches the version
     # of the library that we are using.
-    unless plugin_version.eql? conf_version
+    unless exe_version.eql? conf_version
       puts "Error: Version mismatch. Your configuration file version is
-            [#{conf_version}] but #{plugin} version is [#{plugin_version}]."
+            [#{conf_version}] but #{exe_name} version is [#{exe_version}]."
       exit(-1)
     end
 
-    begin
-      case options['command']
-      when 'topic'
-        if options.key?('list')
-          Importer.extern 'void cmdTopicList()'
-          Importer.cmdTopicList
-        elsif options.key?('info')
-          if not options.key?('topic')
-            puts 'ign topic --info: missing topic name (-t <topic>)'
-            puts 'Try ign topic --help'
-          else
-            Importer.extern 'void cmdTopicInfo(const char *)'
-            Importer.cmdTopicInfo(options['topic'])
-          end
-        elsif options.key?('pub')
-          if not options.key?('topic')
-            puts 'ign topic --pub: missing topic name (-t <topic>)'
-            puts 'Try ign topic --help'
-          elsif not options.key?('msgtype')
-            puts 'ign topic --pub: missing message type (--msgtype <type>)'
-            puts 'Try ign topic --help'
-          else
-            Importer.extern 'void cmdTopicPub(const char *, const char *, const char *)'
-            Importer.cmdTopicPub(options['topic'], options['msgtype'],
-                                 options['pub'])
-          end
-        elsif options.key?('echo')
-          if not options.key?('topic')
-            puts 'ign topic --echo: missing topic name (-t <topic>)'
-            puts 'Try ign topic --help'
-          else
-            duration = -1.0
-            count = -1
-            if options.key?('duration')
-              duration = options['duration']
-            end
-            if options.key?('num')
-              count = options['num']
-            end
+    args = args.join(' ')
+    puts "#{args}"
 
-            Importer.extern 'void cmdTopicEcho(const char*, double, int)'
-            topic = options['topic']
-            Importer.cmdTopicEcho(topic, duration.to_f, count.to_i)
-          end
-        else
-          puts 'Command error: I do not have an implementation '\
-               'for this command.'
-        end
-      when 'service'
-        if options.key?('list')
-          Importer.extern 'void cmdServiceList()'
-          Importer.cmdServiceList
-        elsif options.key?('info')
-          if not options.key?('service')
-            puts 'ign service --info: missing service name (-s <service>)'
-            puts 'Try ign service --help'
-          else
-            Importer.extern 'void cmdServiceInfo(const char *)'
-            Importer.cmdServiceInfo(options['service'])
-          end
-        elsif options.key?('req')
-          if not options.key?('service')
-            puts 'ign service --req: missing service name (-s <service>)'
-            puts 'Try ign service --help'
-          elsif not options.key?('reqtype')
-            puts 'ign service --req: missing input type (--reqtype <type>)'
-            puts 'Try ign service --help'
-          elsif not options.key?('reptype')
-            puts 'ign service --req: missing response type (--reptype <type>)'
-            puts 'Try ign service --help'
-          elsif not options.key?('timeout')
-            puts 'ign service --req: missing timeout in ms (--timeout '\
-                 '<timeout>)'
-            puts 'Try ign service --help'
-          else
-            Importer.extern 'void cmdServiceReq(const char *, const char *,'\
-                            'const char *, int, const char *)'
-            Importer.cmdServiceReq(options['service'], options['reqtype'],
-              options['reptype'], options['timeout'], options['req'])
-          end
-        else
-          puts 'Command error: I do not have an implementation '\
-               'for this command.'
-        end
-      else
-        puts 'Command error: I do not have an implementation for '\
-             "command [ign #{options['command']}]."
-      end
-    rescue
-      puts "Library error: Problem running [#{options['command']}]() "\
-           "from #{plugin}."
-    end
+    puts `#{exe_name} #{args}`
   end
 end

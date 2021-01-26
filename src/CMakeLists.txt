@@ -61,4 +61,3 @@ endif()
 
 # Command line support.
 add_subdirectory(cmd)
-add_subdirectory(ign)
