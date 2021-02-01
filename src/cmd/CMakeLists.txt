@@ -1,15 +1,35 @@
-add_executable(
-  transport 
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable.
+ign_get_libsources_and_unittests(sources gtest_sources)
+
+set(executable transport)
+add_executable(${executable}
   transport_main.cc
   ign.cc
 )
 
-target_link_libraries(transport
+target_link_libraries(${executable}
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
-install(TARGETS transport DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+
+# Build the unit tests.
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
+  TEST_LIST test_list
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
+
+foreach(test ${test_list})
+
+  # Inform each test of its output directory so it knows where to call the
+  # auxiliary files from. Using a generator expression here is useful for
+  # multi-configuration generators, like Visual Studio.
+  target_compile_definitions(${test} PRIVATE
+    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
+    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
+
+endforeach()
 
 #===============================================================================
 # Generate the ruby script for internal testing.
@@ -20,7 +40,7 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
-set(library_location "$<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>")
+set(exe_location "$<TARGET_FILE:${executable}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
@@ -42,9 +62,7 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:transport>")
-
-message(STATUS ${exe_location})
+set(exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${executable}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"

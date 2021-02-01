@@ -48,8 +48,6 @@ class Cmd
     end
 
     args = args.join(' ')
-    puts "#{args}"
-
     puts `#{exe_name} #{args}`
   end
 end
