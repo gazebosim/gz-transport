@@ -2,17 +2,30 @@
 # "gtest_sources" variable.
 ign_get_libsources_and_unittests(sources gtest_sources)
 
-set(executable transport)
-add_executable(${executable}
-  transport_main.cc
-  ign.cc
-)
-
-target_link_libraries(${executable}
-  ignition-utils${IGN_UTILS_VER}::cli
+# Make a small static lib of command line functions
+add_library(ign STATIC ign.cc)
+target_link_libraries(ign
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
+# Build topic CLI executable
+set(executable ign-transport-topic)
+add_executable(${executable} topic_main.cc)
+target_link_libraries(${executable}
+  ign
+  ignition-utils${IGN_UTILS_VER}::cli
+  ${PROJECT_LIBRARY_TARGET_NAME}
+)
+install(TARGETS ${executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+
+# Build service CLI executable
+set(executable ign-transport-service)
+add_executable(${executable} service_main.cc)
+target_link_libraries(${executable}
+  ign
+  ignition-utils${IGN_UTILS_VER}::cli
+  ${PROJECT_LIBRARY_TARGET_NAME}
+)
 install(TARGETS ${executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
@@ -21,6 +34,7 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
+  target_link_libraries(${test} ign)
 
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for
