@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2021 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include <ignition/utils/cli/CLI.hpp>
 
 #include "ign.hh"
@@ -34,7 +51,7 @@ struct TopicOptions
   /// \brief Amount of time to echo (in seconds)
   double duration{-1};
 
-  /// \brief Number of messages to echo 
+  /// \brief Number of messages to echo
   int count{-1};
 };
 
@@ -70,15 +87,15 @@ void addTopicFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<TopicOptions>();
 
-  auto topicOpt = _app.add_option("-t,--topic", 
+  auto topicOpt = _app.add_option("-t,--topic",
                                   opt->topic, "Name of a topic");
-  auto msgTypeOpt = _app.add_option("-m,--msgtype", 
+  auto msgTypeOpt = _app.add_option("-m,--msgtype",
                                     opt->msgType, "Type of message to publish");
-  auto durationOpt = _app.add_option("-d,--duration", 
-                                     opt->duration, 
+  auto durationOpt = _app.add_option("-d,--duration",
+                                     opt->duration,
                                      "Duration (seconds) to run");
-  auto countOpt = _app.add_option("-n,--num", 
-                                  opt->count, 
+  auto countOpt = _app.add_option("-n,--num",
+                                  opt->count,
                                   "Numer of messages to echo and then exit");
 
   durationOpt->excludes(countOpt);
@@ -86,20 +103,20 @@ void addTopicFlags(CLI::App &_app)
 
   auto command = _app.add_option_group("command", "Command to be executed");
 
-  command->add_flag_callback("-l,--list", 
-    [opt](){ 
-      opt->command = TopicCommand::kTopicList; 
+  command->add_flag_callback("-l,--list",
+    [opt](){
+      opt->command = TopicCommand::kTopicList;
     });
 
-  command->add_flag_callback("-i,--info", 
-    [opt](){ 
-      opt->command = TopicCommand::kTopicInfo; 
+  command->add_flag_callback("-i,--info",
+    [opt](){
+      opt->command = TopicCommand::kTopicInfo;
     })
     ->needs(topicOpt);
 
-  command->add_flag_callback("-e,--echo", 
+  command->add_flag_callback("-e,--echo",
     [opt](){
-      opt->command = TopicCommand::kTopicEcho; 
+      opt->command = TopicCommand::kTopicEcho;
     });
 
   command->add_option_function<std::string>("-p,--pub",
