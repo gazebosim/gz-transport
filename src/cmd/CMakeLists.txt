@@ -9,24 +9,24 @@ target_link_libraries(ign
 )
 
 # Build topic CLI executable
-set(executable ign-transport-topic)
-add_executable(${executable} topic_main.cc)
-target_link_libraries(${executable}
+set(topic_executable ign-transport-topic)
+add_executable(${topic_executable} topic_main.cc)
+target_link_libraries(${topic_executable}
   ign
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
-set(executable ign-transport-service)
-add_executable(${executable} service_main.cc)
-target_link_libraries(${executable}
+set(service_executable ign-transport-service)
+add_executable(${service_executable} service_main.cc)
+target_link_libraries(${service_executable}
   ign
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
@@ -54,7 +54,8 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
-set(exe_location "$<TARGET_FILE:${executable}>")
+set(service_exe_location "$<TARGET_FILE:${service_executable}>")
+set(topic_exe_location "$<TARGET_FILE:${topic_executable}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
@@ -76,7 +77,8 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"

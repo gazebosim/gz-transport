@@ -17,24 +17,27 @@
 require 'optparse'
 
 # Constants.
-LIBRARY_NAME = '@library_location@'
-EXE_NAME = '@exe_location@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+COMMANDS = {
+  "service" => "@service_exe_location@",
+  "topic" => "@topic_exe_location@",
+}
 
 #
 # Class for the Ignition transport command line tools.
 #
 class Cmd
   def execute(args)
-    # Read the plugin that handles the command.
-    if EXE_NAME[0] == '/'
+    command = args[0]
+    exe_name = COMMANDS[command]
+
+    if exe_name[0] == '/'
       # If the first character is a slash, we'll assume that we've been given an
-      # absolute path to the library. This is only used during test mode.
-      exe_name = EXE_NAME 
+      # absolute path to the executable. This is only used during test mode.
     else
       # We're assuming that the library path is relative to the current
       # location of this script.
-      exe_name = File.expand_path(File.join(File.dirname(__FILE__), EXE_NAME))
+      exe_name = File.expand_path(File.join(File.dirname(__FILE__), exe_name))
     end
     conf_version = LIBRARY_VERSION
     exe_version = `#{exe_name} --version`.strip
@@ -47,7 +50,8 @@ class Cmd
       exit(-1)
     end
 
-    args = args.join(' ')
+    # Drop command from list of arguments
+    args = args[1..-1].join(' ')
     puts `#{exe_name} #{args}`
   end
 end
