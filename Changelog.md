@@ -65,6 +65,14 @@
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
 
+### Ignition Transport 8.2.0 (2020-01-05)
+
+1. All changes up to version 7.5.1.
+
+1. Addition of topic statistics that can report number of dropped messages
+   and publication, age, and reception statistics.
+    * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
+
 ### Ignition Transport 8.1.0 (2020-08-28)
 
 1. Fix mem leak.
