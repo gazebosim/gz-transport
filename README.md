@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-transport/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-transport)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-transport/branch/ign-transport9/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-transport)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport9-bionic-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport9-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport9-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-master-windows7-amd64)
 
 Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
@@ -60,7 +60,7 @@ See the [installation tutorial](https://ignitionrobotics.org/api/transport/9.0/i
 # Usage
 
 See [tutorials](https://ignitionrobotics.org/api/transport/9.0/tutorials.html)
-and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/master/example/)
+and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/ign-transport9/example/)
 in the source code.
 
 ## Known issue of command line tools
@@ -95,36 +95,6 @@ This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issue
 # Documentation
 
 Visit the [documentation page](https://ignitionrobotics.org/api/transport/8.0/index.html).
-
-## Build documentation
-
-```
-cd build
-make doc
-```
-
-Upload documentation to ignitionrobotics.org.
-
-```
-cd build
-sh upload.sh
-```
-
-If you're creating a new release, then tell ignitionrobotics.org about
-   the new version. For example:
-
-```
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.ignitionrobotics.org/1.0/versions
-```
-
-# Testing
-
-Tests can be run by building the `test` target. From your build directory you
-can run:
-
-```
-$ make test
-```
 
 # Folder Structure
 

@@ -21,6 +21,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -44,6 +45,7 @@
 #include "ignition/transport/ReqHandler.hh"
 #include "ignition/transport/SubscribeOptions.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
+#include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
@@ -718,6 +720,25 @@ namespace ignition
       /// \brief Get the reference to the current node options.
       /// \return Reference to the current node options.
       public: const NodeOptions &Options() const;
+
+      /// \brief Turn topic statistics on or off.
+      /// \param[in] _topic The name of the topic on which to enable or disable
+      /// statistics.
+      /// \param[in] _enable True to enable statistics, false to disable.
+      /// \param[in] _publicationTopic Topic on which to publish statistics.
+      /// \param[in] _publicationRate Rate at which to publish statistics.
+      public: bool EnableStats(const std::string &_topic, bool _enable,
+                  const std::string &_publicationTopic = "/statistics",
+                  uint64_t _publicationRate = 1);
+
+      /// \brief Get the current statistics for a topic. Statistics must
+      /// have been enabled using the EnableStatistics function, otherwise
+      /// the return value will be std::nullopt.
+      /// \param[in] _topic The name of the topic to get statistics for.
+      /// return A TopicStatistics class, or std::nullopt if statistics were
+      /// not enabled.
+      public: std::optional<TopicStatistics> TopicStats(
+                  const std::string &_topic) const;
 
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
