@@ -3,16 +3,11 @@ load(
     "IGNITION_FEATURES",
     "IGNITION_ROOT",
     "IGNITION_VISIBILITY",
+    "cmake_configure_file",
     "generate_include_header",
+    "generate_yaml",
     "ign_config_header",
     "ign_export_header",
-)
-load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
-    "ruby_binary",
-    "ruby_library",
-    "ruby_rspec",
-    "ruby_test",
 )
 
 package(
@@ -48,76 +43,26 @@ ign_export_header(
     visibility = ["//visibility:private"],
 )
 
-public_headers_no_gen = [
-    "include/ignition/transport/AdvertiseOptions.hh",
-    "include/ignition/transport/CIface.h",
-    "include/ignition/transport/Clock.hh",
-    "include/ignition/transport/Discovery.hh",
-    "include/ignition/transport/HandlerStorage.hh",
-    "include/ignition/transport/Helpers.hh",
-    "include/ignition/transport/MessageInfo.hh",
-    "include/ignition/transport/NetUtils.hh",
-    "include/ignition/transport/Node.hh",
-    "include/ignition/transport/detail/Node.hh",
-    "include/ignition/transport/NodeOptions.hh",
-    "include/ignition/transport/NodeShared.hh",
-    "include/ignition/transport/Packet.hh",
-    "include/ignition/transport/Publisher.hh",
-    "include/ignition/transport/RepHandler.hh",
-    "include/ignition/transport/ReqHandler.hh",
-    "include/ignition/transport/SubscribeOptions.hh",
-    "include/ignition/transport/SubscriptionHandler.hh",
-    "include/ignition/transport/TopicStorage.hh",
-    "include/ignition/transport/TopicUtils.hh",
-    "include/ignition/transport/TransportTypes.hh",
-    "include/ignition/transport/Uuid.hh",
-]
+public_headers_no_gen = glob([
+    "include/ignition/transport/*.hh",
+    "include/ignition/transport/*.h",
+    "include/ignition/transport/detail/*.hh",
+])
 
-private_headers = [
-    "src/NodeOptionsPrivate.hh",
-    "src/NodePrivate.hh",
-    "src/NodeSharedPrivate.hh",
-    "src/SubscribeOptionsPrivate.hh",
-]
+private_headers = glob(["src/*.hh"])
 
-sources = [
-    "src/AdvertiseOptions.cc",
-    "src/CIface.cc",
-    "src/Clock.cc",
-    "src/Discovery.cc",
-    "src/Helpers.cc",
-    "src/ign.cc",
-    "src/MessageInfo.cc",
-    "src/NetUtils.cc",
-    "src/Node.cc",
-    "src/NodeOptions.cc",
-    "src/NodeShared.cc",
-    "src/Publisher.cc",
-    "src/SubscribeOptions.cc",
-    "src/SubscriptionHandler.cc",
-    "src/TopicUtils.cc",
-    "src/Uuid.cc",
-]
+sources = glob(
+    ["src/*.cc"],
+    exclude = [
+        "src/*_TEST.cc",
+        "src/ign.cc",
+    ],
+)
 
-test_sources = [
-    "src/AdvertiseOptions_TEST.cc",
-    "src/CIface_TEST.cc",
-    "src/Clock_TEST.cc",
-    "src/Discovery_TEST.cc",
-    "src/HandlerStorage_TEST.cc",
-    "src/Helpers_TEST.cc",
-    "src/ign_src_TEST.cc",
-    # "src/ign_TEST.cc",
-    "src/MessageInfo_TEST.cc",
-    "src/NetUtils_TEST.cc",
-    "src/NodeOptions_TEST.cc",
-    "src/Node_TEST.cc",
-    "src/Publisher_TEST.cc",
-    "src/SubscribeOptions_TEST.cc",
-    "src/TopicStorage_TEST.cc",
-    "src/TopicUtils_TEST.cc",
-    "src/Uuid_TEST.cc",
-]
+test_sources = glob(
+    ["src/*_TEST.cc"],
+    exclude = ["src/ign_*.cc"],
+)
 
 generate_include_header(
     name = "transporthh_genrule",
@@ -132,8 +77,14 @@ public_headers = public_headers_no_gen + [
     "include/ignition/transport/config.hh",
     "include/ignition/transport/Export.hh",
     "include/ignition/transport.hh",
-    "src/ign.hh",
 ]
+
+config_setting(
+    name = "custom",
+    values = {
+        "define": "enable_ifaddrs=true",
+    },
+)
 
 cc_library(
     name = "ign_transport",
@@ -153,11 +104,12 @@ cc_library(
     ],
 )
 
-config_setting(
-    name = "custom",
-    values = {
-        "define": "enable_ifaddrs=true",
-    },
+cc_binary(
+    name = "libignition-transport.so",
+    srcs = ["src/ign.cc"],
+    includes = ["include"],
+    linkshared = True,
+    deps = [":ign_transport"],
 )
 
 [cc_test(
@@ -174,3 +126,25 @@ config_setting(
         "@gtest//:gtest_main",
     ],
 ) for src in test_sources]
+
+cmake_configure_file(
+    name = "transport.rb",
+    src = "src/cmd/cmdtransport.rb.in",
+    out = "cmdtransport.rb",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "library_location=libignition-transport.so",
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "IGN_LIBRARY_NAME=%s" % [PROJECT_NAME],
+    ],
+)
+
+CMDS = "    - topic   : Print information about topics.\n    - service   : Print information about services."
+
+generate_yaml(
+    name = "transport",
+    commands = CMDS,
+    library_name = PROJECT_NAME,
+    library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
+    ruby_target = "transport.rb",
+)
