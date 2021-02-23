@@ -70,7 +70,7 @@ publisher.exe
 
 You'll see on the publisher terminal:
 
-``
+```
 Publishing hello on topic [/foo]
 Publishing hello on topic [/foo]
 Publishing hello on topic [/foo]   
