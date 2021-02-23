@@ -29,7 +29,7 @@ To build on Windows, make sure the configuration matches `ign-transport`'s
 configuration:
 
 ```
-cmake -build . --config Release
+cmake --build . --config Release
 ```
 
 ## Run
@@ -70,8 +70,10 @@ publisher.exe
 
 You'll see on the publisher terminal:
 
-```
-Publishing hello on topic [/foo]                                                                                     Publishing hello on topic [/foo]                                                                                     Publishing hello on topic [/foo]   
+``
+Publishing hello on topic [/foo]
+Publishing hello on topic [/foo]
+Publishing hello on topic [/foo]   
 ```
 
 And on the subscriber terminal:
