@@ -33,11 +33,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/bench.cc")
   endif()
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
+if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
   add_executable(publisher_c publisher_c.cc)
   target_link_libraries(publisher_c ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
-if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_c_fast.cc")
+if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/publisher_c_fast.cc")
   add_executable(publisher_c_fast publisher_c_fast.cc)
   target_link_libraries(publisher_c_fast ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
@@ -47,7 +47,7 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
   target_link_libraries(subscriber_c ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
+if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
   add_executable(subscriber_c_slow subscriber_c_slow.cc)
   target_link_libraries(subscriber_c_slow ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
@@ -119,7 +119,9 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
     ignition-transport${IGN_TRANSPORT_VER}::core)
 endif()
 
-if (TARGET protobuf_compilation AND
+# FIXME(chapulina) Linking failure on Windows:
+# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028 
+if (NOT MSVC AND TARGET protobuf_compilation AND
     EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
@@ -129,7 +131,9 @@ if (TARGET protobuf_compilation AND
   add_dependencies(publisher_custom_msg protobuf_compilation)
 endif()
 
-if (TARGET protobuf_compilation AND
+# FIXME(chapulina) Linking failure on Windows:
+# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028 
+if (NOT MSVC AND TARGET protobuf_compilation AND
     EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
   target_link_libraries(subscriber_custom_msg
