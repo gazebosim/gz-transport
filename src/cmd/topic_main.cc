@@ -120,7 +120,7 @@ void addTopicFlags(CLI::App &_app)
     });
 
   command->add_option_function<std::string>("-p,--pub",
-      [&](const std::string &_msgData){
+      [opt](const std::string &_msgData){
         opt->command = TopicCommand::kTopicPub;
         opt->msgData = _msgData;
       })

@@ -106,7 +106,7 @@ void addServiceFlags(CLI::App &_app)
     ->needs(serviceOpt);
 
   command->add_option_function<std::string>("-r,--req",
-      [&](const std::string &_reqData){
+      [opt](const std::string &_reqData){
         opt->command = ServiceCommand::kServiceReq;
         opt->reqData = _reqData;
       }, "Perform a service request")
