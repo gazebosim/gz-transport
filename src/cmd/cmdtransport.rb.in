@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'optparse'
+require 'open3'
 
 # Constants.
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
@@ -51,7 +51,8 @@ class Cmd
     end
 
     # Drop command from list of arguments
-    args = args[1..-1].join(' ')
-    puts `#{exe_name} #{args}`
+    stdout_and_stderr, status = Open3.capture2e(exe_name, *args[1..-1])
+    print stdout_and_stderr
+    exit(status.exitstatus)
   end
 end
