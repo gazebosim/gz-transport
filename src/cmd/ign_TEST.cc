@@ -346,6 +346,13 @@ TEST(ignTest, TopicPublish)
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
+      " topic -t / -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      g_ignVersion);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+
+  // Try to publish using an incorrect number of arguments.
+  error = "The following argument was not expected: wrong_topic";
+  output = custom_exec_str(ign +
       " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
