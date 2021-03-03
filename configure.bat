@@ -7,6 +7,7 @@
 call %win_lib% :download_unzip_install libzmq-4.2.3_cppzmq-4.2.2_vc15-x64-dll-MD.zip
 call %win_lib% :download_unzip_install sqlite-3.22.0-vc15-Win64-dll-MD.zip
 call %win_lib% :install_ign_project ign-msgs main
+call %win_lib% :install_ign_project ign-utils main
 
 :: Set configuration variables
 @set build_type=Release
