@@ -30,7 +30,7 @@ pipelines:
             libignition-msgs5-dev
             libignition-tools-dev
           # # Install ign-msgs
-          # - git clone http://github.com/ignitionrobotics/ign-msgs -b master
+          # - git clone http://github.com/ignitionrobotics/ign-msgs -b main
           # - cd ign-msgs
           # - mkdir build
           # - cd build
