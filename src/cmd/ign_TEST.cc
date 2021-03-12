@@ -460,10 +460,6 @@ int main(int argc, char **argv)
   // Set the partition name for this process.
   setenv("IGN_PARTITION", g_partition.c_str(), 1);
 
-  // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
-  // is located.
-  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
-
   // Make sure that we load the library recently built and not the one installed
   // in your system.
   // Save the current value of LD_LIBRARY_PATH.

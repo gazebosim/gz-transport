@@ -45,12 +45,21 @@ foreach(test ${test_list})
 
 endforeach()
 
+if (TARGET UNIT_ign_TEST)
+  set_tests_properties(
+    UNIT_ign_TEST
+    PROPERTIES
+    ENVIRONMENT
+      "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+  )
+endif()
+
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
+set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
