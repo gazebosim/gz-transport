@@ -10,25 +10,25 @@ support platforms including major Linux distributions, Mac OS X and Windows.
 
 You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
 
-## Ubuntu Linux
+# Binary Install
+
+## Ubuntu
 
 Setup your computer to accept software from
 *packages.osrfoundation.org*:
-
-```{.sh}
+```
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 ```
 
 Setup keys:
-
 ```
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
-Install Ignition Transport, `apt-get` can be used to install `ignition-transport`:
-
+Install Ignition Transport:
 ```
-$ sudo apt install libignition-transport<#>-dev
+sudo apt-get update
+sudo apt-get install libignition-transport<#>-dev
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -47,13 +47,11 @@ use. Here are the instructions:
 
 Install homebrew, which should also prompt you to install the XCode
 command-line tools:
-
 ```
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
 Run the following commands:
-
 ```
 brew tap osrf/simulation
 brew install ignition-transport<#>
@@ -62,207 +60,75 @@ brew install ignition-transport<#>
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
 which version you need.
 
-## Windows 64bits
+## Windows
 
-At this moment, compilation has been tested on Windows 8.1 and 10 and is
-supported when using [Visual Studio
-2019](https://www.visualstudio.com/downloads/). Patches for other
-versions are welcome.
+Install [Conda package management system](https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html).
+Miniconda suffices.
 
-This installation procedure uses pre-compiled binaries in a local
-workspace. To make things easier, use a MinGW shell for your editing
-work (such as the [Git Bash Shell](https://msysgit.github.io/) with
-[Git](https://gitforwindows.org/)), and
-only use the Windows cmd for configuring and building. You might also
-need to [disable the Windows
-firewall](http://windows.microsoft.com/en-us/windows/turn-windows-firewall-on-off#turn-windows-firewall-on-off=windows-7).
-
-Make a directory to work in, e.g.:
-
+Create if necessary, and activate a Conda environment:
 ```
-mkdir ign-ws
-cd ign-ws
+conda create -n ign-ws
+conda activate ign-ws
 ```
 
-Download the following dependencies into that directory:
-
-  * [cppzmq](http://packages.osrfoundation.org/win32/deps/cppzmq-noarch.zip)
-  * [Protobuf 3.4.1 (https://s3.amazonaws.com/osrf-distributions/win32/deps/protobuf-3.4.1-vc15-x64-dll-MD.zip)
-  * [sqlite] 3.22.0 (https://s3.amazonaws.com/osrf-distributions/win32/deps/sqlite-3.22.0-vc15-Win64-dll-MD.zip)
-
-Choose one of these options:
-
-  * [ZeroMQ 4.2.3](https://s3.amazonaws.com/osrf-distributions/win32/deps/libzmq-4.2.3_cppzmq-4.2.2_vc15-x64-dll-MD.zip)
-
-Unzip each of them. The Windows unzip utility will likely create an
-incorrect directory structure, where a directory with the name of the
-zip contains the directory that has the source files. Here is an
-example:
-
+Install:
 ```
-ign-ws/cppzmq-noarch/cppzmq
+conda install libignition-transport<#> --channel conda-forge
 ```
 
-The correct structure is
+Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
+which version you need.
 
-```
-ign-ws/cppzmq
-```
+# Source Install
 
-To fix this problem, manually move the nested directories up one level.
-
-Clone and prepare the Ignition Math dependency:
-
-```
-git clone https://github.com/ignitionrobotics/ign-math
-cd ign-math
-mkdir build
-```
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-```
-"C:\Program Files (x86)\Microsoft Visual Studio 19.0\VC\vcvarsall.bat" x86_amd64
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-math\build
-..\configure
-nmake install
-```
-
-Clone and prepare the Ignition Msgs dependency:
-
-```
-git clone https://github.com/ignitionrobotics/ign-msgs
-cd ign-msgs
-mkdir build
-```
-
-In the Windows Command Prompt, configure and build:
-
-```
-cd ign-msgs\build
-..\configure
-nmake install
-```
-
-Clone ign-transport:
-
-```
-git clone https://github.com/ignitionrobotics/ign-transport
-cd ign-transport
-```
-
-In a Windows Command Prompt, load your compiler setup, e.g.:
-
-```
-"C:\Program Files (x86)\Microsoft Visual Studio 19.0\VC\vcvarsall.bat" x86_amd64
-```
-
-Configure and build:
-
-```
-mkdir build
-cd build
-..\configure
-nmake
-nmake install
-```
-
-You should now have an installation of ign-transport in
-`ign-ws/ign-transport/build/install`.
-
-Before running any executables, you need to modify your `PATH` to
-include the `bin` subdirectory of ZeroMQ to let Windows find dynamic
-libs (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around
-the path, even if it contains spaces. E.g., if you're working in
-`C:\My Stuff\ign-ws`:
-
-```
-set PATH %PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.2.3\bin
-```
-
-Now build the examples:
-
-\code
-cd ign-ws\ign-transport\example
-mkdir build
-cd build
-..\configure
-nmake
-\endcode
-
-Now try an example. In one Windows terminal run:
-
-```
-responser
-```
-
-In another Windows terminal run:
-
-```
-requester
-```
-
-### Install from sources (Ubuntu Linux)
+## Ubuntu Linux
 
 For compiling the latest version of Ignition Transport you will need an
 Ubuntu distribution equal to 18.04 (Bionic) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
-
 ```
-sudo apt-get remove libignition-transport<#>-dev
+sudo apt-get remove libignition-transport.*-dev
 ```
-
-Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
-which version you installed.
 
 Install prerequisites. A clean Ubuntu system will need:
-
 ```
 sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev
 ```
 
-Clone the repository into a directory and go into it:
-
+Clone the repository
 ```
-git clone https://github.com/ignitionrobotics/ign-transport /tmp/ign-transport
-cd /tmp/ign-transport
+git clone https://github.com/ignitionrobotics/ign-transport
 ```
 
-Create a build directory and go there:
-
+Configure and build
 ```
+cd ign-common
 mkdir build
 cd build
+cmake ..
+make
 ```
 
 Configure Ignition Transport (choose either method a or b below):
 
 A.  Release mode (recommended): This will generate optimized code, but will not have
     debug symbols. Use this mode if you don't need to use [GDB](https://www.gnu.org/software/gdb/) (advanced).
-
 ```
-cmake ../
+cmake ..
 ```
 
 Note: You can use a custom install path to make it easier to switch
 between source and debian installs:
-
 ```
-cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ../
+cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ..
 ```
 
 B. Debug mode: This will generate code with debug symbols. Ignition
 Transport will run slower, but you'll be able to use GDB.
-
 ```
-cmake -DCMAKE_BUILD_TYPE=Debug ../
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
 The output from `cmake ../` may generate a number of errors and warnings
@@ -273,26 +139,22 @@ in which you installed prerequisites).
 
 Make note of your install path, which is output from cmake and should
 look something like:
-
 ```
 -- Install path: /home/$USER/local
 ```
 
 Build Ignition Transport:
-
 ```
 make -j4
 ```
 
 Install Ignition Transport:
-
 ```
 sudo make install
 ```
 
 If you decide to install gazebo in a local directory you'll need to
 modify your `LD_LIBRARY_PATH`:
-
 ```
 echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 ```
@@ -303,8 +165,112 @@ If you need to uninstall Ignition Transport or switch back to a
 debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:
-
-\code
+```
 cd /tmp/ign-transport/build
 sudo make uninstall
-\endcode
+```
+
+## Windows
+
+### Prerequisites
+
+First, follow the [ign-cmake](https://github.com/ignitionrobotics/ign-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+
+Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
+
+Activate the Conda environment:
+```
+conda activate ign-ws
+```
+
+Install prerequisites:
+```
+conda install zeromq cppzmq --channel conda-forge
+```
+
+Install Ignition dependencies:
+
+You can view available versions and their dependencies:
+```
+conda search libignition-transport* --channel conda-forge --info
+```
+
+Install dependencies, replacing `<#>` with the desired versions:
+```
+conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --channel conda-forge
+```
+
+#### Building from Source
+
+1. Navigate to where you would like to build the library, and clone the repository.
+  ```
+  # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
+  git clone https://github.com/ignitionrobotics/ign-transport.git
+  ```
+
+2. Configure and build
+  ```
+  cd ign-transport
+  mkdir build
+  cd build
+  cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
+  cmake --build . --config Release
+  ```
+
+3. Optionally, install. You will likely need to run a terminal with admin privileges for this call to succeed.
+  ```
+  cmake --install . --config Release
+  ```
+
+4. Optionally, build the examples
+
+  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``ignition-transport<#>-config.cmake``.
+  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\ignition-transport<#>\lib\cmake\ignition-transport<#>``.
+  ```
+  cd ign-transport\example
+  mkdir build
+  cd build
+  cmake ..  # Optionally, -DCMAKE_PREFIX_PATH=path\to\cmake\config
+  cmake --build . --config Release
+  ```
+
+  Try an example
+  ```
+  responser
+  ```
+
+  In another terminal, run
+  ```
+  requester
+  ```
+
+# Documentation
+
+Visit the [documentation page](https://ignitionrobotics.org/api/transport/8.0/index.html).
+
+## Build documentation
+```
+cd build
+make doc
+```
+
+Upload documentation to ignitionrobotics.org.
+```
+cd build
+sh upload.sh
+```
+
+If you're creating a new release, then tell ignitionrobotics.org about
+   the new version. For example:
+```
+curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.ignitionrobotics.org/1.0/versions
+```
+
+# Testing
+
+Tests can be run by building the `test` target. From your build directory you
+can run:
+```
+make test
+```
+
