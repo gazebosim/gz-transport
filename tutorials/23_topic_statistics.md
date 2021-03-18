@@ -44,7 +44,7 @@ if (!node.EnableStats(topic, true))
 }
 ```
 
-A complete example can be found in the [subscriber_stats example program](https://github.com/ignitionrobotics/ign-transport/blob/ign-transport8/example/subscriber_stats.cc).
+A complete example can be found in the [subscriber_stats example program](https://github.com/ignitionrobotics/ign-transport/blob/main/example/subscriber_stats.cc).
 
 With both `IGN_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
 enabling topic statistics, then you will be able to echo statistic
