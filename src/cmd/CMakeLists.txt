@@ -2,6 +2,12 @@
 # "gtest_sources" variable.
 ign_get_libsources_and_unittests(sources gtest_sources)
 
+# Skip command line tests for Windows, see
+# https://github.com/ignitionrobotics/ign-transport/issues/104
+if (MSVC)
+  list(REMOVE_ITEM gtest_sources ign_TEST.cc)
+endif()
+
 # Make a small static lib of command line functions
 add_library(ign STATIC ign.cc)
 target_link_libraries(ign
