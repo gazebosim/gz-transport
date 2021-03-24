@@ -2,6 +2,7 @@ libignition-cmake2-dev
 libignition-math6-dev
 libignition-msgs7-dev
 libignition-tools-dev
+libignition-utils1-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev
