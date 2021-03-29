@@ -34,4 +34,9 @@ int main(int argc, char **argv)
 
   if (!executed)
     std::cerr << "Service call failed" << std::endl;
+
+  std::cout << "Press <CTRL-C> to exit" << std::endl;
+
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }
