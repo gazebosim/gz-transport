@@ -246,7 +246,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 # Documentation
 
-Visit the [documentation page](https://ignitionrobotics.org/api/transport/8.0/index.html).
+Visit the [documentation page](https://ignitionrobotics.org/api/transport/10.0/index.html).
 
 ## Build documentation
 ```
