@@ -1,8 +1,8 @@
 ## Ignition Transport 10.X
 
-### Ignition Transport 10.X.X
+### Ignition Transport 10.X.X (2021-XX-XX)
 
-### Ignition Transport 10.0.0 (2021-XX-XX)
+### Ignition Transport 10.0.0 (2021-03-30)
 
 1. Depend on cli component of ignition-utils
     * [Pull request #229](https://github.com/ignitionrobotics/ign-transport/pull/229)
@@ -19,8 +19,9 @@
 1. Changes from Dome tutorial party
     * [Pull request #187](https://github.com/ignitionrobotics/ign-transport/pull/187)
 
-1. Infrastructure
+1. Infrastructure and documentation
     * [Pull request #186](https://github.com/ignitionrobotics/ign-transport/pull/186)
+    * [Pull request #232](https://github.com/ignitionrobotics/ign-transport/pull/232)
 
 ## Ignition Transport 9.X
 
