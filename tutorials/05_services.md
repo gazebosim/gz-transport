@@ -412,6 +412,11 @@ int main(int argc, char **argv)
 
   if (!executed)
     std::cerr << "Service call failed" << std::endl;
+
+  std::cout << "Press <CTRL-C> to exit" << std::endl;
+
+  // Zzzzzz.
+  ignition::transport::waitForShutdown();
 }
 ```
 
@@ -440,7 +445,9 @@ provider of the service ``/oneway``. Ignition Transport will find a node and
 communicate the data without waiting for the response. The return value of
 ``Request()`` indicates if the request was successfully queued. Note that this
 variant of ``Request()`` is also asynchronous, so your code will not block while
-your service request is handled.
+your service request is handled. In this example, we also call
+`waitForShutdown()` to minimize the risk of terminating the program before the
+request was already published.
 
 ## Service without input parameter
 
@@ -576,8 +583,8 @@ file within the ``ign_transport_tutorial`` folder.
 ## Building the code
 
 Download the [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/CMakeLists.txt) file
-within the ``ign_transport_tutorial`` folder. Then, download
-[CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/stringmsg.proto) inside the
+within the ``ign_transport_tutorial`` folder. Then, create a `msgs` directory
+and download [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/stringmsg.proto) inside the
 ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
