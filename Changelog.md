@@ -22,6 +22,7 @@
 1. Infrastructure and documentation
     * [Pull request #186](https://github.com/ignitionrobotics/ign-transport/pull/186)
     * [Pull request #232](https://github.com/ignitionrobotics/ign-transport/pull/232)
+    * [Pull request #233](https://github.com/ignitionrobotics/ign-transport/pull/233)
 
 ## Ignition Transport 9.X
 
