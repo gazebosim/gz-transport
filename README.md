@@ -55,11 +55,11 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/transport/10.0/installation.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/transport/11.0/installation.html).
 
 # Usage
 
-See [tutorials](https://ignitionrobotics.org/api/transport/10.0/tutorials.html)
+See [tutorials](https://ignitionrobotics.org/api/transport/11.0/tutorials.html)
 and the [example directory](https://github.com/ignitionrobotics/ign-transport/blob/main/example/)
 in the source code.
 
@@ -94,7 +94,7 @@ This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issue
 
 # Documentation
 
-Visit the [documentation page](https://ignitionrobotics.org/api/transport/10.0/index.html).
+Visit the [documentation page](https://ignitionrobotics.org/api/transport/11.0/index.html).
 
 # Folder Structure
 
