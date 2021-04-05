@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(ignition-transport-examples)
 
 # Find the Ignition_Transport library
-find_package(ignition-transport10 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
+find_package(ignition-transport11 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
@@ -120,7 +120,7 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
 endif()
 
 # FIXME(chapulina) Linking failure on Windows:
-# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028 
+# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028
 if (NOT MSVC AND TARGET protobuf_compilation AND
     EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
@@ -132,7 +132,7 @@ if (NOT MSVC AND TARGET protobuf_compilation AND
 endif()
 
 # FIXME(chapulina) Linking failure on Windows:
-# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028 
+# msgs\stringmsg.pb.cc : fatal error LNK1107: invalid or corrupt file: cannot read at 0x3028
 if (NOT MSVC AND TARGET protobuf_compilation AND
     EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
