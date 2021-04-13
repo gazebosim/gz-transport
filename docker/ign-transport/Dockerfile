@@ -72,7 +72,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get install -y \
     libignition-cmake2-dev \
     libignition-math6-dev \
-    libignition-msgs7-dev \
+    libignition-msgs8-dev \
     libignition-utils1-cli-dev \
  && sudo apt-get clean
 
