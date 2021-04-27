@@ -260,7 +260,7 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 }
 
 //////////////////////////////////////////////////
-MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other) 
+MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other)
   = default;
 
 //////////////////////////////////////////////////
