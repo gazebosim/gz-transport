@@ -58,6 +58,10 @@ namespace ignition
                         const std::string &_nUuid,
                         const AdvertiseOptions &_opts);
 
+      /// \brief Copy constructor.
+      /// \param[in] _other Other Publisher object.
+      public: Publisher(const Publisher &_other);
+
       /// \brief Destructor.
       public: virtual ~Publisher() = default;
 
@@ -133,6 +137,11 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const Publisher &_pub) const;
 
+      /// \brief Assignment operator.
+      /// \param[in] _other The other Publisher.
+      /// \return A reference to this instance.
+      public: Publisher &operator=(const Publisher &_other);
+
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
       /// \param[in] _msg Publisher to write to the stream.
@@ -198,6 +207,10 @@ namespace ignition
                                         const std::string &_nUuid,
                                         const std::string &_msgTypeName,
                                         const AdvertiseMessageOptions &_opts);
+
+      /// \brief Copy constructor.
+      /// \param[in] _other Other MessagePublisher object.
+      public: MessagePublisher(const MessagePublisher &_other);
 
       /// \brief Destructor.
       public: virtual ~MessagePublisher() = default;
@@ -271,6 +284,11 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const MessagePublisher &_pub) const;
 
+      /// \brief Assignment operator.
+      /// \param[in] _other The other MessagePublisher.
+      /// \return A reference to this instance.
+      public: MessagePublisher &operator=(const MessagePublisher &_other);
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
@@ -315,6 +333,10 @@ namespace ignition
                                const std::string &_reqType,
                                const std::string &_repType,
                                const AdvertiseServiceOptions &_opts);
+
+      /// \brief Copy constructor.
+      /// \param[in] _other Other ServicePublisher object.
+      public: ServicePublisher(const ServicePublisher &_other);
 
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
@@ -400,6 +422,11 @@ namespace ignition
       /// \param[in] _srv The service publisher to compare against.
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const ServicePublisher &_srv) const;
+
+      /// \brief Assignment operator.
+      /// \param[in] _other The other ServicePublisher.
+      /// \return A reference to this instance.
+      public: ServicePublisher &operator=(const ServicePublisher &_other);
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

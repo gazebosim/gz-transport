@@ -42,6 +42,9 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
 }
 
 //////////////////////////////////////////////////
+Publisher::Publisher(const Publisher &_other) = default;
+
+//////////////////////////////////////////////////
 std::string Publisher::Topic() const
 {
   return this->topic;
@@ -163,6 +166,9 @@ bool Publisher::operator!=(const Publisher &_pub) const
 }
 
 //////////////////////////////////////////////////
+Publisher &Publisher::operator=(const Publisher &_other) = default;
+
+//////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_ctrl, const std::string &_pUuid,
   const std::string &_nUuid, const std::string &_msgTypeName,
@@ -173,6 +179,9 @@ MessagePublisher::MessagePublisher(const std::string &_topic,
     msgOpts(_opts)
 {
 }
+
+//////////////////////////////////////////////////
+MessagePublisher::MessagePublisher(const MessagePublisher &_other) = default;
 
 //////////////////////////////////////////////////
 std::string MessagePublisher::Ctrl() const
@@ -251,6 +260,9 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 }
 
 //////////////////////////////////////////////////
+MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other) = default;
+
+//////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
   const std::string &_addr, const std::string &_socketId,
   const std::string &_pUuid, const std::string &_nUuid,
@@ -264,6 +276,8 @@ ServicePublisher::ServicePublisher(const std::string &_topic,
 {
 }
 
+//////////////////////////////////////////////////
+ServicePublisher::ServicePublisher(const ServicePublisher &_other) = default;
 
 //////////////////////////////////////////////////
 std::string ServicePublisher::SocketId() const
@@ -349,3 +363,7 @@ bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
 {
   return !(*this == _srv);
 }
+
+//////////////////////////////////////////////////
+ServicePublisher &ServicePublisher::operator=(const ServicePublisher &_other) = default;
+
