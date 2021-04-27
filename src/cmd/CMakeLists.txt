@@ -22,7 +22,7 @@ target_link_libraries(${topic_executable}
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${topic_executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
 set(service_executable ign-transport-service)
@@ -32,7 +32,7 @@ target_link_libraries(${service_executable}
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${service_executable} DESTINATION lib/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
