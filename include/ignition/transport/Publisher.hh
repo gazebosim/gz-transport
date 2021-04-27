@@ -423,6 +423,11 @@ namespace ignition
       /// \return True if this object does not match the provided object.
       public: bool operator!=(const ServicePublisher &_srv) const;
 
+      /// \brief Assignment operator.
+      /// \param[in] _other The other ServicePublisher.
+      /// \return A reference to this instance.
+      public: ServicePublisher &operator=(const ServicePublisher &_other);
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::string

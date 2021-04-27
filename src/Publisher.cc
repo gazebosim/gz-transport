@@ -42,11 +42,7 @@ Publisher::Publisher(const std::string &_topic, const std::string &_addr,
 }
 
 //////////////////////////////////////////////////
-Publisher::Publisher(const Publisher &_other)
-  : Publisher()
-{
-  (*this) = _other;
-}
+Publisher::Publisher(const Publisher &_other) = default;
 
 //////////////////////////////////////////////////
 std::string Publisher::Topic() const
@@ -170,15 +166,7 @@ bool Publisher::operator!=(const Publisher &_pub) const
 }
 
 //////////////////////////////////////////////////
-Publisher &Publisher::operator=(const Publisher &_other)
-{
-  this->SetTopic(_other.Topic());
-  this->SetAddr(_other.Addr());
-  this->SetPUuid(_other.PUuid());
-  this->SetNUuid(_other.NUuid());
-  this->SetOptions(_other.Options());
-  return *this;
-}
+Publisher &Publisher::operator=(const Publisher &_other) = default;
 
 //////////////////////////////////////////////////
 MessagePublisher::MessagePublisher(const std::string &_topic,
@@ -193,11 +181,7 @@ MessagePublisher::MessagePublisher(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-MessagePublisher::MessagePublisher(const MessagePublisher &_other)
-  : MessagePublisher()
-{
-  (*this) = _other;
-}
+MessagePublisher::MessagePublisher(const MessagePublisher &_other) = default;
 
 //////////////////////////////////////////////////
 std::string MessagePublisher::Ctrl() const
@@ -277,13 +261,7 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 
 //////////////////////////////////////////////////
 MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other)
-{
-  Publisher::operator=(_other);
-  this->SetCtrl(_other.Ctrl());
-  this->SetMsgTypeName(_other.MsgTypeName());
-  this->SetOptions(_other.Options());
-  return *this;
-}
+  = default;
 
 //////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
@@ -300,11 +278,7 @@ ServicePublisher::ServicePublisher(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-ServicePublisher::ServicePublisher(const ServicePublisher &_other)
-  : ServicePublisher()
-{
-  (*this) = _other;
-}
+ServicePublisher::ServicePublisher(const ServicePublisher &_other) = default;
 
 //////////////////////////////////////////////////
 std::string ServicePublisher::SocketId() const
@@ -390,3 +364,7 @@ bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
 {
   return !(*this == _srv);
 }
+
+//////////////////////////////////////////////////
+ServicePublisher &ServicePublisher::operator=(const ServicePublisher &_other)
+  = default;
