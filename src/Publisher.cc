@@ -260,7 +260,8 @@ bool MessagePublisher::operator!=(const MessagePublisher &_pub) const
 }
 
 //////////////////////////////////////////////////
-MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other) = default;
+MessagePublisher &MessagePublisher::operator=(const MessagePublisher &_other) 
+  = default;
 
 //////////////////////////////////////////////////
 ServicePublisher::ServicePublisher(const std::string &_topic,
@@ -365,5 +366,5 @@ bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
 }
 
 //////////////////////////////////////////////////
-ServicePublisher &ServicePublisher::operator=(const ServicePublisher &_other) = default;
-
+ServicePublisher &ServicePublisher::operator=(const ServicePublisher &_other)
+  = default;
