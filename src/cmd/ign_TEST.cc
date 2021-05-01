@@ -332,8 +332,11 @@ TEST(ignTest, TopicPublish)
       g_ignVersion);
 
   ASSERT_TRUE(output.empty()) << output;
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
+  unsigned int retries = 0;
+  while (g_topicCBStr != "good_value" && retries++ < 20u)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
   // Try to publish a message not included in Ignition Messages.
