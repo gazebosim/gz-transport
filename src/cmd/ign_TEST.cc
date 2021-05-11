@@ -327,15 +327,20 @@ TEST(ignTest, TopicPublish)
 
   // Check the 'ign topic -p' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
-      g_ignVersion);
+  std::string output;
 
-  ASSERT_TRUE(output.empty()) << output;
   unsigned int retries = 0;
-  while (g_topicCBStr != "good_value" && retries++ < 20u)
+  while (g_topicCBStr != "good_value" && retries++ < 200u)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    // Send on alternating retries
+    if (retries % 2)
+    {
+      output = custom_exec_str(ign +
+        " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
+        g_ignVersion);
+      EXPECT_TRUE(output.empty()) << output;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
@@ -351,14 +356,14 @@ TEST(ignTest, TopicPublish)
   output = custom_exec_str(ign +
       " topic -t / -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
   output = custom_exec_str(ign +
       " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 }
 
 //////////////////////////////////////////////////
