@@ -898,6 +898,10 @@ namespace ignition
           this->SendUnicast(msg);
         }
 
+        bool isSenderLocal = (std::find(this->hostInterfaces.begin(),
+          this->hostInterfaces.end(), _fromIp) != this->hostInterfaces.end()) ||
+          _fromIp == "127.0.0.1";
+
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
@@ -923,7 +927,7 @@ namespace ignition
             // Check scope of the topic.
             if ((publisher.Options().Scope() == Scope_t::PROCESS) ||
                 (publisher.Options().Scope() == Scope_t::HOST &&
-                 _fromIp != this->hostAddr))
+                 !isSenderLocal))
             {
               return;
             }
@@ -976,7 +980,7 @@ namespace ignition
               // Check scope of the topic.
               if ((nodeInfo.Options().Scope() == Scope_t::PROCESS) ||
                   (nodeInfo.Options().Scope() == Scope_t::HOST &&
-                   _fromIp != this->hostAddr))
+                   !isSenderLocal))
               {
                 continue;
               }
@@ -1048,7 +1052,7 @@ namespace ignition
             // Check scope of the topic.
             if ((publisher.Options().Scope() == Scope_t::PROCESS) ||
                 (publisher.Options().Scope() == Scope_t::HOST &&
-                 _fromIp != this->hostAddr))
+                 !isSenderLocal))
             {
               return;
             }
