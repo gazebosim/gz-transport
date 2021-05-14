@@ -900,7 +900,7 @@ namespace ignition
 
         bool isSenderLocal = (std::find(this->hostInterfaces.begin(),
           this->hostInterfaces.end(), _fromIp) != this->hostInterfaces.end()) ||
-          _fromIp == "127.0.0.1";
+          (_fromIp.find("127.") == 0);
 
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
