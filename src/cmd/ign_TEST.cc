@@ -327,13 +327,21 @@ TEST(ignTest, TopicPublish)
 
   // Check the 'ign topic -p' command.
   std::string ign = std::string(IGN_PATH) + "/ign";
-  std::string output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
-      g_ignVersion);
+  std::string output;
 
-  ASSERT_TRUE(output.empty()) << output;
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
+  unsigned int retries = 0;
+  while (g_topicCBStr != "good_value" && retries++ < 200u)
+  {
+    // Send on alternating retries
+    if (retries % 2)
+    {
+      output = custom_exec_str(ign +
+        " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
+        g_ignVersion);
+      EXPECT_TRUE(output.empty()) << output;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+  }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
   // Try to publish a message not included in Ignition Messages.
@@ -346,9 +354,16 @@ TEST(ignTest, TopicPublish)
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
+      " topic -t / -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      g_ignVersion);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
+
+  // Try to publish using an incorrect number of arguments.
+  error = "The following argument was not expected: wrong_topic";
+  output = custom_exec_str(ign +
       " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 }
 
 //////////////////////////////////////////////////
@@ -452,10 +467,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   setenv("IGN_PARTITION", g_partition.c_str(), 1);
-
-  // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
-  // is located.
-  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
 
   // Make sure that we load the library recently built and not the one installed
   // in your system.
