@@ -27,7 +27,9 @@
 #include "ignition/transport/Export.hh"
 
 #ifdef _WIN32
-#define NOMINMAX
+#ifndef NOMINMAX
+  #define NOMINMAX
+#endif
 #ifdef min
   #undef min
   #undef max
