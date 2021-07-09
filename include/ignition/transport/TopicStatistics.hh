@@ -19,11 +19,21 @@
 
 #include <ignition/msgs/statistic.pb.h>
 
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <string>
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
+
+#ifdef _WIN32
+#define NOMINMAX
+#ifdef min
+  #undef min
+  #undef max
+#endif
+#include <windows.h>
+#endif
 
 namespace ignition
 {
