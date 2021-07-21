@@ -24,17 +24,17 @@
 
 /// \brief External hook to execute 'ign topic -i' from the command line.
 /// \param[in] _topic Topic name.
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicInfo(const char *_topic);
+extern "C" void cmdTopicInfo(const char *_topic);
 
 /// \brief External hook to execute 'ign service -i' from the command line.
 /// \param[in] _service Service name.
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceInfo(const char *_service);
+extern "C" void cmdServiceInfo(const char *_service);
 
 /// \brief External hook to execute 'ign topic -l' from the command line.
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicList();
+extern "C" void cmdTopicList();
 
 /// \brief External hook to execute 'ign service -l' from the command line.
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceList();
+extern "C" void cmdServiceList();
 
 /// \brief External hook to execute 'ign topic -p' from the command line.
 /// \param[in] _topic Topic name.
@@ -43,7 +43,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceList();
 /// DebugString().
 /// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
+extern "C" void cmdTopicPub(const char *_topic,
                                                        const char *_msgType,
                                                        const char *_msgData);
 
@@ -57,7 +57,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
 /// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
 ///                     "ignition.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
+extern "C" void cmdServiceReq(const char *_service,
                                                          const char *_reqType,
                                                          const char *_repType,
                                                          const int _timeout,
@@ -71,12 +71,12 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
 /// \param[in] _count Number of messages to echo and then stop. A value <= 0
 /// indicates no limit. The _duration parameter overrides the _count
 /// parameter.
-extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
+extern "C" void cmdTopicEcho(const char *_topic,
                                                         const double _duration,
                                                         int _count);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" const char IGNITION_TRANSPORT_VISIBLE *ignitionVersion();
+extern "C" const char *ignitionVersion();
 
 #endif
