@@ -1177,7 +1177,7 @@ namespace ignition
             if (sent != totalSize)
             {
               std::cerr << "Exception sending a unicast message: "
-                  << strerror(errno) << std::endl;
+                  << strerror(errno) << ". Return value: " << sent << std::endl;
               break;
             }
           }
