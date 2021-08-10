@@ -1166,6 +1166,7 @@ namespace ignition
           // Send the discovery message to the unicast relays.
           for (const auto &sockAddr : this->relayAddrs)
           {
+            errno = 0;
             auto sent = sendto(this->sockets.at(0),
               reinterpret_cast<const raw_type *>(
                 reinterpret_cast<const unsigned char*>(buffer)),
@@ -1175,7 +1176,8 @@ namespace ignition
 
             if (sent != totalSize)
             {
-              std::cerr << "Exception sending a unicast message" << std::endl;
+              std::cerr << "Exception sending a unicast message: "
+                  << strerror(errno) << std::endl;
               break;
             }
           }
@@ -1235,7 +1237,7 @@ namespace ignition
               // * https://stackoverflow.com/questions/16555101/sendto-dgrams-do-not-block-for-enobufs-on-osx
               if (errno != EPERM && errno != ENOBUFS)
               {
-                std::cerr << "Exception sending a multicast message:"
+                std::cerr << "Exception sending a multicast message: "
                   << strerror(errno) << std::endl;
               }
               break;
