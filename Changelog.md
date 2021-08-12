@@ -2,6 +2,26 @@
 
 ### Ignition Transport 9.X.X
 
+### Ignition Transport 9.1.1 (2021-01-05)
+
+1. Add errno output for discovery.
+   * [Github pull request 254](https://github.com/ignitionrobotics/ign-transport/pull/254)
+
+1. Consider all network interfaces when checking HOST option.
+   * [Github pull request 245](https://github.com/ignitionrobotics/ign-transport/pull/245)
+
+1. Remove tools/code_check and update codecov. 
+   * [Github pull request 246](https://github.com/ignitionrobotics/ign-transport/pull/246)
+
+1. Remove deprecated test.
+   * [Github pull request 239](https://github.com/ignitionrobotics/ign-transport/pull/239)
+
+1. Master branch updates.
+   * [Github pull request 224](https://github.com/ignitionrobotics/ign-transport/pull/224)
+
+1. Add windows installation.
+   * [Github pull request 214](https://github.com/ignitionrobotics/ign-transport/pull/214)
+
 ### Ignition Transport 9.1.0 (2021-01-05)
 
 1. All changes up to version 8.2.0.
