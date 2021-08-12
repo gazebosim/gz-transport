@@ -9,7 +9,7 @@ project(ignition-transport9 VERSION 9.1.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.3 REQUIRED)
+find_package(ignition-cmake2 2.8.0 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
 #============================================================================
