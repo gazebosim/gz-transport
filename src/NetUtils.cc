@@ -231,15 +231,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       // Is not running.
       if (!(ifa->ifa_flags & IFF_UP))
         continue;
-      // IPv6 interface.
-      if (ifa->ifa_addr->sa_family == AF_INET6)
-        interface = std::string(ip_);
-      // Private network interface.
-      else if (isPrivateIP(ip_))
-        interface = std::string(ip_);
       // Any other interface.
-      else
-        interface = std::string(ip_);
+      interface = std::string(ip_);
 
       // Add the new interface if it's new and unique.
       if (!interface.empty() &&
