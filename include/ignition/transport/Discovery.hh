@@ -901,6 +901,10 @@ namespace ignition
           this->SendUnicast(msg);
         }
 
+        bool isSenderLocal = (std::find(this->hostInterfaces.begin(),
+          this->hostInterfaces.end(), _fromIp) != this->hostInterfaces.end()) ||
+          (_fromIp.find("127.") == 0);
+
         // Update timestamp and cache the callbacks.
         DiscoveryCallback<Pub> connectCb;
         DiscoveryCallback<Pub> disconnectCb;
@@ -926,7 +930,7 @@ namespace ignition
             // Check scope of the topic.
             if ((publisher.Options().Scope() == Scope_t::PROCESS) ||
                 (publisher.Options().Scope() == Scope_t::HOST &&
-                 _fromIp != this->hostAddr))
+                 !isSenderLocal))
             {
               return;
             }
@@ -979,7 +983,7 @@ namespace ignition
               // Check scope of the topic.
               if ((nodeInfo.Options().Scope() == Scope_t::PROCESS) ||
                   (nodeInfo.Options().Scope() == Scope_t::HOST &&
-                   _fromIp != this->hostAddr))
+                   !isSenderLocal))
               {
                 continue;
               }
@@ -1051,7 +1055,7 @@ namespace ignition
             // Check scope of the topic.
             if ((publisher.Options().Scope() == Scope_t::PROCESS) ||
                 (publisher.Options().Scope() == Scope_t::HOST &&
-                 _fromIp != this->hostAddr))
+                 !isSenderLocal))
             {
               return;
             }
@@ -1169,6 +1173,7 @@ namespace ignition
           // Send the discovery message to the unicast relays.
           for (const auto &sockAddr : this->relayAddrs)
           {
+            errno = 0;
             auto sent = sendto(this->sockets.at(0),
               reinterpret_cast<const raw_type *>(
                 reinterpret_cast<const unsigned char*>(buffer)),
@@ -1178,7 +1183,9 @@ namespace ignition
 
             if (sent != totalSize)
             {
-              std::cerr << "Exception sending a unicast message" << std::endl;
+              std::cerr << "Exception sending a unicast message:" << std::endl;
+              std::cerr << "  Return value: " << sent << std::endl;
+              std::cerr << "  Error code: " << strerror(errno) << std::endl;
               break;
             }
           }
