@@ -51,7 +51,7 @@ The following symbols are not allowed as part of the topic name: `@`, `:=`, `~`.
 | //image     | Invalid  | Contains two consecutive `//` |
 | /           | Invalid  | `/` topic is not allowed      |
 | ~myTopic    | Invalid  | Symbol `~` not allowed        |
-| @myTopic    | Invalid  | Symbol `@` not allowed        |
+| `@`myTopic    | Invalid  | Symbol `@` not allowed        |
 | myTopic:=   | Invalid  | Symbol `:=` not allowed       |
 
 ## Topic scope
