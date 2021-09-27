@@ -43,6 +43,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -233,7 +234,7 @@ class ReplyTester
         std::cerr << "Received[" << _msg.header().stamp().sec()
           << "] Expected[" << this->prevStamp+1 << "]\n";
 
-        throw std::unexpected;
+        std::terminate();
       }
     }
 
@@ -548,7 +549,7 @@ class PubTester
     {
       std::cerr << "Received[" << _msg.header().stamp().sec()
         << "] Expected[" << this->expectedStamp << "]\n";
-      throw std::unexpected;
+      std::terminate();
     }
     this->expectedStamp++;
 

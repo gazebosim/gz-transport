@@ -170,6 +170,36 @@ cd /tmp/ign-transport/build
 sudo make uninstall
 ```
 
+### macOS
+
+1. Clone the repository
+  ```
+  git clone https://github.com/ignitionrobotics/ign-transport -b ign-transport<#>
+  ```
+  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+  which version you need.
+
+2. Install dependencies
+  ```
+  brew install --only-dependencies ignition-transport<#>
+  ```
+  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+  which version you need.
+
+3. Configure and build
+  ```
+  cd ign-transport
+  mkdir build
+  cd build
+  cmake ..
+  make
+  ```
+
+4. Optionally, install
+  ```
+  sudo make install
+  ```
+
 ## Windows
 
 ### Prerequisites
@@ -273,4 +303,3 @@ can run:
 ```
 make test
 ```
-
