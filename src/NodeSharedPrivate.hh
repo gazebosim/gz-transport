@@ -137,7 +137,7 @@ namespace ignition
       public: std::atomic<bool> exit = false;
 
       /// \brief Timeout used for receiving messages (ms.).
-      public: static const int Timeout = 250;
+      public: inline static const int Timeout = 250;
 
       ////////////////////////////////////////////////////////////////
       /////// The following is for asynchronous publication of ///////

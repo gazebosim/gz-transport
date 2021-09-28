@@ -86,12 +86,12 @@ Visit the [documentation page](https://ignitionrobotics.org/api/transport/11.0/i
 ```
 ign-transport
 ├── conf        Configuration file for the integration with the `ign` CLI tool.
+├── docker      Dockerfile with ign-transport installed and scripts to build and run the code.
 ├── example     Example programs that use most of the Ignition Transport API.
 ├── include     Header files that get installed.
 ├── log         All the code related with Ignition Transport logging.
 ├── src         Source code of the core library.
 ├── test        A directory of integration, performance and regression tests.
-├── tools       Scripts for continuous integration testing.
 └── tutorials   A set of tutorials about Ignition Transport features.
 ```
 
