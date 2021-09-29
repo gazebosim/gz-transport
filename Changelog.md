@@ -1,6 +1,21 @@
 ## Ignition Transport 11.X
 
-### Ignition Transport 11.0.0 (2021-XX-XX)
+### Ignition Transport 11.0.0 (2021-09-28)
+
+1. Windows fix
+    * [Pull request #250](https://github.com/ignitionrobotics/ign-transport/pull/250)
+
+1. Remove unnecessary copy and assignment operators
+    * [Pull request #240](https://github.com/ignitionrobotics/ign-transport/pull/240)
+
+1. Depend on ign-msgs8
+    * [Pull request #238](https://github.com/ignitionrobotics/ign-transport/pull/238)
+
+1. Infrastructure
+    * [Pull request #236](https://github.com/ignitionrobotics/ign-transport/pull/236)
+    * [Pull request #242](https://github.com/ignitionrobotics/ign-transport/pull/242)
+    * [Pull request #264](https://github.com/ignitionrobotics/ign-transport/pull/264)
+    * [Pull request #265](https://github.com/ignitionrobotics/ign-transport/pull/265)
 
 ## Ignition Transport 10.X
 
@@ -40,7 +55,7 @@
 1. Consider all network interfaces when checking HOST option.
    * [Github pull request 245](https://github.com/ignitionrobotics/ign-transport/pull/245)
 
-1. Remove tools/code_check and update codecov. 
+1. Remove tools/code_check and update codecov.
    * [Github pull request 246](https://github.com/ignitionrobotics/ign-transport/pull/246)
 
 1. Remove deprecated test.
