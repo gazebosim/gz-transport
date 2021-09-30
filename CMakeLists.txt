@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport8 VERSION 8.1.0)
+project(ignition-transport8 VERSION 8.2.0)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.3 REQUIRED)
+find_package(ignition-cmake2 2.8.0 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
 #============================================================================
@@ -76,7 +76,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.6)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------

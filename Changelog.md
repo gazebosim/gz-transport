@@ -1,5 +1,13 @@
 ## Ignition Transport 8
 
+### Ignition Transport 8.2.0 (2020-01-05)
+
+1. All changes up to version 7.5.1.
+
+1. Addition of topic statistics that can report number of dropped messages
+   and publication, age, and reception statistics.
+    * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
+
 ### Ignition Transport 8.1.0 (2020-08-28)
 
 1. Fix ByteSize deprecation warnings for Protobuf 3.1+.
@@ -44,7 +52,17 @@
 
 ## Ignition Transport 7
 
-### Ignition Transport 7.x.x (202x-xx-xx)
+### Ignition Transport 7.5.1 (2020-12-23)
+
+1. CI fixes
+    * [Pull request 158](https://github.com/ignitionrobotics/ign-transport/pull/158)
+    * [Pull request 176](https://github.com/ignitionrobotics/ign-transport/pull/176)
+
+1. Fix codecheck
+    * [Pull request 194](https://github.com/ignitionrobotics/ign-transport/pull/194)
+
+1. Prevent empty messages from spamming the console
+    * [Pull request 164](https://github.com/ignitionrobotics/ign-transport/pull/164)
 
 ### Ignition Transport 7.5.0 (2020-07-29)
 

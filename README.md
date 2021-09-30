@@ -28,10 +28,6 @@ Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.
 
 [Usage](#markdown-header-usage)
 
-[Documentation](#markdown-header-documentation)
-
-[Testing](#markdown-header-testing)
-
 [Folder Structure](#markdown-header-folder-structure)
 
 [Code of Conduct](#markdown-header-code-of-conduct)
@@ -121,36 +117,6 @@ This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issue
 
 Visit the [documentation page](https://ignitionrobotics.org/api/transport/8.0/index.html).
 
-## Build documentation
-
-```
-cd build
-make doc
-```
-
-Upload documentation to ignitionrobotics.org.
-
-```
-cd build
-sh upload.sh
-```
-
-If you're creating a new release, then tell ignitionrobotics.org about
-   the new version. For example:
-
-```
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.ignitionrobotics.org/1.0/versions
-```
-
-# Testing
-
-Tests can be run by building the `test` target. From your build directory you
-can run:
-
-```
-$ make test
-```
-
 # Folder Structure
 
 ```
@@ -168,12 +134,12 @@ ign-transport
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -186,5 +152,5 @@ version and release information.
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-See also the [LICENSE](https://github.com/ignitionrobotics/ign-transport/raw/master/LICENSE)
+See also the [LICENSE](https://github.com/ignitionrobotics/ign-transport/raw/main/LICENSE)
 file.

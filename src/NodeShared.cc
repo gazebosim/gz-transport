@@ -220,6 +220,10 @@ NodeShared::NodeShared()
   std::string ignVerbose;
   this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
 
+  std::string ignStats;
+  this->dataPtr->topicStatsEnabled =
+    (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -355,13 +359,39 @@ bool NodeShared::Publish(
     this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
 #else
     this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
     this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
     this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg3, 0);
 #endif
+
+    if (this->dataPtr->topicStatsEnabled)
+    {
+      // Create publication metadata.
+      PublicationMetadata meta;
+      // Send the sequence number, which can be used to detect dropped
+      // messages.
+      meta.seq = this->dataPtr->topicPubSeq[_topic]++;
+      // Send the publication time.
+      meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now().time_since_epoch()).count();
+      zmq::message_t msg4(&meta, sizeof(meta));
+#ifdef IGN_ZMQ_POST_4_3_1
+      this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
+      this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
+#else
+      this->dataPtr->publisher->send(msg3, ZMQ_SNDMORE);
+      this->dataPtr->publisher->send(msg4, 0);
+#endif
+    }
+    else
+    {
+#ifdef IGN_ZMQ_POST_4_3_1
+      this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
+#else
+      this->dataPtr->publisher->send(msg3, 0);
+#endif
+    }
   }
   catch(const zmq::error_t& ze)
   {
@@ -377,7 +407,7 @@ void NodeShared::RecvMsgUpdate()
 {
   zmq::message_t msg(0);
   std::string topic;
-  // std::string sender;
+  std::string sender;
   std::string data;
   std::string msgType;
   HandlerInfo handlerInfo;
@@ -402,7 +432,7 @@ void NodeShared::RecvMsgUpdate()
       if (!this->dataPtr->subscriber->recv(&msg, 0))
 #endif
         return;
-      // sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+      sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
 #ifdef IGN_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
@@ -419,6 +449,28 @@ void NodeShared::RecvMsgUpdate()
 #endif
         return;
       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+
+      if (this->dataPtr->topicStatsEnabled)
+      {
+#ifdef IGN_ZMQ_POST_4_3_1
+        if (!this->dataPtr->subscriber->recv(msg))
+#else
+        if (!this->dataPtr->subscriber->recv(&msg, 0))
+#endif
+          return;
+        PublicationMetadata *meta =
+          reinterpret_cast<PublicationMetadata *>(msg.data());
+
+        // Update topic statistics.
+        if (this->dataPtr->enabledTopicStatistics.find(topic) !=
+            this->dataPtr->enabledTopicStatistics.end())
+        {
+          this->dataPtr->topicStats[topic].Update(sender,
+              meta->stamp, meta->seq);
+          this->dataPtr->enabledTopicStatistics[topic](
+              this->dataPtr->topicStats[topic]);
+        }
+      }
     }
     catch(const zmq::error_t &_error)
     {
@@ -1830,5 +1882,29 @@ void NodeSharedPrivate::PublishThread()
           << std::endl;
       }
     }
+  }
+}
+
+//////////////////////////////////////////////////
+std::optional<transport::TopicStatistics> NodeShared::TopicStats(
+    const std::string &_topic) const
+{
+  if (this->dataPtr->topicStats.find(_topic) != this->dataPtr->topicStats.end())
+    return this->dataPtr->topicStats.at(_topic);
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
+void NodeShared::EnableStats(const std::string &_topic, bool _enable,
+    std::function<void(const TopicStatistics &_stats)> _statCb)
+{
+  if (_enable)
+  {
+    this->dataPtr->enabledTopicStatistics.insert({_topic, _statCb});
+  }
+  else
+  {
+    this->dataPtr->enabledTopicStatistics.extract(_topic);
+    // \todo Also cleanup topicStats.
   }
 }
