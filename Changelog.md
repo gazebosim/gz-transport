@@ -1,3 +1,7 @@
+## Ignition Transport 12.X
+
+### Ignition Transport 12.0.0 (202X-XX-XX)
+
 ## Ignition Transport 11.X
 
 ### Ignition Transport 11.0.0 (2021-XX-XX)
@@ -40,7 +44,7 @@
 1. Consider all network interfaces when checking HOST option.
    * [Github pull request 245](https://github.com/ignitionrobotics/ign-transport/pull/245)
 
-1. Remove tools/code_check and update codecov. 
+1. Remove tools/code_check and update codecov.
    * [Github pull request 246](https://github.com/ignitionrobotics/ign-transport/pull/246)
 
 1. Remove deprecated test.
