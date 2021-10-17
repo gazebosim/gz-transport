@@ -1,6 +1,9 @@
 ## Ignition Transport 10.X
 
-### Ignition Transport 10.X.X (2021-XX-XX)
+### Ignition Transport 10.0.1 (2021-10-17)
+
+1. Fix Homebrew warning (backport from Fortress).
+   * [Github pull request 268](https://github.com/ignitionrobotics/ign-transport/pull/268)
 
 ### Ignition Transport 10.0.0 (2021-03-30)
 
