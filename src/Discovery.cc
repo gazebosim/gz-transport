@@ -52,7 +52,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     try
     {
       zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-                std::chrono::milliseconds(_timeout));
+          std::chrono::milliseconds(_timeout));
     }
     catch(...)
     {
