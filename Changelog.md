@@ -1,9 +1,20 @@
 ## Ignition Transport 10.X
 
-### Ignition Transport 10.0.1 (2021-10-17)
+### Ignition Transport 10.X.X
+
+### Ignition Transport 10.1.0 (2021-10-17)
 
 1. Fix Homebrew warning (backport from Fortress).
    * [Github pull request 268](https://github.com/ignitionrobotics/ign-transport/pull/268)
+
+1. Use standalone executables with ign tool.
+   * [Github pull request 216](https://github.com/ignitionrobotics/ign-transport/pull/216)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+   * [Github pull request 237](https://github.com/ignitionrobotics/ign-transport/pull/237)
+
+1. Remove unnecessary copy and assignment operators (#241).
+   * [Github pull request 241](https://github.com/ignitionrobotics/ign-transport/pull/241)
 
 ### Ignition Transport 10.0.0 (2021-03-30)
 

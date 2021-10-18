@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport10 VERSION 10.0.1)
+project(ignition-transport10 VERSION 10.1.0)
 
 #============================================================================
 # Find ignition-cmake
