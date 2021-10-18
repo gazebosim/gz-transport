@@ -165,7 +165,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       std::cerr << "error in getifaddrs: " << strerror(rc) << std::endl;
       exit(-1);
     }
-    char preferred_ip[200] = {0};
 
 #if defined(SIOCGIFINDEX)
     // Open a socket to use IOCTL later.
@@ -232,16 +231,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       // Is not running.
       if (!(ifa->ifa_flags & IFF_UP))
         continue;
-      // IPv6 interface.
-      if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
-        interface = std::string(ip_);
-      // Private network interface.
-      else if (isPrivateIP(ip_) && !preferred_ip[0])
-        interface = std::string(ip_);
       // Any other interface.
-      else if (!isPrivateIP(ip_) &&
-               (isPrivateIP(preferred_ip) || !preferred_ip[0]))
-        interface = std::string(ip_);
+      interface = std::string(ip_);
 
       // Add the new interface if it's new and unique.
       if (!interface.empty() &&
