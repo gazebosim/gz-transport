@@ -86,7 +86,7 @@ Ubuntu distribution equal to 18.04 (Bionic) or newer.
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 ```
-sudo apt-get remove libignition-transport8-dev
+sudo apt-get remove libignition-transport9-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:

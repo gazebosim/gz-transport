@@ -113,12 +113,12 @@ ign-transport
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -131,5 +131,5 @@ version and release information.
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-See also the [LICENSE](https://github.com/ignitionrobotics/ign-transport/raw/master/LICENSE)
+See also the [LICENSE](https://github.com/ignitionrobotics/ign-transport/raw/main/LICENSE)
 file.
