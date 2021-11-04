@@ -12,6 +12,15 @@ project(ignition-transport11 VERSION 11.0.0)
 find_package(ignition-cmake2 2.8.0 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
+# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
+# set command in CMake versions older than 13.13
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+# This option is needed to use the PROTOBUF_GENERATE_CPP
+# in case protobuf is found with the CMake config files
+# It needs to be set before any find_package(...) call
+# as protobuf could be find transitively by any dependency
+set(protobuf_MODULE_COMPATIBLE TRUE)
+
 #============================================================================
 # Configure the project
 #============================================================================
