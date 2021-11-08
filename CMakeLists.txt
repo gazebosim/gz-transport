@@ -5,13 +5,6 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 project(ignition-transport11 VERSION 11.0.0)
 
-#============================================================================
-# Find ignition-cmake
-#============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
-set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
-
 # Setting this policy enables using the protobuf_MODULE_COMPATIBLE
 # set command in CMake versions older than 13.13
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -20,6 +13,13 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # It needs to be set before any find_package(...) call
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
+
+#============================================================================
+# Find ignition-cmake
+#============================================================================
+# If you get an error at this line, you need to install ignition-cmake
+find_package(ignition-cmake2 2.8.0 REQUIRED)
+set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
