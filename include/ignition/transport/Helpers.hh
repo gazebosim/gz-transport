@@ -31,7 +31,7 @@
 #include "ignition/transport/Export.hh"
 
 // Avoid using deprecated message send/receive function when possible.
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1)
+#if ZMQ_VERSION > ZMQ_MAKE_VERSION(4, 3, 1)
   #define IGN_ZMQ_POST_4_3_1
 #endif
 
