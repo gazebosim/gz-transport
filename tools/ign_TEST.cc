@@ -246,7 +246,8 @@ TEST(ignTest, TopicInfoSameProc)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(std::string(IGN_PATH) + " topic -t /foo -i " + g_ignVersion);
+    output = custom_exec_str(std::string(IGN_PATH) + " topic -t /foo -i " +
+        g_ignVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
