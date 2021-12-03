@@ -81,8 +81,8 @@ set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
+ign_find_package(ignition-msgs9 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
