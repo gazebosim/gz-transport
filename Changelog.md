@@ -1,6 +1,18 @@
 ## Ignition Transport 9.X
 
-### Ignition Transport 9.X.X
+### Ignition Transport 9.1.2 (2021-12-21)
+
+1. Documented the default value of `IGN_PARTITION`
+    * [Pull request #281](https://github.com/ignitionrobotics/ign-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/ignitionrobotics/ign-transport/pull/273)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+    * [Pull request #237](https://github.com/ignitionrobotics/ign-transport/pull/237)
+
+1. Fix Homebrew warning (backport from Fortress)
+    * [Pull request #268](https://github.com/ignitionrobotics/ign-transport/pull/268)
 
 ### Ignition Transport 9.1.1 (2021-01-05)
 
@@ -10,7 +22,7 @@
 1. Consider all network interfaces when checking HOST option.
    * [Github pull request 245](https://github.com/ignitionrobotics/ign-transport/pull/245)
 
-1. Remove tools/code_check and update codecov. 
+1. Remove tools/code_check and update codecov.
    * [Github pull request 246](https://github.com/ignitionrobotics/ign-transport/pull/246)
 
 1. Remove deprecated test.
