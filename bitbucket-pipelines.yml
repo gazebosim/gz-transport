@@ -26,7 +26,7 @@ pipelines:
           - apt-get update
           - apt-get -y install
             libignition-cmake2-dev
-            libignition-math6-dev
+            libignition-math7-dev
             libignition-msgs5-dev
             libignition-tools-dev
           # # Install ign-msgs
