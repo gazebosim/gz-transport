@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <functional>
+#include <google/protobuf/util/json_util.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -251,7 +252,7 @@ extern "C" void cmdServiceReq(const char *_service,
 
 //////////////////////////////////////////////////
 extern "C" void cmdTopicEcho(const char *_topic,
-  const double _duration, int _count)
+  const double _duration, int _count, bool jsonOutput)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -266,7 +267,16 @@ extern "C" void cmdTopicEcho(const char *_topic,
   std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &_msg)
   {
     std::lock_guard<std::mutex> lock(mutex);
-    std::cout << _msg.DebugString() << std::endl;
+    if (jsonOutput)
+    {
+      std::string jsonStr;
+      google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
+      std::cout << jsonStr << std::endl;
+    }
+    else
+    {
+      std::cout << _msg.DebugString() << std::endl;
+    }
     ++count;
     condition.notify_one();
   };

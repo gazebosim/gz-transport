@@ -71,9 +71,10 @@ extern "C" void cmdServiceReq(const char *_service,
 /// \param[in] _count Number of messages to echo and then stop. A value <= 0
 /// indicates no limit. The _duration parameter overrides the _count
 /// parameter.
-extern "C" void cmdTopicEcho(const char *_topic,
-                                                        const double _duration,
-                                                        int _count);
+/// \param[in] _jsonOutput If true, message output will be in JSON format.
+/// Otherwise, Protobuf's default DebugString format will be used.
+extern "C" void cmdTopicEcho(const char *_topic, const double _duration,
+                             int _count, bool _jsonOutput);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2

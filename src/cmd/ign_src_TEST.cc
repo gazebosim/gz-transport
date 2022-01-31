@@ -230,11 +230,11 @@ TEST(ignTest, cmdTopicEcho)
   transport::Node node;
 
   // Requesting a null topic should trigger an error message.
-  cmdTopicEcho(nullptr, 10.00, 0);
+  cmdTopicEcho(nullptr, 10.00, 0, false);
   EXPECT_EQ(stdErrBuffer.str(), "Invalid topic. Topic must not be empty.\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  cmdTopicEcho(kInvalidTopic.c_str(), 5.00, 0);
+  cmdTopicEcho(kInvalidTopic.c_str(), 5.00, 0, false);
   EXPECT_EQ(stdErrBuffer.str(), "Topic [/] is not valid.\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
