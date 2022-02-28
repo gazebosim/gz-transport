@@ -252,7 +252,7 @@ extern "C" void cmdServiceReq(const char *_service,
 
 //////////////////////////////////////////////////
 extern "C" void cmdTopicEcho(const char *_topic,
-  const double _duration, int _count, bool jsonOutput)
+  const double _duration, int _count, MsgOutputFormat _outputFormat)
 {
   if (!_topic || std::string(_topic).empty())
   {
@@ -267,15 +267,22 @@ extern "C" void cmdTopicEcho(const char *_topic,
   std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &_msg)
   {
     std::lock_guard<std::mutex> lock(mutex);
-    if (jsonOutput)
+    switch (_outputFormat)
     {
-      std::string jsonStr;
-      google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
-      std::cout << jsonStr << std::endl;
-    }
-    else
-    {
-      std::cout << _msg.DebugString() << std::endl;
+      case MsgOutputFormat::kDefault:
+      case MsgOutputFormat::kDebugString:
+        std::cout << _msg.DebugString() << std::endl;
+        break;
+      case MsgOutputFormat::kJSON:
+        {
+          std::string jsonStr;
+          google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
+          std::cout << jsonStr << std::endl;
+        }
+        break;
+      default:
+        std::cerr << "Invalid output format selected.\n";
+        return;
     }
     ++count;
     condition.notify_one();
