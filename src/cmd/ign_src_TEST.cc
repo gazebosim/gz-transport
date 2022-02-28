@@ -15,6 +15,7 @@
  *
 */
 
+#include <future>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -236,6 +237,45 @@ TEST(ignTest, cmdTopicEcho)
 
   cmdTopicEcho(kInvalidTopic.c_str(), 5.00, 0, MsgOutputFormat::kDefault);
   EXPECT_EQ(stdErrBuffer.str(), "Topic [/] is not valid.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  restoreIO();
+}
+
+/////////////////////////////////////////////////
+TEST(ignTest, cmdTopicEchoOutputFormats)
+{
+  std::stringstream  stdOutBuffer;
+  std::stringstream  stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  transport::Node node;
+  ignition::msgs::Int32 msg;
+  msg.set_data(5);
+
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  auto getSubscriberOutput = [&](MsgOutputFormat _outputFormat)
+  {
+    cmdTopicEcho(g_topic.c_str(), 3.00, 1, _outputFormat);
+    return stdOutBuffer.str();
+  };
+
+  auto defaultOutput = std::async(std::launch::async, getSubscriberOutput,
+                                  MsgOutputFormat::kDefault);
+
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  EXPECT_EQ("data: 5\n\n", defaultOutput.get());
+
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  auto jsonOutput = std::async(std::launch::async, getSubscriberOutput,
+                               MsgOutputFormat::kJSON);
+
+  msg.set_data(10);
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  EXPECT_EQ("{\"data\":10}\n", jsonOutput.get());
+
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   restoreIO();
