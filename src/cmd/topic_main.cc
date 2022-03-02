@@ -96,7 +96,7 @@ void addTopicFlags(CLI::App &_app)
                                      "Duration (seconds) to run");
   auto countOpt = _app.add_option("-n,--num",
                                   opt->count,
-                                  "Numer of messages to echo and then exit");
+                                  "Number of messages to echo and then exit");
 
   durationOpt->excludes(countOpt);
   countOpt->excludes(durationOpt);
