@@ -16,6 +16,7 @@
  */
 
 #include <ignition/utils/cli/CLI.hpp>
+#include <ignition/utils/cli/IgnitionFormatter.hpp>
 
 #include "ign.hh"
 
@@ -106,24 +107,35 @@ void addTopicFlags(CLI::App &_app)
   command->add_flag_callback("-l,--list",
     [opt](){
       opt->command = TopicCommand::kTopicList;
-    });
+    },
+    "List all topics.");
 
   command->add_flag_callback("-i,--info",
     [opt](){
       opt->command = TopicCommand::kTopicInfo;
-    })
+    },
+R"("Get info about a topic. E.g.:
+  ign topic -i -i /foo)")
     ->needs(topicOpt);
 
   command->add_flag_callback("-e,--echo",
     [opt](){
       opt->command = TopicCommand::kTopicEcho;
-    });
+    },
+R"(Output data to screen. E.g.:
+  ign topic -e -t /foo)")
+    ->needs(topicOpt);
 
   command->add_option_function<std::string>("-p,--pub",
       [opt](const std::string &_msgData){
         opt->command = TopicCommand::kTopicPub;
         opt->msgData = _msgData;
-      })
+      },
+R"(Publish a message.
+arg is the message data. The format expected is
+the same used by Protobuf DebugString(). E.g.:
+  ign topic -t /foo -m ignition.msgs.StringMsg \
+    -p 'data:"Custom data"')")
     ->needs(topicOpt)
     ->needs(msgTypeOpt);
 
@@ -141,5 +153,6 @@ int main(int argc, char** argv)
   });
 
   addTopicFlags(app);
+  app.formatter(std::make_shared<IgnitionFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
 }
