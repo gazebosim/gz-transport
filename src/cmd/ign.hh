@@ -63,6 +63,21 @@ extern "C" void cmdServiceReq(const char *_service,
                                                          const int _timeout,
                                                          const char *_reqData);
 
+extern "C" {
+  /// \brief Enum used for specifing the message output format for functions
+  /// like cmdTopicEcho.
+  enum class MsgOutputFormat {
+    // Default. Currently, this is Protobuf's DebugString output format.
+    kDefault,
+
+    // Output format used in Protobuf's Message::DebugString.
+    kDebugString,
+
+    // JSON output.
+    kJSON
+  };
+}
+
 /// \brief External hook to execute 'ign topic -e' from the command line.
 /// The _duration parameter overrides the _count parameter.
 /// \param[in] _topic Topic name.
@@ -71,9 +86,9 @@ extern "C" void cmdServiceReq(const char *_service,
 /// \param[in] _count Number of messages to echo and then stop. A value <= 0
 /// indicates no limit. The _duration parameter overrides the _count
 /// parameter.
-extern "C" void cmdTopicEcho(const char *_topic,
-                                                        const double _duration,
-                                                        int _count);
+/// \param[in] _outputFormat Message output format.
+extern "C" void cmdTopicEcho(const char *_topic, const double _duration,
+                             int _count, MsgOutputFormat _outputFormat);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2

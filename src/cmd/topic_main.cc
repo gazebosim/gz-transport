@@ -53,6 +53,9 @@ struct TopicOptions
 
   /// \brief Number of messages to echo
   int count{-1};
+
+  /// \brief Message output format
+  MsgOutputFormat msgOutputFormat {MsgOutputFormat::kDefault};
 };
 
 //////////////////////////////////////////////////
@@ -73,7 +76,8 @@ void runTopicCommand(const TopicOptions &_opt)
                   _opt.msgData.c_str());
       break;
     case TopicCommand::kTopicEcho:
-      cmdTopicEcho(_opt.topic.c_str(), _opt.duration, _opt.count);
+      cmdTopicEcho(_opt.topic.c_str(), _opt.duration, _opt.count,
+                   _opt.msgOutputFormat);
       break;
     case TopicCommand::kNone:
     default:
@@ -118,6 +122,10 @@ void addTopicFlags(CLI::App &_app)
     [opt](){
       opt->command = TopicCommand::kTopicEcho;
     });
+
+  command->add_flag_callback("--json-output",
+      [opt]() { opt->msgOutputFormat = MsgOutputFormat::kJSON; },
+      "Output messages in JSON format");
 
   command->add_option_function<std::string>("-p,--pub",
       [opt](const std::string &_msgData){
