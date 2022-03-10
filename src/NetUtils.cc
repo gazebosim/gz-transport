@@ -392,14 +392,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
           result = pd.pw_name;
           break;
         }
-        else
-        {
-          std::cerr << "Error getting username: no matching password record.\n";
-        }
-      }
-      else
-      {
-        std::cerr << "Error getting username: " << strerror(errno) << std::endl;
       }
     }
 
