@@ -1,5 +1,5 @@
-# Ubuntu 18.04
-FROM ubuntu:bionic
+# Ubuntu 20.04
+FROM ubuntu:focal
 
 # Tools I find useful during development
 RUN apt-get update \
@@ -20,17 +20,11 @@ RUN apt-get update \
         doxygen \
         ruby-ronn \
         libsqlite3-dev \
-        g++-8 \
         sudo \
         gnupg \
         lsb-release \
         wget \
  && apt-get clean
-
-# Use GCC 8
- RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 \
-        --slave /usr/bin/g++ g++ /usr/bin/g++-8 \
-        --slave /usr/bin/gcov gcov /usr/bin/gcov-8
 
 # Set USER and GROUP
 ARG USER=developer

@@ -84,7 +84,7 @@ which version you need.
 ## Ubuntu Linux
 
 For compiling the latest version of Ignition Transport you will need an
-Ubuntu distribution equal to 18.04 (Bionic) or newer.
+Ubuntu distribution equal to 20.04 (Focal) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
