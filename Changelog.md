@@ -19,7 +19,21 @@
 
 ## Ignition Transport 10.X
 
-### Ignition Transport 10.X.X (2021-XX-XX)
+### Ignition Transport 10.X.X
+
+### Ignition Transport 10.1.0 (2021-10-17)
+
+1. Fix Homebrew warning (backport from Fortress).
+   * [Github pull request 268](https://github.com/ignitionrobotics/ign-transport/pull/268)
+
+1. Use standalone executables with ign tool.
+   * [Github pull request 216](https://github.com/ignitionrobotics/ign-transport/pull/216)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+   * [Github pull request 237](https://github.com/ignitionrobotics/ign-transport/pull/237)
+
+1. Remove unnecessary copy and assignment operators (#241).
+   * [Github pull request 241](https://github.com/ignitionrobotics/ign-transport/pull/241)
 
 ### Ignition Transport 10.0.0 (2021-03-30)
 
@@ -129,6 +143,25 @@
 1. Addition of topic statistics that can report number of dropped messages
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
+
+### Ignition Transport 8.2.1 (2021-10-27)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+    * [Pull request #237](https://github.com/ignitionrobotics/ign-transport/pull/237)
+    * [Pull request #274](https://github.com/ignitionrobotics/ign-transport/pull/274)
+
+1. Fix Homebrew warning (backport from Fortress)
+    * [Pull request #268](https://github.com/ignitionrobotics/ign-transport/pull/268)
+
+1. Infrastructure
+    * [Pull request #246](https://github.com/ignitionrobotics/ign-transport/pull/246)
+    * [Pull request #224](https://github.com/ignitionrobotics/ign-transport/pull/224)
+
+1. Remove deprecated test
+    * [Pull request #239](https://github.com/ignitionrobotics/ign-transport/pull/239)
+
+1. Add Windows Installation using conda-forge, and cleanup install docs
+    * [Pull request #214](https://github.com/ignitionrobotics/ign-transport/pull/214)
 
 ### Ignition Transport 8.2.0 (2020-01-05)
 
