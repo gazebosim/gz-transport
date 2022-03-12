@@ -70,7 +70,7 @@ namespace ignition
         /// the queries to be ordered by the time the messages were received by
         /// the logger. It will also end the statement with a semicolon.
         ///
-        /// \return \code{" ORDER BY messages.time_recv;"}
+        /// \return \code{" ORDER BY messages.time_recv;"}\endcode
         public: static SqlStatement StandardMessageQueryClose();
 
         /// \brief Virtual destructor
@@ -211,7 +211,7 @@ namespace ignition
         /// \brief Query for topics that match a pattern, over a specified time
         /// range (by default, all time).
         /// \param[in] _pattern The initial pattern that this option should use
-        /// \paramp[in] _timeRange The initial range of time for this option
+        /// \param[in] _timeRange The initial range of time for this option
         public: TopicPattern(
           const std::regex &_pattern,
           const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());

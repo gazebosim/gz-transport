@@ -43,11 +43,6 @@ namespace ignition
         /// \brief Default constructor
         public: MsgIter();
 
-        /// \brief Copy Constructor
-        /// \param[in] _orig the instance being copied
-        // TODO(anyone)
-        // public: MsgIter(const MsgIter &_orig);
-
         /// \brief Move Constructor
         /// \param[in] _orig the instance being copied
         public: MsgIter(MsgIter &&_orig);  // NOLINT
@@ -63,11 +58,6 @@ namespace ignition
         /// \brief Prefix increment
         /// \return a reference to this instance
         public: MsgIter &operator++();
-
-        /// \brief Postfix increment
-        /// \return a reference to a copy of this iterator before incrementing
-        // TODO(anyone)
-        // public: MsgIter operator++(int);
 
         /// \brief Equality operator
         /// \param[in] _other the iterator this is being compared to
