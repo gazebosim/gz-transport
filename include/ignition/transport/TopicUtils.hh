@@ -76,7 +76,7 @@ namespace ignition
       ///              applied to the topic name. If not empty, it will always
       ///              start with a "/". A trailing slash will always be
       ///              removed
-      /// \<TOPIC\>:     The topic name. A trailing slash will always be removed.
+      /// \<TOPIC\>: The topic name. A trailing slash will always be removed.
       ///
       /// Note: Intuitively, you can imagine the fully qualified name as a
       /// UNIX absolute path, where the partition is always sorrounded by "@".
