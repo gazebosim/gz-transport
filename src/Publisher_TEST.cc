@@ -272,6 +272,12 @@ TEST(PublisherTest, ServicePublisher)
   EXPECT_TRUE(pub1 == pub2);
   EXPECT_FALSE(pub1 != pub2);
 
+  ServicePublisher pub3;
+  pub3 = pub1;
+
+  EXPECT_TRUE(pub1 == pub3);
+  EXPECT_FALSE(pub1 != pub3);
+
   // Modify the publisher's member variables.
   pub1.SetTopic(g_newTopic);
   pub1.SetAddr(g_newAddr);

@@ -379,6 +379,12 @@ namespace ignition
       /// \param[in] _other Other ServicePublisher object.
       public: ServicePublisher(const ServicePublisher &_other);
 
+      /// \brief Assignment operator.
+      /// \param[in] _other The other Publisher.
+      /// \return A reference to this instance.
+      public: ServicePublisher &operator=(const ServicePublisher &_other)
+          = default;
+
       /// \brief Destructor.
       public: virtual ~ServicePublisher() = default;
 
