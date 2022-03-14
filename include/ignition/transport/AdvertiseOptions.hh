@@ -37,7 +37,7 @@ namespace ignition
     class AdvertiseMessageOptionsPrivate;
     class AdvertiseServiceOptionsPrivate;
 
-    /// \def Scope This strongly typed enum defines the different options for
+    /// \brief This strongly typed enum defines the different options for
     /// the scope of a topic/service.
     enum class Scope_t
     {
