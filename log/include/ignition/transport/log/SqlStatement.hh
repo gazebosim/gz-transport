@@ -74,7 +74,7 @@ namespace ignition
         /// \sa Set(const std::string &)
         /// \brief Construct string parameter
         /// \param[in] _string a string
-        public: explicit SqlParameter(const std::string &_text);
+        public: explicit SqlParameter(const std::string &_string);
 
         /// \brief Copy constructor
         /// \param[in] _other Another SqlParameter
