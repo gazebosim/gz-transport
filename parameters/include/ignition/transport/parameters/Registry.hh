@@ -23,32 +23,54 @@
 
 #include "google/protobuf/message.h"
 
-#include "ignition/transport/Node.hh"
+#include <ignition/transport/config.hh>
 
-class ParametersRegistry
+namespace ignition
 {
-  public: ParametersRegistry(
-    ignition::transport::Node _node, std::string _parametersServicesNamespace);
- 
-  public: void DeclareParameter(
-    std::string _parameterName, const google::protobuf::Message * _initialValue);
- 
-  public: std::unique_ptr<google::protobuf::Message> GetParameter(
-    std::string _parameterName);
-  
-  public: void SetParameter(
-    std::string _parameterName, const google::protobuf::Message * _value);
-  
-  public: template<typename ProtoMsgT>
-  void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);
-  
-  public: template<typename ProtoMsgT>
-  ProtoMsgT GetParameter(std::string _parameterName);
-  
-  public: template<typename ProtoMsgT>
-  void SetParameter(std::string _parameterName, ProtoMsgT _value);
+  namespace transport
+  {
+    namespace parameters
+    {
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-  private: ignition::transport::Node node;
-};
+      struct ParametersRegistryPrivate;
+
+      class ParametersRegistry
+      {
+        public: struct ParameterValue
+        {
+          std::unique_ptr<google::protobuf::Message> msg;
+          std::string protoType;
+        };
+
+        public: ParametersRegistry(std::string _parametersServicesNamespace);
+      
+        public: void DeclareParameter(
+          std::string _parameterName,
+          std::string _protoType,
+          const google::protobuf::Message * _initialValue);
+      
+        public: ParameterValue GetParameter(
+          std::string _parameterName);
+        
+        public: void SetParameter(
+          std::string _parameterName, std::string _protoType, const google::protobuf::Message * _value);
+        
+        public: template<typename ProtoMsgT>
+        void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);
+        
+        public: template<typename ProtoMsgT>
+        ProtoMsgT GetParameter(std::string _parameterName);
+        
+        public: template<typename ProtoMsgT>
+        void SetParameter(std::string _parameterName, ProtoMsgT _value);
+
+        private: std::unique_ptr<ParametersRegistryPrivate> dataPtr;
+      };
+      }
+    }
+  }
+}
 
 #endif
