@@ -66,17 +66,17 @@ namespace ignition
       /// \brief Get the full topic path given a namespace and a topic name.
       /// A fully qualified topic name's length must not exceed kMaxNameLength.
       /// The fully qualified name follows the next syntax:
-      /// @<PARTITION>@<NAMESPACE>/<TOPIC>
+      /// \@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>
       /// where:
-      /// <PARTITION>: The name of the partition or empty string.
+      /// \<PARTITION\>: The name of the partition or empty string.
       ///              A "/" will be prefixed to the partition name unless is
       ///              empty or it already starts with slash. A trailing slash
       ///              will always be removed.
-      /// <NAMESPACE>: The namespace or empty string. A namespace is a prefix
+      /// \<NAMESPACE\>: The namespace or empty string. A namespace is a prefix
       ///              applied to the topic name. If not empty, it will always
       ///              start with a "/". A trailing slash will always be
       ///              removed
-      /// <TOPIC>:     The topic name. A trailing slash will always be removed.
+      /// \<TOPIC\>: The topic name. A trailing slash will always be removed.
       ///
       /// Note: Intuitively, you can imagine the fully qualified name as a
       /// UNIX absolute path, where the partition is always sorrounded by "@".
@@ -110,10 +110,11 @@ namespace ignition
       ///
       /// Given a fully qualified topic name with the following syntax:
       ///
-      /// @<PARTITION>@<NAMESPACE>/<TOPIC>
+      /// \@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>
       ///
-      /// The _partition output argument will be set to <PARTITION>, and the
-      /// _namespaceAndTopic output argument will be set to <NAMESPACE>/<TOPIC>.
+      /// The _partition output argument will be set to \<PARTITION\>, and the
+      /// _namespaceAndTopic output argument will be set to
+      /// \<NAMESPACE\>/\<TOPIC\>.
       ///
       /// \param[in] _fullyQualifiedName The fully qualified topic name.
       /// \param[out] _partition The partition component of the fully qualified

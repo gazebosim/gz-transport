@@ -31,7 +31,7 @@ subscribe to the same topic and will receive the messages containing the image.
 A node could also offer an echo service in the topic `/echo`. Any node
 interested in this service will request a service call on topic `/echo`. The
 service call will accept arguments and will return a result. In our echo
-service example (\ref services), the result will be similar 
+service example (\ref services), the result will be similar
 to the input parameter passed to the service.
 
 There are some rules to follow when selecting a topic name. It should be any
@@ -51,7 +51,7 @@ The following symbols are not allowed as part of the topic name: `@`, `:=`, `~`.
 | //image     | Invalid  | Contains two consecutive `//` |
 | /           | Invalid  | `/` topic is not allowed      |
 | ~myTopic    | Invalid  | Symbol `~` not allowed        |
-| @myTopic    | Invalid  | Symbol `@` not allowed        |
+| \@myTopic   | Invalid  | Symbol `@` not allowed        |
 | myTopic:=   | Invalid  | Symbol `:=` not allowed       |
 
 ## Topic scope

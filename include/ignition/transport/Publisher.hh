@@ -50,7 +50,7 @@ namespace ignition
       /// \param[in] _topic Topic name.
       /// \param[in] _addr ZeroMQ address.
       /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUUID node UUID.
+      /// \param[in] _nUuid node UUID.
       /// \param[in] _opts The advertise options.
       public: Publisher(const std::string &_topic,
                         const std::string &_addr,
@@ -197,7 +197,7 @@ namespace ignition
       /// \param[in] _addr ZeroMQ address.
       /// \param[in] _ctrl ZeroMQ control address.
       /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUUID node UUID.
+      /// \param[in] _nUuid node UUID.
       /// \param[in] _msgTypeName Message type advertised by this publisher.
       /// \param[in] _opts Advertise options.
       public: explicit MessagePublisher(const std::string &_topic,
@@ -321,7 +321,7 @@ namespace ignition
       /// \param[in] _addr ZeroMQ address.
       /// \param[in] _id ZeroMQ socket ID.
       /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUUID node UUID.
+      /// \param[in] _nUuid node UUID.
       /// \param[in] _reqType Message type used in the service request.
       /// \param[in] _repType Message type used in the service response.
       /// \param[in] _opts Advertise options.
