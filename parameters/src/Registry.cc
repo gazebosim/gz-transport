@@ -89,9 +89,9 @@ ParametersRegistry::ParametersRegistry(
   this->dataPtr->node.Advertise(setParameterSrvName,
     &ParametersRegistryPrivate::SetParameter, this->dataPtr.get());
 
-  // std::string setParameterSrvName{_parametersServicesNamespace + "/declare_parameter"};
-  // this->dataPtr->node.Advertise(setParameterSrvName,
-  //   &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
+  std::string declareParameterSrvName{_parametersServicesNamespace + "/declare_parameter"};
+  this->dataPtr->node.Advertise(declareParameterSrvName,
+    &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
 }
 
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
@@ -172,21 +172,21 @@ void ParametersRegistry::DeclareParameter(
   std::string _parameterName,
   std::unique_ptr<google::protobuf::Message> _initialValue)
 {
+  if (!_initialValue) {
+    throw std::invalid_argument{
+      "ParametersRegistry::DeclareParameter(): `_parameterName` is nullptr"};
+  }
   ParametersRegistry::ParameterValue value;
   value.protoType = std::string{"ign_msgs."}
     + _initialValue->GetDescriptor()->name();
-  if (!_initialValue) {
-    throw std::invalid_argument{
-      "DeclareParameter() provided initial value is nullptr"};
-  }
   value.msg = std::move(_initialValue);
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it_emplaced_pair = this->dataPtr->parametersMap.emplace(
     std::make_pair(value.protoType, std::move(value)));
   if (!it_emplaced_pair.second) {
-    throw std::runtime_error{
-      "DeclareParameter(): parameter [" +
-      _parameterName + "] was already declared."};
+    throw ParameterAlreadyDeclaredException{
+      "ParametersRegistry::DeclareParameter()",
+      _parameterName.c_str()};
   }
 }
 
@@ -198,14 +198,15 @@ ParametersRegistry::GetParameter(std::string _parameterName)
     std::lock_guard guard{this->dataPtr->parametersMapMutex};
     auto it = this->dataPtr->parametersMap.find(_parameterName);
     if (it == this->dataPtr->parametersMap.end()) {
-      throw std::runtime_error{
-        "parameter [" + _parameterName + "] was not declared"};
+      throw ParameterNotDeclaredException{
+        "ParametersRegistry::GetParameter()",
+        _parameterName.c_str()};
     }
     ret.protoType = it->second.protoType;
     ret.msg = ignition::msgs::Factory::New(ret.protoType);
     if (!ret.msg) {
       throw std::runtime_error{
-        "ParametersRegistry::GetParameter(): could not create new message"
+        "ParametersRegistry::GetParameter(): failed to create new message"
         " of type [" + ret.protoType + "]"};
     }
     ret.msg->CopyFrom(*it->second.msg);
@@ -221,30 +222,55 @@ ParametersRegistry::SetParameter(
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it = this->dataPtr->parametersMap.find(_parameterName);
   if (it == this->dataPtr->parametersMap.end()) {
-    throw std::runtime_error{
-      "parameter [" + _parameterName + "] was not declared"};
+    throw ParameterNotDeclaredException{
+      "ParametersRegistry::GetParameter()",
+      _parameterName.c_str()};
   }
   // Validate the type matches before copying.
   if (it->second.msg->GetDescriptor() != _value->GetDescriptor()) {
-    throw std::invalid_argument{
-      "Trying to set parameter [" + _parameterName + "] of type [" +
-      it->second.protoType + "] to a different type [ign_msgs." +
-      _value->GetDescriptor()->name() + "]"};
+    throw ParameterInvalidTypeException{
+      "ParametersRegistry::SetParameter",
+      _parameterName.c_str(),
+      it->second.protoType.c_str(),
+      _value->GetDescriptor()->name().c_str()};
   }
-  it->second.msg->CopyFrom(*_value);
+  it->second.msg = std::move(_value);
 }
 
-// public: ParameterValue GetParameter(
-//   std::string _parameterName);
+void
+ParametersRegistry::SetParameter(
+  std::string _parameterName,
+  google::protobuf::Message & _value)
+{
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it = this->dataPtr->parametersMap.find(_parameterName);
+  if (it == this->dataPtr->parametersMap.end()) {
+    throw ParameterNotDeclaredException{
+      "ParametersRegistry::GetParameter()",
+      _parameterName.c_str()};
+  }
+  // Validate the type matches before copying.
+  if (it->second.msg->GetDescriptor() != _value.GetDescriptor()) {
+    throw ParameterInvalidTypeException{
+      "ParametersRegistry::SetParameter",
+      _parameterName.c_str(),
+      it->second.protoType.c_str(),
+      _value.GetDescriptor()->name().c_str()};
+  }
+  it->second.msg->CopyFrom(_value);
+}
 
-// public: void SetParameter(
-//   std::string _parameterName, std::string _protoType, const google::protobuf::Message * _value);
-
-// public: template<typename ProtoMsgT>
-// void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);
-
-// public: template<typename ProtoMsgT>
-// ProtoMsgT GetParameter(std::string _parameterName);
-
-// public: template<typename ProtoMsgT>
-// void SetParameter(std::string _parameterName, ProtoMsgT _value);
+void
+ParametersRegistry::WithParameter(
+  std::string _parameterName,
+  std::function<void(google::protobuf::Message &)> fn)
+{
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it = this->dataPtr->parametersMap.find(_parameterName);
+  if (it == this->dataPtr->parametersMap.end()) {
+    throw ParameterNotDeclaredException{
+      "ParametersRegistry::GetParameter()",
+      _parameterName.c_str()};
+  }
+  fn(*it->second.msg);
+}

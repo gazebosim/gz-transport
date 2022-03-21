@@ -18,12 +18,14 @@
 #ifndef IGNITION_TRANSPORT_PARAMETERS_REGISTRY_HH_
 #define IGNITION_TRANSPORT_PARAMETERS_REGISTRY_HH_
 
+#include <functional>
 #include <memory>
 #include <string>
 
 #include "google/protobuf/message.h"
 
-#include <ignition/transport/config.hh>
+#include "ignition/transport/config.hh"
+#include "ignition/transport/parameters/exceptions.hh"
 
 namespace ignition
 {
@@ -56,17 +58,34 @@ namespace ignition
         public: void SetParameter(
           std::string _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
-        
+
+        public: void SetParameter(
+          std::string _parameterName,
+          google::protobuf::Message & _value);
+
         public: template<typename ProtoMsgT>
-        void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);
-        
-        public: template<typename ProtoMsgT>
-        ProtoMsgT GetParameter(std::string _parameterName);
-        
-        public: template<typename ProtoMsgT>
-        void SetParameter(std::string _parameterName, ProtoMsgT _value);
+        ProtoMsgT GetParameter(std::string _parameterName)
+        {
+          ProtoMsgT ret;
+          this->WithParameter(
+            _parameterName,
+            [nameCStr = _parameterName.c_str() , &ret](google::protobuf::Message & _msg) {
+              if (_msg.GetDescriptor() != ret.GetDescriptor()) {
+                throw ParameterInvalidTypeException{
+                  "ParametersRegistry::GetParameter",
+                  nameCStr,
+                  _msg.GetDescriptor()->name().c_str(),
+                  ret.GetDescriptor()->name().c_str()};
+              }
+              ret.CopyFrom(_msg);
+            });
+        }
 
         private: std::unique_ptr<ParametersRegistryPrivate> dataPtr;
+
+        private: void WithParameter(
+          std::string _parameterName,
+          std::function<void(google::protobuf::Message &)> fn);
       };
       }
     }
