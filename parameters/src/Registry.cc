@@ -74,7 +74,7 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
 };
 
 ParametersRegistry::ParametersRegistry(
-  std::string _parametersServicesNamespace)
+  std::string  _parametersServicesNamespace)
   : dataPtr{std::make_unique<ParametersRegistryPrivate>()}
 {
   std::string getParameterSrvName{_parametersServicesNamespace + "/get_parameter"};
@@ -169,7 +169,7 @@ bool ParametersRegistryPrivate::DeclareParameter(const msgs::Parameter &_req, ms
 }
 
 void ParametersRegistry::DeclareParameter(
-  std::string _parameterName,
+  const std::string & _parameterName,
   std::unique_ptr<google::protobuf::Message> _initialValue)
 {
   if (!_initialValue) {
@@ -191,7 +191,7 @@ void ParametersRegistry::DeclareParameter(
 }
 
 ParametersRegistry::ParameterValue
-ParametersRegistry::GetParameter(std::string _parameterName)
+ParametersRegistry::GetParameter(const std::string & _parameterName)
 {
   ParameterValue ret;
   {
@@ -216,7 +216,7 @@ ParametersRegistry::GetParameter(std::string _parameterName)
 
 void
 ParametersRegistry::SetParameter(
-  std::string _parameterName,
+  const std::string & _parameterName,
   std::unique_ptr<google::protobuf::Message> _value)
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
@@ -239,7 +239,7 @@ ParametersRegistry::SetParameter(
 
 void
 ParametersRegistry::SetParameter(
-  std::string _parameterName,
+  const std::string & _parameterName,
   google::protobuf::Message & _value)
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
@@ -262,7 +262,7 @@ ParametersRegistry::SetParameter(
 
 void
 ParametersRegistry::WithParameter(
-  std::string _parameterName,
+  const std::string & _parameterName,
   std::function<void(google::protobuf::Message &)> fn)
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};

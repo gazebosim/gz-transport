@@ -49,22 +49,22 @@ namespace ignition
         public: ParametersRegistry(std::string _parametersServicesNamespace);
       
         public: void DeclareParameter(
-          std::string _parameterName,
+          const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _initialValue);
       
         public: ParameterValue GetParameter(
-          std::string _parameterName);
+          const std::string & _parameterName);
         
         public: void SetParameter(
-          std::string _parameterName,
+          const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
 
         public: void SetParameter(
-          std::string _parameterName,
+          const std::string & _parameterName,
           google::protobuf::Message & _value);
 
         public: template<typename ProtoMsgT>
-        ProtoMsgT GetParameter(std::string _parameterName)
+        ProtoMsgT GetParameter(const std::string & _parameterName)
         {
           ProtoMsgT ret;
           this->WithParameter(
@@ -84,7 +84,7 @@ namespace ignition
         private: std::unique_ptr<ParametersRegistryPrivate> dataPtr;
 
         private: void WithParameter(
-          std::string _parameterName,
+          const std::string & _parameterName,
           std::function<void(google::protobuf::Message &)> fn);
       };
       }
