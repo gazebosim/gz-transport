@@ -48,14 +48,14 @@ namespace ignition
       
         public: void DeclareParameter(
           std::string _parameterName,
-          std::string _protoType,
-          const google::protobuf::Message * _initialValue);
+          std::unique_ptr<google::protobuf::Message> _initialValue);
       
         public: ParameterValue GetParameter(
           std::string _parameterName);
         
         public: void SetParameter(
-          std::string _parameterName, std::string _protoType, const google::protobuf::Message * _value);
+          std::string _parameterName,
+          std::unique_ptr<google::protobuf::Message> _value);
         
         public: template<typename ProtoMsgT>
         void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);

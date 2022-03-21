@@ -31,6 +31,9 @@
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
 
+#include <ignition/transport/parameters/exceptions.hh>
+
+
 using namespace ignition;
 using namespace transport;
 using namespace parameters;
@@ -59,6 +62,12 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
   /// \return True if successful.
   bool SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res);
 
+  /// \brief Declare parameter service callback.
+  /// \param[in] _req Request specifying which parameter to be declared.
+  /// \param[out] _res Unused.
+  /// \return True if successful.
+  bool DeclareParameter(const msgs::Parameter &_req, msgs::Boolean &_res);
+
   ignition::transport::Node node;
   std::mutex parametersMapMutex;
   ParametersMapT parametersMap;
@@ -80,21 +89,20 @@ ParametersRegistry::ParametersRegistry(
   this->dataPtr->node.Advertise(setParameterSrvName,
     &ParametersRegistryPrivate::SetParameter, this->dataPtr.get());
 
-  std::string setParameterSrvName{_parametersServicesNamespace + "/declare_parameter"};
-  this->dataPtr->node.Advertise(setParameterSrvName,
-    &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
+  // std::string setParameterSrvName{_parametersServicesNamespace + "/declare_parameter"};
+  // this->dataPtr->node.Advertise(setParameterSrvName,
+  //   &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
 }
 
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   msgs::ParameterValue &_res)
 {
-  const auto & param_name = _req.name();
   std::string protoType;
   std::ostringstream oss;
   {
     std::lock_guard guard{this->parametersMapMutex};
-    auto it = this->registry.find(param_name);
-    if (it == this->registry.end()) {
+    auto it = this->parametersMap.find(_req.name());
+    if (it == this->parametersMap.end()) {
       return false;
     }
     it->second.msg->SerializeToOstream(&oss);
@@ -112,14 +120,11 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   // Maybe only names and types (?)
   // Including the component key doesn't seem to matter much, though it's also not wrong.
   {
-    std::lock_guard guard{this->registryMutex};
-    for (const auto & paramPair: this->registry) {
+    std::lock_guard guard{this->parametersMapMutex};
+    for (const auto & paramPair: this->parametersMap) {
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
-      const auto & cmpKey = paramPair.second.componentKey;
       decl->set_type(paramPair.second.protoType);
-      decl->set_component_type_id(cmpKey.first);
-      decl->set_component_id(cmpKey.second);
     }
   }
   return true;
@@ -127,56 +132,119 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
 
 bool ParametersRegistryPrivate::SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res)
 {
-  const auto & param_name = _req.name();
-  ComponentKey key;
-  Entity entity;
+  (void)_res;
+  const auto & paramName = _req.name();
   std::string protoType;
   {
-    std::lock_guard guard{this->registryMutex};
-    auto it = this->registry.find(param_name);
-    if (it == this->registry.end()) {
+    std::lock_guard guard{this->parametersMapMutex};
+    auto it = this->parametersMap.find(paramName);
+    if (it == this->parametersMap.end()) {
       return false;
     }
-    key = it->second.componentKey;
-    entity = it->second.entity;
     protoType = it->second.protoType;
+    if (protoType != _req.type()) {
+      // parameter type doesn't match
+      return false;
+    }
+    std::istringstream iss{_req.value()};
+    it->second.msg->ParseFromIstream(&iss);
   }
-  if (protoType != _req.type()) {
-    // parameter type doesn't match
-    return false;
-  }
-  auto * component = this->ecm->Component<components::BaseComponent>(key);
-  if (!component) {
-    // component was removed
-    // TODO(ivanpauno): Add a way to underclare a parameter
-    return false;
-  }
-  std::istringstream iss{_req.value()};
-  component->Deserialize(iss);
-  this->ecm->SetChanged(entity, key.first);
-  _res.set_data(true);
-  // TODO(ivanpauno): Without this, the call is timing out for some reason.
   return true;
 }
 
-//   void
-//   DeclareParameter(std::string parameterName, const google::protobuf::Message * initialValue);
+bool ParametersRegistryPrivate::DeclareParameter(const msgs::Parameter &_req, msgs::Boolean &_res)
+{
+  (void)_res;
+  ParametersRegistry::ParameterValue value;
+  value.protoType = _req.type();
+  value.msg = ignition::msgs::Factory::New(_req.type(), _req.value());
+  if (!value.msg) {
+    return false;
+  }
+  std::lock_guard guard{this->parametersMapMutex};
+  auto it_emplaced_pair = this->parametersMap.emplace(
+    std::make_pair(_req.name(), std::move(value)));
+  // return false when already declared
+  return it_emplaced_pair.second;
+}
 
-//   std::unique_ptr<google::protobuf::Message>
-//   GetParameter(std::string parameterName);
-  
-//   void
-//   SetParameter(std::string parameterName, const google::protobuf::Message * value);
-  
-//   template<typename ProtoMsgT>
-//   void
-//   DeclareParameter(std::string parameterName, ProtoMsgT initialValue);
-  
-//   template<typename ProtoMsgT>
-//   ProtoMsgT
-//   GetParameter(std::string parameterName);
-  
-//   template<typename ProtoMsgT>
-//   void
-//   SetParameter(std::string parameterName, ProtoMsgT value);
-// };
+void ParametersRegistry::DeclareParameter(
+  std::string _parameterName,
+  std::unique_ptr<google::protobuf::Message> _initialValue)
+{
+  ParametersRegistry::ParameterValue value;
+  value.protoType = std::string{"ign_msgs."}
+    + _initialValue->GetDescriptor()->name();
+  if (!_initialValue) {
+    throw std::invalid_argument{
+      "DeclareParameter() provided initial value is nullptr"};
+  }
+  value.msg = std::move(_initialValue);
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it_emplaced_pair = this->dataPtr->parametersMap.emplace(
+    std::make_pair(value.protoType, std::move(value)));
+  if (!it_emplaced_pair.second) {
+    throw std::runtime_error{
+      "DeclareParameter(): parameter [" +
+      _parameterName + "] was already declared."};
+  }
+}
+
+ParametersRegistry::ParameterValue
+ParametersRegistry::GetParameter(std::string _parameterName)
+{
+  ParameterValue ret;
+  {
+    std::lock_guard guard{this->dataPtr->parametersMapMutex};
+    auto it = this->dataPtr->parametersMap.find(_parameterName);
+    if (it == this->dataPtr->parametersMap.end()) {
+      throw std::runtime_error{
+        "parameter [" + _parameterName + "] was not declared"};
+    }
+    ret.protoType = it->second.protoType;
+    ret.msg = ignition::msgs::Factory::New(ret.protoType);
+    if (!ret.msg) {
+      throw std::runtime_error{
+        "ParametersRegistry::GetParameter(): could not create new message"
+        " of type [" + ret.protoType + "]"};
+    }
+    ret.msg->CopyFrom(*it->second.msg);
+  }
+  return ret;
+}
+
+void
+ParametersRegistry::SetParameter(
+  std::string _parameterName,
+  std::unique_ptr<google::protobuf::Message> _value)
+{
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it = this->dataPtr->parametersMap.find(_parameterName);
+  if (it == this->dataPtr->parametersMap.end()) {
+    throw std::runtime_error{
+      "parameter [" + _parameterName + "] was not declared"};
+  }
+  // Validate the type matches before copying.
+  if (it->second.msg->GetDescriptor() != _value->GetDescriptor()) {
+    throw std::invalid_argument{
+      "Trying to set parameter [" + _parameterName + "] of type [" +
+      it->second.protoType + "] to a different type [ign_msgs." +
+      _value->GetDescriptor()->name() + "]"};
+  }
+  it->second.msg->CopyFrom(*_value);
+}
+
+// public: ParameterValue GetParameter(
+//   std::string _parameterName);
+
+// public: void SetParameter(
+//   std::string _parameterName, std::string _protoType, const google::protobuf::Message * _value);
+
+// public: template<typename ProtoMsgT>
+// void DeclareParameter(std::string _parameterName, ProtoMsgT _initialValue);
+
+// public: template<typename ProtoMsgT>
+// ProtoMsgT GetParameter(std::string _parameterName);
+
+// public: template<typename ProtoMsgT>
+// void SetParameter(std::string _parameterName, ProtoMsgT _value);
