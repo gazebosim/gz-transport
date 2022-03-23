@@ -232,7 +232,7 @@ ParametersRegistry::SetParameter(
       "ParametersRegistry::SetParameter",
       _parameterName.c_str(),
       it->second.protoType.c_str(),
-      _value->GetDescriptor()->name().c_str()};
+      (std::string{"ign_msgs."} + _value->GetDescriptor()->name()).c_str()};
   }
   it->second.msg = std::move(_value);
 }
@@ -255,7 +255,7 @@ ParametersRegistry::SetParameter(
       "ParametersRegistry::SetParameter",
       _parameterName.c_str(),
       it->second.protoType.c_str(),
-      _value.GetDescriptor()->name().c_str()};
+      (std::string{"ign_msgs."} + _value.GetDescriptor()->name()).c_str()};
   }
   it->second.msg->CopyFrom(_value);
 }
