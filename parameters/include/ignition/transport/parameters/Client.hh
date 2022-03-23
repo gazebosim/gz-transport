@@ -25,25 +25,37 @@
 
 #include "ignition/transport/Node.hh"
 
-class ParametersClient
+namespace ignition
 {
-public:
- ParametersClient(ignition::transport::Node node, std::string defaultServerNamespace = "");
- 
- // When serverNamespace == "", the default one is used.
- std::unique_ptr<google::protobuf::Message>
- GetParameter(std::string parameterName, std::string serverNamespace = "");
- 
- void
- SetParameter(std::string parameterName, const google::protobuf::Message * value, std::string serverNamespace = "");
- 
- template<typename ProtoMsgT>
- ProtoMsgT
- GetParameter(std::string parameterName, std::string serverNamespace = "");
- 
- template<typename ProtoMsgT>
- void
- SetParameter(std::string parameterName, ProtoMsgT value, std::string serverNamespace = "");
-};
+  namespace transport
+  {
+    namespace parameters
+    {
+
+      // Inline bracket to help doxygen filtering.
+      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+
+      class ParametersClient
+      {
+      public:
+        ParametersClient(std::string _serverNamespace = "");
+
+        std::unique_ptr<google::protobuf::Message>
+        GetParameter(const std::string & _parameterName);
+
+        void
+        SetParameter(const std::string & _parameterName, const google::protobuf::Message & _msg);
+
+        void
+        DeclareParameter(const std::string & _parameterName, const google::protobuf::Message & _msg);
+
+      private:
+        std::string serverNamespace;
+        ignition::transport::Node node;
+      };
+      }
+    }
+  }
+}
 
 #endif
