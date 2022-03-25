@@ -19,7 +19,34 @@
 
 ## Ignition Transport 10.X
 
-### Ignition Transport 10.X.X
+### Ignition Transport 10.2.0 (2022-03-25)
+
+1. Use exec instead of popen to run ign-launch binary
+    * [Pull request #300](https://github.com/ignitionrobotics/ign-transport/pull/300)
+
+1. Focal CI: static checkers, doxygen linters, compiler warnings
+    * [Pull request #298](https://github.com/ignitionrobotics/ign-transport/pull/298)
+
+1. Add option to output messages in JSON format
+    * [Pull request #288](https://github.com/ignitionrobotics/ign-transport/pull/288)
+
+1. Remove no username error messages
+    * [Pull request #286](https://github.com/ignitionrobotics/ign-transport/pull/286)
+
+1. Documented the default value of `IGN_PARTITION`
+    * [Pull request #281](https://github.com/ignitionrobotics/ign-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/ignitionrobotics/ign-transport/pull/273)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+    * [Pull request #237](https://github.com/ignitionrobotics/ign-transport/pull/237)
+
+1. NetUtils: simplify logic in `determineInterfaces`
+    * [Pull request #257](https://github.com/ignitionrobotics/ign-transport/pull/257)
+
+1. Fix Homebrew warning (backport from Fortress)
+    * [Pull request #268](https://github.com/ignitionrobotics/ign-transport/pull/268)
 
 ### Ignition Transport 10.1.0 (2021-10-17)
 

@@ -63,7 +63,7 @@ namespace ignition
       /// \brief Executes the local callback registered for this handler.
       /// \param[in] _msgReq Input parameter (Protobuf message).
       /// \param[out] _msgRep Output parameter (Protobuf message).
-      /// \param[out] _result Service call result.
+      /// \return Service call result.
       public: virtual bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                             transport::ProtoMsg &_msgRep) = 0;
 
@@ -72,7 +72,7 @@ namespace ignition
       /// to compose a specific protobuf message and will be passed to the
       /// callback function.
       /// \param[out] _rep Out parameter with the data serialized.
-      /// \param[out] _result Service call result.
+      /// \return Service call result.
       public: virtual bool RunCallback(const std::string &_req,
                                        std::string &_rep) = 0;
 
@@ -118,9 +118,9 @@ namespace ignition
 
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback with the following parameters:
-      /// \param[in] _req Protobuf message containing the service request params
-      /// \param[out] _rep Protobuf message containing the service response.
-      /// \param[out] _result True when the service response is considered
+      /// * _req Protobuf message containing the service request params
+      /// * _rep Protobuf message containing the service response.
+      /// * Returns true when the service response is considered
       /// successful or false otherwise.
       public: void SetCallback(
         const std::function<bool(const Req &, Rep &)> &_cb)
