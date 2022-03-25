@@ -352,7 +352,7 @@ void NodeShared::RunReceptionTask()
     try
     {
       zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-                std::chrono::milliseconds(NodeSharedPrivate::Timeout));
+          std::chrono::milliseconds(NodeSharedPrivate::Timeout));
     }
     catch(...)
     {

@@ -165,7 +165,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       std::cerr << "error in getifaddrs: " << strerror(rc) << std::endl;
       exit(-1);
     }
-    char preferred_ip[200] = {0};
 
 #if defined(SIOCGIFINDEX)
     // Open a socket to use IOCTL later.
@@ -232,16 +231,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       // Is not running.
       if (!(ifa->ifa_flags & IFF_UP))
         continue;
-      // IPv6 interface.
-      if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
-        interface = std::string(ip_);
-      // Private network interface.
-      else if (isPrivateIP(ip_) && !preferred_ip[0])
-        interface = std::string(ip_);
       // Any other interface.
-      else if (!isPrivateIP(ip_) &&
-               (isPrivateIP(preferred_ip) || !preferred_ip[0]))
-        interface = std::string(ip_);
+      interface = std::string(ip_);
 
       // Add the new interface if it's new and unique.
       if (!interface.empty() &&
@@ -379,6 +370,15 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     GetUserName(buffer, &usernameLen);
     return buffer;
 #else
+    // First, try to get the username through the standard environment variable
+    // for it.
+    const auto userVariable = std::getenv("USER");
+    if (userVariable)
+    {
+      return userVariable;
+    }
+
+    // No USER variable, request it from the system.
     struct passwd pd;
     struct passwd *pdResult;
     Uuid uuid;
@@ -401,14 +401,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
           result = pd.pw_name;
           break;
         }
-        else
-        {
-          std::cerr << "Error getting username: no matching password record.\n";
-        }
-      }
-      else
-      {
-        std::cerr << "Error getting username: " << strerror(errno) << std::endl;
       }
     }
 

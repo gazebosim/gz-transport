@@ -81,7 +81,7 @@ namespace ignition
       /// \param[in, out] _ffn Deallocation function. This function is
       /// executed by ZeroMQ when the data is published. This function
       /// deallocates the buffer containing the published data.
-      /// \ref http://zeromq.org/blog:zero-copy
+      /// \sa http://zeromq.org/blog:zero-copy
       /// \param[in] _msgType Message type in string format.
       /// \return true when success or false otherwise.
       public: bool Publish(const std::string &_topic,
