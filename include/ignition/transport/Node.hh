@@ -253,7 +253,7 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Pointer to the callback function with the
       /// following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   * _msg Protobuf message containing a new topic update.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
@@ -267,7 +267,7 @@ namespace ignition
       /// In this version the callback is a lamda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Lambda function with the following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   * _msg Protobuf message containing a new topic update.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
@@ -282,7 +282,7 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Pointer to the callback function with the
       /// following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
+      ///   * _msg Protobuf message containing a new topic update.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
@@ -299,8 +299,8 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Pointer to the callback function with the
       /// following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
-      ///   \param[in] _info Message information (e.g.: topic name).
+      ///   * _msg Protobuf message containing a new topic update.
+      ///   * _info Message information (e.g.: topic name).
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
@@ -314,8 +314,8 @@ namespace ignition
       /// In this version the callback is a lamda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Lambda function with the following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
-      ///   \param[in] _info Message information (e.g.: topic name).
+      ///   * _msg Protobuf message containing a new topic update.
+      ///   * _info Message information (e.g.: topic name).
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
       public: template<typename MessageT>
@@ -331,8 +331,8 @@ namespace ignition
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Pointer to the callback function with the
       /// following parameters:
-      ///   \param[in] _msg Protobuf message containing a new topic update.
-      ///   \param[in] _info Message information (e.g.: topic name).
+      ///   * _msg Protobuf message containing a new topic update.
+      ///   * _info Message information (e.g.: topic name).
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
@@ -361,9 +361,9 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _request Protobuf message containing the request.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -379,8 +379,8 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -396,7 +396,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
+      ///   * _request Protobuf message containing the request.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -412,9 +412,9 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _request Protobuf message containing the request.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -431,8 +431,8 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -448,7 +448,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
+      ///   * _request Protobuf message containing the request.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
       /// false otherwise.
@@ -464,9 +464,9 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _request Protobuf message containing the request.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
@@ -484,8 +484,8 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[out] _reply Protobuf message containing the response.
-      ///   \return Service call result.
+      ///   * _reply Protobuf message containing the response.
+      ///   * Returns Service call result.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
@@ -503,7 +503,7 @@ namespace ignition
       /// \param[in] _topic Topic name associated to the service.
       /// \param[in] _callback Callback to handle the service request with the
       /// following parameters:
-      ///   \param[in] _request Protobuf message containing the request.
+      ///   * _request Protobuf message containing the request.
       /// \param[in] _obj Instance containing the member function.
       /// \param[in] _options Advertise options.
       /// \return true when the topic has been successfully advertised or
@@ -527,8 +527,8 @@ namespace ignition
       /// parameters.
       /// \param[in] _callback Pointer to the callback function executed when
       /// the response arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
       public: template<typename RequestT, typename ReplyT>
@@ -543,8 +543,8 @@ namespace ignition
       /// \param[in] _topic Service name requested.
       /// \param[in] _callback Pointer to the callback function executed when
       /// the response arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
       public: template<typename ReplyT>
@@ -559,8 +559,8 @@ namespace ignition
       /// parameters.
       /// \param[in] _callback Lambda function executed when the response
       /// arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
       public: template<typename RequestT, typename ReplyT>
@@ -576,8 +576,8 @@ namespace ignition
       /// \param[in] _topic Service name requested.
       /// \param[in] _callback Lambda function executed when the response
       /// arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \return true when the service call was succesfully requested.
       public: template<typename ReplyT>
@@ -593,8 +593,8 @@ namespace ignition
       /// parameters.
       /// \param[in] _callback Pointer to the callback function executed when
       /// the response arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when the service call was succesfully requested.
@@ -611,8 +611,8 @@ namespace ignition
       /// \param[in] _topic Service name requested.
       /// \param[in] _callback Pointer to the callback function executed when
       /// the response arrives. The callback has the following parameters:
-      ///   \param[in] _reply Protobuf message containing the response.
-      ///   \param[in] _result Result of the service call. If false, there was
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
       /// \return true when the service call was succesfully requested.

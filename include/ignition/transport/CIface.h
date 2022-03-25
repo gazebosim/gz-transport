@@ -84,6 +84,7 @@ extern "C" {
   /// \brief Subscribe to a topic, and register a callback.
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Name of the topic.
+  /// \param[in] _opts Subscriber options.
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
