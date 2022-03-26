@@ -35,6 +35,9 @@ Below are descriptions of the available environment variables:
     the search of the topic/service.
 * **IGN_PARTITION**
     * *Value allowed*: Any partition value
+    * *Default value*: `<HOSTNAME>:<USERNAME>` where `<HOSTNAME>` is the 
+    hostname of the current machine and `<USERNAME>` is the name of the
+    user launching the node.
     * *Description*: Specifies a partition name for all the nodes declared
     inside this process. Note that an alternative partition name  declared
     programatically and  passed to the constructor of a Node class will take

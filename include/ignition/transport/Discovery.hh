@@ -1415,12 +1415,10 @@ namespace ignition
       private: DiscoveryCallback<Pub> disconnectionCb;
 
       /// \brief Callback executed when a new remote subscriber is registered.
-      /// ToDo: Remove static when possible.
-      private: inline static DiscoveryCallback<Pub> registrationCb;
+      private: DiscoveryCallback<Pub> registrationCb;
 
       /// \brief Callback executed when a new remote subscriber is unregistered.
-      /// ToDo: Remove static when possible.
-      private: inline static DiscoveryCallback<Pub> unregistrationCb;
+      private: DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
