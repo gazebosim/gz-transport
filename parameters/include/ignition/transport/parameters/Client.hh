@@ -23,6 +23,8 @@
 
 #include "google/protobuf/message.h"
 
+#include "ignition/msgs/parameter_declarations.pb.h"
+
 #include "ignition/transport/Node.hh"
 
 namespace ignition
@@ -38,7 +40,9 @@ namespace ignition
       class ParametersClient
       {
       public:
-        ParametersClient(std::string _serverNamespace = "");
+        ParametersClient(
+          std::string _serverNamespace = "",
+          unsigned int _timeoutMs = kDefaultTimeoutMs);
 
         std::unique_ptr<google::protobuf::Message>
         GetParameter(const std::string & _parameterName);
@@ -49,9 +53,15 @@ namespace ignition
         void
         DeclareParameter(const std::string & _parameterName, const google::protobuf::Message & _msg);
 
+        ignition::msgs::ParameterDeclarations
+        ListParameters();
+
       private:
         std::string serverNamespace;
         ignition::transport::Node node;
+        unsigned int timeoutMs;
+
+        constexpr static inline unsigned int kDefaultTimeoutMs = 5000;
       };
       }
     }
