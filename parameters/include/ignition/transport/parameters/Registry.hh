@@ -22,7 +22,9 @@
 #include <memory>
 #include <string>
 
-#include "google/protobuf/message.h"
+#include <google/protobuf/message.h>
+
+#include "ignition/msgs/parameter_declarations.pb.h"
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/exceptions.hh"
@@ -62,6 +64,8 @@ namespace ignition
         public: void SetParameter(
           const std::string & _parameterName,
           google::protobuf::Message & _value);
+
+        public: ignition::msgs::ParameterDeclarations ListParameters();
 
         public: template<typename ProtoMsgT>
         ProtoMsgT GetParameter(const std::string & _parameterName)

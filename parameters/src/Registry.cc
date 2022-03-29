@@ -260,6 +260,16 @@ ParametersRegistry::SetParameter(
   it->second.msg->CopyFrom(_value);
 }
 
+ignition::msgs::ParameterDeclarations
+ParametersRegistry::ListParameters()
+{
+  ignition::msgs::ParameterDeclarations ret;
+  ignition::msgs::Empty unused;
+
+  dataPtr->ListParameters(unused, ret);
+  return ret;
+}
+
 void
 ParametersRegistry::WithParameter(
   const std::string & _parameterName,

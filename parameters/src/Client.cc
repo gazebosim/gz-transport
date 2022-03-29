@@ -32,15 +32,16 @@ using namespace transport;
 using namespace parameters;
 
 
-ParametersClient::ParametersClient(std::string _serverNamespace)
-: serverNamespace{std::move(_serverNamespace)}
+ParametersClient::ParametersClient(
+  std::string _serverNamespace,
+  unsigned int _timeoutMs)
+: serverNamespace{std::move(_serverNamespace)},
+  timeoutMs{_timeoutMs}
 {}
  
 std::unique_ptr<google::protobuf::Message>
 ParametersClient::GetParameter(const std::string & _parameterName)
 {
-  constexpr unsigned int timeout{5000};
-
   bool result{false};
   const std::string service{serverNamespace + "/get_parameter"};
 
@@ -49,7 +50,7 @@ ParametersClient::GetParameter(const std::string & _parameterName)
 
   req.set_name(_parameterName);
 
-  if (!node.Request(service, req, timeout, res, result))
+  if (!node.Request(service, req, timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::GetParameter(): request timed out"};
@@ -70,8 +71,6 @@ void
 ParametersClient::SetParameter(
   const std::string & _parameterName, const google::protobuf::Message & _msg)
 {
-  constexpr unsigned int timeout{5000};
-
   bool result{false};
   const std::string service{serverNamespace + "/set_parameter"};
 
@@ -88,7 +87,7 @@ ParametersClient::SetParameter(
   _msg.SerializeToOstream(&oss);
   req.set_value(oss.str());
 
-  if (!node.Request(service, req, timeout, res, result))
+  if (!node.Request(service, req, timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::SetParameter(): request timed out"};
@@ -104,8 +103,6 @@ void
 ParametersClient::DeclareParameter(
   const std::string & _parameterName, const google::protobuf::Message & _msg)
 {
-  constexpr unsigned int timeout{5000};
-
   bool result{false};
   const std::string service{serverNamespace + "/declare_parameter"};
 
@@ -122,7 +119,7 @@ ParametersClient::DeclareParameter(
   _msg.SerializeToOstream(&oss);
   req.set_value(oss.str());
 
-  if (!node.Request(service, req, timeout, res, result))
+  if (!node.Request(service, req, timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::DeclareParameter(): request timed out"};
@@ -132,4 +129,26 @@ ParametersClient::DeclareParameter(
     throw ParameterAlreadyDeclaredException {
       "ParametersClient::DeclareParameter()", _parameterName.c_str()};
   }
+}
+
+msgs::ParameterDeclarations
+ParametersClient::ListParameters()
+{
+  bool result{false};
+  const std::string service{serverNamespace + "/list_parameters"};
+
+  msgs::Empty req;
+  msgs::ParameterDeclarations res;
+
+  if (!node.Request(service, req, timeoutMs, res, result))
+  {
+    throw std::runtime_error{
+      "ParametersClient::ListParameters(): request timed out"};
+  }
+  if (!result)
+  {
+    throw std::runtime_error {
+      "ParametersClient::ListParameters(): unexpected error"};
+  }
+  return res;
 }
