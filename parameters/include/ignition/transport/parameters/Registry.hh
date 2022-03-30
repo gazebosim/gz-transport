@@ -49,6 +49,15 @@ namespace ignition
         };
 
         public: ParametersRegistry(std::string _parametersServicesNamespace);
+
+        public: ~ParametersRegistry();
+
+        public: ParametersRegistry(const ParametersRegistry &) = delete;
+        public: ParametersRegistry &
+          operator=(const ParametersRegistry &) = delete;
+        public: ParametersRegistry(ParametersRegistry &&) = default;
+        public: ParametersRegistry &
+          operator=(ParametersRegistry &&) = default;
       
         public: void DeclareParameter(
           const std::string & _parameterName,
