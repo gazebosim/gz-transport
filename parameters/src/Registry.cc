@@ -94,6 +94,8 @@ ParametersRegistry::ParametersRegistry(
     &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
 }
 
+ParametersRegistry::~ParametersRegistry() = default;
+
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   msgs::ParameterValue &_res)
 {
