@@ -184,7 +184,7 @@ void ParametersRegistry::DeclareParameter(
   value.msg = std::move(_initialValue);
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it_emplaced_pair = this->dataPtr->parametersMap.emplace(
-    std::make_pair(value.protoType, std::move(value)));
+    std::make_pair(_parameterName, std::move(value)));
   if (!it_emplaced_pair.second) {
     throw ParameterAlreadyDeclaredException{
       "ParametersRegistry::DeclareParameter()",
