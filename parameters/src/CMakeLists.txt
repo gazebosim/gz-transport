@@ -1,8 +1,8 @@
 
 ign_get_libsources_and_unittests(sources gtest_sources)
-# list(APPEND sources cmd/LogCommandAPI.cc)
+list(APPEND sources cmd/ParamCommandAPI.cc)
 
-ign_add_component(parameters SOURCES ${sources} GET_TARGET_NAME parameters_lib_target)
+ign_add_component(parameters SOURCES ${sources} GET_TARGET_NAME param_lib_target)
 
 # Unit tests
 # ign_build_tests(
@@ -15,6 +15,6 @@ ign_add_component(parameters SOURCES ${sources} GET_TARGET_NAME parameters_lib_t
 #   PUBLIC
 #     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>")
 
-# if(NOT WIN32)
-#   add_subdirectory(cmd)
-# endif()
+if(NOT WIN32)
+  add_subdirectory(cmd)
+endif()
