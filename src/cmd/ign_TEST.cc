@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"

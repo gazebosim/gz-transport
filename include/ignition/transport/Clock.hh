@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-#include <ignition/utilities/SuppressWarning.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
