@@ -23,7 +23,7 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 
