@@ -53,7 +53,7 @@ cd ign-transport/example/build
 Back on your host, make sure that you have Ignition Tools and net-tools
 installed:
 ```
-sudo apt install ignition-tools net-tools
+sudo apt install ignition-tools2 net-tools
 ```
 
 Now, let's configure Ignition Transport to block all multicast traffic going
