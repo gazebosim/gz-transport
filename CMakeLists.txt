@@ -9,8 +9,8 @@ project(ignition-transport12 VERSION 12.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
-set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
+find_package(ignition-cmake3 REQUIRED)
+set(IGN_CMAKE_VER ${ignition-cmake3_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
@@ -95,7 +95,7 @@ endif()
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools QUIET)
+ign_find_package(ignition-tools2 QUIET)
 
 #--------------------------------------
 # Find SQLite3
