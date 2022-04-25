@@ -17,6 +17,9 @@
 
 #include "ParamCommandAPI.hh"
 
+#include <memory>
+#include <string>
+
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
@@ -107,7 +110,8 @@ extern "C" void cmdParameterSet(
       std::cerr << "The message type may be invalid." << std::endl;
       return;
     }
-    std::cerr << "The message string representation may be invalid." << std::endl;
+    std::cerr << "The message string representation may be invalid."
+              << std::endl;
     return;
   }
 

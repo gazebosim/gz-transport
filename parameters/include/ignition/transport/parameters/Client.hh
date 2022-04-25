@@ -48,10 +48,14 @@ namespace ignition
         GetParameter(const std::string & _parameterName);
 
         void
-        SetParameter(const std::string & _parameterName, const google::protobuf::Message & _msg);
+        SetParameter(
+          const std::string & _parameterName,
+          const google::protobuf::Message & _msg);
 
         void
-        DeclareParameter(const std::string & _parameterName, const google::protobuf::Message & _msg);
+        DeclareParameter(
+          const std::string & _parameterName,
+          const google::protobuf::Message & _msg);
 
         ignition::msgs::ParameterDeclarations
         ListParameters();

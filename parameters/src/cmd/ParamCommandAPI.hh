@@ -31,7 +31,7 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName);
 /// \brief External hook to set a parameter.
 /// \param[in] _ns Namespace of the parameter registry.
 /// \param[in] _paramName Parameter name.
-/// \param[in] _paramType Parameter type (i.e. type of the associated component).
+/// \param[in] _paramType Parameter protobuf type.
 /// \param[in] _paramValue String representation of the parameter value.
 extern "C" void cmdParameterSet(
     const char * _ns, const char *_paramName, const char * _paramType,

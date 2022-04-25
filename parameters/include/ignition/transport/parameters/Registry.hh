@@ -62,7 +62,8 @@ namespace ignition
         /// \brief Constructor.
         /// \param[in] _parametersServicesNamespace Namespace that will be used
         ///   in all the created services names.
-        public: ParametersRegistry(std::string _parametersServicesNamespace);
+        public: explicit ParametersRegistry(
+          const std::string & _parametersServicesNamespace);
 
         /// \brief Destructor.
         public: ~ParametersRegistry();
@@ -77,7 +78,7 @@ namespace ignition
         /// \brief Default move assignment.
         public: ParametersRegistry &
           operator=(ParametersRegistry &&) = default;
-      
+
         /// \brief Declare a new parameter.
         /// \param[in] _parameterName Name of the parameter.
         /// \param[in] _initialValue The initial value of the parameter.
@@ -88,7 +89,7 @@ namespace ignition
         public: void DeclareParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _initialValue);
-      
+
         /// \brief Get the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to get.
         /// \return The parameter value and its protobuf type.
@@ -97,7 +98,7 @@ namespace ignition
         /// \throw std::runtime_error if an unexpected error happens.
         public: ParameterValue GetParameter(
           const std::string & _parameterName);
-        
+
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to set.
         /// \param[in] _value The value of the parameter.
@@ -139,7 +140,8 @@ namespace ignition
           ProtoMsgT ret;
           this->WithParameter(
             _parameterName,
-            [nameCStr = _parameterName.c_str() , &ret](google::protobuf::Message & _msg) {
+            [nameCStr = _parameterName.c_str() , &ret]
+            (google::protobuf::Message & _msg) {
               if (_msg.GetDescriptor() != ret.GetDescriptor()) {
                 throw ParameterInvalidTypeException{
                   "ParametersRegistry::GetParameter",

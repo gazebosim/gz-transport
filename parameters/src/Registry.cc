@@ -38,7 +38,8 @@ using namespace ignition;
 using namespace transport;
 using namespace parameters;
 
-using ParametersMapT = std::unordered_map<std::string, ParametersRegistry::ParameterValue>;
+using ParametersMapT = std::unordered_map<
+  std::string, ParametersRegistry::ParameterValue>;
 
 struct ignition::transport::parameters::ParametersRegistryPrivate
 {
@@ -74,22 +75,26 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
 };
 
 ParametersRegistry::ParametersRegistry(
-  std::string  _parametersServicesNamespace)
+  const std::string &  _parametersServicesNamespace)
   : dataPtr{std::make_unique<ParametersRegistryPrivate>()}
 {
-  std::string getParameterSrvName{_parametersServicesNamespace + "/get_parameter"};
+  std::string getParameterSrvName{
+    _parametersServicesNamespace + "/get_parameter"};
   this->dataPtr->node.Advertise(getParameterSrvName,
     &ParametersRegistryPrivate::GetParameter, this->dataPtr.get());
 
-  std::string listParametersSrvName{_parametersServicesNamespace + "/list_parameters"};
+  std::string listParametersSrvName{
+    _parametersServicesNamespace + "/list_parameters"};
   this->dataPtr->node.Advertise(listParametersSrvName,
     &ParametersRegistryPrivate::ListParameters, this->dataPtr.get());
 
-  std::string setParameterSrvName{_parametersServicesNamespace + "/set_parameter"};
+  std::string setParameterSrvName{
+    _parametersServicesNamespace + "/set_parameter"};
   this->dataPtr->node.Advertise(setParameterSrvName,
     &ParametersRegistryPrivate::SetParameter, this->dataPtr.get());
 
-  std::string declareParameterSrvName{_parametersServicesNamespace + "/declare_parameter"};
+  std::string declareParameterSrvName{
+    _parametersServicesNamespace + "/declare_parameter"};
   this->dataPtr->node.Advertise(declareParameterSrvName,
     &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
 }
@@ -118,12 +123,13 @@ bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
 bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   msgs::ParameterDeclarations &_res)
 {
-  // TODO(ivanpauno): Maybe the response should only include parameter names (?)
-  // Maybe only names and types (?)
-  // Including the component key doesn't seem to matter much, though it's also not wrong.
+  // TODO(ivanpauno): Maybe the response should only include parameter names,
+  // maybe only names and types (?)
+  // Including the component key doesn't seem to matter much,
+  // though it's also not wrong.
   {
     std::lock_guard guard{this->parametersMapMutex};
-    for (const auto & paramPair: this->parametersMap) {
+    for (const auto & paramPair : this->parametersMap) {
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
       decl->set_type(paramPair.second.protoType);
@@ -132,7 +138,8 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   return true;
 }
 
-bool ParametersRegistryPrivate::SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res)
+bool ParametersRegistryPrivate::SetParameter(
+  const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   (void)_res;
   const auto & paramName = _req.name();
@@ -154,7 +161,8 @@ bool ParametersRegistryPrivate::SetParameter(const msgs::Parameter &_req, msgs::
   return true;
 }
 
-bool ParametersRegistryPrivate::DeclareParameter(const msgs::Parameter &_req, msgs::Boolean &_res)
+bool ParametersRegistryPrivate::DeclareParameter(
+  const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   (void)_res;
   ParametersRegistry::ParameterValue value;

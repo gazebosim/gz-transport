@@ -38,7 +38,7 @@ ParametersClient::ParametersClient(
 : serverNamespace{std::move(_serverNamespace)},
   timeoutMs{_timeoutMs}
 {}
- 
+
 std::unique_ptr<google::protobuf::Message>
 ParametersClient::GetParameter(const std::string & _parameterName)
 {

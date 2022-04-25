@@ -44,7 +44,7 @@ namespace ignition
       class ParameterInvalidTypeException : public std::invalid_argument
       {
         public: ParameterInvalidTypeException(
-          const char * _prefix ,const char * _paramName,
+          const char * _prefix, const char * _paramName,
           const char * _expectedParamType, const char * _providedParamType)
         : std::invalid_argument(
           std::string{_prefix} + ": parameter [" +
