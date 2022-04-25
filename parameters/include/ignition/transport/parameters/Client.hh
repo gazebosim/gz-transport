@@ -45,24 +45,24 @@ namespace ignition
           unsigned int _timeoutMs = kDefaultTimeoutMs);
 
         std::unique_ptr<google::protobuf::Message>
-        GetParameter(const std::string & _parameterName);
+        GetParameter(const std::string & _parameterName) const;
 
         void
         SetParameter(
           const std::string & _parameterName,
-          const google::protobuf::Message & _msg);
+          const google::protobuf::Message & _msg) const;
 
         void
         DeclareParameter(
           const std::string & _parameterName,
-          const google::protobuf::Message & _msg);
+          const google::protobuf::Message & _msg) const;
 
         ignition::msgs::ParameterDeclarations
-        ListParameters();
+        ListParameters() const;
 
       private:
         std::string serverNamespace;
-        ignition::transport::Node node;
+        mutable ignition::transport::Node node;
         unsigned int timeoutMs;
 
         constexpr static inline unsigned int kDefaultTimeoutMs = 5000;

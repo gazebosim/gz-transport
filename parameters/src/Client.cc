@@ -18,8 +18,8 @@
 #include "ignition/transport/parameters/Client.hh"
 
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "ignition/msgs/boolean.pb.h"
 #include "ignition/msgs/parameter_name.pb.h"
@@ -40,7 +40,7 @@ ParametersClient::ParametersClient(
 {}
 
 std::unique_ptr<google::protobuf::Message>
-ParametersClient::GetParameter(const std::string & _parameterName)
+ParametersClient::GetParameter(const std::string & _parameterName) const
 {
   bool result{false};
   const std::string service{serverNamespace + "/get_parameter"};
@@ -69,7 +69,8 @@ ParametersClient::GetParameter(const std::string & _parameterName)
 
 void
 ParametersClient::SetParameter(
-  const std::string & _parameterName, const google::protobuf::Message & _msg)
+  const std::string & _parameterName,
+  const google::protobuf::Message & _msg) const
 {
   bool result{false};
   const std::string service{serverNamespace + "/set_parameter"};
@@ -101,7 +102,8 @@ ParametersClient::SetParameter(
 
 void
 ParametersClient::DeclareParameter(
-  const std::string & _parameterName, const google::protobuf::Message & _msg)
+  const std::string & _parameterName,
+  const google::protobuf::Message & _msg) const
 {
   bool result{false};
   const std::string service{serverNamespace + "/declare_parameter"};
@@ -132,7 +134,7 @@ ParametersClient::DeclareParameter(
 }
 
 msgs::ParameterDeclarations
-ParametersClient::ListParameters()
+ParametersClient::ListParameters() const
 {
   bool result{false};
   const std::string service{serverNamespace + "/list_parameters"};
