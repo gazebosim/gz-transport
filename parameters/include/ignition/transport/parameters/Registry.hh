@@ -97,7 +97,7 @@ namespace ignition
         ///   was not declared before.
         /// \throw std::runtime_error if an unexpected error happens.
         public: ParameterValue GetParameter(
-          const std::string & _parameterName);
+          const std::string & _parameterName) const;
 
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to set.
@@ -119,11 +119,11 @@ namespace ignition
         ///   the type of the parameter when it was declared.
         public: void SetParameter(
           const std::string & _parameterName,
-          google::protobuf::Message & _value);
+          const google::protobuf::Message & _value);
 
         /// \brief List all existing parameters.
         /// \return The name and types of existing parameters.
-        public: ignition::msgs::ParameterDeclarations ListParameters();
+        public: ignition::msgs::ParameterDeclarations ListParameters() const;
 
         /// \brief Get the value of a parameter.
         /// \tparam ProtoMsgT A protobuf message type, e.g.: ign::msgs::Boolean.
@@ -135,7 +135,7 @@ namespace ignition
         ///   the type of the parameter when it was declared.
         /// \throw std::runtime_error if an unexpected error happens.
         public: template<typename ProtoMsgT>
-        ProtoMsgT GetParameter(const std::string & _parameterName)
+        ProtoMsgT GetParameter(const std::string & _parameterName) const
         {
           ProtoMsgT ret;
           this->WithParameter(

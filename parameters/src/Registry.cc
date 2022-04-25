@@ -201,7 +201,7 @@ void ParametersRegistry::DeclareParameter(
 }
 
 ParametersRegistry::ParameterValue
-ParametersRegistry::GetParameter(const std::string & _parameterName)
+ParametersRegistry::GetParameter(const std::string & _parameterName) const
 {
   ParameterValue ret;
   {
@@ -233,7 +233,7 @@ ParametersRegistry::SetParameter(
   auto it = this->dataPtr->parametersMap.find(_parameterName);
   if (it == this->dataPtr->parametersMap.end()) {
     throw ParameterNotDeclaredException{
-      "ParametersRegistry::GetParameter()",
+      "ParametersRegistry::SetParameter()",
       _parameterName.c_str()};
   }
   // Validate the type matches before copying.
@@ -250,13 +250,13 @@ ParametersRegistry::SetParameter(
 void
 ParametersRegistry::SetParameter(
   const std::string & _parameterName,
-  google::protobuf::Message & _value)
+  const google::protobuf::Message & _value)
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it = this->dataPtr->parametersMap.find(_parameterName);
   if (it == this->dataPtr->parametersMap.end()) {
     throw ParameterNotDeclaredException{
-      "ParametersRegistry::GetParameter()",
+      "ParametersRegistry::SetParameter()",
       _parameterName.c_str()};
   }
   // Validate the type matches before copying.
@@ -271,7 +271,7 @@ ParametersRegistry::SetParameter(
 }
 
 ignition::msgs::ParameterDeclarations
-ParametersRegistry::ListParameters()
+ParametersRegistry::ListParameters() const
 {
   ignition::msgs::ParameterDeclarations ret;
   ignition::msgs::Empty unused;
@@ -289,7 +289,7 @@ ParametersRegistry::WithParameter(
   auto it = this->dataPtr->parametersMap.find(_parameterName);
   if (it == this->dataPtr->parametersMap.end()) {
     throw ParameterNotDeclaredException{
-      "ParametersRegistry::GetParameter()",
+      "ParametersRegistry::WithParameter()",
       _parameterName.c_str()};
   }
   fn(*it->second.msg);
