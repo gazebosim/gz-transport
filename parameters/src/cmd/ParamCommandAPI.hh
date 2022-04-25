@@ -25,7 +25,6 @@ extern "C" void cmdParametersList(const char * _ns);
 /// \brief External hook to dump a parameter.
 /// \param[in] _ns Namespace of the parameter registry.
 /// \param[in] _paramName Parameter name.
-/// \param[in] _pose --pose option.
 extern "C" void cmdParameterGet(const char * _ns, const char *_paramName);
 
 /// \brief External hook to set a parameter.
