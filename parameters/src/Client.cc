@@ -31,26 +31,41 @@ using namespace ignition;
 using namespace transport;
 using namespace parameters;
 
+struct ignition::transport::parameters::ParametersClientPrivate
+{
+  ParametersClientPrivate(
+    const std::string & _serverNamespace,
+    unsigned int _timeoutMs)
+  : serverNamespace{_serverNamespace},
+    timeoutMs{_timeoutMs}
+  {}
+  std::string serverNamespace;
+  mutable ignition::transport::Node node;
+  unsigned int timeoutMs;
+};
+
+ParametersClient::~ParametersClient() = default;
 
 ParametersClient::ParametersClient(
-  std::string _serverNamespace,
+  const std::string & _serverNamespace,
   unsigned int _timeoutMs)
-: serverNamespace{std::move(_serverNamespace)},
-  timeoutMs{_timeoutMs}
+: dataPtr{std::make_unique<ParametersClientPrivate>(
+    _serverNamespace,
+    _timeoutMs)}
 {}
 
 std::unique_ptr<google::protobuf::Message>
 ParametersClient::GetParameter(const std::string & _parameterName) const
 {
   bool result{false};
-  const std::string service{serverNamespace + "/get_parameter"};
+  const std::string service{dataPtr->serverNamespace + "/get_parameter"};
 
   msgs::ParameterName req;
   msgs::ParameterValue res;
 
   req.set_name(_parameterName);
 
-  if (!node.Request(service, req, timeoutMs, res, result))
+  if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::GetParameter(): request timed out"};
@@ -73,7 +88,7 @@ ParametersClient::SetParameter(
   const google::protobuf::Message & _msg) const
 {
   bool result{false};
-  const std::string service{serverNamespace + "/set_parameter"};
+  const std::string service{dataPtr->serverNamespace + "/set_parameter"};
 
   std::string protoType{"ign_msgs."};
   protoType += _msg.GetDescriptor()->name();
@@ -88,7 +103,7 @@ ParametersClient::SetParameter(
   _msg.SerializeToOstream(&oss);
   req.set_value(oss.str());
 
-  if (!node.Request(service, req, timeoutMs, res, result))
+  if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::SetParameter(): request timed out"};
@@ -106,7 +121,7 @@ ParametersClient::DeclareParameter(
   const google::protobuf::Message & _msg) const
 {
   bool result{false};
-  const std::string service{serverNamespace + "/declare_parameter"};
+  const std::string service{dataPtr->serverNamespace + "/declare_parameter"};
 
   std::string protoType{"ign_msgs."};
   protoType += _msg.GetDescriptor()->name();
@@ -121,7 +136,7 @@ ParametersClient::DeclareParameter(
   _msg.SerializeToOstream(&oss);
   req.set_value(oss.str());
 
-  if (!node.Request(service, req, timeoutMs, res, result))
+  if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::DeclareParameter(): request timed out"};
@@ -137,12 +152,12 @@ msgs::ParameterDeclarations
 ParametersClient::ListParameters() const
 {
   bool result{false};
-  const std::string service{serverNamespace + "/list_parameters"};
+  const std::string service{dataPtr->serverNamespace + "/list_parameters"};
 
   msgs::Empty req;
   msgs::ParameterDeclarations res;
 
-  if (!node.Request(service, req, timeoutMs, res, result))
+  if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::ListParameters(): request timed out"};

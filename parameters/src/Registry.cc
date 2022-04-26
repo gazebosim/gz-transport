@@ -139,6 +139,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
 }
 
 bool ParametersRegistryPrivate::SetParameter(
+  // cppcheck-suppress constParameter
   const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   (void)_res;
@@ -162,6 +163,7 @@ bool ParametersRegistryPrivate::SetParameter(
 }
 
 bool ParametersRegistryPrivate::DeclareParameter(
+  // cppcheck-suppress constParameter
   const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   (void)_res;
