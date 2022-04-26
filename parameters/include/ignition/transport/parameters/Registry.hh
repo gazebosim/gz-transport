@@ -96,7 +96,7 @@ namespace ignition
         /// \throw ParameterNotDeclaredException if a parameter of that name
         ///   was not declared before.
         /// \throw std::runtime_error if an unexpected error happens.
-        public: ParameterValue GetParameter(
+        public: ParameterValue Parameter(
           const std::string & _parameterName) const;
 
         /// \brief Set the value of a parameter.
@@ -135,7 +135,7 @@ namespace ignition
         ///   the type of the parameter when it was declared.
         /// \throw std::runtime_error if an unexpected error happens.
         public: template<typename ProtoMsgT>
-        ProtoMsgT GetParameter(const std::string & _parameterName) const
+        ProtoMsgT Parameter(const std::string & _parameterName) const
         {
           ProtoMsgT ret;
           this->WithParameter(
@@ -144,7 +144,7 @@ namespace ignition
             (google::protobuf::Message & _msg) {
               if (_msg.GetDescriptor() != ret.GetDescriptor()) {
                 throw ParameterInvalidTypeException{
-                  "ParametersRegistry::GetParameter",
+                  "ParametersRegistry::Parameter",
                   nameCStr,
                   _msg.GetDescriptor()->name().c_str(),
                   ret.GetDescriptor()->name().c_str()};

@@ -74,7 +74,7 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \return The value of the parameter (a protobuf msg).
         std::unique_ptr<google::protobuf::Message>
-        GetParameter(const std::string & _parameterName) const;
+        Parameter(const std::string & _parameterName) const;
 
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be set.

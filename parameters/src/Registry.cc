@@ -203,7 +203,7 @@ void ParametersRegistry::DeclareParameter(
 }
 
 ParametersRegistry::ParameterValue
-ParametersRegistry::GetParameter(const std::string & _parameterName) const
+ParametersRegistry::Parameter(const std::string & _parameterName) const
 {
   ParameterValue ret;
   {
@@ -211,14 +211,14 @@ ParametersRegistry::GetParameter(const std::string & _parameterName) const
     auto it = this->dataPtr->parametersMap.find(_parameterName);
     if (it == this->dataPtr->parametersMap.end()) {
       throw ParameterNotDeclaredException{
-        "ParametersRegistry::GetParameter()",
+        "ParametersRegistry::Parameter()",
         _parameterName.c_str()};
     }
     ret.protoType = it->second.protoType;
     ret.msg = ignition::msgs::Factory::New(ret.protoType);
     if (!ret.msg) {
       throw std::runtime_error{
-        "ParametersRegistry::GetParameter(): failed to create new message"
+        "ParametersRegistry::Parameter(): failed to create new message"
         " of type [" + ret.protoType + "]"};
     }
     ret.msg->CopyFrom(*it->second.msg);

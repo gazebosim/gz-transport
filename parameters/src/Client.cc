@@ -55,7 +55,7 @@ ParametersClient::ParametersClient(
 {}
 
 std::unique_ptr<google::protobuf::Message>
-ParametersClient::GetParameter(const std::string & _parameterName) const
+ParametersClient::Parameter(const std::string & _parameterName) const
 {
   bool result{false};
   const std::string service{dataPtr->serverNamespace + "/get_parameter"};
@@ -68,12 +68,12 @@ ParametersClient::GetParameter(const std::string & _parameterName) const
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
     throw std::runtime_error{
-      "ParametersClient::GetParameter(): request timed out"};
+      "ParametersClient::Parameter(): request timed out"};
   }
   if (!result)
   {
     throw ParameterNotDeclaredException {
-      "ParametersClient::GetParameter()", _parameterName.c_str()};
+      "ParametersClient::Parameter()", _parameterName.c_str()};
   }
   std::unique_ptr<google::protobuf::Message> ret =
     ignition::msgs::Factory::New(res.type());
