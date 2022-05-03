@@ -15,7 +15,9 @@ set(IGN_CMAKE_VER ${ignition-cmake3_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/transport
+  VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
