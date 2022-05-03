@@ -15,10 +15,10 @@
  *
 */
 
-#ifndef INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
-#define INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
+#ifndef INCLUDE_GZ_TRANSPORT_CIFACE_H_
+#define INCLUDE_GZ_TRANSPORT_CIFACE_H_
 
-#include "ignition/transport/Export.hh"
+#include "gz/transport/Export.hh"
 
 #ifdef __cplusplus
 extern "C" {

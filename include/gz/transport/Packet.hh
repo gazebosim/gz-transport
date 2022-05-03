@@ -15,17 +15,17 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_PACKET_HH_
-#define IGN_TRANSPORT_PACKET_HH_
+#ifndef GZ_TRANSPORT_PACKET_HH_
+#define GZ_TRANSPORT_PACKET_HH_
 
 #include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Publisher.hh"
 
 // This whole file is deprecated in version 8 of Ignition Transport. Please
 // remove this file in Version 9.

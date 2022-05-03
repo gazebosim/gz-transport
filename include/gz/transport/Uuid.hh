@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_UUID_HH_
-#define IGN_TRANSPORT_UUID_HH_
+#ifndef GZ_TRANSPORT_UUID_HH_
+#define GZ_TRANSPORT_UUID_HH_
 
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 #ifdef _WIN32
   #include <Rpc.h>
@@ -40,7 +40,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
-    /// \class Uuid Uuid.hh ignition/transport/Uuid.hh
+    /// \class Uuid Uuid.hh gz/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
     class IGNITION_TRANSPORT_VISIBLE Uuid
     {

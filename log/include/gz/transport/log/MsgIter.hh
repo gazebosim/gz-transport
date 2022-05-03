@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_MSGITER_HH_
-#define IGNITION_TRANSPORT_LOG_MSGITER_HH_
+#ifndef GZ_TRANSPORT_LOG_MSGITER_HH_
+#define GZ_TRANSPORT_LOG_MSGITER_HH_
 
 #include <memory>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/Message.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Export.hh>
+#include <gz/transport/log/Message.hh>
 
 namespace ignition
 {

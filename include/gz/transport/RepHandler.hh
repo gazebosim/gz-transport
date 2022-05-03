@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_REPHANDLER_HH_
-#define IGN_TRANSPORT_REPHANDLER_HH_
+#ifndef GZ_TRANSPORT_REPHANDLER_HH_
+#define GZ_TRANSPORT_REPHANDLER_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -35,10 +35,10 @@
 #include <memory>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -47,7 +47,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
-    /// \class IRepHandler RepHandler.hh ignition/transport/RepHandler.hh
+    /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
     class IGNITION_TRANSPORT_VISIBLE IRepHandler
     {

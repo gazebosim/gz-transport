@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_TRANSPORT_NODE_HH_
-#define IGN_TRANSPORT_NODE_HH_
+#ifndef GZ_TRANSPORT_NODE_HH_
+#define GZ_TRANSPORT_NODE_HH_
 
 #include <algorithm>
 #include <functional>
@@ -30,24 +30,24 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TopicStatistics.hh"
-#include "ignition/transport/TopicUtils.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TopicStatistics.hh"
+#include "gz/transport/TopicUtils.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -88,7 +88,7 @@ namespace ignition
     /// function if you want to manage yourself SIGINT/SIGTERM.
     void IGNITION_TRANSPORT_VISIBLE waitForShutdown();
 
-    /// \class Node Node.hh ignition/transport/Node.hh
+    /// \class Node Node.hh gz/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
@@ -779,6 +779,6 @@ namespace ignition
   }
 }
 
-#include "ignition/transport/detail/Node.hh"
+#include "gz/transport/detail/Node.hh"
 
 #endif

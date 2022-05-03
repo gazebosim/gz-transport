@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODESHARED_HH_
-#define IGN_TRANSPORT_NODESHARED_HH_
+#ifndef GZ_TRANSPORT_NODESHARED_HH_
+#define GZ_TRANSPORT_NODESHARED_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -34,17 +34,17 @@
 #include <vector>
 #include <map>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TopicStorage.hh"
-#include "ignition/transport/TopicStatistics.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/HandlerStorage.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TopicStorage.hh"
+#include "gz/transport/TopicStatistics.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -60,7 +60,7 @@ namespace ignition
     /// \brief Private data pointer
     class NodeSharedPrivate;
 
-    /// \class NodeShared NodeShared.hh ignition/transport/NodeShared.hh
+    /// \class NodeShared NodeShared.hh gz/transport/NodeShared.hh
     /// \brief Private data for the Node class. This class should not be
     /// directly used. You should use the Node class.
     class IGNITION_TRANSPORT_VISIBLE NodeShared

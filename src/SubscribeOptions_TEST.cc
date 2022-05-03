@@ -17,7 +17,7 @@
 
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
 using namespace ignition;

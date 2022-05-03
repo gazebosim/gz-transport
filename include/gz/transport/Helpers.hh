@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_HELPERS_HH_
-#define IGN_TRANSPORT_HELPERS_HH_
+#ifndef GZ_TRANSPORT_HELPERS_HH_
+#define GZ_TRANSPORT_HELPERS_HH_
 
 #include <zmq.hpp>
 
@@ -27,8 +27,8 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 // Avoid using deprecated message send/receive function when possible.
 #if ZMQ_VERSION > ZMQ_MAKE_VERSION(4, 3, 1)

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_TRANSPORT_TRANSPORTTYPES_HH_
-#define IGN_TRANSPORT_TRANSPORTTYPES_HH_
+#ifndef GZ_TRANSPORT_TRANSPORTTYPES_HH_
+#define GZ_TRANSPORT_TRANSPORTTYPES_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -32,8 +32,8 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Publisher.hh"
 
 namespace ignition
 {

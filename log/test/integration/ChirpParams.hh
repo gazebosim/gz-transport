@@ -19,7 +19,7 @@
 #define IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
 #include <ignition/msgs/int32.pb.h>
-#include <ignition/transport/test_config.h>
+#include <gz/transport/test_config.h>
 
 #include <string>
 #include <vector>

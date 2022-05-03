@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
-#define IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
+#ifndef GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
+#define GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -38,14 +38,14 @@
 #include <string>
 #include <utility>
 
-#include <ignition/msgs/Factory.hh>
+#include <gz/msgs/Factory.hh>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -113,7 +113,7 @@ namespace ignition
     };
 
     /// \class ISubscriptionHandler SubscriptionHandler.hh
-    /// ignition/transport/SubscriptionHandler.hh
+    /// gz/transport/SubscriptionHandler.hh
     /// \brief Interface class used to manage generic protobuf messages.
     ///
     /// This extends SubscriptionHandlerBase by defining virtual functions for

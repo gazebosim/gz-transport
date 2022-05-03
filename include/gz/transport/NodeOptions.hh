@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODEOPTIONS_HH_
-#define IGN_TRANSPORT_NODEOPTIONS_HH_
+#ifndef GZ_TRANSPORT_NODEOPTIONS_HH_
+#define GZ_TRANSPORT_NODEOPTIONS_HH_
 
 #include <memory>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     // Forward declarations.
     class NodeOptionsPrivate;
 
-    /// \class NodeOptions NodeOptions.hh ignition/transport/NodeOptions.hh
+    /// \class NodeOptions NodeOptions.hh gz/transport/NodeOptions.hh
     /// \brief A class for customizing the behavior of the Node.
     /// E.g.: Set a custom namespace or a partition name.
     class IGNITION_TRANSPORT_VISIBLE NodeOptions

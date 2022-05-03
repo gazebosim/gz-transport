@@ -15,15 +15,15 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
-#define IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
+#ifndef GZ_TRANSPORT_ADVERTISEOPTIONS_HH_
+#define GZ_TRANSPORT_ADVERTISEOPTIONS_HH_
 
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {
@@ -52,7 +52,7 @@ namespace ignition
     };
 
     /// \class AdvertiseOptions AdvertiseOptions.hh
-    /// ignition/transport/AdvertiseOptions.hh
+    /// gz/transport/AdvertiseOptions.hh
     /// \brief A class for customizing the publication options for a topic or
     /// service advertised.
     /// E.g.: Set the scope of a topic/service.

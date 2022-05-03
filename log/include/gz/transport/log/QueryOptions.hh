@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_QUERYOPTIONS_HH_
-#define IGNITION_TRANSPORT_LOG_QUERYOPTIONS_HH_
+#ifndef GZ_TRANSPORT_LOG_QUERYOPTIONS_HH_
+#define GZ_TRANSPORT_LOG_QUERYOPTIONS_HH_
 
 #include <memory>
 #include <regex>
@@ -24,11 +24,11 @@
 #include <string>
 #include <vector>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/Descriptor.hh>
-#include <ignition/transport/log/QualifiedTime.hh>
-#include <ignition/transport/log/SqlStatement.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Export.hh>
+#include <gz/transport/log/Descriptor.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/transport/log/SqlStatement.hh>
 
 namespace ignition
 {
@@ -304,6 +304,6 @@ namespace ignition
   }
 }
 
-#include <ignition/transport/log/detail/QueryOptions.hh>
+#include <gz/transport/log/detail/QueryOptions.hh>
 
 #endif

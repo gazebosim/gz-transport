@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
-#define IGN_TRANSPORT_SUBSCRIBEOPTIONS_HH_
+#ifndef GZ_TRANSPORT_SUBSCRIBEOPTIONS_HH_
+#define GZ_TRANSPORT_SUBSCRIBEOPTIONS_HH_
 
 #include <cstdint>
 #include <memory>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     class SubscribeOptionsPrivate;
 
     /// \class SubscribeOptions SubscribeOptions.hh
-    /// ignition/transport/SubscribeOptions.hh
+    /// gz/transport/SubscribeOptions.hh
     /// \brief A class to provide different options for a subscription.
     class IGNITION_TRANSPORT_VISIBLE SubscribeOptions
     {
