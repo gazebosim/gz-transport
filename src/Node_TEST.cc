@@ -32,7 +32,7 @@
 #include "ignition/transport/TopicStatistics.hh"
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
 using namespace ignition;
 

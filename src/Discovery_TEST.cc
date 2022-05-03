@@ -27,7 +27,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
 using namespace ignition;
 using namespace transport;

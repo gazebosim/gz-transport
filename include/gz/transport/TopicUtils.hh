@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_TOPICUTILS_HH_
-#define IGN_TRANSPORT_TOPICUTILS_HH_
+#ifndef GZ_TRANSPORT_TOPICUTILS_HH_
+#define GZ_TRANSPORT_TOPICUTILS_HH_
 
 #include <cstdint>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
-    /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
+    /// \class TopicUtils TopicUtils.hh gz/transport/TopicUtils.hh
     /// \brief This class provides different utilities related with topics.
     class IGNITION_TRANSPORT_VISIBLE TopicUtils
     {

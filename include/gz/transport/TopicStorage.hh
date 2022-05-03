@@ -15,18 +15,18 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_TOPICSTORAGE_HH_
-#define IGN_TRANSPORT_TOPICSTORAGE_HH_
+#ifndef GZ_TRANSPORT_TOPICSTORAGE_HH_
+#define GZ_TRANSPORT_TOPICSTORAGE_HH_
 
 #include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -35,7 +35,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
-    /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
+    /// \class TopicStorage TopicStorage.hh gz/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient
     /// methods for adding new topics, removing them, etc.
     template<typename T> class TopicStorage

@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NETUTILS_HH_
-#define IGN_TRANSPORT_NETUTILS_HH_
+#ifndef GZ_TRANSPORT_NETUTILS_HH_
+#define GZ_TRANSPORT_NETUTILS_HH_
 
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {

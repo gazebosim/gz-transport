@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_DISCOVERY_HH_
-#define IGNITION_TRANSPORT_DISCOVERY_HH_
+#ifndef GZ_TRANSPORT_DISCOVERY_HH_
+#define GZ_TRANSPORT_DISCOVERY_HH_
 #include <errno.h>
 #include <string.h>
 
@@ -56,7 +56,7 @@
   #pragma warning(disable: 4996)
 #endif
 
-#include <ignition/msgs/discovery.pb.h>
+#include <gz/msgs/discovery.pb.h>
 
 #include <algorithm>
 #include <condition_variable>
@@ -68,15 +68,15 @@
 #include <thread>
 #include <vector>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TopicStorage.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TopicStorage.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -105,7 +105,7 @@ namespace ignition
       const std::vector<int> &_sockets,
       const int _timeout);
 
-    /// \class Discovery Discovery.hh ignition/transport/Discovery.hh
+    /// \class Discovery Discovery.hh gz/transport/Discovery.hh
     /// \brief A discovery class that implements a distributed topic discovery
     /// protocol. It uses UDP multicast for sending/receiving messages and
     /// stores updated topic information. The discovery clients can request

@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_CLOCK_HH_
-#define IGNITION_TRANSPORT_CLOCK_HH_
+#ifndef GZ_TRANSPORT_CLOCK_HH_
+#define GZ_TRANSPORT_CLOCK_HH_
 
 #include <chrono>
 #include <memory>
 #include <string>
 
-#include <ignition/utils/SuppressWarning.hh>
+#include <gz/utils/SuppressWarning.hh>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_REQHANDLER_HH_
-#define IGN_TRANSPORT_REQHANDLER_HH_
+#ifndef GZ_TRANSPORT_REQHANDLER_HH_
+#define GZ_TRANSPORT_REQHANDLER_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -31,10 +31,10 @@
 #include <memory>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 namespace ignition
 {
@@ -43,7 +43,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
-    /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
+    /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class IGNITION_TRANSPORT_VISIBLE IReqHandler
     {

@@ -15,17 +15,17 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_PUBLISHER_HH_
-#define IGN_TRANSPORT_PUBLISHER_HH_
+#ifndef GZ_TRANSPORT_PUBLISHER_HH_
+#define GZ_TRANSPORT_PUBLISHER_HH_
 
-#include <ignition/msgs/discovery.pb.h>
+#include <gz/msgs/discovery.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace ignition
 {
@@ -38,7 +38,7 @@ namespace ignition
     class MessagePublisherPrivate;
 
     /// \class Publisher Publisher.hh
-    /// ignition/transport/Publisher.hh
+    /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
     /// It stores the topic name that publishes, addresses, UUIDs, scope, etc.
     class IGNITION_TRANSPORT_VISIBLE Publisher
@@ -176,7 +176,7 @@ namespace ignition
     };
 
     /// \class MessagePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
+    /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a message publisher.
     class IGNITION_TRANSPORT_VISIBLE MessagePublisher : public Publisher
     {
@@ -291,7 +291,7 @@ namespace ignition
     };
 
     /// \class ServicePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
+    /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a service publisher.
     class IGNITION_TRANSPORT_VISIBLE ServicePublisher : public Publisher
     {

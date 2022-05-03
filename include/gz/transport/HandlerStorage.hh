@@ -15,16 +15,16 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_HANDLERSTORAGE_HH_
-#define IGN_TRANSPORT_HANDLERSTORAGE_HH_
+#ifndef GZ_TRANSPORT_HANDLERSTORAGE_HH_
+#define GZ_TRANSPORT_HANDLERSTORAGE_HH_
 
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class HandlerStorage HandlerStorage.hh
-    /// ignition/transport/HandlerStorage.hh
+    /// gz/transport/HandlerStorage.hh
     /// \brief Class to store and manage service call handlers.
     template<typename T> class HandlerStorage
     {

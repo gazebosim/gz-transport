@@ -15,7 +15,7 @@
  *
 */
 
-#include <ignition/transport/test_config.h>
+#include <gz/transport/test_config.h>
 
 #include <chrono>
 #include <iostream>

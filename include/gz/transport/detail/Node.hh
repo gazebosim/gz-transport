@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_DETAIL_NODE_HH_
-#define IGNITION_TRANSPORT_DETAIL_NODE_HH_
+#ifndef GZ_TRANSPORT_DETAIL_NODE_HH_
+#define GZ_TRANSPORT_DETAIL_NODE_HH_
 
 #include <memory>
 #include <string>
