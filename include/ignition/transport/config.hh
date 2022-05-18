@@ -15,4 +15,14 @@
  *
  */
 
+#ifndef IGNITION_TRANSPORT__CONFIG_HH_
+#define IGNITION_TRANSPORT__CONFIG_HH_
+
 #include <gz/transport/config.hh>
+
+namespace [[deprecated("Use gz namespace.")]]  ignition
+{
+  using namespace gz;
+}
+
+#endif
