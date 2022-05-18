@@ -13,6 +13,10 @@ release will remove the deprecated code.
 1. Dependency on `cli` component of `ignition-utils`.
     * [GitHub pull request 229](https://github.com/ignitionrobotics/ign-transport/pull/229)
 
+### Deprecated
+
+1. The `ignition` namespace is deprecated and will be removed in future versions.  Use `gz` instead.
+
 ## Ignition Transport 8.X to 9.X
 
 ### Removed
