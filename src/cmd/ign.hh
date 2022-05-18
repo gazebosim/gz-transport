@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_IGN_HH_
-#define IGN_TRANSPORT_IGN_HH_
+#ifndef GZ_TRANSPORT_GZ_HH_
+#define GZ_TRANSPORT_GZ_HH_
 
 #include <cstring>
 

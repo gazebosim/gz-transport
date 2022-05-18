@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
-#define IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
+#ifndef GZ_TRANSPORT_LOG_BATCHPRIVATE_HH_
+#define GZ_TRANSPORT_LOG_BATCHPRIVATE_HH_
 
 #include <memory>
 #include <vector>
