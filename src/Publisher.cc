@@ -26,7 +26,7 @@
 #include "ignition/transport/NodeShared.hh"
 #include "ignition/transport/SubscriptionHandler.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

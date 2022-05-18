@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/TopicStatistics.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

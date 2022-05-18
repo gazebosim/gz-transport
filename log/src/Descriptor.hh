@@ -24,7 +24,7 @@
 
 #include <ignition/transport/log/Descriptor.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -101,10 +101,10 @@ namespace ignition
 //////////////////////////////////////////////////
 /// \brief Allow a TopicKey to be used as a key in a std::unordered_map
 namespace std {
-  template <> struct hash<ignition::transport::log::TopicKey>
+  template <> struct hash<gz::transport::log::TopicKey>
   {
     size_t operator()(
-        const ignition::transport::log::TopicKey &_key) const
+        const gz::transport::log::TopicKey &_key) const
     {
       // Terrible, but it gets the job done
       return (std::hash<std::string>()(_key.topic) << 16)

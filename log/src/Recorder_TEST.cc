@@ -21,7 +21,7 @@
 #include "ignition/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(Record, Start)

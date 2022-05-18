@@ -23,10 +23,10 @@
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/oneway" service.
@@ -38,5 +38,5 @@ int main(int argc, char **argv)
   std::cout << "Press <CTRL-C> to exit" << std::endl;
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

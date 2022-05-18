@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_data = 5;
@@ -32,7 +32,7 @@ static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
-bool srvWithoutInput(ignition::msgs::Int32 &_rep)
+bool srvWithoutInput(gz::msgs::Int32 &_rep)
 {
   _rep.set_data(g_data);
   return true;

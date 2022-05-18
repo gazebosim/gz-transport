@@ -23,12 +23,12 @@
 #include "ignition/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation for Batch
 /// \internal
-class ignition::transport::log::BatchPrivate
+class gz::transport::log::BatchPrivate
 {
   /// \brief constructor
   /// \param[in] _db an open sqlite3 database handle wrapper

@@ -40,11 +40,11 @@
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Recorder::Implementation
+class gz::transport::log::Recorder::Implementation
 {
   /// \brief Data type stored in dataQueue
   public: struct LogData
@@ -180,7 +180,7 @@ class ignition::transport::log::Recorder::Implementation
 Recorder::Implementation::Implementation()
 {
   // Use wall clock for synchronization by default.
-  this->clock = ignition::transport::WallClock::Instance();
+  this->clock = gz::transport::WallClock::Instance();
   // Make a lambda to wrap a member function callback
   this->rawCallback = [this](
       const char *_data, std::size_t _len, const transport::MessageInfo &_info)
@@ -212,7 +212,7 @@ Recorder::Implementation::~Implementation()
 void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
-          const ignition::transport::MessageInfo &_info)
+          const gz::transport::MessageInfo &_info)
 {
   LDBG("RX'" << _info.Topic() << "'[" << _info.Type() << "]\n");
 

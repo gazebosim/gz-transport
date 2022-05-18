@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -44,7 +44,7 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
     g_partition.c_str());
 
   int64_t timeout = 500;
-  ignition::msgs::Int32 rep;
+  gz::msgs::Int32 rep;
   bool result;
 
   transport::Node node;

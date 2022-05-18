@@ -24,14 +24,14 @@
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without output.
-void srvWithoutOutput(const ignition::msgs::Int32 &_req)
+void srvWithoutOutput(const gz::msgs::Int32 &_req)
 {
   EXPECT_GE(_req.data(), 0);
 }

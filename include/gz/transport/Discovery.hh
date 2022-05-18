@@ -78,7 +78,7 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -851,7 +851,7 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg, uint16_t _len)
       {
-        ignition::msgs::Discovery msg;
+        gz::msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
@@ -1094,7 +1094,7 @@ namespace ignition
                    const msgs::Discovery::Type _type,
                    const T &_pub) const
       {
-        ignition::msgs::Discovery discoveryMsg;
+        gz::msgs::Discovery discoveryMsg;
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);

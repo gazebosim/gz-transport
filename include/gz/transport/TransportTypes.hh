@@ -35,7 +35,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Publisher.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

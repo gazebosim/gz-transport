@@ -22,10 +22,10 @@
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Helpers.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

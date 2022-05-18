@@ -21,7 +21,7 @@
 #include "ignition/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

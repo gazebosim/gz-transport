@@ -20,7 +20,7 @@
 
 #include <ignition/transport/log/SqlStatement.hh>
 
-using namespace ignition::transport::log;
+using namespace gz::transport::log;
 
 //////////////////////////////////////////////////
 class SqlParameter::Implementation

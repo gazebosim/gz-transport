@@ -20,7 +20,7 @@
 #include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

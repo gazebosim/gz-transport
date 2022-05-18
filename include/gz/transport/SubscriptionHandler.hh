@@ -47,7 +47,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -258,7 +258,7 @@ namespace ignition
         else
         {
           // Fallback on Ignition Msgs if the message type is not found.
-          msgPtr = ignition::msgs::Factory::New(_type);
+          msgPtr = gz::msgs::Factory::New(_type);
         }
 
         if (!msgPtr)

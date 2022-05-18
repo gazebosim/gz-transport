@@ -27,7 +27,7 @@
 
 #include "ignition/transport/Discovery.hh"
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {

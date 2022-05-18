@@ -37,7 +37,7 @@
 #include <windows.h>
 #endif
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -129,7 +129,7 @@ namespace ignition
       public: void Update(const std::string &_sender,
                           uint64_t _stamp, uint64_t _seq);
 
-      /// \brief Populate an ignition::msgs::Metric message with topic
+      /// \brief Populate an gz::msgs::Metric message with topic
       /// statistics.
       /// \param[in] _msg Message to populate.
       public: void FillMessage(msgs::Metric &_msg) const;

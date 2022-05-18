@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -39,7 +39,7 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
 
-  ignition::msgs::Int32 response;
+  gz::msgs::Int32 response;
   bool result;
   unsigned int timeout = 1000;
   transport::Node node;

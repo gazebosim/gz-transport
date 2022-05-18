@@ -45,10 +45,10 @@
 #pragma warning(disable: 4503)
 #endif
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

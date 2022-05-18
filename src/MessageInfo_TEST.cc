@@ -20,7 +20,7 @@
 #include "ignition/transport/MessageInfo.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check [Set]Topic().

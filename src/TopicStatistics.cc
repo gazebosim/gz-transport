@@ -22,10 +22,10 @@
 
 #include "ignition/transport/TopicStatistics.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-class ignition::transport::TopicStatisticsPrivate
+class gz::transport::TopicStatisticsPrivate
 {
   /// \brief Default constructor
   public: TopicStatisticsPrivate() = default;

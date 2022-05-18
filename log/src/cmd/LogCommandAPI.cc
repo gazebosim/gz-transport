@@ -29,8 +29,8 @@
 #include <ignition/transport/NodeOptions.hh>
 #include "../Console.hh"
 
-using namespace ignition;
-ignition::transport::log::PlaybackHandlePtr g_playbackHandler;
+using namespace gz;
+gz::transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////
 int verbosity(int _level)
@@ -40,7 +40,7 @@ int verbosity(int _level)
     std::cerr << "Invalid verbosity level\n";
     return INVALID_VERSION;
   }
-  ignition::transport::log::__verbosity = _level;
+  gz::transport::log::__verbosity = _level;
   return SUCCESS;
 }
 

@@ -20,7 +20,7 @@
 
 #include "ignition/transport/Uuid.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 #ifdef _WIN32

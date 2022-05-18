@@ -27,7 +27,7 @@
 #include <ignition/transport/Node.hh>
 
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -47,7 +47,7 @@ namespace ignition
 
         /// \brief This is the message type that will be used by the chirping
         /// topics.
-        using ChirpMsgType = ignition::msgs::Int32;
+        using ChirpMsgType = gz::msgs::Int32;
 
 
         //////////////////////////////////////////////////

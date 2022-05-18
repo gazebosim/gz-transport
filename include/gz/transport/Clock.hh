@@ -26,7 +26,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -51,7 +51,7 @@ namespace ignition
 
       ////////////////////////////////////////////////////////////////
       /// \brief A Clock interface implementation that uses
-      /// ignition::msgs::Clock messages distributed across
+      /// gz::msgs::Clock messages distributed across
       /// the network
       class IGNITION_TRANSPORT_VISIBLE NetworkClock : public Clock
       {
@@ -64,7 +64,7 @@ namespace ignition
         };
 
         /// \brief Constructor that sets the initial time range option
-        /// \param[in] _topicName Name of the ignition::msgs::Clock type
+        /// \param[in] _topicName Name of the gz::msgs::Clock type
         /// topic to be used
         /// \param[in] _timeBase Time base for this clock, defaults to
         /// simulation time

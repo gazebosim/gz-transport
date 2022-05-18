@@ -33,7 +33,7 @@
   using portable_uuid_t = uuid_t;
 #endif
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -58,7 +58,7 @@ namespace ignition
       /// \param[out] _out The output stream.
       /// \param[in] _uuid UUID to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                         const ignition::transport::Uuid &_uuid)
+                                         const gz::transport::Uuid &_uuid)
       {
         _out << _uuid.ToString();
         return _out;

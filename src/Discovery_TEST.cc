@@ -29,7 +29,7 @@
 #include "ignition/transport/Uuid.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants used for multiple tests.

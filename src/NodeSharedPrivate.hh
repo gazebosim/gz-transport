@@ -36,7 +36,7 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Node.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

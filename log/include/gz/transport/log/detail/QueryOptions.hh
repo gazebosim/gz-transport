@@ -24,7 +24,7 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/QueryOptions.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

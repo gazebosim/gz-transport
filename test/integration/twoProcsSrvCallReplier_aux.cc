@@ -23,13 +23,13 @@
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;

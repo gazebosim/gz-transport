@@ -20,10 +20,10 @@
 #include "ignition/transport/MessageInfo.hh"
 #include "ignition/transport/TopicUtils.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

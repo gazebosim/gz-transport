@@ -60,7 +60,7 @@
 #endif
 
 using namespace std::chrono_literals;
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 const char kIgnAuthDomain[] = "ign-auth";
@@ -755,7 +755,7 @@ void NodeShared::RecvSrvRequest()
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
-    if (repType == ignition::msgs::Empty().GetTypeName())
+    if (repType == gz::msgs::Empty().GetTypeName())
     {
       return;
     }
@@ -1124,7 +1124,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
-      if (_repType == ignition::msgs::Empty().GetTypeName())
+      if (_repType == gz::msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
