@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/SubscriptionHandler.hh>
+#include <ignition/transport/config.hh>

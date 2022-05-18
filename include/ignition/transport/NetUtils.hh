@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/NetUtils.hh>
+#include <ignition/transport/config.hh>

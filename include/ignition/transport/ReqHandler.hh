@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/ReqHandler.hh>
+#include <ignition/transport/config.hh>

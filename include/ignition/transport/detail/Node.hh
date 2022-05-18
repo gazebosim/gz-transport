@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/detail/Node.hh>
+#include <ignition/transport/config.hh>
