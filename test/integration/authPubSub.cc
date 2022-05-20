@@ -29,9 +29,17 @@
 #endif
 
 #include "gtest/gtest.h"
+#ifdef _MSVC_VER
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
+#endif
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
+#ifdef _MSVC_VER
+#pragma warning(pop)
+#endif
 
 using namespace ignition;
 
