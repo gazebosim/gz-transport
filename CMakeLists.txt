@@ -91,6 +91,10 @@ endif()
 #--------------------------------------
 # Find ignition-tools
 ign_find_package(ignition-tools QUIET)
+if (ignition-tools_FOUND)
+  set (HAVE_IGN_TOOLS TRUE)
+  set (IGN_TOOLS_VER 1)
+endif()
 
 #--------------------------------------
 # Find SQLite3

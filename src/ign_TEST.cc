@@ -15,6 +15,7 @@
  *
 */
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
@@ -441,6 +442,75 @@ TEST(ignTest, TopicEchoNum)
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign topic --help' message and bash completion script for
+/// consistent flags
+TEST(ignTest, TopicHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string output = custom_exec_str("ign topic --help");
+  EXPECT_NE(std::string::npos, output.find("--help")) << output;
+  EXPECT_NE(std::string::npos, output.find("--version")) << output;
+  EXPECT_NE(std::string::npos, output.find("--topic")) << output;
+  EXPECT_NE(std::string::npos, output.find("--msgtype")) << output;
+  EXPECT_NE(std::string::npos, output.find("--duration")) << output;
+  EXPECT_NE(std::string::npos, output.find("--num")) << output;
+  EXPECT_NE(std::string::npos, output.find("--list")) << output;
+  EXPECT_NE(std::string::npos, output.find("--info")) << output;
+  EXPECT_NE(std::string::npos, output.find("--echo")) << output;
+  EXPECT_NE(std::string::npos, output.find("--pub")) << output;
+
+  // Flags in bash completion
+  std::ifstream scriptFile(std::string(IGN_TRANSPORT_SOURCE_DIR) +
+    "/src/cmd/transport.bash_completion.sh");
+  std::string script((std::istreambuf_iterator<char>(scriptFile)),
+      std::istreambuf_iterator<char>());
+
+  EXPECT_NE(std::string::npos, script.find("--help")) << script;
+  EXPECT_NE(std::string::npos, script.find("--version")) << script;
+  EXPECT_NE(std::string::npos, script.find("--topic")) << script;
+  EXPECT_NE(std::string::npos, script.find("--msgtype")) << script;
+  EXPECT_NE(std::string::npos, script.find("--duration")) << script;
+  EXPECT_NE(std::string::npos, script.find("--num")) << script;
+  EXPECT_NE(std::string::npos, script.find("--list")) << script;
+  EXPECT_NE(std::string::npos, script.find("--info")) << script;
+  EXPECT_NE(std::string::npos, script.find("--echo")) << script;
+  EXPECT_NE(std::string::npos, script.find("--pub")) << script;
+}
+
+/// \brief Check 'ign service --help' message and bash completion script for
+/// consistent flags
+TEST(ignTest, ServiceHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string output = custom_exec_str("ign service --help");
+  EXPECT_NE(std::string::npos, output.find("--help")) << output;
+  EXPECT_NE(std::string::npos, output.find("--version")) << output;
+  EXPECT_NE(std::string::npos, output.find("--service")) << output;
+  EXPECT_NE(std::string::npos, output.find("--reqtype")) << output;
+  EXPECT_NE(std::string::npos, output.find("--reptype")) << output;
+  EXPECT_NE(std::string::npos, output.find("--timeout")) << output;
+  EXPECT_NE(std::string::npos, output.find("--list")) << output;
+  EXPECT_NE(std::string::npos, output.find("--info")) << output;
+  EXPECT_NE(std::string::npos, output.find("--req")) << output;
+
+  // Flags in bash completion
+  std::ifstream scriptFile(std::string(IGN_TRANSPORT_SOURCE_DIR) +
+    "/src/cmd/transport.bash_completion.sh");
+  std::string script((std::istreambuf_iterator<char>(scriptFile)),
+      std::istreambuf_iterator<char>());
+
+  EXPECT_NE(std::string::npos, script.find("--help")) << script;
+  EXPECT_NE(std::string::npos, script.find("--version")) << script;
+  EXPECT_NE(std::string::npos, script.find("--service")) << script;
+  EXPECT_NE(std::string::npos, script.find("--reqtype")) << script;
+  EXPECT_NE(std::string::npos, script.find("--reptype")) << script;
+  EXPECT_NE(std::string::npos, script.find("--timeout")) << script;
+  EXPECT_NE(std::string::npos, script.find("--list")) << script;
+  EXPECT_NE(std::string::npos, script.find("--info")) << script;
+  EXPECT_NE(std::string::npos, script.find("--req")) << script;
 }
 
 /////////////////////////////////////////////////
