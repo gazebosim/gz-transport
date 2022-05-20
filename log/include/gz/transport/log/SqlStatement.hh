@@ -32,7 +32,7 @@ namespace gz
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief A class which contains a SQL statement parameter. SqlParameter
       /// can be useful for keeping SQL queries sanitized and avoid SQL

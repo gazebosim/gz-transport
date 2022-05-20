@@ -45,7 +45,7 @@ namespace gz
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.

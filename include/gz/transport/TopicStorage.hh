@@ -33,7 +33,7 @@ namespace gz
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class TopicStorage TopicStorage.hh gz/transport/TopicStorage.hh
     /// \brief Store address information about topics and provide convenient

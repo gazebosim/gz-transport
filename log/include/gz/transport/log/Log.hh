@@ -36,7 +36,7 @@ namespace gz
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief Name of Environment variable containing path to schema
       const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";

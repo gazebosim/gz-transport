@@ -29,7 +29,7 @@ namespace gz
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \brief Determine if an IP is private.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/

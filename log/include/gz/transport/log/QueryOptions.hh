@@ -37,7 +37,7 @@ namespace gz
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       //////////////////////////////////////////////////
       /// \brief The QueryOptions interface is used by Log::QueryMessages() to
