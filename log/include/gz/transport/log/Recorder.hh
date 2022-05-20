@@ -51,7 +51,7 @@ namespace gz
       /// This class makes it easy to record topics to a log file.
       /// Responsibilities: topic name matching, time received tracking,
       /// multiple thread safety, subscribing to topics
-      class IGNITION_TRANSPORT_LOG_VISIBLE Recorder
+      class GZ_TRANSPORT_LOG_VISIBLE Recorder
       {
         /// \brief Default constructor
         public: Recorder();

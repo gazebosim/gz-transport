@@ -36,7 +36,7 @@ namespace gz
       /// \brief A representation of the information that defines a topic row
       /// \note We export the symbols for this class so it can be used in
       /// UNIT_Descriptor_TEST
-      struct IGNITION_TRANSPORT_LOG_VISIBLE TopicKey
+      struct GZ_TRANSPORT_LOG_VISIBLE TopicKey
       {
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -70,7 +70,7 @@ namespace gz
       /// \brief Implementation of the Descriptor class
       /// \note We export the symbols for this class so it can be used in
       /// UNIT_Descriptor_TEST
-      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor::Implementation
+      class GZ_TRANSPORT_LOG_VISIBLE Descriptor::Implementation
       {
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a

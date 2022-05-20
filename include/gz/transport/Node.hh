@@ -69,7 +69,7 @@ namespace gz
     /// If the buffer is set to unlimited, then your buffer will grow until
     /// you run out of memory (and probably crash).
     /// If your buffer reaches the maximum capacity data will be dropped.
-    int IGNITION_TRANSPORT_VISIBLE rcvHwm();
+    int GZ_TRANSPORT_VISIBLE rcvHwm();
 
     /// \brief Get the capacity of the buffer (High Water Mark)
     /// that stores outgoing Ignition Transport messages. Note that this is a
@@ -81,18 +81,18 @@ namespace gz
     /// If the buffer is set to unlimited, then your buffer will grow until
     /// you run out of memory (and probably crash).
     /// If your buffer reaches the maximum capacity data will be dropped.
-    int IGNITION_TRANSPORT_VISIBLE sndHwm();
+    int GZ_TRANSPORT_VISIBLE sndHwm();
 
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
-    void IGNITION_TRANSPORT_VISIBLE waitForShutdown();
+    void GZ_TRANSPORT_VISIBLE waitForShutdown();
 
     /// \class Node Node.hh gz/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
-    class IGNITION_TRANSPORT_VISIBLE Node
+    class GZ_TRANSPORT_VISIBLE Node
     {
       class PublisherPrivate;
 
@@ -112,7 +112,7 @@ namespace gz
       ///      // when publishing to interprocess subscribers.
       ///      pub.Publish(msg);
       ///    }
-      public: class IGNITION_TRANSPORT_VISIBLE Publisher
+      public: class GZ_TRANSPORT_VISIBLE Publisher
       {
         /// \brief Default constructor.
         public: Publisher();

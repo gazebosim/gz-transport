@@ -42,7 +42,7 @@ namespace gz
       /// \brief The Descriptor class provides meta-information about what a log
       /// contains. This may be useful for determining QueryOptions or for
       /// generating a high-level overview of a Log's contents.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor
+      class GZ_TRANSPORT_LOG_VISIBLE Descriptor
       {
         /// \brief A map from a name (e.g. topic name or message type name) to
         /// the id of a row in one of the database tables. (name -> id)

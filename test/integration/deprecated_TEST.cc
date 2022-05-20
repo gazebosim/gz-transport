@@ -28,3 +28,5 @@ TEST(Deprecated, IgnitionNamespace)
 {
   ignition::transport::Clock clock;
 }
+
+#undef SUPPRESS_IGNITION_HEADER_DEPRECATION

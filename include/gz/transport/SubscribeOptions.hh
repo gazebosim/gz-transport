@@ -36,7 +36,7 @@ namespace gz
     /// \class SubscribeOptions SubscribeOptions.hh
     /// gz/transport/SubscribeOptions.hh
     /// \brief A class to provide different options for a subscription.
-    class IGNITION_TRANSPORT_VISIBLE SubscribeOptions
+    class GZ_TRANSPORT_VISIBLE SubscribeOptions
     {
       /// \brief Constructor.
       public: SubscribeOptions();

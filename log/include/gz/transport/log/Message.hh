@@ -37,7 +37,7 @@ namespace gz
       class MessagePrivate;
 
       /// \brief Represents a message in a bag file.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Message
+      class GZ_TRANSPORT_LOG_VISIBLE Message
       {
         /// \brief Default constructor
         public: Message();

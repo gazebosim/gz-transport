@@ -42,7 +42,7 @@ namespace gz
     //
     /// \class Uuid Uuid.hh gz/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
-    class IGNITION_TRANSPORT_VISIBLE Uuid
+    class GZ_TRANSPORT_VISIBLE Uuid
     {
       /// \brief Constructor.
       public: Uuid();

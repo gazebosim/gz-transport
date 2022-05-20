@@ -42,7 +42,7 @@ namespace gz
       //////////////////////////////////////////////////
       /// \brief The QueryOptions interface is used by Log::QueryMessages() to
       /// determine which messages are retrieved from the log file.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QueryOptions
+      class GZ_TRANSPORT_LOG_VISIBLE QueryOptions
       {
         /// \brief Generate one or more SQL query statements to be used by the
         /// log file to produce a Batch of messages.
@@ -80,7 +80,7 @@ namespace gz
       //////////////////////////////////////////////////
       /// \brief Base class which manages the time range settings for the native
       /// QueryOptions classes.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
+      class GZ_TRANSPORT_LOG_VISIBLE TimeRangeOption
       {
         /// \brief Constructor that sets the initial time range option.
         /// \param[in] _timeRange The time range.
@@ -131,7 +131,7 @@ namespace gz
 
       //////////////////////////////////////////////////
       /// \brief Specify a list of topics to query.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TopicList final
+      class GZ_TRANSPORT_LOG_VISIBLE TopicList final
           : public virtual QueryOptions,
             public virtual TimeRangeOption
       {
@@ -204,7 +204,7 @@ namespace gz
 
       //////////////////////////////////////////////////
       /// \brief Specify a pattern of topics to query.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TopicPattern final
+      class GZ_TRANSPORT_LOG_VISIBLE TopicPattern final
           : public virtual QueryOptions,
             public virtual TimeRangeOption
       {
@@ -259,7 +259,7 @@ namespace gz
 
       //////////////////////////////////////////////////
       /// \brief Query for all the topics.
-      class IGNITION_TRANSPORT_LOG_VISIBLE AllTopics final
+      class GZ_TRANSPORT_LOG_VISIBLE AllTopics final
           : public virtual QueryOptions,
             public virtual TimeRangeOption
       {

@@ -38,7 +38,7 @@ namespace gz
       class Log;
 
       /// \brief Holds the result of a query for messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE Batch
+      class GZ_TRANSPORT_LOG_VISIBLE Batch
       {
         /// \brief Default constructor
         public: Batch();

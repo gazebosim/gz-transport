@@ -45,7 +45,7 @@ namespace gz
     //
     /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
-    class IGNITION_TRANSPORT_VISIBLE IReqHandler
+    class GZ_TRANSPORT_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the request handler.

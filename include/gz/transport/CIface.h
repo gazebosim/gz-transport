@@ -38,12 +38,12 @@ extern "C" {
   /// IGN_PARTITION environment variable.
   /// \return A pointer to a new transport node. Do not manually delete this
   /// pointer, instead use ignTransportNodeDestroy.
-  IgnTransportNode IGNITION_TRANSPORT_VISIBLE *ignTransportNodeCreate(
+  IgnTransportNode GZ_TRANSPORT_VISIBLE *ignTransportNodeCreate(
       const char *_partition);
 
   /// \brief Destroy a transport node.
   /// \param[in, out] _node The transport node to destroy.
-  void IGNITION_TRANSPORT_VISIBLE
+  void GZ_TRANSPORT_VISIBLE
   ignTransportNodeDestroy(IgnTransportNode **_node);
 
   /// \brief Advertise a topic.
@@ -51,7 +51,7 @@ extern "C" {
   /// \param[in] _topic Topic on which to publish the message.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportAdvertise(IgnTransportNode *_node,
                       const char *_topic,
                       const char *_msgType);
@@ -63,7 +63,7 @@ extern "C" {
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportPublish(IgnTransportNode *_node,
                       const char *_topic,
                       const void *_data,
@@ -75,7 +75,7 @@ extern "C" {
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportSubscribe(IgnTransportNode *_node,
                 const char *_topic,
                 void (*_callback)(const char *, size_t, const char *, void *),
@@ -88,7 +88,7 @@ extern "C" {
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportSubscribeOptions(IgnTransportNode *_node,
                 const char *_topic, SubscribeOpts _opts,
                 void (*_callback)(const char *, size_t, const char *, void *),
@@ -100,7 +100,7 @@ extern "C" {
   /// \param[in] _callback The function to call when a message is received.
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
                             void (*_callback)(char *, size_t, char *, void *),
                             void *_userData);
@@ -109,13 +109,13 @@ extern "C" {
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Name of the topic.
   /// \return 0 on success.
-  int IGNITION_TRANSPORT_VISIBLE
+  int GZ_TRANSPORT_VISIBLE
   ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic);
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
   /// Note that this function registers a signal handler. Do not use this
   /// function if you want to manage yourself SIGINT/SIGTERM.
-  void IGNITION_TRANSPORT_VISIBLE ignTransportWaitForShutdown();
+  void GZ_TRANSPORT_VISIBLE ignTransportWaitForShutdown();
 
 #ifdef __cplusplus
 }

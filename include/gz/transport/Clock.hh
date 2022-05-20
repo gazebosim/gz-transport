@@ -35,7 +35,7 @@ namespace gz
       //
       //////////////////////////////////////////////////
       /// \brief A Clock interface for time tracking
-      class IGNITION_TRANSPORT_VISIBLE Clock
+      class GZ_TRANSPORT_VISIBLE Clock
       {
         /// \brief Gets clock time
         /// \return Current clock time, in nanoseconds
@@ -53,7 +53,7 @@ namespace gz
       /// \brief A Clock interface implementation that uses
       /// gz::msgs::Clock messages distributed across
       /// the network
-      class IGNITION_TRANSPORT_VISIBLE NetworkClock : public Clock
+      class GZ_TRANSPORT_VISIBLE NetworkClock : public Clock
       {
         /// \brief Network clock time bases
         public: enum class TimeBase : int64_t
@@ -96,7 +96,7 @@ namespace gz
 
       //////////////////////////////////////////////////
       /// \brief A Clock implementation that leverages host OS time APIs
-      class IGNITION_TRANSPORT_VISIBLE WallClock : public Clock
+      class GZ_TRANSPORT_VISIBLE WallClock : public Clock
       {
         /// \brief Returns system wall clock interface
         /// \return The sole wall clock instance (a singleton)

@@ -56,7 +56,7 @@ namespace gz
     /// \brief A class for customizing the publication options for a topic or
     /// service advertised.
     /// E.g.: Set the scope of a topic/service.
-    class IGNITION_TRANSPORT_VISIBLE AdvertiseOptions
+    class GZ_TRANSPORT_VISIBLE AdvertiseOptions
     {
       /// \brief Constructor.
       public: AdvertiseOptions();
@@ -131,7 +131,7 @@ namespace gz
     /// \brief A class for customizing the publication options for a topic
     /// advertised.
     /// E.g.: Set the rate of messages per second published.
-    class IGNITION_TRANSPORT_VISIBLE AdvertiseMessageOptions
+    class GZ_TRANSPORT_VISIBLE AdvertiseMessageOptions
       : public AdvertiseOptions
     {
       /// \brief Constructor.
@@ -213,7 +213,7 @@ namespace gz
 
     /// \brief A class for customizing the publication options for a service
     /// advertised.
-    class IGNITION_TRANSPORT_VISIBLE AdvertiseServiceOptions
+    class GZ_TRANSPORT_VISIBLE AdvertiseServiceOptions
       : public AdvertiseOptions
     {
       /// \brief Constructor.

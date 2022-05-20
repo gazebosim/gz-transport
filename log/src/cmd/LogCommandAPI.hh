@@ -31,12 +31,12 @@ extern "C"
 
   /// \brief Sets verbosity of library
   /// \param[in] _level [0-4] Verbosity level
-  int IGNITION_TRANSPORT_LOG_VISIBLE verbosity(int _level);
+  int GZ_TRANSPORT_LOG_VISIBLE verbosity(int _level);
 
   /// \brief Record topics whose name matches the given pattern
   /// \param[in] _file Path to the log file to record
   /// \param[in] _pattern ECMAScript regular expression to match against topics
-  int IGNITION_TRANSPORT_LOG_VISIBLE recordTopics(
+  int GZ_TRANSPORT_LOG_VISIBLE recordTopics(
     const char *_file,
     const char *_pattern);
 
@@ -46,7 +46,7 @@ extern "C"
   /// \param[in] _wait_ms How long to wait before the publications begin after
   /// advertising the topics that will be played back (milliseconds)
   /// \param[in] _fast Set to > 0 to disable wait between messages.
-  int IGNITION_TRANSPORT_LOG_VISIBLE playbackTopics(
+  int GZ_TRANSPORT_LOG_VISIBLE playbackTopics(
     const char *_file,
     const char *_pattern,
     const int _wait_ms,

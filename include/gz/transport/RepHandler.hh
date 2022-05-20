@@ -49,7 +49,7 @@ namespace gz
     //
     /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
-    class IGNITION_TRANSPORT_VISIBLE IRepHandler
+    class GZ_TRANSPORT_VISIBLE IRepHandler
     {
       /// \brief Constructor.
       public: IRepHandler()

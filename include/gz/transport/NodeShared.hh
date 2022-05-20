@@ -63,7 +63,7 @@ namespace gz
     /// \class NodeShared NodeShared.hh gz/transport/NodeShared.hh
     /// \brief Private data for the Node class. This class should not be
     /// directly used. You should use the Node class.
-    class IGNITION_TRANSPORT_VISIBLE NodeShared
+    class GZ_TRANSPORT_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.

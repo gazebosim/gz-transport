@@ -38,7 +38,7 @@ namespace gz
       class Log;
 
       /// \brief Implements iterator for reading messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE MsgIter
+      class GZ_TRANSPORT_LOG_VISIBLE MsgIter
       {
         /// \brief Default constructor
         public: MsgIter();

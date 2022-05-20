@@ -57,20 +57,20 @@ namespace gz
     /// \param[in] _name Name of the environment variable.
     /// \param[out] _value Value if the variable was found.
     /// \return True if the variable was found or false otherwise.
-    bool IGNITION_TRANSPORT_VISIBLE env(const std::string &_name,
+    bool GZ_TRANSPORT_VISIBLE env(const std::string &_name,
                                         std::string &_value);
 
     /// \brief split at a one character delimiter to get a vector of something
     /// \param[in] _orig The string to split
     /// \param[in] _delim a character to split the string at
     /// \returns vector of split pieces of the string excluding the delimiter
-    std::vector<std::string> IGNITION_TRANSPORT_VISIBLE split(
+    std::vector<std::string> GZ_TRANSPORT_VISIBLE split(
         const std::string &_orig,
         char _delim);
 
     /// \brief Portable function to get the id of the current process.
     /// \returns id of current process
-    unsigned int IGNITION_TRANSPORT_VISIBLE getProcessId();
+    unsigned int GZ_TRANSPORT_VISIBLE getProcessId();
 
     // Use safer functions on Windows
     #ifdef _MSC_VER

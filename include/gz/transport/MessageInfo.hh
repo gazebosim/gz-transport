@@ -34,7 +34,7 @@ namespace gz
     class MessageInfoPrivate;
 
     /// \brief A class that provides information about the message received.
-    class IGNITION_TRANSPORT_VISIBLE MessageInfo
+    class GZ_TRANSPORT_VISIBLE MessageInfo
     {
       /// \brief Default constructor.
       public: MessageInfo();

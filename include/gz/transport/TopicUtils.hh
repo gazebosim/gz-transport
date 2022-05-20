@@ -33,7 +33,7 @@ namespace gz
     //
     /// \class TopicUtils TopicUtils.hh gz/transport/TopicUtils.hh
     /// \brief This class provides different utilities related with topics.
-    class IGNITION_TRANSPORT_VISIBLE TopicUtils
+    class GZ_TRANSPORT_VISIBLE TopicUtils
     {
       /// \brief Determines if a namespace is valid. A namespace's length must
       /// not exceed kMaxNameLength.

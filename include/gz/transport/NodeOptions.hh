@@ -37,7 +37,7 @@ namespace gz
     /// \class NodeOptions NodeOptions.hh gz/transport/NodeOptions.hh
     /// \brief A class for customizing the behavior of the Node.
     /// E.g.: Set a custom namespace or a partition name.
-    class IGNITION_TRANSPORT_VISIBLE NodeOptions
+    class GZ_TRANSPORT_VISIBLE NodeOptions
     {
       /// \brief Constructor.
       public: NodeOptions();

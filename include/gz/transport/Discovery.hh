@@ -101,7 +101,7 @@ namespace gz
     /// \param[in] _sockets Sockets on which to listen.
     /// \param[in] _timeout Length of time to poll (milliseconds).
     /// \return True if the sockets received a reply.
-    bool IGNITION_TRANSPORT_VISIBLE pollSockets(
+    bool GZ_TRANSPORT_VISIBLE pollSockets(
       const std::vector<int> &_sockets,
       const int _timeout);
 

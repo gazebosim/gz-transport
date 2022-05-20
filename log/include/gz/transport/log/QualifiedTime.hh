@@ -41,7 +41,7 @@ namespace gz
       /// Note that the value of this time object may be interpreted as a
       /// relative time or as an absolute time stamp depending on the context in
       /// which it gets used.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTime
+      class GZ_TRANSPORT_LOG_VISIBLE QualifiedTime
       {
         /// \brief The Qualifier determines the behavior of how a message is
         /// selected.
@@ -190,7 +190,7 @@ namespace gz
       /// \brief The QualifiedTimeRange class provides a pair of qualified times
       /// that represent a range. This is used to specify a desired time range
       /// to the BasicQueryOptions class.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
+      class GZ_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
       {
         /// \brief Construct a time range.
         /// \param[in] _begin The beginning of the time range.
