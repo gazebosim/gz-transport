@@ -99,7 +99,7 @@ sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprot
 
 Clone the repository
 ```
-git clone https://github.com/ignitionrobotics/ign-transport
+git clone https://github.com/gazebosim/gz-transport
 ```
 
 Configure and build
@@ -174,7 +174,7 @@ sudo make uninstall
 
 1. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-transport -b ign-transport<#>
+  git clone https://github.com/gazebosim/gz-transport -b ign-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
@@ -204,7 +204,7 @@ sudo make uninstall
 
 ### Prerequisites
 
-First, follow the [ign-cmake](https://github.com/ignitionrobotics/ign-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+First, follow the [ign-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
 
 Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
 
@@ -235,7 +235,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 1. Navigate to where you would like to build the library, and clone the repository.
   ```
   # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
-  git clone https://github.com/ignitionrobotics/ign-transport.git
+  git clone https://github.com/gazebosim/gz-transport.git
   ```
 
 2. Configure and build
