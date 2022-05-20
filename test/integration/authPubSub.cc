@@ -18,13 +18,13 @@
 #include <chrono>
 #include <string>
 
-#ifdef _WIN32
+#ifdef MSVC
 #pragma warning(push)
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4251)
 #endif
 #include <ignition/msgs.hh>
-#ifdef _WIN32
+#ifdef MSVC
 #pragma warning(pop)
 #endif
 
