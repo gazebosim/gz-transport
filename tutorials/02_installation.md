@@ -5,10 +5,10 @@ Previous Tutorial: \ref introduction
 
 ## Overview
 
-This page contains instructions to install Ignition Transport on all the
+This page contains instructions to install Gazebo Transport on all the
 support platforms including major Linux distributions, Mac OS X and Windows.
 
-You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
+You can find all Gazebo Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
 
 # Binary Install
 
@@ -25,7 +25,7 @@ Setup keys:
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo apt-get update
 sudo apt-get install libignition-transport<#>-dev
@@ -36,9 +36,9 @@ which version you need.
 
 ## Mac OS X
 
-Ignition Transport and several of its dependencies can be compiled on OS
+Gazebo Transport and several of its dependencies can be compiled on OS
 X with [Homebrew](http://brew.sh/) using the [osrf/simulation
-tap](https://github.com/osrf/homebrew-simulation). Ignition Transport is
+tap](https://github.com/osrf/homebrew-simulation). Gazebo Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
@@ -83,7 +83,7 @@ which version you need.
 
 ## Ubuntu Linux
 
-For compiling the latest version of Ignition Transport you will need an
+For compiling the latest version of Gazebo Transport you will need an
 Ubuntu distribution equal to 20.04 (Focal) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
@@ -111,7 +111,7 @@ cmake ..
 make
 ```
 
-Configure Ignition Transport (choose either method a or b below):
+Configure Gazebo Transport (choose either method a or b below):
 
 A.  Release mode (recommended): This will generate optimized code, but will not have
     debug symbols. Use this mode if you don't need to use [GDB](https://www.gnu.org/software/gdb/) (advanced).
@@ -143,12 +143,12 @@ look something like:
 -- Install path: /home/$USER/local
 ```
 
-Build Ignition Transport:
+Build Gazebo Transport:
 ```
 make -j4
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo make install
 ```
@@ -161,7 +161,7 @@ echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.ba
 
 ### Uninstalling Source-based Install
 
-If you need to uninstall Ignition Transport or switch back to a
+If you need to uninstall Gazebo Transport or switch back to a
 debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:

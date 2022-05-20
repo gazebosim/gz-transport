@@ -364,7 +364,7 @@ class PubTester
     std::tm tm = *std::localtime(&t);
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
-    (*_stream) << "# Ignition Transport Version "
+    (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
 
 #ifdef __linux__

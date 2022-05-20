@@ -10,7 +10,7 @@ via services. You can see a service as a function that is going to be executed
 in a different node. Services have two main components: a service provider and a
 service consumer. A service provider is the node that offers the service to the
 rest of the world. The service consumers are the nodes that request the function
-offered by the provider. Note that in Ignition Transport the location of the
+offered by the provider. Note that in Gazebo Transport the location of the
 service is hidden. The discovery layer of the library is in charge of
 discovering and keeping and updated list of services available.
 
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 #include <gz/transport.hh>
 ```
 
-The line ``#include <gz/transport.hh>`` contains the Ignition Transport
+The line ``#include <gz/transport.hh>`` contains the Gazebo Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
@@ -210,7 +210,7 @@ else
 
 In this section of the code we use the method ``Request()`` for forwarding the
 service call to any service provider of the service ``/echo``.
-Ignition Transport will find a node, communicate the input data, capture the
+Gazebo Transport will find a node, communicate the input data, capture the
 response and pass it to your output parameter. The return value will tell you
 if the request expired or the response was received. The ``result`` value will
 tell you if the service provider considered the operation valid.
@@ -301,7 +301,7 @@ In this section of the code we declare a node and a Protobuf message that is
 filled with the input parameters for our request. Next, we just use the
 asynchronous variant of the ``Request()`` method that forwards a service call to
 any service provider of the service ``/echo``.
-Ignition Transport will find a node, communicate the data, capture the response
+Gazebo Transport will find a node, communicate the data, capture the response
 and pass it to your callback, in addition of the service call result. Note that
 this variant of ``Request()`` is asynchronous, so your code will not block while
 your service request is handled.
@@ -441,7 +441,7 @@ if (!executed)
 First of all we declare a node and a Protobuf message that is filled with the
 input parameters for our ``/oneway`` service. Next, we just use the oneway
 variant of the ``Request()`` method that forwards a service call to any service
-provider of the service ``/oneway``. Ignition Transport will find a node and
+provider of the service ``/oneway``. Gazebo Transport will find a node and
 communicate the data without waiting for the response. The return value of
 ``Request()`` indicates if the request was successfully queued. Note that this
 variant of ``Request()`` is also asynchronous, so your code will not block while

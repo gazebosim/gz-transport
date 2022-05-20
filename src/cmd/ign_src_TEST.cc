@@ -188,7 +188,7 @@ TEST(ignTest, cmdServiceReq)
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // It's not possible to request a service using a request parameter that is
-  // not part of Ignition Messages.
+  // not part of Gazebo Messages.
   cmdServiceReq(g_service.c_str(), kUnknownType.c_str(),
     g_intType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(),
@@ -196,7 +196,7 @@ TEST(ignTest, cmdServiceReq)
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // It's not possible to request a service using a response type that is not
-  // part of Ignition Messages.
+  // part of Gazebo Messages.
   cmdServiceReq(g_service.c_str(), g_intType.c_str(),
     kUnknownType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(),

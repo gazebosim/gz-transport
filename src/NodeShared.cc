@@ -1442,7 +1442,7 @@ bool NodeShared::InitializeSockets()
   catch(const zmq::error_t& ze)
   {
     std::cerr << "InitializeSockets() Error: " << ze.what() << std::endl;
-    std::cerr << "Ignition Transport has not been correctly initialized"
+    std::cerr << "Gazebo Transport has not been correctly initialized"
               << std::endl;
     return false;
   }

@@ -244,7 +244,7 @@ namespace gz
       public: bool AdvertisePublisher(const ServicePublisher &_publisher);
 
       /// \brief Get the capacity of the buffer (High Water Mark)
-      /// that stores incoming Ignition Transport messages. Note that this is a
+      /// that stores incoming Gazebo Transport messages. Note that this is a
       /// global queue shared by all subscribers within the same process.
       /// \return The capacity of the buffer storing incoming messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1
@@ -256,7 +256,7 @@ namespace gz
       public: int RcvHwm();
 
       /// \brief Get the capacity of the buffer (High Water Mark)
-      /// that stores outgoing Ignition Transport messages. Note that this is a
+      /// that stores outgoing Gazebo Transport messages. Note that this is a
       /// global queue shared by all publishers within the same process.
       /// \return The capacity of the buffer storing outgoing messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1

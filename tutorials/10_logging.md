@@ -8,9 +8,9 @@ Previous Tutorial: \ref relay
 In this tutorial, we are going to describe the process of recording and
 playing back a collection of messages.
 
-Ignition Transport provides two mechanisms for logging: a C++ API and a set of
+Gazebo Transport provides two mechanisms for logging: a C++ API and a set of
 command line utilities as part of the optional `ign` CLI tool (available via
-[Ignition Tools](https://github.com/gazebosim/gz-tools)). We use
+[Gazebo Tools](https://github.com/gazebosim/gz-tools)). We use
 [SQLite3](https://www.sqlite.org) to create a file containing all the messages
 recorded during a session. You can imagine it as a container where all the
 original messages have been efficiently stored and timestamped.

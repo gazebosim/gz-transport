@@ -73,7 +73,7 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 
 ### Example
 
-If you have the Ignition Transport sources with the example programs built,
+If you have the Gazebo Transport sources with the example programs built,
 then you can test topic statistics by following these steps.
 
 1. Terminal 1: `IGN_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`

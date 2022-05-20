@@ -1,4 +1,4 @@
-# Ignition Transport
+# Gazebo Transport
 
 **Maintainer:** caguero AT openrobotics DOT org
 
@@ -14,7 +14,7 @@ Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_transport-ci-win)](https://build.osrfoundation.org/job/ign_transport-ci-win/)
 
-Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
+Gazebo Transport, a component of [Gazebo Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
 # Table of Contents
 
@@ -40,16 +40,16 @@ Ignition Transport, a component of [Ignition Robotics](https://ignitionrobotics.
 
 # Features
 
-Ignition Transport is an open source communication library that allows
+Gazebo Transport is an open source communication library that allows
 exchanging data between clients. In our context, a client is called a node.
 Nodes might be running within the same process in the same machine or in
-machines located in different continents. Ignition Transport is multi-platform
+machines located in different continents. Gazebo Transport is multi-platform
 (Linux, Mac OS X, and Windows), so all the low level details, such as data
 alignment or endianness are hidden for you.
 
-Ignition Transport uses Google Protocol buffers as the data serialization format
+Gazebo Transport uses Google Protocol buffers as the data serialization format
 for communicating between nodes. Users can define their own messages using the
-Protobuf utils, and then, exchange them between the nodes. Ignition Transport
+Protobuf utils, and then, exchange them between the nodes. Gazebo Transport
 discovers, serializes and delivers messages to the destinations using a
 combination of custom code and ZeroMQ.
 
@@ -87,12 +87,12 @@ Visit the [documentation page](https://ignitionrobotics.org/api/transport/11.0/i
 ign-transport
 ├── conf        Configuration file for the integration with the `ign` CLI tool.
 ├── docker      Dockerfile with ign-transport installed and scripts to build and run the code.
-├── example     Example programs that use most of the Ignition Transport API.
+├── example     Example programs that use most of the Gazebo Transport API.
 ├── include     Header files that get installed.
-├── log         All the code related with Ignition Transport logging.
+├── log         All the code related with Gazebo Transport logging.
 ├── src         Source code of the core library.
 ├── test        A directory of integration, performance and regression tests.
-└── tutorials   A set of tutorials about Ignition Transport features.
+└── tutorials   A set of tutorials about Gazebo Transport features.
 ```
 
 # Contributing
@@ -108,9 +108,9 @@ Please see
 # Versioning
 
 This library uses [Semantic Versioning](https://semver.org/). Additionally,
-this library is part of the [Ignition Robotics project](https://ignitionrobotics.org)
+this library is part of the [Gazebo Robotics project](https://ignitionrobotics.org)
 which periodically releases a versioned set of compatible and complimentary
-libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for
+libraries. See the [Gazebo Robotics website](https://ignitionrobotics.org) for
 version and release information.
 
 # License

@@ -5,23 +5,23 @@ Previous Tutorial: \ref services
 
 ## Overview
 
-Ignition Transport's default mode of communication is unsecure, which means
+Gazebo Transport's default mode of communication is unsecure, which means
 no authentication or encryption is used. Unsecure communication is the
 default because it is simple to implement and use, supports introspection,
 and reduces third-party development effort.
 
 There are many cases when security is required by an application. For
 example, authentication may be needed to verify participants in a network.
-Ignition Transport relies on security features available in ZeroMQ. The
+Gazebo Transport relies on security features available in ZeroMQ. The
 available security features include authentication, and encryption.  
 
 The remainder of the this tutorial describes how to setup and use security
-with Ignition Transport.
+with Gazebo Transport.
 
 ## Authentication
 
 Authentication relies on a username and password to limit access to
-communication topics. Currently, authentication in Ignition Transport
+communication topics. Currently, authentication in Gazebo Transport
 operates at the process level. This means all topics within a process will
 either use, or not use, authentication.
 

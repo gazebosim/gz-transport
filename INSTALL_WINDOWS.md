@@ -44,7 +44,7 @@ directory that has the source files. Here is an example:
 
     To fix this problem, manually move the nested directories up one level.
 
-1. Clone and prepare the Ignition Math dependency:
+1. Clone and prepare the Gazebo Math dependency:
 
         git clone https://github.com/gazebosim/gz-math
         cd ign-math
@@ -60,7 +60,7 @@ directory that has the source files. Here is an example:
         ..\configure
         nmake install
 
-1. Clone and prepare the Ignition Msgs dependency:
+1. Clone and prepare the Gazebo Msgs dependency:
 
         git clone https://github.com/gazebosim/gz-msgs
         cd ign-msgs

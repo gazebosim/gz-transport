@@ -5,13 +5,13 @@ Previous Tutorial: \ref installation
 
 ## Nodes
 
-The communication in Ignition Transport follows a pure distributed architecture.
+The communication in Gazebo Transport follows a pure distributed architecture.
 There is no central process, broker or similar central structure. Instead, all
 the nodes in the network can act as publishers, subscribers, provide services and
 request services.
 
 A publisher is a node that produces information and a subscriber is a node that
-consumes information. There are two ways to communicate in Ignition Transport.
+consumes information. There are two ways to communicate in Gazebo Transport.
 First, we could use a publish/subscribe approach, where a
 node advertises a topic, and then publishes periodic updates. On the other
 side, one or more nodes subscribe to the same topic registering a function that

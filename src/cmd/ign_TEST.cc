@@ -344,7 +344,7 @@ TEST(ignTest, TopicPublish)
   }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
-  // Try to publish a message not included in Ignition Messages.
+  // Try to publish a message not included in Gazebo Messages.
   std::string error = "Unable to create message of type";
   output = custom_exec_str(ign +
       " topic -t /bar -m gz_msgs.__bad_msg_type -p 'data:\"good_value\"' " +

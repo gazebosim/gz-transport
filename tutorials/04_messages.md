@@ -343,7 +343,7 @@ subscribers contain a specific protobuf parameter, such as
 `gz::msgs::StringMsg`. As the name of this section suggests, it is also
 possible to create a generic subscriber callback that can receive messages of
 different types. This use case might be interesting if you are building a bridge
-between Ignition Transport and another protocol or if you want to just print the
+between Gazebo Transport and another protocol or if you want to just print the
 content of a generic protobuf message using `DebugString()`, among other use
 cases.
 
@@ -456,8 +456,8 @@ From terminal 2:
 
 ## Using custom Protobuf messages
 
-We use Ignition Msgs in most of our examples and tests. This decision was
-made just for convenience but Ignition Transport supports the use of Protobuf
+We use Gazebo Msgs in most of our examples and tests. This decision was
+made just for convenience but Gazebo Transport supports the use of Protobuf
 messages directly. The most common problem with custom Protobuf messages is
 often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
@@ -476,7 +476,7 @@ download and place it within the `ign_transport_tutorial` folder.
 
 There's nothing new to show in the `publisher_custom_msg.cc` or
 `subscriber_custom_msg.cc` besides the use of your custom Protobuf message
-instead of Ignition Msgs. The only relevant parts are in the `CMakeLists.txt`
+instead of Gazebo Msgs. The only relevant parts are in the `CMakeLists.txt`
 files.
 
 ```{.cpp}
@@ -588,7 +588,7 @@ From terminal 1:
 ./publisher
 ```
 
-From terminal 2 (requires Ignition Tools):
+From terminal 2 (requires Gazebo Tools):
 
 ```{.sh}
 ign topic --echo -t /bar
@@ -597,4 +597,4 @@ ign topic --echo -t /bar
 And you should receive all the messages coming in terminal 2.
 
 The command `ign log playback` also supports the notion of topic remapping. Run
-`ign log playback -h` in your terminal for further details (requires Ignition Tools).
+`ign log playback -h` in your terminal for further details (requires Gazebo Tools).

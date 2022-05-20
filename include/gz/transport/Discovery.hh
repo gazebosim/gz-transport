@@ -801,19 +801,19 @@ namespace gz
           uint16_t len = 0;
           memcpy(&len, &rcvStr[0], sizeof(len));
 
-          // Ignition Transport delimits each discovery message with a
+          // Gazebo Transport delimits each discovery message with a
           // frame_delimiter that contains byte size information.
           // A discovery message has the form:
           //
           // <frame_delimiter><frame_body>
           //
-          // Ignition Transport version < 8 sends a frame delimiter that
+          // Gazebo Transport version < 8 sends a frame delimiter that
           // contains the value of sizeof(frame_delimiter)
           // + sizeof(frame_body). In other words, the frame_delimiter
           // contains a value that represents the total size of the
           // frame_body and frame_delimiter in bytes.
           //
-          // Ignition Transport version >= 8 sends a frame_delimiter
+          // Gazebo Transport version >= 8 sends a frame_delimiter
           // that contains the value of sizeof(frame_body). In other
           // words, the frame_delimiter contains a value that represents
           // the total size of only the frame_body.

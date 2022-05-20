@@ -257,7 +257,7 @@ namespace gz
         }
         else
         {
-          // Fallback on Ignition Msgs if the message type is not found.
+          // Fallback on Gazebo Msgs if the message type is not found.
           msgPtr = gz::msgs::Factory::New(_type);
         }
 

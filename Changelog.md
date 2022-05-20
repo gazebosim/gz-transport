@@ -1,10 +1,10 @@
-## Ignition Transport 12.X
+## Gazebo Transport 12.X
 
-### Ignition Transport 12.0.0 (202X-XX-XX)
+### Gazebo Transport 12.0.0 (202X-XX-XX)
 
-## Ignition Transport 11.X
+## Gazebo Transport 11.X
 
-### Ignition Transport 11.0.0 (2021-09-28)
+### Gazebo Transport 11.0.0 (2021-09-28)
 
 1. Windows fix
     * [Pull request #250](https://github.com/gazebosim/gz-transport/pull/250)
@@ -21,9 +21,9 @@
     * [Pull request #264](https://github.com/gazebosim/gz-transport/pull/264)
     * [Pull request #265](https://github.com/gazebosim/gz-transport/pull/265)
 
-## Ignition Transport 10.X
+## Gazebo Transport 10.X
 
-### Ignition Transport 10.2.0 (2022-03-25)
+### Gazebo Transport 10.2.0 (2022-03-25)
 
 1. Use exec instead of popen to run ign-launch binary
     * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
@@ -52,7 +52,7 @@
 1. Fix Homebrew warning (backport from Fortress)
     * [Pull request #268](https://github.com/gazebosim/gz-transport/pull/268)
 
-### Ignition Transport 10.1.0 (2021-10-17)
+### Gazebo Transport 10.1.0 (2021-10-17)
 
 1. Fix Homebrew warning (backport from Fortress).
    * [Github pull request 268](https://github.com/gazebosim/gz-transport/pull/268)
@@ -66,7 +66,7 @@
 1. Remove unnecessary copy and assignment operators (#241).
    * [Github pull request 241](https://github.com/gazebosim/gz-transport/pull/241)
 
-### Ignition Transport 10.0.0 (2021-03-30)
+### Gazebo Transport 10.0.0 (2021-03-30)
 
 1. Depend on cli component of ignition-utils
     * [Pull request #229](https://github.com/gazebosim/gz-transport/pull/229)
@@ -88,11 +88,11 @@
     * [Pull request #232](https://github.com/gazebosim/gz-transport/pull/232)
     * [Pull request #233](https://github.com/gazebosim/gz-transport/pull/233)
 
-## Ignition Transport 9.X
+## Gazebo Transport 9.X
 
-### Ignition Transport 9.X.X
+### Gazebo Transport 9.X.X
 
-### Ignition Transport 9.1.1 (2021-01-05)
+### Gazebo Transport 9.1.1 (2021-01-05)
 
 1. Add errno output for discovery.
    * [Github pull request 254](https://github.com/gazebosim/gz-transport/pull/254)
@@ -112,11 +112,11 @@
 1. Add windows installation.
    * [Github pull request 214](https://github.com/gazebosim/gz-transport/pull/214)
 
-### Ignition Transport 9.1.0 (2021-01-05)
+### Gazebo Transport 9.1.0 (2021-01-05)
 
 1. All changes up to version 8.2.0.
 
-### Ignition Transport 9.0.0 (2020-09-29)
+### Gazebo Transport 9.0.0 (2020-09-29)
 
 1. Fix link in "development" tutorial.
    * [Github pull request 183](https://github.com/gazebosim/gz-transport/pull/183)
@@ -163,11 +163,11 @@
 1. Update BitBucket links.
    * [Github pull request 125](https://github.com/gazebosim/gz-transport/pull/125)
 
-## Ignition Transport 8.X
+## Gazebo Transport 8.X
 
-### Ignition Transport 8.X.X
+### Gazebo Transport 8.X.X
 
-### Ignition Transport 8.2.0 (2020-01-05)
+### Gazebo Transport 8.2.0 (2020-01-05)
 
 1. All changes up to version 7.5.1.
 
@@ -175,7 +175,7 @@
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/gazebosim/gz-transport/pull/205)
 
-### Ignition Transport 8.2.1 (2021-10-27)
+### Gazebo Transport 8.2.1 (2021-10-27)
 
 1. Make zmq check for post 4.3.1 not to include 4.3.1
     * [Pull request #237](https://github.com/gazebosim/gz-transport/pull/237)
@@ -194,7 +194,7 @@
 1. Add Windows Installation using conda-forge, and cleanup install docs
     * [Pull request #214](https://github.com/gazebosim/gz-transport/pull/214)
 
-### Ignition Transport 8.2.0 (2020-01-05)
+### Gazebo Transport 8.2.0 (2020-01-05)
 
 1. All changes up to version 7.5.1.
 
@@ -202,7 +202,7 @@
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/gazebosim/gz-transport/pull/205)
 
-### Ignition Transport 8.1.0 (2020-08-28)
+### Gazebo Transport 8.1.0 (2020-08-28)
 
 1. Fix mem leak.
    * [Github pull request 174](https://github.com/gazebosim/gz-transport/pull/174)
@@ -239,7 +239,7 @@
 1. Added fast log playback, where messages are published without waiting.
     * [BitBucket pull request 401](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/401)
 
-### Ignition Transport 8.0.0 (2019-12-10)
+### Gazebo Transport 8.0.0 (2019-12-10)
 
 1. Upgrade to ignition-msgs5.
     * [BitBucket pull request 402](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/402)
@@ -256,9 +256,9 @@
 
 1. This release includes all changes up to 7.5.0.
 
-## Ignition Transport 7
+## Gazebo Transport 7
 
-### Ignition Transport 7.5.1 (2020-12-23)
+### Gazebo Transport 7.5.1 (2020-12-23)
 
 1. CI fixes
     * [Pull request 158](https://github.com/gazebosim/gz-transport/pull/158)
@@ -270,7 +270,7 @@
 1. Prevent empty messages from spamming the console
     * [Pull request 164](https://github.com/gazebosim/gz-transport/pull/164)
 
-### Ignition Transport 7.5.0 (2020-07-29)
+### Gazebo Transport 7.5.0 (2020-07-29)
 
 1. Disable flaky Mac OS X tests
     * [Pull request 176](https://github.com/gazebosim/gz-transport/pull/176)
@@ -300,7 +300,7 @@
    created in pull request #441 by Poh Zhi-Ee.
     * [BitBucket pull request 444](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/444)
 
-### Ignition Transport 7.4.0 (2020-03-09)
+### Gazebo Transport 7.4.0 (2020-03-09)
 
 1. Removed a `sleep` from NodeShared. The sleep was meant to guarantee
    message delivery during `connect`. This approach would fail if the delay
@@ -314,7 +314,7 @@
 1. Added support for configuring message buffers via environment variables.
     * [BitBucket pull request 430](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/430)
 
-### Ignition Transport 7.3.0
+### Gazebo Transport 7.3.0
 
 1. Write to disk from a background thread in log recorder
     * [BitBucket pull request 428](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/428)
@@ -325,12 +325,12 @@
 1. Improve compiler support for c++ filesystem.
     * [BitBucket pull request 422](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/422)
 
-### Ignition Transport 7.2.1
+### Gazebo Transport 7.2.1
 
 1. Updates to C interface subscription options.
     * [BitBucket pull request 417](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/417)
 
-### Ignition Transport 7.2.0
+### Gazebo Transport 7.2.0
 
 1. Support playback of corrupt log files.
     * [BitBucket pull request 398](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/398)
@@ -350,7 +350,7 @@
 1. Added fast log playback, where messages are published without waiting.
     * [BitBucket pull request 401](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/401)
 
-### Ignition Transport 7.1.0
+### Gazebo Transport 7.1.0
 
 1. Added method for determining if a throttled publisher is ready to publish.
     * [BitBucket pull request 395](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/395)
@@ -358,7 +358,7 @@
 1. Add intraprocess field to MessageInfo. The intraprocess field indicates whether the message is coming from a node within this process.
     * [BitBucket pull request 394](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/394)
 
-### Ignition Transport 7.0.0
+### Gazebo Transport 7.0.0
 
 1. Fix fast constructor-destructor deadlock race condition.
     * [BitBucket pull request 384](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/384)
@@ -386,9 +386,9 @@
 1. Upgrade to ignition-msgs4.
     * [BitBucket pull request 371](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/371)
 
-## Ignition Transport 6
+## Gazebo Transport 6
 
-### Ignition Transport 6.X.X
+### Gazebo Transport 6.X.X
 
 1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for ign tool files
     * [BitBucket pull request 380](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/380)
@@ -398,14 +398,14 @@
     * [BitBucket pull request 363](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/363)
     * [Issue 94](https://github.com/gazebosim/gz-transport/issues/94)
 
-### Ignition Transport 6.0.0
+### Gazebo Transport 6.0.0
 
 1. Upgrade to proto3, c++17, ignition-cmake2 and ignition-msgs3.
     * [BitBucket pull request 312](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/312)
 
-## Ignition Transport 5
+## Gazebo Transport 5
 
-### Ignition Transport 5.X.X
+### Gazebo Transport 5.X.X
 
 1. Added support for alternative clock sources during log recording.
     * [BitBucket pull request 340](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/340)
@@ -461,9 +461,9 @@
 1. Added --force option to 'ign log record'
     * [BitBucket pull request 325](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/325)
 
-## Ignition Transport 4
+## Gazebo Transport 4
 
-### Ignition Transport 4.X.X
+### Gazebo Transport 4.X.X
 
 1. Ignore subinterfaces when using determineInterfaces().
     * [BitBucket pull request 314](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/314)
@@ -498,7 +498,7 @@
 1. Added TopicUtils::DecomposeFullyQualifiedTopic()
     * [BitBucket pull request 269](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/269)
 
-### Ignition Transport 4.0.0 (2018-01-XX)
+### Gazebo Transport 4.0.0 (2018-01-XX)
 
 1. Basic authentication for topics.
     * [BitBucket pull request 236](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/236)
@@ -526,13 +526,13 @@
 1. Hide ZMQ from public interfaces
     * [BitBucket pull request 224](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/224)
 
-## Ignition Transport 3
+## Gazebo Transport 3
 
-### Ignition Transport 3.X.X
+### Gazebo Transport 3.X.X
 
 
 
-### Ignition Transport 3.1.0 (2017-11-29)
+### Gazebo Transport 3.1.0 (2017-11-29)
 
 1. Documentation improvements
     * [BitBucket pull request 199](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/199)
@@ -575,7 +575,7 @@
     * [BitBucket pull request 227](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/227)
     * [Issue 72](https://github.com/gazebosim/gz-transport/issues/72)
 
-### Ignition Transport 3.0.0
+### Gazebo Transport 3.0.0
 
 1. Added optional message throttling when publishing messages.
     * [BitBucket pull request 194](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/194)
@@ -620,7 +620,7 @@
 1. ZeroMQ updated from 3.2.4 to 4.0.4 on Windows.
     * [BitBucket pull request 171](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/171)
 
-## Ignition Transport 2.x
+## Gazebo Transport 2.x
 
 1. Fix issue #55.
     * [BitBucket pull request 183](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/183)
@@ -637,7 +637,7 @@
 1. Fix case where `std::bad_function_call` could be thrown.
     * [BitBucket pull request 317](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/317)
 
-### Ignition Transport 2.0.0
+### Gazebo Transport 2.0.0
 
 1. Move ZMQ initialization from constructor to separate function in
    NodeShared.
@@ -646,9 +646,9 @@
 1. `Node::Advertise` returns a publisher id that can be used to publish messages, as an alternative to remembering topic strings.
     * [BitBucket pull request 129](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/129)
 
-## Ignition Transport 1.x
+## Gazebo Transport 1.x
 
-### Ignition Transport 1.2.0
+### Gazebo Transport 1.2.0
 
 1. Removed duplicate code in NetUtils, and improved speed of DNS lookup
     * [BitBucket pull request 128](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-transport/pull-requests/128)
