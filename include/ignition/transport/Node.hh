@@ -28,7 +28,9 @@
 
 // TODO(anyone): Remove after fixing the warnings
 #ifdef _MSC_VER
-#pragma warning(push, 0)
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
 #endif
 #include <ignition/msgs.hh>
 #ifdef _MSC_VER
