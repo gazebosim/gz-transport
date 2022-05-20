@@ -252,7 +252,7 @@ TEST(Log, OpenCorruptDatabase)
 {
   log::Log logFile;
   std::string path =
-    testing::portablePathUnion(IGN_TRANSPORT_LOG_TEST_PATH, "data");
+    testing::portablePathUnion(GZ_TRANSPORT_LOG_TEST_PATH, "data");
   path = testing::portablePathUnion(path, "state.tlog");
   logFile.Open(path);
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "

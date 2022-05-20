@@ -34,7 +34,7 @@ using namespace gz;
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
 static const std::string g_ignVersion("--force-version " + // NOLINT(*)
-  std::string(IGN_VERSION_FULL));
+  std::string(GZ_VERSION_FULL));
 
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
@@ -79,14 +79,14 @@ TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -110,14 +110,14 @@ TEST(ignTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -146,14 +146,14 @@ TEST(ignTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
   std::string replier_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -177,14 +177,14 @@ TEST(ignTest, ServiceInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string replier_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -220,7 +220,7 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -251,7 +251,7 @@ TEST(ignTest, TopicInfoSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -276,7 +276,7 @@ TEST(ignTest, ServiceListSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -299,7 +299,7 @@ TEST(ignTest, ServiceInfoSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -326,7 +326,7 @@ TEST(ignTest, TopicPublish)
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
   // Check the 'ign topic -p' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
   std::string output;
 
   unsigned int retries = 0;
@@ -336,7 +336,7 @@ TEST(ignTest, TopicPublish)
     if (retries % 2)
     {
       output = custom_exec_str(ign +
-        " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
+        " topic -t /bar -m gz_msgs.StringMsg -p 'data:\"good_value\"' " +
         g_ignVersion);
       EXPECT_TRUE(output.empty()) << output;
     }
@@ -347,21 +347,21 @@ TEST(ignTest, TopicPublish)
   // Try to publish a message not included in Ignition Messages.
   std::string error = "Unable to create message of type";
   output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
+      " topic -t /bar -m gz_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
-      " topic -t / -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      " topic -t / -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
   output = custom_exec_str(ign +
-      " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      " topic -t / wrong_topic -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 }
@@ -381,10 +381,10 @@ TEST(ignTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'ign service -r' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
   std::string output = custom_exec_str(ign +
-      " service -s " + service + " --reqtype ign_msgs.Int32 " +
-      "--reptype ign_msgs.Int32 --timeout 1000 " +
+      " service -s " + service + " --reqtype gz_msgs.Int32 " +
+      "--reptype gz_msgs.Int32 --timeout 1000 " +
       "--req 'data: " + value + "' " + g_ignVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");
@@ -396,14 +396,14 @@ TEST(ignTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -e' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -d 1.5 " + g_ignVersion);
 
@@ -422,14 +422,14 @@ TEST(ignTest, TopicEchoNum)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
   // Check the 'ign topic -e -n' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(GZ_PATH) + "/ign";
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -n 2 " + g_ignVersion);
 
@@ -474,7 +474,7 @@ int main(int argc, char **argv)
   std::string value = "";
   gz::transport::env("LD_LIBRARY_PATH", value);
   // Add the directory where ignition transport has been built.
-  value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
+  value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);

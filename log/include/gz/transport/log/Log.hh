@@ -39,7 +39,7 @@ namespace gz
       inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief Name of Environment variable containing path to schema
-      const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
+      const std::string SchemaLocationEnvVar = "GZ_TRANSPORT_LOG_SQL_PATH";
 
       /// \brief Interface to a log file
       class GZ_TRANSPORT_LOG_VISIBLE Log

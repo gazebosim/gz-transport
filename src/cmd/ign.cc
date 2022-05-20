@@ -318,5 +318,5 @@ extern "C" void cmdTopicEcho(const char *_topic,
 //////////////////////////////////////////////////
 extern "C" const char *ignitionVersion()
 {
-  return IGNITION_TRANSPORT_VERSION_FULL;
+  return GZ_TRANSPORT_VERSION_FULL;
 }

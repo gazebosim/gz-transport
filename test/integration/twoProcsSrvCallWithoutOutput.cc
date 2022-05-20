@@ -51,7 +51,7 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
   gz::msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -83,7 +83,7 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 TEST(twoProcSrvCallWithoutOutput, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -134,7 +134,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),

@@ -52,7 +52,7 @@ Below are descriptions of the available environment variables:
     address of another node from the other network. Note that only one IP_RELAY
     link is needed for bidirectional communication between nodes of two
     different networks.
-* **IGN_TRANSPORT_LOG_SQL_PATH**
+* **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not
     normally need to be set. It is useful to developers who are testing changes

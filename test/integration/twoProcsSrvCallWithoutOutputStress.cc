@@ -33,7 +33,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplierInc_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),

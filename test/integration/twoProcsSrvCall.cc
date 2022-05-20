@@ -67,7 +67,7 @@ void wrongResponse(const gz::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -126,7 +126,7 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -166,7 +166,7 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
 
@@ -207,7 +207,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
   unsigned int timeout = 2000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -248,7 +248,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 TEST(twoProcSrvCall, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -300,7 +300,7 @@ TEST(twoProcSrvCall, ServiceList)
 TEST(twoProcSrvCall, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),

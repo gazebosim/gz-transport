@@ -68,7 +68,7 @@ namespace gz
         {
           // Set the chirping process name
           const std::string process =
-              IGN_TRANSPORT_LOG_BUILD_PATH"/INTEGRATION_topicChirp_aux";
+              GZ_TRANSPORT_LOG_BUILD_PATH"/INTEGRATION_topicChirp_aux";
 
           // Argument list:
           // [0]: Executable name

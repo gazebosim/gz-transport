@@ -365,7 +365,7 @@ class PubTester
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Ignition Transport Version "
-               << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
+               << GZ_TRANSPORT_VERSION_FULL << std::endl;
 
 #ifdef __linux__
     struct utsname unameData;

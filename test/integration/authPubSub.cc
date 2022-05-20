@@ -44,7 +44,7 @@ TEST(authPubSub, InvalidAuth)
   EXPECT_FALSE(pub.HasConnections());
 
   std::string subscriberPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_authPubSubSubscriberInvalid_aux");
 
   // Start the subscriber in another process with incorrect credentials.

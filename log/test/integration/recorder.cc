@@ -540,7 +540,7 @@ int main(int argc, char **argv)
   setenv("IGN_PARTITION", partition.c_str(), 1);
 
   setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
-         IGN_TRANSPORT_LOG_SQL_PATH, 1);
+         GZ_TRANSPORT_LOG_SQL_PATH, 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
