@@ -38,20 +38,20 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 #include "NodeSharedPrivate.hh"
 

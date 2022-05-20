@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 namespace gz
 {
@@ -29,7 +29,7 @@ namespace gz
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
         //
         extern int __verbosity;
       }

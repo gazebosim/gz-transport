@@ -33,15 +33,15 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Node.hh"
 
 namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \brief Metadata for a publication. This is sent as part of the ZMQ
     /// message for topic statistics.

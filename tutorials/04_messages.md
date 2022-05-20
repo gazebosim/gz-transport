@@ -27,8 +27,8 @@ folder and open it with your favorite editor:
 #include <iostream>
 #include <string>
 #include <thread>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 /// brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
@@ -81,11 +81,11 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 ```
 
-The line `#include <ignition/transport.hh>` contains all the Ignition
+The line `#include <gz/transport.hh>` contains all the Ignition
 Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
@@ -138,8 +138,8 @@ file into the `ign_transport_tutorial` folder and open it with your favorite edi
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
@@ -353,7 +353,7 @@ Download the [subscriber_generic.cc](https://github.com/ignitionrobotics/ign-tra
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.

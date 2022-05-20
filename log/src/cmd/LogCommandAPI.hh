@@ -15,7 +15,7 @@
  *
 */
 
-#include <ignition/transport/log/Export.hh>
+#include <gz/transport/log/Export.hh>
 
 extern "C"
 {

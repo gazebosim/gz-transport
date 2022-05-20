@@ -20,7 +20,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gz/transport/test_config.h"
 #include "gz/transport/log/test_config.h"
 #include "gtest/gtest.h"

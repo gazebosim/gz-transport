@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/NetUtils.hh"
+#include "gz/transport/NetUtils.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

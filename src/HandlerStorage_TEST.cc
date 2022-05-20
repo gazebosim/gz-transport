@@ -17,13 +17,13 @@
 
 #include <map>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/HandlerStorage.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/HandlerStorage.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

@@ -15,13 +15,13 @@
  *
 */
 
-#include "ignition/transport/SubscriptionHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
 
 namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /////////////////////////////////////////////////
     SubscriptionHandlerBase::SubscriptionHandlerBase(

@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 

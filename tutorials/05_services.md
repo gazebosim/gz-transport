@@ -31,8 +31,8 @@ folder and open it with your favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 bool srvEcho(const gz::msgs::StringMsg &_req,
   gz::msgs::StringMsg &_rep)
@@ -71,11 +71,11 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 ```
 
-The line ``#include <ignition/transport.hh>`` contains the Ignition Transport
+The line ``#include <gz/transport.hh>`` contains the Ignition Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
@@ -138,8 +138,8 @@ folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
@@ -233,8 +233,8 @@ Download the [requester_async.cc](https://github.com/ignitionrobotics/ign-transp
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
@@ -320,8 +320,8 @@ Download the [responser_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
-#include <ignition/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/msgs.hh>
 
 //////////////////////////////////////////////////
 void srvOneway(const gz::msgs::StringMsg &_req)
@@ -394,8 +394,8 @@ Download the [requester_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/transport.hh>
-#include <ignition/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/msgs.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
@@ -461,8 +461,8 @@ favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 bool srvQuote(gz::msgs::StringMsg &_rep)
 {
@@ -540,8 +540,8 @@ favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "ignition/transport/MessageInfo.hh"
+#include "gz/transport/MessageInfo.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

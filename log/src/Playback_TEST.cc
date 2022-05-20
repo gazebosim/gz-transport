@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/log/Playback.hh"
+#include "gz/transport/log/Playback.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

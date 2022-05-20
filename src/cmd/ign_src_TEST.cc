@@ -19,11 +19,11 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "ign.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
 using namespace gz;

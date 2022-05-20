@@ -19,8 +19,8 @@
 #include <cstring>
 #include <iostream>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Helpers.hh"
 
 using namespace gz;
 using namespace transport;
@@ -29,7 +29,7 @@ namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /// \internal
     /// \brief Private data for AdvertiseOptions class.

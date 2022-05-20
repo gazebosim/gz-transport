@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <string>
 
-#include <ignition/transport/log/SqlStatement.hh>
+#include <gz/transport/log/SqlStatement.hh>
 
 using namespace gz::transport::log;
 

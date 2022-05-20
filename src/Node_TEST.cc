@@ -22,16 +22,16 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/TopicStatistics.hh"
-#include "ignition/transport/TopicUtils.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/TopicStatistics.hh"
+#include "gz/transport/TopicUtils.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "gz/transport/test_config.h"
 
 using namespace gz;

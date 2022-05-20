@@ -23,7 +23,7 @@ namespace transport
 {
 namespace log
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   int __verbosity = 1;
 }

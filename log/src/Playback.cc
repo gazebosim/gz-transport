@@ -27,9 +27,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Playback.hh>
 #include "Console.hh"
 #include "build_config.hh"
 #include "raii-sqlite3.hh"

@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/statistic.pb.h>
+#include <gz/msgs/statistic.pb.h>
 
 #include <chrono>
 #include <cmath>
 #include <sstream>
 
-#include "ignition/transport/TopicStatistics.hh"
+#include "gz/transport/TopicStatistics.hh"
 
 using namespace gz;
 using namespace transport;

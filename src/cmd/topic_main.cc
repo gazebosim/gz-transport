@@ -15,11 +15,11 @@
  *
  */
 
-#include <ignition/utils/cli/CLI.hpp>
+#include <gz/utils/cli/CLI.hpp>
 
 #include "ign.hh"
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 //////////////////////////////////////////////////
 /// \brief Enumeration of available commands

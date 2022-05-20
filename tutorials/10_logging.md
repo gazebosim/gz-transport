@@ -33,8 +33,8 @@ file within the `ign_transport_tutorial` folder and open it with your favorite e
 #include <iostream>
 #include <regex>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Recorder.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/log/Recorder.hh>
 ```
 
 The `Recorder.hh` header contains all the recording functionality. Make sure
@@ -134,7 +134,7 @@ editor:
 #include <cstdint>
 #include <iostream>
 #include <regex>
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/log/Playback.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/log/Playback.hh>
 ```
 
 The `Playback.hh` header contains all the log play back functionality. Make sure

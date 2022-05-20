@@ -25,13 +25,13 @@
 
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
+#include "gz/transport/Discovery.hh"
 
 namespace gz
 {
 namespace transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)

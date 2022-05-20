@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 #include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 

@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "Console.hh"
-#include "ignition/transport/log/MsgIter.hh"
+#include "gz/transport/log/MsgIter.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 

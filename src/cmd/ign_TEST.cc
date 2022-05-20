@@ -17,11 +17,11 @@
 
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/msgs.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
 #ifdef _MSC_VER

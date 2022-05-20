@@ -24,13 +24,13 @@
 #include <unistd.h>
 #endif
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 
 namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     //////////////////////////////////////////////////
     bool env(const std::string &_name, std::string &_value)

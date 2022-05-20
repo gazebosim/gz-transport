@@ -22,7 +22,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <ignition/transport/log/Descriptor.hh>
+#include <gz/transport/log/Descriptor.hh>
 
 namespace gz
 {
@@ -31,7 +31,7 @@ namespace gz
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief A representation of the information that defines a topic row
       /// \note We export the symbols for this class so it can be used in

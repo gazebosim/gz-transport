@@ -21,15 +21,15 @@
 #include <map>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/NetUtils.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/NetUtils.hh"
 
 namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \internal
     /// \brief Private data for NodeOption class.
