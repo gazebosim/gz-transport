@@ -12,6 +12,9 @@ release will remove the deprecated code.
 
 1. The `ignition` namespace is deprecated and will be removed in future versions.  Use `gz` instead.
 
+1. Header files under `ignition/...` are deprecated and will be removed in future versions.
+  Use `gz/...` instead.
+
 ## Ignition Transport 9.X to 10.X
 
 ### Addition
@@ -56,4 +59,3 @@ release will remove the deprecated code.
    functions have been deprecated.
     * [BitBucket pull request 260](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/260)
     * [BitBucket pull request 228](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/228)
-
