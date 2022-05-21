@@ -33,7 +33,7 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
 
   gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }
@@ -49,7 +49,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
 
   gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }

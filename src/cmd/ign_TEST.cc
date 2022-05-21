@@ -133,7 +133,7 @@ TEST(ignTest, TopicInfo)
   EXPECT_TRUE(infoFound) << "OUTPUT["
     << output << "] Size[" << output.size()
     << "]. Expected Size=50" << std::endl;
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -198,7 +198,7 @@ TEST(ignTest, ServiceInfo)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -265,7 +265,7 @@ TEST(ignTest, TopicInfoSameProc)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -313,7 +313,7 @@ TEST(ignTest, ServiceInfoSameProc)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
 }
 
 

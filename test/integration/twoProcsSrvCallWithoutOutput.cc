@@ -156,7 +156,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 
   EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Int32");
+  EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Int32");
 
   reset();
 
