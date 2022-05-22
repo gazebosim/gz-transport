@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/Playback.hh>
+#include <ignition/transport/config.hh>
