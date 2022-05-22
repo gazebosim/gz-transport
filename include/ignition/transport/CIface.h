@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/CIface.h>
+#include <ignition/transport/config.hh>
