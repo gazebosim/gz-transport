@@ -123,7 +123,7 @@ invocations could be triggered because `Discovery` will pro-actively learn about
 all the available topics and generate notifications.
 
 You can check the complete API details
-[here](https://ignitionrobotics.org/libs/transport).
+[here](https://gazebosim.org/libs/transport).
 
 ### \[Un\]Announce a local topic
 
