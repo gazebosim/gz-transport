@@ -14,7 +14,7 @@ Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_transport-ci-win)](https://build.osrfoundation.org/job/ign_transport-ci-win/)
 
-Gazebo Transport, a component of [Gazebo Robotics](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
+Gazebo Transport, a component of [Gazebo](https://ignitionrobotics.org), provides fast and efficient asyncronous message passing, services, and data logging.
 
 # Table of Contents
 
@@ -108,9 +108,9 @@ Please see
 # Versioning
 
 This library uses [Semantic Versioning](https://semver.org/). Additionally,
-this library is part of the [Gazebo Robotics project](https://ignitionrobotics.org)
+this library is part of the [Gazebo project](https://ignitionrobotics.org)
 which periodically releases a versioned set of compatible and complimentary
-libraries. See the [Gazebo Robotics website](https://ignitionrobotics.org) for
+libraries. See the [Gazebo website](https://ignitionrobotics.org) for
 version and release information.
 
 # License
