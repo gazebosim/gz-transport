@@ -92,8 +92,8 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(service_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
-set(topic_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
