@@ -22,7 +22,7 @@
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/CIface.h"
 
-/// \brief A wrapper to store an Gazebo Transport node and its publishers.
+/// \brief A wrapper to store a Gazebo Transport node and its publishers.
 struct IgnTransportNode
 {
   /// \brief Pointer to the node.
