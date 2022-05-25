@@ -13,7 +13,10 @@ release will remove the deprecated code.
 1. The `ignition` namespace is deprecated and will be removed in future versions.  Use `gz` instead.
 
 1. Header files under `ignition/...` are deprecated and will be removed in future versions.
-  Use `gz/...` instead.
+     Use `gz/...` instead.
+
+1. `IGN_TRANSPORT_LOG_SQL_PATH` is deprecated and will be removed in future versions.
+     Use `GZ_TRANSPORT_LOG_SQL_PATH` instead. 
 
 ## Gazebo Transport 9.X to 10.X
 
