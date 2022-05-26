@@ -75,4 +75,8 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       PRIVATE pthread)
   endif()
 
+  if (MSVC)
+    target_compile_options(INTEGRATION_${AUX_EXECUTABLE} PUBLIC "/wd4005 /wd4251")
+  endif()
+
 endforeach(AUX_EXECUTABLE)
