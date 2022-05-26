@@ -36,7 +36,8 @@ foreach(test ${test_list})
     "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
 
   if (MSVC)
-    target_compile_options(${test} PUBLIC "/wd4005 /wd4251")
+    target_compile_options(${test} PUBLIC "/wd4005")
+    target_compile_options(${test} PUBLIC "/wd4251")
   endif()
 
 endforeach()
@@ -76,7 +77,8 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
   endif()
 
   if (MSVC)
-    target_compile_options(INTEGRATION_${AUX_EXECUTABLE} PUBLIC "/wd4005 /wd4251")
+    target_compile_options(INTEGRATION_${AUX_EXECUTABLE} PUBLIC "/wd4005")
+    target_compile_options(INTEGRATION_${AUX_EXECUTABLE} PUBLIC "/wd4251")
   endif()
 
 endforeach(AUX_EXECUTABLE)
