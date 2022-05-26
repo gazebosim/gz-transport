@@ -35,6 +35,10 @@ foreach(test ${test_list})
   target_compile_definitions(${test} PRIVATE
     "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
 
+  if (MSVC)
+    target_compile_options(${test} PUBLIC "/wd4005 /wd4251")
+  endif()
+
 endforeach()
 
 set(auxiliary_files
