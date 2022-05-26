@@ -18,7 +18,15 @@
 #ifndef IGN_TRANSPORT_PUBLISHER_HH_
 #define IGN_TRANSPORT_PUBLISHER_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
+#endif
 #include <ignition/msgs/discovery.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <iostream>
 #include <string>

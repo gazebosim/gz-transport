@@ -19,7 +19,9 @@
 #define IGN_TRANSPORT_REPHANDLER_HH_
 
 #ifdef _MSC_VER
-#pragma warning(push, 0)
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
 #endif
 #include <google/protobuf/message.h>
 #ifdef _MSC_VER
@@ -27,7 +29,12 @@
 #endif
 
 #if GOOGLE_PROTOBUF_VERSION > 2999999
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
+#endif
 #include <google/protobuf/stubs/casts.h>
+#pragma warning(pop)
 #endif
 
 #include <functional>

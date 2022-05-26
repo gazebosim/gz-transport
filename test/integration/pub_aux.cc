@@ -17,7 +17,16 @@
 #include <chrono>
 #include <string>
 #include <thread>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
+#endif
 #include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"

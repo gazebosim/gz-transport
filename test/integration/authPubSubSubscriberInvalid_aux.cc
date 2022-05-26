@@ -17,7 +17,17 @@
 
 #include <chrono>
 #include <string>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#pragma warning(disable: 4251)
+#endif
 #include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #ifdef _WIN32
   #include <filesystem>
 #endif
