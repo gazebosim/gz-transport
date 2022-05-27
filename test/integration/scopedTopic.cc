@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
 
 #include "ignition/transport/AdvertiseOptions.hh"
 #include "ignition/transport/Node.hh"

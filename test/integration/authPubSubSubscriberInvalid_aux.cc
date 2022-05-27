@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
 #ifdef _WIN32
   #include <filesystem>
 #endif

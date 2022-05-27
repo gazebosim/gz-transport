@@ -22,18 +22,12 @@
 #include <string>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include <ignition/msgs.hh>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include "ign.hh"
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Helpers.hh"
 #include "ignition/transport/Node.hh"
+
+#include "gz/msgs/Factory.hh"
 
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)

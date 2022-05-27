@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <map>
 #include <string>
-#include <ignition/msgs.hh>
 
 #include "ignition/transport/HandlerStorage.hh"
 #include "ignition/transport/MessageInfo.hh"

@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/TopicUtils.hh"

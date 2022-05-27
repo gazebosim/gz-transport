@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32_v.pb.h>
 
 #include <gtest/gtest.h>
 

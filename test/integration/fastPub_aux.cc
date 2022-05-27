@@ -14,9 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/vector3d.pb.h>
+
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
 
 #include "ignition/transport/Node.hh"
 #include "gz/transport/test_config.h"

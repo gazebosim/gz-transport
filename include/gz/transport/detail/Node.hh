@@ -18,6 +18,8 @@
 #ifndef GZ_TRANSPORT_DETAIL_NODE_HH_
 #define GZ_TRANSPORT_DETAIL_NODE_HH_
 
+#include <gz/msgs/empty.pb.h>
+
 #include <memory>
 #include <string>
 

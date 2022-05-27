@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/statistic.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "ignition/transport/Node.hh"

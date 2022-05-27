@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/statistic.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
 #ifdef _WIN32
   #include <filesystem>
 #endif

@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
 #include <ignition/utils/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
