@@ -19,19 +19,19 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "ign.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 // Global constants.
 static const std::string g_topic   = "/topic"; // NOLINT(*)
 static const std::string g_service = "/echo"; // NOLINT(*)
-static const std::string g_intType = "ign_msgs.Int32"; // NOLINT(*)
+static const std::string g_intType = "gz_msgs.Int32"; // NOLINT(*)
 static const std::string g_reqData = "data: 10"; // NOLINT(*)
 
 // Global variables.
@@ -65,7 +65,7 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
@@ -160,7 +160,7 @@ TEST(ignTest, cmdServiceReq)
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_service, srvEcho));
 
-  ignition::msgs::Int32 msg;
+  gz::msgs::Int32 msg;
   msg.set_data(10);
 
   // A null service name should generate an error message.
@@ -188,7 +188,7 @@ TEST(ignTest, cmdServiceReq)
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // It's not possible to request a service using a request parameter that is
-  // not part of Ignition Messages.
+  // not part of Gazebo Messages.
   cmdServiceReq(g_service.c_str(), kUnknownType.c_str(),
     g_intType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(),
@@ -196,7 +196,7 @@ TEST(ignTest, cmdServiceReq)
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // It's not possible to request a service using a response type that is not
-  // part of Ignition Messages.
+  // part of Gazebo Messages.
   cmdServiceReq(g_service.c_str(), g_intType.c_str(),
     kUnknownType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(),
@@ -250,7 +250,7 @@ TEST(ignTest, cmdTopicEchoOutputFormats)
   redirectIO(stdOutBuffer, stdErrBuffer);
 
   transport::Node node;
-  ignition::msgs::Int32 msg;
+  gz::msgs::Int32 msg;
   msg.set_data(5);
 
   clearIOStreams(stdOutBuffer, stdErrBuffer);

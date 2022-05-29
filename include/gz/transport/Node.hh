@@ -49,18 +49,18 @@
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
     class NodePrivate;
 
     /// \brief Get the capacity of the buffer (High Water Mark)
-    /// that stores incoming Ignition Transport messages. Note that this is a
+    /// that stores incoming Gazebo Transport messages. Note that this is a
     /// global queue shared by all subscribers within the same process.
     /// \return The capacity of the buffer storing incoming messages (units are
     /// messages). A value of 0 indicates an unlimited buffer and -1
@@ -69,10 +69,10 @@ namespace ignition
     /// If the buffer is set to unlimited, then your buffer will grow until
     /// you run out of memory (and probably crash).
     /// If your buffer reaches the maximum capacity data will be dropped.
-    int IGNITION_TRANSPORT_VISIBLE rcvHwm();
+    int GZ_TRANSPORT_VISIBLE rcvHwm();
 
     /// \brief Get the capacity of the buffer (High Water Mark)
-    /// that stores outgoing Ignition Transport messages. Note that this is a
+    /// that stores outgoing Gazebo Transport messages. Note that this is a
     /// global queue shared by all publishers within the same process.
     /// \return The capacity of the buffer storing outgoing messages (units are
     /// messages). A value of 0 indicates an unlimited buffer and -1
@@ -81,18 +81,18 @@ namespace ignition
     /// If the buffer is set to unlimited, then your buffer will grow until
     /// you run out of memory (and probably crash).
     /// If your buffer reaches the maximum capacity data will be dropped.
-    int IGNITION_TRANSPORT_VISIBLE sndHwm();
+    int GZ_TRANSPORT_VISIBLE sndHwm();
 
     /// \brief Block the current thread until a SIGINT or SIGTERM is received.
     /// Note that this function registers a signal handler. Do not use this
     /// function if you want to manage yourself SIGINT/SIGTERM.
-    void IGNITION_TRANSPORT_VISIBLE waitForShutdown();
+    void GZ_TRANSPORT_VISIBLE waitForShutdown();
 
     /// \class Node Node.hh gz/transport/Node.hh
     /// \brief A class that allows a client to communicate with other peers.
     /// There are two main communication modes: pub/sub messages and service
     /// calls.
-    class IGNITION_TRANSPORT_VISIBLE Node
+    class GZ_TRANSPORT_VISIBLE Node
     {
       class PublisherPrivate;
 
@@ -112,7 +112,7 @@ namespace ignition
       ///      // when publishing to interprocess subscribers.
       ///      pub.Publish(msg);
       ///    }
-      public: class IGNITION_TRANSPORT_VISIBLE Publisher
+      public: class GZ_TRANSPORT_VISIBLE Publisher
       {
         /// \brief Default constructor.
         public: Publisher();

@@ -24,12 +24,12 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \brief Determine if an IP is private.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
@@ -48,24 +48,24 @@ namespace ignition
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
     /// \return The IP or hostname of this host.
-    std::string IGNITION_TRANSPORT_VISIBLE determineHost();
+    std::string GZ_TRANSPORT_VISIBLE determineHost();
 
     /// \brief Determine the list of network interfaces for this machine.
     /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
     /// roscpp/src/libros/network.cpp
     /// \return The list of network interfaces.
-    std::vector<std::string> IGNITION_TRANSPORT_VISIBLE determineInterfaces();
+    std::vector<std::string> GZ_TRANSPORT_VISIBLE determineInterfaces();
 
     /// \brief Determine the computer's hostname.
     /// \return The computer's hostname.
-    std::string IGNITION_TRANSPORT_VISIBLE hostname();
+    std::string GZ_TRANSPORT_VISIBLE hostname();
 
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
     /// On linux and Mac only, if determination
     /// of your login name failes then a string of the form "error-UUID"
     /// is returned where UUID is a universally unique identifier.
-    std::string IGNITION_TRANSPORT_VISIBLE username();
+    std::string GZ_TRANSPORT_VISIBLE username();
     }
   }
 }

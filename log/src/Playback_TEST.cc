@@ -15,11 +15,11 @@
  *
 */
 
-#include "ignition/transport/log/Playback.hh"
+#include "gz/transport/log/Playback.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 
 //////////////////////////////////////////////////
 TEST(Playback, PlaybackEmptyDatabase)

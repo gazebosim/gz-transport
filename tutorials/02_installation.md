@@ -5,10 +5,10 @@ Previous Tutorial: \ref introduction
 
 ## Overview
 
-This page contains instructions to install Ignition Transport on all the
+This page contains instructions to install Gazebo Transport on all the
 support platforms including major Linux distributions, Mac OS X and Windows.
 
-You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
+You can find all Gazebo Transport versions at [https://gazebosim.org/libs/transport](https://gazebosim.org/libs/transport).
 
 # Binary Install
 
@@ -25,7 +25,7 @@ Setup keys:
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo apt-get update
 sudo apt-get install libignition-transport<#>-dev
@@ -36,9 +36,9 @@ which version you need.
 
 ## Mac OS X
 
-Ignition Transport and several of its dependencies can be compiled on OS
+Gazebo Transport and several of its dependencies can be compiled on OS
 X with [Homebrew](http://brew.sh/) using the [osrf/simulation
-tap](https://github.com/osrf/homebrew-simulation). Ignition Transport is
+tap](https://github.com/osrf/homebrew-simulation). Gazebo Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
@@ -83,7 +83,7 @@ which version you need.
 
 ## Ubuntu Linux
 
-For compiling the latest version of Ignition Transport you will need an
+For compiling the latest version of Gazebo Transport you will need an
 Ubuntu distribution equal to 20.04 (Focal) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
@@ -99,7 +99,7 @@ sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprot
 
 Clone the repository
 ```
-git clone https://github.com/ignitionrobotics/ign-transport
+git clone https://github.com/gazebosim/gz-transport
 ```
 
 Configure and build
@@ -111,7 +111,7 @@ cmake ..
 make
 ```
 
-Configure Ignition Transport (choose either method a or b below):
+Configure Gazebo Transport (choose either method a or b below):
 
 A.  Release mode (recommended): This will generate optimized code, but will not have
     debug symbols. Use this mode if you don't need to use [GDB](https://www.gnu.org/software/gdb/) (advanced).
@@ -143,12 +143,12 @@ look something like:
 -- Install path: /home/$USER/local
 ```
 
-Build Ignition Transport:
+Build Gazebo Transport:
 ```
 make -j4
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo make install
 ```
@@ -161,7 +161,7 @@ echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.ba
 
 ### Uninstalling Source-based Install
 
-If you need to uninstall Ignition Transport or switch back to a
+If you need to uninstall Gazebo Transport or switch back to a
 debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:
@@ -174,7 +174,7 @@ sudo make uninstall
 
 1. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-transport -b ign-transport<#>
+  git clone https://github.com/gazebosim/gz-transport -b ign-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
@@ -204,7 +204,7 @@ sudo make uninstall
 
 ### Prerequisites
 
-First, follow the [ign-cmake](https://github.com/ignitionrobotics/ign-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+First, follow the [ign-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
 
 Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
 
@@ -235,7 +235,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 1. Navigate to where you would like to build the library, and clone the repository.
   ```
   # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
-  git clone https://github.com/ignitionrobotics/ign-transport.git
+  git clone https://github.com/gazebosim/gz-transport.git
   ```
 
 2. Configure and build
@@ -276,7 +276,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 # Documentation
 
-Visit the [documentation page](https://ignitionrobotics.org/api/transport/11.0/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/11.0/index.html).
 
 ## Build documentation
 ```
@@ -284,16 +284,16 @@ cd build
 make doc
 ```
 
-Upload documentation to ignitionrobotics.org.
+Upload documentation to gazebosim.org.
 ```
 cd build
 sh upload.sh
 ```
 
-If you're creating a new release, then tell ignitionrobotics.org about
+If you're creating a new release, then tell gazebosim.org about
    the new version. For example:
 ```
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.ignitionrobotics.org/1.0/versions
+curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.gazebosim.org/1.0/versions
 ```
 
 # Testing

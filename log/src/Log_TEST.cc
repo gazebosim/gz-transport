@@ -20,13 +20,13 @@
 #include <string>
 #include <unordered_set>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gz/transport/test_config.h"
 #include "gz/transport/log/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -252,7 +252,7 @@ TEST(Log, OpenCorruptDatabase)
 {
   log::Log logFile;
   std::string path =
-    testing::portablePathUnion(IGN_TRANSPORT_LOG_TEST_PATH, "data");
+    testing::portablePathUnion(GZ_TRANSPORT_LOG_TEST_PATH, "data");
   path = testing::portablePathUnion(path, "state.tlog");
   logFile.Open(path);
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "

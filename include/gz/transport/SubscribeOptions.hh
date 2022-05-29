@@ -24,19 +24,19 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     class SubscribeOptionsPrivate;
 
     /// \class SubscribeOptions SubscribeOptions.hh
     /// gz/transport/SubscribeOptions.hh
     /// \brief A class to provide different options for a subscription.
-    class IGNITION_TRANSPORT_VISIBLE SubscribeOptions
+    class GZ_TRANSPORT_VISIBLE SubscribeOptions
     {
       /// \brief Constructor.
       public: SubscribeOptions();

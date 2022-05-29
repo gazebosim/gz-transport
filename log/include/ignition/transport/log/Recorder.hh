@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/Recorder.hh>
+#include <ignition/transport/config.hh>

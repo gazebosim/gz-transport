@@ -1,6 +1,6 @@
 ## Examples
 
-Example programs using Ignition Transport.
+Example programs using Gazebo Transport.
 
 ## Build
 

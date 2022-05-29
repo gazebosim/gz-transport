@@ -18,13 +18,13 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -37,14 +37,14 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallWithoutInputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
 
   int64_t timeout = 500;
-  ignition::msgs::Int32 rep;
+  gz::msgs::Int32 rep;
   bool result;
 
   transport::Node node;

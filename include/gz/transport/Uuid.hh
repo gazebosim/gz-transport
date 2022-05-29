@@ -33,16 +33,16 @@
   using portable_uuid_t = uuid_t;
 #endif
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class Uuid Uuid.hh gz/transport/Uuid.hh
     /// \brief A portable class for representing a Universally Unique Identifier
-    class IGNITION_TRANSPORT_VISIBLE Uuid
+    class GZ_TRANSPORT_VISIBLE Uuid
     {
       /// \brief Constructor.
       public: Uuid();
@@ -58,7 +58,7 @@ namespace ignition
       /// \param[out] _out The output stream.
       /// \param[in] _uuid UUID to write to the stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                         const ignition::transport::Uuid &_uuid)
+                                         const gz::transport::Uuid &_uuid)
       {
         _out << _uuid.ToString();
         return _out;

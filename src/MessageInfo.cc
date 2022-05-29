@@ -17,17 +17,17 @@
 
 #include <string>
 
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/TopicUtils.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /// \internal
     /// \brief Private data for MessageInfo class.

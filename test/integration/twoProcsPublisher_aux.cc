@@ -16,12 +16,12 @@
 */
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 
@@ -29,14 +29,14 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  ignition::msgs::Vector3d msg;
+  gz::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   pub.Publish(msg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));

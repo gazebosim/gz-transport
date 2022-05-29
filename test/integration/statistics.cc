@@ -17,23 +17,23 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static int statisticsCount = 0;
 
-void cb(const ignition::msgs::StringMsg & /*_msg*/)
+void cb(const gz::msgs::StringMsg & /*_msg*/)
 {
   // no-op
 }
 
-void statsCb(const ignition::msgs::Metric & /*_msg*/)
+void statsCb(const gz::msgs::Metric & /*_msg*/)
 {
   statisticsCount++;
 }
@@ -43,10 +43,10 @@ TEST(topicStatistics, SingleProcessPublishStatistics)
   statisticsCount = 0;
   std::string topic = "/foo";
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
   EXPECT_TRUE(pub);
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("Hello");
 
   EXPECT_TRUE(node.Subscribe(topic, cb));

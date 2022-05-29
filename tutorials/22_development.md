@@ -10,7 +10,7 @@ Transport. You don't need to read this section if you just want to use the
 library in your code. This section will help you to understand our source code
 if you're interested in making code contributions.
 
-Ignition Transport's internal architecture can be illustrated with the following
+Gazebo Transport's internal architecture can be illustrated with the following
 diagram:
 
     +=================================================+  +=====================+
@@ -80,7 +80,7 @@ examples of the information that the discovery component learns for each topic.
 The main responsibility of the discovery is to keep an updated list of active
 topics ready to be queried by other entities.
 
-In Ignition Transport we use two discovery objects, each one operating on a
+In Gazebo Transport we use two discovery objects, each one operating on a
 different UDP port. One object is dedicated to topics and the other is dedicated
 to services.
 
@@ -123,7 +123,7 @@ invocations could be triggered because `Discovery` will pro-actively learn about
 all the available topics and generate notifications.
 
 You can check the complete API details
-[here](https://ignitionrobotics.org/libs/transport).
+[here](https://gazebosim.org/libs/transport).
 
 ### \[Un\]Announce a local topic
 

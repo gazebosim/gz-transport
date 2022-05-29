@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/TopicStorage.hh>
+#include <ignition/transport/config.hh>

@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/SqlStatement.hh>
+#include <ignition/transport/config.hh>

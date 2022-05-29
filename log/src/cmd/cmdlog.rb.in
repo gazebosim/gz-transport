@@ -37,7 +37,7 @@ COMMON_OPTIONS =
   "                                                                        \n"\
 
 COMMANDS = { 'log' =>
-  "Record and playback Ignition Transport topics.                        \n\n"\
+  "Record and playback Gazebo Transport topics.                        \n\n"\
   "  ign log record|playback [options]                                     \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n" +
@@ -45,7 +45,7 @@ COMMANDS = { 'log' =>
 }
 
 SUBCOMMANDS = { 'record' =>
-  "Record Ignition Transport topics.                                     \n\n"\
+  "Record Gazebo Transport topics.                                     \n\n"\
   "  ign log record [options]                                              \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n"\
@@ -55,7 +55,7 @@ SUBCOMMANDS = { 'record' =>
   "                             (Default match all topics).                \n" +
   COMMON_OPTIONS,
                 'playback' =>
-  "Playback previously recorded Ignition Transport topics.               \n\n"\
+  "Playback previously recorded Gazebo Transport topics.               \n\n"\
   "  ign log playback [options]                                            \n"\
   "                                                                        \n"\
   "Required Flags:                                                       \n\n"\
@@ -77,7 +77,7 @@ SUBCOMMANDS = { 'record' =>
 }
 
 #
-# Class for the Ignition Transport Log command line tools.
+# Class for the Gazebo Transport Log command line tools.
 #
 class Cmd
 

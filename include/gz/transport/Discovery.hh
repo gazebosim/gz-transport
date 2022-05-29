@@ -78,12 +78,12 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     /// \brief Options for sending discovery messages.
     enum class DestinationType
     {
@@ -101,7 +101,7 @@ namespace ignition
     /// \param[in] _sockets Sockets on which to listen.
     /// \param[in] _timeout Length of time to poll (milliseconds).
     /// \return True if the sockets received a reply.
-    bool IGNITION_TRANSPORT_VISIBLE pollSockets(
+    bool GZ_TRANSPORT_VISIBLE pollSockets(
       const std::vector<int> &_sockets,
       const int _timeout);
 
@@ -801,19 +801,19 @@ namespace ignition
           uint16_t len = 0;
           memcpy(&len, &rcvStr[0], sizeof(len));
 
-          // Ignition Transport delimits each discovery message with a
+          // Gazebo Transport delimits each discovery message with a
           // frame_delimiter that contains byte size information.
           // A discovery message has the form:
           //
           // <frame_delimiter><frame_body>
           //
-          // Ignition Transport version < 8 sends a frame delimiter that
+          // Gazebo Transport version < 8 sends a frame delimiter that
           // contains the value of sizeof(frame_delimiter)
           // + sizeof(frame_body). In other words, the frame_delimiter
           // contains a value that represents the total size of the
           // frame_body and frame_delimiter in bytes.
           //
-          // Ignition Transport version >= 8 sends a frame_delimiter
+          // Gazebo Transport version >= 8 sends a frame_delimiter
           // that contains the value of sizeof(frame_body). In other
           // words, the frame_delimiter contains a value that represents
           // the total size of only the frame_body.
@@ -851,7 +851,7 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg, uint16_t _len)
       {
-        ignition::msgs::Discovery msg;
+        gz::msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
@@ -1094,7 +1094,7 @@ namespace ignition
                    const msgs::Discovery::Type _type,
                    const T &_pub) const
       {
-        ignition::msgs::Discovery discoveryMsg;
+        gz::msgs::Discovery discoveryMsg;
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);

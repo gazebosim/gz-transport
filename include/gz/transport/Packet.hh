@@ -27,15 +27,15 @@
 #include "gz/transport/Export.hh"
 #include "gz/transport/Publisher.hh"
 
-// This whole file is deprecated in version 8 of Ignition Transport. Please
+// This whole file is deprecated in version 8 of Gazebo Transport. Please
 // remove this file in Version 9.
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Message types.
     static const uint8_t Uninitialized  = 0;

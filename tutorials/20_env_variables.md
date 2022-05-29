@@ -7,7 +7,7 @@ Previous Tutorial: \ref logging
 
 Similar to how you can programatically customize the behavior of your
 nodes or specify some options when you advertise a topic, it is possible to
-use an environment variable to tweak the behavior of Ignition Transport.
+use an environment variable to tweak the behavior of Gazebo Transport.
 Below are descriptions of the available environment variables:
 
 * **IGN_DISCOVERY_MSG_PORT**
@@ -52,7 +52,7 @@ Below are descriptions of the available environment variables:
     address of another node from the other network. Note that only one IP_RELAY
     link is needed for bidirectional communication between nodes of two
     different networks.
-* **IGN_TRANSPORT_LOG_SQL_PATH**
+* **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not
     normally need to be set. It is useful to developers who are testing changes
@@ -66,7 +66,7 @@ Below are descriptions of the available environment variables:
 * **IGN_TRANSPORT_RCVHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
-    that stores incoming Ignition Transport messages. Note that this is a global
+    that stores incoming Gazebo Transport messages. Note that this is a global
     queue shared by all subscribers within the same process. A value of 0 means
     "infinite" capacity. As you can guess, there's no such thing as an infinite
     buffer, so your buffer will grow until you run out of memory (and probably
@@ -75,7 +75,7 @@ Below are descriptions of the available environment variables:
 * **IGN_TRANSPORT_SNDHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
-    that stores outgoing Ignition Transport messages. Note that this is a global
+    that stores outgoing Gazebo Transport messages. Note that this is a global
     queue shared by all publishers within the same process. A value of 0 means
     "infinite" capacity. As you can guess, there's no such thing as an infinite
     buffer, so your buffer will grow until you run out of memory (and probably

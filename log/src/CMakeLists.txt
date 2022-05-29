@@ -27,7 +27,7 @@ ign_build_tests(
 foreach(test_target ${logging_tests})
 
   set_tests_properties(${logging_tests} PROPERTIES
-    ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+    ENVIRONMENT GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
 
 endforeach()
 

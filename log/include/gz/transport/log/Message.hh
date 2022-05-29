@@ -24,20 +24,20 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief Forward Declarations
       class MessagePrivate;
 
       /// \brief Represents a message in a bag file.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Message
+      class GZ_TRANSPORT_LOG_VISIBLE Message
       {
         /// \brief Default constructor
         public: Message();

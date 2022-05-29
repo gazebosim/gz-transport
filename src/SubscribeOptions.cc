@@ -17,12 +17,12 @@
 
 #include <cstdint>
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/SubscribeOptions.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/SubscribeOptions.hh"
 
 #include "SubscribeOptionsPrivate.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

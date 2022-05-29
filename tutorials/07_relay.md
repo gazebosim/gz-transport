@@ -6,12 +6,12 @@ Previous Tutorial: \ref security
 ## Overview
 
 In this tutorial, we are going to create two nodes that are not able to
-communicate with the default configuration of Ignition Transport. This
+communicate with the default configuration of Gazebo Transport. This
 limitation arises when the nodes are separated by a router, typically when they
 are part of different local networks. Routers do not propagate UDP multicast
 traffic and this is the reason for this limitation. We'll create a scenario to
 simulate this configuration, and then we'll enable the relay capabilities of
-Ignition Transport to make the communication possible.
+Gazebo Transport to make the communication possible.
 
 ```{.sh}
 mkdir -p ~/ign_transport_tutorial/docker/ign-transport
@@ -25,13 +25,13 @@ install Docker following any of the existing guides available
 ([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/run.bash) and
-[Dockerfile](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/ign-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash) and
+[Dockerfile](https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/build.bash
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/run.bash
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
@@ -50,13 +50,13 @@ Inside the docker instance, go to the `example` directory:
 cd ign-transport/example/build
 ```
 
-Back on your host, make sure that you have Ignition Tools and net-tools
+Back on your host, make sure that you have Gazebo Tools and net-tools
 installed:
 ```
 sudo apt install ignition-tools2 net-tools
 ```
 
-Now, let's configure Ignition Transport to block all multicast traffic going
+Now, let's configure Gazebo Transport to block all multicast traffic going
 into your Docker instance. Run the command `ifconfig` to list your network
 interfaces:
 ```
@@ -90,7 +90,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-We want to isolate Ignition Transport to the network interface not connected to
+We want to isolate Gazebo Transport to the network interface not connected to
 your Docker instance. Thus, try to identify the IP address of the network
 interface not associated with Docker or the loopback interface. In our case,
 the IP address is `172.23.1.7`.

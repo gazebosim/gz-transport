@@ -21,12 +21,12 @@
 #include <vector>
 
 #include "Console.hh"
-#include "ignition/transport/log/MsgIter.hh"
+#include "gz/transport/log/MsgIter.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 //////////////////////////////////////////////////
 MsgIterPrivate::MsgIterPrivate()

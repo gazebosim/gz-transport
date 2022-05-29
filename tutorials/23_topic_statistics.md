@@ -44,7 +44,7 @@ if (!node.EnableStats(topic, true))
 }
 ```
 
-A complete example can be found in the [subscriber_stats example program](https://github.com/ignitionrobotics/ign-transport/blob/main/example/subscriber_stats.cc).
+A complete example can be found in the [subscriber_stats example program](https://github.com/gazebosim/gz-transport/blob/main/example/subscriber_stats.cc).
 
 With both `IGN_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
 enabling topic statistics, then you will be able to echo statistic
@@ -73,7 +73,7 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 
 ### Example
 
-If you have the Ignition Transport sources with the example programs built,
+If you have the Gazebo Transport sources with the example programs built,
 then you can test topic statistics by following these steps.
 
 1. Terminal 1: `IGN_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`

@@ -29,20 +29,24 @@
 #include <gz/transport/log/Descriptor.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief Name of Environment variable containing path to schema
-      const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
+      const std::string SchemaLocationEnvVar = "GZ_TRANSPORT_LOG_SQL_PATH";
+
+      // TODO(CH3): Deprecated. Remove this on ticktock.
+      const std::string SchemaLocationEnvVarDeprecated = \
+        "IGN_TRANSPORT_LOG_SQL_PATH";
 
       /// \brief Interface to a log file
-      class IGNITION_TRANSPORT_LOG_VISIBLE Log
+      class GZ_TRANSPORT_LOG_VISIBLE Log
       {
         /// \brief constructor
         public: Log();
