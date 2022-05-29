@@ -454,7 +454,8 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
       {
         LWRN("Found schema using deprecated environment variable ["
              << SchemaLocationEnvVarDeprecated.c_str()
-             << "]. Please use [" << SchemaLocationEnvVar.c_str() << "] instead.");
+             << "]. Please use [" << SchemaLocationEnvVar.c_str()
+             << "] instead.");
       }
     }
 

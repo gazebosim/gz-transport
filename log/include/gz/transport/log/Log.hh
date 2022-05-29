@@ -42,7 +42,8 @@ namespace gz
       const std::string SchemaLocationEnvVar = "GZ_TRANSPORT_LOG_SQL_PATH";
 
       // TODO(CH3): Deprecated. Remove this on ticktock.
-      const std::string SchemaLocationEnvVarDeprecated = "IGN_TRANSPORT_LOG_SQL_PATH";
+      const std::string SchemaLocationEnvVarDeprecated = \
+        "IGN_TRANSPORT_LOG_SQL_PATH";
 
       /// \brief Interface to a log file
       class GZ_TRANSPORT_LOG_VISIBLE Log
