@@ -460,8 +460,8 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, output.find("--list")) << output;
   EXPECT_NE(std::string::npos, output.find("--info")) << output;
   EXPECT_NE(std::string::npos, output.find("--req")) << output;
-  // TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
-  // Update cmd/transport.bash_completion.sh accordingly.
+  // TODO(anyone): In Fortress+, remove --force-version and --versions.
+  // Add --help-all. Update cmd/transport.bash_completion.sh accordingly.
   EXPECT_NE(std::string::npos, output.find("--force-version")) << output;
   EXPECT_NE(std::string::npos, output.find("--versions")) << output;
 
@@ -480,8 +480,8 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, script.find("--list")) << script;
   EXPECT_NE(std::string::npos, script.find("--info")) << script;
   EXPECT_NE(std::string::npos, script.find("--req")) << script;
-  // TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
-  // Update cmd/transport.bash_completion.sh accordingly.
+  // TODO(anyone): In Fortress+, remove --force-version and --versions.
+  // Add --help-all. Update cmd/transport.bash_completion.sh accordingly.
   EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
   EXPECT_NE(std::string::npos, script.find("--versions")) << script;
 }
