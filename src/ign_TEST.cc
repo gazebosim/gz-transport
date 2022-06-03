@@ -15,6 +15,7 @@
  *
 */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -466,8 +467,10 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, output.find("--versions")) << output;
 
   // Flags in bash completion
-  std::ifstream scriptFile(std::string(IGN_TRANSPORT_SOURCE_DIR) +
-    "/src/cmd/transport.bash_completion.sh");
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  std::ifstream scriptFile(scriptPath);
+
   std::string script((std::istreambuf_iterator<char>(scriptFile)),
       std::istreambuf_iterator<char>());
 
@@ -510,8 +513,10 @@ TEST(ignTest, TopicHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, output.find("--versions")) << output;
 
   // Flags in bash completion
-  std::ifstream scriptFile(std::string(IGN_TRANSPORT_SOURCE_DIR) +
-    "/src/cmd/transport.bash_completion.sh");
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  std::ifstream scriptFile(scriptPath);
+
   std::string script((std::istreambuf_iterator<char>(scriptFile)),
       std::istreambuf_iterator<char>());
 
