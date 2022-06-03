@@ -1,6 +1,6 @@
 \page development Development
 
-Next Tutorial: \ref topicstatistics 
+Next Tutorial: \ref topicstatistics
 Previous Tutorial: \ref envvars
 
 ## Overview
@@ -292,7 +292,7 @@ send the message over each one, flooding all the subnets with our discovery
 requests.
 
 Note that the result of `determineInterfaces()` can be manually set by using the
-`IGN_IP` environment variable, as described
+`GZ_IP` environment variable, as described
 [here](envvars.html).
 This will essentially ignore other network interfaces, isolating all discovery
 traffic through the specified interface.

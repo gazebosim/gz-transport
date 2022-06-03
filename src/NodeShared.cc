@@ -80,11 +80,27 @@ enum class ZmqPlainSecurityServerOptions
 // Helper to get the username and password
 bool userPass(std::string &_user, std::string &_pass)
 {
-  char *username = std::getenv("IGN_TRANSPORT_USERNAME");
-  char *password = std::getenv("IGN_TRANSPORT_PASSWORD");
+  char *username = std::getenv("GZ_TRANSPORT_USERNAME");
+  char *password = std::getenv("GZ_TRANSPORT_PASSWORD");
 
   if (!username || !password)
-    return false;
+  {
+    username = std::getenv("IGN_TRANSPORT_USERNAME");
+    password = std::getenv("IGN_TRANSPORT_PASSWORD");
+
+    if (!username || !password)
+    {
+      return false;
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else
+    {
+      std::cout << "IGN_TRANSPORT_USERNAME and IGN_TRANSPORT_PASSWORD "
+                << " are deprecated and will be removed! Use "
+                << "GZ_TRANSPORT_USERNAME and GZ_TRANSPORT_PASSWORD instead!"
+                << std::endl;
+    }
+  }
 
   _user = username;
   _pass = password;
@@ -216,25 +232,59 @@ NodeShared::NodeShared()
   : verbose(false),
     dataPtr(new NodeSharedPrivate)
 {
-  // If IGN_VERBOSE=1 enable the verbose mode.
-  std::string ignVerbose;
-  this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
+  // If GZ_VERBOSE=1 enable the verbose mode.
+  std::string gzVerbose;
+  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+  {
+    this->verbose = (gzVerbose == "1");
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_VERBOSE", gzVerbose) && !gzVerbose.empty())
+  {
+    std::cout << "IGN_VERBOSE is deprecated and will be removed! "
+              << "Use GZ_VERBOSE instead!" << std::endl;
+    this->verbose = (gzVerbose == "1");
+  }
 
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
-  if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
+  if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
       !envDiscoveryIp.empty())
   {
     this->discoveryIP = envDiscoveryIp;
   }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
+           !envDiscoveryIp.empty())
+  {
+    std::cout << "IGN_DISCOVERY_MULTICAST_IP is deprecated! "
+              << "Use GZ_DISCOVERY_MULTICAST_IP instead!" << std::endl;
+    this->discoveryIP = envDiscoveryIp;
+  }
+
 
   // Set the port used for msg discovery.
   this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
-    "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+    "GZ_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  if (this->msgDiscPort == this->kDefaultMsgDiscPort)
+  {
+    this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
+      "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+  }
 
   // Set the port used for srv discovery.
   this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
-    "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+    "GZ_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  if (this->srvDiscPort == this->kDefaultSrvDiscPort)
+  {
+    this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
+      "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+  }
+
 
   // Sanity check: the discovery ports should be unique.
   if (this->msgDiscPort == this->srvDiscPort)
@@ -249,9 +299,19 @@ NodeShared::NodeShared()
               << this->srvDiscPort << "] for services" << std::endl;
   }
 
-  std::string ignStats;
-  this->dataPtr->topicStatsEnabled =
-    (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+  std::string gzStats;
+
+  if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+  {
+    this->dataPtr->topicStatsEnabled = (gzStats == "1");
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+  {
+    std::cout << "IGN_TRANSPORT_TOPIC_STATISTICS is deprecated! "
+              << "Use GZ_TRANSPORT_TOPIC_STATISTICS instead!" << std::endl;
+    this->dataPtr->topicStatsEnabled = (gzStats == "1");
+  }
 
   // My process UUID.
   Uuid uuid;
@@ -1362,7 +1422,14 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for receiving messages.
     int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
-      "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+      "GZ_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    if (rcvQueueVal == kDefaultRcvHwm)
+    {
+      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+        "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+    }
 
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
@@ -1373,7 +1440,14 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for sending messages.
     int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
-      "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
+      "GZ_TRANSPORT_SNDHWM", kDefaultSndHwm);
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    if (sndQueueVal == kDefaultSndHwm)
+    {
+      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+        "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
+    }
 
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);

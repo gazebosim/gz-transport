@@ -466,7 +466,7 @@ int main(int argc, char **argv)
   g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", g_partition.c_str(), 1);
+  setenv("GZ_PARTITION", g_partition.c_str(), 1);
 
   // Make sure that we load the library recently built and not the one installed
   // in your system.

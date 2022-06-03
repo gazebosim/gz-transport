@@ -27,13 +27,13 @@ either use, or not use, authentication.
 
 Two environment variables are used to enable authentications:
 
-1. `IGN_TRANSPORT_USERNAME` : The username 
-2. `IGN_TRANSPORT_PASSWORD` : The password 
+1. `GZ_TRANSPORT_USERNAME` : The username
+2. `GZ_TRANSPORT_PASSWORD` : The password 
 
-When both `IGN_TRANSPORT_USERNAME` and `IGN_TRANSPORT_PASSWORD` are set,
+When both `GZ_TRANSPORT_USERNAME` and `GZ_TRANSPORT_PASSWORD` are set,
 the authentication is enabled for a process. Every publisher in a secure
 process will require subscribers to provide the correct username and
-password. Also, every subscriber will only connect to secure publishers. 
+password. Also, every subscriber will only connect to secure publishers.
 
 ### Example
 
@@ -58,8 +58,8 @@ Now let's try a secure publisher and an unsecure subscriber.
 1. Leave the first terminal running `ign topic -t /foo -e`.
 2. Setup authentication in the second terminal:
 ```
-export IGN_TRANSPORT_USERNAME=user
-export IGN_TRANSPORT_PASSWORD=pass
+export GZ_TRANSPORT_USERNAME=user
+export GZ_TRANSPORT_PASSWORD=pass
 ```
 3. Now publish a message in the second terminal:
 ```
@@ -72,8 +72,8 @@ Finally, let's create secure subscriber.
 
 1. Open a third terminal, and setup authentication in that terminal.
 ```
-export IGN_TRANSPORT_USERNAME=user
-export IGN_TRANSPORT_PASSWORD=pass
+export GZ_TRANSPORT_USERNAME=user
+export GZ_TRANSPORT_PASSWORD=pass
 ```
 2. Echo the `/foo` topic in the secure third terminal.
 ```

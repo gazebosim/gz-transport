@@ -31,10 +31,19 @@ using namespace transport;
 NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
 {
-  // Check if the environment variable IGN_PARTITION is present.
-  std::string ignPartition;
-  if (env("IGN_PARTITION", ignPartition))
-    this->SetPartition(ignPartition);
+  // Check if the environment variable GZ_PARTITION is present.
+  std::string gzPartition;
+  if (env("GZ_PARTITION", gzPartition))
+  {
+    this->SetPartition(gzPartition);
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_PARTITION", gzPartition))
+  {
+    std::cout << "IGN_PARTITION is deprecated and will be removed! "
+              << "Use GZ_PARTITION instead!" << std::endl;
+    this->SetPartition(gzPartition);
+  }
 }
 
 //////////////////////////////////////////////////

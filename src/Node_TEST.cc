@@ -2310,7 +2310,7 @@ int main(int argc, char **argv)
   g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
 
   // Enable verbose mode.
   setenv("IGN_VERBOSE", "1", 1);

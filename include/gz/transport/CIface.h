@@ -35,7 +35,7 @@ extern "C" {
   /// \brief Create a transport node.
   /// \param[in] _partition Optional name of the partition to use.
   /// Use nullptr to use the default value, which is specified via the
-  /// IGN_PARTITION environment variable.
+  /// GZ_PARTITION environment variable.
   /// \return A pointer to a new transport node. Do not manually delete this
   /// pointer, instead use ignTransportNodeDestroy.
   IgnTransportNode GZ_TRANSPORT_VISIBLE *ignTransportNodeCreate(

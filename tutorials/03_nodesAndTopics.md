@@ -87,7 +87,7 @@ allowed.
 
 The default partition name is created using a combination of your hostname,
 followed by `:` and your username, e.g.: `bb8:caguero` . It's also possible
-to use the environment variable `IGN_PARTITION` for setting a custom partition
+to use the environment variable `GZ_PARTITION` for setting a custom partition
 name.
 
 A namespace is considered a prefix that might be potentially applied to some of

@@ -540,8 +540,8 @@ int main(int argc, char **argv)
   g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
-  setenv("IGN_TRANSPORT_TOPIC_STATISTICS", "1", 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
+  setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
