@@ -30,7 +30,8 @@ release will remove the deprecated code.
      1. `IGN_TRANSPORT_SNDHWM` -> `GZ_TRANSPORT_SNDHWM`
      1. `IGN_VERBOSE` -> `GZ_VERBOSE`
 1. The following `IGN_` prefixed macros are deprecated and will be removed in future versions.
-     Use the `GZ_` prefix instead.
+   Additionally, they will only be available when including the corresponding `ignition/...` header.
+   Use the `GZ_` prefix instead.
      1. `IGN_ZMQ_POST_4_3_1`
      1. `IGN_CPPZMQ_POST_4_7_0`
      1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
