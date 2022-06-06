@@ -620,7 +620,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscribers
       .HasSubscriber(fullyQualifiedTopic))
   {
-#ifdef IGN_CPPZMQ_POST_4_7_0
+#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->shared->dataPtr->subscriber->set(
       zmq::sockopt::unsubscribe, fullyQualifiedTopic);
 #else

@@ -89,9 +89,9 @@ namespace gz
         private: class Implementation;
 
         /// \internal Pointer to the implementation of this class
-        IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
+        GZ_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
-        IGN_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
+        GZ_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
       };
 
       //////////////////////////////////////////////////
@@ -118,9 +118,9 @@ namespace gz
         private: class Implementation;
 
         /// \internal Pointer to the implementation of this class
-        IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
+        GZ_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
-        IGN_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
+        GZ_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
       };
     }
   }

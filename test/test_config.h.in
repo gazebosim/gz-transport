@@ -136,18 +136,18 @@ namespace testing
     char cmd[500];
     // We should put quotes around the _command string to make sure we are
     // robust to file paths that contain spaces.
-    ign_strcpy(cmd, "\"");
-    ign_strcat(cmd, _command);
-    ign_strcat(cmd, "\"");
-    ign_strcat(cmd, " ");
-    ign_strcat(cmd, _partition);
+    gz_strcpy(cmd, "\"");
+    gz_strcat(cmd, _command);
+    gz_strcat(cmd, "\"");
+    gz_strcat(cmd, " ");
+    gz_strcat(cmd, _partition);
 
     if (_username && _password)
     {
-      ign_strcat(cmd, " ");
-      ign_strcat(cmd, _username);
-      ign_strcat(cmd, " ");
-      ign_strcat(cmd, _password);
+      gz_strcat(cmd, " ");
+      gz_strcat(cmd, _username);
+      gz_strcat(cmd, " ");
+      gz_strcat(cmd, _password);
     }
 
     // We set the first argument to NULL, because we want the behavior that

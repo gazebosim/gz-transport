@@ -32,14 +32,14 @@
 
 // Avoid using deprecated message send/receive function when possible.
 #if ZMQ_VERSION > ZMQ_MAKE_VERSION(4, 3, 1)
-  #define IGN_ZMQ_POST_4_3_1
+  #define GZ_ZMQ_POST_4_3_1
 #endif
 
 // Avoid using deprecated set function when possible
 #if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0)
   // Ubuntu Focal (20.04) packages a different "4.7.0"
   #ifndef UBUNTU_FOCAL
-    #define IGN_CPPZMQ_POST_4_7_0
+    #define GZ_CPPZMQ_POST_4_7_0
   #endif
 #endif
 
@@ -74,15 +74,15 @@ namespace gz
 
     // Use safer functions on Windows
     #ifdef _MSC_VER
-      #define ign_strcat strcat_s
-      #define ign_strcpy strcpy_s
-      #define ign_sprintf sprintf_s
-      #define ign_strdup _strdup
+      #define gz_strcat strcat_s
+      #define gz_strcpy strcpy_s
+      #define gz_sprintf sprintf_s
+      #define gz_strdup _strdup
     #else
-      #define ign_strcat std::strcat
-      #define ign_strcpy std::strcpy
-      #define ign_sprintf std::sprintf
-      #define ign_strdup strdup
+      #define gz_strcat std::strcat
+      #define gz_strcpy std::strcpy
+      #define gz_sprintf std::sprintf
+      #define gz_strdup strdup
     #endif
   }
   }
