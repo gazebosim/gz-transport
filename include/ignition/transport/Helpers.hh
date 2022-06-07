@@ -20,7 +20,7 @@
 
 // Avoid using deprecated message send/receive function when possible.
 #if ZMQ_VERSION > ZMQ_MAKE_VERSION(4, 3, 1)
-  #define GZ_ZMQ_POST_4_3_1 GZ_ZMQ_POST_4_3_1
+  #define IGN_ZMQ_POST_4_3_1 GZ_ZMQ_POST_4_3_1
 #endif
 
 // Avoid using deprecated set function when possible

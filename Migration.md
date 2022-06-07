@@ -36,8 +36,6 @@ release will remove the deprecated code.
      1. `IGN_CPPZMQ_POST_4_7_0`
      1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
 
-
-
 ## Gazebo Transport 9.X to 10.X
 
 ### Addition
