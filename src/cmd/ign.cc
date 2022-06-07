@@ -316,7 +316,12 @@ extern "C" void cmdTopicEcho(const char *_topic,
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *ignitionVersion()
+extern "C" const char *gzVersion()
 {
   return GZ_TRANSPORT_VERSION_FULL;
+}
+
+extern "C" const char GZ_DEPRECATED(12) *ignitionVersion()
+{
+  return gzVersion();
 }
