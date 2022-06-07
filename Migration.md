@@ -11,12 +11,25 @@ release will remove the deprecated code.
 ### Deprecated
 
 1. The `ignition` namespace is deprecated and will be removed in future versions.  Use `gz` instead.
-
 1. Header files under `ignition/...` are deprecated and will be removed in future versions.
      Use `gz/...` instead.
+1. The following `IGN_` prefixed environment variables are deprecated and will be removed in future versions.
+     Use the `GZ_` prefixed versions instead!
+     1. `IGN_TRANSPORT_USERNAME` -> `GZ_TRANSPORT_USERNAME`
 
-1. `IGN_TRANSPORT_LOG_SQL_PATH` is deprecated and will be removed in future versions.
-     Use `GZ_TRANSPORT_LOG_SQL_PATH` instead. 
+     1.  `IGN_TRANSPORT_PASSWORD` -> `GZ_TRANSPORT_PASSWORD`
+     1.  `IGN_PARTITION` -> `GZ_PARTITION`
+     1.  `IGN_IP` -> `GZ_IP`
+     1.  `IGN_TRANSPORT_TOPIC_STATISTICS` -> `GZ_TRANSPORT_TOPIC_STATISTICS`
+     1.  `IGN_DISCOVERY_MSG_PORT` -> `GZ_DISCOVERY_MSG_PORT`
+     1.  `IGN_DISCOVERY_MULTICAST_IP` -> `GZ_DISCOVERY_MULTICAST_IP`
+     1.  `IGN_DISCOVERY_SRV_PORT` -> `GZ_DISCOVERY_SRV_PORT`
+     1.  `IGN_RELAY` -> `GZ_RELAY`
+     1.  `IGN_TRANSPORT_LOG_SQL_PATH` -> `GZ_TRANSPORT_LOG_SQL_PATH`
+     1.  `IGN_TRANSPORT_RCVHWM` -> `GZ_TRANSPORT_RCVHWM`
+     1.  `IGN_TRANSPORT_SNDHWM` -> `GZ_TRANSPORT_SNDHWM`
+     1.  `IGN_VERBOSE` -> `GZ_VERBOSE`
+
 
 ## Gazebo Transport 9.X to 10.X
 

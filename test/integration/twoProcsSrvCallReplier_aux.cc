@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   runReplier();
 }

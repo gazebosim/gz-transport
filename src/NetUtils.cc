@@ -132,9 +132,18 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   std::string determineHost()
   {
     // First, did the user set IGN_IP?
-    std::string ignIp;
-    if (env("IGN_IP", ignIp) && !ignIp.empty())
-      return ignIp;
+    std::string gzIp;
+    if (env("GZ_IP", gzIp) && !gzIp.empty())
+    {
+      return gzIp;
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else if (env("IGN_IP", gzIp) && !gzIp.empty())
+    {
+      std::cout << "IGN_IP is deprecated and will be removed! "
+                << "Use GZ_IP instead!" << std::endl;
+      return gzIp;
+    }
 
     // Second, try the preferred local and public IP address.
     std::string hostIP;

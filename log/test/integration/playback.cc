@@ -800,7 +800,10 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
+
+  setenv("GZ_TRANSPORT_LOG_SQL_PATH",
+         GZ_TRANSPORT_LOG_SQL_PATH, 1);
 
   // TODO(CH3): Deprecated. Remove this on tick-tock.
   setenv("IGN_TRANSPORT_LOG_SQL_PATH",

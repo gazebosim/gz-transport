@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 {
   // Argument list:
   // [0]: Name of current process
-  // [1]: Partition name (used for setting the IGN_PARTITION env variable)
+  // [1]: Partition name (used for setting the GZ_PARTITION env variable)
   // [2]: Number of times that the topics should chirp
   // [3]-[N]: A name for each topic that should chirp
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     return -2;
   }
 
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   const int chirps = atoi(argv[2]);
 

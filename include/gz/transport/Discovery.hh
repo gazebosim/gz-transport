@@ -141,9 +141,18 @@ namespace gz
           exit(false),
           enabled(false)
       {
-        std::string ignIp;
-        if (env("IGN_IP", ignIp) && !ignIp.empty())
-          this->hostInterfaces = {ignIp};
+        std::string gzIp;
+        if (env("GZ_IP", gzIp) && !gzIp.empty())
+        {
+          this->hostInterfaces = {gzIp};
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_IP", gzIp) && !gzIp.empty())
+        {
+          std::cerr << "IGN_IP is deprecated and will be removed! "
+                    << "Use GZ_IP instead!" << std::endl;
+          this->hostInterfaces = {gzIp};
+        }
         else
         {
           // Get the list of network interfaces in this host.
@@ -232,10 +241,17 @@ namespace gz
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
-        std::string ignRelay = "";
-        if (env("IGN_RELAY", ignRelay) && !ignRelay.empty())
+        std::string gzRelay = "";
+        if (env("GZ_RELAY", gzRelay) && !gzRelay.empty())
         {
-          relays = transport::split(ignRelay, ':');
+          relays = transport::split(gzRelay, ':');
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_RELAY", gzRelay) && !gzRelay.empty())
+        {
+          std::cout << "IGN_RELAY is deprecated and will be removed! "
+                    << "Use GZ_RELAY instead!" << std::endl;
+          relays = transport::split(gzRelay, ':');
         }
 
         // Register all unicast relays.
@@ -1279,9 +1295,23 @@ namespace gz
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        static std::string ignStats;
-        static int topicStats =
-          (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+        static std::string gzStats;
+        static int topicStats;
+
+        if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+        {
+          topicStats = (gzStats == "1");
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_TRANSPORT_TOPIC_STATISTICS", gzStats)
+                 && !gzStats.empty())
+        {
+          std::cout << "IGN_TRANSPORT_TOPIC_STATISTICS is deprecated! "
+                    << "Use GZ_TRANSPORT_TOPIC_STATISTICS instead!"
+                    << std::endl;
+          topicStats = (gzStats == "1");
+        }
+
         return this->kWireVersion + (topicStats * 100);
       }
 

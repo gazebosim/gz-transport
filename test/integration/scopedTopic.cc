@@ -67,7 +67,7 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

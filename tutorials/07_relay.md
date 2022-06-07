@@ -100,7 +100,7 @@ the IP address is `172.23.1.7`.
 Go back to the terminal inside the Docker container and run the publisher
 example:
 ```
-IGN_PARTITION=relay ./publisher
+GZ_PARTITION=relay ./publisher
 ```
 
 ## Launch the subscriber
@@ -109,7 +109,7 @@ Open a terminal in your host and launch your subscriber, forcing Ignition
 Transport to only bind to the IP address that we found in the previous step:
 
 ```
-IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
+GZ_IP=172.23.1.7 GZ_PARTITION=relay ign topic -e -t /foo
 ```
 
 You shouldn't receive anything as the discovery messages are not reaching both
@@ -139,10 +139,10 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
 ```
 
 Go back to your terminal in the host and configure the environment variable
-`IGN_RELAY` with the IP address used inside the container.
+`GZ_RELAY` with the IP address used inside the container.
 
 ```
-IGN_RELAY=172.17.0.3 IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
+GZ_RELAY=172.17.0.3 GZ_IP=172.23.1.7 GZ_PARTITION=relay ign topic -e -t /foo
 ```
 
 Now, you should receive the messages, as your node in the host is directly
@@ -159,7 +159,7 @@ otherwise the communication will not work.
 Example: Imagine that you're running a publisher in your home machine.
 Typically, you'll be using a private IP address behind your home router doing
 NAT. If you try to run a subscriber node inside a computer over the internet
-using a public IP, things will not work even using `IGN_RELAY`. The discovery
+using a public IP, things will not work even using `GZ_RELAY`. The discovery
 protocol will reach the subscriber and back (thanks to the NAT), but things will
 stop at that point. The real data exchange will not be possible, as the
 subscriber will not be able to communicate with the publisher's endpoint using
