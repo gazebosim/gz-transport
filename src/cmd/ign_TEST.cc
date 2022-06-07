@@ -473,7 +473,7 @@ int main(int argc, char **argv)
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
   gz::transport::env("LD_LIBRARY_PATH", value);
-  // Add the directory where ignition transport has been built.
+  // Add the directory where Gazebo Transport has been built.
   value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 

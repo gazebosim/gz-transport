@@ -118,7 +118,7 @@ namespace testing
   /// Windows (CreateProcess) and the execution of the command provided.
   /// \param[in] _command The full system path to the binary to run into the
   /// new process.
-  /// \param[in] _partition Name of the ignition partition (GZ_PARTITION)
+  /// \param[in] _partition Name of the Gazebo partition (GZ_PARTITION)
   /// \param[in] _username Username for authentication
   /// (GZ_TRANSPORT_USERNAME)
   /// \param[in] _password Password for authentication

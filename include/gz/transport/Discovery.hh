@@ -834,7 +834,7 @@ namespace gz
           // words, the frame_delimiter contains a value that represents
           // the total size of only the frame_body.
           //
-          // It is possible that two incompatible versions of Ignition
+          // It is possible that two incompatible versions of Gazebo
           // Transport exist on the same network. If we receive an
           // unexpected size, then we ignore the message.
 
