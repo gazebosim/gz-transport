@@ -20,25 +20,45 @@
 # This is a per-library function definition, used in conjunction with the
 # top-level entry point in ign-tools.
 
+# TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
+# Update ../ign_TEST.cc accordingly.
+GZ_SERVICE_COMPLETION_LIST="
+  -h --help
+  -v --version
+  -s --service
+  --reqtype
+  --reptype
+  --timeout
+  -l --list
+  -i --info
+  -r --req
+  --force-version
+  --versions
+"
+
+# TODO: In Fortress+, remove --force-version and --versions. Add
+# `-v --version` and --json-output. Update ../ign_TEST.cc accordingly.
+GZ_TOPIC_COMPLETION_LIST="
+  -h --help
+  -v --version
+  -t --topic
+  -m --msgtype
+  -d --duration
+  -n --num
+  -l --list
+  -i --info
+  -e --echo
+  -p --pub
+  --force-version
+  --versions
+"
+
 function _gz_service
 {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
-    # TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
-    # Update ../ign_TEST.cc accordingly.
-    COMPREPLY=($(compgen -W "
-      -h --help
-      -v --version
-      -s --service
-      --reqtype
-      --reptype
-      --timeout
-      -l --list
-      -i --info
-      -r --req
-      --force-version
-      --versions
-      " -- "${COMP_WORDS[COMP_CWORD]}" ))
+    COMPREPLY=($(compgen -W "$GZ_SERVICE_COMPLETION_LIST" \
+      -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
   else
     # Just use bash default auto-complete, because we never have two
@@ -49,26 +69,19 @@ function _gz_service
   fi
 }
 
+function _gz_service_flags
+{
+  for word in $GZ_SERVICE_COMPLETION_LIST; do
+    echo "$word"
+  done
+}
+
 function _gz_topic
 {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
-    # TODO: In Fortress+, remove --force-version and --versions. Add
-    # `-v --version` and --json-output. Update ../ign_TEST.cc accordingly.
-    COMPREPLY=($(compgen -W "
-      -h --help
-      -v --version
-      -t --topic
-      -m --msgtype
-      -d --duration
-      -n --num
-      -l --list
-      -i --info
-      -e --echo
-      -p --pub
-      --force-version
-      --versions
-      " -- "${COMP_WORDS[COMP_CWORD]}" ))
+    COMPREPLY=($(compgen -W "$GZ_TOPIC_COMPLETION_LIST" \
+      -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
   else
     # Just use bash default auto-complete, because we never have two
@@ -77,4 +90,11 @@ function _gz_topic
     COMPREPLY=($(compgen -o default -- "${COMP_WORDS[COMP_CWORD]}"))
     return
   fi
+}
+
+function _gz_topic_flags
+{
+  for word in $GZ_TOPIC_COMPLETION_LIST; do
+    echo "$word"
+  done
 }

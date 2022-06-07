@@ -451,42 +451,31 @@ TEST(ignTest, TopicEchoNum)
 TEST(ignTest, ServiceHelpVsCompletionFlags)
 {
   // Flags in help message
-  std::string output = custom_exec_str("ign service --help" + g_ignVersion);
-  EXPECT_NE(std::string::npos, output.find("--help")) << output;
-  EXPECT_NE(std::string::npos, output.find("--version")) << output;
-  EXPECT_NE(std::string::npos, output.find("--service")) << output;
-  EXPECT_NE(std::string::npos, output.find("--reqtype")) << output;
-  EXPECT_NE(std::string::npos, output.find("--reptype")) << output;
-  EXPECT_NE(std::string::npos, output.find("--timeout")) << output;
-  EXPECT_NE(std::string::npos, output.find("--list")) << output;
-  EXPECT_NE(std::string::npos, output.find("--info")) << output;
-  EXPECT_NE(std::string::npos, output.find("--req")) << output;
-  // TODO(anyone): In Fortress+, remove --force-version and --versions.
-  // Add --help-all. Update cmd/transport.bash_completion.sh accordingly.
-  EXPECT_NE(std::string::npos, output.find("--force-version")) << output;
-  EXPECT_NE(std::string::npos, output.find("--versions")) << output;
+  std::string helpOutput = custom_exec_str("ign service --help" + g_ignVersion);
 
-  // Flags in bash completion
+  // Call the output function in the bash completion script
   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
-  std::ifstream scriptFile(scriptPath);
 
-  std::string script((std::istreambuf_iterator<char>(scriptFile)),
-      std::istreambuf_iterator<char>());
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_service_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_service_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
 
-  EXPECT_NE(std::string::npos, script.find("--help")) << script;
-  EXPECT_NE(std::string::npos, script.find("--version")) << script;
-  EXPECT_NE(std::string::npos, script.find("--service")) << script;
-  EXPECT_NE(std::string::npos, script.find("--reqtype")) << script;
-  EXPECT_NE(std::string::npos, script.find("--reptype")) << script;
-  EXPECT_NE(std::string::npos, script.find("--timeout")) << script;
-  EXPECT_NE(std::string::npos, script.find("--list")) << script;
-  EXPECT_NE(std::string::npos, script.find("--info")) << script;
-  EXPECT_NE(std::string::npos, script.find("--req")) << script;
-  // TODO(anyone): In Fortress+, remove --force-version and --versions.
-  // Add --help-all. Update cmd/transport.bash_completion.sh accordingly.
-  EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
-  EXPECT_NE(std::string::npos, script.find("--versions")) << script;
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (std::string flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -495,46 +484,31 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
 TEST(ignTest, TopicHelpVsCompletionFlags)
 {
   // Flags in help message
-  std::string output = custom_exec_str("ign topic --help" + g_ignVersion);
-  EXPECT_NE(std::string::npos, output.find("--help")) << output;
-  EXPECT_NE(std::string::npos, output.find("--version")) << output;
-  EXPECT_NE(std::string::npos, output.find("--topic")) << output;
-  EXPECT_NE(std::string::npos, output.find("--msgtype")) << output;
-  EXPECT_NE(std::string::npos, output.find("--duration")) << output;
-  EXPECT_NE(std::string::npos, output.find("--num")) << output;
-  EXPECT_NE(std::string::npos, output.find("--list")) << output;
-  EXPECT_NE(std::string::npos, output.find("--info")) << output;
-  EXPECT_NE(std::string::npos, output.find("--echo")) << output;
-  EXPECT_NE(std::string::npos, output.find("--pub")) << output;
-  // NOTE: In Fortress+, remove --force-version and --versions.
-  // Add --version and --json-output.
-  // Update cmd/transport.bash_completion.sh accordingly.
-  EXPECT_NE(std::string::npos, output.find("--force-version")) << output;
-  EXPECT_NE(std::string::npos, output.find("--versions")) << output;
+  std::string helpOutput = custom_exec_str("ign topic --help" + g_ignVersion);
 
-  // Flags in bash completion
+  // Call the output function in the bash completion script
   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
-  std::ifstream scriptFile(scriptPath);
 
-  std::string script((std::istreambuf_iterator<char>(scriptFile)),
-      std::istreambuf_iterator<char>());
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_topic_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_topic_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
 
-  EXPECT_NE(std::string::npos, script.find("--help")) << script;
-  EXPECT_NE(std::string::npos, script.find("--version")) << script;
-  EXPECT_NE(std::string::npos, script.find("--topic")) << script;
-  EXPECT_NE(std::string::npos, script.find("--msgtype")) << script;
-  EXPECT_NE(std::string::npos, script.find("--duration")) << script;
-  EXPECT_NE(std::string::npos, script.find("--num")) << script;
-  EXPECT_NE(std::string::npos, script.find("--list")) << script;
-  EXPECT_NE(std::string::npos, script.find("--info")) << script;
-  EXPECT_NE(std::string::npos, script.find("--echo")) << script;
-  EXPECT_NE(std::string::npos, script.find("--pub")) << script;
-  // NOTE: In Fortress+, remove --force-version and --versions.
-  // Add --version and --json-output.
-  // Update cmd/transport.bash_completion.sh accordingly.
-  EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
-  EXPECT_NE(std::string::npos, script.find("--versions")) << script;
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (std::string flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
 
 /////////////////////////////////////////////////
