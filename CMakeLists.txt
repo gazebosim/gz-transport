@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport12 VERSION 12.0.0)
+project(gz-transport12 VERSION 12.0.0)
 
 #============================================================================
-# Find ignition-cmake
+# Find gz-cmake
 #============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake3 REQUIRED)
-set(IGN_CMAKE_VER ${ignition-cmake3_VERSION_MAJOR})
+# If you get an error at this line, you need to install gz-cmake
+find_package(gz-cmake3 REQUIRED)
+set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
@@ -23,7 +23,7 @@ gz_configure_project(
 # Set project-specific options
 #============================================================================
 
-# ignition-transport currently has no options that are unique to it
+# gz-transport currently has no options that are unique to it
 
 if (UNIX AND NOT APPLE)
   set (EXTRA_TEST_LIB_DEPS stdc++fs)
@@ -77,14 +77,14 @@ else()
 endif()
 
 #--------------------------------------
-# Find ignition-utils
-gz_find_package(ignition-utils2 REQUIRED COMPONENTS cli)
-set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
+# Find gz-utils
+gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
+set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-msgs
-gz_find_package(ignition-msgs9 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
+# Find gz-msgs
+gz_find_package(gz-msgs9 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
@@ -96,8 +96,8 @@ else ()
 endif()
 
 #--------------------------------------
-# Find ignition-tools
-gz_find_package(ignition-tools2 QUIET)
+# Find gz-tools
+gz_find_package(gz-tools2 QUIET)
 
 #--------------------------------------
 # Find SQLite3

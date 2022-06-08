@@ -19,7 +19,7 @@ set(topic_executable ign-transport-topic)
 add_executable(${topic_executable} topic_main.cc)
 target_link_libraries(${topic_executable}
   gz
-  ignition-utils${IGN_UTILS_VER}::cli
+  gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 install(TARGETS ${topic_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
@@ -29,7 +29,7 @@ set(service_executable ign-transport-service)
 add_executable(${service_executable} service_main.cc)
 target_link_libraries(${service_executable}
   gz
-  ignition-utils${IGN_UTILS_VER}::cli
+  gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 install(TARGETS ${service_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
