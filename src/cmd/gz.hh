@@ -22,21 +22,21 @@
 
 #include "gz/transport/Export.hh"
 
-/// \brief External hook to execute 'ign topic -i' from the command line.
+/// \brief External hook to execute 'gz topic -i' from the command line.
 /// \param[in] _topic Topic name.
 extern "C" void cmdTopicInfo(const char *_topic);
 
-/// \brief External hook to execute 'ign service -i' from the command line.
+/// \brief External hook to execute 'gz service -i' from the command line.
 /// \param[in] _service Service name.
 extern "C" void cmdServiceInfo(const char *_service);
 
-/// \brief External hook to execute 'ign topic -l' from the command line.
+/// \brief External hook to execute 'gz topic -l' from the command line.
 extern "C" void cmdTopicList();
 
-/// \brief External hook to execute 'ign service -l' from the command line.
+/// \brief External hook to execute 'gz service -l' from the command line.
 extern "C" void cmdServiceList();
 
-/// \brief External hook to execute 'ign topic -p' from the command line.
+/// \brief External hook to execute 'gz topic -p' from the command line.
 /// \param[in] _topic Topic name.
 /// \param[in] _msgType Message type.
 /// \param[in] _msgData The format expected is the same used by Protobuf
@@ -47,7 +47,7 @@ extern "C" void cmdTopicPub(const char *_topic,
                                                        const char *_msgType,
                                                        const char *_msgData);
 
-/// \brief External hook to execute 'ign service -r' from the command line.
+/// \brief External hook to execute 'gz service -r' from the command line.
 /// \param[in] _service Service name.
 /// \param[in] _reqType Message type used in the request.
 /// \param[in] _repType Message type used in the response.
@@ -78,7 +78,7 @@ extern "C" {
   };
 }
 
-/// \brief External hook to execute 'ign topic -e' from the command line.
+/// \brief External hook to execute 'gz topic -e' from the command line.
 /// The _duration parameter overrides the _count parameter.
 /// \param[in] _topic Topic name.
 /// \param[in] _duration Duration (seconds) to run. A value <= 0 indicates

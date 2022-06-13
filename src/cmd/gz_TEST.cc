@@ -75,7 +75,7 @@ void topicCB(const gz::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on a different process.
-TEST(ignTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
+TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
@@ -106,7 +106,7 @@ TEST(ignTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -i' running the advertiser on a different process.
-TEST(ignTest, TopicInfo)
+TEST(gzTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
@@ -142,7 +142,7 @@ TEST(ignTest, TopicInfo)
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -l' running the advertiser on a different
 /// process.
-TEST(ignTest, ServiceList)
+TEST(gzTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
   std::string replier_path = testing::portablePathUnion(
@@ -173,7 +173,7 @@ TEST(ignTest, ServiceList)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -i' running the advertiser on a different process.
-TEST(ignTest, ServiceInfo)
+TEST(gzTest, ServiceInfo)
 {
   // Launch a new publisher process that advertises a topic.
   std::string replier_path = testing::portablePathUnion(
@@ -206,7 +206,7 @@ TEST(ignTest, ServiceInfo)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on the same process.
-TEST(ignTest, TopicListSameProc)
+TEST(gzTest, TopicListSameProc)
 {
   gz::transport::Node node;
 
@@ -237,7 +237,7 @@ TEST(ignTest, TopicListSameProc)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -i' running the advertiser on the same process.
-TEST(ignTest, TopicInfoSameProc)
+TEST(gzTest, TopicInfoSameProc)
 {
   gz::transport::Node node;
 
@@ -270,7 +270,7 @@ TEST(ignTest, TopicInfoSameProc)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -l' running the advertiser on the same process.
-TEST(ignTest, ServiceListSameProc)
+TEST(gzTest, ServiceListSameProc)
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
@@ -293,7 +293,7 @@ TEST(ignTest, ServiceListSameProc)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -i' running the advertiser on the same process.
-TEST(ignTest, ServiceInfoSameProc)
+TEST(gzTest, ServiceInfoSameProc)
 {
   gz::transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
@@ -319,7 +319,7 @@ TEST(ignTest, ServiceInfoSameProc)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -p' to send a message.
-TEST(ignTest, TopicPublish)
+TEST(gzTest, TopicPublish)
 {
   gz::transport::Node node;
   g_topicCBStr = "bad_value";
@@ -368,7 +368,7 @@ TEST(ignTest, TopicPublish)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign service -r' to request a service.
-TEST(ignTest, ServiceRequest)
+TEST(gzTest, ServiceRequest)
 {
   gz::transport::Node node;
 
@@ -392,7 +392,7 @@ TEST(ignTest, ServiceRequest)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -e' running the publisher on a separate process.
-TEST(ignTest, TopicEcho)
+TEST(gzTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
@@ -418,7 +418,7 @@ TEST(ignTest, TopicEcho)
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -e -n 2' running the publisher on a separate
 /// process.
-TEST(ignTest, TopicEchoNum)
+TEST(gzTest, TopicEchoNum)
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(

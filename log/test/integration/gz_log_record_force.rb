@@ -16,11 +16,11 @@
 
 require 'open3'
 
-testfile = 'ign_log_record_force.tlog'
+testfile = 'gz_log_record_force.tlog'
 File.write(testfile, 'not empty file')
 
 _, stdout, stderr, wait_thr =
-  Open3.popen3("ign log record --force --file #{testfile}")
+  Open3.popen3("gz log record --force --file #{testfile}")
 
 sleep(2)
 

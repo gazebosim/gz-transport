@@ -48,7 +48,7 @@ A complete example can be found in the [subscriber_stats example program](https:
 
 With both `GZ_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
 enabling topic statistics, then you will be able to echo statistic
-information from the command line using `ign topic -et /statistics`.
+information from the command line using `gz topic -et /statistics`.
 
 It is possible to change the statistics output topic from `/statistics` to
 one of your choosing by specifying a topic name when enabling topic
@@ -78,4 +78,4 @@ then you can test topic statistics by following these steps.
 
 1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`
 1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/subscriber_stats`
-1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ign topic -et /statistics`
+1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 gz topic -et /statistics`

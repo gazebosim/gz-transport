@@ -9,7 +9,7 @@ In this tutorial, we are going to describe the process of recording and
 playing back a collection of messages.
 
 Gazebo Transport provides two mechanisms for logging: a C++ API and a set of
-command line utilities as part of the optional `ign` CLI tool (available via
+command line utilities as part of the optional `gz` CLI tool (available via
 [Gazebo Tools](https://github.com/gazebosim/gz-tools)). We use
 [SQLite3](https://www.sqlite.org) to create a file containing all the messages
 recorded during a session. You can imagine it as a container where all the
@@ -244,10 +244,10 @@ Press Ctrl+C to finish recording.
   Recording...
 ```
 
-From terminal 2, publish a message using `ign`:
+From terminal 2, publish a message using `gz`:
 
 ```{.sh}
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Hello log"'
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Hello log"'
 ```
 
 From terminal 1, hit `CTRL-C` in your recorder terminal to stop the recording.
@@ -255,7 +255,7 @@ From terminal 1, hit `CTRL-C` in your recorder terminal to stop the recording.
 Moving back to terminal 2, run a subscriber:
 
 ```{.sh}
-ign topic -t /foo -e
+gz topic -t /foo -e
 ```
 
 And from terminal 1, playback your log file:
@@ -270,28 +270,28 @@ You should receive one message in terminal 2:
 data: "Hello log"
 ```
 
-## Using `ign` for recording and playing back
+## Using `gz` for recording and playing back
 
-As an alternative to the C++ API, we could use the `ign` suite of command line
+As an alternative to the C++ API, we could use the `gz` suite of command line
 tools for recording and playing back messages.
 
-Next is how you can record a set of messages using `ign`:
+Next is how you can record a set of messages using `gz`:
 
 ```{.sh}
-ign log record --force --file tutorial.tlog
+gz log record --force --file tutorial.tlog
 ```
 
-And here's how you can play back the previous log file using `ign`:
+And here's how you can play back the previous log file using `gz`:
 
 ```{.sh}
-ign log playback --file tutorial.tlog
+gz log playback --file tutorial.tlog
 ```
 
 For further options, try running:
 ```{.sh}
-ign log record -h
+gz log record -h
 ```
 and
 ```{.sh}
-ign log playback -h
+gz log playback -h
 ```

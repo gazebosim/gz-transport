@@ -109,7 +109,7 @@ Open a terminal in your host and launch your subscriber, forcing Ignition
 Transport to only bind to the IP address that we found in the previous step:
 
 ```
-GZ_IP=172.23.1.7 GZ_PARTITION=relay ign topic -e -t /foo
+GZ_IP=172.23.1.7 GZ_PARTITION=relay gz topic -e -t /foo
 ```
 
 You shouldn't receive anything as the discovery messages are not reaching both
@@ -142,7 +142,7 @@ Go back to your terminal in the host and configure the environment variable
 `GZ_RELAY` with the IP address used inside the container.
 
 ```
-GZ_RELAY=172.17.0.3 GZ_IP=172.23.1.7 GZ_PARTITION=relay ign topic -e -t /foo
+GZ_RELAY=172.17.0.3 GZ_IP=172.23.1.7 GZ_PARTITION=relay gz topic -e -t /foo
 ```
 
 Now, you should receive the messages, as your node in the host is directly

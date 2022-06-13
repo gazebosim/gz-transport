@@ -115,7 +115,7 @@ gz_configure_build(QUIT_IF_BUILD_ERRORS
   COMPONENTS log)
 
 #============================================================================
-# ign command line support
+# gz command line support
 #============================================================================
 add_subdirectory(conf)
 

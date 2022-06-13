@@ -22,7 +22,7 @@
 #include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ign.hh"
+#include "gz.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
@@ -73,7 +73,7 @@ bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicInfo running the advertiser on a the same process.
-TEST(ignTest, cmdTopicInfo)
+TEST(gzTest, cmdTopicInfo)
 {
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
@@ -96,7 +96,7 @@ TEST(ignTest, cmdTopicInfo)
 
 //////////////////////////////////////////////////
 /// \brief Check cmdServiceInfo running the advertiser on a the same process.
-TEST(ignTest, cmdServiceInfo)
+TEST(gzTest, cmdServiceInfo)
 {
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
@@ -120,7 +120,7 @@ TEST(ignTest, cmdServiceInfo)
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicPub running the advertiser on a the same process.
-TEST(ignTest, cmdTopicPub)
+TEST(gzTest, cmdTopicPub)
 {
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
@@ -148,7 +148,7 @@ TEST(ignTest, cmdTopicPub)
 
 //////////////////////////////////////////////////
 /// \brief Check cmdServiceReq running the advertiser on a the same process.
-TEST(ignTest, cmdServiceReq)
+TEST(gzTest, cmdServiceReq)
 {
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
@@ -221,7 +221,7 @@ TEST(ignTest, cmdServiceReq)
 
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicEcho running the advertiser on a the same process.
-TEST(ignTest, cmdTopicEcho)
+TEST(gzTest, cmdTopicEcho)
 {
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
@@ -243,7 +243,7 @@ TEST(ignTest, cmdTopicEcho)
 }
 
 /////////////////////////////////////////////////
-TEST(ignTest, cmdTopicEchoOutputFormats)
+TEST(gzTest, cmdTopicEchoOutputFormats)
 {
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
