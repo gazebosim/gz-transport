@@ -18,8 +18,8 @@ need to [disable the Windows firewall](http://windows.microsoft.com/en-us/window
 
 1. Make a directory to work in, e.g.:
 
-        mkdir ign-ws
-        cd ign-ws
+        mkdir gz-ws
+        cd gz-ws
 
 1. Download the following dependencies into that directory:
 
@@ -36,11 +36,11 @@ need to [disable the Windows firewall](http://windows.microsoft.com/en-us/window
 directory structure, where a directory with the name of the zip contains the
 directory that has the source files. Here is an example:
 
-        ign-ws/cppzmq-noarch/cppzmq
+        gz-ws/cppzmq-noarch/cppzmq
 
     The correct structure is
 
-        ign-ws/cppzmq
+        gz-ws/cppzmq
 
     To fix this problem, manually move the nested directories up one level.
 
@@ -85,18 +85,18 @@ directory that has the source files. Here is an example:
         nmake install
 
 
-    You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
+    You should now have an installation of ign-transport in gz-ws/ign-transport/build/install.
 
 1. Before running any executables, you need to modify your `PATH` to include the
 directories including your DLL dependencies to let Windows find dynamic libs
 (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around the path, even
-if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
+if it contains spaces.  E.g., if you're working in `C:\My Stuff\gz-ws`:
 
-        set PATH=%PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\ign-ws\ign-msgs\build\install\Release\lib
+        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\ign-msgs\build\install\Release\lib
 
 1. Now build the examples:
 
-        cd ign-ws\ign-transport\example
+        cd gz-ws\ign-transport\example
         mkdir build
         cd build
         ..\configure

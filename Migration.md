@@ -68,7 +68,7 @@ release will remove the deprecated code.
 
 ### Removed
 
-1. The `ign.hh` file is not longer installed.
+1. The `gz.hh` file is not longer installed.
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 ## Gazebo Transport 4.X to 5.X

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   std::string topic = "/foo";
 
   // Statistics are published on the `/statistics` topic. You echo the
-  // statistics output using `ign topic -et /statistics`.
+  // statistics output using `gz topic -et /statistics`.
   if (!node.EnableStats(topic, true))
   {
     std::cout << "Unable to enable stats\n";

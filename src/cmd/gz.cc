@@ -30,7 +30,7 @@
 #pragma warning(pop)
 #endif
 
-#include "ign.hh"
+#include "gz.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"

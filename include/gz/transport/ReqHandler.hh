@@ -306,7 +306,7 @@ namespace gz
 
     /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
     /// \brief Template specialization for google::protobuf::Message.
-    /// This is only used by some ign command line tools.
+    /// This is only used by some gz command line tools.
     template <> class ReqHandler<google::protobuf::Message,
                                  google::protobuf::Message>
       : public IReqHandler
