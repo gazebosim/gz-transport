@@ -10,7 +10,7 @@ via services. You can see a service as a function that is going to be executed
 in a different node. Services have two main components: a service provider and a
 service consumer. A service provider is the node that offers the service to the
 rest of the world. The service consumers are the nodes that request the function
-offered by the provider. Note that in Ignition Transport the location of the
+offered by the provider. Note that in Gazebo Transport the location of the
 service is hidden. The discovery layer of the library is in charge of
 discovering and keeping and updated list of services available.
 
@@ -25,17 +25,17 @@ cd ~/ign_transport_tutorial
 
 ## Responser
 
-Download the [responser.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/responser.cc) file within the ``ign_transport_tutorial``
+Download the [responser.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser.cc) file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
-bool srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep)
+bool srvEcho(const gz::msgs::StringMsg &_req,
+  gz::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -49,11 +49,11 @@ int main(int argc, char **argv)
 {
   // Let's print the list of our network interfaces.
   std::cout << "List of network interfaces in this machine:" << std::endl;
-  for (const auto &netIface : ignition::transport::determineInterfaces())
+  for (const auto &netIface : gz::transport::determineInterfaces())
     std::cout << "\t" << netIface << std::endl;
 
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/echo";
 
   // Advertise a service call.
@@ -64,18 +64,18 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 ```
 
-The line ``#include <ignition/transport.hh>`` contains the Ignition Transport
+The line ``#include <gz/transport.hh>`` contains the Gazebo Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
@@ -84,8 +84,8 @@ for our services.
 
 
 ```{.cpp}
-bool srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep)
+bool srvEcho(const gz::msgs::StringMsg &_req,
+  gz::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -107,7 +107,7 @@ response with the same data contained in the request.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/echo";
 
 // Advertise a service call.
@@ -118,7 +118,7 @@ if (!node.Advertise(service, srvEcho))
 }
 
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 We declare a *Node* that will offer all the transport functionality. In our
@@ -133,25 +133,25 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 
 ## Synchronous requester
 
-Download the [requester.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/requester.cc) file within the ``ign_transport_tutorial``
+Download the [requester.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester.cc) file within the ``ign_transport_tutorial``
 folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
-  ignition::msgs::StringMsg rep;
+  gz::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 
@@ -174,13 +174,13 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
-ignition::msgs::StringMsg rep;
+gz::msgs::StringMsg rep;
 bool result;
 unsigned int timeout = 5000;
 ```
@@ -210,7 +210,7 @@ else
 
 In this section of the code we use the method ``Request()`` for forwarding the
 service call to any service provider of the service ``/echo``.
-Ignition Transport will find a node, communicate the input data, capture the
+Gazebo Transport will find a node, communicate the input data, capture the
 response and pass it to your output parameter. The return value will tell you
 if the request expired or the response was received. The ``result`` value will
 tell you if the service provider considered the operation valid.
@@ -228,15 +228,15 @@ message.
 
 ## Asynchronous requester
 
-Download the [requester_async.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/requester_async.cc) file within the
+Download the [requester_async.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_async.cc) file within the
 ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
-void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -248,10 +248,10 @@ void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   std::cout << "Press <CTRL-C> to exit" << std::endl;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
   node.Request("/echo", req, responseCb);
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -287,10 +287,10 @@ case, we know that the service ``/echo`` will answer with a Protobuf
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
 // Request the "/echo" service.
@@ -301,7 +301,7 @@ In this section of the code we declare a node and a Protobuf message that is
 filled with the input parameters for our request. Next, we just use the
 asynchronous variant of the ``Request()`` method that forwards a service call to
 any service provider of the service ``/echo``.
-Ignition Transport will find a node, communicate the data, capture the response
+Gazebo Transport will find a node, communicate the data, capture the response
 and pass it to your callback, in addition of the service call result. Note that
 this variant of ``Request()`` is asynchronous, so your code will not block while
 your service request is handled.
@@ -314,17 +314,17 @@ oneway service to process service requests without sending back responses.
 Oneway services don't accept any output parameters nor the requests have to wait
 for the response.
 
-Download the [responser_oneway.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/responser_oneway.cc) file within the
+Download the [responser_oneway.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser_oneway.cc) file within the
 ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
-#include <ignition/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/msgs.hh>
 
 //////////////////////////////////////////////////
-void srvOneway(const ignition::msgs::StringMsg &_req)
+void srvOneway(const gz::msgs::StringMsg &_req)
 {
   std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
@@ -333,7 +333,7 @@ void srvOneway(const ignition::msgs::StringMsg &_req)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/oneway";
 
   // Advertise a oneway service.
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 //////////////////////////////////////////////////
-void srvOneway(const ignition::msgs::StringMsg &_req)
+void srvOneway(const gz::msgs::StringMsg &_req)
 {
   std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
@@ -367,7 +367,7 @@ the value of the input parameter is printed on the screen.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/oneway";
 
 // Advertise a oneway service.
@@ -389,22 +389,22 @@ This case is similar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
-Download the [requester_oneway.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/requester_oneway.cc) file within the
+Download the [requester_oneway.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_oneway.cc) file within the
 ``ign_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/transport.hh>
-#include <ignition/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/msgs.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/oneway" service.
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
   std::cout << "Press <CTRL-C> to exit" << std::endl;
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -425,10 +425,10 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
 // Request the "/oneway" service.
@@ -441,7 +441,7 @@ if (!executed)
 First of all we declare a node and a Protobuf message that is filled with the
 input parameters for our ``/oneway`` service. Next, we just use the oneway
 variant of the ``Request()`` method that forwards a service call to any service
-provider of the service ``/oneway``. Ignition Transport will find a node and
+provider of the service ``/oneway``. Gazebo Transport will find a node and
 communicate the data without waiting for the response. The return value of
 ``Request()`` indicates if the request was successfully queued. Note that this
 variant of ``Request()`` is also asynchronous, so your code will not block while
@@ -454,17 +454,17 @@ request was already published.
 Sometimes we want to receive some result but don't have any input parameter to
 send.
 
-Download the [responser_no_input.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/responser_no_input.cc)
+Download the [responser_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser_no_input.cc)
  file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
-bool srvQuote(ignition::msgs::StringMsg &_rep)
+bool srvQuote(gz::msgs::StringMsg &_rep)
 {
   std::string awesomeQuote = "This is it! This is the answer. It says here..."
     "that a bolt of lightning is going to strike the clock tower at precisely "
@@ -483,7 +483,7 @@ bool srvQuote(ignition::msgs::StringMsg &_rep)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/quote";
 
   // Advertise a service call.
@@ -494,14 +494,14 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
 ### Walkthrough
 
 ```{.cpp}
-bool srvQuote(ignition::msgs::StringMsg &_rep)
+bool srvQuote(gz::msgs::StringMsg &_rep)
 ```
 
 Service doesn't receive anything. The signature of the callback contains the
@@ -510,7 +510,7 @@ the quote.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/quote";
 
 // Advertise a service call.
@@ -521,7 +521,7 @@ if (!node.Advertise(service, srvQuote))
 }
 
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 We declare a *Node* that will offer all the transport functionality. In our
@@ -534,22 +534,22 @@ service requests.
 This case is similar to the service without input parameter. We don't send any
 request.
 
-Download the [requester_no_input.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/requester_no_input.cc)
+Download the [requester_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_no_input.cc)
 file within the ``ign_transport_tutorial`` folder and open it with your
 favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  ignition::msgs::StringMsg rep;
+  gz::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 
@@ -577,14 +577,14 @@ request timed out or reached the service provider and ``result`` shows if the
 service was successfully executed.
 
 We also have the async version for service request without input. You should
-download [requester_async_no_input.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/requester_async_no_input.cc)
+download [requester_async_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_async_no_input.cc)
 file within the ``ign_transport_tutorial`` folder.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/CMakeLists.txt) file
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt) file
 within the ``ign_transport_tutorial`` folder. Then, create a `msgs` directory
-and download [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/stringmsg.proto) inside the
+and download [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/stringmsg.proto) inside the
 ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within

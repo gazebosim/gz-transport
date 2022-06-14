@@ -20,7 +20,7 @@
 #include <chrono>
 #include <iostream>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include "ChirpParams.hh"
 
@@ -36,11 +36,11 @@ void chirp(const std::vector<std::string> &_topicNames,
   for (const std::string &name : _topicNames)
     std::cout << " -- " << name << "\n";
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  using MsgType = ignition::transport::log::test::ChirpMsgType;
+  using MsgType = gz::transport::log::test::ChirpMsgType;
 
-  std::vector<ignition::transport::Node::Publisher> publishers;
+  std::vector<gz::transport::Node::Publisher> publishers;
 
   for (const std::string &topic : _topicNames)
   {
@@ -49,9 +49,9 @@ void chirp(const std::vector<std::string> &_topicNames,
 
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBeforePublishing_ms));
+          gz::transport::log::test::DelayBeforePublishing_ms));
 
-  ignition::msgs::Int32 integer;
+  gz::msgs::Int32 integer;
   integer.set_data(0);
 
   for (int c = 1; c <= _chirps; ++c)
@@ -65,7 +65,7 @@ void chirp(const std::vector<std::string> &_topicNames,
 
     std::this_thread::sleep_for(
           std::chrono::milliseconds(
-            ignition::transport::log::test::DelayBetweenChirps_ms));
+            gz::transport::log::test::DelayBetweenChirps_ms));
   }
 }
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 {
   // Argument list:
   // [0]: Name of current process
-  // [1]: Partition name (used for setting the IGN_PARTITION env variable)
+  // [1]: Partition name (used for setting the GZ_PARTITION env variable)
   // [2]: Number of times that the topics should chirp
   // [3]-[N]: A name for each topic that should chirp
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     return -2;
   }
 
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   const int chirps = atoi(argv[2]);
 

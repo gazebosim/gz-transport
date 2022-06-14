@@ -17,13 +17,13 @@
 #include <chrono>
 #include <string>
 #include <thread>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 
@@ -31,14 +31,14 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  ignition::msgs::Int32 msg;
+  gz::msgs::Int32 msg;
   msg.set_data(1);
 
   transport::Node node;
-  ignition::transport::AdvertiseMessageOptions opts;
+  gz::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<gz::msgs::Int32>(g_topic, opts);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   for (auto i = 0; i < 25; ++i)
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   advertiseAndPublish();
 }

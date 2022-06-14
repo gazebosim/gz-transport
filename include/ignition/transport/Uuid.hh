@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/Uuid.hh>
+#include <ignition/transport/config.hh>

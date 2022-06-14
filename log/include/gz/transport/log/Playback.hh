@@ -26,14 +26,14 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/NodeOptions.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       // Forward declarations
       class PlaybackHandle;
@@ -44,7 +44,7 @@ namespace ignition
       /// This class makes it easy to play topics from a log file
       ///
       /// Responsibilities: topic name matching and initiating the playback
-      class IGNITION_TRANSPORT_LOG_VISIBLE Playback
+      class GZ_TRANSPORT_LOG_VISIBLE Playback
       {
         /// \brief Constructor
         /// \param[in] _file path to log file
@@ -160,7 +160,7 @@ namespace ignition
       ///
       /// Responsibilities: time keeping, multiple thread safety, publishing
       /// data to topics, and stopping playback.
-      class IGNITION_TRANSPORT_LOG_VISIBLE PlaybackHandle
+      class GZ_TRANSPORT_LOG_VISIBLE PlaybackHandle
       {
         /// \brief Stop playing messages
         public: void Stop();

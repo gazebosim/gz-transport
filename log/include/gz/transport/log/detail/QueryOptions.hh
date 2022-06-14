@@ -24,14 +24,14 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/QueryOptions.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       //////////////////////////////////////////////////
       template <typename Container>

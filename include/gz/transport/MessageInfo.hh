@@ -24,17 +24,17 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     class MessageInfoPrivate;
 
     /// \brief A class that provides information about the message received.
-    class IGNITION_TRANSPORT_VISIBLE MessageInfo
+    class GZ_TRANSPORT_VISIBLE MessageInfo
     {
       /// \brief Default constructor.
       public: MessageInfo();

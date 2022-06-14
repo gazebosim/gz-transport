@@ -24,12 +24,12 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
     class NodeOptionsPrivate;
@@ -37,7 +37,7 @@ namespace ignition
     /// \class NodeOptions NodeOptions.hh gz/transport/NodeOptions.hh
     /// \brief A class for customizing the behavior of the Node.
     /// E.g.: Set a custom namespace or a partition name.
-    class IGNITION_TRANSPORT_VISIBLE NodeOptions
+    class GZ_TRANSPORT_VISIBLE NodeOptions
     {
       /// \brief Constructor.
       public: NodeOptions();
@@ -99,7 +99,7 @@ namespace ignition
       /// \param[in] _partition The partition's name.
       /// The default partition value is created using a combination of your
       /// hostname, followed by ':' and your username. E.g.: "bb9:caguero" .
-      /// It's also possible to use the environment variable IGN_PARTITION for
+      /// It's also possible to use the environment variable GZ_PARTITION for
       /// setting a partition name.
       /// \return True when operation succeed or false if the partition name was
       /// invalid.

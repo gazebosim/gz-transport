@@ -78,12 +78,12 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     /// \brief Options for sending discovery messages.
     enum class DestinationType
     {
@@ -101,7 +101,7 @@ namespace ignition
     /// \param[in] _sockets Sockets on which to listen.
     /// \param[in] _timeout Length of time to poll (milliseconds).
     /// \return True if the sockets received a reply.
-    bool IGNITION_TRANSPORT_VISIBLE pollSockets(
+    bool GZ_TRANSPORT_VISIBLE pollSockets(
       const std::vector<int> &_sockets,
       const int _timeout);
 
@@ -141,9 +141,18 @@ namespace ignition
           exit(false),
           enabled(false)
       {
-        std::string ignIp;
-        if (env("IGN_IP", ignIp) && !ignIp.empty())
-          this->hostInterfaces = {ignIp};
+        std::string gzIp;
+        if (env("GZ_IP", gzIp) && !gzIp.empty())
+        {
+          this->hostInterfaces = {gzIp};
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_IP", gzIp) && !gzIp.empty())
+        {
+          std::cerr << "IGN_IP is deprecated and will be removed! "
+                    << "Use GZ_IP instead!" << std::endl;
+          this->hostInterfaces = {gzIp};
+        }
         else
         {
           // Get the list of network interfaces in this host.
@@ -232,10 +241,17 @@ namespace ignition
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
-        std::string ignRelay = "";
-        if (env("IGN_RELAY", ignRelay) && !ignRelay.empty())
+        std::string gzRelay = "";
+        if (env("GZ_RELAY", gzRelay) && !gzRelay.empty())
         {
-          relays = transport::split(ignRelay, ':');
+          relays = transport::split(gzRelay, ':');
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_RELAY", gzRelay) && !gzRelay.empty())
+        {
+          std::cout << "IGN_RELAY is deprecated and will be removed! "
+                    << "Use GZ_RELAY instead!" << std::endl;
+          relays = transport::split(gzRelay, ':');
         }
 
         // Register all unicast relays.
@@ -801,19 +817,19 @@ namespace ignition
           uint16_t len = 0;
           memcpy(&len, &rcvStr[0], sizeof(len));
 
-          // Ignition Transport delimits each discovery message with a
+          // Gazebo Transport delimits each discovery message with a
           // frame_delimiter that contains byte size information.
           // A discovery message has the form:
           //
           // <frame_delimiter><frame_body>
           //
-          // Ignition Transport version < 8 sends a frame delimiter that
+          // Gazebo Transport version < 8 sends a frame delimiter that
           // contains the value of sizeof(frame_delimiter)
           // + sizeof(frame_body). In other words, the frame_delimiter
           // contains a value that represents the total size of the
           // frame_body and frame_delimiter in bytes.
           //
-          // Ignition Transport version >= 8 sends a frame_delimiter
+          // Gazebo Transport version >= 8 sends a frame_delimiter
           // that contains the value of sizeof(frame_body). In other
           // words, the frame_delimiter contains a value that represents
           // the total size of only the frame_body.
@@ -851,7 +867,7 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg, uint16_t _len)
       {
-        ignition::msgs::Discovery msg;
+        gz::msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
@@ -1094,7 +1110,7 @@ namespace ignition
                    const msgs::Discovery::Type _type,
                    const T &_pub) const
       {
-        ignition::msgs::Discovery discoveryMsg;
+        gz::msgs::Discovery discoveryMsg;
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
@@ -1279,9 +1295,23 @@ namespace ignition
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        static std::string ignStats;
-        static int topicStats =
-          (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+        static std::string gzStats;
+        static int topicStats;
+
+        if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+        {
+          topicStats = (gzStats == "1");
+        }
+        // TODO(CH3): Deprecated. Remove on tock.
+        else if (env("IGN_TRANSPORT_TOPIC_STATISTICS", gzStats)
+                 && !gzStats.empty())
+        {
+          std::cout << "IGN_TRANSPORT_TOPIC_STATISTICS is deprecated! "
+                    << "Use GZ_TRANSPORT_TOPIC_STATISTICS instead!"
+                    << std::endl;
+          topicStats = (gzStats == "1");
+        }
+
         return this->kWireVersion + (topicStats * 100);
       }
 

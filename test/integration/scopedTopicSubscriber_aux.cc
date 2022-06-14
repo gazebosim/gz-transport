@@ -17,13 +17,13 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool cbExecuted;
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -31,7 +31,7 @@ static int data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const ignition::msgs::Int32 &_msg)
+void cb(const gz::msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/AdvertiseOptions.hh>
+#include <ignition/transport/config.hh>

@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/Discovery.hh>
+#include <ignition/transport/config.hh>

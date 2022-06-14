@@ -37,10 +37,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
@@ -53,13 +53,13 @@
   #pragma warning(disable: 4996)
 #endif
 
-using namespace ignition;
+using namespace gz;
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   /// \brief Get the preferred local IP address.
   /// Note that we don't consider private IP addresses.
@@ -132,9 +132,18 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   std::string determineHost()
   {
     // First, did the user set IGN_IP?
-    std::string ignIp;
-    if (env("IGN_IP", ignIp) && !ignIp.empty())
-      return ignIp;
+    std::string gzIp;
+    if (env("GZ_IP", gzIp) && !gzIp.empty())
+    {
+      return gzIp;
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else if (env("IGN_IP", gzIp) && !gzIp.empty())
+    {
+      std::cout << "IGN_IP is deprecated and will be removed! "
+                << "Use GZ_IP instead!" << std::endl;
+      return gzIp;
+    }
 
     // Second, try the preferred local and public IP address.
     std::string hostIP;

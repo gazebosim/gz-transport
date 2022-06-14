@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/MessageInfo.hh>
+#include <ignition/transport/config.hh>

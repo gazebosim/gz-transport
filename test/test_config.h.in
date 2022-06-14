@@ -15,19 +15,19 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_TEST_CONFIG_HH_
-#define IGNITION_TRANSPORT_TEST_CONFIG_HH_
+#ifndef GZ_TRANSPORT_TEST_CONFIG_HH_
+#define GZ_TRANSPORT_TEST_CONFIG_HH_
 
-#define IGN_PATH "@IGNITION-TOOLS2_BINARY_DIRS@"
-#define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
-#define IGN_VERSION_FULL "@PROJECT_VERSION_FULL@"
+#define GZ_PATH "@IGNITION-TOOLS2_BINARY_DIRS@"
+#define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+#define GZ_VERSION_FULL "@PROJECT_VERSION_FULL@"
 
-#ifdef DETAIL_IGN_TRANSPORT_TEST_DIR
-// The DETAIL_IGN_TRANSPORT_TEST_DIR macro is defined using generator
+#ifdef DETAIL_GZ_TRANSPORT_TEST_DIR
+// The DETAIL_GZ_TRANSPORT_TEST_DIR macro is defined using generator
 // expressions in CMakeLists.txt files. See test/integration/CMakeLists.txt for
 // an example.
-#define IGN_TRANSPORT_TEST_DIR \
-  DETAIL_IGN_TRANSPORT_TEST_DIR
+#define GZ_TRANSPORT_TEST_DIR \
+  DETAIL_GZ_TRANSPORT_TEST_DIR
 #endif
 
 #ifndef __APPLE__
@@ -52,7 +52,7 @@
   #include <unistd.h>
 #endif
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 
 #if (_MSC_VER >= 1400) // Visual Studio 2005
   #include <sstream>
@@ -118,11 +118,11 @@ namespace testing
   /// Windows (CreateProcess) and the execution of the command provided.
   /// \param[in] _command The full system path to the binary to run into the
   /// new process.
-  /// \param[in] _partition Name of the ignition partition (IGN_PARTITION)
+  /// \param[in] _partition Name of the ignition partition (GZ_PARTITION)
   /// \param[in] _username Username for authentication
-  /// (IGN_TRANSPORT_USERNAME)
+  /// (GZ_TRANSPORT_USERNAME)
   /// \param[in] _password Password for authentication
-  /// (IGN_TRANSPORT_PASSWORD)
+  /// (GZ_TRANSPORT_PASSWORD)
   /// \return On success, the PID of the child process is returned in the
   /// parent, an 0 is returned in the child. On failure, -1 is returned in the
   /// parent and no child process is created.

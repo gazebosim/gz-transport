@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/RepHandler.hh>
+#include <ignition/transport/config.hh>

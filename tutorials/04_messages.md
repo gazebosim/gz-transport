@@ -17,7 +17,7 @@ cd ~/ign_transport_tutorial
 
 ## Publisher
 
-Download the [publisher.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/publisher.cc) file within the `ign_transport_tutorial`
+Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/main/example/publisher.cc) file within the `ign_transport_tutorial`
 folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -27,8 +27,8 @@ folder and open it with your favorite editor:
 #include <iostream>
 #include <string>
 #include <thread>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 /// brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
@@ -51,10 +51,10 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
@@ -81,11 +81,11 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 ```
 
-The line `#include <ignition/transport.hh>` contains all the Ignition
+The line `#include <gz/transport.hh>` contains all the Ignition
 Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
@@ -93,10 +93,10 @@ for our messages. We are going to publish `StringMsg` type protobuf messages.
 
 ```{.cpp}
 // Create a transport node and advertise a topic.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string topic = "/foo";
 
-auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
 if (!pub)
 {
   std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -112,7 +112,7 @@ object.
 
 ```{.cpp}
 // Prepare the message.
-ignition::msgs::StringMsg msg;
+gz::msgs::StringMsg msg;
 msg.set_data("HELLO");
 
 // Publish messages at 1Hz.
@@ -132,18 +132,18 @@ The method *Publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/subscriber.cc)
+Download the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber.cc)
 file into the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
-void cb(const ignition::msgs::StringMsg &_msg)
+void cb(const gz::msgs::StringMsg &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -151,7 +151,7 @@ void cb(const ignition::msgs::StringMsg &_msg)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 ```{.cpp}
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
-void cb(const ignition::msgs::StringMsg &_msg)
+void cb(const gz::msgs::StringMsg &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -186,7 +186,7 @@ depending on the type of the topic advertised. In our case, we know that topic
 `/foo` will contain a Protobuf `StringMsg` type.
 
 ```{.cpp}
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string topic = "/foo";
 
 // Subscribe to a topic by registering a callback.
@@ -202,7 +202,7 @@ given topic name by specifying your subscription callback function.
 
 ```{.cpp}
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 If you don't have any other tasks to do besides waiting for incoming messages,
@@ -212,7 +212,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/CMakeLists.txt) file within the `ign_transport_tutorial` folder.
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt) file within the `ign_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
 the `ign_transport_tutorial` directory.
@@ -271,14 +271,14 @@ We can declare the throttling option using the following code :
 
 ```{.cpp}
   // Create a transport node and advertise a topic with throttling enabled.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
   // Setting the throttling option
-  ignition::transport::AdvertiseMessageOptions opts;
+  gz::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic, opts);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic, opts);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -289,7 +289,7 @@ We can declare the throttling option using the following code :
 ### Walkthrough
 
 ```{.cpp}
-  ignition::transport::AdvertiseMessageOptions opts;
+  gz::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
 ```
 
@@ -298,7 +298,7 @@ to pass message rate as an argument to *SetMsgsPerSec()* method. In our case, th
 name is opts and the message rate specified is 1 msg/sec.
 
 ```{.cpp}
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic, opts);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic, opts);
 ```
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
@@ -316,9 +316,9 @@ We can declare the throttling option using the following code :
 
 ```{.cpp}
   // Create a transport node and subscribe to a topic with throttling enabled.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 ```
@@ -326,7 +326,7 @@ We can declare the throttling option using the following code :
 ### Walkthrough
 
 ```{.cpp}
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 ```
@@ -340,27 +340,27 @@ using the *Subscribe()* method with opts passed as an argument to it.
 
 As you have seen in the examples so far, the callbacks used by the
 subscribers contain a specific protobuf parameter, such as
-`ignition::msgs::StringMsg`. As the name of this section suggests, it is also
+`gz::msgs::StringMsg`. As the name of this section suggests, it is also
 possible to create a generic subscriber callback that can receive messages of
 different types. This use case might be interesting if you are building a bridge
-between Ignition Transport and another protocol or if you want to just print the
+between Gazebo Transport and another protocol or if you want to just print the
 content of a generic protobuf message using `DebugString()`, among other use
 cases.
 
-Download the [subscriber_generic.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/subscriber_generic.cc) file within the `ign_transport_tutorial` folder and open it with your favorite editor:
+Download the [subscriber_generic.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber_generic.cc) file within the `ign_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
 void cb(const google::protobuf::Message &_msg,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
@@ -369,7 +369,7 @@ void cb(const google::protobuf::Message &_msg,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
 void cb(const google::protobuf::Message &_msg,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
@@ -406,14 +406,14 @@ function ``cb()``. It enables us to receive topic updates with different message
 types, such as `Int32` or `String` from the subscribed topic.
 Furthermore, we don't need to worry about the type of the topic advertised while
 specifying the callback function. The parameter
-`ignition::transport::MessageInfo &_info` provides some information about the
+`gz::transport::MessageInfo &_info` provides some information about the
 message received (e.g.: the topic name).
 
 ```{.cpp}
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -423,7 +423,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
   return 0;
 }
 ```
@@ -456,19 +456,19 @@ From terminal 2:
 
 ## Using custom Protobuf messages
 
-We use Ignition Msgs in most of our examples and tests. This decision was
-made just for convenience but Ignition Transport supports the use of Protobuf
+We use Gazebo Msgs in most of our examples and tests. This decision was
+made just for convenience but Gazebo Transport supports the use of Protobuf
 messages directly. The most common problem with custom Protobuf messages is
 often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
 custom Protobuf message integrated with CMake.
 
-Download the [publisher_custom_msg.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/publisher_custom_msg.cc)
-and the [subscriber_custom_msg.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/subscriber_custom_msg.cc)
+Download the [publisher_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/main/example/publisher_custom_msg.cc)
+and the [subscriber_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber_custom_msg.cc)
 files within the `ign_transport_tutorial`. Then, create a `msgs` folder and
-download the [stringmsg.proto](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/stringmsg.proto)
-and the [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/msgs/CMakeLists.txt)
-files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/ignitionrobotics/ign-transport/raw/main/example/CMakeLists.txt)
+download the [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/stringmsg.proto)
+and the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/CMakeLists.txt)
+files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt)
 file. You should have this file from the previous examples. Otherwise,
 download and place it within the `ign_transport_tutorial` folder.
 
@@ -476,7 +476,7 @@ download and place it within the `ign_transport_tutorial` folder.
 
 There's nothing new to show in the `publisher_custom_msg.cc` or
 `subscriber_custom_msg.cc` besides the use of your custom Protobuf message
-instead of Ignition Msgs. The only relevant parts are in the `CMakeLists.txt`
+instead of Gazebo Msgs. The only relevant parts are in the `CMakeLists.txt`
 files.
 
 ```{.cpp}
@@ -574,9 +574,9 @@ We can declare the topic remapping option using the following code:
 
 ```{.cpp}
   // Create a transport node and remap a topic.
-  ignition::transport::NodeOptions nodeOptions;
+  gz::transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap("/foo", "/bar");
-  ignition::transport::Node node(nodeOptions);
+  gz::transport::Node node(nodeOptions);
   std::string topic = "/foo";
 ```
 
@@ -588,7 +588,7 @@ From terminal 1:
 ./publisher
 ```
 
-From terminal 2 (requires Ignition Tools):
+From terminal 2 (requires Gazebo Tools):
 
 ```{.sh}
 ign topic --echo -t /bar
@@ -597,4 +597,4 @@ ign topic --echo -t /bar
 And you should receive all the messages coming in terminal 2.
 
 The command `ign log playback` also supports the notion of topic remapping. Run
-`ign log playback -h` in your terminal for further details (requires Ignition Tools).
+`ign log playback -h` in your terminal for further details (requires Gazebo Tools).

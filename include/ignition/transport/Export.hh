@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/Export.hh>
+#include <ignition/transport/config.hh>

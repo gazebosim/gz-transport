@@ -17,23 +17,23 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #ifdef _WIN32
   #include <filesystem>
 #endif
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool cbExecuted;
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const ignition::msgs::Int32 &/*_msg*/)
+void cb(const gz::msgs::Int32 &/*_msg*/)
 {
   std::cerr << "CALLBACK\n";
   cbExecuted = true;
@@ -74,13 +74,13 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   // Set the username for this test.
-  setenv("IGN_TRANSPORT_USERNAME", argv[2], 1);
+  setenv("GZ_TRANSPORT_USERNAME", argv[2], 1);
 
   // Set the password for this test.
-  setenv("IGN_TRANSPORT_PASSWORD", argv[3], 1);
+  setenv("GZ_TRANSPORT_PASSWORD", argv[3], 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -27,12 +27,12 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
     class MessagePublisherPrivate;
@@ -41,7 +41,7 @@ namespace ignition
     /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a publisher.
     /// It stores the topic name that publishes, addresses, UUIDs, scope, etc.
-    class IGNITION_TRANSPORT_VISIBLE Publisher
+    class GZ_TRANSPORT_VISIBLE Publisher
     {
       /// \brief Default constructor.
       public: Publisher() = default;
@@ -178,7 +178,7 @@ namespace ignition
     /// \class MessagePublisher Publisher.hh
     /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a message publisher.
-    class IGNITION_TRANSPORT_VISIBLE MessagePublisher : public Publisher
+    class GZ_TRANSPORT_VISIBLE MessagePublisher : public Publisher
     {
       /// \brief Default constructor.
       public: MessagePublisher() = default;
@@ -293,7 +293,7 @@ namespace ignition
     /// \class ServicePublisher Publisher.hh
     /// gz/transport/Publisher.hh
     /// \brief This class stores all the information about a service publisher.
-    class IGNITION_TRANSPORT_VISIBLE ServicePublisher : public Publisher
+    class GZ_TRANSPORT_VISIBLE ServicePublisher : public Publisher
     {
       /// \brief Default constructor.
       public: ServicePublisher() = default;

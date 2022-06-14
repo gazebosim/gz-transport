@@ -26,14 +26,14 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       // Forward declaration
       class Log;
@@ -42,7 +42,7 @@ namespace ignition
       /// \brief The Descriptor class provides meta-information about what a log
       /// contains. This may be useful for determining QueryOptions or for
       /// generating a high-level overview of a Log's contents.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor
+      class GZ_TRANSPORT_LOG_VISIBLE Descriptor
       {
         /// \brief A map from a name (e.g. topic name or message type name) to
         /// the id of a row in one of the database tables. (name -> id)

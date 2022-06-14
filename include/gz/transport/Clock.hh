@@ -26,16 +26,16 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       //////////////////////////////////////////////////
       /// \brief A Clock interface for time tracking
-      class IGNITION_TRANSPORT_VISIBLE Clock
+      class GZ_TRANSPORT_VISIBLE Clock
       {
         /// \brief Gets clock time
         /// \return Current clock time, in nanoseconds
@@ -51,9 +51,9 @@ namespace ignition
 
       ////////////////////////////////////////////////////////////////
       /// \brief A Clock interface implementation that uses
-      /// ignition::msgs::Clock messages distributed across
+      /// gz::msgs::Clock messages distributed across
       /// the network
-      class IGNITION_TRANSPORT_VISIBLE NetworkClock : public Clock
+      class GZ_TRANSPORT_VISIBLE NetworkClock : public Clock
       {
         /// \brief Network clock time bases
         public: enum class TimeBase : int64_t
@@ -64,7 +64,7 @@ namespace ignition
         };
 
         /// \brief Constructor that sets the initial time range option
-        /// \param[in] _topicName Name of the ignition::msgs::Clock type
+        /// \param[in] _topicName Name of the gz::msgs::Clock type
         /// topic to be used
         /// \param[in] _timeBase Time base for this clock, defaults to
         /// simulation time
@@ -96,7 +96,7 @@ namespace ignition
 
       //////////////////////////////////////////////////
       /// \brief A Clock implementation that leverages host OS time APIs
-      class IGNITION_TRANSPORT_VISIBLE WallClock : public Clock
+      class GZ_TRANSPORT_VISIBLE WallClock : public Clock
       {
         /// \brief Returns system wall clock interface
         /// \return The sole wall clock instance (a singleton)

@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/QualifiedTime.hh>
+#include <ignition/transport/config.hh>

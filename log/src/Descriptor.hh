@@ -15,28 +15,28 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
-#define IGNITION_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
+#ifndef GZ_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
+#define GZ_TRANSPORT_LOG_SRC_DESCRIPTOR_HH_
 
 #include <functional>
 #include <string>
 #include <unordered_map>
 
-#include <ignition/transport/log/Descriptor.hh>
+#include <gz/transport/log/Descriptor.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief A representation of the information that defines a topic row
       /// \note We export the symbols for this class so it can be used in
       /// UNIT_Descriptor_TEST
-      struct IGNITION_TRANSPORT_LOG_VISIBLE TopicKey
+      struct GZ_TRANSPORT_LOG_VISIBLE TopicKey
       {
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -70,7 +70,7 @@ namespace ignition
       /// \brief Implementation of the Descriptor class
       /// \note We export the symbols for this class so it can be used in
       /// UNIT_Descriptor_TEST
-      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor::Implementation
+      class GZ_TRANSPORT_LOG_VISIBLE Descriptor::Implementation
       {
         /// \internal Reset this descriptor. This should only be called by the
         /// Log class, when it is generating a new Descriptor after opening a
@@ -101,10 +101,10 @@ namespace ignition
 //////////////////////////////////////////////////
 /// \brief Allow a TopicKey to be used as a key in a std::unordered_map
 namespace std {
-  template <> struct hash<ignition::transport::log::TopicKey>
+  template <> struct hash<gz::transport::log::TopicKey>
   {
     size_t operator()(
-        const ignition::transport::log::TopicKey &_key) const
+        const gz::transport::log::TopicKey &_key) const
     {
       // Terrible, but it gets the job done
       return (std::hash<std::string>()(_key.topic) << 16)
