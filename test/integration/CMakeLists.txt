@@ -33,7 +33,7 @@ foreach(test ${test_list})
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
-    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
+    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
 
 endforeach()
 

@@ -23,7 +23,7 @@
 #include <memory>
 #include <string>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -212,9 +212,9 @@ namespace ignition
       void(*_cb)(const RequestT &_request),
       const AdvertiseServiceOptions &_options)
     {
-      std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+      std::function<bool(const RequestT &, gz::msgs::Empty &)> f =
         [_cb](const RequestT &_internalReq,
-              ignition::msgs::Empty &/*_internalRep*/)
+              gz::msgs::Empty &/*_internalRep*/)
       {
         (*_cb)(_internalReq);
         return true;
@@ -302,9 +302,9 @@ namespace ignition
       std::function<void(const RequestT &_request)> &_cb,
       const AdvertiseServiceOptions &_options)
     {
-      std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+      std::function<bool(const RequestT &, gz::msgs::Empty &)> f =
         [_cb](const RequestT &_internalReq,
-              ignition::msgs::Empty &/*_internalRep*/)
+              gz::msgs::Empty &/*_internalRep*/)
       {
         (_cb)(_internalReq);
         return true;
@@ -356,9 +356,9 @@ namespace ignition
       ClassT *_obj,
       const AdvertiseServiceOptions &_options)
     {
-      std::function<bool(const RequestT &, ignition::msgs::Empty &)> f =
+      std::function<bool(const RequestT &, gz::msgs::Empty &)> f =
         [_cb, _obj](const RequestT &_internalReq,
-           ignition::msgs::Empty &/*_internalRep*/)
+           gz::msgs::Empty &/*_internalRep*/)
       {
         auto cb = std::bind(_cb, _obj, std::placeholders::_1);
         cb(_internalReq);
@@ -628,12 +628,12 @@ namespace ignition
     {
       // This callback is here for reusing the regular Request() call with
       // input and output parameters.
-      std::function<void(const ignition::msgs::Empty &, const bool)> f =
-        [](const ignition::msgs::Empty &, const bool)
+      std::function<void(const gz::msgs::Empty &, const bool)> f =
+        [](const gz::msgs::Empty &, const bool)
       {
       };
 
-      return this->Request<RequestT, ignition::msgs::Empty>(
+      return this->Request<RequestT, gz::msgs::Empty>(
             _topic, _request, f);
     }
   }

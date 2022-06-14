@@ -26,20 +26,20 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/log/Descriptor.hh"
-#include "ignition/transport/log/Log.hh"
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/Descriptor.hh"
+#include "gz/transport/log/Log.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "Console.hh"
 #include "Descriptor.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Log::Implementation
+class gz::transport::log::Log::Implementation
 {
   /// \internal \sa Log::Descriptor()
   public: const log::Descriptor *Descriptor() const;
@@ -444,6 +444,21 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
     // Test hook so tests can be run before `make install`
     std::string schemaFile;
     const char *envPath = std::getenv(SchemaLocationEnvVar.c_str());
+
+    // TODO(CH3): Deprecated. Remove this on ticktock.
+    if (!(envPath))
+    {
+      envPath = std::getenv(SchemaLocationEnvVarDeprecated.c_str());
+
+      if ((envPath))
+      {
+        LWRN("Found schema using deprecated environment variable ["
+             << SchemaLocationEnvVarDeprecated.c_str()
+             << "]. Please use [" << SchemaLocationEnvVar.c_str()
+             << "] instead.");
+      }
+    }
+
     if (envPath)
     {
       schemaFile = envPath;

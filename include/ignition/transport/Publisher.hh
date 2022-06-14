@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/Publisher.hh>
+#include <ignition/transport/config.hh>

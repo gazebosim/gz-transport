@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
-#define IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
+#ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
+#define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -33,15 +33,15 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Node.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \brief Metadata for a publication. This is sent as part of the ZMQ
     /// message for topic statistics.

@@ -24,21 +24,21 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/MsgIter.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       /// \brief Forward declaration
       class BatchPrivate;
       class Log;
 
       /// \brief Holds the result of a query for messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE Batch
+      class GZ_TRANSPORT_LOG_VISIBLE Batch
       {
         /// \brief Default constructor
         public: Batch();

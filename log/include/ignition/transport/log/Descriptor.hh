@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/Descriptor.hh>
+#include <ignition/transport/config.hh>

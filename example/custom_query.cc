@@ -22,23 +22,23 @@
 
 #include <iostream>
 #include <vector>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/QueryOptions.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/QueryOptions.hh>
 
 //////////////////////////////////////////////////
 /// \brief Query for all the topics in reverse
 class AllTopicsReverse final
-    : public virtual ignition::transport::log::QueryOptions
+    : public virtual gz::transport::log::QueryOptions
 {
   // See documentation on QueryOptions
-  public: std::vector<ignition::transport::log::SqlStatement>
+  public: std::vector<gz::transport::log::SqlStatement>
     GenerateStatements(
-      const ignition::transport::log::Descriptor &/*_descriptor*/)
+      const gz::transport::log::Descriptor &/*_descriptor*/)
       const override
   {
     // The preamble has all the necessary joins and the correct column order
     // for a SELECT statement that returns messages.
-    ignition::transport::log::SqlStatement statement =
+    gz::transport::log::SqlStatement statement =
       this->StandardMessageQueryPreamble();
     // Reverse the order of the messages
     statement.statement += "ORDER BY messages.time_recv DESC;";
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   if (!log.Open(argv[1]))
   {
     std::cerr << "Failed to open log\n";

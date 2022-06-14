@@ -20,12 +20,12 @@
 #include <cstdlib>
 #include <string>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
@@ -49,10 +49,10 @@ void reset()
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  ignition::msgs::Vector3d wrongReq;
+  gz::msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -84,7 +84,7 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 TEST(twoProcSrvCallWithoutOutput, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -135,7 +135,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -157,7 +157,7 @@ TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 
   EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Int32");
+  EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Int32");
 
   reset();
 
@@ -171,10 +171,10 @@ int main(int argc, char **argv)
   g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", g_partition.c_str(), 1);
+  setenv("GZ_PARTITION", g_partition.c_str(), 1);
 
   // Enable verbose mode.
-  // setenv("IGN_VERBOSE", "1", 1);
+  // setenv("GZ_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

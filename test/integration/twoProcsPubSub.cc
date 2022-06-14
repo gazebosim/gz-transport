@@ -21,11 +21,11 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
@@ -52,7 +52,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const ignition::msgs::Int32 &/*_msg*/)
+void cb(const gz::msgs::Int32 &/*_msg*/)
 {
   cbExecuted = true;
   ++counter;
@@ -60,8 +60,8 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cbInfo(const ignition::msgs::Int32 &_msg,
-            const ignition::transport::MessageInfo &_info)
+void cbInfo(const gz::msgs::Int32 &_msg,
+            const gz::transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
@@ -81,7 +81,7 @@ void genericCb(const transport::ProtoMsg &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
+void cbVector(const gz::msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
   ++counter;
@@ -89,7 +89,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 
 //////////////////////////////////////////////////
 void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
-           const ignition::transport::MessageInfo &/*_info*/)
+           const gz::transport::MessageInfo &/*_info*/)
 {
   cbRawExecuted = true;
   ++counter;
@@ -103,20 +103,20 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
   std::string subscriberPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPubSubSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 
-  ignition::msgs::Vector3d msg;
+  gz::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
@@ -142,20 +142,20 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
   std::string subscriberPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPubSubSubscriber_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 
-  ignition::msgs::Vector3d msg;
+  gz::msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
@@ -184,7 +184,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -211,7 +211,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -221,7 +221,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 
   transport::Node node;
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                ignition::msgs::Int32().GetTypeName()));
+                                gz::msgs::Int32().GetTypeName()));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -243,7 +243,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -283,7 +283,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -346,7 +346,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 TEST(twoProcPubSub, FastPublisher)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_fastPub_aux");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_fastPub_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -366,7 +366,7 @@ TEST(twoProcPubSub, FastPublisher)
 TEST(twoProcPubSub, SubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -376,7 +376,7 @@ TEST(twoProcPubSub, SubThrottled)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   transport::Node node;
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
@@ -397,7 +397,7 @@ TEST(twoProcPubSub, SubThrottled)
 TEST(twoProcPubSub, PubThrottled)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux_throttled");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux_throttled");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -426,7 +426,7 @@ TEST(twoProcPubSub, PubThrottled)
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -454,7 +454,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 TEST(twoProcPubSub, TopicList)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -505,7 +505,7 @@ TEST(twoProcPubSub, TopicList)
 TEST(twoProcPubSub, TopicInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
+     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
     partition.c_str());
@@ -526,7 +526,7 @@ TEST(twoProcPubSub, TopicInfo)
 
   EXPECT_TRUE(node.TopicInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().MsgTypeName(), "ignition.msgs.Vector3d");
+  EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
   reset();
 
@@ -541,8 +541,8 @@ int main(int argc, char **argv)
   g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
-  setenv("IGN_TRANSPORT_TOPIC_STATISTICS", "1", 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
+  setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

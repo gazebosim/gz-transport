@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/Batch.hh>
+#include <ignition/transport/config.hh>

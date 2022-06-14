@@ -36,16 +36,16 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
-    class IGNITION_TRANSPORT_VISIBLE IReqHandler
+    class GZ_TRANSPORT_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the request handler.

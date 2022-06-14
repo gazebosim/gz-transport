@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/TopicStatistics.hh>
+#include <ignition/transport/config.hh>

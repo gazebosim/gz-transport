@@ -27,14 +27,14 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     namespace log
     {
       // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
       //
       enum class RecorderError : int64_t
       {
@@ -51,7 +51,7 @@ namespace ignition
       /// This class makes it easy to record topics to a log file.
       /// Responsibilities: topic name matching, time received tracking,
       /// multiple thread safety, subscribing to topics
-      class IGNITION_TRANSPORT_LOG_VISIBLE Recorder
+      class GZ_TRANSPORT_LOG_VISIBLE Recorder
       {
         /// \brief Default constructor
         public: Recorder();

@@ -20,11 +20,11 @@
 #include <cstdlib>
 #include <string>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -33,14 +33,14 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCall, ThousandCalls)
 {
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplierInc_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     partition.c_str());
 
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 response;
+  gz::msgs::Int32 req;
+  gz::msgs::Int32 response;
   bool result;
   unsigned int timeout = 1000;
   transport::Node node;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -20,18 +20,18 @@
 #include <climits>
 #include <string>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
 #include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int Forever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("GZ_PARTITION", argv[1], 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

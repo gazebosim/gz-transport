@@ -46,12 +46,12 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
     class Node;
@@ -63,7 +63,7 @@ namespace ignition
     /// \class NodeShared NodeShared.hh gz/transport/NodeShared.hh
     /// \brief Private data for the Node class. This class should not be
     /// directly used. You should use the Node class.
-    class IGNITION_TRANSPORT_VISIBLE NodeShared
+    class GZ_TRANSPORT_VISIBLE NodeShared
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
@@ -244,7 +244,7 @@ namespace ignition
       public: bool AdvertisePublisher(const ServicePublisher &_publisher);
 
       /// \brief Get the capacity of the buffer (High Water Mark)
-      /// that stores incoming Ignition Transport messages. Note that this is a
+      /// that stores incoming Gazebo Transport messages. Note that this is a
       /// global queue shared by all subscribers within the same process.
       /// \return The capacity of the buffer storing incoming messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1
@@ -256,7 +256,7 @@ namespace ignition
       public: int RcvHwm();
 
       /// \brief Get the capacity of the buffer (High Water Mark)
-      /// that stores outgoing Ignition Transport messages. Note that this is a
+      /// that stores outgoing Gazebo Transport messages. Note that this is a
       /// global queue shared by all publishers within the same process.
       /// \return The capacity of the buffer storing outgoing messages (units
       /// are messages). A value of 0 indicates an unlimited buffer and -1

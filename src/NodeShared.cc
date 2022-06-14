@@ -35,15 +35,15 @@
 #include <vector>
 #include <unordered_map>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 #include "NodeSharedPrivate.hh"
 
@@ -52,7 +52,7 @@
 #endif
 
 using namespace std::chrono_literals;
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 const char kIgnAuthDomain[] = "ign-auth";
@@ -72,11 +72,27 @@ enum class ZmqPlainSecurityServerOptions
 // Helper to get the username and password
 bool userPass(std::string &_user, std::string &_pass)
 {
-  char *username = std::getenv("IGN_TRANSPORT_USERNAME");
-  char *password = std::getenv("IGN_TRANSPORT_PASSWORD");
+  char *username = std::getenv("GZ_TRANSPORT_USERNAME");
+  char *password = std::getenv("GZ_TRANSPORT_PASSWORD");
 
   if (!username || !password)
-    return false;
+  {
+    username = std::getenv("IGN_TRANSPORT_USERNAME");
+    password = std::getenv("IGN_TRANSPORT_PASSWORD");
+
+    if (!username || !password)
+    {
+      return false;
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else
+    {
+      std::cerr << "IGN_TRANSPORT_USERNAME and IGN_TRANSPORT_PASSWORD "
+                << " are deprecated and will be removed! Use "
+                << "GZ_TRANSPORT_USERNAME and GZ_TRANSPORT_PASSWORD instead!"
+                << std::endl;
+    }
+  }
 
   _user = username;
   _pass = password;
@@ -208,25 +224,70 @@ NodeShared::NodeShared()
   : verbose(false),
     dataPtr(new NodeSharedPrivate)
 {
-  // If IGN_VERBOSE=1 enable the verbose mode.
-  std::string ignVerbose;
-  this->verbose = (env("IGN_VERBOSE", ignVerbose) && ignVerbose == "1");
+  // If GZ_VERBOSE=1 enable the verbose mode.
+  std::string gzVerbose;
+  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+  {
+    this->verbose = (gzVerbose == "1");
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_VERBOSE", gzVerbose) && !gzVerbose.empty())
+  {
+    std::cerr << "IGN_VERBOSE is deprecated and will be removed! "
+              << "Use GZ_VERBOSE instead!" << std::endl;
+    this->verbose = (gzVerbose == "1");
+  }
 
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
-  if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
+  if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
       !envDiscoveryIp.empty())
   {
     this->discoveryIP = envDiscoveryIp;
   }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
+           !envDiscoveryIp.empty())
+  {
+    std::cerr << "IGN_DISCOVERY_MULTICAST_IP is deprecated! "
+              << "Use GZ_DISCOVERY_MULTICAST_IP instead!" << std::endl;
+    this->discoveryIP = envDiscoveryIp;
+  }
+
 
   // Set the port used for msg discovery.
   this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
-    "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+    "GZ_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  if (this->msgDiscPort == this->kDefaultMsgDiscPort)
+  {
+    this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
+      "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
+
+    if (this->msgDiscPort != this->kDefaultMsgDiscPort)
+    {
+      std::cerr << "IGN_DISCOVERY_MSG_PORT is deprecated! "
+                << "Use GZ_DISCOVERY_MSG_PORT instead!" << std::endl;
+    }
+  }
 
   // Set the port used for srv discovery.
   this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
-    "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+    "GZ_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  if (this->srvDiscPort == this->kDefaultSrvDiscPort)
+  {
+    this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
+      "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
+    if (this->srvDiscPort != this->kDefaultSrvDiscPort)
+    {
+      std::cerr << "IGN_DISCOVERY_SRV_PORT is deprecated! "
+                << "Use GZ_DISCOVERY_SRV_PORT instead!" << std::endl;
+    }
+  }
+
 
   // Sanity check: the discovery ports should be unique.
   if (this->msgDiscPort == this->srvDiscPort)
@@ -241,9 +302,19 @@ NodeShared::NodeShared()
               << this->srvDiscPort << "] for services" << std::endl;
   }
 
-  std::string ignStats;
-  this->dataPtr->topicStatsEnabled =
-    (env("IGN_TRANSPORT_TOPIC_STATISTICS", ignStats) && ignStats == "1");
+  std::string gzStats;
+
+  if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+  {
+    this->dataPtr->topicStatsEnabled = (gzStats == "1");
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else if (env("IGN_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+  {
+    std::cerr << "IGN_TRANSPORT_TOPIC_STATISTICS is deprecated! "
+              << "Use GZ_TRANSPORT_TOPIC_STATISTICS instead!" << std::endl;
+    this->dataPtr->topicStatsEnabled = (gzStats == "1");
+  }
 
   // My process UUID.
   Uuid uuid;
@@ -747,7 +818,7 @@ void NodeShared::RecvSrvRequest()
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
-    if (repType == ignition::msgs::Empty().GetTypeName())
+    if (repType == gz::msgs::Empty().GetTypeName())
     {
       return;
     }
@@ -1116,7 +1187,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
-      if (_repType == ignition::msgs::Empty().GetTypeName())
+      if (_repType == gz::msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
@@ -1354,7 +1425,19 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for receiving messages.
     int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
-      "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+      "GZ_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    if (rcvQueueVal == kDefaultRcvHwm)
+    {
+      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+        "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
+      if (rcvQueueVal != kDefaultRcvHwm)
+      {
+        std::cerr << "IGN_TRANSPORT_RCVHWM is deprecated! "
+                  << "Use GZ_TRANSPORT_RCVHWM instead!" << std::endl;
+      }
+    }
 
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
@@ -1365,7 +1448,19 @@ bool NodeShared::InitializeSockets()
 
     // Set the capacity of the buffer for sending messages.
     int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
-      "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
+      "GZ_TRANSPORT_SNDHWM", kDefaultSndHwm);
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    if (sndQueueVal == kDefaultSndHwm)
+    {
+      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+        "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
+      if (sndQueueVal != kDefaultSndHwm)
+      {
+        std::cerr << "IGN_TRANSPORT_SNDHWM is deprecated! "
+                  << "Use GZ_TRANSPORT_SNDHWM instead!" << std::endl;
+      }
+    }
 
 #ifdef IGN_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
@@ -1434,7 +1529,7 @@ bool NodeShared::InitializeSockets()
   catch(const zmq::error_t& ze)
   {
     std::cerr << "InitializeSockets() Error: " << ze.what() << std::endl;
-    std::cerr << "Ignition Transport has not been correctly initialized"
+    std::cerr << "Gazebo Transport has not been correctly initialized"
               << std::endl;
     return false;
   }

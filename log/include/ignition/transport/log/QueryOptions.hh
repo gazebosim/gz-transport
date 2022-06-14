@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/log/QueryOptions.hh>
+#include <ignition/transport/config.hh>

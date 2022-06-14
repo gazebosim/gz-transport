@@ -15,11 +15,11 @@
  *
  */
 
-#include <ignition/utils/cli/CLI.hpp>
+#include <gz/utils/cli/CLI.hpp>
 
 #include "ign.hh"
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 //////////////////////////////////////////////////
 /// \brief Enumeration of available commands
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
   CLI::App app{"Introspect Ignition topics"};
 
   app.add_flag_callback("-v,--version", [](){
-      std::cout << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
+      std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
       throw CLI::Success();
   });
 

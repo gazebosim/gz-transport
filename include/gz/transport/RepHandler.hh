@@ -40,16 +40,16 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
     /// \brief Interface class used to manage a replier handler.
-    class IGNITION_TRANSPORT_VISIBLE IRepHandler
+    class GZ_TRANSPORT_VISIBLE IRepHandler
     {
       /// \brief Constructor.
       public: IRepHandler()

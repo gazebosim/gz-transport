@@ -15,27 +15,27 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
-#define IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
+#ifndef GZ_TRANSPORT_LOG_MSGITERPRIVATE_HH_
+#define GZ_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 
 #include <memory>
 #include <vector>
 
-#include "ignition/transport/log/Message.hh"
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/Message.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {
 namespace log
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   class MsgIterPrivate
   {

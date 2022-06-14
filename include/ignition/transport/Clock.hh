@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/Clock.hh>
+#include <ignition/transport/config.hh>

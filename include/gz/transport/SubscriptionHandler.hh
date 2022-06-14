@@ -47,16 +47,16 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     /// \brief SubscriptionHandlerBase contains functions and data which are
     /// common to all SubscriptionHandler types.
-    class IGNITION_TRANSPORT_VISIBLE SubscriptionHandlerBase
+    class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the handler.
@@ -120,7 +120,7 @@ namespace ignition
     /// deserializing protobuf message data, and for receiving deserialized
     /// messages. Those functions are not needed by the RawSubscriptionHandler
     /// class.
-    class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
+    class GZ_TRANSPORT_VISIBLE ISubscriptionHandler
         : public SubscriptionHandlerBase
     {
       /// \brief Constructor.
@@ -257,8 +257,8 @@ namespace ignition
         }
         else
         {
-          // Fallback on Ignition Msgs if the message type is not found.
-          msgPtr = ignition::msgs::Factory::New(_type);
+          // Fallback on Gazebo Msgs if the message type is not found.
+          msgPtr = gz::msgs::Factory::New(_type);
         }
 
         if (!msgPtr)

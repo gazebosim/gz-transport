@@ -16,3 +16,4 @@
  */
 
 #include <gz/transport/HandlerStorage.hh>
+#include <ignition/transport/config.hh>

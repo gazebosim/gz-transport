@@ -3,7 +3,7 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Skip command line tests for Windows, see
-# https://github.com/ignitionrobotics/ign-transport/issues/104
+# https://github.com/gazebosim/gz-transport/issues/104
 if (MSVC)
   list(REMOVE_ITEM gtest_sources ign_TEST.cc)
 endif()
@@ -46,8 +46,8 @@ foreach(test ${test_list})
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
-    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
-    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
+    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
+    "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
 
 endforeach()
 
@@ -56,7 +56,7 @@ if (TARGET UNIT_ign_TEST)
     UNIT_ign_TEST
     PROPERTIES
     ENVIRONMENT
-      "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
   )
 endif()
 

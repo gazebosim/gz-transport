@@ -15,12 +15,12 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_IGN_HH_
-#define IGN_TRANSPORT_IGN_HH_
+#ifndef GZ_TRANSPORT_GZ_HH_
+#define GZ_TRANSPORT_GZ_HH_
 
 #include <cstring>
 
-#include "ignition/transport/Export.hh"
+#include "gz/transport/Export.hh"
 
 /// \brief External hook to execute 'ign topic -i' from the command line.
 /// \param[in] _topic Topic name.
@@ -41,7 +41,7 @@ extern "C" void cmdServiceList();
 /// \param[in] _msgType Message type.
 /// \param[in] _msgData The format expected is the same used by Protobuf
 /// DebugString().
-/// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
+/// E.g.: cmdTopicPub("/foo", "gz.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
 extern "C" void cmdTopicPub(const char *_topic,
                                                        const char *_msgType,
@@ -54,8 +54,8 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by Protobuf DebugString().
-/// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
-///                     "ignition.msgs.StringMsg", 1000,
+/// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",
+///                     "gz.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
 extern "C" void cmdServiceReq(const char *_service,
                                                          const char *_reqType,

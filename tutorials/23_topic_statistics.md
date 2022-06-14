@@ -31,8 +31,8 @@ reception. We are ignoring clock discrepancies. The average, minimum, maximum, a
 
 ## Usage
 
-The `IGN_TRANSPORT_TOPIC_STATISTICS` environment variable must be set to `1`
-for both publishers and subscribers. Setting `IGN_TRANSPORT_TOPIC_STATISTICS` to `1` will change the wire protocol, which will prevent communication with nodes that have not set `IGN_TRANSPORT_TOPIC_STATISTICS` to `1`.
+The `GZ_TRANSPORT_TOPIC_STATISTICS` environment variable must be set to `1`
+for both publishers and subscribers. Setting `GZ_TRANSPORT_TOPIC_STATISTICS` to `1` will change the wire protocol, which will prevent communication with nodes that have not set `GZ_TRANSPORT_TOPIC_STATISTICS` to `1`.
 
 Additionally, a node on the subscriber side of a pub/sub relationship must
 call `EnableStats`. For example:
@@ -44,9 +44,9 @@ if (!node.EnableStats(topic, true))
 }
 ```
 
-A complete example can be found in the [subscriber_stats example program](https://github.com/ignitionrobotics/ign-transport/blob/main/example/subscriber_stats.cc).
+A complete example can be found in the [subscriber_stats example program](https://github.com/gazebosim/gz-transport/blob/main/example/subscriber_stats.cc).
 
-With both `IGN_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
+With both `GZ_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
 enabling topic statistics, then you will be able to echo statistic
 information from the command line using `ign topic -et /statistics`.
 
@@ -73,9 +73,9 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 
 ### Example
 
-If you have the Ignition Transport sources with the example programs built,
+If you have the Gazebo Transport sources with the example programs built,
 then you can test topic statistics by following these steps.
 
-1. Terminal 1: `IGN_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`
-1. Terminal 2: `IGN_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/subscriber_stats`
-1. Terminal 3: `IGN_TRANSPORT_TOPIC_STATISTICS=1 ign topic -et /statistics`
+1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`
+1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/subscriber_stats`
+1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ign topic -et /statistics`

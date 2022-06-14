@@ -23,9 +23,9 @@
 #include <vector>
 
 #include "ign.hh"
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/Node.hh"
 
 #include "gz/msgs/Factory.hh"
 
@@ -33,7 +33,7 @@
 # pragma warning(disable: 4503)
 #endif
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////
@@ -153,11 +153,11 @@ extern "C" void cmdTopicPub(const char *_topic,
   }
 
   // Create the message, and populate the field with _msgData
-  auto msg = ignition::msgs::Factory::New(_msgType, _msgData);
+  auto msg = gz::msgs::Factory::New(_msgType, _msgData);
   if (msg)
   {
     // Create the node and advertise the topic
-    ignition::transport::Node node;
+    gz::transport::Node node;
     auto pub = node.Advertise(_topic, msg->GetTypeName());
 
     // Publish the message
@@ -211,7 +211,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the request, and populate the field with _reqData
-  auto req = ignition::msgs::Factory::New(_reqType, _reqData);
+  auto req = gz::msgs::Factory::New(_reqType, _reqData);
   if (!req)
   {
     std::cerr << "Unable to create request of type[" << _reqType << "] "
@@ -220,7 +220,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the response.
-  auto rep = ignition::msgs::Factory::New(_repType);
+  auto rep = gz::msgs::Factory::New(_repType);
   if (!rep)
   {
     std::cerr << "Unable to create response of type[" << _repType << "].\n";
@@ -228,7 +228,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   bool result;
 
   // Request the service.
@@ -297,7 +297,7 @@ extern "C" void cmdTopicEcho(const char *_topic,
   // messages.
   if (_count <= 0)
   {
-    ignition::transport::waitForShutdown();
+    gz::transport::waitForShutdown();
   }
   else
   {
@@ -312,5 +312,5 @@ extern "C" void cmdTopicEcho(const char *_topic,
 //////////////////////////////////////////////////
 extern "C" const char *ignitionVersion()
 {
-  return IGNITION_TRANSPORT_VERSION_FULL;
+  return GZ_TRANSPORT_VERSION_FULL;
 }

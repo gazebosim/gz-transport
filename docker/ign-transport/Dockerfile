@@ -71,7 +71,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get clean
 
 # Ignition transport
-RUN git clone https://github.com/ignitionrobotics/ign-transport.git \
+RUN git clone https://github.com/gazebosim/gz-transport.git \
  && cd ign-transport \
  && mkdir build \
  && cd build \
