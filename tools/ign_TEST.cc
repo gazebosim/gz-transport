@@ -80,13 +80,14 @@ TEST(ignTest, TopicList)
     g_partition.c_str());
 
   // Check the 'ign topic -l' command.
+  std::string ign = std::string(IGN_PATH);
+
   unsigned int retries = 0u;
   bool topicFound = false;
 
   while (!topicFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(std::string(IGN_PATH) + " topic -l " +
-        g_ignVersion);
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -110,14 +111,15 @@ TEST(ignTest, TopicInfo)
     g_partition.c_str());
 
   // Check the 'ign topic -i' command.
+  std::string ign = std::string(IGN_PATH);
+
   unsigned int retries = 0u;
   bool infoFound = false;
   std::string output;
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(std::string(IGN_PATH) + " topic -t /foo -i " +
-        g_ignVersion);
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -143,7 +145,7 @@ TEST(ignTest, ServiceList)
     g_partition.c_str());
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -174,7 +176,7 @@ TEST(ignTest, ServiceInfo)
     g_partition.c_str());
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -210,13 +212,14 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -l' command.
+  std::string ign = std::string(IGN_PATH);
+
   unsigned int retries = 0u;
   bool topicFound = false;
 
   while (!topicFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(std::string(IGN_PATH) + " topic -l " +
-                                         g_ignVersion);
+    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
     topicFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -240,14 +243,15 @@ TEST(ignTest, TopicInfoSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -i' command.
+  std::string ign = std::string(IGN_PATH);
+
   unsigned int retries = 0u;
   bool infoFound = false;
   std::string output;
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(std::string(IGN_PATH) + " topic -t /foo -i " +
-        g_ignVersion);
+    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -264,7 +268,7 @@ TEST(ignTest, ServiceListSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -287,14 +291,15 @@ TEST(ignTest, ServiceInfoSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -i' command.
+  std::string ign = std::string(IGN_PATH);
+
   unsigned int retries = 0u;
   bool infoFound = false;
   std::string output;
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(std::string(IGN_PATH) + " service -s /foo -i " +
-        g_ignVersion);
+    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -313,7 +318,8 @@ TEST(ignTest, TopicPublish)
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
   // Check the 'ign topic -p' command.
-  std::string output = custom_exec_str(std::string(IGN_PATH) +
+  std::string ign = std::string(IGN_PATH);
+  std::string output = custom_exec_str(ign +
       " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
       g_ignVersion);
 
@@ -324,14 +330,14 @@ TEST(ignTest, TopicPublish)
 
   // Try to publish a message not included in Ignition Messages.
   std::string error = "Unable to create message of type";
-  output = custom_exec_str(std::string(IGN_PATH) +
+  output = custom_exec_str(ign +
       " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
-  output = custom_exec_str(std::string(IGN_PATH) +
+  output = custom_exec_str(ign +
       " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
@@ -352,7 +358,8 @@ TEST(ignTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'ign service -r' command.
-  std::string output = custom_exec_str(std::string(IGN_PATH) +
+  std::string ign = std::string(IGN_PATH);
+  std::string output = custom_exec_str(ign +
       " service -s " + service + " --reqtype ign_msgs.Int32 " +
       "--reptype ign_msgs.Int32 --timeout 1000 " +
       "--req 'data: " + value + "' " + g_ignVersion);
@@ -373,8 +380,9 @@ TEST(ignTest, TopicEcho)
     g_partition.c_str());
 
   // Check the 'ign topic -e' command.
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(
-      std::string(IGN_PATH) + " topic -e -t /foo -d 1.5 " + g_ignVersion);
+    ign + " topic -e -t /foo -d 1.5 " + g_ignVersion);
 
   EXPECT_TRUE(output.find("x: 1") != std::string::npos);
   EXPECT_TRUE(output.find("y: 2") != std::string::npos);
