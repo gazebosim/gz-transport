@@ -88,7 +88,7 @@ TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
     g_partition.c_str());
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -119,7 +119,7 @@ TEST(ignTest, TopicInfo)
     g_partition.c_str());
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -155,7 +155,7 @@ TEST(ignTest, ServiceList)
     g_partition.c_str());
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -186,7 +186,7 @@ TEST(ignTest, ServiceInfo)
     g_partition.c_str());
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -222,7 +222,7 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -253,7 +253,7 @@ TEST(ignTest, TopicInfoSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -278,7 +278,7 @@ TEST(ignTest, ServiceListSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -301,7 +301,7 @@ TEST(ignTest, ServiceInfoSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -328,7 +328,7 @@ TEST(ignTest, TopicPublish)
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
   // Check the 'ign topic -p' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(ign +
       " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
       g_ignVersion);
@@ -368,7 +368,7 @@ TEST(ignTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'ign service -r' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(ign +
       " service -s " + service + " --reqtype ign_msgs.Int32 " +
       "--reptype ign_msgs.Int32 --timeout 1000 " +
@@ -390,7 +390,7 @@ TEST(ignTest, TopicEcho)
     g_partition.c_str());
 
   // Check the 'ign topic -e' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -d 1.5 " + g_ignVersion);
 
@@ -416,7 +416,7 @@ TEST(ignTest, TopicEchoNum)
     g_partition.c_str());
 
   // Check the 'ign topic -e -n' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -n 2 " + g_ignVersion);
 
@@ -472,7 +472,7 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
   EXPECT_GT(flags.size(), 0u);
 
   // Match each flag in script output with help message
-  for (std::string flag : flags)
+  for (const auto &flag : flags)
   {
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
   }
@@ -505,7 +505,7 @@ TEST(ignTest, TopicHelpVsCompletionFlags)
   EXPECT_GT(flags.size(), 0u);
 
   // Match each flag in script output with help message
-  for (std::string flag : flags)
+  for (const auto &flag : flags)
   {
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
   }
