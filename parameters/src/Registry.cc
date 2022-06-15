@@ -285,7 +285,7 @@ ParametersRegistry::ListParameters() const
 void
 ParametersRegistry::WithParameter(
   const std::string & _parameterName,
-  std::function<void(google::protobuf::Message &)> fn)
+  std::function<void(const google::protobuf::Message &)> fn) const
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it = this->dataPtr->parametersMap.find(_parameterName);

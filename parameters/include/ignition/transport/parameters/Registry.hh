@@ -141,7 +141,7 @@ namespace ignition
           this->WithParameter(
             _parameterName,
             [nameCStr = _parameterName.c_str() , &ret]
-            (google::protobuf::Message & _msg) {
+            (const google::protobuf::Message & _msg) {
               if (_msg.GetDescriptor() != ret.GetDescriptor()) {
                 throw ParameterInvalidTypeException{
                   "ParametersRegistry::Parameter",
@@ -151,6 +151,7 @@ namespace ignition
               }
               ret.CopyFrom(_msg);
             });
+          return ret;
         }
 
         /// \brief Pointer to implementation.
@@ -158,7 +159,7 @@ namespace ignition
 
         private: void WithParameter(
           const std::string & _parameterName,
-          std::function<void(google::protobuf::Message &)> fn);
+          std::function<void(const google::protobuf::Message &)> fn) const;
       };
       }
     }
