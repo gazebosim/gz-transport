@@ -1,6 +1,6 @@
 # Collect source files into the "sources" variable and unit test files into the
 # "gtest_sources" variable.
-ign_get_libsources_and_unittests(sources gtest_sources)
+gz_get_libsources_and_unittests(sources gtest_sources)
 
 # Skip command line tests for Windows, see
 # https://github.com/gazebosim/gz-transport/issues/104
@@ -35,7 +35,7 @@ target_link_libraries(${service_executable}
 install(TARGETS ${service_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
-ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
+gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 

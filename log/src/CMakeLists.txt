@@ -1,8 +1,7 @@
-
-ign_get_libsources_and_unittests(sources gtest_sources)
+gz_get_libsources_and_unittests(sources gtest_sources)
 list(APPEND sources cmd/LogCommandAPI.cc)
 
-ign_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
+gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 
 target_link_libraries(${log_lib_target}
   PRIVATE SQLite3::SQLite3)
@@ -17,7 +16,7 @@ if (MSVC)
 endif()
 
 # Unit tests
-ign_build_tests(
+gz_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
   LIB_DEPS ${log_lib_target} ${EXTRA_TEST_LIB_DEPS}
