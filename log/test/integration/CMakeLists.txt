@@ -1,6 +1,6 @@
 # Integration tests
 
-ign_build_tests(
+gz_build_tests(
   TYPE "INTEGRATION"
   TEST_LIST logging_tests
   SOURCES
@@ -39,10 +39,10 @@ foreach(source_file ${aux})
   string(REGEX REPLACE ".cc" "" AUX_EXECUTABLE ${source_file})
   set(BINARY_NAME ${TEST_TYPE}_${AUX_EXECUTABLE})
 
-  ign_add_executable(${BINARY_NAME} ${AUX_EXECUTABLE}.cc)
+  gz_add_executable(${BINARY_NAME} ${AUX_EXECUTABLE}.cc)
 
   # Include the interface directories that we always need.
-  ign_target_interface_include_directories(${BINARY_NAME}
+  gz_target_interface_include_directories(${BINARY_NAME}
     ${PROJECT_LIBRARY_TARGET_NAME})
 
   # Link the libraries that we always need.
