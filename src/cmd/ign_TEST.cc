@@ -75,7 +75,7 @@ void topicCB(const gz::msgs::StringMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Check 'ign topic -l' running the advertiser on a different process.
-TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
+TEST(ignTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
   gz::transport::env("LD_LIBRARY_PATH", value);
-  // Add the directory where ignition transport has been built.
+  // Add the directory where Gazebo Transport has been built.
   value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);
 

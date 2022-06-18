@@ -47,7 +47,7 @@ namespace gz
         ALREADY_SUBSCRIBED_TO_TOPIC = -6,
       };
 
-      /// \brief Records ignition transport topics
+      /// \brief Records Gazebo Transport topics
       /// This class makes it easy to record topics to a log file.
       /// Responsibilities: topic name matching, time received tracking,
       /// multiple thread safety, subscribing to topics

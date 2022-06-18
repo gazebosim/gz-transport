@@ -306,7 +306,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
             reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
           // Make it a dotted quad
           char ipv4_str[3*4+3+1];
-          ign_sprintf(ipv4_str, "%d.%d.%d.%d",
+          gz_sprintf(ipv4_str, "%d.%d.%d.%d",
             sockaddress->sin_addr.S_un.S_un_b.s_b1,
             sockaddress->sin_addr.S_un.S_un_b.s_b2,
             sockaddress->sin_addr.S_un.S_un_b.s_b3,

@@ -121,5 +121,5 @@ extern "C" {
 }
 #endif
 
-// INCLUDE_IGNITION_TRANSPORT_CIFACE_H_
+// INCLUDE_GZ_TRANSPORT_CIFACE_H_
 #endif
