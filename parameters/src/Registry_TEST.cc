@@ -32,6 +32,7 @@ TEST(ParametersRegistry, ConstructDestruct)
   ParametersRegistry registry{""};
 }
 
+//////////////////////////////////////////////////
 TEST(ParametersRegistry, DeclareParameter)
 {
   ParametersRegistry registry{""};
@@ -44,6 +45,7 @@ TEST(ParametersRegistry, DeclareParameter)
     ParameterAlreadyDeclaredException);
 }
 
+//////////////////////////////////////////////////
 TEST(ParametersRegistry, Parameter)
 {
   ParametersRegistry registry{""};
@@ -63,6 +65,7 @@ TEST(ParametersRegistry, Parameter)
     ParameterInvalidTypeException);
 }
 
+//////////////////////////////////////////////////
 TEST(ParametersRegistry, SetParameter)
 {
   ParametersRegistry registry{""};
@@ -86,6 +89,7 @@ TEST(ParametersRegistry, SetParameter)
     ParameterInvalidTypeException);
 }
 
+//////////////////////////////////////////////////
 TEST(ParametersRegistry, ListParameters)
 {
   ParametersRegistry registry{""};
@@ -97,18 +101,18 @@ TEST(ParametersRegistry, ListParameters)
     "parameter2", std::make_unique<ignition::msgs::StringMsg>());
   declarations = registry.ListParameters();
   EXPECT_EQ(declarations.parameter_declarations_size(), 2);
-  bool found_param1 = false;
-  bool found_param2 = false;
+  bool foundParam1 = false;
+  bool foundParam2 = false;
   for (auto decl : declarations.parameter_declarations()) {
     if (decl.name() == "parameter1" && decl.type() == "ign_msgs.Boolean") {
-      found_param1 = true;
+      foundParam1 = true;
     }
     if (decl.name() == "parameter2" && decl.type() == "ign_msgs.StringMsg") {
-      found_param2 = true;
+      foundParam2 = true;
     }
   }
-  EXPECT_TRUE(found_param1) << "expected to find declaration for parameter1";
-  EXPECT_TRUE(found_param2) << "expected to find declaration for parameter2";
+  EXPECT_TRUE(foundParam1) << "expected to find declaration for parameter1";
+  EXPECT_TRUE(foundParam2) << "expected to find declaration for parameter2";
 }
 
 //////////////////////////////////////////////////
