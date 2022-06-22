@@ -169,10 +169,12 @@ bool ParametersRegistryPrivate::DeclareParameter(
   (void)_res;
   ParametersRegistry::ParameterValue value;
   value.protoType = _req.type();
-  value.msg = ignition::msgs::Factory::New(_req.type(), _req.value());
+  value.msg = ignition::msgs::Factory::New(_req.type());
   if (!value.msg) {
     return false;
   }
+  std::istringstream iss{_req.value()};
+  value.msg->ParseFromIstream(&iss);
   std::lock_guard guard{this->parametersMapMutex};
   auto it_emplaced_pair = this->parametersMap.emplace(
     std::make_pair(_req.name(), std::move(value)));
