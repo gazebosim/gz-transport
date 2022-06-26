@@ -33,7 +33,7 @@ using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
-static const std::string g_ignVersion("--force-version " + // NOLINT(*)
+static const std::string g_gzVersion("--force-version " + // NOLINT(*)
   std::string(GZ_VERSION_FULL));
 
 /////////////////////////////////////////////////
@@ -74,7 +74,7 @@ void topicCB(const gz::msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -l' running the advertiser on a different process.
+/// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   // Launch a new publisher process that advertises a topic.
@@ -85,15 +85,15 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign topic -l' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -l' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
 
   while (!topicFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
     topicFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -105,7 +105,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -i' running the advertiser on a different process.
+/// \brief Check 'gz topic -i' running the advertiser on a different process.
 TEST(gzTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
@@ -116,8 +116,8 @@ TEST(gzTest, TopicInfo)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign topic -i' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -i' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -125,7 +125,7 @@ TEST(gzTest, TopicInfo)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -140,7 +140,7 @@ TEST(gzTest, TopicInfo)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -l' running the advertiser on a different
+/// \brief Check 'gz service -l' running the advertiser on a different
 /// process.
 TEST(gzTest, ServiceList)
 {
@@ -152,15 +152,15 @@ TEST(gzTest, ServiceList)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign service -l' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz service -l' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
 
   while (!serviceFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    std::string output = custom_exec_str(gz + " service -l " + g_gzVersion);
     serviceFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -172,7 +172,7 @@ TEST(gzTest, ServiceList)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -i' running the advertiser on a different process.
+/// \brief Check 'gz service -i' running the advertiser on a different process.
 TEST(gzTest, ServiceInfo)
 {
   // Launch a new publisher process that advertises a topic.
@@ -183,8 +183,8 @@ TEST(gzTest, ServiceInfo)
   testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign service -i' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz service -i' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -192,7 +192,7 @@ TEST(gzTest, ServiceInfo)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    output = custom_exec_str(gz + " service -s /foo -i " + g_gzVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -205,7 +205,7 @@ TEST(gzTest, ServiceInfo)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -l' running the advertiser on the same process.
+/// \brief Check 'gz topic -l' running the advertiser on the same process.
 TEST(gzTest, TopicListSameProc)
 {
   gz::transport::Node node;
@@ -219,15 +219,15 @@ TEST(gzTest, TopicListSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  // Check the 'ign topic -l' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -l' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
 
   while (!topicFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(ign + " topic -l " + g_ignVersion);
+    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
     topicFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -236,7 +236,7 @@ TEST(gzTest, TopicListSameProc)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -i' running the advertiser on the same process.
+/// \brief Check 'gz topic -i' running the advertiser on the same process.
 TEST(gzTest, TopicInfoSameProc)
 {
   gz::transport::Node node;
@@ -250,8 +250,8 @@ TEST(gzTest, TopicInfoSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  // Check the 'ign topic -i' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -i' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -259,7 +259,7 @@ TEST(gzTest, TopicInfoSameProc)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+    output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -269,21 +269,21 @@ TEST(gzTest, TopicInfoSameProc)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -l' running the advertiser on the same process.
+/// \brief Check 'gz service -l' running the advertiser on the same process.
 TEST(gzTest, ServiceListSameProc)
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'ign service -l' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz service -l' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
 
   while (!serviceFound && retries++ < 10u)
   {
-    std::string output = custom_exec_str(ign + " service -l " + g_ignVersion);
+    std::string output = custom_exec_str(gz + " service -l " + g_gzVersion);
     serviceFound = output == "/foo\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -292,14 +292,14 @@ TEST(gzTest, ServiceListSameProc)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -i' running the advertiser on the same process.
+/// \brief Check 'gz service -i' running the advertiser on the same process.
 TEST(gzTest, ServiceInfoSameProc)
 {
   gz::transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'ign service -i' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz service -i' command.
+  std::string gz = std::string(GZ_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -307,7 +307,7 @@ TEST(gzTest, ServiceInfoSameProc)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(ign + " service -s /foo -i " + g_ignVersion);
+    output = custom_exec_str(gz + " service -s /foo -i " + g_gzVersion);
     infoFound = output.size() > 50u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
@@ -318,15 +318,15 @@ TEST(gzTest, ServiceInfoSameProc)
 
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -p' to send a message.
+/// \brief Check 'gz topic -p' to send a message.
 TEST(gzTest, TopicPublish)
 {
   gz::transport::Node node;
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
-  // Check the 'ign topic -p' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -p' command.
+  std::string gz = std::string(GZ_PATH);
   std::string output;
 
   unsigned int retries = 0;
@@ -335,9 +335,9 @@ TEST(gzTest, TopicPublish)
     // Send on alternating retries
     if (retries % 2)
     {
-      output = custom_exec_str(ign +
+      output = custom_exec_str(gz +
         " topic -t /bar -m gz_msgs.StringMsg -p 'data:\"good_value\"' " +
-        g_ignVersion);
+        g_gzVersion);
       EXPECT_TRUE(output.empty()) << output;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
@@ -346,28 +346,28 @@ TEST(gzTest, TopicPublish)
 
   // Try to publish a message not included in Gazebo Messages.
   std::string error = "Unable to create message of type";
-  output = custom_exec_str(ign +
+  output = custom_exec_str(gz +
       " topic -t /bar -m gz_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
-      g_ignVersion);
+      g_gzVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
-  output = custom_exec_str(ign +
+  output = custom_exec_str(gz +
       " topic -t / -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
-      g_ignVersion);
+      g_gzVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
-  output = custom_exec_str(ign +
+  output = custom_exec_str(gz +
       " topic -t / wrong_topic -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
-      g_ignVersion);
+      g_gzVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign service -r' to request a service.
+/// \brief Check 'gz service -r' to request a service.
 TEST(gzTest, ServiceRequest)
 {
   gz::transport::Node node;
@@ -380,18 +380,18 @@ TEST(gzTest, ServiceRequest)
   gz::msgs::Int32 msg;
   msg.set_data(10);
 
-  // Check the 'ign service -r' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
-  std::string output = custom_exec_str(ign +
+  // Check the 'gz service -r' command.
+  std::string gz = std::string(GZ_PATH);
+  std::string output = custom_exec_str(gz +
       " service -s " + service + " --reqtype gz_msgs.Int32 " +
       "--reptype gz_msgs.Int32 --timeout 1000 " +
-      "--req 'data: " + value + "' " + g_ignVersion);
+      "--req 'data: " + value + "' " + g_gzVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -e' running the publisher on a separate process.
+/// \brief Check 'gz topic -e' running the publisher on a separate process.
 TEST(gzTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
@@ -402,10 +402,10 @@ TEST(gzTest, TopicEcho)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign topic -e' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -e' command.
+  std::string gz = std::string(GZ_PATH);
   std::string output = custom_exec_str(
-    ign + " topic -e -t /foo -d 1.5 " + g_ignVersion);
+    gz + " topic -e -t /foo -d 1.5 " + g_gzVersion);
 
   EXPECT_TRUE(output.find("x: 1") != std::string::npos);
   EXPECT_TRUE(output.find("y: 2") != std::string::npos);
@@ -416,7 +416,7 @@ TEST(gzTest, TopicEcho)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'ign topic -e -n 2' running the publisher on a separate
+/// \brief Check 'gz topic -e -n 2' running the publisher on a separate
 /// process.
 TEST(gzTest, TopicEchoNum)
 {
@@ -428,10 +428,10 @@ TEST(gzTest, TopicEchoNum)
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
-  // Check the 'ign topic -e -n' command.
-  std::string ign = std::string(GZ_PATH) + "/ign";
+  // Check the 'gz topic -e -n' command.
+  std::string gz = std::string(GZ_PATH);
   std::string output = custom_exec_str(
-    ign + " topic -e -t /foo -n 2 " + g_ignVersion);
+    gz + " topic -e -t /foo -n 2 " + g_gzVersion);
 
   size_t pos = output.find("x: 1");
   EXPECT_TRUE(pos != std::string::npos);
