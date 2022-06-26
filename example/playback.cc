@@ -18,7 +18,7 @@
 /// \brief Example of playing back all messages from a log.
 /// This will create publishers for all topics in a file and publish them
 /// with the same timing that they were received.
-/// Launch the ignition-transport subscriber example if the log was created
+/// Launch the gz-transport subscriber example if the log was created
 /// by recording the publisher example.
 
 #include <cstdint>

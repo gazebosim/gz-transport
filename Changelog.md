@@ -449,7 +449,7 @@
    versions
     * [BitBucket pull request 310](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/310)
 
-1. Converted ignition-transport-log into a component
+1. Converted gz-transport-log into a component
     * [BitBucket pull request 298](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/298)
 
 1. Added inline versioned namespace to the log library

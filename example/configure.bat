@@ -8,14 +8,14 @@
 @echo Configuring for build type %build_type%
 
 @set PROTOBUF_PATH=%cd%\..\..\..\protobuf-2.6.0-win%build_bitness%-vc12
-@set IGN_TRANSPORT_PATH=%cd%\..\..\build\install\%build_type%
+@set GZ_TRANSPORT_PATH=%cd%\..\..\build\install\%build_type%
 @set GZ-MSGS_PATH=%cd%\..\..\..\ign-msgs\build\install\%build_type%
 @set GZ-MSGS_CMAKE_PREFIX_PATH=%GZ-MSGS_PATH%\CMake
 @set GZ-MATH_PATH=%cd%\..\..\..\ign-math\build\install\%build_type%
 @set GZ-MATH_CMAKE_PREFIX_PATH=%GZ-MATH_PATH%\CMake
 
 cmake -G "NMake Makefiles"^
-      -DCMAKE_PREFIX_PATH="%IGN_TRANSPORT_PATH%\lib\cmake\ignition-transport12;%GZ-MSGS_CMAKE_PREFIX_PATH%;%GZ-MATH_CMAKE_PREFIX_PATH%;"^
+      -DCMAKE_PREFIX_PATH="%GZ_TRANSPORT_PATH%\lib\cmake\gz-transport12;%GZ-MSGS_CMAKE_PREFIX_PATH%;%GZ-MATH_CMAKE_PREFIX_PATH%;"^
       -DPROTOBUF_SRC_ROOT_FOLDER="%PROTOBUF_PATH%"^
       -DGZ-MSGS_FOLDER="%GZ-MSGS_PATH%"^
       -DCMAKE_INSTALL_PREFIX="install"^
