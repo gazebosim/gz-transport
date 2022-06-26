@@ -17,7 +17,7 @@
 
 /// \brief Example of recording all ignition transport topics.
 /// This will record all topics and currently published to a file.
-/// Launch the ignition-transport publisher example so this example has
+/// Launch the gz-transport publisher example so this example has
 /// something to record.
 
 #include <cstdint>

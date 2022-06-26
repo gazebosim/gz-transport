@@ -54,7 +54,7 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 Run the following commands:
 ```
 brew tap osrf/simulation
-brew install ignition-transport<#>
+brew install gz-transport<#>
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -181,7 +181,7 @@ sudo make uninstall
 
 2. Install dependencies
   ```
-  brew install --only-dependencies ignition-transport<#>
+  brew install --only-dependencies gz-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
@@ -254,8 +254,8 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 4. Optionally, build the examples
 
-  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``ignition-transport<#>-config.cmake``.
-  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\ignition-transport<#>\lib\cmake\ignition-transport<#>``.
+  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``gz-transport<#>-config.cmake``.
+  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\gz-transport<#>\lib\cmake\gz-transport<#>``.
   ```
   cd ign-transport\example
   mkdir build
