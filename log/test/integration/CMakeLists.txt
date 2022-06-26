@@ -65,7 +65,7 @@ foreach(source_file ${aux})
 endforeach()
 
 # gz log CLI test
-if (GZ-TOOLS_BINARY_DIRS)
+if (HAVE_GZ_TOOLS)
   set(GZ_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/gz")
 
   add_test(gz_log_record_no_overwrite

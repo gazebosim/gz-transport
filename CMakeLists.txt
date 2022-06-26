@@ -98,6 +98,7 @@ endif()
 #--------------------------------------
 # Find gz-tools
 gz_find_package(gz-tools2 QUIET)
+find_program(HAVE_GZ_TOOLS gz)
 
 #--------------------------------------
 # Find SQLite3
