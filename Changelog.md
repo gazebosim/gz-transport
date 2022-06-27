@@ -503,7 +503,7 @@
 1. Basic authentication for topics.
     * [BitBucket pull request 236](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/236)
 
-1. Upgrade to ign-cmake.
+1. Upgrade to gz-cmake.
     * [BitBucket pull request 239](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/239)
 
 1. Added a benchmark program to test latency and throughput.

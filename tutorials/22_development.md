@@ -5,7 +5,7 @@ Previous Tutorial: \ref envvars
 
 ## Overview
 
-The purpose of this section is to describe the internal design of Ignition
+The purpose of this section is to describe the internal design of Gazebo
 Transport. You don't need to read this section if you just want to use the
 library in your code. This section will help you to understand our source code
 if you're interested in making code contributions.

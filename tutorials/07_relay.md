@@ -47,7 +47,7 @@ Run your Docker container:
 
 Inside the docker instance, go to the `example` directory:
 ```
-cd ign-transport/example/build
+cd gz-transport/example/build
 ```
 
 Back on your host, make sure that you have Gazebo Tools and net-tools
@@ -105,7 +105,7 @@ GZ_PARTITION=relay ./publisher
 
 ## Launch the subscriber
 
-Open a terminal in your host and launch your subscriber, forcing Ignition
+Open a terminal in your host and launch your subscriber, forcing Gazebo
 Transport to only bind to the IP address that we found in the previous step:
 
 ```

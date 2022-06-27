@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 #include <gz/transport.hh>
 ```
 
-The line `#include <gz/transport.hh>` contains all the Ignition
+The line `#include <gz/transport.hh>` contains all the Gazebo
 Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
