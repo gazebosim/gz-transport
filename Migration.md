@@ -36,6 +36,15 @@ release will remove the deprecated code.
      1. `IGN_CPPZMQ_POST_4_7_0`
      1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
 
+### Breaking Changes
+
+1. The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+  * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+  * Some non-exhaustive examples of this include:
+    * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+    * CMake `-config` files
+    * Paths that depend on the project name
+
 ## Gazebo Transport 9.X to 10.X
 
 ### Addition
