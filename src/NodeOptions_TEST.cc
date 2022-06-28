@@ -19,7 +19,7 @@
 
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/NodeOptions.hh"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;
