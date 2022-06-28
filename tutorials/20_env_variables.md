@@ -27,7 +27,7 @@ Below are descriptions of the available environment variables:
 * **GZ_IP**
     * *Value allowed*: Any local IP address
     * *Description*: When you have
-    multiple IP addresses for a computer and need to force Ignition
+    multiple IP addresses for a computer and need to force Gazebo
     Transport to use a particular one. This setting is only required if you
     advertise a topic or a service. If you are only subscribed to topics or
     requesting services you don't need to use this option because the

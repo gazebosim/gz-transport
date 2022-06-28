@@ -66,10 +66,10 @@ in the source code.
 ## Known issue of command line tools
 
 In the event that the installation is a mix of Debian and from source, command
-line tools from `ign-tools` may not work correctly.
+line tools from `gz-tools` may not work correctly.
 
 A workaround is to define the environment variable
-`GZ_CONFIG_PATH` to point to the location of the Ignition library installation,
+`GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
 export GZ_CONFIG_PATH=/usr/local/share/gz

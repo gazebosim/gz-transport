@@ -36,11 +36,20 @@ release will remove the deprecated code.
      1. `IGN_CPPZMQ_POST_4_7_0`
      1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
 
+### Breaking Changes
+
+1. The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+  * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+  * Some non-exhaustive examples of this include:
+    * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+    * CMake `-config` files
+    * Paths that depend on the project name
+
 ## Gazebo Transport 9.X to 10.X
 
 ### Addition
 
-1. Dependency on `cli` component of `ignition-utils`.
+1. Dependency on `cli` component of `gz-utils`.
     * [GitHub pull request 229](https://github.com/gazebosim/gz-transport/pull/229)
 
 ## Gazebo Transport 8.X to 9.X
@@ -60,7 +69,7 @@ release will remove the deprecated code.
 1. The discovery wire protocol changed to use gz::msgs::Discovery
    instead of C-structs. The Packet.hh header file is deprecated, which
    contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
-   version of the wire protocal has bumped from 9 to 10. This means Ignition
+   version of the wire protocal has bumped from 9 to 10. This means Gazebo
    Transport 8+ will not work with Gazebo Transport 7 and below.
     * [BitBucket pull request 403](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/403)
 

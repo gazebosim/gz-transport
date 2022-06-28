@@ -47,7 +47,7 @@ directory that has the source files. Here is an example:
 1. Clone and prepare the Gazebo Math dependency:
 
         git clone https://github.com/gazebosim/gz-math
-        cd ign-math
+        cd gz-math
         mkdir build
 
 1. In a Windows Command Prompt, load your compiler setup, e.g.:
@@ -56,31 +56,31 @@ directory that has the source files. Here is an example:
 
 1. In the Windows Command Promp, configure and build:
 
-        cd ign-math\build
+        cd gz-math\build
         ..\configure
         nmake install
 
 1. Clone and prepare the Gazebo Msgs dependency:
 
         git clone https://github.com/gazebosim/gz-msgs
-        cd ign-msgs
+        cd gz-msgs
         mkdir build
 
 1. In the Windows Command Prompt, configure and build:
 
-        cd ign-msgs\build
+        cd gz-msgs\build
         ..\configure
         nmake install
 
 1. Clone ign-transport:
 
         git clone https://github.com/gazebosim/gz-transport
-        cd ign-transport
+        cd gz-transport
         mkdir build
 
 1. In the Windows Command Prompt, configure and build:
 
-	    cd ign-transport\build
+	    cd gz-transport\build
         ..\configure
         nmake install
 
@@ -117,5 +117,5 @@ if it contains spaces.  E.g., if you're working in `C:\My Stuff\gz-ws`:
 
 1. In the Windows Command Prompt, run the test suite:
 
-    cd ign-transport\build
+    cd gz-transport\build
     ctest

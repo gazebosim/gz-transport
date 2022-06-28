@@ -4,7 +4,7 @@ Next Tutorial: \ref installation
 
 ## What is Gazebo Transport?
 
-Ignition Transport is an open source communication library that allows sharing
+Gazebo Transport is an open source communication library that allows sharing
 data between clients. In our context, a client is called a node. Nodes might
 be running within the same process on the same machine or on separate machines located
 around the world. Gazebo Transport is multi-platform (Linux, Mac OS X, and
