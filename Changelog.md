@@ -25,7 +25,7 @@
 
 ### Gazebo Transport 10.2.0 (2022-03-25)
 
-1. Use exec instead of popen to run ign-launch binary
+1. Use exec instead of popen to run gz-launch binary
     * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
 
 1. Focal CI: static checkers, doxygen linters, compiler warnings
