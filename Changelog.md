@@ -12,7 +12,7 @@
 1. Remove unnecessary copy and assignment operators
     * [Pull request #240](https://github.com/gazebosim/gz-transport/pull/240)
 
-1. Depend on ign-msgs8
+1. Depend on gz-msgs8
     * [Pull request #238](https://github.com/gazebosim/gz-transport/pull/238)
 
 1. Infrastructure
@@ -74,7 +74,7 @@
 1. Add instructions to build and run examples
     * [Pull request #222](https://github.com/gazebosim/gz-transport/pull/222)
 
-1. Bump in edifice: ign-msgs7
+1. Bump in edifice: gz-msgs7
     * [Pull request #213](https://github.com/gazebosim/gz-transport/pull/213)
 
 1. Configurable IP address and port for discovery
