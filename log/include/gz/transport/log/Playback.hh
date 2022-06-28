@@ -40,7 +40,7 @@ namespace gz
       using PlaybackHandlePtr = std::shared_ptr<PlaybackHandle>;
 
       //////////////////////////////////////////////////
-      /// \brief Initiates playback of ignition transport topics
+      /// \brief Initiates playback of Gazebo Transport topics
       /// This class makes it easy to play topics from a log file
       ///
       /// Responsibilities: topic name matching and initiating the playback
@@ -153,7 +153,7 @@ namespace gz
       };
 
       //////////////////////////////////////////////////
-      /// \brief Handles the playback of ignition transport topics.
+      /// \brief Handles the playback of Gazebo Transport topics.
       /// This class allows you to manage a log playback once it has started.
       /// You must hang onto the PlaybackHandle or else the playback will end
       /// early.

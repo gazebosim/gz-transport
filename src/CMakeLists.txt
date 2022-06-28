@@ -1,6 +1,6 @@
 # Collect source files into the "sources" variable and unit test files into the
 # "gtest_sources" variable.
-ign_get_libsources_and_unittests(sources gtest_sources)
+gz_get_libsources_and_unittests(sources gtest_sources)
 
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
@@ -12,13 +12,13 @@ if (MSVC)
 endif()
 
 # Create the library target.
-ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-    ignition-utils${IGN_UTILS_VER}::ignition-utils${IGN_UTILS_VER}
-    ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
+    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+    gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     CPPZMQ::CPPZMQ
   PRIVATE
     ${ZeroMQ_TARGET}
@@ -33,7 +33,7 @@ if (NOT MSVC)
 endif()
 
 # Build the unit tests.
-ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
+gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 

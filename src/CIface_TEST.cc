@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/CIface.h"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 
 static int count;
 

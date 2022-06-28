@@ -38,7 +38,7 @@ COMMON_OPTIONS =
 
 COMMANDS = { 'log' =>
   "Record and playback Gazebo Transport topics.                        \n\n"\
-  "  ign log record|playback [options]                                     \n"\
+  "  gz log record|playback [options]                                     \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n" +
   COMMON_OPTIONS
@@ -46,7 +46,7 @@ COMMANDS = { 'log' =>
 
 SUBCOMMANDS = { 'record' =>
   "Record Gazebo Transport topics.                                     \n\n"\
-  "  ign log record [options]                                              \n"\
+  "  gz log record [options]                                              \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n"\
   "  --file FILE                Log file name (default <datetime>.tlog).   \n"\
@@ -56,7 +56,7 @@ SUBCOMMANDS = { 'record' =>
   COMMON_OPTIONS,
                 'playback' =>
   "Playback previously recorded Gazebo Transport topics.               \n\n"\
-  "  ign log playback [options]                                            \n"\
+  "  gz log playback [options]                                            \n"\
   "                                                                        \n"\
   "Required Flags:                                                       \n\n"\
   "  --file FILE                Log file name.                             \n"\
@@ -176,7 +176,7 @@ class Cmd
       exit(-1)
     end
 
-    # TODO(anyone): Add a sanity check for the ignition-transport-log version
+    # TODO(anyone): Add a sanity check for the gz-transport-log version
 
     begin
       Importer.extern 'int verbosity(int)'

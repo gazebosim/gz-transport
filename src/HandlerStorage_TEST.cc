@@ -239,10 +239,3 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   EXPECT_EQ(handler->NodeUuid(), sub1HandlerPtr->NodeUuid());
   EXPECT_EQ(handler->HandlerUuid(), sub1HandlerPtr->HandlerUuid());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

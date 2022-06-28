@@ -17,7 +17,7 @@
 
 #include <gz/utils/cli/CLI.hpp>
 
-#include "ign.hh"
+#include "gz.hh"
 
 #include <gz/transport/config.hh>
 

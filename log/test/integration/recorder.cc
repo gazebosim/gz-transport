@@ -70,7 +70,7 @@ void VerifyMessage(const gz::transport::log::Message &_msg,
 /// \brief Begin recording a set of topics before those topics are advertised
 /// or published to.
 TEST(recorder,
-  IGN_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
+  GZ_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. ign-transport automatically adds a leading slash to

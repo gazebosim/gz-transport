@@ -66,13 +66,13 @@ in the source code.
 ## Known issue of command line tools
 
 In the event that the installation is a mix of Debian and from source, command
-line tools from `ign-tools` may not work correctly.
+line tools from `gz-tools` may not work correctly.
 
 A workaround is to define the environment variable
-`GZ_CONFIG_PATH` to point to the location of the Ignition library installation,
+`GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
-export GZ_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/gz
 ```
 
 This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/61).
@@ -85,7 +85,7 @@ Visit the [documentation page](https://gazebosim.org/api/transport/11.0/index.ht
 
 ```
 ign-transport
-├── conf        Configuration file for the integration with the `ign` CLI tool.
+├── conf        Configuration file for the integration with the `gz` CLI tool.
 ├── docker      Dockerfile with ign-transport installed and scripts to build and run the code.
 ├── example     Example programs that use most of the Gazebo Transport API.
 ├── include     Header files that get installed.

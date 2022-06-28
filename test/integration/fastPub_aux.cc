@@ -20,7 +20,7 @@
 #include <string>
 
 #include "gz/transport/Node.hh"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 
 using namespace gz;
 

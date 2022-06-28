@@ -17,25 +17,39 @@ release will remove the deprecated code.
      Use the `GZ_` prefixed versions instead!
      1. `IGN_TRANSPORT_USERNAME` -> `GZ_TRANSPORT_USERNAME`
 
-     1.  `IGN_TRANSPORT_PASSWORD` -> `GZ_TRANSPORT_PASSWORD`
-     1.  `IGN_PARTITION` -> `GZ_PARTITION`
-     1.  `IGN_IP` -> `GZ_IP`
-     1.  `IGN_TRANSPORT_TOPIC_STATISTICS` -> `GZ_TRANSPORT_TOPIC_STATISTICS`
-     1.  `IGN_DISCOVERY_MSG_PORT` -> `GZ_DISCOVERY_MSG_PORT`
-     1.  `IGN_DISCOVERY_MULTICAST_IP` -> `GZ_DISCOVERY_MULTICAST_IP`
-     1.  `IGN_DISCOVERY_SRV_PORT` -> `GZ_DISCOVERY_SRV_PORT`
-     1.  `IGN_RELAY` -> `GZ_RELAY`
-     1.  `IGN_TRANSPORT_LOG_SQL_PATH` -> `GZ_TRANSPORT_LOG_SQL_PATH`
-     1.  `IGN_TRANSPORT_RCVHWM` -> `GZ_TRANSPORT_RCVHWM`
-     1.  `IGN_TRANSPORT_SNDHWM` -> `GZ_TRANSPORT_SNDHWM`
-     1.  `IGN_VERBOSE` -> `GZ_VERBOSE`
+     1. `IGN_TRANSPORT_PASSWORD` -> `GZ_TRANSPORT_PASSWORD`
+     1. `IGN_PARTITION` -> `GZ_PARTITION`
+     1. `IGN_IP` -> `GZ_IP`
+     1. `IGN_TRANSPORT_TOPIC_STATISTICS` -> `GZ_TRANSPORT_TOPIC_STATISTICS`
+     1. `IGN_DISCOVERY_MSG_PORT` -> `GZ_DISCOVERY_MSG_PORT`
+     1. `IGN_DISCOVERY_MULTICAST_IP` -> `GZ_DISCOVERY_MULTICAST_IP`
+     1. `IGN_DISCOVERY_SRV_PORT` -> `GZ_DISCOVERY_SRV_PORT`
+     1. `IGN_RELAY` -> `GZ_RELAY`
+     1. `IGN_TRANSPORT_LOG_SQL_PATH` -> `GZ_TRANSPORT_LOG_SQL_PATH`
+     1. `IGN_TRANSPORT_RCVHWM` -> `GZ_TRANSPORT_RCVHWM`
+     1. `IGN_TRANSPORT_SNDHWM` -> `GZ_TRANSPORT_SNDHWM`
+     1. `IGN_VERBOSE` -> `GZ_VERBOSE`
+1. The following `IGN_` prefixed macros are deprecated and will be removed in future versions.
+   Additionally, they will only be available when including the corresponding `ignition/...` header.
+   Use the `GZ_` prefix instead.
+     1. `IGN_ZMQ_POST_4_3_1`
+     1. `IGN_CPPZMQ_POST_4_7_0`
+     1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
 
+### Breaking Changes
+
+1. The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+  * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+  * Some non-exhaustive examples of this include:
+    * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+    * CMake `-config` files
+    * Paths that depend on the project name
 
 ## Gazebo Transport 9.X to 10.X
 
 ### Addition
 
-1. Dependency on `cli` component of `ignition-utils`.
+1. Dependency on `cli` component of `gz-utils`.
     * [GitHub pull request 229](https://github.com/gazebosim/gz-transport/pull/229)
 
 ## Gazebo Transport 8.X to 9.X
@@ -55,7 +69,7 @@ release will remove the deprecated code.
 1. The discovery wire protocol changed to use gz::msgs::Discovery
    instead of C-structs. The Packet.hh header file is deprecated, which
    contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
-   version of the wire protocal has bumped from 9 to 10. This means Ignition
+   version of the wire protocal has bumped from 9 to 10. This means Gazebo
    Transport 8+ will not work with Gazebo Transport 7 and below.
     * [BitBucket pull request 403](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/403)
 
@@ -63,7 +77,7 @@ release will remove the deprecated code.
 
 ### Removed
 
-1. The `ign.hh` file is not longer installed.
+1. The `gz.hh` file is not longer installed.
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 ## Gazebo Transport 4.X to 5.X

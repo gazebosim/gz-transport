@@ -24,7 +24,7 @@
 #include "gz/transport/Clock.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;
@@ -127,10 +127,10 @@ TEST_P(NetworkClockTest, Functionality)
   EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs * 2);
 }
 
-INSTANTIATE_TEST_CASE_P(TestAllTimeBases, NetworkClockTest,
+INSTANTIATE_TEST_SUITE_P(TestAllTimeBases, NetworkClockTest,
                         ::testing::Values(TimeBase::SIM,
                                           TimeBase::REAL,
-                                          TimeBase::SYS),); // NOLINT
+                                          TimeBase::SYS));
 
 /// \brief Check NetworkClock functionality.
 TEST(ClockTest, BadNetworkClock)
@@ -153,11 +153,4 @@ TEST(ClockTest, BadNetworkClock)
   badTimebaseClock.SetTime(std::chrono::seconds(10));
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
   EXPECT_FALSE(badTimebaseClock.IsReady());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

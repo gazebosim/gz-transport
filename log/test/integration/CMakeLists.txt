@@ -1,6 +1,6 @@
 # Integration tests
 
-ign_build_tests(
+gz_build_tests(
   TYPE "INTEGRATION"
   TEST_LIST logging_tests
   SOURCES
@@ -39,10 +39,10 @@ foreach(source_file ${aux})
   string(REGEX REPLACE ".cc" "" AUX_EXECUTABLE ${source_file})
   set(BINARY_NAME ${TEST_TYPE}_${AUX_EXECUTABLE})
 
-  ign_add_executable(${BINARY_NAME} ${AUX_EXECUTABLE}.cc)
+  gz_add_executable(${BINARY_NAME} ${AUX_EXECUTABLE}.cc)
 
   # Include the interface directories that we always need.
-  ign_target_interface_include_directories(${BINARY_NAME}
+  gz_target_interface_include_directories(${BINARY_NAME}
     ${PROJECT_LIBRARY_TARGET_NAME})
 
   # Link the libraries that we always need.
@@ -64,20 +64,20 @@ foreach(source_file ${aux})
     PRIVATE GZ_TRANSPORT_LOG_BUILD_PATH="$<TARGET_FILE_DIR:${BINARY_NAME}>")
 endforeach()
 
-# ign log CLI test
-if (IGNITION-TOOLS_BINARY_DIRS)
-  set(GZ_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/ignition")
+# gz log CLI test
+if (HAVE_GZ_TOOLS)
+  set(GZ_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/gz")
 
-  add_test(ign_log_record_no_overwrite
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_no_overwrite.rb
+  add_test(gz_log_record_no_overwrite
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_no_overwrite.rb
   )
 
-  add_test(ign_log_record_force
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/ign_log_record_force.rb
+  add_test(gz_log_record_force
+    ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_force.rb
   )
   set_tests_properties(
-    ign_log_record_no_overwrite
-    ign_log_record_force
+    gz_log_record_no_overwrite
+    gz_log_record_force
     PROPERTIES
     ENVIRONMENT
       "GZ_CONFIG_PATH=${GZ_CONFIG_PATH};GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql"

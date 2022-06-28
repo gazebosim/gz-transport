@@ -21,8 +21,8 @@
 #include <unordered_set>
 
 #include "gz/transport/log/Log.hh"
-#include "gz/transport/test_config.h"
-#include "gz/transport/log/test_config.h"
+#include "test_config.hh"
+#include "log/test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;
@@ -257,12 +257,4 @@ TEST(Log, OpenCorruptDatabase)
   logFile.Open(path);
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "
     << logFile.EndTime().count() << "ns";;
-}
-
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

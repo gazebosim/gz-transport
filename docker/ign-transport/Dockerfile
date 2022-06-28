@@ -72,7 +72,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
 
 # Ignition transport
 RUN git clone https://github.com/gazebosim/gz-transport.git \
- && cd ign-transport \
+ && cd gz-transport \
  && mkdir build \
  && cd build \
  && cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
@@ -80,7 +80,7 @@ RUN git clone https://github.com/gazebosim/gz-transport.git \
  && cd ../..
 
 # Ignition transport examples
-RUN cd ign-transport/example \
+RUN cd gz-transport/example \
  && mkdir build \
  && cd build \
  && cmake .. \

@@ -38,15 +38,15 @@ password. Also, every subscriber will only connect to secure publishers.
 ### Example
 
 First, let's test unsecure communication. This example requires
-[ign-tools](https://github.com/gazebosim/gz-tools).
+[gz-tools](https://github.com/gazebosim/gz-tools).
 
 1. Open a terminal, and echo topic `/foo`.
 ```
-ign topic -t /foo -e
+gz topic -t /foo -e
 ```
 2. Open a second terminal and publish a message on topic `/foo`.
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Unsecure message"'
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Unsecure message"'
 ```
 3. The first terminal should see the following output.
 ```
@@ -55,7 +55,7 @@ data: "Unsecure message"
 
 Now let's try a secure publisher and an unsecure subscriber.
 
-1. Leave the first terminal running `ign topic -t /foo -e`.
+1. Leave the first terminal running `gz topic -t /foo -e`.
 2. Setup authentication in the second terminal:
 ```
 export GZ_TRANSPORT_USERNAME=user
@@ -63,7 +63,7 @@ export GZ_TRANSPORT_PASSWORD=pass
 ```
 3. Now publish a message in the second terminal:
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
 ```
 4. The first terminal should not change, which indicates that subscriber was
    not able to authenticate with the secure publisher.
@@ -77,12 +77,12 @@ export GZ_TRANSPORT_PASSWORD=pass
 ```
 2. Echo the `/foo` topic in the secure third terminal.
 ```
-ign topic -t /foo -e
+gz topic -t /foo -e
 ```
 3. Go back to the secure publisher in the second terminal, and re-run the
    publish command.
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
 ```
 4. The third terminal, running the secure subscriber, should output the
    following.

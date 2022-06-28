@@ -51,10 +51,3 @@ TEST(UuidTest, testToString)
   for (auto i = 24; i < 36; ++i)
     EXPECT_GT(isxdigit(output.str()[i]), 0);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

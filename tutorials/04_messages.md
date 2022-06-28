@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 #include <gz/transport.hh>
 ```
 
-The line `#include <gz/transport.hh>` contains all the Ignition
+The line `#include <gz/transport.hh>` contains all the Gazebo
 Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
@@ -496,7 +496,7 @@ there is a new subdirectory to inspect containing our custom messages.
 if (EXISTS "${CMAKE_SOURCE_DIR}/publisher_custom_msg.cc")
   add_executable(publisher_custom_msg publisher_custom_msg.cc)
   target_link_libraries(publisher_custom_msg
-     ${IGNITION-TRANSPORT_LIBRARIES}
+     ${GZ-TRANSPORT_LIBRARIES}
      ${PROTO_SRC}
   )
   add_dependencies(publisher_custom_msg protobuf_compilation)
@@ -505,7 +505,7 @@ endif()
 if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_custom_msg.cc")
   add_executable(subscriber_custom_msg subscriber_custom_msg.cc)
   target_link_libraries(subscriber_custom_msg
-    ${IGNITION-TRANSPORT_LIBRARIES}
+    ${GZ-TRANSPORT_LIBRARIES}
     ${PROTO_SRC}
   )
   add_dependencies(subscriber_custom_msg protobuf_compilation)
@@ -591,10 +591,10 @@ From terminal 1:
 From terminal 2 (requires Gazebo Tools):
 
 ```{.sh}
-ign topic --echo -t /bar
+gz topic --echo -t /bar
 ```
 
 And you should receive all the messages coming in terminal 2.
 
-The command `ign log playback` also supports the notion of topic remapping. Run
-`ign log playback -h` in your terminal for further details (requires Gazebo Tools).
+The command `gz log playback` also supports the notion of topic remapping. Run
+`gz log playback -h` in your terminal for further details (requires Gazebo Tools).

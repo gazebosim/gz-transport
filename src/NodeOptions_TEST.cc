@@ -19,7 +19,7 @@
 
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/NodeOptions.hh"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;
@@ -72,11 +72,4 @@ TEST(NodeOptionsTest, accessors)
   EXPECT_EQ(opts.Partition(), defaultPartition);
   EXPECT_TRUE(opts.SetPartition(aPartition));
   EXPECT_EQ(opts.Partition(), aPartition);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

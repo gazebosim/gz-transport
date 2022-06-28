@@ -12,7 +12,7 @@
 1. Remove unnecessary copy and assignment operators
     * [Pull request #240](https://github.com/gazebosim/gz-transport/pull/240)
 
-1. Depend on ign-msgs8
+1. Depend on gz-msgs8
     * [Pull request #238](https://github.com/gazebosim/gz-transport/pull/238)
 
 1. Infrastructure
@@ -25,7 +25,7 @@
 
 ### Gazebo Transport 10.2.0 (2022-03-25)
 
-1. Use exec instead of popen to run ign-launch binary
+1. Use exec instead of popen to run gz-launch binary
     * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
 
 1. Focal CI: static checkers, doxygen linters, compiler warnings
@@ -57,7 +57,7 @@
 1. Fix Homebrew warning (backport from Fortress).
    * [Github pull request 268](https://github.com/gazebosim/gz-transport/pull/268)
 
-1. Use standalone executables with ign tool.
+1. Use standalone executables with gz tool.
    * [Github pull request 216](https://github.com/gazebosim/gz-transport/pull/216)
 
 1. Make zmq check for post 4.3.1 not to include 4.3.1
@@ -74,7 +74,7 @@
 1. Add instructions to build and run examples
     * [Pull request #222](https://github.com/gazebosim/gz-transport/pull/222)
 
-1. Bump in edifice: ign-msgs7
+1. Bump in edifice: gz-msgs7
     * [Pull request #213](https://github.com/gazebosim/gz-transport/pull/213)
 
 1. Configurable IP address and port for discovery
@@ -372,7 +372,7 @@
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
-   `ign.hh` header file private (not installed).
+   `gz.hh` header file private (not installed).
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 1. Added start of C interface, currently it supports only pub/sub.
@@ -390,7 +390,7 @@
 
 ### Gazebo Transport 6.X.X
 
-1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for ign tool files
+1. Ignore EPERM and ENOBUFS errors during discovery, generalize cmake for gz tool files
     * [BitBucket pull request 380](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/380)
     * [Issue 106](https://github.com/gazebosim/gz-transport/issues/106)
 
@@ -424,7 +424,7 @@
 1. Added the ability to Pause/Resume playback from the log replayer.
     * [BitBucket pull request 334](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/334)
 
-1. Added support for topic remapping when running "ign log playback". Note that
+1. Added support for topic remapping when running "gz log playback". Note that
    the string ":=" is not allowed now as part of a partition, namespace or topic
    anymore.
     * [BitBucket pull request 331](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/331)
@@ -449,7 +449,7 @@
    versions
     * [BitBucket pull request 310](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/310)
 
-1. Converted ignition-transport-log into a component
+1. Converted gz-transport-log into a component
     * [BitBucket pull request 298](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/298)
 
 1. Added inline versioned namespace to the log library
@@ -458,7 +458,7 @@
 1. Added inline versioned namespace to the main library
     * [BitBucket pull request 301](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/301)
 
-1. Added --force option to 'ign log record'
+1. Added --force option to 'gz log record'
     * [BitBucket pull request 325](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/325)
 
 ## Gazebo Transport 4
@@ -503,7 +503,7 @@
 1. Basic authentication for topics.
     * [BitBucket pull request 236](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/236)
 
-1. Upgrade to ign-cmake.
+1. Upgrade to gz-cmake.
     * [BitBucket pull request 239](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/239)
 
 1. Added a benchmark program to test latency and throughput.
@@ -547,7 +547,7 @@
 1. Workaround for the ghost Msbuild warning in Jenkins plugin
     * [BitBucket pull request 205](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/205)
 
-1. Added tests for ign.cc
+1. Added tests for gz.cc
     * [BitBucket pull request 209](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/209)
 
 1. Remove manual setting of flags for dynamic linking of the Windows CRT library
@@ -571,7 +571,7 @@
 1. SubscriptionHandler.hh fix std::move compiler warning
     * [BitBucket pull request 222](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/222)
 
-1. Fix ign topic|service fails on MacOS X if system integrity protection is enabled
+1. Fix gz topic|service fails on MacOS X if system integrity protection is enabled
     * [BitBucket pull request 227](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/227)
     * [Issue 72](https://github.com/gazebosim/gz-transport/issues/72)
 
@@ -589,7 +589,7 @@
    check if a Publisher has subscribers.
     * [BitBucket pull request 190](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/190)
 
-1. Add ign topic --echo command line tool.
+1. Add gz topic --echo command line tool.
     * [BitBucket pull request 189](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/189)
 
 1. Support a generic callback signature for receiving messages of any type.
@@ -610,7 +610,7 @@
    set the received message rate on the subscriber side.
     * [BitBucket pull request 174](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/174)
 
-1. Added ign service --req <args ...> for requesting services using the command line.
+1. Added gz service --req <args ...> for requesting services using the command line.
     * [BitBucket pull request 172](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/172)
 
 1. Do not allow to advertise a topic that is currently advertised on the same node.

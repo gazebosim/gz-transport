@@ -54,7 +54,7 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 Run the following commands:
 ```
 brew tap osrf/simulation
-brew install ignition-transport<#>
+brew install gz-transport<#>
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -67,8 +67,8 @@ Miniconda suffices.
 
 Create if necessary, and activate a Conda environment:
 ```
-conda create -n ign-ws
-conda activate ign-ws
+conda create -n gz-ws
+conda activate gz-ws
 ```
 
 Install:
@@ -104,7 +104,7 @@ git clone https://github.com/gazebosim/gz-transport
 
 Configure and build
 ```
-cd ign-common
+cd gz-common
 mkdir build
 cd build
 cmake ..
@@ -125,7 +125,7 @@ between source and debian installs:
 cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ..
 ```
 
-B. Debug mode: This will generate code with debug symbols. Ignition
+B. Debug mode: This will generate code with debug symbols. Gazebo
 Transport will run slower, but you'll be able to use GDB.
 ```
 cmake -DCMAKE_BUILD_TYPE=Debug ..
@@ -181,14 +181,14 @@ sudo make uninstall
 
 2. Install dependencies
   ```
-  brew install --only-dependencies ignition-transport<#>
+  brew install --only-dependencies gz-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
 
 3. Configure and build
   ```
-  cd ign-transport
+  cd gz-transport
   mkdir build
   cd build
   cmake ..
@@ -204,13 +204,13 @@ sudo make uninstall
 
 ### Prerequisites
 
-First, follow the [ign-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+First, follow the [gz-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
 
 Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
 
 Activate the Conda environment:
 ```
-conda activate ign-ws
+conda activate gz-ws
 ```
 
 Install prerequisites:
@@ -218,7 +218,7 @@ Install prerequisites:
 conda install zeromq cppzmq --channel conda-forge
 ```
 
-Install Ignition dependencies:
+Install Gazebo dependencies:
 
 You can view available versions and their dependencies:
 ```
@@ -240,7 +240,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 2. Configure and build
   ```
-  cd ign-transport
+  cd gz-transport
   mkdir build
   cd build
   cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
@@ -254,10 +254,10 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 4. Optionally, build the examples
 
-  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``ignition-transport<#>-config.cmake``.
-  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\ignition-transport<#>\lib\cmake\ignition-transport<#>``.
+  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``gz-transport<#>-config.cmake``.
+  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\gz-transport<#>\lib\cmake\gz-transport<#>``.
   ```
-  cd ign-transport\example
+  cd gz-transport\example
   mkdir build
   cd build
   cmake ..  # Optionally, -DCMAKE_PREFIX_PATH=path\to\cmake\config

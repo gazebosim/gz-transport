@@ -15,7 +15,7 @@
  *
 */
 
-#include <gz/transport/test_config.h>
+#include <test_config.hh>
 
 #include <chrono>
 #include <iostream>

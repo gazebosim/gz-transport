@@ -154,10 +154,3 @@ TEST(Descriptor, TopicKeyEquality)
   EXPECT_FALSE(key1 == key3);
   EXPECT_EQ(key1, key4);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
