@@ -12,7 +12,7 @@
 1. Remove unnecessary copy and assignment operators
     * [Pull request #240](https://github.com/gazebosim/gz-transport/pull/240)
 
-1. Depend on ign-msgs8
+1. Depend on gz-msgs8
     * [Pull request #238](https://github.com/gazebosim/gz-transport/pull/238)
 
 1. Infrastructure
@@ -25,7 +25,7 @@
 
 ### Gazebo Transport 10.2.0 (2022-03-25)
 
-1. Use exec instead of popen to run ign-launch binary
+1. Use exec instead of popen to run gz-launch binary
     * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
 
 1. Focal CI: static checkers, doxygen linters, compiler warnings
@@ -74,7 +74,7 @@
 1. Add instructions to build and run examples
     * [Pull request #222](https://github.com/gazebosim/gz-transport/pull/222)
 
-1. Bump in edifice: ign-msgs7
+1. Bump in edifice: gz-msgs7
     * [Pull request #213](https://github.com/gazebosim/gz-transport/pull/213)
 
 1. Configurable IP address and port for discovery
@@ -503,7 +503,7 @@
 1. Basic authentication for topics.
     * [BitBucket pull request 236](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/236)
 
-1. Upgrade to ign-cmake.
+1. Upgrade to gz-cmake.
     * [BitBucket pull request 239](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/239)
 
 1. Added a benchmark program to test latency and throughput.

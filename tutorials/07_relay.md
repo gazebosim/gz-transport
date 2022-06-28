@@ -14,8 +14,8 @@ simulate this configuration, and then we'll enable the relay capabilities of
 Gazebo Transport to make the communication possible.
 
 ```{.sh}
-mkdir -p ~/ign_transport_tutorial/docker/ign-transport
-cd ~/ign_transport_tutorial/docker
+mkdir -p ~/gz_transport_tutorial/docker/gz-transport
+cd ~/gz_transport_tutorial/docker
 ```
 
 ## Setup
@@ -31,23 +31,23 @@ Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/main/doc
 ```{.sh}
 wget https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash
 wget https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash
-wget https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile -O gz-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
 Now, it's time to build the Docker image:
 ```
-./build.bash ign-transport
+./build.bash gz-transport
 ```
 
 Run your Docker container:
 ```
-./run.bash ign-transport
+./run.bash gz-transport
 ```
 
 Inside the docker instance, go to the `example` directory:
 ```
-cd ign-transport/example/build
+cd gz-transport/example/build
 ```
 
 Back on your host, make sure that you have Gazebo Tools and net-tools
@@ -60,7 +60,7 @@ Now, let's configure Gazebo Transport to block all multicast traffic going
 into your Docker instance. Run the command `ifconfig` to list your network
 interfaces:
 ```
-caguero@bb9:~/ign_transport_tutorial/docker$ ifconfig
+caguero@bb9:~/gz_transport_tutorial/docker$ ifconfig
 docker0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
         inet6 fe80::42:73ff:fe1c:351e  prefixlen 64  scopeid 0x20<link>
@@ -105,7 +105,7 @@ GZ_PARTITION=relay ./publisher
 
 ## Launch the subscriber
 
-Open a terminal in your host and launch your subscriber, forcing Ignition
+Open a terminal in your host and launch your subscriber, forcing Gazebo
 Transport to only bind to the IP address that we found in the previous step:
 
 ```
@@ -120,7 +120,7 @@ Docker container. For that purpose, you'll need to know the IP address used
 in your Docker container. Run the `ifconfig` command inside your Docker
 instance:
 ```
-developer@b98e0f32f32f:~/ign-transport/example/build$ ifconfig
+developer@b98e0f32f32f:~/gz-transport/example/build$ ifconfig
 eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 172.17.0.3  netmask 255.255.0.0  broadcast 172.17.255.255
         ether 02:42:ac:11:00:03  txqueuelen 0  (Ethernet)
