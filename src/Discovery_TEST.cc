@@ -27,7 +27,7 @@
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
-#include "gz/transport/test_config.h"
+#include "test_config.hh"
 
 using namespace gz;
 using namespace transport;

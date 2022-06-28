@@ -489,10 +489,3 @@ TEST(QueryMessages, QueryTopicListBeforeInclusive)
   }
   EXPECT_EQ(5u, num_msgs);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

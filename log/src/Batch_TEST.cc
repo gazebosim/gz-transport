@@ -26,10 +26,3 @@ TEST(Batch, DefaultNoMessages)
   transport::log::Batch batch;
   EXPECT_EQ(batch.begin(), batch.end());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

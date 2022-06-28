@@ -177,10 +177,3 @@ TEST(QueryOptionsTopicPattern, MoveConstructor)
   EXPECT_TRUE(std::regex_match("foo", uutPattern));
   EXPECT_FALSE(std::regex_match("bar", uutPattern));
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

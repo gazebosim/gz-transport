@@ -101,10 +101,3 @@ TEST(TopicsStatistics, AvgStdDev)
   EXPECT_DOUBLE_EQ(2.0, stats.Avg());
   EXPECT_NEAR(0.816, stats.StdDev(), 1e-3);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

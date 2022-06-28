@@ -19,7 +19,7 @@
 #define GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
 #include <gz/msgs/int32.pb.h>
-#include <gz/transport/test_config.h>
+#include <test_config.hh>
 
 #include <string>
 #include <vector>

@@ -252,10 +252,3 @@ TEST(AdvertiseOptionsTest, srvAccessors)
   opts.SetScope(Scope_t::HOST);
   EXPECT_EQ(opts.Scope(), Scope_t::HOST);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

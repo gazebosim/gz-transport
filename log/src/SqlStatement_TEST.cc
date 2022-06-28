@@ -129,10 +129,3 @@ TEST(SqlParameter, MoveAssignment)
   ASSERT_NE(nullptr, param.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
