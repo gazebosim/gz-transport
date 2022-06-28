@@ -1,5 +1,47 @@
 ## Ignition Transport 11.X
 
+### Ignition Transport 11.1.0 (2022-06-01)
+
+1. Add option to output messages in JSON format
+    * [Pull request #288](https://github.com/gazebosim/gz-transport/pull/288)
+
+1. Use libexec to install lib binaries
+    * [Pull request #279](https://github.com/gazebosim/gz-transport/pull/279)
+    * [Pull request #314](https://github.com/gazebosim/gz-transport/pull/314)
+
+1. Use `exec` instead of `popen` to run `ign-launch` binary
+    * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
+
+1. Focal CI: static checkers, doxygen linters, compiler warnings
+    * [Pull request #298](https://github.com/gazebosim/gz-transport/pull/298)
+
+1. Add Ubuntu Jammy CI
+    * [Pull request #293](https://github.com/gazebosim/gz-transport/pull/293)
+
+1. Corrected a typo in `topic_main.cc`
+    * [Pull request #292](https://github.com/gazebosim/gz-transport/pull/292)
+
+1. Remove no username error messages
+    * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
+
+1. Try `USER` variable to retrieve the username.
+    * [Pull request #282](https://github.com/gazebosim/gz-transport/pull/282)
+
+1. Documented the default value of `IGN_PARTITION`
+    * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/gazebosim/gz-transport/pull/273)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+    * [Pull request #237](https://github.com/gazebosim/gz-transport/pull/237)
+
+1. NetUtils: simplify logic in `determineInterfaces`
+    * [Pull request #257](https://github.com/gazebosim/gz-transport/pull/257)
+
+1. Fix Homebrew warning (backport from Fortress) (#268)
+    * [Pull request #270](https://github.com/gazebosim/gz-transport/pull/270)
+
 ### Ignition Transport 11.0.0 (2021-09-28)
 
 1. Windows fix
