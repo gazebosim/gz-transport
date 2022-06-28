@@ -52,10 +52,3 @@ TEST(Message, DataConstructor)
   EXPECT_EQ(topic, msg.Topic());
   EXPECT_EQ(goldenTime, msg.TimeReceived());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

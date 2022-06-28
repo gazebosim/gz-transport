@@ -73,10 +73,3 @@ TEST(NodeOptionsTest, accessors)
   EXPECT_TRUE(opts.SetPartition(aPartition));
   EXPECT_EQ(opts.Partition(), aPartition);
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

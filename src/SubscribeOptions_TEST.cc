@@ -54,10 +54,3 @@ TEST(SubscribeOptionsTest, throttled)
   opts.SetMsgsPerSec(3u);
   EXPECT_TRUE(opts.Throttled());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

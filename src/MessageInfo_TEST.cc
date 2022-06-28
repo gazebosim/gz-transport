@@ -126,10 +126,3 @@ TEST(MessageInfoTest, CopyConstructor)
   EXPECT_EQ("/b_topic", infoCopy.Topic());
   EXPECT_TRUE(infoCopy.IntraProcess());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

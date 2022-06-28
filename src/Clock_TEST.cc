@@ -154,10 +154,3 @@ TEST(ClockTest, BadNetworkClock)
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
   EXPECT_FALSE(badTimebaseClock.IsReady());
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

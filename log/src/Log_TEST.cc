@@ -258,11 +258,3 @@ TEST(Log, OpenCorruptDatabase)
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "
     << logFile.EndTime().count() << "ns";;
 }
-
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
