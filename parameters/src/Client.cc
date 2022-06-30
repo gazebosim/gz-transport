@@ -54,18 +54,20 @@ ParametersClient::ParametersClient(
     _timeoutMs)}
 {}
 
-std::unique_ptr<google::protobuf::Message>
-ParametersClient::Parameter(const std::string & _parameterName) const
+static msgs::ParameterValue
+GetParameterCommon(
+  const ParametersClientPrivate & dataPtr,
+  const std::string & _parameterName)
 {
   bool result{false};
-  const std::string service{dataPtr->serverNamespace + "/get_parameter"};
+  const std::string service{dataPtr.serverNamespace + "/get_parameter"};
 
   msgs::ParameterName req;
   msgs::ParameterValue res;
 
   req.set_name(_parameterName);
 
-  if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
+  if (!dataPtr.node.Request(service, req, dataPtr.timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::Parameter(): request timed out"};
@@ -75,11 +77,36 @@ ParametersClient::Parameter(const std::string & _parameterName) const
     throw ParameterNotDeclaredException {
       "ParametersClient::Parameter()", _parameterName.c_str()};
   }
+  return res;
+}
+
+std::unique_ptr<google::protobuf::Message>
+ParametersClient::Parameter(const std::string & _parameterName) const
+{
+  auto res = GetParameterCommon(*this->dataPtr, _parameterName);
   std::unique_ptr<google::protobuf::Message> ret =
     ignition::msgs::Factory::New(res.type());
   std::istringstream iss{res.value()};
   ret->ParseFromIstream(&iss);
   return ret;
+}
+
+void ParametersClient::Parameter(
+  const std::string & _parameterName,
+  google::protobuf::Message & _parameter) const
+{
+  auto res = GetParameterCommon(*this->dataPtr, _parameterName);
+  std::string protoType{"ign_msgs."};
+  protoType += _parameter.GetDescriptor()->name();
+  if (protoType != res.type()) {
+    throw ParameterInvalidTypeException{
+      "ParametersClient::Parameter()",
+      _parameterName.c_str(),
+      res.type().c_str(),
+      protoType.c_str()};
+  }
+  std::istringstream iss{res.value()};
+  _parameter.ParseFromIstream(&iss);
 }
 
 void
@@ -118,7 +145,7 @@ ParametersClient::SetParameter(
 void
 ParametersClient::DeclareParameter(
   const std::string & _parameterName,
-  const google::protobuf::Message & _msg) const
+  const google::protobuf::Message & _msg)
 {
   bool result{false};
   const std::string service{dataPtr->serverNamespace + "/declare_parameter"};

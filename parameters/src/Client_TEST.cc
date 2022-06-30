@@ -65,18 +65,13 @@ TEST_F(ParametersClientTest, Parameter)
       EXPECT_EQ(msgDownCasted->data(), false);
     }
     {
-      auto msg = client.Parameter("parameter2");
-      EXPECT_NE(msg, nullptr);
-      auto msgDownCasted = dynamic_cast<msgs::StringMsg *>(msg.get());
-      ASSERT_NE(msgDownCasted, nullptr);
-      EXPECT_EQ(msgDownCasted->data(), "");
+      msgs::StringMsg msg;
+      client.Parameter("parameter2", msg);
+      EXPECT_EQ(msg.data(), "");
     }
     {
-      auto msg = client.Parameter("parameter3");
-      EXPECT_NE(msg, nullptr);
-      auto msgDownCasted = dynamic_cast<msgs::StringMsg *>(msg.get());
-      ASSERT_NE(msgDownCasted, nullptr);
-      EXPECT_EQ(msgDownCasted->data(), "asd");
+      auto msg = client.Parameter<msgs::StringMsg>("parameter3");
+      EXPECT_EQ(msg.data(), "asd");
     }
   }
   {
