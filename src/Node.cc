@@ -335,11 +335,9 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     if (subscribers.haveLocal)
     {
-      for (const std::pair<std::string, ISubscriptionHandler_M> &node :
-           subscribers.localHandlers)
+      for (const auto &node : subscribers.localHandlers)
       {
-        for (const std::pair<std::string, ISubscriptionHandlerPtr> &handler :
-             node.second)
+        for (const auto &handler : node.second)
         {
           if (!handler.second)
           {
