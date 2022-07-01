@@ -38,8 +38,8 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      /// \brief Common interface, implemented by ParametersRegistry (local updates)
-      ///   and by ParametersClients (remote requests).
+      /// \brief Common interface, implemented by ParametersRegistry
+      ///   (local updates) and by ParametersClients (remote requests).
       class ParametersInterface
       {
         /// Default virtual destructor.
@@ -63,17 +63,18 @@ namespace ignition
         /// \throw std::runtime_error if an unexpected error happens.
         public: virtual std::unique_ptr<google::protobuf::Message> Parameter(
           const std::string & _parameterName) const = 0;
-        
+
         /// \brief Request the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
         /// \throw ParameterNotDeclaredException if a parameter of that name
         ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if the type of `_parameter` does not match
-        ///   the type of the parameter when it was declared.
+        /// \throw ParameterInvalidTypeException if the type of `_parameter`
+        ///    does not match the type of the parameter when it was declared.
         /// \throw std::runtime_error if an unexpected error happens.
         public: virtual void Parameter(
-          const std::string & _parameterName, google::protobuf::Message & _parameter) const = 0;
+          const std::string & _parameterName,
+          google::protobuf::Message & _parameter) const = 0;
 
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be set.
@@ -88,7 +89,8 @@ namespace ignition
 
         /// \brief List all existing parameters.
         /// \return The name and types of existing parameters.
-        public: virtual ignition::msgs::ParameterDeclarations ListParameters() const = 0;
+        public: virtual ignition::msgs::ParameterDeclarations
+        ListParameters() const = 0;
 
         /// \brief Get the value of a parameter.
         /// \tparam ProtoMsgT A protobuf message type, e.g.: ign::msgs::Boolean.

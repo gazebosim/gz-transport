@@ -254,7 +254,8 @@ ParametersRegistry::Parameter(const std::string & _parameterName) const
 
 void
 ParametersRegistry::Parameter(
-  const std::string & _parameterName, google::protobuf::Message & _parameter) const
+  const std::string & _parameterName,
+  google::protobuf::Message & _parameter) const
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it = GetParameterCommon(*this->dataPtr, _parameterName);

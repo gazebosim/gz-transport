@@ -31,14 +31,17 @@ class ParametersClientTest : public ::testing::Test {
  protected:
   void SetUp() override {
     registry_.DeclareParameter("parameter1", std::make_unique<msgs::Boolean>());
-    registry_.DeclareParameter("parameter2", std::make_unique<msgs::StringMsg>());
+    registry_.DeclareParameter(
+      "parameter2", std::make_unique<msgs::StringMsg>());
     auto anotherStrMsg = std::make_unique<msgs::StringMsg>();
     anotherStrMsg->set_data("asd");
     registry_.DeclareParameter("parameter3", std::move(anotherStrMsg));
-    registry_other_ns_.DeclareParameter("another_param1", std::make_unique<msgs::Boolean>());
+    registry_other_ns_.DeclareParameter(
+      "another_param1", std::make_unique<msgs::Boolean>());
     anotherStrMsg = std::make_unique<msgs::StringMsg>();
     anotherStrMsg->set_data("bsd");
-    registry_other_ns_.DeclareParameter("another_param2", std::move(anotherStrMsg));
+    registry_other_ns_.DeclareParameter(
+      "another_param2", std::move(anotherStrMsg));
   }
 
   void TearDown() override {}
@@ -106,7 +109,8 @@ TEST_F(ParametersClientTest, SetParameter)
   {
     ParametersClient client;
     msgs::Boolean msg;
-    // TODO(ivanpauno): We should be able to identify this as a wrong parameter type error
+    // TODO(ivanpauno): We should be able to identify this as a wrong
+    // parameter type error
     EXPECT_THROW(
       client.SetParameter("parameter2", msg),
       ParameterNotDeclaredException);
@@ -185,14 +189,20 @@ TEST_F(ParametersClientTest, ListParameters)
     bool foundParam1{false};
     bool foundParam2{false};
     for (auto decl : declarations.parameter_declarations()) {
-      if (decl.name() == "another_param1" && decl.type() == "ign_msgs.Boolean") {
+      if (
+        decl.name() == "another_param1" && decl.type() == "ign_msgs.Boolean")
+      {
         foundParam1 = true;
       }
-      if (decl.name() == "another_param2" && decl.type() == "ign_msgs.StringMsg") {
+      if (
+        decl.name() == "another_param2" && decl.type() == "ign_msgs.StringMsg")
+      {
         foundParam2 = true;
       }
     }
-    EXPECT_TRUE(foundParam1) << "expected to find declaration for another_param1";
-    EXPECT_TRUE(foundParam2) << "expected to find declaration for another_param2";
+    EXPECT_TRUE(foundParam1)
+      << "expected to find declaration for another_param1";
+    EXPECT_TRUE(foundParam2)
+      << "expected to find declaration for another_param2";
   }
 }

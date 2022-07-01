@@ -39,9 +39,11 @@ TEST(ParametersRegistry, DeclareParameter)
   EXPECT_THROW(
     registry.DeclareParameter("will_fail", nullptr),
     std::invalid_argument);
-  registry.DeclareParameter("parameter1", std::make_unique<ignition::msgs::Boolean>());
+  registry.DeclareParameter(
+    "parameter1", std::make_unique<ignition::msgs::Boolean>());
   EXPECT_THROW(
-    registry.DeclareParameter("parameter1", std::make_unique<ignition::msgs::Boolean>()),
+    registry.DeclareParameter(
+      "parameter1", std::make_unique<ignition::msgs::Boolean>()),
     ParameterAlreadyDeclaredException);
 }
 
@@ -70,7 +72,8 @@ TEST(ParametersRegistry, SetParameter)
 {
   ParametersRegistry registry{""};
   EXPECT_THROW(
-    registry.SetParameter("will_fail", std::make_unique<ignition::msgs::Boolean>()),
+    registry.SetParameter(
+      "will_fail", std::make_unique<ignition::msgs::Boolean>()),
     ParameterNotDeclaredException);
   registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
@@ -85,7 +88,8 @@ TEST(ParametersRegistry, SetParameter)
   readValue = registry.Parameter<ignition::msgs::Boolean>("parameter1");
   EXPECT_EQ(readValue.data(), false);
   EXPECT_THROW(
-    registry.SetParameter("parameter1", std::make_unique<ignition::msgs::StringMsg>()),
+    registry.SetParameter(
+      "parameter1", std::make_unique<ignition::msgs::StringMsg>()),
     ParameterInvalidTypeException);
 }
 
