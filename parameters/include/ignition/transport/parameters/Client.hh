@@ -95,7 +95,7 @@ namespace ignition
         /// See ParametersInterface::SetParameter().
         public: void SetParameter(
             const std::string & _parameterName,
-            const google::protobuf::Message & _msg) const final;
+            const google::protobuf::Message & _msg) final;
 
         /// \brief List all parameters.
         /// \return Protobuf message with a list of all declared parameter

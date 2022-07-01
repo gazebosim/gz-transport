@@ -56,18 +56,18 @@ ParametersClient::ParametersClient(
 
 static msgs::ParameterValue
 GetParameterCommon(
-  const ParametersClientPrivate & dataPtr,
+  const ParametersClientPrivate & _dataPtr,
   const std::string & _parameterName)
 {
   bool result{false};
-  const std::string service{dataPtr.serverNamespace + "/get_parameter"};
+  const std::string service{_dataPtr.serverNamespace + "/get_parameter"};
 
   msgs::ParameterName req;
   msgs::ParameterValue res;
 
   req.set_name(_parameterName);
 
-  if (!dataPtr.node.Request(service, req, dataPtr.timeoutMs, res, result))
+  if (!_dataPtr.node.Request(service, req, _dataPtr.timeoutMs, res, result))
   {
     throw std::runtime_error{
       "ParametersClient::Parameter(): request timed out"};
@@ -112,7 +112,7 @@ void ParametersClient::Parameter(
 void
 ParametersClient::SetParameter(
   const std::string & _parameterName,
-  const google::protobuf::Message & _msg) const
+  const google::protobuf::Message & _msg)
 {
   bool result{false};
   const std::string service{dataPtr->serverNamespace + "/set_parameter"};

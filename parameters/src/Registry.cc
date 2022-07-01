@@ -38,8 +38,17 @@ using namespace ignition;
 using namespace transport;
 using namespace parameters;
 
-using ParametersMapT = std::unordered_map<
-  std::string, ParametersRegistry::ParameterValue>;
+namespace
+{
+  struct ParameterValue
+  {
+    std::unique_ptr<google::protobuf::Message> msg;
+    std::string protoType;
+  };
+
+  using ParametersMapT = std::unordered_map<
+    std::string, ParameterValue>;
+}
 
 struct ignition::transport::parameters::ParametersRegistryPrivate
 {
@@ -167,7 +176,7 @@ bool ParametersRegistryPrivate::DeclareParameter(
   const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   (void)_res;
-  ParametersRegistry::ParameterValue value;
+  ParameterValue value;
   value.protoType = _req.type();
   value.msg = ignition::msgs::Factory::New(_req.type());
   if (!value.msg) {
@@ -190,7 +199,7 @@ void ParametersRegistry::DeclareParameter(
     throw std::invalid_argument{
       "ParametersRegistry::DeclareParameter(): `_parameterName` is nullptr"};
   }
-  ParametersRegistry::ParameterValue value;
+  ParameterValue value;
   value.protoType = std::string{"ign_msgs."}
     + _initialValue->GetDescriptor()->name();
   value.msg = std::move(_initialValue);
@@ -204,28 +213,61 @@ void ParametersRegistry::DeclareParameter(
   }
 }
 
-ParametersRegistry::ParameterValue
+void ParametersRegistry::DeclareParameter(
+  const std::string & _parameterName,
+  const google::protobuf::Message & _msg)
+{
+  std::string protoType{"ign_msgs."};
+  protoType += _msg.GetDescriptor()->name();
+  auto new_msg = ignition::msgs::Factory::New(protoType);
+  new_msg->CopyFrom(_msg);
+  this->DeclareParameter(_parameterName, std::move(new_msg));
+}
+
+static auto GetParameterCommon(
+  const ParametersRegistryPrivate & _dataPtr,
+  const std::string & _parameterName)
+{
+  auto it = _dataPtr.parametersMap.find(_parameterName);
+  if (it == _dataPtr.parametersMap.end()) {
+    throw ParameterNotDeclaredException{
+      "ParametersRegistry::Parameter()",
+      _parameterName.c_str()};
+  }
+  return it;
+}
+
+std::unique_ptr<google::protobuf::Message>
 ParametersRegistry::Parameter(const std::string & _parameterName) const
 {
-  ParameterValue ret;
-  {
-    std::lock_guard guard{this->dataPtr->parametersMapMutex};
-    auto it = this->dataPtr->parametersMap.find(_parameterName);
-    if (it == this->dataPtr->parametersMap.end()) {
-      throw ParameterNotDeclaredException{
-        "ParametersRegistry::Parameter()",
-        _parameterName.c_str()};
-    }
-    ret.protoType = it->second.protoType;
-    ret.msg = ignition::msgs::Factory::New(ret.protoType);
-    if (!ret.msg) {
-      throw std::runtime_error{
-        "ParametersRegistry::Parameter(): failed to create new message"
-        " of type [" + ret.protoType + "]"};
-    }
-    ret.msg->CopyFrom(*it->second.msg);
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it = GetParameterCommon(*this->dataPtr, _parameterName);
+  auto ret = ignition::msgs::Factory::New(it->second.protoType);
+  if (!ret) {
+    throw std::runtime_error{
+      "ParametersRegistry::Parameter(): failed to create new message"
+      " of type [" + it->second.protoType + "]"};
   }
+  ret->CopyFrom(*it->second.msg);
   return ret;
+}
+
+void
+ParametersRegistry::Parameter(
+  const std::string & _parameterName, google::protobuf::Message & _parameter) const
+{
+  std::lock_guard guard{this->dataPtr->parametersMapMutex};
+  auto it = GetParameterCommon(*this->dataPtr, _parameterName);
+  std::string protoType{"ign_msgs."};
+  protoType += _parameter.GetDescriptor()->name();
+  if (protoType != it->second.protoType) {
+    throw ParameterInvalidTypeException{
+      "ParametersClient::Parameter()",
+      _parameterName.c_str(),
+      it->second.protoType.c_str(),
+      protoType.c_str()};
+  }
+  _parameter.CopyFrom(*it->second.msg);
 }
 
 void
@@ -282,19 +324,4 @@ ParametersRegistry::ListParameters() const
 
   dataPtr->ListParameters(unused, ret);
   return ret;
-}
-
-void
-ParametersRegistry::WithParameter(
-  const std::string & _parameterName,
-  std::function<void(const google::protobuf::Message &)> fn) const
-{
-  std::lock_guard guard{this->dataPtr->parametersMapMutex};
-  auto it = this->dataPtr->parametersMap.find(_parameterName);
-  if (it == this->dataPtr->parametersMap.end()) {
-    throw ParameterNotDeclaredException{
-      "ParametersRegistry::WithParameter()",
-      _parameterName.c_str()};
-  }
-  fn(*it->second.msg);
 }

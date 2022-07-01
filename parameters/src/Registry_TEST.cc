@@ -54,11 +54,11 @@ TEST(ParametersRegistry, Parameter)
     ParameterNotDeclaredException);
   registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
-  auto paramValue = registry.Parameter("parameter1");
-  EXPECT_NE(paramValue.msg, nullptr);
-  EXPECT_EQ(paramValue.protoType, "ign_msgs.Boolean");
-  auto msg = registry.Parameter<ignition::msgs::Boolean>("parameter1");
-  auto upcasted = dynamic_cast<ignition::msgs::Boolean *>(paramValue.msg.get());
+  auto param = registry.Parameter("parameter1");
+  EXPECT_NE(param, nullptr);
+  auto booleanParam = registry.Parameter<ignition::msgs::Boolean>("parameter1");
+  auto upcasted = dynamic_cast<ignition::msgs::Boolean *>(param.get());
+  EXPECT_EQ(upcasted->data(), booleanParam.data());
   ASSERT_NE(upcasted, nullptr);
   EXPECT_THROW(
     registry.Parameter<ignition::msgs::StringMsg>("parameter1"),

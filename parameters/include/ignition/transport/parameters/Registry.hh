@@ -28,6 +28,7 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/Interface.hh"
 
 namespace ignition
 {
@@ -50,15 +51,8 @@ namespace ignition
       /// * /${_parametersServicesNamespace}/list_parameters
       /// * /${_parametersServicesNamespace}/set_parameter
       /// * /${_parametersServicesNamespace}/declare_parameter
-      class ParametersRegistry
+      class ParametersRegistry : public ParametersInterface
       {
-        /// \brief Parameter message and its protobuf type name.
-        public: struct ParameterValue
-        {
-          std::unique_ptr<google::protobuf::Message> msg;
-          std::string protoType;
-        };
-
         /// \brief Constructor.
         /// \param[in] _parametersServicesNamespace Namespace that will be used
         ///   in all the created services names.
@@ -80,6 +74,39 @@ namespace ignition
           operator=(ParametersRegistry &&) = default;
 
         /// \brief Declare a new parameter.
+        /// See ParametersInterface::DeclareParameter().
+        public: void DeclareParameter(
+          const std::string & _parameterName,
+          const google::protobuf::Message & _msg) final;
+
+        /// \brief Request the value of a parameter.
+        /// See ParametersInterface::Parameter().
+        public: std::unique_ptr<google::protobuf::Message> Parameter(
+          const std::string & _parameterName) const final;
+
+        /// \brief Request the value of a parameter.
+        /// See ParametersInterface::Parameter().
+        public: void Parameter(
+          const std::string & _parameterName,
+          google::protobuf::Message & _parameter) const final;
+
+        /// \brief Request the value of a parameter.
+        /// See ParametersInterface::Parameter().
+        using ParametersInterface::Parameter;
+
+        /// \brief Set the value of a parameter.
+        /// See ParametersInterface::SetParameter().
+        public: void SetParameter(
+            const std::string & _parameterName,
+            const google::protobuf::Message & _msg) final;
+
+        /// \brief List all parameters.
+        /// \return Protobuf message with a list of all declared parameter
+        ///   names and their types.
+        public: ignition::msgs::ParameterDeclarations
+          ListParameters() const final;
+
+        /// \brief Declare a new parameter.
         /// \param[in] _parameterName Name of the parameter.
         /// \param[in] _initialValue The initial value of the parameter.
         ///   The parameter type will be deduced from the type of the message.
@@ -89,15 +116,6 @@ namespace ignition
         public: void DeclareParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _initialValue);
-
-        /// \brief Get the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to get.
-        /// \return The parameter value and its protobuf type.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw std::runtime_error if an unexpected error happens.
-        public: ParameterValue Parameter(
-          const std::string & _parameterName) const;
 
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to set.
@@ -110,56 +128,8 @@ namespace ignition
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
 
-        /// \brief Set the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to set.
-        /// \param[in] _value The value of the parameter.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if the type does not match
-        ///   the type of the parameter when it was declared.
-        public: void SetParameter(
-          const std::string & _parameterName,
-          const google::protobuf::Message & _value);
-
-        /// \brief List all existing parameters.
-        /// \return The name and types of existing parameters.
-        public: ignition::msgs::ParameterDeclarations ListParameters() const;
-
-        /// \brief Get the value of a parameter.
-        /// \tparam ProtoMsgT A protobuf message type, e.g.: ign::msgs::Boolean.
-        /// \param[in] _parameterName Name of the parameter to get.
-        /// \return The parameter value, as a protobuf message.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if ProtoMsgT does not match
-        ///   the type of the parameter when it was declared.
-        /// \throw std::runtime_error if an unexpected error happens.
-        public: template<typename ProtoMsgT>
-        ProtoMsgT Parameter(const std::string & _parameterName) const
-        {
-          ProtoMsgT ret;
-          this->WithParameter(
-            _parameterName,
-            [nameCStr = _parameterName.c_str() , &ret]
-            (const google::protobuf::Message & _msg) {
-              if (_msg.GetDescriptor() != ret.GetDescriptor()) {
-                throw ParameterInvalidTypeException{
-                  "ParametersRegistry::Parameter",
-                  nameCStr,
-                  _msg.GetDescriptor()->name().c_str(),
-                  ret.GetDescriptor()->name().c_str()};
-              }
-              ret.CopyFrom(_msg);
-            });
-          return ret;
-        }
-
         /// \brief Pointer to implementation.
         private: std::unique_ptr<ParametersRegistryPrivate> dataPtr;
-
-        private: void WithParameter(
-          const std::string & _parameterName,
-          std::function<void(const google::protobuf::Message &)> fn) const;
       };
       }
     }

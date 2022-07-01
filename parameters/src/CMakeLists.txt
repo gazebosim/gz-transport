@@ -10,6 +10,11 @@ ign_build_tests(
   SOURCES ${gtest_sources}
   LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS}
 )
+# ign_build_tests(
+#   TYPE "UNIT"
+#   SOURCES Client_TEST.cc
+#   LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS}
+# )
 
 if(NOT WIN32)
   add_subdirectory(cmd)

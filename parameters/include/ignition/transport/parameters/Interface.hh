@@ -84,7 +84,7 @@ namespace ignition
         ///   the type of the parameter when it was declared.
         public: virtual void SetParameter(
           const std::string & _parameterName,
-          const google::protobuf::Message & _msg) const = 0;
+          const google::protobuf::Message & _msg) = 0;
 
         /// \brief List all existing parameters.
         /// \return The name and types of existing parameters.
