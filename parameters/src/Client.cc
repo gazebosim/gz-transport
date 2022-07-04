@@ -27,6 +27,8 @@
 
 #include "ignition/transport/parameters/exceptions.hh"
 
+#include "Utils.hh"
+
 using namespace ignition;
 using namespace transport;
 using namespace parameters;
@@ -84,10 +86,23 @@ std::unique_ptr<google::protobuf::Message>
 ParametersClient::Parameter(const std::string & _parameterName) const
 {
   auto res = GetParameterCommon(*this->dataPtr, _parameterName);
+  auto ignTypeOpt = get_ign_type_from_any_proto(res.data());
+  if (!ignTypeOpt) {
+    throw std::runtime_error{
+      (std::string{"unexpected serialized parameter type url ["} +
+        res.data().type_url() + "]").c_str()};
+  }
+  auto ignType = add_ign_msgs_prefix(*ignTypeOpt);
   std::unique_ptr<google::protobuf::Message> ret =
-    ignition::msgs::Factory::New(res.type());
-  std::istringstream iss{res.value()};
-  ret->ParseFromIstream(&iss);
+    ignition::msgs::Factory::New(ignType);
+  if (!ret) {
+    throw std::runtime_error{
+      std::string{"could not create parameter of type ["} + ignType + "]"};
+  }
+  if (!res.data().UnpackTo(ret.get())) {
+    throw std::runtime_error{
+      "failed to unpack parameter of type [" + ignType + "]"};
+  }
   return ret;
 }
 
@@ -96,17 +111,24 @@ void ParametersClient::Parameter(
   google::protobuf::Message & _parameter) const
 {
   auto res = GetParameterCommon(*this->dataPtr, _parameterName);
-  std::string protoType{"ign_msgs."};
-  protoType += _parameter.GetDescriptor()->name();
-  if (protoType != res.type()) {
+  auto ignTypeOpt = get_ign_type_from_any_proto(res.data());
+  if (!ignTypeOpt) {
+    throw std::runtime_error{
+      (std::string{"unexpected serialized parameter type url ["} +
+        res.data().type_url() + "]").c_str()};
+  }
+  auto ignType = *ignTypeOpt;
+  if (ignType != _parameter.GetDescriptor()->name()) {
     throw ParameterInvalidTypeException{
       "ParametersClient::Parameter()",
       _parameterName.c_str(),
-      res.type().c_str(),
-      protoType.c_str()};
+      ignType.c_str(),
+      _parameter.GetDescriptor()->name().c_str()};
   }
-  std::istringstream iss{res.value()};
-  _parameter.ParseFromIstream(&iss);
+  if (!res.data().UnpackTo(&_parameter)) {
+    throw std::runtime_error{
+      "failed to unpack parameter of type [" + ignType + "]"};
+  }
 }
 
 void
@@ -117,18 +139,11 @@ ParametersClient::SetParameter(
   bool result{false};
   const std::string service{dataPtr->serverNamespace + "/set_parameter"};
 
-  std::string protoType{"ign_msgs."};
-  protoType += _msg.GetDescriptor()->name();
-
   msgs::Parameter req;
   msgs::Boolean res;
 
   req.set_name(_parameterName);
-  req.set_type(std::move(protoType));
-
-  std::ostringstream oss;
-  _msg.SerializeToOstream(&oss);
-  req.set_value(oss.str());
+  req.mutable_value()->PackFrom(_msg);
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
@@ -150,18 +165,11 @@ ParametersClient::DeclareParameter(
   bool result{false};
   const std::string service{dataPtr->serverNamespace + "/declare_parameter"};
 
-  std::string protoType{"ign_msgs."};
-  protoType += _msg.GetDescriptor()->name();
-
   msgs::Parameter req;
   msgs::Boolean res;
 
   req.set_name(_parameterName);
-  req.set_type(std::move(protoType));
-
-  std::ostringstream oss;
-  _msg.SerializeToOstream(&oss);
-  req.set_value(oss.str());
+  req.mutable_value()->PackFrom(_msg);
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {

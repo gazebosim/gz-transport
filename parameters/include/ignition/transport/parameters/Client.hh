@@ -25,6 +25,7 @@
 
 #include "ignition/msgs/parameter_declarations.pb.h"
 
+#include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/parameters/Interface.hh"
 
