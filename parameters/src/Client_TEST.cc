@@ -109,11 +109,9 @@ TEST_F(ParametersClientTest, SetParameter)
   {
     ParametersClient client;
     msgs::Boolean msg;
-    // TODO(ivanpauno): We should be able to identify this as a wrong
-    // parameter type error
     EXPECT_THROW(
       client.SetParameter("parameter2", msg),
-      ParameterNotDeclaredException);
+      ParameterInvalidTypeException);
   }
   {
     ParametersClient client;

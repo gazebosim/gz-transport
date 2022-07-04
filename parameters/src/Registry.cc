@@ -29,6 +29,7 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/parameter_declarations.pb.h>
+#include <ignition/msgs/parameter_error.pb.h>
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
 
@@ -63,13 +64,14 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
   /// \param[in] _req Request specifying which parameter to set and its value.
   /// \param[out] _res Unused.
   /// \return True if successful.
-  bool SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res);
+  bool SetParameter(const msgs::Parameter &_req, msgs::ParameterError &_res);
 
   /// \brief Declare parameter service callback.
   /// \param[in] _req Request specifying which parameter to be declared.
   /// \param[out] _res Unused.
   /// \return True if successful.
-  bool DeclareParameter(const msgs::Parameter &_req, msgs::Boolean &_res);
+  bool DeclareParameter(
+    const msgs::Parameter &_req, msgs::ParameterError &_res);
 
   ignition::transport::Node node;
   std::mutex parametersMapMutex;
@@ -137,8 +139,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
 }
 
 bool ParametersRegistryPrivate::SetParameter(
-  // cppcheck-suppress constParameter
-  const msgs::Parameter &_req, msgs::Boolean &_res)
+  const msgs::Parameter &_req, msgs::ParameterError &_res)
 {
   (void)_res;
   const auto & paramName = _req.name();
@@ -146,21 +147,22 @@ bool ParametersRegistryPrivate::SetParameter(
     std::lock_guard guard{this->parametersMapMutex};
     auto it = this->parametersMap.find(paramName);
     if (it == this->parametersMap.end()) {
-      // parameter not declared
-      return false;
+      _res.set_data(msgs::ParameterError::NOT_DECLARED);
+      return true;
     }
     auto requestedIgnTypeOpt = get_ign_type_from_any_proto(
       _req.value());
     if (!requestedIgnTypeOpt) {
-      return false;
+      _res.set_data(msgs::ParameterError::INVALID_TYPE);
+      return true;
     }
     auto requestedIgnType = *requestedIgnTypeOpt;
     if (it->second->GetDescriptor()->name() != requestedIgnType) {
-      // parameter type doesn't match
-      return false;
+      _res.set_data(msgs::ParameterError::INVALID_TYPE);
+      return true;
     }
     if (!_req.value().UnpackTo(it->second.get())) {
-      // failed to unpack parameter
+      // unexpected error
       return false;
     }
   }
@@ -168,29 +170,31 @@ bool ParametersRegistryPrivate::SetParameter(
 }
 
 bool ParametersRegistryPrivate::DeclareParameter(
-  // cppcheck-suppress constParameter
-  const msgs::Parameter &_req, msgs::Boolean &_res)
+  const msgs::Parameter &_req, msgs::ParameterError &_res)
 {
   (void)_res;
   const auto & ignTypeOpt = get_ign_type_from_any_proto(_req.value());
   if (!ignTypeOpt) {
-    return false;
+    _res.set_data(msgs::ParameterError::INVALID_TYPE);
+    return true;
   }
   auto ignType = add_ign_msgs_prefix(*ignTypeOpt);
   auto paramValue = ignition::msgs::Factory::New(ignType);
   if (!paramValue) {
-    // unknown parameter type
-    return false;
+    _res.set_data(msgs::ParameterError::INVALID_TYPE);
+    return true;
   }
   if (!_req.value().UnpackTo(paramValue.get())) {
-      // failed to unpack parameter
-      return false;
-    }
+    // unexpected error
+    return false;
+  }
   std::lock_guard guard{this->parametersMapMutex};
   auto it_emplaced_pair = this->parametersMap.emplace(
     std::make_pair(_req.name(), std::move(paramValue)));
-  // return false when already declared
-  return it_emplaced_pair.second;
+  if (!it_emplaced_pair.second) {
+    _res.set_data(msgs::ParameterError::ALREADY_DECLARED);
+  }
+  return true;
 }
 
 void ParametersRegistry::DeclareParameter(

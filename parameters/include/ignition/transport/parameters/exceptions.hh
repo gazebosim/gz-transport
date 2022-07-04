@@ -51,6 +51,15 @@ namespace ignition
           _paramName + "] is of type [" + _expectedParamType + "] but type [" +
           _providedParamType + "] was provided")
         {}
+
+        public: ParameterInvalidTypeException(
+          const char * _prefix, const char * _paramName,
+          const char * _providedParamType)
+        : std::invalid_argument(
+          std::string{_prefix} + ": provided parameter type [" +
+          _providedParamType + "] for parameter [" + _paramName +
+          "] is invalid")
+        {}
       };
 
       class ParameterNotDeclaredException : public std::runtime_error

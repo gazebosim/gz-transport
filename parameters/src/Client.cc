@@ -22,6 +22,7 @@
 #include <string>
 
 #include "ignition/msgs/boolean.pb.h"
+#include <ignition/msgs/parameter_error.pb.h>
 #include "ignition/msgs/parameter_name.pb.h"
 #include "ignition/msgs/parameter_value.pb.h"
 
@@ -140,7 +141,7 @@ ParametersClient::SetParameter(
   const std::string service{dataPtr->serverNamespace + "/set_parameter"};
 
   msgs::Parameter req;
-  msgs::Boolean res;
+  msgs::ParameterError res;
 
   req.set_name(_parameterName);
   req.mutable_value()->PackFrom(_msg);
@@ -152,9 +153,23 @@ ParametersClient::SetParameter(
   }
   if (!result)
   {
-    throw ParameterNotDeclaredException {
+    throw std::runtime_error {
+      "ParametersClient::SetParameter(): unexpected failure"};
+  }
+  if (res.data() == msgs::ParameterError::NO_ERROR) {
+    return;
+  }
+  if (res.data() == msgs::ParameterError::NOT_DECLARED) {
+    throw ParameterNotDeclaredException{
       "ParametersClient::SetParameter()", _parameterName.c_str()};
   }
+  if (res.data() == msgs::ParameterError::INVALID_TYPE) {
+    throw ParameterInvalidTypeException{
+      "ParametersClient::SetParameter()", _parameterName.c_str(),
+      _msg.GetDescriptor()->name().c_str()};
+  }
+  throw std::runtime_error {
+    "ParametersClient::SetParameter(): unexpected failure"};
 }
 
 void
@@ -166,7 +181,7 @@ ParametersClient::DeclareParameter(
   const std::string service{dataPtr->serverNamespace + "/declare_parameter"};
 
   msgs::Parameter req;
-  msgs::Boolean res;
+  msgs::ParameterError res;
 
   req.set_name(_parameterName);
   req.mutable_value()->PackFrom(_msg);
@@ -178,9 +193,23 @@ ParametersClient::DeclareParameter(
   }
   if (!result)
   {
-    throw ParameterAlreadyDeclaredException {
+    throw std::runtime_error {
+      "ParametersClient::DeclareParameter(): unexpected failure"};
+  }
+  if (res.data() == msgs::ParameterError::NO_ERROR) {
+    return;
+  }
+  if (res.data() == msgs::ParameterError::ALREADY_DECLARED) {
+    throw ParameterAlreadyDeclaredException{
       "ParametersClient::DeclareParameter()", _parameterName.c_str()};
   }
+  if (res.data() == msgs::ParameterError::INVALID_TYPE) {
+    throw ParameterInvalidTypeException{
+      "ParametersClient::DeclareParameter()", _parameterName.c_str(),
+      _msg.GetDescriptor()->name().c_str()};
+  }
+  throw std::runtime_error {
+    "ParametersClient::DeclareParameter(): unexpected failure"};
 }
 
 msgs::ParameterDeclarations

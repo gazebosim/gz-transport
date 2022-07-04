@@ -51,6 +51,8 @@ namespace ignition
         ///   parameter value.
         /// \throw ParameterAlreadyDeclaredException if a parameter with the
         ///   same name was declared before.
+        /// \throw ParameterInvalidTypeException (can only happen in client)
+        ///   if the parameter server does not recognize the parameter type.
         public: virtual void DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
