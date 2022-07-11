@@ -26,7 +26,7 @@ install Docker following any of the existing guides available
 
 We're going to build a Docker image and run it inside your host computer.
 Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash) and
-[Dockerfile](https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile) files.
+[Dockerfile](https://github.com/gazebosim/gz-transport/raw/main/docker/gz-transport/Dockerfile) files.
 
 ```{.sh}
 wget https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash
@@ -53,7 +53,7 @@ cd gz-transport/example/build
 Back on your host, make sure that you have Gazebo Tools and net-tools
 installed:
 ```
-sudo apt install ignition-tools2 net-tools
+sudo apt install gz-tools2 net-tools
 ```
 
 Now, let's configure Gazebo Transport to block all multicast traffic going

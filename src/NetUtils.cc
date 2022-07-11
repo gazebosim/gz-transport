@@ -131,7 +131,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   //////////////////////////////////////////////////
   std::string determineHost()
   {
-    // First, did the user set IGN_IP?
+    // First, did the user set GZ_IP?
     std::string gzIp;
     if (env("GZ_IP", gzIp) && !gzIp.empty())
     {

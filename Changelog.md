@@ -37,7 +37,7 @@
 1. Remove no username error messages
     * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
 
-1. Documented the default value of `IGN_PARTITION`
+1. Documented the default value of `GZ_PARTITION`
     * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
 
 1. Remove static on `registrationCb` and `unregistrationCb`.
@@ -380,7 +380,7 @@
     * [BitBucket pull request 370](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/370)
     * [BitBucket pull request 373](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/373)
 
-1. Introduce `IGN_RELAY`.
+1. Introduce `GZ_RELAY`.
     * [BitBucket pull request 364](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/364)
 
 1. Upgrade to ignition-msgs4.

@@ -15,14 +15,14 @@ target_link_libraries(gz
 )
 
 # Build topic CLI executable
-set(topic_executable ign-transport-topic)
+set(topic_executable gz-transport-topic)
 add_executable(${topic_executable} topic_main.cc)
 target_link_libraries(${topic_executable}
   gz
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${topic_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION ${GZ_LIB_INSTALL_DIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
 set(service_executable ign-transport-service)
@@ -32,7 +32,7 @@ target_link_libraries(${service_executable}
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${service_executable} DESTINATION ${IGN_LIB_INSTALL_DIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION ${GZ_LIB_INSTALL_DIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
@@ -64,8 +64,8 @@ endif()
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
+set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
@@ -73,7 +73,7 @@ set(service_exe_location "$<TARGET_FILE:${service_executable}>")
 set(topic_exe_location "$<TARGET_FILE:${topic_executable}>")
 
 configure_file(
-  "cmd${IGN_DESIGNATION}.rb.in"
+  "cmd${GZ_DESIGNATION}.rb.in"
   "${cmd_script_configured_test}"
   @ONLY)
 
@@ -87,16 +87,16 @@ file(GENERATE
 # Generate the ruby script that gets installed.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb
-set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(service_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
-set(topic_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
-  "cmd${IGN_DESIGNATION}.rb.in"
+  "cmd${GZ_DESIGNATION}.rb.in"
   "${cmd_script_configured}"
   @ONLY)
 

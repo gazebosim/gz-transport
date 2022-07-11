@@ -3,4 +3,4 @@
 # that the detail headers are not installed. The next install line solves this
 # problem.
 gz_install_all_headers(EXCLUDE_DIRS detail)
-install(DIRECTORY detail DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL}/gz/${IGN_DESIGNATION})
+install(DIRECTORY detail DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz/${GZ_DESIGNATION})

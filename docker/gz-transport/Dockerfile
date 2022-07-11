@@ -64,10 +64,10 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -' \
  && sudo apt-get update \
  && sudo apt-get install -y \
-    libignition-cmake3-dev \
-    libignition-math7-dev \
-    libignition-msgs9-dev \
-    libignition-utils2-cli-dev \
+    libgz-cmake3-dev \
+    libgz-math7-dev \
+    libgz-msgs9-dev \
+    libgz-utils2-cli-dev \
  && sudo apt-get clean
 
 # Ignition transport

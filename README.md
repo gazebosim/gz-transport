@@ -84,9 +84,9 @@ Visit the [documentation page](https://gazebosim.org/api/transport/11.0/index.ht
 # Folder Structure
 
 ```
-ign-transport
+gz-transport
 ├── conf        Configuration file for the integration with the `gz` CLI tool.
-├── docker      Dockerfile with ign-transport installed and scripts to build and run the code.
+├── docker      Dockerfile with gz-transport installed and scripts to build and run the code.
 ├── example     Example programs that use most of the Gazebo Transport API.
 ├── include     Header files that get installed.
 ├── log         All the code related with Gazebo Transport logging.
