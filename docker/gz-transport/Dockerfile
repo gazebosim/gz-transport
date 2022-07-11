@@ -70,7 +70,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
     libgz-utils2-cli-dev \
  && sudo apt-get clean
 
-# Ignition transport
+# Gazebo transport
 RUN git clone https://github.com/gazebosim/gz-transport.git \
  && cd gz-transport \
  && mkdir build \
@@ -79,7 +79,7 @@ RUN git clone https://github.com/gazebosim/gz-transport.git \
  && sudo make -j4 install \
  && cd ../..
 
-# Ignition transport examples
+# Gazebo transport examples
 RUN cd gz-transport/example \
  && mkdir build \
  && cd build \

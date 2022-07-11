@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 gz_configure_project(
-  REPLACE_GZ_INCLUDE_PATH gz/transport
+  REPLACE_INCLUDE_PATH gz/transport
   VERSION_SUFFIX pre1)
 
 #============================================================================

@@ -25,7 +25,7 @@ target_link_libraries(${topic_executable}
 install(TARGETS ${topic_executable} DESTINATION ${GZ_LIB_INSTALL_DIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
-set(service_executable ign-transport-service)
+set(service_executable gz-transport-service)
 add_executable(${service_executable} service_main.cc)
 target_link_libraries(${service_executable}
   gz

@@ -92,7 +92,7 @@ directories including your DLL dependencies to let Windows find dynamic libs
 (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around the path, even
 if it contains spaces.  E.g., if you're working in `C:\My Stuff\gz-ws`:
 
-        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\ign-msgs\build\install\Release\lib
+        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\gz-msgs\build\install\Release\lib
 
 1. Now build the examples:
 
