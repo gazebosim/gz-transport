@@ -183,7 +183,7 @@ int main(int argc, char **argv)
   setenv("GZ_PARTITION", partition.c_str(), 1);
 
   // Enable verbose mode.
-  // setenv("IGN_VERBOSE", "1", 1);
+  // setenv("GZ_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -72,7 +72,7 @@ directory that has the source files. Here is an example:
         ..\configure
         nmake install
 
-1. Clone ign-transport:
+1. Clone gz-transport:
 
         git clone https://github.com/gazebosim/gz-transport
         cd gz-transport
@@ -85,18 +85,18 @@ directory that has the source files. Here is an example:
         nmake install
 
 
-    You should now have an installation of ign-transport in gz-ws/ign-transport/build/install.
+    You should now have an installation of gz-transport in gz-ws/gz-transport/build/install.
 
 1. Before running any executables, you need to modify your `PATH` to include the
 directories including your DLL dependencies to let Windows find dynamic libs
 (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around the path, even
 if it contains spaces.  E.g., if you're working in `C:\My Stuff\gz-ws`:
 
-        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\ign-msgs\build\install\Release\lib
+        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\gz-msgs\build\install\Release\lib
 
 1. Now build the examples:
 
-        cd gz-ws\ign-transport\example
+        cd gz-ws\gz-transport\example
         mkdir build
         cd build
         ..\configure
