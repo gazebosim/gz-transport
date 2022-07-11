@@ -63,12 +63,12 @@ TEST(Descriptor, TopicIdOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key = {"/foo/bar", "gz.msgs.DNE"};
   topics[key] = 5;
   Log::Reset(desc, topics);
-  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
-  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
-  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "gz.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "gz.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "gz.msgs.DNEE"));
 }
 
 //////////////////////////////////////////////////
@@ -76,18 +76,18 @@ TEST(Descriptor, TopicIdMultipleTopicsSameName)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
-  TopicKey key2 = {"/foo/bar", "ign.msgs.DNE2"};
-  TopicKey key3 = {"/foo/bar", "ign.msgs.DNE3"};
+  TopicKey key1 = {"/foo/bar", "gz.msgs.DNE"};
+  TopicKey key2 = {"/foo/bar", "gz.msgs.DNE2"};
+  TopicKey key3 = {"/foo/bar", "gz.msgs.DNE3"};
   topics[key1] = 5;
   topics[key2] = 6;
   topics[key3] = 7;
   Log::Reset(desc, topics);
-  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
-  EXPECT_EQ(6, desc.TopicId("/foo/bar", "ign.msgs.DNE2"));
-  EXPECT_EQ(7, desc.TopicId("/foo/bar", "ign.msgs.DNE3"));
-  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
-  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "gz.msgs.DNE"));
+  EXPECT_EQ(6, desc.TopicId("/foo/bar", "gz.msgs.DNE2"));
+  EXPECT_EQ(7, desc.TopicId("/foo/bar", "gz.msgs.DNE3"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "gz.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "gz.msgs.DNEE"));
 }
 
 //////////////////////////////////////////////////
@@ -95,18 +95,18 @@ TEST(Descriptor, TopicIdMultipleTopicsSameType)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
-  TopicKey key2 = {"/fiz/buz", "ign.msgs.DNE"};
-  TopicKey key3 = {"/fiz/bar", "ign.msgs.DNE"};
+  TopicKey key1 = {"/foo/bar", "gz.msgs.DNE"};
+  TopicKey key2 = {"/fiz/buz", "gz.msgs.DNE"};
+  TopicKey key3 = {"/fiz/bar", "gz.msgs.DNE"};
   topics[key1] = 5;
   topics[key2] = 6;
   topics[key3] = 7;
   Log::Reset(desc, topics);
-  EXPECT_EQ(5, desc.TopicId("/foo/bar", "ign.msgs.DNE"));
-  EXPECT_EQ(6, desc.TopicId("/fiz/buz", "ign.msgs.DNE"));
-  EXPECT_EQ(7, desc.TopicId("/fiz/bar", "ign.msgs.DNE"));
-  EXPECT_GT(0, desc.TopicId("/fooo/bar", "ign.msgs.DNE"));
-  EXPECT_GT(0, desc.TopicId("/foo/bar", "ign.msgs.DNEE"));
+  EXPECT_EQ(5, desc.TopicId("/foo/bar", "gz.msgs.DNE"));
+  EXPECT_EQ(6, desc.TopicId("/fiz/buz", "gz.msgs.DNE"));
+  EXPECT_EQ(7, desc.TopicId("/fiz/bar", "gz.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/fooo/bar", "gz.msgs.DNE"));
+  EXPECT_GT(0, desc.TopicId("/foo/bar", "gz.msgs.DNEE"));
 }
 
 //////////////////////////////////////////////////
@@ -114,7 +114,7 @@ TEST(Descriptor, TopicsMapOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key = {"/foo/bar", "gz.msgs.DNE"};
   topics[key] = 5;
   Log::Reset(desc, topics);
   auto topicsMap = desc.TopicsToMsgTypesToId();
@@ -122,7 +122,7 @@ TEST(Descriptor, TopicsMapOneTopic)
   EXPECT_EQ("/foo/bar", topicsMap.begin()->first);
   auto msgsMap = topicsMap.begin()->second;
   ASSERT_EQ(1u, msgsMap.size());
-  EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
+  EXPECT_EQ("gz.msgs.DNE", msgsMap.begin()->first);
   EXPECT_EQ(5, msgsMap.begin()->second);
 }
 
@@ -131,12 +131,12 @@ TEST(Descriptor, MsgTypesMapOneTopic)
 {
   Descriptor desc = Log::Construct();
   TopicKeyMap topics;
-  TopicKey key = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key = {"/foo/bar", "gz.msgs.DNE"};
   topics[key] = 5;
   Log::Reset(desc, topics);
   auto msgsMap = desc.MsgTypesToTopicsToId();
   ASSERT_EQ(1u, msgsMap.size());
-  EXPECT_EQ("ign.msgs.DNE", msgsMap.begin()->first);
+  EXPECT_EQ("gz.msgs.DNE", msgsMap.begin()->first);
   auto topicsMap = msgsMap.begin()->second;
   ASSERT_EQ(1u, topicsMap.size());
   EXPECT_EQ("/foo/bar", topicsMap.begin()->first);
@@ -146,10 +146,10 @@ TEST(Descriptor, MsgTypesMapOneTopic)
 //////////////////////////////////////////////////
 TEST(Descriptor, TopicKeyEquality)
 {
-  TopicKey key1 = {"/foo/bar", "ign.msgs.DNE"};
-  TopicKey key2 = {"/foo/bar", "ign.msgs.DNE2"};
-  TopicKey key3 = {"/foo/bar3", "ign.msgs.DNE"};
-  TopicKey key4 = {"/foo/bar", "ign.msgs.DNE"};
+  TopicKey key1 = {"/foo/bar", "gz.msgs.DNE"};
+  TopicKey key2 = {"/foo/bar", "gz.msgs.DNE2"};
+  TopicKey key3 = {"/foo/bar3", "gz.msgs.DNE"};
+  TopicKey key4 = {"/foo/bar", "gz.msgs.DNE"};
   EXPECT_FALSE(key1 == key2);
   EXPECT_FALSE(key1 == key3);
   EXPECT_EQ(key1, key4);

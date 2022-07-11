@@ -72,7 +72,7 @@ TEST(recorder,
   GZ_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
-  // will work correctly. ign-transport automatically adds a leading slash to
+  // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
   std::vector<std::string> topics = {"/foo", "/bar"};
 
@@ -283,7 +283,7 @@ TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 TEST(recorder, DataWriterQueue)
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
-  // will work correctly. ign-transport automatically adds a leading slash to
+  // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
   std::string topic{"/foo"};
 
@@ -372,7 +372,7 @@ TEST(recorder, DataWriterQueue)
 TEST(recorder, DataWriterQueueClockUpdates)
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
-  // will work correctly. ign-transport automatically adds a leading slash to
+  // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
   std::string topic{"/foo"};
 
@@ -446,7 +446,7 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
                             int _numChirps)
 {
   // Remember to include a leading slash so that the VerifyTopic lambda below
-  // will work correctly. ign-transport automatically adds a leading slash to
+  // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
   std::string topic{"/foo"};
 

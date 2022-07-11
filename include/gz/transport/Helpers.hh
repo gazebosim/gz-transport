@@ -88,5 +88,5 @@ namespace gz
   }
 }
 
-// IGN_TRANSPORT_HELPERS_HH_
+// GZ_TRANSPORT_HELPERS_HH_
 #endif

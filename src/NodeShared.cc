@@ -63,7 +63,7 @@ using namespace std::chrono_literals;
 using namespace gz;
 using namespace transport;
 
-const char kIgnAuthDomain[] = "ign-auth";
+const char kGzAuthDomain[] = "gz-auth";
 
 // Enum that encapsulates the possible values for ZeroMQ's setsocketopt
 // for ZMQ_PLAIN_SERVER. A value of 1 enables
@@ -1719,12 +1719,12 @@ void NodeSharedPrivate::SecurityInit()
 
 #ifdef GZ_CPPZMQ_POST_4_7_0
     this->publisher->set(zmq::sockopt::plain_server, asPlainSecurityServer);
-    this->publisher->set(zmq::sockopt::zap_domain, kIgnAuthDomain);
+    this->publisher->set(zmq::sockopt::zap_domain, kGzAuthDomain);
 #else
     this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
         &asPlainSecurityServer, sizeof(asPlainSecurityServer));
-    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kIgnAuthDomain,
-        std::strlen(kIgnAuthDomain));
+    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kGzAuthDomain,
+        std::strlen(kGzAuthDomain));
 #endif
   }
 }
@@ -1831,7 +1831,7 @@ void NodeSharedPrivate::AccessControlHandler()
         }
 
         // Check the domain
-        if (std::strcmp(domain.c_str(), kIgnAuthDomain) != 0)
+        if (std::strcmp(domain.c_str(), kGzAuthDomain) != 0)
         {
           sendAuthErrorHelper(*sock, "Invalid domain");
           continue;
