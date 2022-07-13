@@ -18,15 +18,15 @@ original messages have been efficiently stored and timestamped.
 Let's create a directory for compiling and running our examples:
 
 ```{.sh}
-mkdir ~/ign_transport_tutorial
-cd ~/ign_transport_tutorial
+mkdir ~/gz_transport_tutorial
+cd ~/gz_transport_tutorial
 
 ```
 
 ## Record
 
 Download the [record.cc](https://github.com/gazebosim/gz-transport/raw/main/example/record.cc)
-file within the `ign_transport_tutorial` folder and open it with your favorite editor:
+file within the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <cstdint>
@@ -127,7 +127,7 @@ stops the log recording as expected.
 ## Play back
 
 Download the [playback.cc](https://github.com/gazebosim/gz-transport/raw/main/example/playback.cc)
-file within the `ign_transport_tutorial` folder and open it with your favorite
+file within the `gz_transport_tutorial` folder and open it with your favorite
 editor:
 
 ```{.cpp}
@@ -216,10 +216,10 @@ thread until all messages have been published.
 ## Building the code
 
 Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt)
-file within the `ign_transport_tutorial` folder.
+file within the `gz_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
-the `ign_transport_tutorial` directory.
+the `gz_transport_tutorial` directory.
 
 ```{.sh}
 mkdir build
