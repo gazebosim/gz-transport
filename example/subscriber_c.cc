@@ -42,20 +42,20 @@ int main(int argc, char **argv)
 {
   const char *partName = "red";
   // Create a transport node.
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
-  IgnTransportNode *nodeRed = ignTransportNodeCreate(partName);
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  GzTransportNode *nodeRed = gzTransportNodeCreate(partName);
 
   const char *topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
-  if (ignTransportSubscribe(node, topic, cb, nullptr) != 0)
+  if (gzTransportSubscribe(node, topic, cb, nullptr) != 0)
   {
     printf("Error subscribing to topic %s.\n", topic);
     return -1;
   }
 
   // Subscribe to a topic by registering a callback.
-  if (ignTransportSubscribe(nodeRed, topic, cb,
+  if (gzTransportSubscribe(nodeRed, topic, cb,
       const_cast<char*>(partName)) != 0)
   {
     printf("Error subscribing to topic %s.\n", topic);
@@ -63,9 +63,9 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignTransportWaitForShutdown();
-  ignTransportNodeDestroy(&node);
-  ignTransportNodeDestroy(&nodeRed);
+  gzTransportWaitForShutdown();
+  gzTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&nodeRed);
 
   return 0;
 }
