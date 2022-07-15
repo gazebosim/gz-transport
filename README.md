@@ -134,7 +134,7 @@ gz-transport
 # Contributing
 
 Please see the
-[contributing gude](https://gazebosim.org/docs/all/contriubting).
+[contributing gude](https://gazebosim.org/docs/all/contributing).
 
 # Code of Conduct
 
