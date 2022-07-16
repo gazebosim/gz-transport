@@ -12,7 +12,7 @@ Build | Status
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/branch/ign-transport8/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/branch/ign-transport8)
 Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-focal-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-ign-transport8-windows7-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-ign-transport8-windows7-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_transport-ign-8-win)](https://build.osrfoundation.org/job/ign_transport-ign-8-win)
 
 Gazebo Transport, a component of [Gazebo](https://gazebosim.org), provides fast and efficient asynchronous message passing, services, and data logging.
 
