@@ -24,7 +24,7 @@ COMMANDS = {
 }
 
 #
-# Class for the Ignition transport command line tools.
+# Class for the Gazebo transport command line tools.
 #
 class Cmd
   def execute(args)

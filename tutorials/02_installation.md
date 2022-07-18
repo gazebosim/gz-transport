@@ -28,7 +28,7 @@ wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 Install Gazebo Transport:
 ```
 sudo apt-get update
-sudo apt-get install libignition-transport<#>-dev
+sudo apt-get install libgz-transport<#>-dev
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -73,7 +73,7 @@ conda activate gz-ws
 
 Install:
 ```
-conda install libignition-transport<#> --channel conda-forge
+conda install libgz-transport<#> --channel conda-forge
 ```
 
 Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
@@ -89,12 +89,12 @@ Ubuntu distribution equal to 20.04 (Focal) or newer.
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 ```
-sudo apt-get remove libignition-transport.*-dev
+sudo apt-get remove libgz-transport.*-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev libignition-utils2-cli-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs-dev libgz-utils2-cli-dev
 ```
 
 Clone the repository
@@ -166,7 +166,7 @@ debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:
 ```
-cd /tmp/ign-transport/build
+cd /tmp/gz-transport/build
 sudo make uninstall
 ```
 
@@ -222,12 +222,12 @@ Install Gazebo dependencies:
 
 You can view available versions and their dependencies:
 ```
-conda search libignition-transport* --channel conda-forge --info
+conda search libgz-transport* --channel conda-forge --info
 ```
 
 Install dependencies, replacing `<#>` with the desired versions:
 ```
-conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --channel conda-forge
+conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 ```
 
 #### Building from Source

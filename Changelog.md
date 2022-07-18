@@ -37,7 +37,7 @@
 1. Remove no username error messages
     * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
 
-1. Documented the default value of `IGN_PARTITION`
+1. Documented the default value of `GZ_PARTITION`
     * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
 
 1. Remove static on `registrationCb` and `unregistrationCb`.
@@ -380,7 +380,7 @@
     * [BitBucket pull request 370](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/370)
     * [BitBucket pull request 373](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/373)
 
-1. Introduce `IGN_RELAY`.
+1. Introduce `GZ_RELAY`.
     * [BitBucket pull request 364](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/364)
 
 1. Upgrade to ignition-msgs4.
@@ -480,10 +480,10 @@
 1. Added integration tests for recording
     * [BitBucket pull request 275](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/275)
 
-1. Added ability to play back ignition transport topics
+1. Added ability to play back gz transport topics
     * [BitBucket pull request 274](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/274)
 
-1. Added ability to record ignition transport topics
+1. Added ability to record gz transport topics
     * [BitBucket pull request 273](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/273)
 
 1. Added ability to query log messages by topic name and time received
