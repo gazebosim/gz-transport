@@ -20,8 +20,6 @@
 # This is a per-library function definition, used in conjunction with the
 # top-level entry point in ign-tools.
 
-# TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
-# Update ../ign_TEST.cc accordingly.
 GZ_SERVICE_COMPLETION_LIST="
   -h --help
   -v --version
@@ -32,12 +30,9 @@ GZ_SERVICE_COMPLETION_LIST="
   -l --list
   -i --info
   -r --req
-  --force-version
-  --versions
+  --help-all
 "
 
-# TODO: In Fortress+, remove --force-version and --versions. Add
-# `-v --version` and --json-output. Update ../ign_TEST.cc accordingly.
 GZ_TOPIC_COMPLETION_LIST="
   -h --help
   -v --version
@@ -49,8 +44,8 @@ GZ_TOPIC_COMPLETION_LIST="
   -i --info
   -e --echo
   -p --pub
-  --force-version
-  --versions
+  -v --version
+  --json-output
 "
 
 function _gz_service

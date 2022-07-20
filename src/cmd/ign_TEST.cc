@@ -466,7 +466,7 @@ TEST(ignTest, TopicEchoNum)
 TEST(ignTest, ServiceHelpVsCompletionFlags)
 {
   // Flags in help message
-  std::string helpOutput = custom_exec_str("ign service --help" + g_ignVersion);
+  std::string helpOutput = custom_exec_str("ign service --help");
 
   // Call the output function in the bash completion script
   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
@@ -499,7 +499,7 @@ TEST(ignTest, ServiceHelpVsCompletionFlags)
 TEST(ignTest, TopicHelpVsCompletionFlags)
 {
   // Flags in help message
-  std::string helpOutput = custom_exec_str("ign topic --help" + g_ignVersion);
+  std::string helpOutput = custom_exec_str("ign topic --help");
 
   // Call the output function in the bash completion script
   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;

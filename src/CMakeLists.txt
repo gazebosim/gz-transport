@@ -44,8 +44,7 @@ foreach(test ${test_list})
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
     "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
-    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\""
-    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
 endforeach()
 
 if(MSVC)
