@@ -17,7 +17,6 @@
 
 #include <chrono>
 #include <functional>
-#include <google/protobuf/util/json_util.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -25,7 +24,7 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <gz/msgs.hh>
+#include <google/protobuf/util/json_util.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -34,10 +33,6 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
-
-#ifdef _MSC_VER
-# pragma warning(disable: 4503)
-#endif
 
 using namespace gz;
 using namespace transport;

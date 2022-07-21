@@ -15,7 +15,14 @@
  *
 */
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <google/protobuf/message.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <iostream>
 #include <string>
 #include <gz/transport.hh>
