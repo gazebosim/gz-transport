@@ -143,7 +143,7 @@ namespace gz
           exit(false),
           enabled(false)
       {
-        std::cout << "Discovery::Discovery(" << 
+        std::cout << "Discovery::Discovery(" <<
           _pUuid << ", " << _ip << ", " << _port << ")" << std::endl;
         std::string gzIp;
         if (utils::env("GZ_IP", gzIp) && !gzIp.empty())
@@ -185,9 +185,11 @@ namespace gz
 
           std::cout << "netIface == this->hostAddr " <<
             netIface << " == " << this->hostAddr << std::endl;
-          std::cout << "netIface == this->hostAddr" 
-            << (netIface == this->hostAddr ? "[true]"  : "[false]") << std::endl;
-          std::cout << (succeed ? "succeed[true]" : "succeed[false]") << std::endl;
+          std::cout << "netIface == this->hostAddr"
+            << (netIface == this->hostAddr ? "[true]"  : "[false]")
+            << std::endl;
+          std::cout << (succeed ? "succeed[true]" : "succeed[false]")
+            << std::endl;
 
           // If the IP address that we're selecting as the main IP address of
           // the host is invalid, we change it to 127.0.0.1 .

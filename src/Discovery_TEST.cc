@@ -546,7 +546,8 @@ TEST(DiscoveryTest, WrongGzIp)
   ASSERT_TRUE(utils::env("GZ_IP", newGzIp));
   std::cout << "(DiscoveryTest) New GZ_IP: " << newGzIp << std::endl;
 
-  std::cout << "(DisoveryTest) discovery1(" << pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
+  std::cout << "(DisoveryTest) discovery1(" <<
+    pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
@@ -576,7 +577,8 @@ TEST(DiscoveryTest, WrongGzIp2)
   ASSERT_TRUE(utils::env("GZ_IP", newGzIp));
   std::cout << "(DiscoveryTest) New GZ_IP: " << newGzIp << std::endl;
 
-  std::cout << "(DisoveryTest) discovery1(" << pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
+  std::cout << "(DisoveryTest) discovery1(" <<
+    pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
