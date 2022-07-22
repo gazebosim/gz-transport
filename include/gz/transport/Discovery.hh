@@ -78,6 +78,8 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
+#include <gz/utils/Environment.hh>
+
 namespace gz
 {
   namespace transport
@@ -141,20 +143,25 @@ namespace gz
           exit(false),
           enabled(false)
       {
+        std::cout << "Discovery::Discovery(" << 
+          _pUuid << ", " << _ip << ", " << _port << ")" << std::endl;
         std::string gzIp;
-        if (env("GZ_IP", gzIp) && !gzIp.empty())
+        if (utils::env("GZ_IP", gzIp) && !gzIp.empty())
         {
+          std::cout << " Read env GZ_IP: " << gzIp << std::endl;
           this->hostInterfaces = {gzIp};
         }
         // TODO(CH3): Deprecated. Remove on tock.
-        else if (env("IGN_IP", gzIp) && !gzIp.empty())
+        else if (utils::env("IGN_IP", gzIp) && !gzIp.empty())
         {
+          std::cout << " Read env IGN_IP: " << gzIp << std::endl;
           std::cerr << "IGN_IP is deprecated and will be removed! "
                     << "Use GZ_IP instead!" << std::endl;
           this->hostInterfaces = {gzIp};
         }
         else
         {
+          std::cout << " No environment read: determineInterfaces" << std::endl;
           // Get the list of network interfaces in this host.
           this->hostInterfaces = determineInterfaces();
         }
@@ -176,13 +183,19 @@ namespace gz
         {
           auto succeed = this->RegisterNetIface(netIface);
 
+          std::cout << "netIface == this->hostAddr " <<
+            netIface << " == " << this->hostAddr << std::endl;
+          std::cout << "netIface == this->hostAddr" 
+            << (netIface == this->hostAddr ? "[true]"  : "[false]") << std::endl;
+          std::cout << (succeed ? "succeed[true]" : "succeed[false]") << std::endl;
+
           // If the IP address that we're selecting as the main IP address of
           // the host is invalid, we change it to 127.0.0.1 .
           // This is probably because IGN_IP is set to a wrong value.
           if (netIface == this->hostAddr && !succeed)
           {
             this->RegisterNetIface("127.0.0.1");
-            std::cerr << "Did you set the environment variable IGN_IP with a "
+            std::cout<< "Did you set the environment variable IGN_IP with a "
                       << "correct IP address? " << std::endl
                       << "  [" << netIface << "] seems an invalid local IP "
                       << "address." << std::endl
@@ -1321,11 +1334,12 @@ namespace gz
       /// otherwise (e.g.: invalid IP address).
       private: bool RegisterNetIface(const std::string &_ip)
       {
+        std::cout << "Discovery::RegisterNetIFace(" << _ip << ")" << std::endl;
         // Make a new socket for sending discovery information.
         int sock = static_cast<int>(socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP));
         if (sock < 0)
         {
-          std::cerr << "Socket creation failed." << std::endl;
+          std::cout << "Socket creation failed." << std::endl;
           return false;
         }
 
@@ -1337,7 +1351,7 @@ namespace gz
         if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
           reinterpret_cast<const char*>(&ifAddr), sizeof(ifAddr)) != 0)
         {
-          std::cerr << "Error setting socket option (IP_MULTICAST_IF)."
+          std::cout << "Error setting socket option (IP_MULTICAST_IF)."
                     << std::endl;
           return false;
         }
@@ -1354,7 +1368,7 @@ namespace gz
         if (setsockopt(this->sockets.at(0), IPPROTO_IP, IP_ADD_MEMBERSHIP,
           reinterpret_cast<const char*>(&group), sizeof(group)) != 0)
         {
-          std::cerr << "Error setting socket option (IP_ADD_MEMBERSHIP)."
+          std::cout << "Error setting socket option (IP_ADD_MEMBERSHIP)."
                     << std::endl;
           return false;
         }

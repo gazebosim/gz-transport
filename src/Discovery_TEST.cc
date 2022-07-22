@@ -27,6 +27,9 @@
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "test_config.hh"
 
 using namespace gz;
@@ -533,18 +536,57 @@ TEST(DiscoveryTest, WrongGzIp)
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;
-  env("GZ_IP", gzIp);
+  utils::env("GZ_IP", gzIp);
+  std::cout << "(DiscoveryTest) Previous GZ_IP: " << gzIp << std::endl;
 
   // Incorrect value for GZ_IP
-  setenv("GZ_IP", "127.0.0.0", 1);
+  ASSERT_TRUE(utils::setenv("GZ_IP", "127.0.0.0"));
+  std::string newGzIp;
 
+  ASSERT_TRUE(utils::env("GZ_IP", newGzIp));
+  std::cout << "(DiscoveryTest) New GZ_IP: " << newGzIp << std::endl;
+
+  std::cout << "(DisoveryTest) discovery1(" << pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
   // Unset GZ_IP.
-  unsetenv("GZ_IP");
+  ASSERT_TRUE(utils::unsetenv("GZ_IP"));
 
   // Restore GZ_IP.
   if (!gzIp.empty())
-    setenv("GZ_IP", gzIp.c_str(), 1);
+  {
+    ASSERT_TRUE(utils::setenv("GZ_IP", gzIp));
+  }
 }
+
+//////////////////////////////////////////////////
+/// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
+TEST(DiscoveryTest, WrongGzIp2)
+{
+  // Save the current value of GZ_IP environment variable.
+  std::string gzIp;
+  utils::env("GZ_IP", gzIp);
+  std::cout << "(DiscoveryTest) Previous GZ_IP: " << gzIp << std::endl;
+
+  // Incorrect value for GZ_IP
+  ASSERT_TRUE(utils::setenv("GZ_IP", "500.0.0.0"));
+  std::string newGzIp;
+
+  ASSERT_TRUE(utils::env("GZ_IP", newGzIp));
+  std::cout << "(DiscoveryTest) New GZ_IP: " << newGzIp << std::endl;
+
+  std::cout << "(DisoveryTest) discovery1(" << pUuid1 << ", " << g_ip << ", " << g_msgPort << ")" << std::endl;
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
+  EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
+
+  // Unset GZ_IP.
+  ASSERT_TRUE(utils::unsetenv("GZ_IP"));
+
+  // Restore GZ_IP.
+  if (!gzIp.empty())
+  {
+    ASSERT_TRUE(utils::setenv("GZ_IP", gzIp));
+  }
+}
+
