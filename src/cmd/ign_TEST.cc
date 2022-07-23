@@ -15,6 +15,8 @@
  *
 */
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
@@ -86,7 +88,7 @@ TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
     g_partition.c_str());
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -117,7 +119,7 @@ TEST(ignTest, TopicInfo)
     g_partition.c_str());
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -153,7 +155,7 @@ TEST(ignTest, ServiceList)
     g_partition.c_str());
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -184,7 +186,7 @@ TEST(ignTest, ServiceInfo)
     g_partition.c_str());
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -220,7 +222,7 @@ TEST(ignTest, TopicListSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool topicFound = false;
@@ -251,7 +253,7 @@ TEST(ignTest, TopicInfoSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Check the 'ign topic -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -276,7 +278,7 @@ TEST(ignTest, ServiceListSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -l' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool serviceFound = false;
@@ -299,7 +301,7 @@ TEST(ignTest, ServiceInfoSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -i' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
 
   unsigned int retries = 0u;
   bool infoFound = false;
@@ -326,7 +328,7 @@ TEST(ignTest, TopicPublish)
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
   // Check the 'ign topic -p' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output;
 
   unsigned int retries = 0;
@@ -381,7 +383,7 @@ TEST(ignTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'ign service -r' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(ign +
       " service -s " + service + " --reqtype ign_msgs.Int32 " +
       "--reptype ign_msgs.Int32 --timeout 1000 " +
@@ -403,7 +405,7 @@ TEST(ignTest, TopicEcho)
     g_partition.c_str());
 
   // Check the 'ign topic -e' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -d 1.5 " + g_ignVersion);
 
@@ -429,7 +431,7 @@ TEST(ignTest, TopicEchoNum)
     g_partition.c_str());
 
   // Check the 'ign topic -e -n' command.
-  std::string ign = std::string(IGN_PATH) + "/ign";
+  std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(
     ign + " topic -e -t /foo -n 2 " + g_ignVersion);
 
@@ -456,6 +458,72 @@ TEST(ignTest, TopicEchoNum)
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign service --help' message and bash completion script for
+/// consistent flags
+TEST(ignTest, ServiceHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string helpOutput = custom_exec_str("ign service --help");
+
+  // Call the output function in the bash completion script
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_service_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_service_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'ign topic --help' message and bash completion script for
+/// consistent flags
+TEST(ignTest, TopicHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string helpOutput = custom_exec_str("ign topic --help");
+
+  // Call the output function in the bash completion script
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_topic_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_topic_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
 
 /////////////////////////////////////////////////

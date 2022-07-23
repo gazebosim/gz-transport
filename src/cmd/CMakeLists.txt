@@ -47,7 +47,8 @@ foreach(test ${test_list})
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
     "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
-    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
+    "IGN_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\""
+    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
 
 endforeach()
 
@@ -106,3 +107,16 @@ file(GENERATE
 
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
+
+#===============================================================================
+# Bash completion
+
+# Tack version onto and install the bash completion script
+configure_file(
+  "transport.bash_completion.sh"
+    "${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh" @ONLY)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh
+  DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/gz${IGN_TOOLS_VER}.completion.d)
