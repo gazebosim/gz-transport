@@ -30,21 +30,28 @@ extern "C" {
   } SubscribeOpts;
 
   /// \brief A transport node.
-  typedef struct IgnTransportNode IgnTransportNode;
+  typedef struct GzTransportNode GzTransportNode;
+
+  // TODO(CH3): Deprecated. Remove!
+  #ifdef _WIN32
+    using IgnTransportNode = GzTransportNode;
+  #else
+    using IgnTransportNode GZ_DEPRECATED(12) = GzTransportNode;
+  #endif
 
   /// \brief Create a transport node.
   /// \param[in] _partition Optional name of the partition to use.
   /// Use nullptr to use the default value, which is specified via the
   /// GZ_PARTITION environment variable.
   /// \return A pointer to a new transport node. Do not manually delete this
-  /// pointer, instead use ignTransportNodeDestroy.
-  IgnTransportNode GZ_TRANSPORT_VISIBLE *ignTransportNodeCreate(
+  /// pointer, instead use gzTransportNodeDestroy.
+  GzTransportNode GZ_TRANSPORT_VISIBLE *gzTransportNodeCreate(
       const char *_partition);
 
   /// \brief Destroy a transport node.
   /// \param[in, out] _node The transport node to destroy.
   void GZ_TRANSPORT_VISIBLE
-  ignTransportNodeDestroy(IgnTransportNode **_node);
+  gzTransportNodeDestroy(GzTransportNode **_node);
 
   /// \brief Advertise a topic.
   /// \param[in] _node Pointer to a node.
@@ -52,7 +59,7 @@ extern "C" {
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportAdvertise(IgnTransportNode *_node,
+  gzTransportAdvertise(GzTransportNode *_node,
                       const char *_topic,
                       const char *_msgType);
 
@@ -64,7 +71,7 @@ extern "C" {
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportPublish(IgnTransportNode *_node,
+  gzTransportPublish(GzTransportNode *_node,
                       const char *_topic,
                       const void *_data,
                       const char *_msgType);
@@ -76,7 +83,7 @@ extern "C" {
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportSubscribe(IgnTransportNode *_node,
+  gzTransportSubscribe(GzTransportNode *_node,
                 const char *_topic,
                 void (*_callback)(const char *, size_t, const char *, void *),
                 void *_userData);
@@ -89,7 +96,7 @@ extern "C" {
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportSubscribeOptions(IgnTransportNode *_node,
+  gzTransportSubscribeOptions(GzTransportNode *_node,
                 const char *_topic, SubscribeOpts _opts,
                 void (*_callback)(const char *, size_t, const char *, void *),
                 void *_userData);
@@ -101,7 +108,7 @@ extern "C" {
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
+  gzTransportSubscribeNonConst(GzTransportNode *_node, char *_topic,
                             void (*_callback)(char *, size_t, char *, void *),
                             void *_userData);
 
@@ -110,12 +117,22 @@ extern "C" {
   /// \param[in] _topic Name of the topic.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic);
+  gzTransportUnsubscribe(GzTransportNode *_node, const char *_topic);
 
   /// \brief Block the current thread until a SIGINT or SIGTERM is received.
   /// Note that this function registers a signal handler. Do not use this
   /// function if you want to manage yourself SIGINT/SIGTERM.
-  void GZ_TRANSPORT_VISIBLE ignTransportWaitForShutdown();
+  void GZ_TRANSPORT_VISIBLE gzTransportWaitForShutdown();
+
+  const auto GZ_DEPRECATED(12) ignTransportNodeCreate = gzTransportNodeCreate;
+  const auto GZ_DEPRECATED(12) ignTransportNodeDestroy = gzTransportNodeDestroy;
+  const auto GZ_DEPRECATED(12) ignTransportAdvertise = gzTransportAdvertise;
+  const auto GZ_DEPRECATED(12) ignTransportPublish = gzTransportPublish;
+  const auto GZ_DEPRECATED(12) ignTransportSubscribe = gzTransportSubscribe;
+  const auto GZ_DEPRECATED(12) ignTransportSubscribeOptions = gzTransportSubscribeOptions;
+  const auto GZ_DEPRECATED(12) ignTransportSubscribeNonConst = gzTransportSubscribeNonConst;
+  const auto GZ_DEPRECATED(12) ignTransportUnsubscribe = gzTransportUnsubscribe;
+  const auto GZ_DEPRECATED(12) ignTransportWaitForShutdown = gzTransportWaitForShutdown;
 
 #ifdef __cplusplus
 }
