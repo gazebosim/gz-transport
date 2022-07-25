@@ -58,7 +58,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
 TEST(CIfaceTest, PubSub)
 {
   count = 0;
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
@@ -66,10 +66,10 @@ TEST(CIfaceTest, PubSub)
   int userData = 42;
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribe(node, topic, cb, &userData));
+  ASSERT_EQ(0, gzTransportSubscribe(node, topic, cb, &userData));
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+  ASSERT_EQ(0, gzTransportSubscribeNonConst(node,
         const_cast<char *>(topic), cbNonConst, &userData));
 
 
@@ -93,20 +93,20 @@ TEST(CIfaceTest, PubSub)
   msg.SerializeToArray(buffer, size);
 
   EXPECT_EQ(0,
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
 
   EXPECT_EQ(2, count);
 
   count = 0;
 
   // Unsubscribe
-  ASSERT_EQ(0, ignTransportUnsubscribe(node, topic));
+  ASSERT_EQ(0, gzTransportUnsubscribe(node, topic));
   EXPECT_EQ(0,
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(0, count);
 
   free(buffer);
-  ignTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
 }
 
@@ -114,8 +114,8 @@ TEST(CIfaceTest, PubSub)
 TEST(CIfaceTest, PubSubPartitions)
 {
   count = 0;
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
-  IgnTransportNode *nodeBar = ignTransportNodeCreate("bar");
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  GzTransportNode *nodeBar = gzTransportNodeCreate("bar");
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
@@ -123,10 +123,10 @@ TEST(CIfaceTest, PubSubPartitions)
   int userData = 42;
 
   // Subscribe on "bar" topic
-  ASSERT_EQ(0, ignTransportSubscribe(nodeBar, topic, cb, &userData));
+  ASSERT_EQ(0, gzTransportSubscribe(nodeBar, topic, cb, &userData));
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+  ASSERT_EQ(0, gzTransportSubscribeNonConst(node,
         const_cast<char *>(topic), cbNonConst, &userData));
 
   // Prepare the message.
@@ -150,26 +150,26 @@ TEST(CIfaceTest, PubSubPartitions)
 
   // Publish on "bar" partition
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(1, count);
 
   // Publish on default partition
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(2, count);
 
   count = 0;
 
   // Unsubscribe
-  ASSERT_EQ(0, ignTransportUnsubscribe(nodeBar, topic));
+  ASSERT_EQ(0, gzTransportUnsubscribe(nodeBar, topic));
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(0, count);
 
   free(buffer);
-  ignTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
-  ignTransportNodeDestroy(&nodeBar);
+  gzTransportNodeDestroy(&nodeBar);
   EXPECT_EQ(nullptr, nodeBar);
 }
 

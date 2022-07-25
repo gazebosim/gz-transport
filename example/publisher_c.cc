@@ -39,8 +39,8 @@ int main(int argc, char **argv)
   signal(SIGTERM, signalHandler);
 
   // Create a transport node.
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
-  IgnTransportNode *nodeRed = ignTransportNodeCreate("red");
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  GzTransportNode *nodeRed = gzTransportNodeCreate("red");
 
   const char *topic = "/foo";
 
@@ -81,8 +81,8 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
-    ignTransportPublish(nodeRed, topic, bufferRed,
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
+    gzTransportPublish(nodeRed, topic, bufferRed,
         msgRed.GetTypeName().c_str());
 
     printf("Publishing hello on topic %s.\n", topic);
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 
   free(buffer);
   free(bufferRed);
-  ignTransportNodeDestroy(&node);
-  ignTransportNodeDestroy(&nodeRed);
+  gzTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&nodeRed);
 
   return 0;
 }

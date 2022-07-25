@@ -35,6 +35,8 @@ release will remove the deprecated code.
      1. `IGN_ZMQ_POST_4_3_1`
      1. `IGN_CPPZMQ_POST_4_7_0`
      1. `ign_strcat`, `ign_strcpy`, `ign_sprintf`, `ign_strdup`
+1. The `IgnTransportNode` class is deprecated and will be removed in future versions. Use `GzTransportNode` instead.
+     Similarly, the `Ign` prefixed members of that class will be removed in future versions. Use the `Gz` prefixed members instead.
 
 ### Breaking Changes
 
