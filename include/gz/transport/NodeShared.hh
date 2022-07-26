@@ -18,13 +18,7 @@
 #ifndef GZ_TRANSPORT_NODESHARED_HH_
 #define GZ_TRANSPORT_NODESHARED_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include <memory>
 #include <mutex>

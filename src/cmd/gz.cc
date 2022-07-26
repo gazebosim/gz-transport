@@ -21,13 +21,7 @@
 #include <string>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <google/protobuf/util/json_util.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include "gz.hh"
 #include "gz/transport/config.hh"
