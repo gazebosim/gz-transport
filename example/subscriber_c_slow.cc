@@ -15,15 +15,15 @@
  *
 */
 #include <stdio.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/transport/CIface.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/CIface.h>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const char *_data, const size_t _size, const char *_msgType,
         void *_userData)
 {
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   const char *userData;
 
@@ -41,7 +41,7 @@ void cb(const char *_data, const size_t _size, const char *_msgType,
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
 
   const char *topic = "/foo";
 
@@ -49,15 +49,15 @@ int main(int argc, char **argv)
   opts.msgsPerSec = 1;
 
   // Subscribe to a topic by registering a callback.
-  if (ignTransportSubscribeOptions(node, topic, opts, cb, nullptr) != 0)
+  if (gzTransportSubscribeOptions(node, topic, opts, cb, nullptr) != 0)
   {
     printf("Error subscribing to topic %s.\n", topic);
     return -1;
   }
 
   // Zzzzzz.
-  ignTransportWaitForShutdown();
-  ignTransportNodeDestroy(&node);
+  gzTransportWaitForShutdown();
+  gzTransportNodeDestroy(&node);
 
   return 0;
 }

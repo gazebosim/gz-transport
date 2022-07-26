@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/CIface.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/CIface.h"
+#include "test_config.hh"
 
 static int count;
 
@@ -31,9 +31,9 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
   ASSERT_NE(nullptr, userData);
   EXPECT_EQ(42, *userData);
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }
@@ -47,9 +47,9 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
   ASSERT_NE(nullptr, userData);
   EXPECT_EQ(42, *userData);
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
-  EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }
@@ -58,7 +58,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
 TEST(CIfaceTest, PubSub)
 {
   count = 0;
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
@@ -66,15 +66,15 @@ TEST(CIfaceTest, PubSub)
   int userData = 42;
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribe(node, topic, cb, &userData));
+  ASSERT_EQ(0, gzTransportSubscribe(node, topic, cb, &userData));
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+  ASSERT_EQ(0, gzTransportSubscribeNonConst(node,
         const_cast<char *>(topic), cbNonConst, &userData));
 
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
@@ -93,20 +93,20 @@ TEST(CIfaceTest, PubSub)
   msg.SerializeToArray(buffer, size);
 
   EXPECT_EQ(0,
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
 
   EXPECT_EQ(2, count);
 
   count = 0;
 
   // Unsubscribe
-  ASSERT_EQ(0, ignTransportUnsubscribe(node, topic));
+  ASSERT_EQ(0, gzTransportUnsubscribe(node, topic));
   EXPECT_EQ(0,
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(0, count);
 
   free(buffer);
-  ignTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
 }
 
@@ -114,8 +114,8 @@ TEST(CIfaceTest, PubSub)
 TEST(CIfaceTest, PubSubPartitions)
 {
   count = 0;
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
-  IgnTransportNode *nodeBar = ignTransportNodeCreate("bar");
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  GzTransportNode *nodeBar = gzTransportNodeCreate("bar");
   EXPECT_NE(nullptr, node);
 
   const char *topic = "/foo";
@@ -123,14 +123,14 @@ TEST(CIfaceTest, PubSubPartitions)
   int userData = 42;
 
   // Subscribe on "bar" topic
-  ASSERT_EQ(0, ignTransportSubscribe(nodeBar, topic, cb, &userData));
+  ASSERT_EQ(0, gzTransportSubscribe(nodeBar, topic, cb, &userData));
 
   // Subscribe
-  ASSERT_EQ(0, ignTransportSubscribeNonConst(node,
+  ASSERT_EQ(0, gzTransportSubscribeNonConst(node,
         const_cast<char *>(topic), cbNonConst, &userData));
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
@@ -150,26 +150,26 @@ TEST(CIfaceTest, PubSubPartitions)
 
   // Publish on "bar" partition
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(1, count);
 
   // Publish on default partition
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(2, count);
 
   count = 0;
 
   // Unsubscribe
-  ASSERT_EQ(0, ignTransportUnsubscribe(nodeBar, topic));
+  ASSERT_EQ(0, gzTransportUnsubscribe(nodeBar, topic));
   EXPECT_EQ(0,
-    ignTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
   EXPECT_EQ(0, count);
 
   free(buffer);
-  ignTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&node);
   EXPECT_EQ(nullptr, node);
-  ignTransportNodeDestroy(&nodeBar);
+  gzTransportNodeDestroy(&nodeBar);
   EXPECT_EQ(nullptr, nodeBar);
 }
 
@@ -180,10 +180,10 @@ int main(int argc, char **argv)
   std::string partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
 
   // Enable verbose mode.
-  // setenv("IGN_VERBOSE", "1", 1);
+  // setenv("GZ_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

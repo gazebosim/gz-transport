@@ -17,25 +17,25 @@
 
 #include <string>
 
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
-/// \brief Check that IGN_PARTITION is set.
+/// \brief Check that  is set.
 TEST(NodeOptionsTest, ignPartition)
 {
-  // Set IGN_PARTITION
+  // Set GZ_PARTITION
   std::string aPartition = "customPartition";
-  setenv("IGN_PARTITION", aPartition.c_str(), 1);
+  setenv("GZ_PARTITION", aPartition.c_str(), 1);
 
   transport::NodeOptions opts;
   EXPECT_EQ(opts.Partition(), aPartition);
 
-  // A partition set by the user should overwrite IGN_PARTITION.
+  // A partition set by the user should overwrite GZ_PARTITION.
   std::string userPartition = "userPartition";
   opts.SetPartition(userPartition);
   EXPECT_EQ(opts.Partition(), userPartition);
@@ -53,7 +53,7 @@ TEST(NodeOptionsTest, ignPartition)
 TEST(NodeOptionsTest, accessors)
 {
   // Check the default values.
-  unsetenv("IGN_PARTITION");
+  unsetenv("GZ_PARTITION");
   transport::NodeOptions opts;
   EXPECT_TRUE(opts.NameSpace().empty());
   auto defaultPartition = transport::hostname() + ":" + transport::username();
@@ -72,11 +72,4 @@ TEST(NodeOptionsTest, accessors)
   EXPECT_EQ(opts.Partition(), defaultPartition);
   EXPECT_TRUE(opts.SetPartition(aPartition));
   EXPECT_EQ(opts.Partition(), aPartition);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

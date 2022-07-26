@@ -1,8 +1,7 @@
-
-ign_get_libsources_and_unittests(sources gtest_sources)
+gz_get_libsources_and_unittests(sources gtest_sources)
 list(APPEND sources cmd/LogCommandAPI.cc)
 
-ign_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
+gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 
 target_link_libraries(${log_lib_target}
   PRIVATE SQLite3::SQLite3)
@@ -17,7 +16,7 @@ if (MSVC)
 endif()
 
 # Unit tests
-ign_build_tests(
+gz_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
   LIB_DEPS ${log_lib_target} ${EXTRA_TEST_LIB_DEPS}
@@ -27,7 +26,7 @@ ign_build_tests(
 foreach(test_target ${logging_tests})
 
   set_tests_properties(${logging_tests} PROPERTIES
-    ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+    ENVIRONMENT GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
 
 endforeach()
 
@@ -42,7 +41,7 @@ if(MSVC)
 endif()
 
 # Set install instructions for the sql schema, and configure the build to use it
-set(SCHEMA_INSTALL_BASE ${IGN_DATA_INSTALL_DIR})
+set(SCHEMA_INSTALL_BASE ${GZ_DATA_INSTALL_DIR})
 install(DIRECTORY ../sql DESTINATION ${SCHEMA_INSTALL_BASE})
 set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${SCHEMA_INSTALL_BASE}/sql)
 configure_file(build_config.hh.in build_config.hh @ONLY)

@@ -13,43 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
-#ifndef IGNITION_TRANSPORT_LOG_DETAIL_QUERYOPTIONS_HH_
-#define IGNITION_TRANSPORT_LOG_DETAIL_QUERYOPTIONS_HH_
-
-#include <set>
-#include <string>
-
+#include <gz/transport/log/detail/QueryOptions.hh>
 #include <ignition/transport/config.hh>
-#include <ignition/transport/log/QueryOptions.hh>
-
-namespace ignition
-{
-  namespace transport
-  {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      //////////////////////////////////////////////////
-      template <typename Container>
-      TopicList TopicList::Create(
-          const Container &_topics,
-          const QualifiedTimeRange &_timeRange)
-      {
-        TopicList tl(std::set<std::string>(), _timeRange);
-
-        std::set<std::string> &internalTopics = tl.Topics();
-        for (const std::string &topic : _topics)
-          internalTopics.insert(topic);
-
-        return tl;
-      }
-      }
-    }
-  }
-}
-
-#endif

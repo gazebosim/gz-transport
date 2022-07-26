@@ -19,10 +19,10 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/Uuid.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the Uuid helper class.
@@ -50,11 +50,4 @@ TEST(UuidTest, testToString)
   EXPECT_EQ(output.str()[23], '-');
   for (auto i = 24; i < 36; ++i)
     EXPECT_GT(isxdigit(output.str()[i]), 0);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

@@ -64,10 +64,3 @@ TEST(LogCommandAPI, PlaybackFailedToOpen)
   EXPECT_EQ(FAILED_TO_OPEN,
     playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0, "", false));
 }
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

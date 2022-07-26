@@ -6,16 +6,16 @@ Previous Tutorial: \ref security
 ## Overview
 
 In this tutorial, we are going to create two nodes that are not able to
-communicate with the default configuration of Ignition Transport. This
+communicate with the default configuration of Gazebo Transport. This
 limitation arises when the nodes are separated by a router, typically when they
 are part of different local networks. Routers do not propagate UDP multicast
 traffic and this is the reason for this limitation. We'll create a scenario to
 simulate this configuration, and then we'll enable the relay capabilities of
-Ignition Transport to make the communication possible.
+Gazebo Transport to make the communication possible.
 
 ```{.sh}
-mkdir -p ~/ign_transport_tutorial/docker/ign-transport
-cd ~/ign_transport_tutorial/docker
+mkdir -p ~/gz_transport_tutorial/docker/gz-transport
+cd ~/gz_transport_tutorial/docker
 ```
 
 ## Setup
@@ -25,42 +25,42 @@ install Docker following any of the existing guides available
 ([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/build.bash), [run.bash](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/run.bash) and
-[Dockerfile](https://github.com/ignitionrobotics/ign-transport/raw/main/docker/ign-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash) and
+[Dockerfile](https://github.com/gazebosim/gz-transport/raw/main/docker/gz-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/build.bash
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/run.bash
-wget https://github.com/ignitionrobotics/ign-transport/raw/main/docker/ign-transport/Dockerfile -O ign-transport/Dockerfile
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/ign-transport/Dockerfile -O gz-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
 Now, it's time to build the Docker image:
 ```
-./build.bash ign-transport
+./build.bash gz-transport
 ```
 
 Run your Docker container:
 ```
-./run.bash ign-transport
+./run.bash gz-transport
 ```
 
 Inside the docker instance, go to the `example` directory:
 ```
-cd ign-transport/example/build
+cd gz-transport/example/build
 ```
 
-Back on your host, make sure that you have Ignition Tools and net-tools
+Back on your host, make sure that you have Gazebo Tools and net-tools
 installed:
 ```
-sudo apt install ignition-tools net-tools
+sudo apt install gz-tools2 net-tools
 ```
 
-Now, let's configure Ignition Transport to block all multicast traffic going
+Now, let's configure Gazebo Transport to block all multicast traffic going
 into your Docker instance. Run the command `ifconfig` to list your network
 interfaces:
 ```
-caguero@bb9:~/ign_transport_tutorial/docker$ ifconfig
+caguero@bb9:~/gz_transport_tutorial/docker$ ifconfig
 docker0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
         inet6 fe80::42:73ff:fe1c:351e  prefixlen 64  scopeid 0x20<link>
@@ -90,7 +90,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-We want to isolate Ignition Transport to the network interface not connected to
+We want to isolate Gazebo Transport to the network interface not connected to
 your Docker instance. Thus, try to identify the IP address of the network
 interface not associated with Docker or the loopback interface. In our case,
 the IP address is `172.23.1.7`.
@@ -100,16 +100,16 @@ the IP address is `172.23.1.7`.
 Go back to the terminal inside the Docker container and run the publisher
 example:
 ```
-IGN_PARTITION=relay ./publisher
+GZ_PARTITION=relay ./publisher
 ```
 
 ## Launch the subscriber
 
-Open a terminal in your host and launch your subscriber, forcing Ignition
+Open a terminal in your host and launch your subscriber, forcing Gazebo
 Transport to only bind to the IP address that we found in the previous step:
 
 ```
-IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
+GZ_IP=172.23.1.7 GZ_PARTITION=relay gz topic -e -t /foo
 ```
 
 You shouldn't receive anything as the discovery messages are not reaching both
@@ -120,7 +120,7 @@ Docker container. For that purpose, you'll need to know the IP address used
 in your Docker container. Run the `ifconfig` command inside your Docker
 instance:
 ```
-developer@b98e0f32f32f:~/ign-transport/example/build$ ifconfig
+developer@b98e0f32f32f:~/gz-transport/example/build$ ifconfig
 eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 172.17.0.3  netmask 255.255.0.0  broadcast 172.17.255.255
         ether 02:42:ac:11:00:03  txqueuelen 0  (Ethernet)
@@ -139,10 +139,10 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
 ```
 
 Go back to your terminal in the host and configure the environment variable
-`IGN_RELAY` with the IP address used inside the container.
+`GZ_RELAY` with the IP address used inside the container.
 
 ```
-IGN_RELAY=172.17.0.3 IGN_IP=172.23.1.7 IGN_PARTITION=relay ign topic -e -t /foo
+GZ_RELAY=172.17.0.3 GZ_IP=172.23.1.7 GZ_PARTITION=relay gz topic -e -t /foo
 ```
 
 Now, you should receive the messages, as your node in the host is directly
@@ -159,7 +159,7 @@ otherwise the communication will not work.
 Example: Imagine that you're running a publisher in your home machine.
 Typically, you'll be using a private IP address behind your home router doing
 NAT. If you try to run a subscriber node inside a computer over the internet
-using a public IP, things will not work even using `IGN_RELAY`. The discovery
+using a public IP, things will not work even using `GZ_RELAY`. The discovery
 protocol will reach the subscriber and back (thanks to the NAT), but things will
 stop at that point. The real data exchange will not be possible, as the
 subscriber will not be able to communicate with the publisher's endpoint using

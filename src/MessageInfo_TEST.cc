@@ -17,10 +17,10 @@
 
 #include <string>
 
-#include "ignition/transport/MessageInfo.hh"
+#include "gz/transport/MessageInfo.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check [Set]Topic().
@@ -125,11 +125,4 @@ TEST(MessageInfoTest, CopyConstructor)
   EXPECT_EQ("/a_partition", infoCopy.Partition());
   EXPECT_EQ("/b_topic", infoCopy.Topic());
   EXPECT_TRUE(infoCopy.IntraProcess());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

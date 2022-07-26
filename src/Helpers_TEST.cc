@@ -15,11 +15,11 @@
  *
 */
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Helpers.hh"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the env() function.
@@ -85,11 +85,4 @@ TEST(HelpersTest, SplitOneDelimiterAtEnd)
   EXPECT_EQ(2u, pieces.size());
   EXPECT_EQ("Hello World", pieces[0]);
   EXPECT_EQ("", pieces[1]);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

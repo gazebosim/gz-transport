@@ -1,3 +1,0 @@
-// Automatically generated
-#include <ignition/${IGN_DESIGNATION}/config.hh>
-${ign_headers}

@@ -18,33 +18,33 @@
 #include <map>
 #include <memory>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/CIface.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/CIface.h"
 
-/// \brief A wrapper to store an Ignition Transport node and its publishers.
-struct IgnTransportNode
+/// \brief A wrapper to store a Gazebo Transport node and its publishers.
+struct GzTransportNode
 {
   /// \brief Pointer to the node.
-  std::unique_ptr<ignition::transport::Node> nodePtr;
+  std::unique_ptr<gz::transport::Node> nodePtr;
 
   /// \brief All publishers of this node.
-  std::map<std::string, ignition::transport::Node::Publisher> publishers;
+  std::map<std::string, gz::transport::Node::Publisher> publishers;
 };
 
 /////////////////////////////////////////////////
-IgnTransportNode *ignTransportNodeCreate(const char *_partition)
+GzTransportNode *gzTransportNodeCreate(const char *_partition)
 {
-  IgnTransportNode *ignTransportNode = new IgnTransportNode();
-  ignition::transport::NodeOptions opts;
+  GzTransportNode *gzTransportNode = new GzTransportNode();
+  gz::transport::NodeOptions opts;
   if (_partition)
     opts.SetPartition(_partition);
-  ignTransportNode->nodePtr = std::make_unique<ignition::transport::Node>(opts);
-  return ignTransportNode;
+  gzTransportNode->nodePtr = std::make_unique<gz::transport::Node>(opts);
+  return gzTransportNode;
 }
 
 /////////////////////////////////////////////////
-void ignTransportNodeDestroy(IgnTransportNode **_node)
+void gzTransportNodeDestroy(GzTransportNode **_node)
 {
   if (*_node)
   {
@@ -54,7 +54,7 @@ void ignTransportNodeDestroy(IgnTransportNode **_node)
 }
 
 /////////////////////////////////////////////////
-int ignTransportAdvertise(IgnTransportNode *_node, const char *_topic,
+int gzTransportAdvertise(GzTransportNode *_node, const char *_topic,
     const char *_msgType)
 {
   if (!_node)
@@ -68,14 +68,14 @@ int ignTransportAdvertise(IgnTransportNode *_node, const char *_topic,
 }
 
 /////////////////////////////////////////////////
-int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
+int gzTransportPublish(GzTransportNode *_node, const char *_topic,
     const void *_data, const char *_msgType)
 {
   if (!_node)
     return 1;
 
   // Create a publisher if one does not exist.
-  if (ignTransportAdvertise(_node, _topic, _msgType) == 0)
+  if (gzTransportAdvertise(_node, _topic, _msgType) == 0)
   {
     // Publish the message.
     return _node->publishers[_topic].PublishRaw(
@@ -86,7 +86,7 @@ int ignTransportPublish(IgnTransportNode *_node, const char *_topic,
 }
 
 /////////////////////////////////////////////////
-int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
+int gzTransportSubscribe(GzTransportNode *_node, const char *_topic,
     void (*_callback)(const char *, size_t, const char *, void *),
     void *_userData)
 {
@@ -96,14 +96,14 @@ int ignTransportSubscribe(IgnTransportNode *_node, const char *_topic,
   return _node->nodePtr->SubscribeRaw(_topic,
       [_callback, _userData](const char *_msg,
                   const size_t _size,
-                  const ignition::transport::MessageInfo &_info) -> void
+                  const gz::transport::MessageInfo &_info) -> void
                   {
                     _callback(_msg, _size, _info.Type().c_str(), _userData);
                   }) ? 0 : 1;
 }
 
 /////////////////////////////////////////////////
-int ignTransportSubscribeOptions(IgnTransportNode *_node, const char *_topic,
+int gzTransportSubscribeOptions(GzTransportNode *_node, const char *_topic,
     SubscribeOpts _opts,
     void (*_callback)(const char *, size_t, const char *, void *),
     void *_userData)
@@ -111,24 +111,24 @@ int ignTransportSubscribeOptions(IgnTransportNode *_node, const char *_topic,
   if (!_node)
     return 1;
 
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(_opts.msgsPerSec);
 
   return _node->nodePtr->SubscribeRaw(
       _topic,
       [_callback, _userData](const char *_msg,
         const size_t _size,
-        const ignition::transport::MessageInfo &_info) -> void
+        const gz::transport::MessageInfo &_info) -> void
         {
           _callback(_msg, _size, _info.Type().c_str(), _userData);
         },
-      ignition::transport::kGenericMessageType,
+      gz::transport::kGenericMessageType,
       opts) ? 0 : 1;
 }
 
 
 /////////////////////////////////////////////////
-int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
+int gzTransportSubscribeNonConst(GzTransportNode *_node, char *_topic,
     void (*_callback)(char *, size_t, char *, void *), void *_userData)
 {
   if (!_node)
@@ -137,7 +137,7 @@ int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
   return _node->nodePtr->SubscribeRaw(_topic,
       [_callback, _userData](const char *_msg,
                   const size_t _size,
-                  const ignition::transport::MessageInfo &_info) -> void
+                  const gz::transport::MessageInfo &_info) -> void
                   {
                     _callback(const_cast<char *>(_msg), _size,
                               const_cast<char *>(_info.Type().c_str()),
@@ -146,7 +146,7 @@ int ignTransportSubscribeNonConst(IgnTransportNode *_node, char *_topic,
 }
 
 /////////////////////////////////////////////////
-int ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic)
+int gzTransportUnsubscribe(GzTransportNode *_node, const char *_topic)
 {
   if (!_node)
     return 1;
@@ -156,7 +156,7 @@ int ignTransportUnsubscribe(IgnTransportNode *_node, const char *_topic)
 
 
 /////////////////////////////////////////////////
-void ignTransportWaitForShutdown()
+void gzTransportWaitForShutdown()
 {
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

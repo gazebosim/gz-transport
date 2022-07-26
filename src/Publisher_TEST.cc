@@ -19,11 +19,11 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Publisher.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants.
@@ -271,6 +271,12 @@ TEST(PublisherTest, ServicePublisher)
 
   EXPECT_TRUE(pub1 == pub2);
   EXPECT_FALSE(pub1 != pub2);
+
+  ServicePublisher pub3;
+  pub3 = pub1;
+
+  EXPECT_TRUE(pub1 == pub3);
+  EXPECT_FALSE(pub1 != pub3);
 
   // Modify the publisher's member variables.
   pub1.SetTopic(g_newTopic);

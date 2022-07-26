@@ -15,12 +15,12 @@
  *
  */
 
-#include <ignition/utils/cli/CLI.hpp>
-#include <ignition/utils/cli/IgnitionFormatter.hpp>
+#include <gz/utils/cli/CLI.hpp>
+#include <gz/utils/cli/GzFormatter.hpp>
 
-#include "ign.hh"
+#include "gz.hh"
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 //////////////////////////////////////////////////
 /// \brief Enumeration of available commands
@@ -54,6 +54,9 @@ struct TopicOptions
 
   /// \brief Number of messages to echo
   int count{-1};
+
+  /// \brief Message output format
+  MsgOutputFormat msgOutputFormat {MsgOutputFormat::kDefault};
 };
 
 //////////////////////////////////////////////////
@@ -74,7 +77,8 @@ void runTopicCommand(const TopicOptions &_opt)
                   _opt.msgData.c_str());
       break;
     case TopicCommand::kTopicEcho:
-      cmdTopicEcho(_opt.topic.c_str(), _opt.duration, _opt.count);
+      cmdTopicEcho(_opt.topic.c_str(), _opt.duration, _opt.count,
+                   _opt.msgOutputFormat);
       break;
     case TopicCommand::kNone:
     default:
@@ -97,7 +101,7 @@ void addTopicFlags(CLI::App &_app)
                                      "Duration (seconds) to run");
   auto countOpt = _app.add_option("-n,--num",
                                   opt->count,
-                                  "Numer of messages to echo and then exit");
+                                  "Number of messages to echo and then exit");
 
   durationOpt->excludes(countOpt);
   countOpt->excludes(durationOpt);
@@ -126,6 +130,10 @@ R"(Output data to screen. E.g.:
   ign topic -e -t /foo)")
     ->needs(topicOpt);
 
+  command->add_flag_callback("--json-output",
+      [opt]() { opt->msgOutputFormat = MsgOutputFormat::kJSON; },
+      "Output messages in JSON format");
+
   command->add_option_function<std::string>("-p,--pub",
       [opt](const std::string &_msgData){
         opt->command = TopicCommand::kTopicPub;
@@ -148,11 +156,11 @@ int main(int argc, char** argv)
   CLI::App app{"Introspect Ignition topics"};
 
   app.add_flag_callback("-v,--version", [](){
-      std::cout << IGNITION_TRANSPORT_VERSION_FULL << std::endl;
+      std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
       throw CLI::Success();
   });
 
   addTopicFlags(app);
-  app.formatter(std::make_shared<IgnitionFormatter>(&app));
+  app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
 }

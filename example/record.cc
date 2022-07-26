@@ -17,15 +17,15 @@
 
 /// \brief Example of recording all ignition transport topics.
 /// This will record all topics and currently published to a file.
-/// Launch the ignition-transport publisher example so this example has
+/// Launch the gz-transport publisher example so this example has
 /// something to record.
 
 #include <cstdint>
 #include <iostream>
 #include <regex>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Recorder.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
 
   // Record all topics
   const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
   // Begin recording, saving received messages to the given file
   const auto result = recorder.Start(argv[1]);
-  if (ignition::transport::log::RecorderError::SUCCESS != result)
+  if (gz::transport::log::RecorderError::SUCCESS != result)
   {
     std::cerr << "Failed to start recording: " << static_cast<int64_t>(result)
               << "\n";
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
             << std::endl;
 
   // Wait until the interrupt signal is sent.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   recorder.Stop();
 

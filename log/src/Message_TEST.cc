@@ -18,10 +18,10 @@
 #include <chrono>
 #include <string>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -51,11 +51,4 @@ TEST(Message, DataConstructor)
   EXPECT_EQ(msgType, msg.Type());
   EXPECT_EQ(topic, msg.Topic());
   EXPECT_EQ(goldenTime, msg.TimeReceived());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

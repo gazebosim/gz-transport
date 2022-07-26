@@ -18,14 +18,14 @@
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
 void cb(const google::protobuf::Message &_msg,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
@@ -34,7 +34,7 @@ void cb(const google::protobuf::Message &_msg,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }

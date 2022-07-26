@@ -16,16 +16,16 @@
 */
 
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  ignition::msgs::StringMsg rep;
+  gz::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 

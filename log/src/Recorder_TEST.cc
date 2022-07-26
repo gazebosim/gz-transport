@@ -18,10 +18,10 @@
 #include <regex>
 #include <string>
 
-#include "ignition/transport/log/Recorder.hh"
+#include "gz/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(Record, Start)
@@ -101,11 +101,4 @@ TEST(Record, SetBufferSize)
 
   recorder.SetBufferSize(40);
   EXPECT_EQ(40u, recorder.BufferSize());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

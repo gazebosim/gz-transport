@@ -19,15 +19,15 @@
 #include <string>
 #include <thread>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Clock.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Clock.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check WallClock functionality.
@@ -61,16 +61,16 @@ using TimeBase = transport::NetworkClock::TimeBase;
 /// parameterized by transport::NetworkClock::TimeBase.
 class NetworkClockTest : public ::testing::TestWithParam<TimeBase>
 {
-  /// \brief Makes an ignition::msgs::Clock message out of the
+  /// \brief Makes a gz::msgs::Clock message out of the
   /// given @p _secs and @p _nsecs.
   /// \param[in] _secs Seconds for the message to be made.
   /// \param[in] _nsecs Nanoseconds for the message to be made.
-  /// \return An ignition::msgs::Clock message.
-  protected: ignition::msgs::Clock MakeClockMessage(
+  /// \return A gz::msgs::Clock message.
+  protected: gz::msgs::Clock MakeClockMessage(
       const std::chrono::seconds& _secs,
       const std::chrono::nanoseconds& _nsecs)
   {
-    ignition::msgs::Clock clockMsg;
+    gz::msgs::Clock clockMsg;
     switch (GetParam())
     {
       case TimeBase::SIM:
@@ -107,9 +107,9 @@ TEST_P(NetworkClockTest, Functionality)
   EXPECT_FALSE(clock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<ignition::msgs::Clock>(clockTopicName);
+      node.Advertise<gz::msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(ignition::msgs::Clock());
+  clockPub.Publish(gz::msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(clock.IsReady());
   const std::chrono::seconds expectedSecs{54321};
@@ -127,10 +127,10 @@ TEST_P(NetworkClockTest, Functionality)
   EXPECT_EQ(clock.Time(), expectedSecs + expectedNsecs * 2);
 }
 
-INSTANTIATE_TEST_CASE_P(TestAllTimeBases, NetworkClockTest,
+INSTANTIATE_TEST_SUITE_P(TestAllTimeBases, NetworkClockTest,
                         ::testing::Values(TimeBase::SIM,
                                           TimeBase::REAL,
-                                          TimeBase::SYS),); // NOLINT
+                                          TimeBase::SYS));
 
 /// \brief Check NetworkClock functionality.
 TEST(ClockTest, BadNetworkClock)
@@ -145,19 +145,12 @@ TEST(ClockTest, BadNetworkClock)
   EXPECT_FALSE(badTimebaseClock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<ignition::msgs::Clock>(clockTopicName);
+      node.Advertise<gz::msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(ignition::msgs::Clock());
+  clockPub.Publish(gz::msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(badTimebaseClock.IsReady());
   badTimebaseClock.SetTime(std::chrono::seconds(10));
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
   EXPECT_FALSE(badTimebaseClock.IsReady());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

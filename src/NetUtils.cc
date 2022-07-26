@@ -37,10 +37,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>
@@ -53,13 +53,13 @@
   #pragma warning(disable: 4996)
 #endif
 
-using namespace ignition;
+using namespace gz;
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   /// \brief Get the preferred local IP address.
   /// Note that we don't consider private IP addresses.
@@ -131,10 +131,19 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
   //////////////////////////////////////////////////
   std::string determineHost()
   {
-    // First, did the user set IGN_IP?
-    std::string ignIp;
-    if (env("IGN_IP", ignIp) && !ignIp.empty())
-      return ignIp;
+    // First, did the user set GZ_IP?
+    std::string gzIp;
+    if (env("GZ_IP", gzIp) && !gzIp.empty())
+    {
+      return gzIp;
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else if (env("IGN_IP", gzIp) && !gzIp.empty())
+    {
+      std::cout << "IGN_IP is deprecated and will be removed! "
+                << "Use GZ_IP instead!" << std::endl;
+      return gzIp;
+    }
 
     // Second, try the preferred local and public IP address.
     std::string hostIP;
@@ -165,7 +174,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       std::cerr << "error in getifaddrs: " << strerror(rc) << std::endl;
       exit(-1);
     }
-    char preferred_ip[200] = {0};
 
 #if defined(SIOCGIFINDEX)
     // Open a socket to use IOCTL later.
@@ -232,16 +240,8 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
       // Is not running.
       if (!(ifa->ifa_flags & IFF_UP))
         continue;
-      // IPv6 interface.
-      if (ifa->ifa_addr->sa_family == AF_INET6 && !preferred_ip[0])
-        interface = std::string(ip_);
-      // Private network interface.
-      else if (isPrivateIP(ip_) && !preferred_ip[0])
-        interface = std::string(ip_);
       // Any other interface.
-      else if (!isPrivateIP(ip_) &&
-               (isPrivateIP(preferred_ip) || !preferred_ip[0]))
-        interface = std::string(ip_);
+      interface = std::string(ip_);
 
       // Add the new interface if it's new and unique.
       if (!interface.empty() &&
@@ -306,7 +306,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
             reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr);
           // Make it a dotted quad
           char ipv4_str[3*4+3+1];
-          ign_sprintf(ipv4_str, "%d.%d.%d.%d",
+          gz_sprintf(ipv4_str, "%d.%d.%d.%d",
             sockaddress->sin_addr.S_un.S_un_b.s_b1,
             sockaddress->sin_addr.S_un.S_un_b.s_b2,
             sockaddress->sin_addr.S_un.S_un_b.s_b3,
@@ -379,6 +379,15 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     GetUserName(buffer, &usernameLen);
     return buffer;
 #else
+    // First, try to get the username through the standard environment variable
+    // for it.
+    const auto userVariable = std::getenv("USER");
+    if (userVariable)
+    {
+      return userVariable;
+    }
+
+    // No USER variable, request it from the system.
     struct passwd pd;
     struct passwd *pdResult;
     Uuid uuid;
@@ -401,14 +410,6 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
           result = pd.pw_name;
           break;
         }
-        else
-        {
-          std::cerr << "Error getting username: no matching password record.\n";
-        }
-      }
-      else
-      {
-        std::cerr << "Error getting username: " << strerror(errno) << std::endl;
       }
     }
 

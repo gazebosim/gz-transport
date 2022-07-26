@@ -1,8 +1,8 @@
-libignition-cmake2-dev
-libignition-math7-dev
-libignition-msgs9-dev
-libignition-tools-dev
-libignition-utils1-cli-dev
+libgz-cmake3-dev
+libgz-math7-dev
+libgz-msgs9-dev
+libgz-tools2-dev
+libgz-utils2-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev

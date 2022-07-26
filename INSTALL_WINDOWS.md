@@ -18,8 +18,8 @@ need to [disable the Windows firewall](http://windows.microsoft.com/en-us/window
 
 1. Make a directory to work in, e.g.:
 
-        mkdir ign-ws
-        cd ign-ws
+        mkdir gz-ws
+        cd gz-ws
 
 1. Download the following dependencies into that directory:
 
@@ -36,18 +36,18 @@ need to [disable the Windows firewall](http://windows.microsoft.com/en-us/window
 directory structure, where a directory with the name of the zip contains the
 directory that has the source files. Here is an example:
 
-        ign-ws/cppzmq-noarch/cppzmq
+        gz-ws/cppzmq-noarch/cppzmq
 
     The correct structure is
 
-        ign-ws/cppzmq
+        gz-ws/cppzmq
 
     To fix this problem, manually move the nested directories up one level.
 
-1. Clone and prepare the Ignition Math dependency:
+1. Clone and prepare the Gazebo Math dependency:
 
-        git clone https://github.com/ignitionrobotics/ign-math
-        cd ign-math
+        git clone https://github.com/gazebosim/gz-math
+        cd gz-math
         mkdir build
 
 1. In a Windows Command Prompt, load your compiler setup, e.g.:
@@ -56,47 +56,47 @@ directory that has the source files. Here is an example:
 
 1. In the Windows Command Promp, configure and build:
 
-        cd ign-math\build
+        cd gz-math\build
         ..\configure
         nmake install
 
-1. Clone and prepare the Ignition Msgs dependency:
+1. Clone and prepare the Gazebo Msgs dependency:
 
-        git clone https://github.com/ignitionrobotics/ign-msgs
-        cd ign-msgs
+        git clone https://github.com/gazebosim/gz-msgs
+        cd gz-msgs
         mkdir build
 
 1. In the Windows Command Prompt, configure and build:
 
-        cd ign-msgs\build
+        cd gz-msgs\build
         ..\configure
         nmake install
 
-1. Clone ign-transport:
+1. Clone gz-transport:
 
-        git clone https://github.com/ignitionrobotics/ign-transport
-        cd ign-transport
+        git clone https://github.com/gazebosim/gz-transport
+        cd gz-transport
         mkdir build
 
 1. In the Windows Command Prompt, configure and build:
 
-	    cd ign-transport\build
+	    cd gz-transport\build
         ..\configure
         nmake install
 
 
-    You should now have an installation of ign-transport in ign-ws/ign-transport/build/install.
+    You should now have an installation of gz-transport in gz-ws/gz-transport/build/install.
 
 1. Before running any executables, you need to modify your `PATH` to include the
 directories including your DLL dependencies to let Windows find dynamic libs
 (similar to `LD_LIBRARY_PATH` on Linux). Don't put quotes around the path, even
-if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
+if it contains spaces.  E.g., if you're working in `C:\My Stuff\gz-ws`:
 
-        set PATH=%PATH%;C:\My Stuff\ign-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\ign-ws\ign-msgs\build\install\Release\lib
+        set PATH=%PATH%;C:\My Stuff\gz-ws\ZeroMQ 4.0.4\bin;C:\My Stuff\gz-ws\gz-msgs\build\install\Release\lib
 
 1. Now build the examples:
 
-        cd ign-ws\ign-transport\example
+        cd gz-ws\gz-transport\example
         mkdir build
         cd build
         ..\configure
@@ -117,5 +117,5 @@ if it contains spaces.  E.g., if you're working in `C:\My Stuff\ign-ws`:
 
 1. In the Windows Command Prompt, run the test suite:
 
-    cd ign-transport\build
+    cd gz-transport\build
     ctest

@@ -25,13 +25,13 @@
 
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
+#include "gz/transport/Discovery.hh"
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
@@ -52,7 +52,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     try
     {
       zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-                std::chrono::milliseconds(_timeout));
+          std::chrono::milliseconds(_timeout));
     }
     catch(...)
     {

@@ -19,10 +19,10 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the topic names.
@@ -289,11 +289,4 @@ TEST(TopicUtilsTest, asValidTopic)
     EXPECT_TRUE(empty.empty());
     EXPECT_FALSE(transport::TopicUtils::IsValidTopic(empty));
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

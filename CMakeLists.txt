@@ -3,25 +3,28 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport12 VERSION 12.0.0)
+project(gz-transport12 VERSION 12.0.0)
 
 #============================================================================
-# Find ignition-cmake
+# Find gz-cmake
 #============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
-set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
+# If you get an error at this line, you need to install gz-cmake
+find_package(gz-cmake3 REQUIRED)
+set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
 #============================================================================
 
-# ignition-transport currently has no options that are unique to it
+# gz-transport currently has no options that are unique to it
 
 if (UNIX AND NOT APPLE)
   set (EXTRA_TEST_LIB_DEPS stdc++fs)
@@ -37,14 +40,14 @@ message(STATUS "\n\n-- ====== Finding Dependencies ======")
 #--------------------------------------
 # Find Protobuf
 set(REQ_PROTOBUF_VER 3)
-ign_find_package(IgnProtobuf
+gz_find_package(GzProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  PRETTY Protobuf)
 
 #--------------------------------------
 # Find ZeroMQ
-ign_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
+gz_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
 
 if (UNIX AND NOT APPLE)
   execute_process(COMMAND lsb_release -cs
@@ -62,7 +65,7 @@ endif()
 
 #--------------------------------------
 # Find cppzmq
-ign_find_package(CPPZMQ REQUIRED PRIVATE
+gz_find_package(CPPZMQ REQUIRED PRIVATE
   PKGCONFIG_IGNORE # NOTE: cppzmq does not seem to offer a pkg-config file
   PRETTY CppZMQ)
 
@@ -71,22 +74,22 @@ ign_find_package(CPPZMQ REQUIRED PRIVATE
 if (MSVC)
   message (STATUS "UUID: Using Windows RPC UuidCreate function\n")
 else()
-  ign_find_package(UUID REQUIRED)
+  gz_find_package(UUID REQUIRED)
 endif()
 
 #--------------------------------------
-# Find ignition-utils
-ign_find_package(ignition-utils1 REQUIRED COMPONENTS cli VERSION 1.4)
-set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
+# Find gz-utils
+gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
+set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-msgs
-ign_find_package(ignition-msgs9 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
+# Find gz-msgs
+gz_find_package(gz-msgs9 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
-ign_find_package(IFADDRS QUIET)
+gz_find_package(IFADDRS QUIET)
 if (IFADDRS_FOUND)
   set (HAVE_IFADDRS ON CACHE BOOL "HAVE IFADDRS" FORCE)
 else ()
@@ -94,12 +97,13 @@ else ()
 endif()
 
 #--------------------------------------
-# Find ignition-tools
-ign_find_package(ignition-tools QUIET)
+# Find gz-tools
+gz_find_package(gz-tools2 QUIET)
+find_program(HAVE_GZ_TOOLS gz)
 
 #--------------------------------------
 # Find SQLite3
-ign_find_package(SQLite3
+gz_find_package(SQLite3
   VERSION 3.7.13
   REQUIRED_BY log
   PRIVATE_FOR log
@@ -109,18 +113,18 @@ ign_find_package(SQLite3
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS
+gz_configure_build(QUIT_IF_BUILD_ERRORS
   COMPONENTS log)
 
 #============================================================================
-# ign command line support
+# gz command line support
 #============================================================================
 add_subdirectory(conf)
 
 #============================================================================
 # Create package information
 #============================================================================
-ign_create_packages()
+gz_create_packages()
 
 #============================================================================
 # Configure documentation
@@ -128,6 +132,6 @@ ign_create_packages()
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
 
-ign_create_docs(
+gz_create_docs(
   API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
   TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md")

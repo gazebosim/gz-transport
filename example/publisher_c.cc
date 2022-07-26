@@ -16,8 +16,8 @@
 */
 #include <signal.h>
 #include <unistd.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/transport/CIface.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/CIface.h>
 
 static bool g_terminatePub = false;
 
@@ -39,13 +39,13 @@ int main(int argc, char **argv)
   signal(SIGTERM, signalHandler);
 
   // Create a transport node.
-  IgnTransportNode *node = ignTransportNodeCreate(nullptr);
-  IgnTransportNode *nodeRed = ignTransportNodeCreate("red");
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  GzTransportNode *nodeRed = gzTransportNodeCreate("red");
 
   const char *topic = "/foo";
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   msg.SerializeToArray(buffer, size);
 
   // Prepare the message.
-  ignition::msgs::StringMsg msgRed;
+  gz::msgs::StringMsg msgRed;
   msgRed.set_data("RED HELLO");
 
   // Get the size of the serialized message
@@ -81,8 +81,8 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    ignTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
-    ignTransportPublish(nodeRed, topic, bufferRed,
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
+    gzTransportPublish(nodeRed, topic, bufferRed,
         msgRed.GetTypeName().c_str());
 
     printf("Publishing hello on topic %s.\n", topic);
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 
   free(buffer);
   free(bufferRed);
-  ignTransportNodeDestroy(&node);
-  ignTransportNodeDestroy(&nodeRed);
+  gzTransportNodeDestroy(&node);
+  gzTransportNodeDestroy(&nodeRed);
 
   return 0;
 }

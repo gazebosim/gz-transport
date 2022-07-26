@@ -5,10 +5,10 @@ Previous Tutorial: \ref introduction
 
 ## Overview
 
-This page contains instructions to install Ignition Transport on all the
+This page contains instructions to install Gazebo Transport on all the
 support platforms including major Linux distributions, Mac OS X and Windows.
 
-You can find all Ignition Transport versions at [https://ignitionrobotics.org/libs/transport](https://ignitionrobotics.org/libs/transport).
+You can find all Gazebo Transport versions at [https://gazebosim.org/libs/transport](https://gazebosim.org/libs/transport).
 
 # Binary Install
 
@@ -25,10 +25,10 @@ Setup keys:
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo apt-get update
-sudo apt-get install libignition-transport<#>-dev
+sudo apt-get install libgz-transport<#>-dev
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -36,9 +36,9 @@ which version you need.
 
 ## Mac OS X
 
-Ignition Transport and several of its dependencies can be compiled on OS
+Gazebo Transport and several of its dependencies can be compiled on OS
 X with [Homebrew](http://brew.sh/) using the [osrf/simulation
-tap](https://github.com/osrf/homebrew-simulation). Ignition Transport is
+tap](https://github.com/osrf/homebrew-simulation). Gazebo Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
@@ -54,7 +54,7 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 Run the following commands:
 ```
 brew tap osrf/simulation
-brew install ignition-transport<#>
+brew install gz-transport<#>
 ```
 
 Be sure to replace `<#>` with a number value, such as `8` or `9`, depending on
@@ -67,13 +67,13 @@ Miniconda suffices.
 
 Create if necessary, and activate a Conda environment:
 ```
-conda create -n ign-ws
-conda activate ign-ws
+conda create -n gz-ws
+conda activate gz-ws
 ```
 
 Install:
 ```
-conda install libignition-transport<#> --channel conda-forge
+conda install libgz-transport<#> --channel conda-forge
 ```
 
 Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
@@ -83,35 +83,35 @@ which version you need.
 
 ## Ubuntu Linux
 
-For compiling the latest version of Ignition Transport you will need an
-Ubuntu distribution equal to 18.04 (Bionic) or newer.
+For compiling the latest version of Gazebo Transport you will need an
+Ubuntu distribution equal to 20.04 (Focal) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
 ```
-sudo apt-get remove libignition-transport.*-dev
+sudo apt-get remove libgz-transport.*-dev
 ```
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libignition-msgs-dev libignition-utils1-cli-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs-dev libgz-utils2-cli-dev
 ```
 
 Clone the repository
 ```
-git clone https://github.com/ignitionrobotics/ign-transport
+git clone https://github.com/gazebosim/gz-transport
 ```
 
 Configure and build
 ```
-cd ign-common
+cd gz-common
 mkdir build
 cd build
 cmake ..
 make
 ```
 
-Configure Ignition Transport (choose either method a or b below):
+Configure Gazebo Transport (choose either method a or b below):
 
 A.  Release mode (recommended): This will generate optimized code, but will not have
     debug symbols. Use this mode if you don't need to use [GDB](https://www.gnu.org/software/gdb/) (advanced).
@@ -125,7 +125,7 @@ between source and debian installs:
 cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/local ..
 ```
 
-B. Debug mode: This will generate code with debug symbols. Ignition
+B. Debug mode: This will generate code with debug symbols. Gazebo
 Transport will run slower, but you'll be able to use GDB.
 ```
 cmake -DCMAKE_BUILD_TYPE=Debug ..
@@ -143,12 +143,12 @@ look something like:
 -- Install path: /home/$USER/local
 ```
 
-Build Ignition Transport:
+Build Gazebo Transport:
 ```
 make -j4
 ```
 
-Install Ignition Transport:
+Install Gazebo Transport:
 ```
 sudo make install
 ```
@@ -161,12 +161,12 @@ echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.ba
 
 ### Uninstalling Source-based Install
 
-If you need to uninstall Ignition Transport or switch back to a
+If you need to uninstall Gazebo Transport or switch back to a
 debian-based install when you currently have installed the library from
 source, navigate to your source code directory's build folders and run
 `make uninstall`:
 ```
-cd /tmp/ign-transport/build
+cd /tmp/gz-transport/build
 sudo make uninstall
 ```
 
@@ -174,21 +174,21 @@ sudo make uninstall
 
 1. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-transport -b ign-transport<#>
+  git clone https://github.com/gazebosim/gz-transport -b ign-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
 
 2. Install dependencies
   ```
-  brew install --only-dependencies ignition-transport<#>
+  brew install --only-dependencies gz-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
   which version you need.
 
 3. Configure and build
   ```
-  cd ign-transport
+  cd gz-transport
   mkdir build
   cd build
   cmake ..
@@ -204,13 +204,13 @@ sudo make uninstall
 
 ### Prerequisites
 
-First, follow the [ign-cmake](https://github.com/ignitionrobotics/ign-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+First, follow the [gz-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
 
 Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
 
 Activate the Conda environment:
 ```
-conda activate ign-ws
+conda activate gz-ws
 ```
 
 Install prerequisites:
@@ -218,16 +218,16 @@ Install prerequisites:
 conda install zeromq cppzmq --channel conda-forge
 ```
 
-Install Ignition dependencies:
+Install Gazebo dependencies:
 
 You can view available versions and their dependencies:
 ```
-conda search libignition-transport* --channel conda-forge --info
+conda search libgz-transport* --channel conda-forge --info
 ```
 
 Install dependencies, replacing `<#>` with the desired versions:
 ```
-conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --channel conda-forge
+conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 ```
 
 #### Building from Source
@@ -235,12 +235,12 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 1. Navigate to where you would like to build the library, and clone the repository.
   ```
   # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
-  git clone https://github.com/ignitionrobotics/ign-transport.git
+  git clone https://github.com/gazebosim/gz-transport.git
   ```
 
 2. Configure and build
   ```
-  cd ign-transport
+  cd gz-transport
   mkdir build
   cd build
   cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
@@ -254,10 +254,10 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 4. Optionally, build the examples
 
-  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``ignition-transport<#>-config.cmake``.
-  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\ignition-transport<#>\lib\cmake\ignition-transport<#>``.
+  If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``gz-transport<#>-config.cmake``.
+  That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\gz-transport<#>\lib\cmake\gz-transport<#>``.
   ```
-  cd ign-transport\example
+  cd gz-transport\example
   mkdir build
   cd build
   cmake ..  # Optionally, -DCMAKE_PREFIX_PATH=path\to\cmake\config
@@ -276,7 +276,7 @@ conda install libignition-cmake<#> libignition-msgs<#> libignition-tools<#> --ch
 
 # Documentation
 
-Visit the [documentation page](https://ignitionrobotics.org/api/transport/11.0/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/11.0/index.html).
 
 ## Build documentation
 ```
@@ -284,16 +284,16 @@ cd build
 make doc
 ```
 
-Upload documentation to ignitionrobotics.org.
+Upload documentation to gazebosim.org.
 ```
 cd build
 sh upload.sh
 ```
 
-If you're creating a new release, then tell ignitionrobotics.org about
+If you're creating a new release, then tell gazebosim.org about
    the new version. For example:
 ```
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.ignitionrobotics.org/1.0/versions
+curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.gazebosim.org/1.0/versions
 ```
 
 # Testing

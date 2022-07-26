@@ -19,11 +19,11 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Helpers.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////
@@ -251,11 +251,4 @@ TEST(AdvertiseOptionsTest, srvAccessors)
   EXPECT_EQ(opts.Scope(), Scope_t::ALL);
   opts.SetScope(Scope_t::HOST);
   EXPECT_EQ(opts.Scope(), Scope_t::HOST);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

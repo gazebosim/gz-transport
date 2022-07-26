@@ -17,14 +17,14 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "test_config.hh"
 
-using namespace ignition;
+using namespace gz;
 
 static bool responseExecuted;
 static bool wrongResponseExecuted;
@@ -45,7 +45,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const ignition::msgs::Int32 &_rep, const bool _result)
+void response(const gz::msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
@@ -56,7 +56,7 @@ void response(const ignition::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const gz::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
@@ -67,7 +67,7 @@ void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
 TEST(twoProcSrvCall, SrvTwoProcs)
 {
   std::string responser_path = testing::portablePathUnion(
-    IGN_TRANSPORT_TEST_DIR,
+    GZ_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -75,7 +75,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 
   reset();
 
-  ignition::msgs::Int32 req;
+  gz::msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -120,13 +120,13 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 /// that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongReq)
 {
-  ignition::msgs::Vector3d wrongReq;
-  ignition::msgs::Int32 rep;
+  gz::msgs::Vector3d wrongReq;
+  gz::msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -160,13 +160,13 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongRep)
 {
-  ignition::msgs::Int32 req;
-  ignition::msgs::Vector3d wrongRep;
+  gz::msgs::Int32 req;
+  gz::msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
 
@@ -200,14 +200,14 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 /// are used.
 TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 {
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 goodRep;
-  ignition::msgs::Vector3d badRep;
+  gz::msgs::Int32 req;
+  gz::msgs::Int32 goodRep;
+  gz::msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 2000;
 
   std::string responser_path = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
@@ -248,7 +248,7 @@ TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 TEST(twoProcSrvCall, ServiceList)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -300,7 +300,7 @@ TEST(twoProcSrvCall, ServiceList)
 TEST(twoProcSrvCall, ServiceInfo)
 {
   std::string publisherPath = testing::portablePathUnion(
-     IGN_TRANSPORT_TEST_DIR,
+     GZ_TRANSPORT_TEST_DIR,
      "INTEGRATION_twoProcsSrvCallReplier_aux");
 
   testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
@@ -322,8 +322,8 @@ TEST(twoProcSrvCall, ServiceInfo)
 
   EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Int32");
-  EXPECT_EQ(publishers.front().RepTypeName(), "ignition.msgs.Int32");
+  EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Int32");
+  EXPECT_EQ(publishers.front().RepTypeName(), "gz.msgs.Int32");
 
   reset();
 
@@ -337,10 +337,10 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("IGN_PARTITION", partition.c_str(), 1);
+  setenv("GZ_PARTITION", partition.c_str(), 1);
 
   // Enable verbose mode.
-  // setenv("IGN_VERBOSE", "1", 1);
+  // setenv("GZ_VERBOSE", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/discovery.pb.h>
-#include <ignition/msgs/statistic.pb.h>
+#include <gz/msgs/discovery.pb.h>
+#include <gz/msgs/statistic.pb.h>
 
 #include <algorithm>
 #include <cassert>
@@ -29,14 +29,14 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/TopicUtils.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/TopicUtils.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
@@ -45,14 +45,14 @@
 #pragma warning(disable: 4503)
 #endif
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
     /// waitForShutdown().
@@ -344,11 +344,9 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     if (subscribers.haveLocal)
     {
-      for (const std::pair<std::string, ISubscriptionHandler_M> &node :
-           subscribers.localHandlers)
+      for (const auto &node : subscribers.localHandlers)
       {
-        for (const std::pair<std::string, ISubscriptionHandlerPtr> &handler :
-             node.second)
+        for (const auto &handler : node.second)
         {
           if (!handler.second)
           {
@@ -620,7 +618,7 @@ bool Node::Unsubscribe(const std::string &_topic)
   if (!this->dataPtr->shared->localSubscribers
       .HasSubscriber(fullyQualifiedTopic))
   {
-#ifdef IGN_CPPZMQ_POST_4_7_0
+#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->shared->dataPtr->subscriber->set(
       zmq::sockopt::unsubscribe, fullyQualifiedTopic);
 #else
@@ -830,7 +828,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
   AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(_publicationRate);
   this->dataPtr->statPub = this->Advertise(_publicationTopic,
-      "ignition.msgs.Metric", opts);
+      "gz.msgs.Metric", opts);
 
   // Callback used to publish a statistics message.
   // cppcheck-suppress unreadVariable

@@ -15,11 +15,11 @@
  *
 */
 
-#include "ignition/transport/log/Playback.hh"
+#include "gz/transport/log/Playback.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 
 //////////////////////////////////////////////////
 TEST(Playback, PlaybackEmptyDatabase)
@@ -29,12 +29,4 @@ TEST(Playback, PlaybackEmptyDatabase)
   EXPECT_FALSE(playback.AddTopic("/foo/bar"));
   EXPECT_EQ(-1, playback.AddTopic(std::regex(".*")));
   EXPECT_EQ(nullptr, playback.Start());
-}
-
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

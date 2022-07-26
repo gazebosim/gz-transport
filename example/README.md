@@ -1,6 +1,6 @@
 ## Examples
 
-Example programs using Ignition Transport.
+Example programs using Gazebo Transport.
 
 ## Build
 
@@ -25,7 +25,7 @@ Build on Unix:
 make
 ```
 
-To build on Windows, make sure the configuration matches `ign-transport`'s 
+To build on Windows, make sure the configuration matches `gz-transport`'s 
 configuration:
 
 ```

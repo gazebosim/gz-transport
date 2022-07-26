@@ -15,18 +15,18 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
-#define IGN_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
+#ifndef GZ_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
+#define GZ_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
 
 #include <cstdint>
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
     /// ignition/transport/SubscribeOptionsPrivate.hh

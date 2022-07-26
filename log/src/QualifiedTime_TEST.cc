@@ -17,10 +17,10 @@
 
 #include <chrono>
 
-#include "ignition/transport/log/QualifiedTime.hh"
+#include "gz/transport/log/QualifiedTime.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition::transport;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -278,11 +278,4 @@ TEST(QualifiedTimeRange, AssignmentOperator)
   EXPECT_FALSE(range1 == range2);
   range2 = range1;
   EXPECT_TRUE(range1 == range2);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

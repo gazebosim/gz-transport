@@ -24,7 +24,7 @@ COMMANDS = {
 }
 
 #
-# Class for the Ignition transport command line tools.
+# Class for the Gazebo transport command line tools.
 #
 class Cmd
   def execute(args)
@@ -51,16 +51,6 @@ class Cmd
     end
 
     # Drop command from list of arguments
-    Open3.popen2e(exe_name, *args[1..-1]) do |_in, out_err, wait_thr|
-      begin
-        out_err.each do |line|
-          print line
-        end
-        exit(wait_thr.value.exitstatus)
-      rescue Interrupt => e
-        print e.message
-        exit(-1)
-      end
-    end
+    exec(exe_name, *args[1..-1])
   end
 end

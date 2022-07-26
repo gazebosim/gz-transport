@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -488,11 +488,4 @@ TEST(QueryMessages, QueryTopicListBeforeInclusive)
     }
   }
   EXPECT_EQ(5u, num_msgs);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

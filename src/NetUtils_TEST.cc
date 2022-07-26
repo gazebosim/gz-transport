@@ -15,10 +15,10 @@
  *
 */
 
-#include "ignition/transport/NetUtils.hh"
+#include "gz/transport/NetUtils.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the hostname() function.
@@ -32,11 +32,4 @@ TEST(NetUtilsTest, hostname)
 TEST(NetUtilsTest, username)
 {
   EXPECT_TRUE(!transport::username().empty());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

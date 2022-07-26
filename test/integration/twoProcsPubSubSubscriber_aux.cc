@@ -17,16 +17,16 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #ifdef _WIN32
   #include <filesystem>
 #endif
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "test_config.hh"
 
-using namespace ignition;
+using namespace gz;
 
 static bool cbExecuted;
 static bool cbStatsExecuted;
@@ -37,7 +37,7 @@ static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const ignition::msgs::Vector3d &_msg)
+void cb(const gz::msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -47,9 +47,9 @@ void cb(const ignition::msgs::Vector3d &_msg)
 
 //////////////////////////////////////////////////
 void cbRaw(const char *_msgData, const size_t _size,
-           const ignition::transport::MessageInfo &_info)
+           const gz::transport::MessageInfo &_info)
 {
-  ignition::msgs::Vector3d v;
+  gz::msgs::Vector3d v;
 
   EXPECT_TRUE(v.GetTypeName() == _info.Type());
 
@@ -64,7 +64,7 @@ void cbRaw(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const ignition::msgs::Vector3d &_msg)
+void cb2(const gz::msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -73,7 +73,7 @@ void cb2(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void statsCb(const ignition::msgs::Metric & /*_msg*/)
+void statsCb(const gz::msgs::Metric & /*_msg*/)
 {
   cbStatsExecuted = true;
 }
@@ -99,7 +99,7 @@ void runSubscriber()
 
   // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                ignition::msgs::Vector3d().GetTypeName()));
+                                gz::msgs::Vector3d().GetTypeName()));
 
   int interval = 100;
 
@@ -159,8 +159,8 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("IGN_PARTITION", argv[1], 1);
-  setenv("IGN_TRANSPORT_TOPIC_STATISTICS", "1", 1);
+  setenv("GZ_PARTITION", argv[1], 1);
+  setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -23,7 +23,7 @@ if (UNIX AND NOT APPLE)
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/all_symbols_have_version.bash $<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>)
 endif()
 
-ign_build_tests(TYPE INTEGRATION SOURCES ${tests}
+gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
@@ -33,7 +33,7 @@ foreach(test ${test_list})
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
-    "DETAIL_IGN_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
+    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
 
 endforeach()
 
@@ -55,7 +55,7 @@ set(auxiliary_files
 
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})
-  ign_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
+  gz_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
 
   # Link the libraries that we always need.
   target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}

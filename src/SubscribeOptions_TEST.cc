@@ -15,12 +15,12 @@
  *
 */
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "test_config.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////
@@ -53,11 +53,4 @@ TEST(SubscribeOptionsTest, throttled)
   EXPECT_FALSE(opts.Throttled());
   opts.SetMsgsPerSec(3u);
   EXPECT_TRUE(opts.Throttled());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

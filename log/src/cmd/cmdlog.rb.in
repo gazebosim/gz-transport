@@ -37,16 +37,16 @@ COMMON_OPTIONS =
   "                                                                        \n"\
 
 COMMANDS = { 'log' =>
-  "Record and playback Ignition Transport topics.                        \n\n"\
-  "  ign log record|playback [options]                                     \n"\
+  "Record and playback Gazebo Transport topics.                        \n\n"\
+  "  gz log record|playback [options]                                     \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n" +
   COMMON_OPTIONS
 }
 
 SUBCOMMANDS = { 'record' =>
-  "Record Ignition Transport topics.                                     \n\n"\
-  "  ign log record [options]                                              \n"\
+  "Record Gazebo Transport topics.                                     \n\n"\
+  "  gz log record [options]                                              \n"\
   "                                                                        \n"\
   "Options:                                                              \n\n"\
   "  --file FILE                Log file name (default <datetime>.tlog).   \n"\
@@ -55,8 +55,8 @@ SUBCOMMANDS = { 'record' =>
   "                             (Default match all topics).                \n" +
   COMMON_OPTIONS,
                 'playback' =>
-  "Playback previously recorded Ignition Transport topics.               \n\n"\
-  "  ign log playback [options]                                            \n"\
+  "Playback previously recorded Gazebo Transport topics.               \n\n"\
+  "  gz log playback [options]                                            \n"\
   "                                                                        \n"\
   "Required Flags:                                                       \n\n"\
   "  --file FILE                Log file name.                             \n"\
@@ -77,7 +77,7 @@ SUBCOMMANDS = { 'record' =>
 }
 
 #
-# Class for the Ignition Transport Log command line tools.
+# Class for the Gazebo Transport Log command line tools.
 #
 class Cmd
 
@@ -176,7 +176,7 @@ class Cmd
       exit(-1)
     end
 
-    # TODO(anyone): Add a sanity check for the ignition-transport-log version
+    # TODO(anyone): Add a sanity check for the gz-transport-log version
 
     begin
       Importer.extern 'int verbosity(int)'

@@ -18,10 +18,10 @@
 #include <cstdint>
 #include <string>
 
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(SqlParameter, Construct)
@@ -128,11 +128,4 @@ TEST(SqlParameter, MoveAssignment)
   param = std::move(paramOrig);
   ASSERT_NE(nullptr, param.QueryText());
   EXPECT_EQ(std::string("Hello World!"), *param.QueryText());
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
