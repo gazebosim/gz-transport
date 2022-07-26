@@ -47,12 +47,6 @@
 # include <sys/ioctl.h>
 #endif
 
-#ifdef _MSC_VER
-  // Disable Windows deprecation warnings
-  # pragma warning(push)
-  #pragma warning(disable: 4996)
-#endif
-
 using namespace gz;
 
 namespace gz
