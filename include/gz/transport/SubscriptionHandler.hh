@@ -18,11 +18,18 @@
 #ifndef GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 #define GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
 #include <google/protobuf/message.h>
 #include <google/protobuf/stubs/common.h>
 
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
 #include <google/protobuf/stubs/casts.h>
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
 #include <chrono>

@@ -32,7 +32,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
     zmq::pollitem_t items[] =
     {
-      {0, _sockets.at(0), ZMQ_POLLIN, 0},
+      {0, static_cast<zmq_fd_t>(_sockets.at(0)), ZMQ_POLLIN, 0},
     };
 
     try
