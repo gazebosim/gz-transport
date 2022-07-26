@@ -526,25 +526,3 @@ TEST(DiscoveryTest, TestActivity)
   // We shouldn't observe activity from proc1Uuid2 anymore.
   discovery1.TestActivity(proc2Uuid, false);
 }
-
-//////////////////////////////////////////////////
-/// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
-TEST(DiscoveryTest, WrongGzIp)
-{
-  // Save the current value of GZ_IP environment variable.
-  std::string gzIp;
-  env("GZ_IP", gzIp);
-
-  // Incorrect value for GZ_IP
-  setenv("GZ_IP", "127.0.0.0", 1);
-
-  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
-  EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
-
-  // Unset GZ_IP.
-  unsetenv("GZ_IP");
-
-  // Restore GZ_IP.
-  if (!gzIp.empty())
-    setenv("GZ_IP", gzIp.c_str(), 1);
-}
