@@ -19,8 +19,16 @@
 #define GZ_TRANSPORT_REPHANDLER_HH_
 
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
 #if GOOGLE_PROTOBUF_VERSION >= 3000000
 #include <google/protobuf/stubs/casts.h>
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
 #include <functional>

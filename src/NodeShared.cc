@@ -28,7 +28,6 @@
 #include <vector>
 #include <unordered_map>
 
-// TODO(anyone): Remove after fixing the warnings.
 #include <gz/msgs.hh>
 
 #include "gz/transport/AdvertiseOptions.hh"
@@ -42,10 +41,6 @@
 #include "gz/transport/Uuid.hh"
 
 #include "NodeSharedPrivate.hh"
-
-#ifdef _MSC_VER
-# pragma warning(disable: 4503)
-#endif
 
 using namespace std::chrono_literals;
 using namespace gz;
