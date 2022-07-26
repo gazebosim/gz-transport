@@ -61,11 +61,11 @@ using TimeBase = transport::NetworkClock::TimeBase;
 /// parameterized by transport::NetworkClock::TimeBase.
 class NetworkClockTest : public ::testing::TestWithParam<TimeBase>
 {
-  /// \brief Makes an gz::msgs::Clock message out of the
+  /// \brief Makes a gz::msgs::Clock message out of the
   /// given @p _secs and @p _nsecs.
   /// \param[in] _secs Seconds for the message to be made.
   /// \param[in] _nsecs Nanoseconds for the message to be made.
-  /// \return An gz::msgs::Clock message.
+  /// \return A gz::msgs::Clock message.
   protected: gz::msgs::Clock MakeClockMessage(
       const std::chrono::seconds& _secs,
       const std::chrono::nanoseconds& _nsecs)
