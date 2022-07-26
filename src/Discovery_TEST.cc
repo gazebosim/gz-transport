@@ -29,6 +29,19 @@
 #include "gz/transport/Uuid.hh"
 #include "test_config.hh"
 
+// Temporarily introduce a "DISABLED_ON_LINUX" macro.
+// It currently does not exist upstream.
+// This can be removed when it is in upstream gz-utils
+// or the discovery WrongGzIp test passes on linux
+#include <gz/utils/detail/ExtraTestMacros.hh>
+#if defined __linux__
+  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
+      DETAIL_GZ_UTILS_ADD_DISABLED_PREFIX(TestName)
+#else
+  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
+      TestName
+#endif  // defined __linux__
+
 using namespace gz;
 using namespace transport;
 
@@ -525,4 +538,26 @@ TEST(DiscoveryTest, TestActivity)
 
   // We shouldn't observe activity from proc1Uuid2 anymore.
   discovery1.TestActivity(proc2Uuid, false);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
+TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))
+{
+  // Save the current value of GZ_IP environment variable.
+  std::string gzIp;
+  env("GZ_IP", gzIp);
+
+  // Incorrect value for GZ_IP
+  setenv("GZ_IP", "127.0.0.0", 1);
+
+  transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
+  EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
+
+  // Unset GZ_IP.
+  unsetenv("GZ_IP");
+
+  // Restore GZ_IP.
+  if (!gzIp.empty())
+    setenv("GZ_IP", gzIp.c_str(), 1);
 }
