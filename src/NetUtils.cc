@@ -410,10 +410,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return result;
 #endif
   }
-
-#ifdef _MSC_VER
-    #pragma warning(pop)
-#endif
 }
 }
 }
