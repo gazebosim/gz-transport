@@ -21,6 +21,23 @@
 
 #include "gz/transport/Discovery.hh"
 
+// Compatibility macro for ZMQ_FD_T
+#if (ZMQ_VERSION >= 40303)
+  #define ZMQ_FD_T zmq_fd_t
+#else
+// Logic from newer zmq.h
+  #if defined _WIN32
+  // Windows uses a pointer-sized unsigned integer to store the socket fd.
+    #if defined _WIN64
+      #define ZMQ_FD_T unsigned __int64;
+    #else
+      #define ZMQ_FD_T unsigned int;
+    #endif
+  #else
+    #define ZMQ_FD_T int;
+  #endif
+#endif
+
 namespace gz
 {
 namespace transport
@@ -32,7 +49,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
     zmq::pollitem_t items[] =
     {
-      {0, static_cast<zmq_fd_t>(_sockets.at(0)), ZMQ_POLLIN, 0},
+      {0, static_cast<ZMQ_FD_T>(_sockets.at(0)), ZMQ_POLLIN, 0},
     };
 
     try
