@@ -15,13 +15,7 @@
  *
 */
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <zmq.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include <chrono>
 #include <cstring>
@@ -34,14 +28,7 @@
 #include <vector>
 #include <unordered_map>
 
-// TODO(anyone): Remove after fixing the warnings.
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <gz/msgs.hh>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"
@@ -54,10 +41,6 @@
 #include "gz/transport/Uuid.hh"
 
 #include "NodeSharedPrivate.hh"
-
-#ifdef _MSC_VER
-# pragma warning(disable: 4503)
-#endif
 
 using namespace std::chrono_literals;
 using namespace gz;

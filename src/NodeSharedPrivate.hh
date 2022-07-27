@@ -18,13 +18,7 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <zmq.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include <atomic>
 #include <map>

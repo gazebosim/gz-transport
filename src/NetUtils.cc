@@ -47,12 +47,6 @@
 # include <sys/ioctl.h>
 #endif
 
-#ifdef _MSC_VER
-  // Disable Windows deprecation warnings
-  # pragma warning(push)
-  #pragma warning(disable: 4996)
-#endif
-
 using namespace gz;
 
 namespace gz
@@ -416,10 +410,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return result;
 #endif
   }
-
-#ifdef _MSC_VER
-    #pragma warning(pop)
-#endif
 }
 }
 }
