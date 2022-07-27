@@ -29,12 +29,12 @@
   #if defined _WIN32
   // Windows uses a pointer-sized unsigned integer to store the socket fd.
     #if defined _WIN64
-      #define ZMQ_FD_T unsigned __int64;
+      #define ZMQ_FD_T unsigned __int64
     #else
-      #define ZMQ_FD_T unsigned int;
+      #define ZMQ_FD_T unsigned int
     #endif
   #else
-    #define ZMQ_FD_T int;
+    #define ZMQ_FD_T int
   #endif
 #endif
 
