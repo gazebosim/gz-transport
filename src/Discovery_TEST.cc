@@ -525,7 +525,7 @@ TEST(DiscoveryTest, TestActivity)
 
 /// Logic to disable the following test via Linux
 #if defined __linux__
-  #define TEST_NAME Disabled_WrongIgnIp
+  #define TEST_NAME DISABLED_WrongIgnIp
 #else
   #define TEST_NAME WrongIgnIp
 #endif  // defined __linux__
