@@ -22,7 +22,7 @@ target_link_libraries(${topic_executable}
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${topic_executable} DESTINATION ${GZ_LIB_INSTALL_DIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
 set(service_executable gz-transport-service)
@@ -32,7 +32,7 @@ target_link_libraries(${service_executable}
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${service_executable} DESTINATION ${GZ_LIB_INSTALL_DIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
@@ -47,7 +47,8 @@ foreach(test ${test_list})
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
     "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
-    "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
+    "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\""
+    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
 
 endforeach()
 
@@ -92,8 +93,8 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(service_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
-set(topic_exe_location "../../../${CMAKE_INSTALL_LIBDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
   "cmd${GZ_DESIGNATION}.rb.in"
@@ -106,3 +107,16 @@ file(GENERATE
 
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_script_generated} DESTINATION lib/ruby/gz)
+
+#===============================================================================
+# Bash completion
+
+# Tack version onto and install the bash completion script
+configure_file(
+  "transport.bash_completion.sh"
+    "${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh" @ONLY)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh
+  DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/gz${GZ_TOOLS_VER}.completion.d)
