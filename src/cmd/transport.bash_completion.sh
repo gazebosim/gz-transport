@@ -18,7 +18,7 @@
 # bash tab-completion
 
 # This is a per-library function definition, used in conjunction with the
-# top-level entry point in ign-tools.
+# top-level entry point in gz-tools.
 
 GZ_SERVICE_COMPLETION_LIST="
   -h --help
