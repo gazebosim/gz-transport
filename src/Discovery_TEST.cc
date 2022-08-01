@@ -540,6 +540,13 @@ TEST(DiscoveryTest, TestActivity)
   discovery1.TestActivity(proc2Uuid, false);
 }
 
+/// Logic to disable the following test via Linux
+#if defined __linux__
+  #define TEST_NAME DISABLED_WrongIgnIp
+#else
+  #define TEST_NAME WrongIgnIp
+#endif  // defined __linux__
+
 //////////////////////////////////////////////////
 /// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
 TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))

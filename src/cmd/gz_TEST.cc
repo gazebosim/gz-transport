@@ -15,6 +15,8 @@
  *
 */
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <gz/msgs.hh>
@@ -456,6 +458,72 @@ TEST(gzTest, TopicEchoNum)
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service --help' message and bash completion script for
+/// consistent flags
+TEST(gzTest, ServiceHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string helpOutput = custom_exec_str("gz service --help");
+
+  // Call the output function in the bash completion script
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_service_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_service_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic --help' message and bash completion script for
+/// consistent flags
+TEST(gzTest, TopicHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string helpOutput = custom_exec_str("gz topic --help");
+
+  // Call the output function in the bash completion script
+  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_topic_flags\""
+  std::string cmd = "bash -c \". " + scriptPath.string() +
+    "; _gz_topic_flags\"";
+  std::string scriptOutput = custom_exec_str(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
 
 /////////////////////////////////////////////////
