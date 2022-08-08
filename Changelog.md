@@ -213,6 +213,26 @@
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
 
+### Gazebo Transport 8.3.0 (2022-07-27)
+
+1. Ignition -> Gazebo
+    * [Pull request #330](https://github.com/gazebosim/gz-transport/pull/330)
+
+1. Bash completion for flags
+    * [Pull request #312](https://github.com/gazebosim/gz-transport/pull/312)
+
+1. Focal CI: static checkers, doxygen linters, compiler warnings
+    * [Pull request #298](https://github.com/gazebosim/gz-transport/pull/298)
+
+1. Remove no username error messages
+    * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
+
+1. Documented the default value of `GZ_PARTITION`
+    * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/gazebosim/gz-transport/pull/273)
+
 ### Ignition Transport 8.2.1 (2021-10-27)
 
 1. Make zmq check for post 4.3.1 not to include 4.3.1

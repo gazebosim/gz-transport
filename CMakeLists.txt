@@ -9,7 +9,7 @@ project(ignition-transport11 VERSION 11.1.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
+find_package(ignition-cmake2 2.13 REQUIRED)
 set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 
 #============================================================================
@@ -94,8 +94,11 @@ else ()
 endif()
 
 #--------------------------------------
-# Find ignition-tools
-ign_find_package(ignition-tools QUIET)
+# Find if command is available. This is used to enable tests.
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+find_program(HAVE_IGN_TOOLS ign)
+set (IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find SQLite3
