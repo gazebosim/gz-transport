@@ -29,7 +29,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;
