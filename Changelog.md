@@ -1,3 +1,7 @@
+## Gazebo Transport 13.X
+
+### Gazebo Transport 13.0.0 (202X-XX-XX)
+
 ## Gazebo Transport 12.X
 
 ### Gazebo Transport 12.0.0 (202X-XX-XX)
