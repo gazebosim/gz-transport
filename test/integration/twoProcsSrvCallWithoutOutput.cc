@@ -48,7 +48,7 @@ void reset()
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  ignition::msgs::Vector3d wrongReq;
+  msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,

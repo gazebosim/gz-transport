@@ -64,7 +64,7 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
@@ -159,7 +159,7 @@ TEST(ignTest, cmdServiceReq)
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_service, srvEcho));
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(10);
 
   // A null service name should generate an error message.

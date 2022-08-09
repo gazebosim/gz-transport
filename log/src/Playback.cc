@@ -167,13 +167,13 @@ class PlaybackHandle::Implementation
   /// \brief node used to create publishers
   /// \note This member needs to come before the publishers member so that they
   /// get destructed in the correct order
-  public: std::unique_ptr<ignition::transport::Node> node;
+  public: std::unique_ptr<Node> node;
 
   /// \brief Map whose key is a topic name and value is another map whose
   /// key is a message type name and value is a publisher
   public: std::unordered_map<std::string,
           std::unordered_map<std::string,
-            ignition::transport::Node::Publisher>> publishers;
+            Node::Publisher>> publishers;
 
   /// \brief a mutex to use when waiting for playback to finish
   public: std::mutex waitMutex;
@@ -487,7 +487,7 @@ void PlaybackHandle::Implementation::CreatePublisher(
   {
     // Create a map for the message topic
     this->publishers[_topic] = std::unordered_map<std::string,
-      ignition::transport::Node::Publisher>();
+      Node::Publisher>();
     firstMapIter = this->publishers.find(_topic);
   }
 

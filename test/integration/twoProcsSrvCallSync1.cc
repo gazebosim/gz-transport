@@ -45,8 +45,8 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
     partition.c_str());
 
   int64_t timeout = 500;
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 rep;
+  msgs::Int32 req;
+  msgs::Int32 rep;
   bool result;
 
   req.set_data(data);
