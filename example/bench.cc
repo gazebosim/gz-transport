@@ -40,6 +40,7 @@
 
 #include <cstdint>
 #include <iomanip>
+#include <fstream>
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
