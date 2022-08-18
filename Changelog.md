@@ -1,4 +1,19 @@
-## Ignition Transport 11.X
+## Gazebo Transport 11.X
+
+### Gazebo Transport 11.2.0 (2022-08-16)
+
+1. Remove problematic discovery test
+    * [Pull request #339](https://github.com/gazebosim/gz-transport/pull/339)
+
+1. Change `IGN_DESIGNATION` to `GZ_DESIGNATION`
+    * [Pull request #332](https://github.com/gazebosim/gz-transport/pull/332)
+
+1. Ignition -> Gazebo
+    * [Pull request #330](https://github.com/gazebosim/gz-transport/pull/330)
+
+1. Bash completion for flags
+    * [Pull request #312](https://github.com/gazebosim/gz-transport/pull/312)
+    * [Pull request #333](https://github.com/gazebosim/gz-transport/pull/333)
 
 ### Ignition Transport 11.1.0 (2022-06-01)
 
