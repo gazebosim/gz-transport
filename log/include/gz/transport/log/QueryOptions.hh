@@ -24,11 +24,11 @@
 #include <string>
 #include <vector>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/Descriptor.hh>
-#include <ignition/transport/log/QualifiedTime.hh>
-#include <ignition/transport/log/SqlStatement.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Export.hh>
+#include <gz/transport/log/Descriptor.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/transport/log/SqlStatement.hh>
 
 namespace gz
 {

@@ -17,13 +17,13 @@
 #ifndef GZ_TRANSPORT_TOPICSTATISTICS_HH_
 #define GZ_TRANSPORT_TOPICSTATISTICS_HH_
 
-#include <ignition/msgs/statistic.pb.h>
+#include <gz/msgs/statistic.pb.h>
 
 #include <limits>
 #include <memory>
 #include <string>
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace gz
 {

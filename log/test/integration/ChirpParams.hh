@@ -18,13 +18,13 @@
 #ifndef GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 #define GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/transport/test_config.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/transport/test_config.h>
 
 #include <string>
 #include <vector>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 
 namespace gz

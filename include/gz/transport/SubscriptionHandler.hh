@@ -38,14 +38,14 @@
 #include <string>
 #include <utility>
 
-#include <ignition/msgs/Factory.hh>
+#include <gz/msgs/Factory.hh>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 namespace gz
 {

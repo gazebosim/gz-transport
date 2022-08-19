@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <ignition/transport/log/QueryOptions.hh>
+#include <gz/transport/log/QueryOptions.hh>
 
 using namespace gz::transport;
 using namespace gz::transport::log;

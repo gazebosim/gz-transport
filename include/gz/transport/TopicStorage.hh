@@ -23,10 +23,10 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace gz
 {

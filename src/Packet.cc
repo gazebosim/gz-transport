@@ -26,7 +26,7 @@
 #include <cstring>
 #include <string>
 
-#include "ignition/transport/Packet.hh"
+#include "gz/transport/Packet.hh"
 
 using namespace gz;
 using namespace transport;

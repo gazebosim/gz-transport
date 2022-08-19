@@ -24,8 +24,8 @@
 #include <iostream>
 #include <regex>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Recorder.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])

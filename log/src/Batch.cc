@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "ignition/transport/log/Batch.hh"
+#include "gz/transport/log/Batch.hh"
 #include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "MsgIterPrivate.hh"

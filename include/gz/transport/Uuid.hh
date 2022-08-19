@@ -21,8 +21,8 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 #ifdef _WIN32
   #include <Rpc.h>

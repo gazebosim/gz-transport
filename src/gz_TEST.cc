@@ -19,12 +19,12 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/msgs.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/test_config.h"
 
 #ifdef _MSC_VER
 #    define popen _popen

@@ -18,14 +18,14 @@
 #ifndef GZ_TRANSPORT_PUBLISHER_HH_
 #define GZ_TRANSPORT_PUBLISHER_HH_
 
-#include <ignition/msgs/discovery.pb.h>
+#include <gz/msgs/discovery.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace gz
 {

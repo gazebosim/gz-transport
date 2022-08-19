@@ -17,8 +17,8 @@
 
 #include <iostream>
 #include <string>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 void srvOneway(const gz::msgs::StringMsg &_req)

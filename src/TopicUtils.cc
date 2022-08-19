@@ -18,7 +18,7 @@
 #include <regex>
 #include <string>
 
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/TopicUtils.hh"
 
 using namespace gz;
 using namespace transport;

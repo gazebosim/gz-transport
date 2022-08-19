@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Publisher.hh"
 
 // This whole file is deprecated in version 8 of Ignition Transport. Please
 // remove this file in Version 9.

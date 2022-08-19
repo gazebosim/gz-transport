@@ -16,8 +16,8 @@
 */
 
 #include <iostream>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.

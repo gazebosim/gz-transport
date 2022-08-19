@@ -21,8 +21,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Export.hh>
 
 namespace gz
 {

@@ -33,8 +33,8 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Node.hh"
 
 namespace gz
 {

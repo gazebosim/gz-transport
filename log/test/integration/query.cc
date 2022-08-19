@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

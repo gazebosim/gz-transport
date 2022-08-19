@@ -19,7 +19,7 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

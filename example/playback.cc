@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <iostream>
 #include <regex>
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/log/Playback.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])

@@ -20,10 +20,10 @@
 #include <optional>
 #include <numeric>
 
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 

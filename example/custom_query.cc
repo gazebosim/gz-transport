@@ -22,8 +22,8 @@
 
 #include <iostream>
 #include <vector>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/QueryOptions.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/QueryOptions.hh>
 
 //////////////////////////////////////////////////
 /// \brief Query for all the topics in reverse

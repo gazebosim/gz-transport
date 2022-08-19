@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/log/Descriptor.hh"
+#include "gz/transport/log/Descriptor.hh"
 #include "Descriptor.hh"
 #include "gtest/gtest.h"
 

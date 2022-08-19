@@ -16,8 +16,8 @@
 */
 #include <signal.h>
 #include <unistd.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/transport/CIface.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/CIface.h>
 
 static bool g_terminatePub = false;
 

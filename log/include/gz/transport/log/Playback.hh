@@ -22,9 +22,9 @@
 #include <regex>
 #include <string>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/NodeOptions.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Export.hh>
+#include <gz/transport/NodeOptions.hh>
 
 namespace gz
 {

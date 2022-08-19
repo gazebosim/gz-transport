@@ -32,8 +32,8 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Publisher.hh"
 
 namespace gz
 {

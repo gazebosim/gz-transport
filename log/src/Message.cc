@@ -18,7 +18,7 @@
 #include <chrono>
 #include <string>
 
-#include "ignition/transport/log/Message.hh"
+#include "gz/transport/log/Message.hh"
 
 using namespace gz::transport;
 using namespace gz::transport::log;

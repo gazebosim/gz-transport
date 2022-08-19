@@ -22,7 +22,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <ignition/transport/log/Descriptor.hh>
+#include <gz/transport/log/Descriptor.hh>
 
 namespace gz
 {

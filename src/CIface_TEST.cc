@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/CIface.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/CIface.h"
+#include "gz/transport/test_config.h"
 
 static int count;
 

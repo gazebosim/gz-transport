@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 namespace gz
 {

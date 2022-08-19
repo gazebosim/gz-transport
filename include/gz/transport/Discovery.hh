@@ -56,7 +56,7 @@
   #pragma warning(disable: 4996)
 #endif
 
-#include <ignition/msgs/discovery.pb.h>
+#include <gz/msgs/discovery.pb.h>
 
 #include <algorithm>
 #include <condition_variable>
@@ -68,15 +68,15 @@
 #include <thread>
 #include <vector>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TopicStorage.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TopicStorage.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace gz
 {

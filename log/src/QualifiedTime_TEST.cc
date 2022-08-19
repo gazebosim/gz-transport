@@ -17,7 +17,7 @@
 
 #include <chrono>
 
-#include "ignition/transport/log/QualifiedTime.hh"
+#include "gz/transport/log/QualifiedTime.hh"
 #include "gtest/gtest.h"
 
 using namespace gz::transport;

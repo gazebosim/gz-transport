@@ -23,8 +23,8 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/TransportTypes.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/TransportTypes.hh"
 
 namespace gz
 {

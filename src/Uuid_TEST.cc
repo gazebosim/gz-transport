@@ -19,7 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/Uuid.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

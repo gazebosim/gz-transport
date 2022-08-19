@@ -21,8 +21,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 
 namespace gz
 {

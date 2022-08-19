@@ -20,7 +20,7 @@
 #include <memory>
 #include <vector>
 
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
 using namespace gz::transport;

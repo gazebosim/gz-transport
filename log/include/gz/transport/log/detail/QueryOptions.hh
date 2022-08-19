@@ -21,8 +21,8 @@
 #include <set>
 #include <string>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/QueryOptions.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/QueryOptions.hh>
 
 namespace gz
 {

@@ -20,9 +20,9 @@
 #include <iostream>
 #include <mutex>
 
-#include <ignition/msgs.hh>
-#include <ignition/transport/Clock.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Clock.hh>
+#include <gz/transport/Node.hh>
 
 using namespace gz::transport;
 

@@ -24,15 +24,15 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
 #include "gz.hh"
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/Node.hh"
 
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)

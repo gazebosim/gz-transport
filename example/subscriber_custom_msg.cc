@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 #include "msgs/stringmsg.pb.h"
 

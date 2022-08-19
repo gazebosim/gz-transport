@@ -20,7 +20,7 @@
 
 #include <cstdint>
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 
 namespace gz
 {

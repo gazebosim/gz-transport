@@ -18,9 +18,9 @@
 #include <map>
 #include <memory>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/SubscribeOptions.hh"
-#include "ignition/transport/CIface.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/CIface.h"
 
 /// \brief A wrapper to store an Ignition Transport node and its publishers.
 struct IgnTransportNode

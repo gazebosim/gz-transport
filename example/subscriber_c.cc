@@ -15,8 +15,8 @@
  *
 */
 #include <stdio.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/transport/CIface.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/CIface.h>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.

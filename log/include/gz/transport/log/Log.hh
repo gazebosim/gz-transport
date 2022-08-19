@@ -23,11 +23,11 @@
 #include <memory>
 #include <string>
 
-#include <ignition/transport/config.hh>
-#include <ignition/transport/log/Batch.hh>
-#include <ignition/transport/log/QueryOptions.hh>
-#include <ignition/transport/log/Descriptor.hh>
-#include <ignition/transport/log/Export.hh>
+#include <gz/transport/config.hh>
+#include <gz/transport/log/Batch.hh>
+#include <gz/transport/log/QueryOptions.hh>
+#include <gz/transport/log/Descriptor.hh>
+#include <gz/transport/log/Export.hh>
 
 namespace gz
 {

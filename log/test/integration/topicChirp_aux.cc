@@ -15,12 +15,12 @@
  *
 */
 
-#include <ignition/transport/test_config.h>
+#include <gz/transport/test_config.h>
 
 #include <chrono>
 #include <iostream>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include "ChirpParams.hh"
 

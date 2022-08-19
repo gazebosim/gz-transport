@@ -26,9 +26,9 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/log/Descriptor.hh"
-#include "ignition/transport/log/Log.hh"
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/Descriptor.hh"
+#include "gz/transport/log/Log.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "Console.hh"

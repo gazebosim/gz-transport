@@ -21,8 +21,8 @@
 #include <map>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/NetUtils.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/NetUtils.hh"
 
 namespace gz
 {

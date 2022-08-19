@@ -17,11 +17,11 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
 using namespace gz;
 

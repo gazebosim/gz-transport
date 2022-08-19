@@ -48,8 +48,8 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 DEFINE_bool(h, false, "Show help");
 DEFINE_bool(t, false, "Throughput testing");
