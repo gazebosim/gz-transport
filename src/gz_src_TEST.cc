@@ -21,7 +21,7 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ign.hh"
+#include "gz.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
