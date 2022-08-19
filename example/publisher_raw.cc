@@ -45,10 +45,10 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   auto pub = node.Advertise(topic, msg.GetTypeName());

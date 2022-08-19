@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   const char *topic = "/foo";
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   msg.SerializeToArray(buffer, size);
 
   // Prepare the message.
-  ignition::msgs::StringMsg msgRed;
+  gz::msgs::StringMsg msgRed;
   msgRed.set_data("RED HELLO");
 
   // Get the size of the serialized message

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_HELPERS_HH_
-#define IGN_TRANSPORT_HELPERS_HH_
+#ifndef GZ_TRANSPORT_HELPERS_HH_
+#define GZ_TRANSPORT_HELPERS_HH_
 
 #include <zmq.hpp>
 
@@ -43,7 +43,7 @@
   #endif
 #endif
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

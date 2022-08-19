@@ -40,11 +40,11 @@
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Recorder::Implementation
+class gz::transport::log::Recorder::Implementation
 {
   /// \brief Data type stored in dataQueue
   public: struct LogData

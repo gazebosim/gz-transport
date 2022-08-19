@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODESHARED_HH_
-#define IGN_TRANSPORT_NODESHARED_HH_
+#ifndef GZ_TRANSPORT_NODESHARED_HH_
+#define GZ_TRANSPORT_NODESHARED_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -46,7 +46,7 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

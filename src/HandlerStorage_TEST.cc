@@ -26,7 +26,7 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 // Global variables used for multiple tests.
 std::string topic   = "foo"; // NOLINT(*)

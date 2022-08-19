@@ -23,7 +23,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants.

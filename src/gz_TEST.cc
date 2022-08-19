@@ -31,7 +31,7 @@
 #    define pclose _pclose
 #endif
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
@@ -135,7 +135,7 @@ TEST(ignTest, TopicInfo)
   EXPECT_TRUE(infoFound) << "OUTPUT["
     << output << "] Size[" << output.size()
     << "]. Expected Size=50" << std::endl;
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -200,7 +200,7 @@ TEST(ignTest, ServiceInfo)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -267,7 +267,7 @@ TEST(ignTest, TopicInfoSameProc)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -315,7 +315,7 @@ TEST(ignTest, ServiceInfoSameProc)
   }
 
   EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("ignition.msgs.Int32") != std::string::npos);
+  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
 }
 
 
@@ -330,7 +330,7 @@ TEST(ignTest, TopicPublish)
   // Check the 'ign topic -p' command.
   std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.StringMsg -p 'data:\"good_value\"' " +
+      " topic -t /bar -m gz_msgs.StringMsg -p 'data:\"good_value\"' " +
       g_ignVersion);
 
   ASSERT_TRUE(output.empty()) << output;
@@ -341,14 +341,14 @@ TEST(ignTest, TopicPublish)
   // Try to publish a message not included in Ignition Messages.
   std::string error = "Unable to create message of type";
   output = custom_exec_str(ign +
-      " topic -t /bar -m ign_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
+      " topic -t /bar -m gz_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str(ign +
-      " topic -t / wrong_topic -m ign_msgs.StringMsg -p 'data:\"good_value\"' "+
+      " topic -t / wrong_topic -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
       g_ignVersion);
   EXPECT_EQ(output.compare(0, error.size(), error), 0);
 }
@@ -370,8 +370,8 @@ TEST(ignTest, ServiceRequest)
   // Check the 'ign service -r' command.
   std::string ign = std::string(IGN_PATH);
   std::string output = custom_exec_str(ign +
-      " service -s " + service + " --reqtype ign_msgs.Int32 " +
-      "--reptype ign_msgs.Int32 --timeout 1000 " +
+      " service -s " + service + " --reqtype gz_msgs.Int32 " +
+      "--reptype gz_msgs.Int32 --timeout 1000 " +
       "--req 'data: " + value + "' " + g_ignVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");

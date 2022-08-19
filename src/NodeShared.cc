@@ -60,7 +60,7 @@
 #endif
 
 using namespace std::chrono_literals;
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 const char kIgnAuthDomain[] = "ign-auth";

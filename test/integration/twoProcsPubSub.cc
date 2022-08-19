@@ -24,7 +24,7 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
@@ -525,7 +525,7 @@ TEST(twoProcPubSub, TopicInfo)
 
   EXPECT_TRUE(node.TopicInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().MsgTypeName(), "ignition.msgs.Vector3d");
+  EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
   reset();
 

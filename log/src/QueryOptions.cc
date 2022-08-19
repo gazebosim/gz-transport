@@ -23,8 +23,8 @@
 
 #include <ignition/transport/log/QueryOptions.hh>
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 //////////////////////////////////////////////////
 /// \brief Append a topic ID condition clause that specifies a list of Topic IDs

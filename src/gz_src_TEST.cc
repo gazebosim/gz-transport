@@ -25,12 +25,12 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 // Global constants.
 static const std::string g_topic   = "/topic"; // NOLINT(*)
 static const std::string g_service = "/echo"; // NOLINT(*)
-static const std::string g_intType = "ign_msgs.Int32"; // NOLINT(*)
+static const std::string g_intType = "gz_msgs.Int32"; // NOLINT(*)
 static const std::string g_reqData = "data: 10"; // NOLINT(*)
 
 // Global variables.

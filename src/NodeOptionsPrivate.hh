@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
-#define IGN_TRANSPORT_NODEOPTIONSPRIVATE_HH_
+#ifndef GZ_TRANSPORT_NODEOPTIONSPRIVATE_HH_
+#define GZ_TRANSPORT_NODEOPTIONSPRIVATE_HH_
 
 #include <map>
 #include <string>
@@ -24,7 +24,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/NetUtils.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

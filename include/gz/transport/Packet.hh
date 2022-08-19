@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_PACKET_HH_
-#define IGN_TRANSPORT_PACKET_HH_
+#ifndef GZ_TRANSPORT_PACKET_HH_
+#define GZ_TRANSPORT_PACKET_HH_
 
 #include <cstdint>
 #include <iostream>
@@ -30,7 +30,7 @@
 // This whole file is deprecated in version 8 of Ignition Transport. Please
 // remove this file in Version 9.
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -65,7 +65,7 @@ namespace ignition
     /// of the discovery protocol, the process UUID of the sender node, the type
     /// of message (ADV, SUB, ... ) and optional flags.
     /// \deprecated This class is deprecated. Discovery uses the
-    /// ignition::msgs::Discovery message.
+    /// gz::msgs::Discovery message.
     class IGNITION_TRANSPORT_VISIBLE Header
     {
       /// \brief Constructor.
@@ -180,7 +180,7 @@ namespace ignition
     /// \brief Subscription packet used in the discovery protocol for requesting
     /// information about a given topic.
     /// \deprecated This class is deprecated. Discovery uses the
-    /// ignition::msgs::Discovery message.
+    /// gz::msgs::Discovery message.
     class IGNITION_TRANSPORT_VISIBLE SubscriptionMsg
     {
       /// \brief Constructor.
@@ -262,7 +262,7 @@ namespace ignition
     /// is used for advertising messages and services. 'T' is the Publisher
     /// type used inside this AdvertiseMessage object.
     /// \deprecated This class is deprecated. Discovery uses the
-    /// ignition::msgs::Discovery message.
+    /// gz::msgs::Discovery message.
     template <class T> class AdvertiseMessage
     {
       /// \brief Constructor.

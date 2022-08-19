@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_TRANSPORT_NODE_HH_
-#define IGN_TRANSPORT_NODE_HH_
+#ifndef GZ_TRANSPORT_NODE_HH_
+#define GZ_TRANSPORT_NODE_HH_
 
 #include <algorithm>
 #include <functional>
@@ -49,7 +49,7 @@
 #include "ignition/transport/TopicUtils.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -779,6 +779,6 @@ namespace ignition
   }
 }
 
-#include "ignition/transport/detail/Node.hh"
+#include "gz/transport/detail/Node.hh"
 
 #endif

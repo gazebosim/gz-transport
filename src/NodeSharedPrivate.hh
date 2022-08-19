@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
-#define IGN_TRANSPORT_NODESHAREDPRIVATE_HH_
+#ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
+#define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -36,7 +36,7 @@
 #include "ignition/transport/Discovery.hh"
 #include "ignition/transport/Node.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

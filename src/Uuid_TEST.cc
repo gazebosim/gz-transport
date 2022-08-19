@@ -22,7 +22,7 @@
 #include "ignition/transport/Uuid.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the Uuid helper class.

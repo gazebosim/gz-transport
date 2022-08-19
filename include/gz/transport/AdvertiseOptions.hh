@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
-#define IGN_TRANSPORT_ADVERTISEOPTIONS_HH_
+#ifndef GZ_TRANSPORT_ADVERTISEOPTIONS_HH_
+#define GZ_TRANSPORT_ADVERTISEOPTIONS_HH_
 
 #include <cstdint>
 #include <iostream>
@@ -25,7 +25,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

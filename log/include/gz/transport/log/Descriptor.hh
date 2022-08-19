@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_DESCRIPTOR_HH_
-#define IGNITION_TRANSPORT_LOG_DESCRIPTOR_HH_
+#ifndef GZ_TRANSPORT_LOG_DESCRIPTOR_HH_
+#define GZ_TRANSPORT_LOG_DESCRIPTOR_HH_
 
 #include <cstdint>
 #include <map>
@@ -26,7 +26,7 @@
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

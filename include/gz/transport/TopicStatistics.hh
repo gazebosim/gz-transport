@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_TRANSPORT_TOPICSTATISTICS_HH_
-#define IGN_TRANSPORT_TOPICSTATISTICS_HH_
+#ifndef GZ_TRANSPORT_TOPICSTATISTICS_HH_
+#define GZ_TRANSPORT_TOPICSTATISTICS_HH_
 
 #include <ignition/msgs/statistic.pb.h>
 
@@ -25,7 +25,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -117,7 +117,7 @@ namespace ignition
       public: void Update(const std::string &_sender,
                           uint64_t _stamp, uint64_t _seq);
 
-      /// \brief Populate an ignition::msgs::Metric message with topic
+      /// \brief Populate an gz::msgs::Metric message with topic
       /// statistics.
       /// \param[in] _msg Message to populate.
       public: void FillMessage(msgs::Metric &_msg) const;

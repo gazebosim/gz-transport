@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
@@ -272,8 +272,8 @@ TEST(twoProcSrvCallWithoutInput, ServiceInfo)
 
   EXPECT_TRUE(node.ServiceInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().ReqTypeName(), "ignition.msgs.Empty");
-  EXPECT_EQ(publishers.front().RepTypeName(), "ignition.msgs.Int32");
+  EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Empty");
+  EXPECT_EQ(publishers.front().RepTypeName(), "gz.msgs.Int32");
 
   reset();
 

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
-#define IGNITION_TRANSPORT_LOG_MSGITERPRIVATE_HH_
+#ifndef GZ_TRANSPORT_LOG_MSGITERPRIVATE_HH_
+#define GZ_TRANSPORT_LOG_MSGITERPRIVATE_HH_
 
 #include <memory>
 #include <vector>
@@ -25,10 +25,10 @@
 #include "ignition/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {

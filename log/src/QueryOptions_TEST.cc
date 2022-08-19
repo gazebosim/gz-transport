@@ -24,7 +24,7 @@
 #include "ignition/transport/log/QueryOptions.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition::transport;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

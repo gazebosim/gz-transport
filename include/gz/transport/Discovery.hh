@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_DISCOVERY_HH_
-#define IGNITION_TRANSPORT_DISCOVERY_HH_
+#ifndef GZ_TRANSPORT_DISCOVERY_HH_
+#define GZ_TRANSPORT_DISCOVERY_HH_
 #include <errno.h>
 #include <string.h>
 
@@ -78,7 +78,7 @@
 #include "ignition/transport/TopicStorage.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -848,7 +848,7 @@ namespace ignition
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg, uint16_t _len)
       {
-        ignition::msgs::Discovery msg;
+        gz::msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
@@ -1087,7 +1087,7 @@ namespace ignition
                    const msgs::Discovery::Type _type,
                    const T &_pub) const
       {
-        ignition::msgs::Discovery discoveryMsg;
+        gz::msgs::Discovery discoveryMsg;
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);

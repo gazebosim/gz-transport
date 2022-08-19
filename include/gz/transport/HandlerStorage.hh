@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_HANDLERSTORAGE_HH_
-#define IGN_TRANSPORT_HANDLERSTORAGE_HH_
+#ifndef GZ_TRANSPORT_HANDLERSTORAGE_HH_
+#define GZ_TRANSPORT_HANDLERSTORAGE_HH_
 
 #include <map>
 #include <memory>
@@ -26,7 +26,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

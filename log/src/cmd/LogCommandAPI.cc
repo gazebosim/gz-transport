@@ -29,7 +29,7 @@
 #include <ignition/transport/NodeOptions.hh>
 #include "../Console.hh"
 
-using namespace ignition;
+using namespace gz;
 transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////

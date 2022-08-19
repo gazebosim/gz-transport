@@ -23,7 +23,7 @@
 void cb(const char *_data, const size_t _size, const char *_msgType,
         void *_userData)
 {
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   const char *userData;
 

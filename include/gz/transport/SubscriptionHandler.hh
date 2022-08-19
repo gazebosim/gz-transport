@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
-#define IGN_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
+#ifndef GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
+#define GZ_TRANSPORT_SUBSCRIPTIONHANDLER_HH_
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -47,7 +47,7 @@
 #include "ignition/transport/TransportTypes.hh"
 #include "ignition/transport/Uuid.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
@@ -258,7 +258,7 @@ namespace ignition
         else
         {
           // Fallback on Ignition Msgs if the message type is not found.
-          msgPtr = ignition::msgs::Factory::New(_type);
+          msgPtr = gz::msgs::Factory::New(_type);
         }
 
         if (!msgPtr)

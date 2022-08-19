@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "ignition/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)

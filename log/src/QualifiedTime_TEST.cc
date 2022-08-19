@@ -20,7 +20,7 @@
 #include "ignition/transport/log/QualifiedTime.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition::transport;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

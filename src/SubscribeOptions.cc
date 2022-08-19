@@ -22,7 +22,7 @@
 
 #include "SubscribeOptionsPrivate.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

@@ -53,9 +53,9 @@
   #pragma warning(disable: 4996)
 #endif
 
-using namespace ignition;
+using namespace gz;
 
-namespace ignition
+namespace gz
 {
 namespace transport
 {

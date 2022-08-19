@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  ignition::transport::log::Playback player(argv[1]);
+  gz::transport::log::Playback player(argv[1]);
 
   // Playback all topics
   const int64_t addTopicResult = player.AddTopic(std::regex(".*"));

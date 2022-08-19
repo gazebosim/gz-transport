@@ -35,11 +35,11 @@
 #include "Descriptor.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Log::Implementation
+class gz::transport::log::Log::Implementation
 {
   /// \internal \sa Log::Descriptor()
   public: const log::Descriptor *Descriptor() const;

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_LOG_HH_
-#define IGNITION_TRANSPORT_LOG_LOG_HH_
+#ifndef GZ_TRANSPORT_LOG_LOG_HH_
+#define GZ_TRANSPORT_LOG_LOG_HH_
 
 #include <chrono>
 #include <ios>
@@ -29,7 +29,7 @@
 #include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

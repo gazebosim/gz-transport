@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_TOPICSTORAGE_HH_
-#define IGN_TRANSPORT_TOPICSTORAGE_HH_
+#ifndef GZ_TRANSPORT_TOPICSTORAGE_HH_
+#define GZ_TRANSPORT_TOPICSTORAGE_HH_
 
 #include <algorithm>
 #include <map>
@@ -28,7 +28,7 @@
 #include "ignition/transport/Publisher.hh"
 #include "ignition/transport/TransportTypes.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

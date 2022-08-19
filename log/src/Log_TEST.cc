@@ -25,8 +25,8 @@
 #include "ignition/transport/log/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

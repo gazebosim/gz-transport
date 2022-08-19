@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_RECORDER_HH_
-#define IGNITION_TRANSPORT_LOG_RECORDER_HH_
+#ifndef GZ_TRANSPORT_LOG_RECORDER_HH_
+#define GZ_TRANSPORT_LOG_RECORDER_HH_
 
 #include <cstdint>
 #include <memory>
@@ -27,7 +27,7 @@
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

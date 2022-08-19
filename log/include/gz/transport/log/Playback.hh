@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_PLAYBACK_HH_
-#define IGNITION_TRANSPORT_LOG_PLAYBACK_HH_
+#ifndef GZ_TRANSPORT_LOG_PLAYBACK_HH_
+#define GZ_TRANSPORT_LOG_PLAYBACK_HH_
 
 #include <chrono>
 #include <memory>
@@ -26,7 +26,7 @@
 #include <ignition/transport/log/Export.hh>
 #include <ignition/transport/NodeOptions.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

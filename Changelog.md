@@ -196,7 +196,7 @@
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
-   `ign.hh` header file private (not installed).
+   `gz.hh` header file private (not installed).
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 1. Added start of C interface, currently it supports only pub/sub.
@@ -371,7 +371,7 @@
 1. Workaround for the ghost Msbuild warning in Jenkins plugin
     * [BitBucket pull request 205](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/205)
 
-1. Added tests for ign.cc
+1. Added tests for gz.cc
     * [BitBucket pull request 209](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/209)
 
 1. Remove manual setting of flags for dynamic linking of the Windows CRT library

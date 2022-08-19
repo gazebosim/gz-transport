@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
-#define IGNITION_TRANSPORT_LOG_BATCHPRIVATE_HH_
+#ifndef GZ_TRANSPORT_LOG_BATCHPRIVATE_HH_
+#define GZ_TRANSPORT_LOG_BATCHPRIVATE_HH_
 
 #include <memory>
 #include <vector>
@@ -23,12 +23,12 @@
 #include "ignition/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation for Batch
 /// \internal
-class ignition::transport::log::BatchPrivate
+class gz::transport::log::BatchPrivate
 {
   /// \brief constructor
   /// \param[in] _db an open sqlite3 database handle wrapper

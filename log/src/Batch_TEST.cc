@@ -18,7 +18,7 @@
 #include "ignition/transport/log/Batch.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(Batch, DefaultNoMessages)

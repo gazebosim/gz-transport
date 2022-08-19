@@ -20,7 +20,7 @@
 
 #include "ignition/transport/TopicUtils.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

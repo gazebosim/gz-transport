@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_MESSAGEINFO_HH_
-#define IGN_TRANSPORT_MESSAGEINFO_HH_
+#ifndef GZ_TRANSPORT_MESSAGEINFO_HH_
+#define GZ_TRANSPORT_MESSAGEINFO_HH_
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

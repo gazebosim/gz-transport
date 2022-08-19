@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_MESSAGE_HH_
-#define IGNITION_TRANSPORT_LOG_MESSAGE_HH_
+#ifndef GZ_TRANSPORT_LOG_MESSAGE_HH_
+#define GZ_TRANSPORT_LOG_MESSAGE_HH_
 
 #include <chrono>
 #include <memory>
@@ -24,7 +24,7 @@
 #include <ignition/transport/config.hh>
 #include <ignition/transport/log/Export.hh>
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {

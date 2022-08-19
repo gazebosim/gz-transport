@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODEPRIVATE_HH_
-#define IGN_TRANSPORT_NODEPRIVATE_HH_
+#ifndef GZ_TRANSPORT_NODEPRIVATE_HH_
+#define GZ_TRANSPORT_NODEPRIVATE_HH_
 
 #include <string>
 #include <unordered_set>
@@ -26,7 +26,7 @@
 #include "ignition/transport/Node.hh"
 #include "ignition/transport/NodeShared.hh"
 
-namespace ignition
+namespace gz
 {
   namespace transport
   {
