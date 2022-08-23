@@ -73,7 +73,7 @@ namespace ignition
 
         /// \brief Begin recording topics
         /// \param[in] _file path to log file
-        /// \return NO_ERROR if recording was successfully started. If the file
+        /// \return SUCCESS if recording was successfully started. If the file
         /// already existed, this will return FAILED_TO_OPEN.
         public: RecorderError Start(const std::string &_file);
 
@@ -86,7 +86,7 @@ namespace ignition
         /// \param[in] _topic The exact topic name
         /// \note This method attempts to subscribe to the topic immediately.
         ///       The subscription will be kept until this is destructed.
-        /// \return NO_ERROR if the subscription was created.
+        /// \return SUCCESS if the subscription was created.
         public: RecorderError AddTopic(const std::string &_topic);
 
         /// \brief Add a topic to be recorded (regex match)
