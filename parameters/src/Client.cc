@@ -156,7 +156,7 @@ ParametersClient::SetParameter(
     throw std::runtime_error {
       "ParametersClient::SetParameter(): unexpected failure"};
   }
-  if (res.data() == msgs::ParameterError::NO_ERROR) {
+  if (res.data() == msgs::ParameterError::SUCCESS) {
     return;
   }
   if (res.data() == msgs::ParameterError::NOT_DECLARED) {
@@ -196,7 +196,7 @@ ParametersClient::DeclareParameter(
     throw std::runtime_error {
       "ParametersClient::DeclareParameter(): unexpected failure"};
   }
-  if (res.data() == msgs::ParameterError::NO_ERROR) {
+  if (res.data() == msgs::ParameterError::SUCCESS) {
     return;
   }
   if (res.data() == msgs::ParameterError::ALREADY_DECLARED) {
