@@ -33,8 +33,8 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterAlreadyDeclaredException
-      : public std::runtime_error
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+      ParameterAlreadyDeclaredException : public std::runtime_error
       {
         public: ParameterAlreadyDeclaredException(
           const char * _prefix , const char * _paramName)
