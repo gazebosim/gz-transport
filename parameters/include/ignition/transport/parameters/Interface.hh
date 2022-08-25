@@ -28,6 +28,7 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/Export.hh"
 
 namespace ignition
 {
@@ -40,7 +41,7 @@ namespace ignition
 
       /// \brief Common interface, implemented by ParametersRegistry
       ///   (local updates) and by ParametersClients (remote requests).
-      class ParametersInterface
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
       {
         /// Default virtual destructor.
         public: virtual ~ParametersInterface() = default;

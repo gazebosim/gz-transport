@@ -27,6 +27,7 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/Node.hh"
+#include "ignition/transport/parameters/Export.hh"
 #include "ignition/transport/parameters/Interface.hh"
 
 namespace ignition
@@ -43,7 +44,8 @@ namespace ignition
 
       /// \brief Allow to get, set, declare or list parameters
       /// \brief in a remote registry.
-      class ParametersClient : public ParametersInterface
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersClient
+      : public ParametersInterface
       {
         /// \brief Constructor.
         /// \param[in] _serverNamespace Namespace of the parameters registry

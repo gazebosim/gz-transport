@@ -28,6 +28,7 @@
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/Export.hh"
 #include "ignition/transport/parameters/Interface.hh"
 
 namespace ignition
@@ -51,7 +52,8 @@ namespace ignition
       /// * /${_parametersServicesNamespace}/list_parameters
       /// * /${_parametersServicesNamespace}/set_parameter
       /// * /${_parametersServicesNamespace}/declare_parameter
-      class ParametersRegistry : public ParametersInterface
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersRegistry
+      : public ParametersInterface
       {
         /// \brief Constructor.
         /// \param[in] _parametersServicesNamespace Namespace that will be used

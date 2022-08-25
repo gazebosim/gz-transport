@@ -21,6 +21,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "ignition/transport/parameters/Export.hh"
+
 namespace ignition
 {
   namespace transport
@@ -31,7 +33,8 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      class ParameterAlreadyDeclaredException : public std::runtime_error
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterAlreadyDeclaredException
+      : public std::runtime_error
       {
         public: ParameterAlreadyDeclaredException(
           const char * _prefix , const char * _paramName)
@@ -41,7 +44,8 @@ namespace ignition
         {}
       };
 
-      class ParameterInvalidTypeException : public std::invalid_argument
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterInvalidTypeException
+      : public std::invalid_argument
       {
         public: ParameterInvalidTypeException(
           const char * _prefix, const char * _paramName,
@@ -62,7 +66,8 @@ namespace ignition
         {}
       };
 
-      class ParameterNotDeclaredException : public std::runtime_error
+      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterNotDeclaredException
+      : public std::runtime_error
       {
         public: ParameterNotDeclaredException(
           const char * _prefix , const char * _paramName)
