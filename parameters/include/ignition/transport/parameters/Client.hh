@@ -68,10 +68,10 @@ namespace ignition
         public: ParametersClient & operator=(
           const ParametersClient &) = delete;
         /// \brief Default move constructor.
-        public: ParametersClient(ParametersClient &&) = default;
+        public: ParametersClient(ParametersClient &&);
         /// \brief Default move assignment.
         public: ParametersClient & operator=(
-          ParametersClient &&) = default;
+          ParametersClient &&);
 
         /// \brief Declare a new parameter.
         /// See ParametersInterface::DeclareParameter().

@@ -70,10 +70,10 @@ namespace ignition
         public: ParametersRegistry &
           operator=(const ParametersRegistry &) = delete;
         /// \brief Default move constructor.
-        public: ParametersRegistry(ParametersRegistry &&) = default;
+        public: ParametersRegistry(ParametersRegistry &&);
         /// \brief Default move assignment.
         public: ParametersRegistry &
-          operator=(ParametersRegistry &&) = default;
+          operator=(ParametersRegistry &&);
 
         /// \brief Declare a new parameter.
         /// See ParametersInterface::DeclareParameter().

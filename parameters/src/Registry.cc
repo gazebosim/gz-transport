@@ -104,6 +104,9 @@ ParametersRegistry::ParametersRegistry(
 }
 
 ParametersRegistry::~ParametersRegistry() = default;
+ParametersRegistry::ParametersRegistry(ParametersRegistry &&) = default;
+ParametersRegistry & ParametersRegistry::operator=(
+  ParametersRegistry &&) = default;
 
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   msgs::ParameterValue &_res)

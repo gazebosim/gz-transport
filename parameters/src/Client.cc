@@ -48,6 +48,8 @@ struct ignition::transport::parameters::ParametersClientPrivate
 };
 
 ParametersClient::~ParametersClient() = default;
+ParametersClient::ParametersClient(ParametersClient &&) = default;
+ParametersClient & ParametersClient::operator=(ParametersClient &&) = default;
 
 ParametersClient::ParametersClient(
   const std::string & _serverNamespace,
