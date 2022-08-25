@@ -40,7 +40,7 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      class ParametersClientPrivate;
+      struct ParametersClientPrivate;
 
       /// \brief Allow to get, set, declare or list parameters
       /// \brief in a remote registry.
