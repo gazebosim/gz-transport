@@ -26,7 +26,7 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/NodeOptions.hh>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

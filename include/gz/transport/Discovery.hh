@@ -78,7 +78,7 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

@@ -20,7 +20,7 @@
 #include <iostream>
 #include <mutex>
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport/Clock.hh>
 #include <gz/transport/Node.hh>
 

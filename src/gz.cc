@@ -24,7 +24,7 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

@@ -46,7 +46,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

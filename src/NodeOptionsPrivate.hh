@@ -24,7 +24,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/NetUtils.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

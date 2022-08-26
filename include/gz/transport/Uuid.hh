@@ -33,7 +33,7 @@
   using portable_uuid_t = uuid_t;
 #endif
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

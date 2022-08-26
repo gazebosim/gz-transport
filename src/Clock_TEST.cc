@@ -19,7 +19,7 @@
 #include <string>
 #include <thread>
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gz/transport/Clock.hh"
 #include "gz/transport/Node.hh"

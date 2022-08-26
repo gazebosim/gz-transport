@@ -21,7 +21,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 /// \brief Flag used to break the publisher loop and terminate the program.

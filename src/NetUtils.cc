@@ -55,7 +55,7 @@
 
 using namespace gz;
 
-namespace gz
+namespace ignition
 {
 namespace transport
 {

@@ -27,7 +27,7 @@ folder and open it with your favorite editor:
 #include <iostream>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 /// brief Flag used to break the publisher loop and terminate the program.
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 ```
 
@@ -138,7 +138,7 @@ file into the `ign_transport_tutorial` folder and open it with your favorite edi
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 //////////////////////////////////////////////////

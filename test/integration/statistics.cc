@@ -17,7 +17,7 @@
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"

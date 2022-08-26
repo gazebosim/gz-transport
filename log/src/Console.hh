@@ -22,7 +22,7 @@
 
 #include <gz/transport/config.hh>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

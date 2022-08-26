@@ -48,7 +48,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 DEFINE_bool(h, false, "Show help");

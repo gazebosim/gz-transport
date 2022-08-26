@@ -26,7 +26,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

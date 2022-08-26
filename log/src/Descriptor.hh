@@ -24,7 +24,7 @@
 
 #include <gz/transport/log/Descriptor.hh>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

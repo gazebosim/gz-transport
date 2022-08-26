@@ -26,7 +26,7 @@
 
 #include "gz/transport/Helpers.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

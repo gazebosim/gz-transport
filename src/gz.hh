@@ -41,7 +41,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceList();
 /// \param[in] _msgType Message type.
 /// \param[in] _msgData The format expected is the same used by Protobuf
 /// DebugString().
-/// E.g.: cmdTopicPub("/foo", "gz.msgs.StringMsg",
+/// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
 extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
                                                        const char *_msgType,
@@ -54,8 +54,8 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by Protobuf DebugString().
-/// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",
-///                     "gz.msgs.StringMsg", 1000,
+/// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
+///                     "ignition.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
 extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
                                                          const char *_reqType,

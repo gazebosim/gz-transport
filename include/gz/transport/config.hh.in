@@ -22,4 +22,13 @@
 #cmakedefine HAVE_IFADDRS 1
 #cmakedefine UBUNTU_FOCAL 1
 
+namespace ignition
+{
+}
+
+namespace gz
+{
+  using namespace ignition;
+}
+
 #endif

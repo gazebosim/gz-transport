@@ -23,8 +23,8 @@
 #include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
+using namespace ignition::transport;
+using namespace ignition::transport::log;
 
 /// \brief Private implementation for Batch
 /// \internal

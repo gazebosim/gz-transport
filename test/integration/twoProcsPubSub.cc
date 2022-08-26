@@ -17,7 +17,7 @@
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
@@ -525,7 +525,7 @@ TEST(twoProcPubSub, TopicInfo)
 
   EXPECT_TRUE(node.TopicInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
-  EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
+  EXPECT_EQ(publishers.front().MsgTypeName(), "ignition.msgs.Vector3d");
 
   reset();
 

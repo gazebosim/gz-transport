@@ -30,7 +30,7 @@
 #include <gz/transport/log/QualifiedTime.hh>
 #include <gz/transport/log/SqlStatement.hh>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

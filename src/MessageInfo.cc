@@ -23,7 +23,7 @@
 using namespace gz;
 using namespace transport;
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

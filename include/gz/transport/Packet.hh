@@ -30,7 +30,7 @@
 // This whole file is deprecated in version 8 of Ignition Transport. Please
 // remove this file in Version 9.
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

@@ -27,7 +27,7 @@
 #include <gz/transport/Node.hh>
 
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

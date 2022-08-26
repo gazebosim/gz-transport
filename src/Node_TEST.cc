@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/AdvertiseOptions.hh"

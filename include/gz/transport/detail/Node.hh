@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

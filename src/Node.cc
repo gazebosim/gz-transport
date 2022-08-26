@@ -48,7 +48,7 @@
 using namespace gz;
 using namespace transport;
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {
@@ -830,7 +830,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
   AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(_publicationRate);
   this->dataPtr->statPub = this->Advertise(_publicationTopic,
-      "gz.msgs.Metric", opts);
+      "ignition.msgs.Metric", opts);
 
   // Callback used to publish a statistics message.
   // cppcheck-suppress unreadVariable

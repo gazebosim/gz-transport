@@ -247,7 +247,7 @@ Press Ctrl+C to finish recording.
 From terminal 2, publish a message using `ign`:
 
 ```{.sh}
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Hello log"'
+ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Hello log"'
 ```
 
 From terminal 1, hit `CTRL-C` in your recorder terminal to stop the recording.

@@ -17,7 +17,7 @@
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Node.hh"

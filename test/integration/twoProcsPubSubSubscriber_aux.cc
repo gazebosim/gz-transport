@@ -17,7 +17,7 @@
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #ifdef _WIN32
   #include <filesystem>
 #endif

@@ -29,7 +29,7 @@
 #include <gz/transport/log/Descriptor.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

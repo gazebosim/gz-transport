@@ -17,7 +17,7 @@
 
 #include "gz/transport/SubscriptionHandler.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

@@ -16,7 +16,7 @@
 */
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/test_config.h"

@@ -18,7 +18,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz.hh"

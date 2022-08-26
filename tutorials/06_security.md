@@ -46,7 +46,7 @@ ign topic -t /foo -e
 ```
 2. Open a second terminal and publish a message on topic `/foo`.
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Unsecure message"'
+ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Unsecure message"'
 ```
 3. The first terminal should see the following output.
 ```
@@ -63,7 +63,7 @@ export IGN_TRANSPORT_PASSWORD=pass
 ```
 3. Now publish a message in the second terminal:
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
+ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Secure message"'
 ```
 4. The first terminal should not change, which indicates that subscriber was
    not able to authenticate with the secure publisher.
@@ -82,7 +82,7 @@ ign topic -t /foo -e
 3. Go back to the secure publisher in the second terminal, and re-run the
    publish command.
 ```
-ign topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
+ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Secure message"'
 ```
 4. The third terminal, running the secure subscriber, should output the
    following.

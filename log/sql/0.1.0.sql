@@ -36,7 +36,7 @@ INSERT INTO migrations (to_version) VALUES ('0.1.0');
 CREATE TABLE message_types (
   /* Uniquely identifies a row in this table. Sqlite3 will make it an alias of rowid. */
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  /* Name of the message (e.g. .gz.msgs.LaserScan) */
+  /* Name of the message (e.g. .ignition.msgs.LaserScan) */
   name TEXT NOT NULL,
   /* Full text of the protobuf file, or NULL if logging did not have access to it */
   proto_descriptor TEXT

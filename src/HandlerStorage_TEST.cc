@@ -17,7 +17,7 @@
 
 #include <map>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include "gz/transport/HandlerStorage.hh"
 #include "gz/transport/MessageInfo.hh"

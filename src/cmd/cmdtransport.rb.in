@@ -58,7 +58,7 @@ COMMANDS = {  'topic' =>
                        " The format expected is\n                            " +
                        " the same used by Protobuf DebugString(). E.g.:\n\n"   +
                        "                               ign topic -t /foo -m "  +
-                       "  gz.msgs.StringMsg\n                          " +
+                       "  ignition.msgs.StringMsg\n                          " +
                        "     -p \'data:\"Custom data\"\'\n\n"                  +
                        "                             Requires -t and -m.\n"    +
                        "                                                    \n"+
@@ -100,9 +100,9 @@ COMMANDS = {  'topic' =>
                        " The format expected is\n                            " +
                        " the same used by Protobuf DebugString(). E.g.:\n\n"   +
                        "                               ign service -s /echo\n" +
-                       "                               --reqtype gz.msgs"+
+                       "                               --reqtype ignition.msgs"+
                        ".StringMsg\n"                                          +
-                       "                               --reptype gz.msgs"+
+                       "                               --reptype ignition.msgs"+
                        ".StringMsg\n"                                          +
                        "                               --timeout 2000 --req \'"+
                        "data: \"Hello\"\n\n"                                   +

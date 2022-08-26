@@ -17,7 +17,7 @@
 
 #include "Console.hh"
 
-namespace gz
+namespace ignition
 {
 namespace transport
 {

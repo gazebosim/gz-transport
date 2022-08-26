@@ -31,7 +31,7 @@ folder and open it with your favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 bool srvEcho(const gz::msgs::StringMsg &_req,
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 ```
 
@@ -138,7 +138,7 @@ folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 //////////////////////////////////////////////////
@@ -233,7 +233,7 @@ Download the [requester_async.cc](https://github.com/ignitionrobotics/ign-transp
 
 ```{.cpp}
 #include <iostream>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
@@ -321,7 +321,7 @@ Download the [responser_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 #include <iostream>
 #include <string>
 #include <gz/transport.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 void srvOneway(const gz::msgs::StringMsg &_req)
@@ -395,7 +395,7 @@ Download the [requester_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 ```{.cpp}
 #include <iostream>
 #include <gz/transport.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
@@ -454,7 +454,7 @@ favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 bool srvQuote(gz::msgs::StringMsg &_rep)
@@ -533,7 +533,7 @@ favorite editor:
 
 ```{.cpp}
 #include <iostream>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 //////////////////////////////////////////////////

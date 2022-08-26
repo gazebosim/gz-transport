@@ -30,7 +30,7 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -49,7 +49,7 @@
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 
-namespace gz
+namespace ignition
 {
   namespace transport
   {

@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 //////////////////////////////////////////////////
