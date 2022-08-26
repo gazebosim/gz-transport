@@ -30,7 +30,7 @@
 #pragma warning(pop)
 #endif
 
-#include "gz/msgs/Factory.hh"
+#include <gz/msgs/Factory.hh>
 
 #include "gz.hh"
 #include "gz/transport/config.hh"
