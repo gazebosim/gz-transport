@@ -22,20 +22,20 @@
 #include <vector>
 
 #ifdef _MSC_VER
-# pragma warning(push)
-# pragma warning(disable: 4251)
+#pragma warning(push)
+#pragma warning(disable: 4251)
 #endif
 #include <google/protobuf/util/json_util.h>
 #ifdef _MSC_VER
-# pragma warning(pop)
+#pragma warning(pop)
 #endif
+
+#include "gz/msgs/Factory.hh"
 
 #include "gz.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
-
-#include "gz/msgs/Factory.hh"
 
 using namespace gz;
 using namespace transport;

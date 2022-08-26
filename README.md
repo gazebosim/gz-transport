@@ -9,7 +9,7 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/branch/main)
 Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-main-focal-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-main-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_transport-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_transport-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_transport-ci-win)](https://build.osrfoundation.org/job/ign_transport-ci-win/)

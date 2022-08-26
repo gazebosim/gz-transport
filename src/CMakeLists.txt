@@ -15,6 +15,11 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     ${ZeroMQ_TARGET}
 )
 
+target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
+  SYSTEM PUBLIC 
+    $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:CPPZMQ::CPPZMQ,INTERFACE_INCLUDE_DIRECTORIES>)
+
 # Windows system library provides UUID
 if (NOT MSVC)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
