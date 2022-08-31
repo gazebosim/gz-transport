@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 
+//////////////////////////////////////////////////
 std::string
 ignition::transport::parameters::add_ign_msgs_prefix(
   const std::string & ignType)
@@ -30,6 +31,7 @@ ignition::transport::parameters::add_ign_msgs_prefix(
   return oss.str();
 }
 
+//////////////////////////////////////////////////
 std::optional<std::string>
 ignition::transport::parameters::get_ign_type_from_any_proto(
   const google::protobuf::Any & any)

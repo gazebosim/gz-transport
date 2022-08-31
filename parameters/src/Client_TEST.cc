@@ -56,6 +56,7 @@ TEST(ParametersClient, ConstructDestruct)
   ParametersClient client;
 }
 
+//////////////////////////////////////////////////
 TEST_F(ParametersClientTest, Parameter)
 {
   {
@@ -96,6 +97,7 @@ TEST_F(ParametersClientTest, Parameter)
   }
 }
 
+//////////////////////////////////////////////////
 TEST_F(ParametersClientTest, SetParameter)
 {
   {
@@ -158,6 +160,7 @@ TEST_F(ParametersClientTest, DeclareParameter)
   }
 }
 
+//////////////////////////////////////////////////
 TEST_F(ParametersClientTest, ListParameters)
 {
   {

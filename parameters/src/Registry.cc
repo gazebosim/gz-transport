@@ -78,6 +78,7 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
   ParametersMapT parametersMap;
 };
 
+//////////////////////////////////////////////////
 ParametersRegistry::ParametersRegistry(
   const std::string &  _parametersServicesNamespace)
   : dataPtr{std::make_unique<ParametersRegistryPrivate>()}
@@ -103,11 +104,17 @@ ParametersRegistry::ParametersRegistry(
     &ParametersRegistryPrivate::DeclareParameter, this->dataPtr.get());
 }
 
+//////////////////////////////////////////////////
 ParametersRegistry::~ParametersRegistry() = default;
+
+//////////////////////////////////////////////////
 ParametersRegistry::ParametersRegistry(ParametersRegistry &&) = default;
+
+//////////////////////////////////////////////////
 ParametersRegistry & ParametersRegistry::operator=(
   ParametersRegistry &&) = default;
 
+//////////////////////////////////////////////////
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   msgs::ParameterValue &_res)
 {
@@ -122,6 +129,7 @@ bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   return true;
 }
 
+//////////////////////////////////////////////////
 bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   msgs::ParameterDeclarations &_res)
 {
@@ -141,6 +149,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   return true;
 }
 
+//////////////////////////////////////////////////
 bool ParametersRegistryPrivate::SetParameter(
   const msgs::Parameter &_req, msgs::ParameterError &_res)
 {
@@ -172,6 +181,7 @@ bool ParametersRegistryPrivate::SetParameter(
   return true;
 }
 
+//////////////////////////////////////////////////
 bool ParametersRegistryPrivate::DeclareParameter(
   const msgs::Parameter &_req, msgs::ParameterError &_res)
 {
@@ -200,6 +210,7 @@ bool ParametersRegistryPrivate::DeclareParameter(
   return true;
 }
 
+//////////////////////////////////////////////////
 void ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   std::unique_ptr<google::protobuf::Message> _initialValue)
@@ -218,6 +229,7 @@ void ParametersRegistry::DeclareParameter(
   }
 }
 
+//////////////////////////////////////////////////
 void ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -234,6 +246,7 @@ void ParametersRegistry::DeclareParameter(
   this->DeclareParameter(_parameterName, std::move(newParam));
 }
 
+//////////////////////////////////////////////////
 static auto GetParameterCommon(
   const ParametersRegistryPrivate & _dataPtr,
   const std::string & _parameterName)
@@ -247,6 +260,7 @@ static auto GetParameterCommon(
   return it;
 }
 
+//////////////////////////////////////////////////
 std::unique_ptr<google::protobuf::Message>
 ParametersRegistry::Parameter(const std::string & _parameterName) const
 {
@@ -263,6 +277,7 @@ ParametersRegistry::Parameter(const std::string & _parameterName) const
   return ret;
 }
 
+//////////////////////////////////////////////////
 void
 ParametersRegistry::Parameter(
   const std::string & _parameterName,
@@ -282,6 +297,7 @@ ParametersRegistry::Parameter(
   _parameter.CopyFrom(*it->second);
 }
 
+//////////////////////////////////////////////////
 void
 ParametersRegistry::SetParameter(
   const std::string & _parameterName,
@@ -305,6 +321,7 @@ ParametersRegistry::SetParameter(
   it->second = std::move(_value);
 }
 
+//////////////////////////////////////////////////
 void
 ParametersRegistry::SetParameter(
   const std::string & _parameterName,
@@ -328,6 +345,7 @@ ParametersRegistry::SetParameter(
   it->second->CopyFrom(_value);
 }
 
+//////////////////////////////////////////////////
 ignition::msgs::ParameterDeclarations
 ParametersRegistry::ListParameters() const
 {

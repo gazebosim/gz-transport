@@ -47,10 +47,16 @@ struct ignition::transport::parameters::ParametersClientPrivate
   unsigned int timeoutMs;
 };
 
+//////////////////////////////////////////////////
 ParametersClient::~ParametersClient() = default;
+
+//////////////////////////////////////////////////
 ParametersClient::ParametersClient(ParametersClient &&) = default;
+
+//////////////////////////////////////////////////
 ParametersClient & ParametersClient::operator=(ParametersClient &&) = default;
 
+//////////////////////////////////////////////////
 ParametersClient::ParametersClient(
   const std::string & _serverNamespace,
   unsigned int _timeoutMs)
@@ -59,6 +65,7 @@ ParametersClient::ParametersClient(
     _timeoutMs)}
 {}
 
+//////////////////////////////////////////////////
 static msgs::ParameterValue
 GetParameterCommon(
   const ParametersClientPrivate & _dataPtr,
@@ -85,6 +92,7 @@ GetParameterCommon(
   return res;
 }
 
+//////////////////////////////////////////////////
 std::unique_ptr<google::protobuf::Message>
 ParametersClient::Parameter(const std::string & _parameterName) const
 {
@@ -109,6 +117,7 @@ ParametersClient::Parameter(const std::string & _parameterName) const
   return ret;
 }
 
+//////////////////////////////////////////////////
 void ParametersClient::Parameter(
   const std::string & _parameterName,
   google::protobuf::Message & _parameter) const
@@ -134,6 +143,7 @@ void ParametersClient::Parameter(
   }
 }
 
+//////////////////////////////////////////////////
 void
 ParametersClient::SetParameter(
   const std::string & _parameterName,
@@ -174,6 +184,7 @@ ParametersClient::SetParameter(
     "ParametersClient::SetParameter(): unexpected failure"};
 }
 
+//////////////////////////////////////////////////
 void
 ParametersClient::DeclareParameter(
   const std::string & _parameterName,
@@ -214,6 +225,7 @@ ParametersClient::DeclareParameter(
     "ParametersClient::DeclareParameter(): unexpected failure"};
 }
 
+//////////////////////////////////////////////////
 msgs::ParameterDeclarations
 ParametersClient::ListParameters() const
 {
