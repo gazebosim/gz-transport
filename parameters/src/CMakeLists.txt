@@ -4,8 +4,6 @@ list(APPEND sources cmd/ParamCommandAPI.cc)
 
 ign_add_component(parameters SOURCES ${sources} GET_TARGET_NAME param_lib_target)
 
-message(WARNING "param_lib_target ${param_lib_target}")
-
 # Unit tests
 ign_build_tests(
   TYPE "UNIT"
