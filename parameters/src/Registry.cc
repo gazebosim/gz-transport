@@ -142,7 +142,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
     for (const auto & paramPair : this->parametersMap) {
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
-      decl->set_type(add_ign_msgs_prefix(
+      decl->set_type(addIgnMsgsPrefix(
         paramPair.second->GetDescriptor()->name()));
     }
   }
@@ -162,7 +162,7 @@ bool ParametersRegistryPrivate::SetParameter(
       _res.set_data(msgs::ParameterError::NOT_DECLARED);
       return true;
     }
-    auto requestedIgnTypeOpt = get_ign_type_from_any_proto(
+    auto requestedIgnTypeOpt = getIgnTypeFromAnyProto(
       _req.value());
     if (!requestedIgnTypeOpt) {
       _res.set_data(msgs::ParameterError::INVALID_TYPE);
@@ -186,12 +186,12 @@ bool ParametersRegistryPrivate::DeclareParameter(
   const msgs::Parameter &_req, msgs::ParameterError &_res)
 {
   (void)_res;
-  const auto & ignTypeOpt = get_ign_type_from_any_proto(_req.value());
+  const auto & ignTypeOpt = getIgnTypeFromAnyProto(_req.value());
   if (!ignTypeOpt) {
     _res.set_data(msgs::ParameterError::INVALID_TYPE);
     return true;
   }
-  auto ignType = add_ign_msgs_prefix(*ignTypeOpt);
+  auto ignType = addIgnMsgsPrefix(*ignTypeOpt);
   auto paramValue = ignition::msgs::Factory::New(ignType);
   if (!paramValue) {
     _res.set_data(msgs::ParameterError::INVALID_TYPE);
@@ -234,7 +234,7 @@ void ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
 {
-  auto protoType = add_ign_msgs_prefix(_msg.GetDescriptor()->name());
+  auto protoType = addIgnMsgsPrefix(_msg.GetDescriptor()->name());
   auto newParam = ignition::msgs::Factory::New(protoType);
   if (!newParam) {
     throw std::runtime_error{
@@ -266,7 +266,7 @@ ParametersRegistry::Parameter(const std::string & _parameterName) const
 {
   std::lock_guard guard{this->dataPtr->parametersMapMutex};
   auto it = GetParameterCommon(*this->dataPtr, _parameterName);
-  auto protoType = add_ign_msgs_prefix(it->second->GetDescriptor()->name());
+  auto protoType = addIgnMsgsPrefix(it->second->GetDescriptor()->name());
   auto ret = ignition::msgs::Factory::New(protoType);
   if (!ret) {
     throw std::runtime_error{

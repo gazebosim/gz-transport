@@ -33,9 +33,16 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      std::string add_ign_msgs_prefix(const std::string & ignType);
+      /// \brief Return the protobuf type prefixed with "ign_msgs."
+      /// \param ignType Type name to be prefixed.
+      /// \return The protobuf type with the prefix added.
+      std::string addIgnMsgsPrefix(const std::string & ignType);
 
-      std::optional<std::string> get_ign_type_from_any_proto(
+      /// \brief Get the ignition message type from a protobuf message.
+      /// \param any Message to get the type.
+      /// \return A string with the ignition protobuf type,
+      ///   or nullopt if it fails.
+      std::optional<std::string> getIgnTypeFromAnyProto(
         const google::protobuf::Any & any);
       }
     }

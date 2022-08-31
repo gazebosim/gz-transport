@@ -67,7 +67,7 @@ ParametersClient::ParametersClient(
 
 //////////////////////////////////////////////////
 static msgs::ParameterValue
-GetParameterCommon(
+getParameterCommon(
   const ParametersClientPrivate & _dataPtr,
   const std::string & _parameterName)
 {
@@ -96,14 +96,14 @@ GetParameterCommon(
 std::unique_ptr<google::protobuf::Message>
 ParametersClient::Parameter(const std::string & _parameterName) const
 {
-  auto res = GetParameterCommon(*this->dataPtr, _parameterName);
-  auto ignTypeOpt = get_ign_type_from_any_proto(res.data());
+  auto res = getParameterCommon(*this->dataPtr, _parameterName);
+  auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
   if (!ignTypeOpt) {
     throw std::runtime_error{
       (std::string{"unexpected serialized parameter type url ["} +
         res.data().type_url() + "]").c_str()};
   }
-  auto ignType = add_ign_msgs_prefix(*ignTypeOpt);
+  auto ignType = addIgnMsgsPrefix(*ignTypeOpt);
   std::unique_ptr<google::protobuf::Message> ret =
     ignition::msgs::Factory::New(ignType);
   if (!ret) {
@@ -122,8 +122,8 @@ void ParametersClient::Parameter(
   const std::string & _parameterName,
   google::protobuf::Message & _parameter) const
 {
-  auto res = GetParameterCommon(*this->dataPtr, _parameterName);
-  auto ignTypeOpt = get_ign_type_from_any_proto(res.data());
+  auto res = getParameterCommon(*this->dataPtr, _parameterName);
+  auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
   if (!ignTypeOpt) {
     throw std::runtime_error{
       (std::string{"unexpected serialized parameter type url ["} +

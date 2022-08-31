@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////
 std::string
-ignition::transport::parameters::add_ign_msgs_prefix(
+ignition::transport::parameters::addIgnMsgsPrefix(
   const std::string & ignType)
 {
   std::ostringstream oss{"ign_msgs.", std::ios_base::ate};
@@ -33,7 +33,7 @@ ignition::transport::parameters::add_ign_msgs_prefix(
 
 //////////////////////////////////////////////////
 std::optional<std::string>
-ignition::transport::parameters::get_ign_type_from_any_proto(
+ignition::transport::parameters::getIgnTypeFromAnyProto(
   const google::protobuf::Any & any)
 {
   auto typeUrl = any.type_url();
