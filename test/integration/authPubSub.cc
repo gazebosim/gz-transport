@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"

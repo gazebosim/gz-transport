@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/empty.pb.h>
 
 #include <zmq.hpp>
 
@@ -27,8 +28,6 @@
 #include <thread>
 #include <vector>
 #include <unordered_map>
-
-#include <gz/msgs.hh>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"

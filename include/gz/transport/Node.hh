@@ -26,8 +26,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <gz/msgs.hh>
-
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
