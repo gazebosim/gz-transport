@@ -22,6 +22,8 @@
 #include <string>
 
 #include "ignition/transport/config.hh"
+#include "ignition/transport/parameters/Export.hh"
+
 #include <google/protobuf/any.pb.h>
 
 namespace ignition
@@ -36,12 +38,14 @@ namespace ignition
       /// \brief Return the protobuf type prefixed with "ign_msgs."
       /// \param ignType Type name to be prefixed.
       /// \return The protobuf type with the prefix added.
+      IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       std::string addIgnMsgsPrefix(const std::string & ignType);
 
       /// \brief Get the ignition message type from a protobuf message.
       /// \param any Message to get the type.
       /// \return A string with the ignition protobuf type,
       ///   or nullopt if it fails.
+      IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       std::optional<std::string> getIgnTypeFromAnyProto(
         const google::protobuf::Any & any);
       }
