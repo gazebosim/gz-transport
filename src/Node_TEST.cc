@@ -341,6 +341,19 @@ class MyTestClass
 
     this->Reset();
 
+    // Request a valid service using RequestRaw.
+    std::string reqStr, repStr, repTypeName;
+    req.SerializeToString(&reqStr);
+    EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr, req.GetTypeName(),
+          timeout, repStr, repTypeName, result));
+    rep.ParseFromString(repStr);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(rep.data(), data);
+    ASSERT_EQ(repTypeName, rep.GetTypeName());
+    EXPECT_TRUE(this->callbackSrvExecuted);
+
+    this->Reset();
+
     // Service requests with wrong types.
     EXPECT_FALSE(this->node.Request(g_topic, wrongReq, timeout, rep, result));
     EXPECT_FALSE(this->node.Request(g_topic, req, timeout, wrongRep, result));

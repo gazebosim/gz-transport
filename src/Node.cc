@@ -1036,3 +1036,33 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
   return this->dataPtr->SubscribeHelper(_fullyQualifiedTopic);
 }
+
+/////////////////////////////////////////////////
+bool Node::RequestRaw(const std::string &_topic,
+    const std::string &_request, const std::string &_requestType,
+    unsigned int _timeout,
+    std::string &_response, std::string &_responseType,
+    bool &_result)
+{
+  std::vector<ServicePublisher> publishers;
+  this->ServiceInfo(_topic, publishers);
+
+  if (publishers.empty())
+  {
+    std::cerr << "Node::RequestRaw(): Error getting response type for "
+      << "service [" << _topic << "]\n";
+    return false;
+  }
+  _responseType =publishers.front().RepTypeName();
+
+  std::unique_ptr<google::protobuf::Message> req =
+    msgs::Factory::New(_requestType);
+  req->ParseFromString(_request);
+
+  std::unique_ptr<google::protobuf::Message> res =
+    msgs::Factory::New(_responseType);
+
+  bool executed = this->Request(_topic, *req, _timeout, *res, _result);
+  res->SerializeToString(&_response);
+  return executed;
+}
