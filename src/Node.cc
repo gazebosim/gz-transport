@@ -1053,7 +1053,7 @@ bool Node::RequestRaw(const std::string &_topic,
       << "service [" << _topic << "]\n";
     return false;
   }
-  _responseType =publishers.front().RepTypeName();
+  _responseType = publishers.front().RepTypeName();
 
   std::unique_ptr<google::protobuf::Message> req =
     msgs::Factory::New(_requestType);
