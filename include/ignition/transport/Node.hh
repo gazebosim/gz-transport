@@ -669,7 +669,7 @@ namespace ignition
       /// \param[in] _request Protobuf message serialized into a string
       /// containing the request's parameters.
       /// \param[out] _requestType Message type of the request.
-      /// \param[in] _timeout The equest will timeout after '_timeout' ms.
+      /// \param[in] _timeout The request will timeout after '_timeout' ms.
       /// \param[out] _response Serialized protobuf message containing the
       ///  response.
       /// \param[out] _responseType Message type of the response.
