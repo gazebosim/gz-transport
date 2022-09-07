@@ -1057,10 +1057,21 @@ bool Node::RequestRaw(const std::string &_topic,
 
   std::unique_ptr<google::protobuf::Message> req =
     msgs::Factory::New(_requestType);
+  if (!req)
+  {
+    std::cerr << "Unable to create request of type[" << _requestType << "].\n";
+    return false;
+  }
   req->ParseFromString(_request);
 
   std::unique_ptr<google::protobuf::Message> res =
     msgs::Factory::New(_responseType);
+  if (!req)
+  {
+    std::cerr << "Unable to create response of type["
+      << _responseType << "].\n";
+    return false;
+  }
 
   bool executed = this->Request(_topic, *req, _timeout, *res, _result);
   res->SerializeToString(&_response);
