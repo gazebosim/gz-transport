@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <ignition/msgs/Factory.hh>
 
 #include "ignition/transport/log/Descriptor.hh"
 #include "ignition/transport/log/Log.hh"
@@ -72,6 +73,14 @@ class ignition::transport::log::Log::Implementation
   /// \brief Return true if enough time has passed since the last transaction
   /// \return true if the transaction has lasted long enough
   public: bool TimeForNewTransaction() const;
+
+  public: void InsertDescriptor(
+              const google::protobuf::Descriptor *_desc);
+
+  /// \brief Get whether a message type exists in the database.
+  /// \param[in] _msgTypeName Message typename to check.
+  /// \return True if the message type name exists in the database.
+  public: bool HasMessageType(const std::string &_msgTypeName);
 
   /// \brief SQLite3 database pointer wrapper
   public: std::shared_ptr<raii_sqlite3::Database> db;
@@ -226,6 +235,124 @@ bool Log::Implementation::TimeForNewTransaction() const
 }
 
 //////////////////////////////////////////////////
+bool Log::Implementation::HasMessageType(const std::string &_msgTypeName)
+{
+  // Compile the statement
+  const char* const  msgTypeStatement =
+      "SELECT id FROM messages_types WHERE name = ?001 LIMIT 1;";
+  raii_sqlite3::Statement statement(*(this->db), msgTypeStatement);
+  if (!statement)
+  {
+    LERR("Failed to compile message type query statement\n");
+    return false;
+  }
+
+  // Bind message type name parameter
+  int returnCode = sqlite3_bind_text(
+      statement.Handle(), 1, _msgTypeName.c_str(),
+      _msgTypeName.size(), nullptr);
+  if (returnCode != SQLITE_OK)
+  {
+    LERR("Failed to bind message type name(1): " << returnCode << "\n");
+    return -1;
+  }
+
+  // Try to run it
+  int resultCode = sqlite3_step(statement.Handle());
+  if (resultCode == SQLITE_CORRUPT)
+  {
+    LERR("Database is corrupt.");
+  }
+  else if (resultCode != SQLITE_ROW)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+void Log::Implementation::InsertDescriptor(
+    const google::protobuf::Descriptor *_descriptor)
+{
+  if (!_descriptor)
+    return;
+
+  // Lambda function that inserts the message type and protobuf
+  // definition into the database.
+  std::function<void(const google::protobuf::Descriptor *)> insertDescriptor =
+  [&](const google::protobuf::Descriptor *_desc)->void
+  {
+    const std::string msgTypeName = _desc->name();
+    if (!this->HasMessageType(msgTypeName))
+    {
+      const std::string descriptorStr = _desc->DebugString();
+
+      const std::string sqlMessageType =
+        "INSERT OR IGNORE INTO message_types (name, proto_descriptor) "
+        "VALUES (?001);";
+
+      raii_sqlite3::Statement messageTypeStatement(
+          *(this->db), sqlMessageType);
+
+      if (!messageTypeStatement)
+      {
+        LERR("Failed to compile statement to insert message type\n");
+        return;
+      }
+
+      int returnCode;
+
+      // Bind message type name parameter
+      returnCode = sqlite3_bind_text(
+          messageTypeStatement.Handle(), 1, msgTypeName.c_str(),
+          msgTypeName.size(), nullptr);
+      if (returnCode != SQLITE_OK)
+      {
+        LERR("Failed to bind message type name(1): " << returnCode << "\n");
+        return;
+      }
+
+      // Bind protobuf descriptor parameter
+      returnCode = sqlite3_bind_text(
+          messageTypeStatement.Handle(), 2, descriptorStr.c_str(),
+          descriptorStr.size(), nullptr);
+      if (returnCode != SQLITE_OK)
+      {
+        LERR("Failed to bind message proto_descriptor(2): "
+            << returnCode << "\n");
+        return;
+      }
+    }
+  };
+
+  // Recursive lambda function that will add all field message types.
+  // This makes sure that a message is fully defined in the database.
+  std::function<void(const google::protobuf::Descriptor *,
+      std::vector<std::string> &_types)> descriptors =
+    [&](const google::protobuf::Descriptor *_desc,
+                   std::vector<std::string> &_types)->void
+  {
+    // We keep track of message types to improve insertion performance
+    if (_desc &&
+        std::find(_types.begin(), _types.end(), _desc->name()) == _types.end())
+    {
+      _types.push_back(_desc->name());
+      insertDescriptor(_desc);
+
+      for (int i = 0; i < _desc->field_count(); ++i)
+      {
+        const google::protobuf::FieldDescriptor *fd = _desc->field(i);
+        descriptors(fd->message_type(), _types);
+      }
+    }
+  };
+
+  std::vector<std::string> types;
+  descriptors(_descriptor, types);
+}
+
+//////////////////////////////////////////////////
 int64_t Log::Implementation::InsertOrGetTopicId(
     const std::string &_name,
     const std::string &_type)
@@ -244,23 +371,19 @@ int64_t Log::Implementation::InsertOrGetTopicId(
     return topicId;
   }
 
+  std::cout << "\n\n\n\n\n[" << _type << "\n\n\n\n\n\n";
+  std::unique_ptr<google::protobuf::Message> msg = msgs::Factory::New(_type);
+  const google::protobuf::Descriptor *pDesc = msg->GetDescriptor();
+  this->InsertDescriptor(pDesc);
+
   // Inserting a new topic invalidates the descriptor
   this->needNewDescriptor = true;
 
   // Otherwise insert it into the database and return the new topic_id
-  const std::string sqlMessageType =
-    "INSERT OR IGNORE INTO message_types (name) VALUES (?001);";
   const std::string sqlTopic =
     "INSERT INTO topics (name, message_type_id)"
     " SELECT ?002, id FROM message_types WHERE name = ?001 LIMIT 1;";
 
-  raii_sqlite3::Statement messageTypeStatement(
-      *(this->db), sqlMessageType);
-  if (!messageTypeStatement)
-  {
-    LERR("Failed to compile statement to insert message type\n");
-    return -1;
-  }
   raii_sqlite3::Statement topicStatement(
       *(this->db), sqlTopic);
   if (!topicStatement)
@@ -276,13 +399,6 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   int returnCode;
   // Bind parameters
   returnCode = sqlite3_bind_text(
-      messageTypeStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
-  if (returnCode != SQLITE_OK)
-  {
-    LERR("Failed to bind message type name(1): " << returnCode << "\n");
-    return -1;
-  }
-  returnCode = sqlite3_bind_text(
       topicStatement.Handle(), 1, _type.c_str(), _type.size(), nullptr);
   if (returnCode != SQLITE_OK)
   {
@@ -297,13 +413,7 @@ int64_t Log::Implementation::InsertOrGetTopicId(
     return -1;
   }
 
-  // Execute the statements
-  returnCode = sqlite3_step(messageTypeStatement.Handle());
-  if (returnCode != SQLITE_DONE)
-  {
-    LERR("Failed to insert message type: " << returnCode << "\n");
-    return -1;
-  }
+  // Execute the statement
   returnCode = sqlite3_step(topicStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
