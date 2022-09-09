@@ -276,7 +276,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 
 # Documentation
 
-Visit the [documentation page](https://gazebosim.org/api/transport/11.0/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/12.0/index.html).
 
 ## Build documentation
 ```
