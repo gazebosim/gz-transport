@@ -270,7 +270,7 @@ You should receive one message in terminal 2:
 data: "Hello log"
 ```
 
-## Using `gz` for recording and playing back
+## Using gz for recording and playing back
 
 As an alternative to the C++ API, we could use the `gz` suite of command line
 tools for recording and playing back messages.
