@@ -1,6 +1,9 @@
 # Ubuntu 20.04
 FROM ubuntu:focal
 
+ENV TZ=America/Los_Angeles
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Tools I find useful during development
 RUN apt-get update \
  && apt-get install -y \
@@ -24,6 +27,7 @@ RUN apt-get update \
         gnupg \
         lsb-release \
         wget \
+        tzdata \
  && apt-get clean
 
 # Set USER and GROUP
@@ -53,14 +57,10 @@ WORKDIR /home/$USER
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && sudo apt-get update \
- && sudo -E apt-get install -y \
-    tzdata \
- && sudo ln -fs /usr/share/zoneinfo/America/Los_Angeles /etc/localtime \
- && sudo dpkg-reconfigure --frontend noninteractive tzdata \
  && sudo apt-get clean
 
 # Install Ignition dependencies
-RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
+RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
  && sudo /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -' \
  && sudo apt-get update \
  && sudo apt-get install -y \
@@ -71,7 +71,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get clean
 
 # Gazebo transport
-RUN git clone https://github.com/gazebosim/gz-transport.git \
+RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport12 \
  && cd gz-transport \
  && mkdir build \
  && cd build \
