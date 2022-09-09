@@ -76,6 +76,6 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 If you have the Gazebo Transport sources with the example programs built,
 then you can test topic statistics by following these steps.
 
-1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/publisher`
-1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./examples/build/subscriber_stats`
+1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/publisher`
+1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/subscriber_stats`
 1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 gz topic -et /statistics`
