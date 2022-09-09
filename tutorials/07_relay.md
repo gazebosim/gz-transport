@@ -31,7 +31,7 @@ Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/gz-trans
 ```{.sh}
 wget https://github.com/gazebosim/gz-transport/raw/gz-transport12/docker/build.bash
 wget https://github.com/gazebosim/gz-transport/raw/gz-transport12/docker/run.bash
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport12/docker/ign-transport/Dockerfile -O gz-transport/Dockerfile
+mkdir gz-transport && wget https://github.com/gazebosim/gz-transport/raw/gz-transport12/docker/gz-transport/Dockerfile -O gz-transport/Dockerfile
 chmod +x build.bash run.bash
 ```
 
