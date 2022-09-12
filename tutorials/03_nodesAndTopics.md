@@ -115,5 +115,5 @@ invalid too.
 |          |topic A    |                       | Invalid |   Topic contains white space            |
 |my ns     |topicA     |                       | Invalid |  Namespace contains white space         |
 |//ns      |topicA     |                       | Invalid |  Namespace contains two consecutive `//`|
-|          |topicA     |                       | Invalid |  `/` namespace is not allowed           |
+|/         |topicA     |                       | Invalid |  `/` namespace is not allowed           |
 |~myns     |topicA     |                       | Invalid |  Symbol `~` not allowed                 |
