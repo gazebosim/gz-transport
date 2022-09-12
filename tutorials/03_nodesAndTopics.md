@@ -46,7 +46,7 @@ The following symbols are not allowed as part of the topic name: `@`, `:=`, `~`.
 | /topicA/    | Valid    | Equivalent to /topicA         |
 | topicA      | Valid    |                               |
 | /a/b        | Valid    |                               |
-| \           | Invalid  | Empty string is invalid       |
+|             | Invalid  | Empty string is invalid       |
 | my topic    | Invalid  | Contains white space          |
 | //image     | Invalid  | Contains two consecutive `//` |
 | /           | Invalid  | `/` topic is not allowed      |
@@ -108,12 +108,12 @@ invalid too.
 |Namespace |Topic name | Fully qualified topic | Validity| Comment                                 |
 |:-------: |:---------:| :--------------------:|:-------:|:---------------------------------------:|
 |ns1       |/topicA    | /topicA               | Valid   |  Absolute topic                         |
-|\         |/topicA    | /topicA               | Valid   |  Absolute topic                         |
+|          |/topicA    | /topicA               | Valid   |  Absolute topic                         |
 |ns1       |topicA     | /ns1/topicA           | Valid   |                                         |
-|\         |topicA     | /topicA               | Valid   |                                         |
-|ns1       |topic A    | \                     | Invalid |  Topic contains white space             |
-|\         |topic A    | \                     | Invalid |   Topic contains white space            |
-|my ns     |topicA     | \                     | Invalid |  Namespace contains white space         |
-|//ns      |topicA     | \                     | Invalid |  Namespace contains two consecutive `//`|
-|/         |topicA     | \                     | Invalid |  `/` namespace is not allowed           |
-|~myns     |topicA     | \                     | Invalid |  Symbol `~` not allowed                 |
+|          |topicA     | /topicA               | Valid   |                                         |
+|ns1       |topic A    |                       | Invalid |  Topic contains white space             |
+|          |topic A    |                       | Invalid |   Topic contains white space            |
+|my ns     |topicA     |                       | Invalid |  Namespace contains white space         |
+|//ns      |topicA     |                       | Invalid |  Namespace contains two consecutive `//`|
+|/         |topicA     |                       | Invalid |  `/` namespace is not allowed           |
+|~myns     |topicA     |                       | Invalid |  Symbol `~` not allowed                 |
