@@ -1,6 +1,7 @@
 
 ign_get_libsources_and_unittests(sources gtest_sources)
 list(APPEND sources cmd/ParamCommandAPI.cc)
+list(APPEND gtest_sources cmd/ParamCommandAPI_TEST.cc)
 
 ign_add_component(parameters SOURCES ${sources} GET_TARGET_NAME param_lib_target)
 

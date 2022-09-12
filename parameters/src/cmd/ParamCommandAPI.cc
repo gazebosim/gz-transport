@@ -72,6 +72,7 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName) {
     value = client.Parameter(_paramName);
   } catch (const std::exception & ex) {
     std::cerr << "Failed to get parameter: " << ex.what() << std::endl;
+    return;
   }
 
   std::string msgType = "ign_msgs.";
@@ -100,21 +101,19 @@ extern "C" void cmdParameterSet(
   std::cout << std::endl << "Setting parameter [" << _paramName
             << "] for registry namespace [" << _ns << "]..." << std::endl;
 
-  auto msg = ignition::msgs::Factory::New(_paramType, _paramValue);
+  auto msg = ignition::msgs::Factory::New(_paramType);
   if (!msg) {
-    // try again, to check if the type name was valid
-    auto defaultMsg = ignition::msgs::Factory::New(_paramType);
-    std::cerr << "Could not create a message of type [" << _paramType << "]."
-              << std::endl;
-    if (!defaultMsg) {
-      std::cerr << "The message type may be invalid." << std::endl;
-      return;
-    }
-    std::cerr << "The message string representation may be invalid."
+    std::cerr << "Could not create a message of type [" << _paramType
+              << "]. The message type is invalid."
               << std::endl;
     return;
   }
-
+  if (!google::protobuf::TextFormat::ParseFromString(_paramValue, msg.get())) {
+    std::cerr << "Could not create a message of type [" << _paramType
+              << "]. The message string representation is invalid."
+              << std::endl;
+    return;
+  }
   try {
     client.SetParameter(_paramName, *msg);
   } catch (const std::exception & ex) {
