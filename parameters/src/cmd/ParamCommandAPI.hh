@@ -22,22 +22,28 @@
 
 /// \brief External hook to get a list of available models.
 /// \param[in] _ns Namespace of the parameter registry.
+
+extern "C"
 IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-extern "C" void cmdParametersList(const char * _ns);
+void cmdParametersList(const char * _ns);
 
 /// \brief External hook to dump a parameter.
 /// \param[in] _ns Namespace of the parameter registry.
 /// \param[in] _paramName Parameter name.
+
+extern "C"
 IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-extern "C" void cmdParameterGet(const char * _ns, const char *_paramName);
+void cmdParameterGet(const char * _ns, const char *_paramName);
 
 /// \brief External hook to set a parameter.
 /// \param[in] _ns Namespace of the parameter registry.
 /// \param[in] _paramName Parameter name.
 /// \param[in] _paramType Parameter protobuf type.
 /// \param[in] _paramValue String representation of the parameter value.
+
+extern "C"
 IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-extern "C" void cmdParameterSet(
+void cmdParameterSet(
     const char * _ns, const char *_paramName, const char * _paramType,
     const char *_paramValue);
 
