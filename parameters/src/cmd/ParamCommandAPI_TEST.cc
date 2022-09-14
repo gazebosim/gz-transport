@@ -55,7 +55,7 @@ class ParametersClientTest : public ::testing::Test {
 
 class CaptureStreamScoped {
 public:
-  CaptureStreamScoped(std::ostream & stream)
+  explicit CaptureStreamScoped(std::ostream & stream)
   : streamToCapture{stream},
     originalCerrStreamBuf{stream.rdbuf()}
   {
@@ -164,9 +164,11 @@ TEST_F(ParametersClientTest, SetParameter)
   }
   {
     CaptureCerrScoped cerrCapture;
-    cmdParameterSet("", "parameter2", "ign_msgs.StringMsg", "not_a_field: \"foo\"");
+    cmdParameterSet(
+      "", "parameter2", "ign_msgs.StringMsg", "not_a_field: \"foo\"");
     auto output = cerrCapture.str();
-    EXPECT_NE(std::string::npos, output.find("string representation is invalid")) << std::endl << output;
+    EXPECT_NE(
+      std::string::npos, output.find("string representation is invalid"));
   }
   {
     CaptureCerrScoped cerrCapture;
