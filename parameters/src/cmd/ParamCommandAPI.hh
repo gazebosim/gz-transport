@@ -18,13 +18,17 @@
 #ifndef IGNITION_TRANSPORT_PARAMETERS_CMD_PARAMCOMMANDAPI_HH_
 #define IGNITION_TRANSPORT_PARAMETERS_CMD_PARAMCOMMANDAPI_HH_
 
+#include "ignition/transport/parameters/Export.hh"
+
 /// \brief External hook to get a list of available models.
 /// \param[in] _ns Namespace of the parameter registry.
+IGNITION_TRANSPORT_PARAMETERS_VISIBLE
 extern "C" void cmdParametersList(const char * _ns);
 
 /// \brief External hook to dump a parameter.
 /// \param[in] _ns Namespace of the parameter registry.
 /// \param[in] _paramName Parameter name.
+IGNITION_TRANSPORT_PARAMETERS_VISIBLE
 extern "C" void cmdParameterGet(const char * _ns, const char *_paramName);
 
 /// \brief External hook to set a parameter.
@@ -32,6 +36,7 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName);
 /// \param[in] _paramName Parameter name.
 /// \param[in] _paramType Parameter protobuf type.
 /// \param[in] _paramValue String representation of the parameter value.
+IGNITION_TRANSPORT_PARAMETERS_VISIBLE
 extern "C" void cmdParameterSet(
     const char * _ns, const char *_paramName, const char * _paramType,
     const char *_paramValue);
