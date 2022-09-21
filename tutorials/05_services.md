@@ -598,9 +598,13 @@ cd build
 Run ``cmake`` and build the code.
 
 ```{.sh}
+# Linux and MacOS
 cmake ..
 make responser responser_oneway requester requester_async requester_oneway
 make responser_no_input requester_no_input requester_async_no_input
+
+# Windows
+cmake --build . --config Release
 ```
 
 ## Running the examples
@@ -610,19 +614,31 @@ Open three new terminals and from your ``build/`` directory run the executables.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./responser
+
+# Windows
+.\Release\responser.exe
 ```
 
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./requester
+
+# Windows
+.\Release\requester.exe
 ```
 
 From terminal 3:
 
 ```{.sh}
+# Linux and MacOS
 ./requester_async
+
+# Windows
+.\Release\requester_async.exe
 ```
 
 In your requester terminals, you should expect an output similar to this one,
@@ -651,14 +667,22 @@ From terminal 1:
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./requester_oneway
+
+# Windows
+.\Release\requester_oneway.exe
 ```
 
 In your responser terminal, you should expect an output similar to this one,
 showing that your service provider has received a request:
 
 ```{.sh}
-$ ./responser_oneway
+# Linux and MacOS
+./responser_oneway
+
+# Windows
+.\Release\responser_oneway.exe
 Request received: [HELLO]
 ```
 
@@ -668,26 +692,43 @@ For running the examples without input, open three terminals and from your
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./responser_no_input
+
+# Windows
+.\Release\responser_no_input.exe
 ```
 
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./requester_no_input
+
+# Windows
+.\Release\requester_no_input.exe
 ```
 
 From terminal 3:
 
 ```{.sh}
+# Linux and MacOS
 ./requester_async_no_input
+
+# Windows
+.\Release\requester_async_no_input.exe
 ```
 
 In your requesters' terminals, you should expect an output similar to this one,
 showing that you have received a response:
 
 ```{.sh}
-$ ./requester_no_input
+# Linux and MacOS
+./requester_no_input
+
+# Windows
+.\Release\requester_no_input.exe
+
 Press <CTRL-C> to exit
 Response: [This is it! This is the answer. It says here...that a bolt of
 lightning is going to strike the clock tower at precisely 10:04pm, next
