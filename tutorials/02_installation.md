@@ -94,7 +94,7 @@ sudo apt-get remove libgz-transport.*-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs-dev libgz-utils2-cli-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs9-dev libgz-utils2-cli-dev
 ```
 
 Clone the repository
@@ -234,14 +234,14 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 #### Building from Source
 
 1. Navigate to where you would like to build the library, and clone the repository.
-  ```
+  ```bash
   # Optionally, append `-b gz-transport#` (replace # with a number) to check out a specific version.
   From version 12 use `gz-transport<#>` for lower versions use `ign-transport<#>`
   git clone https://github.com/gazebosim/gz-transport.git
   ```
 
 2. Configure and build
-  ```
+  ```bash
   cd gz-transport
   mkdir build
   cd build
@@ -250,7 +250,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
   ```
 
 3. Optionally, install. You will likely need to run a terminal with admin privileges for this call to succeed.
-  ```
+  ```bash
   cmake --install . --config Release
   ```
 
@@ -258,7 +258,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 
   If you installed to a custom location, you may need to specify ``-DCMAKE_PREFIX_PATH``, pointing to the directory containing the file ``gz-transport<#>-config.cmake``.
   That file is installed to the ``CMAKE_INSTALL_PREFIX``, for example, ``path\to\install\gz-transport<#>\lib\cmake\gz-transport<#>``.
-  ```
+  ```bash
   cd gz-transport\example
   mkdir build
   cd build
@@ -267,12 +267,12 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
   ```
 
   Try an example
-  ```
+  ```bash
   responser
   ```
 
   In another terminal, run
-  ```
+  ```bash
   requester
   ```
 
@@ -281,20 +281,20 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 Visit the [documentation page](https://gazebosim.org/api/transport/12.0/index.html).
 
 ## Build documentation
-```
+```bash
 cd build
 make doc
 ```
 
 Upload documentation to gazebosim.org.
-```
+```bash
 cd build
 sh upload.sh
 ```
 
 If you're creating a new release, then tell gazebosim.org about
    the new version. For example:
-```
+```bash
 curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.gazebosim.org/1.0/versions
 ```
 
@@ -302,6 +302,6 @@ curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"20
 
 Tests can be run by building the `test` target. From your build directory you
 can run:
-```
+```bash
 make test
 ```
