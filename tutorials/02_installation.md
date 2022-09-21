@@ -48,7 +48,7 @@ use. Here are the instructions:
 Install homebrew, which should also prompt you to install the XCode
 command-line tools:
 ```
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 Run the following commands:
@@ -174,10 +174,11 @@ sudo make uninstall
 
 1. Clone the repository
   ```
-  git clone https://github.com/gazebosim/gz-transport -b ign-transport<#>
+  git clone https://github.com/gazebosim/gz-transport -b gz-transport<#>
   ```
   Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
-  which version you need.
+  which version you need. From version 12 use `gz-transport<#>` for lower versions
+  use `ign-transport<#>`
 
 2. Install dependencies
   ```
@@ -234,7 +235,8 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 
 1. Navigate to where you would like to build the library, and clone the repository.
   ```
-  # Optionally, append `-b ign-transport#` (replace # with a number) to check out a specific version
+  # Optionally, append `-b gz-transport#` (replace # with a number) to check out a specific version.
+  From version 12 use `gz-transport<#>` for lower versions use `ign-transport<#>`
   git clone https://github.com/gazebosim/gz-transport.git
   ```
 
