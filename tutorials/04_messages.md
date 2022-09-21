@@ -224,8 +224,12 @@ cd build
 Run `cmake` and build the code.
 
 ```{.sh}
+# Linux and MacOS
 cmake ..
 make publisher subscriber
+
+# Windows
+cmake --build . --config Release
 ```
 
 ## Running the examples
@@ -235,13 +239,21 @@ Open two new terminals and from your `build/` directory run the executables.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./publisher
+
+# Windows
+.\Release\publisher.exe
 ```
 
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./subscriber
+
+# Windows
+.\Release\subscriber.exe
 ```
 
 In your subscriber terminal, you should expect an output similar to this one,
@@ -438,20 +450,33 @@ Run `cmake` and build the example:
 
 ```{.sh}
 cd build
+
+# Linux and MacOS
 cmake ..
 make subscriber_generic
+
+# Windows
+cmake --build . --config Release
 ```
 
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./publisher
+
+# Windows
+.\Release\publisher.exe
 ```
 
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./subscriber_generic
+
+# Windows
+.\Release\subscriber_generic.exe
 ```
 
 ## Using custom Protobuf messages
@@ -543,20 +568,33 @@ Run `cmake` and build the example:
 
 ```{.sh}
 cd build
+
+# Linux and MacOS
 cmake ..
 make
+
+# Windows
+cmake --build . --config Release
 ```
 
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./publisher_custom_msg
+
+# Windows
+.\Release\publisher_custom_msg.exe
 ```
 
 From terminal 2:
 
 ```{.sh}
+# Linux and MacOS
 ./subscriber_custom_msg
+
+# Windows
+.\Release\subscriber_custom_msg.exe
 ```
 
 ## Topic remapping
@@ -585,7 +623,11 @@ You can modify any of the publisher examples to add this option.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./publisher
+
+# Windows
+.\Release\publisher.exe
 ```
 
 From terminal 2 (requires Gazebo Tools):

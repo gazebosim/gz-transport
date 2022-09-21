@@ -228,8 +228,12 @@ cd build
 Run `cmake` and build the code.
 
 ```{.sh}
+# Linux and MacOS
 cmake ..
 make
+
+# Windows
+cmake --build . --config Release
 ```
 
 ## Running the examples
@@ -239,7 +243,12 @@ Open two new terminals and from your `build/` directory run the recorder.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./log_record tutorial.tlog
+
+# Windows
+.\Release\log_record.exe tutorial.tlog
+
 Press Ctrl+C to finish recording.
   Recording...
 ```
@@ -261,7 +270,11 @@ gz topic -t /foo -e
 And from terminal 1, playback your log file:
 
 ```{.sh}
+# Linux and MacOS
 ./log_playback tutorial.tlog
+
+# Windows
+.\Release\log_playback.exe tutorial.tlog
 ```
 
 You should receive one message in terminal 2:
