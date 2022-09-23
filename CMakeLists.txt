@@ -57,6 +57,8 @@ if (UNIX AND NOT APPLE)
     message(WARNING "lsb_release executable not found. Disabling focal-specific workarounds")
   elseif (${RELEASE_CODENAME} STREQUAL "focal")
     set(UBUNTU_FOCAL 1)
+  elseif (${RELEASE_CODENAME} STREQUAL "bullseye")
+    set(DEBIAN_BULLSEYE 1)
   endif()
 endif()
 

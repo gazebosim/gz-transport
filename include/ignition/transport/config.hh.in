@@ -21,5 +21,6 @@
 
 #cmakedefine HAVE_IFADDRS 1
 #cmakedefine UBUNTU_FOCAL 1
+#cmakedefine DEBIAN_BULLSEYE 1
 
 #endif
