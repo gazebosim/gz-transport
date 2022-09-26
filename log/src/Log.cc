@@ -239,7 +239,7 @@ bool Log::Implementation::HasMessageType(const std::string &_msgTypeName)
 {
   // Compile the statement
   const char* const  msgTypeStatement =
-      "SELECT id FROM messages_types WHERE name = ?001 LIMIT 1;";
+      "SELECT id FROM message_types WHERE name = ?001 LIMIT 1;";
   raii_sqlite3::Statement statement(*(this->db), msgTypeStatement);
   if (!statement)
   {
@@ -283,14 +283,15 @@ void Log::Implementation::InsertDescriptor(
   std::function<void(const google::protobuf::Descriptor *)> insertDescriptor =
   [&](const google::protobuf::Descriptor *_desc)->void
   {
-    const std::string msgTypeName = _desc->name();
+    const std::string msgTypeName = _desc->full_name();
     if (!this->HasMessageType(msgTypeName))
     {
-      const std::string descriptorStr = _desc->DebugString();
+      std::cout << "Inserting type[" << msgTypeName << "]\n";
+      const std::string descriptorStr = _desc->file()->DebugString();
 
       const std::string sqlMessageType =
-        "INSERT OR IGNORE INTO message_types (name, proto_descriptor) "
-        "VALUES (?001);";
+        "INSERT INTO message_types (name, proto_descriptor) "
+        "VALUES (?001, ?002);";
 
       raii_sqlite3::Statement messageTypeStatement(
           *(this->db), sqlMessageType);
@@ -323,6 +324,18 @@ void Log::Implementation::InsertDescriptor(
             << returnCode << "\n");
         return;
       }
+
+      returnCode = sqlite3_step(messageTypeStatement.Handle());
+      if (returnCode != SQLITE_DONE)
+      {
+        LERR("Failed to insert message type. sqlite3 return code[" << returnCode
+            << "] message type[" << msgTypeName << "]\n");
+        return;
+      }
+    }
+    else
+    {
+      std::cout << "Already inserted type[" << msgTypeName << "]\n";
     }
   };
 
@@ -334,10 +347,11 @@ void Log::Implementation::InsertDescriptor(
                    std::vector<std::string> &_types)->void
   {
     // We keep track of message types to improve insertion performance
-    if (_desc &&
-        std::find(_types.begin(), _types.end(), _desc->name()) == _types.end())
+    if (_desc && std::find(_types.begin(), _types.end(), _desc->full_name()) ==
+        _types.end())
     {
-      _types.push_back(_desc->name());
+      _types.push_back(_desc->full_name());
+
       insertDescriptor(_desc);
 
       for (int i = 0; i < _desc->field_count(); ++i)
@@ -371,7 +385,7 @@ int64_t Log::Implementation::InsertOrGetTopicId(
     return topicId;
   }
 
-  std::cout << "\n\n\n\n\n[" << _type << "\n\n\n\n\n\n";
+  std::cout << "\n Insert or get topic id[" << _name << "  " << _type << "]\n";
   std::unique_ptr<google::protobuf::Message> msg = msgs::Factory::New(_type);
   const google::protobuf::Descriptor *pDesc = msg->GetDescriptor();
   this->InsertDescriptor(pDesc);
@@ -478,7 +492,6 @@ bool Log::Implementation::InsertMessage(
   // Reset startTime and endTime
   this->startTime = std::chrono::nanoseconds(-1);
   this->endTime = std::chrono::nanoseconds(-1);
-
 
   // Execute the statement
   returnCode = sqlite3_step(statement.Handle());
