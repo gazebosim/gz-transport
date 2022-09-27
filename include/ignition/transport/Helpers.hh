@@ -38,7 +38,8 @@
 // Avoid using deprecated set function when possible
 #if CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 7, 0)
   // Ubuntu Focal (20.04) packages a different "4.7.0"
-  #ifndef UBUNTU_FOCAL
+  // And so does apparently Debian Bullseye
+  #if !defined(UBUNTU_FOCAL) && !defined(DEBIAN_BULLSEYE)
     #define IGN_CPPZMQ_POST_4_7_0
   #endif
 #endif
