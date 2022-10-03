@@ -63,50 +63,12 @@ endif()
 
 #===============================================================================
 # Generate the ruby script for internal testing.
-# Note that the major version of the library is included in the name.
-# Ex: cmdtransport0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/ignition/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
-
-# Set the library_location variable to the full path of the library file within
-# the build directory.
-set(service_exe_location "$<TARGET_FILE:${service_executable}>")
-set(topic_exe_location "$<TARGET_FILE:${topic_executable}>")
-
-configure_file(
-  "cmd${GZ_DESIGNATION}.rb.in"
-  "${cmd_script_configured_test}"
-  @ONLY)
-
-file(GENERATE
-  OUTPUT "${cmd_script_generated_test}"
-  INPUT  "${cmd_script_configured_test}")
-
-
-#===============================================================================
-# Used for the installed version.
-# Generate the ruby script that gets installed.
-# Note that the major version of the library is included in the name.
-# Ex: cmdtransport0.rb
-set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_configured "${cmd_script_generated}.configured")
+ign_generate_cmd()
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
 set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
 set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
-
-configure_file(
-  "cmd${GZ_DESIGNATION}.rb.in"
-  "${cmd_script_configured}"
-  @ONLY)
-
-file(GENERATE
-  OUTPUT "${cmd_script_generated}"
-  INPUT  "${cmd_script_configured}")
-
-# Install the ruby command line library in an unversioned location.
-install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
 
 #===============================================================================
 # Bash completion
