@@ -27,7 +27,7 @@
 #include <ignition/msgs/parameter_declarations.pb.h>
 
 #include "ignition/transport/config.hh"
-#include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/errors.hh"
 #include "ignition/transport/parameters/Export.hh"
 #include "ignition/transport/parameters/Interface.hh"
 
@@ -77,28 +77,25 @@ namespace ignition
 
         /// \brief Declare a new parameter.
         /// See ParametersInterface::DeclareParameter().
-        public: void DeclareParameter(
+        public: ParameterError DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) final;
 
         /// \brief Request the value of a parameter.
         /// See ParametersInterface::Parameter().
-        public: std::unique_ptr<google::protobuf::Message> Parameter(
-          const std::string & _parameterName) const final;
+        // public: ParameterError Parameter(
+        //   const std::string & _parameterName,
+        //   std::unique_ptr<google::protobuf::Message> & _parameter) const final;
 
         /// \brief Request the value of a parameter.
         /// See ParametersInterface::Parameter().
-        public: void Parameter(
+        public: ParameterError Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const final;
 
-        /// \brief Request the value of a parameter.
-        /// See ParametersInterface::Parameter().
-        using ParametersInterface::Parameter;
-
         /// \brief Set the value of a parameter.
         /// See ParametersInterface::SetParameter().
-        public: void SetParameter(
+        public: ParameterError SetParameter(
             const std::string & _parameterName,
             const google::protobuf::Message & _msg) final;
 
@@ -115,7 +112,7 @@ namespace ignition
         /// \throw std::invalid_argument if `_initialValue` is `nullptr`.
         /// \throw ParameterAlreadyDeclaredException if a parameter with the
         ///   same name was declared before.
-        public: void DeclareParameter(
+        public: ParameterError DeclareParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _initialValue);
 
@@ -126,7 +123,7 @@ namespace ignition
         ///   was not declared before.
         /// \throw ParameterInvalidTypeException if the type does not match
         ///   the type of the parameter when it was declared.
-        public: void SetParameter(
+        public: ParameterError SetParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
 

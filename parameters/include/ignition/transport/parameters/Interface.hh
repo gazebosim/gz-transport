@@ -21,13 +21,14 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <variant>
 
 #include <google/protobuf/message.h>
 
 #include <ignition/msgs/parameter_declarations.pb.h>
 
 #include "ignition/transport/config.hh"
-#include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/errors.hh"
 #include "ignition/transport/parameters/Export.hh"
 
 namespace ignition
@@ -38,6 +39,8 @@ namespace ignition
     {
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+
+      // using ParameterError = ::ignition::transport::parameters::ParameterError;
 
       /// \brief Common interface, implemented by ParametersRegistry
       ///   (local updates) and by ParametersClients (remote requests).
@@ -54,18 +57,20 @@ namespace ignition
         ///   same name was declared before.
         /// \throw ParameterInvalidTypeException (can only happen in client)
         ///   if the parameter server does not recognize the parameter type.
-        public: virtual void DeclareParameter(
+        public: virtual ParameterError DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
 
         /// \brief Request the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be requested.
+        /// \param[out] _parameter Output were the parameter value will be set.
         /// \return The value of the parameter (a protobuf msg).
         /// \throw ParameterNotDeclaredException if a parameter of that name
         ///   was not declared before.
         /// \throw std::runtime_error if an unexpected error happens.
-        public: virtual std::unique_ptr<google::protobuf::Message> Parameter(
-          const std::string & _parameterName) const = 0;
+        // public: virtual ParameterError Parameter(
+        //   const std::string & _parameterName,
+        //   std::unique_ptr<google::protobuf::Message> & _parameter) const = 0;
 
         /// \brief Request the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be requested.
@@ -75,7 +80,7 @@ namespace ignition
         /// \throw ParameterInvalidTypeException if the type of `_parameter`
         ///    does not match the type of the parameter when it was declared.
         /// \throw std::runtime_error if an unexpected error happens.
-        public: virtual void Parameter(
+        public: virtual ParameterError Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const = 0;
 
@@ -86,7 +91,7 @@ namespace ignition
         ///   was not declared before.
         /// \throw ParameterInvalidTypeException if the type does not match
         ///   the type of the parameter when it was declared.
-        public: virtual void SetParameter(
+        public: virtual ParameterError SetParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
 
@@ -94,23 +99,6 @@ namespace ignition
         /// \return The name and types of existing parameters.
         public: virtual ignition::msgs::ParameterDeclarations
         ListParameters() const = 0;
-
-        /// \brief Get the value of a parameter.
-        /// \tparam ProtoMsgT A protobuf message type, e.g.: ign::msgs::Boolean.
-        /// \param[in] _parameterName Name of the parameter to get.
-        /// \return The parameter value, as a protobuf message.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if ProtoMsgT does not match
-        ///   the type of the parameter when it was declared.
-        /// \throw std::runtime_error if an unexpected error happens.
-        public: template<typename ProtoMsgT>
-        ProtoMsgT Parameter(const std::string & _parameterName) const
-        {
-          ProtoMsgT ret;
-          this->Parameter(_parameterName, ret);
-          return ret;
-        }
       };
       }
     }

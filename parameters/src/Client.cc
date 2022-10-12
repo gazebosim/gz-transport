@@ -26,7 +26,7 @@
 #include "ignition/msgs/parameter_name.pb.h"
 #include "ignition/msgs/parameter_value.pb.h"
 
-#include "ignition/transport/parameters/exceptions.hh"
+#include "ignition/transport/parameters/errors.hh"
 
 #include "Utils.hh"
 
@@ -66,85 +66,87 @@ ParametersClient::ParametersClient(
 {}
 
 //////////////////////////////////////////////////
-static msgs::ParameterValue
+static ParameterError
 getParameterCommon(
   const ParametersClientPrivate & _dataPtr,
-  const std::string & _parameterName)
+  const std::string & _parameterName,
+  msgs::ParameterValue & _parameterValue)
 {
   bool result{false};
   const std::string service{_dataPtr.serverNamespace + "/get_parameter"};
 
   msgs::ParameterName req;
-  msgs::ParameterValue res;
 
   req.set_name(_parameterName);
 
-  if (!_dataPtr.node.Request(service, req, _dataPtr.timeoutMs, res, result))
+  if (!_dataPtr.node.Request(service, req, _dataPtr.timeoutMs, _parameterValue, result))
   {
-    throw std::runtime_error{
-      "ParametersClient::Parameter(): request timed out"};
+    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    throw ParameterNotDeclaredException {
-      "ParametersClient::Parameter()", _parameterName.c_str()};
+    return ParameterError{ParameterErrorType::NotDeclared, _parameterName};
   }
-  return res;
+  return ParameterError{ParameterErrorType::NoError};
 }
 
 //////////////////////////////////////////////////
-std::unique_ptr<google::protobuf::Message>
-ParametersClient::Parameter(const std::string & _parameterName) const
-{
-  auto res = getParameterCommon(*this->dataPtr, _parameterName);
-  auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
-  if (!ignTypeOpt) {
-    throw std::runtime_error{
-      (std::string{"unexpected serialized parameter type url ["} +
-        res.data().type_url() + "]").c_str()};
-  }
-  auto ignType = addIgnMsgsPrefix(*ignTypeOpt);
-  std::unique_ptr<google::protobuf::Message> ret =
-    ignition::msgs::Factory::New(ignType);
-  if (!ret) {
-    throw std::runtime_error{
-      std::string{"could not create parameter of type ["} + ignType + "]"};
-  }
-  if (!res.data().UnpackTo(ret.get())) {
-    throw std::runtime_error{
-      "failed to unpack parameter of type [" + ignType + "]"};
-  }
-  return ret;
-}
+// ParameterError
+// ParametersClient::Parameter(
+//   const std::string & _parameterName,
+//   std::unique_ptr<google::protobuf::Message> & _parameter) const
+// {
+//   msgs::ParameterValue res;
+//   auto ret = getParameterCommon(*this->dataPtr, _parameterName, res);
+//   if (!ret) {
+//     return ret;
+//   }
+//   auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
+//   if (!ignTypeOpt) {
+//     return ParameterError{
+//       ParameterErrorType::Unexpected, _parameterName};
+//   }
+//   auto ignType = addIgnMsgsPrefix(*ignTypeOpt);
+//   _parameter = ignition::msgs::Factory::New(ignType);
+//   if (!_parameter) {
+//     return ParameterError{
+//       ParameterErrorType::Unexpected, _parameterName, ignType};
+//   }
+//   if (!res.data().UnpackTo(_parameter.get())) {
+//     return ParameterError{
+//       ParameterErrorType::Unexpected, _parameterName, ignType};
+//   }
+//   return ParameterError{ParameterErrorType::NoError};
+// }
 
 //////////////////////////////////////////////////
-void ParametersClient::Parameter(
+ParameterError
+ParametersClient::Parameter(
   const std::string & _parameterName,
   google::protobuf::Message & _parameter) const
 {
-  auto res = getParameterCommon(*this->dataPtr, _parameterName);
+  msgs::ParameterValue res;
+  auto ret = getParameterCommon(*this->dataPtr, _parameterName, res);
   auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
   if (!ignTypeOpt) {
-    throw std::runtime_error{
-      (std::string{"unexpected serialized parameter type url ["} +
-        res.data().type_url() + "]").c_str()};
+    return ParameterError{
+      ParameterErrorType::Unexpected,
+      _parameterName};
   }
   auto ignType = *ignTypeOpt;
   if (ignType != _parameter.GetDescriptor()->name()) {
-    throw ParameterInvalidTypeException{
-      "ParametersClient::Parameter()",
-      _parameterName.c_str(),
-      ignType.c_str(),
-      _parameter.GetDescriptor()->name().c_str()};
+    return ParameterError{
+      ParameterErrorType::InvalidType, _parameterName, ignType};
   }
   if (!res.data().UnpackTo(&_parameter)) {
-    throw std::runtime_error{
-      "failed to unpack parameter of type [" + ignType + "]"};
+    return ParameterError{
+      ParameterErrorType::Unexpected, _parameterName, ignType};
   }
+  return ParameterError{ParameterErrorType::NoError};
 }
 
 //////////////////////////////////////////////////
-void
+ParameterError
 ParametersClient::SetParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -160,32 +162,29 @@ ParametersClient::SetParameter(
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
-    throw std::runtime_error{
-      "ParametersClient::SetParameter(): request timed out"};
+    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    throw std::runtime_error {
-      "ParametersClient::SetParameter(): unexpected failure"};
+    return ParameterError{ParameterErrorType::Unexpected, _parameterName};
   }
   if (res.data() == msgs::ParameterError::SUCCESS) {
-    return;
+    return ParameterError{ParameterErrorType::NoError};
   }
   if (res.data() == msgs::ParameterError::NOT_DECLARED) {
-    throw ParameterNotDeclaredException{
-      "ParametersClient::SetParameter()", _parameterName.c_str()};
+    return ParameterError{ParameterErrorType::NotDeclared, _parameterName};
   }
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
-    throw ParameterInvalidTypeException{
-      "ParametersClient::SetParameter()", _parameterName.c_str(),
-      _msg.GetDescriptor()->name().c_str()};
+    return ParameterError{
+      ParameterErrorType::InvalidType,
+      _parameterName,
+      _msg.GetDescriptor()->name()};
   }
-  throw std::runtime_error {
-    "ParametersClient::SetParameter(): unexpected failure"};
+  return ParameterError{ParameterErrorType::Unexpected, _parameterName};
 }
 
 //////////////////////////////////////////////////
-void
+ParameterError
 ParametersClient::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -201,28 +200,23 @@ ParametersClient::DeclareParameter(
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
-    throw std::runtime_error{
-      "ParametersClient::DeclareParameter(): request timed out"};
+    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    throw std::runtime_error {
-      "ParametersClient::DeclareParameter(): unexpected failure"};
+    return ParameterError{ParameterErrorType::Unexpected, _parameterName};
   }
   if (res.data() == msgs::ParameterError::SUCCESS) {
-    return;
+    return ParameterError{ParameterErrorType::NoError};
   }
   if (res.data() == msgs::ParameterError::ALREADY_DECLARED) {
-    throw ParameterAlreadyDeclaredException{
-      "ParametersClient::DeclareParameter()", _parameterName.c_str()};
+    return ParameterError{ParameterErrorType::AlreadyDeclared, _parameterName};
   }
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
-    throw ParameterInvalidTypeException{
-      "ParametersClient::DeclareParameter()", _parameterName.c_str(),
-      _msg.GetDescriptor()->name().c_str()};
+    return ParameterError{
+      ParameterErrorType::InvalidType, _parameterName, _msg.GetDescriptor()->name()};
   }
-  throw std::runtime_error {
-    "ParametersClient::DeclareParameter(): unexpected failure"};
+  return ParameterError{ParameterErrorType::Unexpected, _parameterName};
 }
 
 //////////////////////////////////////////////////

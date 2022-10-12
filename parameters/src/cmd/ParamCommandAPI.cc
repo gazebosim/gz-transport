@@ -68,10 +68,10 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName) {
             << "] for registry namespace [" << _ns << "]..." << std::endl;
 
   std::unique_ptr<google::protobuf::Message> value;
-  try {
-    value = client.Parameter(_paramName);
-  } catch (const std::exception & ex) {
-    std::cerr << "Failed to get parameter: " << ex.what() << std::endl;
+  auto ret = client.Parameter(_paramName, *value);
+  if (!ret) {
+    std::cerr << "Failed to get parameter: " // TODO: << ret << std::endl;
+              << std::endl;
     return;
   }
 

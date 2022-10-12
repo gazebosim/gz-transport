@@ -41,56 +41,56 @@ TEST(ParametersRegistry, DeclareParameter)
     std::invalid_argument);
   registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
-  EXPECT_THROW(
-    registry.DeclareParameter(
-      "parameter1", std::make_unique<ignition::msgs::Boolean>()),
-    ParameterAlreadyDeclaredException);
+  auto ret = registry.DeclareParameter(
+    "parameter1", std::make_unique<ignition::msgs::Boolean>());
+  EXPECT_FALSE(ret);
+  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::AlreadyDeclared);
+  EXPECT_EQ(ret.ParamName(), "parameter1");
 }
 
 //////////////////////////////////////////////////
 TEST(ParametersRegistry, Parameter)
 {
   ParametersRegistry registry{""};
-  EXPECT_THROW(
-    registry.Parameter("will_fail"),
-    ParameterNotDeclaredException);
-  registry.DeclareParameter(
-    "parameter1", std::make_unique<ignition::msgs::Boolean>());
-  auto param = registry.Parameter("parameter1");
-  EXPECT_NE(param, nullptr);
-  auto booleanParam = registry.Parameter<ignition::msgs::Boolean>("parameter1");
-  auto upcasted = dynamic_cast<ignition::msgs::Boolean *>(param.get());
-  EXPECT_EQ(upcasted->data(), booleanParam.data());
-  ASSERT_NE(upcasted, nullptr);
-  EXPECT_THROW(
-    registry.Parameter<ignition::msgs::StringMsg>("parameter1"),
-    ParameterInvalidTypeException);
+  ignition::msgs::Boolean msg;
+  auto ret = registry.Parameter("will_fail", msg);
+  EXPECT_FALSE(ret);
+  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::NotDeclared);
+  EXPECT_EQ(ret.ParamName(), "will_fail");
+  EXPECT_TRUE(registry.DeclareParameter(
+    "parameter1", std::make_unique<ignition::msgs::Boolean>()));
+  EXPECT_TRUE(registry.Parameter("parameter1", msg));
+  EXPECT_FALSE(msg.data());
+  ignition::msgs::StringMsg msg2;
+  ret = registry.Parameter("parameter1", msg2);
+  EXPECT_FALSE(ret);
+  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::InvalidType);
+  EXPECT_EQ(ret.ParamName(), "parameter1");
 }
 
 //////////////////////////////////////////////////
 TEST(ParametersRegistry, SetParameter)
 {
   ParametersRegistry registry{""};
-  EXPECT_THROW(
-    registry.SetParameter(
-      "will_fail", std::make_unique<ignition::msgs::Boolean>()),
-    ParameterNotDeclaredException);
+  auto ret = registry.SetParameter(
+    "will_fail", std::make_unique<ignition::msgs::Boolean>());
+  EXPECT_FALSE(ret);
+  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::NotDeclared);
+  EXPECT_EQ(ret.ParamName(), "will_fail");
   registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
   auto unique = std::make_unique<ignition::msgs::Boolean>();
   unique->set_data(true);
-  registry.SetParameter("parameter1", std::move(unique));
-  auto readValue = registry.Parameter<ignition::msgs::Boolean>("parameter1");
-  EXPECT_EQ(readValue.data(), true);
+  EXPECT_TRUE(registry.SetParameter("parameter1", std::move(unique)));
   ignition::msgs::Boolean msg;
-  msg.set_data(false);
-  registry.SetParameter("parameter1", msg);
-  readValue = registry.Parameter<ignition::msgs::Boolean>("parameter1");
-  EXPECT_EQ(readValue.data(), false);
-  EXPECT_THROW(
-    registry.SetParameter(
-      "parameter1", std::make_unique<ignition::msgs::StringMsg>()),
-    ParameterInvalidTypeException);
+  EXPECT_TRUE(registry.Parameter("parameter1", msg));
+  EXPECT_TRUE(msg.data());
+  ret = registry.SetParameter(
+    "parameter1", std::make_unique<ignition::msgs::StringMsg>());
+  EXPECT_FALSE(ret);
+  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::InvalidType);
+  EXPECT_EQ(ret.ParamName(), "parameter1");
+  EXPECT_EQ(ret.ParamType(), "ign_msgs.Boolean");
 }
 
 //////////////////////////////////////////////////

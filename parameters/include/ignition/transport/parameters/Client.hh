@@ -75,28 +75,25 @@ namespace ignition
 
         /// \brief Declare a new parameter.
         /// See ParametersInterface::DeclareParameter().
-        public: void DeclareParameter(
+        public: ParameterError DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) final;
 
-        /// \brief Request the value of a parameter.
-        /// See ParametersInterface::Parameter().
-        public: std::unique_ptr<google::protobuf::Message> Parameter(
-          const std::string & _parameterName) const final;
+        // /// \brief Request the value of a parameter.
+        // /// See ParametersInterface::Parameter().
+        // public: ParameterError Parameter(
+        //   const std::string & _parameterName,
+        //   std::unique_ptr<google::protobuf::Message> & _parameter) const final;
 
         /// \brief Request the value of a parameter.
         /// See ParametersInterface::Parameter().
-        public: void Parameter(
+        public: ParameterError Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const final;
 
-        /// \brief Request the value of a parameter.
-        /// See ParametersInterface::Parameter().
-        using ParametersInterface::Parameter;
-
         /// \brief Set the value of a parameter.
         /// See ParametersInterface::SetParameter().
-        public: void SetParameter(
+        public: ParameterError SetParameter(
             const std::string & _parameterName,
             const google::protobuf::Message & _msg) final;
 
