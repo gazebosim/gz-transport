@@ -70,8 +70,7 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName) {
   std::unique_ptr<google::protobuf::Message> value;
   auto ret = client.Parameter(_paramName, *value);
   if (!ret) {
-    std::cerr << "Failed to get parameter: " // TODO: << ret << std::endl;
-              << std::endl;
+    std::cerr << "Failed to get parameter: " << ret << std::endl;
     return;
   }
 

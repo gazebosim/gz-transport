@@ -18,6 +18,7 @@
 #ifndef IGNITION_TRANSPORT_PARAMETERS_EXCEPTIONS_HH_
 #define IGNITION_TRANSPORT_PARAMETERS_EXCEPTIONS_HH_
 
+#include <ostream>
 #include <stdexcept>
 #include <string>
 
@@ -54,15 +55,22 @@ namespace ignition
           : errorType(_errorType), paramName{_paramName}, paramType{_paramType}
           {}
 
+          // public: friend std::ostream & operator<<(std::ostream &, const ParameterResult &);
+
           public: ParameterResultType ErrorType() const {return errorType;}
           public: const std::string & ParamName() const {return paramName;}
           public: const std::string & ParamType() const {return paramType;}
 
-          public: explicit operator bool() const {return errorType == ParameterResultType::Success;}
+          public: explicit operator bool() const {
+            return errorType == ParameterResultType::Success;
+          }
+
           private: ParameterResultType errorType;
           private: std::string paramName;
           private: std::string paramType;
         };
+
+        std::ostream & operator<<(std::ostream &, const ParameterResult &);
       }
     }
   }
