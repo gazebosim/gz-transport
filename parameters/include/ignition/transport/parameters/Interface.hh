@@ -53,10 +53,9 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be declared.
         /// \param[in] _msg Protobuf message to be used as the initial
         ///   parameter value.
-        /// \throw ParameterAlreadyDeclaredException if a parameter with the
-        ///   same name was declared before.
-        /// \throw ParameterInvalidTypeException (can only happen in client)
-        ///   if the parameter server does not recognize the parameter type.
+        /// \return A ParameterResult return code, can return error types:
+        /// - ParameterErrorType::AlreadyDeclared if the parameter was already declared.
+        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
         public: virtual ParameterResult DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
@@ -64,11 +63,10 @@ namespace ignition
         /// \brief Request the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if the type of `_parameter`
-        ///    does not match the type of the parameter when it was declared.
-        /// \throw std::runtime_error if an unexpected error happens.
+        /// \return A ParameterResult return code, can return error types:
+        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
+        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
+        /// - ParameterErrorType::Unexpected, if an unexpected error happened.
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const = 0;
@@ -76,10 +74,9 @@ namespace ignition
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be set.
         /// \param[in] _msg Protobuf message to be used as the parameter value.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if the type does not match
-        ///   the type of the parameter when it was declared.
+        /// \return A ParameterResult return code, can return error types:
+        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
+        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
         public: virtual ParameterResult SetParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
