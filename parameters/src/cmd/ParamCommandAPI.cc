@@ -43,13 +43,7 @@ extern "C" void cmdParametersList(const char * _ns)
   std::cout << std::endl << "Listing parameters, registry namespace [" << _ns
             << "]..." << std::endl << std::endl;
 
-  msgs::ParameterDeclarations res;
-  try {
-    res = client.ListParameters();
-  } catch (const std::exception & ex) {
-    std::cerr << "Failed to list parameters: " << ex.what() << std::endl;
-  }
-
+  auto res = client.ListParameters();
   if (!res.parameter_declarations_size()) {
     std::cout << "No parameters available" << std::endl;
     return;
@@ -68,7 +62,7 @@ extern "C" void cmdParameterGet(const char * _ns, const char *_paramName) {
             << "] for registry namespace [" << _ns << "]..." << std::endl;
 
   std::unique_ptr<google::protobuf::Message> value;
-  auto ret = client.Parameter(_paramName, *value);
+  auto ret = client.Parameter(_paramName, value);
   if (!ret) {
     std::cerr << "Failed to get parameter: " << ret << std::endl;
     return;
@@ -113,10 +107,9 @@ extern "C" void cmdParameterSet(
               << std::endl;
     return;
   }
-  try {
-    client.SetParameter(_paramName, *msg);
-  } catch (const std::exception & ex) {
-    std::cerr << "Failed to set parameter: " << ex.what() << std::endl;
+  auto ret = client.SetParameter(_paramName, *msg);
+  if (!ret) {
+    std::cerr << "Failed to set parameter: " << ret << std::endl;
   }
   std::cout << "Parameter successfully set!" << std::endl;
 }

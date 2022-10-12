@@ -21,6 +21,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/Export.hh"
@@ -44,18 +45,21 @@ namespace ignition
         };
 
         class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
-          public: ParameterResult(ParameterResultType _errorType)
+          public: explicit ParameterResult(ParameterResultType _errorType)
           : errorType(_errorType)
           {}
-          public: ParameterResult(ParameterResultType _errorType, std::string _paramName)
-          : errorType(_errorType), paramName{_paramName}
+          public: ParameterResult(
+            ParameterResultType _errorType, std::string _paramName)
+          : errorType(_errorType), paramName{std::move(_paramName)}
           {}
           public: ParameterResult(
-            ParameterResultType _errorType, std::string _paramName, std::string _paramType)
-          : errorType(_errorType), paramName{_paramName}, paramType{_paramType}
+            ParameterResultType _errorType,
+            std::string _paramName,
+            std::string _paramType)
+          : errorType(_errorType)
+          , paramName{std::move(_paramName)}
+          , paramType{std::move(_paramType)}
           {}
-
-          // public: friend std::ostream & operator<<(std::ostream &, const ParameterResult &);
 
           public: ParameterResultType ErrorType() const {return errorType;}
           public: const std::string & ParamName() const {return paramName;}

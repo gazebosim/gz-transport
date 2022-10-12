@@ -40,8 +40,6 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
-      // using ParameterResult = ::ignition::transport::parameters::ParameterResult;
-
       /// \brief Common interface, implemented by ParametersRegistry
       ///   (local updates) and by ParametersClients (remote requests).
       class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
@@ -54,8 +52,10 @@ namespace ignition
         /// \param[in] _msg Protobuf message to be used as the initial
         ///   parameter value.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterErrorType::AlreadyDeclared if the parameter was already declared.
-        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
+        /// - ParameterErrorType::AlreadyDeclared if the parameter was already
+        ///   declared.
+        /// - ParameterErrorType::InvalidType if the parameter type is not
+        ///   valid.
         public: virtual ParameterResult DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;
@@ -70,6 +70,19 @@ namespace ignition
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const = 0;
+
+        /// \brief Request the value of a parameter.
+        ///   Similar to the other overload, but it allocates a message of the
+        ///   right type.
+        ///
+        /// \param[in] _parameterName Name of the parameter to be requested.
+        /// \param[out] _parameter Output were the parameter value will be set.
+        /// \return A ParameterResult return code, can return error types:
+        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
+        /// - ParameterErrorType::Unexpected, if an unexpected error happened.
+        public: virtual ParameterResult Parameter(
+          const std::string & _parameterName,
+          std::unique_ptr<google::protobuf::Message> & _parameter) const = 0;
 
         /// \brief Set the value of a parameter.
         /// \param[in] _parameterName Name of the parameter to be set.

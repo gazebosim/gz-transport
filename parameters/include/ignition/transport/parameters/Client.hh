@@ -85,6 +85,10 @@ namespace ignition
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const final;
 
+        public: ParameterResult Parameter(
+          const std::string & _parameterName,
+          std::unique_ptr<google::protobuf::Message> & _parameter) const final;
+
         /// \brief Set the value of a parameter.
         /// See ParametersInterface::SetParameter().
         public: ParameterResult SetParameter(

@@ -67,14 +67,18 @@ TEST_F(ParametersClientTest, Parameter)
       EXPECT_EQ(msg.data(), false);
     }
     {
-      msgs::StringMsg msg;
+      std::unique_ptr<google::protobuf::Message> msg;
       EXPECT_TRUE(client.Parameter("parameter2", msg));
-      EXPECT_EQ(msg.data(), "");
+      EXPECT_TRUE(msg);
+      auto downcastedMsg = dynamic_cast<msgs::StringMsg *>(msg.get());
+      EXPECT_EQ(downcastedMsg->data(), "");
     }
     {
       msgs::Boolean msg;
-      EXPECT_TRUE(client.Parameter("parameter3", msg));
-      EXPECT_EQ(msg.data(), false);
+      auto ret = client.Parameter("parameter3", msg);
+      EXPECT_FALSE(ret);
+      EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
+      EXPECT_EQ(ret.ParamName(), "parameter3");
     }
   }
   {
@@ -111,7 +115,6 @@ TEST_F(ParametersClientTest, SetParameter)
     EXPECT_FALSE(ret);
     EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
     EXPECT_EQ(ret.ParamName(), "parameter2");
-    EXPECT_EQ(ret.ParamType(), "ign_msgs.StringMsg");
   }
   {
     ParametersClient client;
@@ -119,8 +122,7 @@ TEST_F(ParametersClientTest, SetParameter)
     auto ret = client.SetParameter("parameter_doesnt_exist", msg);
     EXPECT_FALSE(ret);
     EXPECT_EQ(ret.ErrorType(), ParameterResultType::NotDeclared);
-    EXPECT_EQ(ret.ParamName(), "parameter2");
-    EXPECT_EQ(ret.ParamType(), "ign_msgs.Boolean");
+    EXPECT_EQ(ret.ParamName(), "parameter_doesnt_exist");
   }
   {
     ParametersClient client{"/ns"};
@@ -149,7 +151,7 @@ TEST_F(ParametersClientTest, DeclareParameter)
     ParametersClient client;
     msgs::Boolean msg;
     auto ret = client.DeclareParameter("parameter1", msg);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(ret.ErrorType(), ParameterResultType::AlreadyDeclared);
   }
   {

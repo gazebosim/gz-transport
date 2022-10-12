@@ -79,7 +79,8 @@ getParameterCommon(
 
   req.set_name(_parameterName);
 
-  if (!_dataPtr.node.Request(service, req, _dataPtr.timeoutMs, _parameterValue, result))
+  if (!_dataPtr.node.Request(
+    service, req, _dataPtr.timeoutMs, _parameterValue, result))
   {
     return ParameterResult{ParameterResultType::ClientTimeout, _parameterName};
   }
@@ -118,6 +119,33 @@ ParametersClient::Parameter(
 
 //////////////////////////////////////////////////
 ParameterResult
+ParametersClient::Parameter(
+  const std::string & _parameterName,
+  std::unique_ptr<google::protobuf::Message> & _parameter) const
+{
+  msgs::ParameterValue res;
+  auto ret = getParameterCommon(*this->dataPtr, _parameterName, res);
+  auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
+  if (!ignTypeOpt) {
+    return ParameterResult{
+      ParameterResultType::Unexpected,
+      _parameterName};
+  }
+  auto ignType = *ignTypeOpt;
+  _parameter = ignition::msgs::Factory::New(ignType);
+  if (!_parameter) {
+    return ParameterResult{
+      ParameterResultType::Unexpected, _parameterName, ignType};
+  }
+  if (!res.data().UnpackTo(_parameter.get())) {
+    return ParameterResult{
+      ParameterResultType::Unexpected, _parameterName, ignType};
+  }
+  return ParameterResult{ParameterResultType::Success};
+}
+
+//////////////////////////////////////////////////
+ParameterResult
 ParametersClient::SetParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -148,8 +176,7 @@ ParametersClient::SetParameter(
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
     return ParameterResult{
       ParameterResultType::InvalidType,
-      _parameterName,
-      _msg.GetDescriptor()->name()};
+      _parameterName};
   }
   return ParameterResult{ParameterResultType::Unexpected, _parameterName};
 }
@@ -181,11 +208,14 @@ ParametersClient::DeclareParameter(
     return ParameterResult{ParameterResultType::Success};
   }
   if (res.data() == msgs::ParameterError::ALREADY_DECLARED) {
-    return ParameterResult{ParameterResultType::AlreadyDeclared, _parameterName};
+    return ParameterResult{
+      ParameterResultType::AlreadyDeclared, _parameterName};
   }
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
     return ParameterResult{
-      ParameterResultType::InvalidType, _parameterName, _msg.GetDescriptor()->name()};
+      ParameterResultType::InvalidType,
+      _parameterName,
+      _msg.GetDescriptor()->name()};
   }
   return ParameterResult{ParameterResultType::Unexpected, _parameterName};
 }

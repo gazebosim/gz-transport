@@ -66,6 +66,7 @@ TEST(ParametersRegistry, Parameter)
   EXPECT_FALSE(ret);
   EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
   EXPECT_EQ(ret.ParamName(), "parameter1");
+  EXPECT_EQ(ret.ParamType(), "ign_msgs.Boolean");
 }
 
 //////////////////////////////////////////////////
