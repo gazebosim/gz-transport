@@ -77,25 +77,19 @@ namespace ignition
 
         /// \brief Declare a new parameter.
         /// See ParametersInterface::DeclareParameter().
-        public: ParameterError DeclareParameter(
+        public: ParameterResult DeclareParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) final;
 
         /// \brief Request the value of a parameter.
         /// See ParametersInterface::Parameter().
-        // public: ParameterError Parameter(
-        //   const std::string & _parameterName,
-        //   std::unique_ptr<google::protobuf::Message> & _parameter) const final;
-
-        /// \brief Request the value of a parameter.
-        /// See ParametersInterface::Parameter().
-        public: ParameterError Parameter(
+        public: ParameterResult Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const final;
 
         /// \brief Set the value of a parameter.
         /// See ParametersInterface::SetParameter().
-        public: ParameterError SetParameter(
+        public: ParameterResult SetParameter(
             const std::string & _parameterName,
             const google::protobuf::Message & _msg) final;
 
@@ -112,7 +106,7 @@ namespace ignition
         /// \throw std::invalid_argument if `_initialValue` is `nullptr`.
         /// \throw ParameterAlreadyDeclaredException if a parameter with the
         ///   same name was declared before.
-        public: ParameterError DeclareParameter(
+        public: ParameterResult DeclareParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _initialValue);
 
@@ -123,7 +117,7 @@ namespace ignition
         ///   was not declared before.
         /// \throw ParameterInvalidTypeException if the type does not match
         ///   the type of the parameter when it was declared.
-        public: ParameterError SetParameter(
+        public: ParameterResult SetParameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
 

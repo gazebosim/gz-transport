@@ -109,7 +109,7 @@ TEST_F(ParametersClientTest, SetParameter)
     msgs::Boolean msg;
     auto ret = client.SetParameter("parameter2", msg);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterErrorType::InvalidType);
+    EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
     EXPECT_EQ(ret.ParamName(), "parameter2");
     EXPECT_EQ(ret.ParamType(), "ign_msgs.StringMsg");
   }
@@ -118,7 +118,7 @@ TEST_F(ParametersClientTest, SetParameter)
     msgs::Boolean msg;
     auto ret = client.SetParameter("parameter_doesnt_exist", msg);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterErrorType::NotDeclared);
+    EXPECT_EQ(ret.ErrorType(), ParameterResultType::NotDeclared);
     EXPECT_EQ(ret.ParamName(), "parameter2");
     EXPECT_EQ(ret.ParamType(), "ign_msgs.Boolean");
   }
@@ -150,7 +150,7 @@ TEST_F(ParametersClientTest, DeclareParameter)
     msgs::Boolean msg;
     auto ret = client.DeclareParameter("parameter1", msg);
     EXPECT_TRUE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterErrorType::AlreadyDeclared);
+    EXPECT_EQ(ret.ErrorType(), ParameterResultType::AlreadyDeclared);
   }
   {
     ParametersClient client{"/ns"};

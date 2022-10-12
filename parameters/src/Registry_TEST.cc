@@ -44,7 +44,7 @@ TEST(ParametersRegistry, DeclareParameter)
   auto ret = registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
   EXPECT_FALSE(ret);
-  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::AlreadyDeclared);
+  EXPECT_EQ(ret.ErrorType(), ParameterResultType::AlreadyDeclared);
   EXPECT_EQ(ret.ParamName(), "parameter1");
 }
 
@@ -55,7 +55,7 @@ TEST(ParametersRegistry, Parameter)
   ignition::msgs::Boolean msg;
   auto ret = registry.Parameter("will_fail", msg);
   EXPECT_FALSE(ret);
-  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::NotDeclared);
+  EXPECT_EQ(ret.ErrorType(), ParameterResultType::NotDeclared);
   EXPECT_EQ(ret.ParamName(), "will_fail");
   EXPECT_TRUE(registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>()));
@@ -64,7 +64,7 @@ TEST(ParametersRegistry, Parameter)
   ignition::msgs::StringMsg msg2;
   ret = registry.Parameter("parameter1", msg2);
   EXPECT_FALSE(ret);
-  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::InvalidType);
+  EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
   EXPECT_EQ(ret.ParamName(), "parameter1");
 }
 
@@ -75,7 +75,7 @@ TEST(ParametersRegistry, SetParameter)
   auto ret = registry.SetParameter(
     "will_fail", std::make_unique<ignition::msgs::Boolean>());
   EXPECT_FALSE(ret);
-  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::NotDeclared);
+  EXPECT_EQ(ret.ErrorType(), ParameterResultType::NotDeclared);
   EXPECT_EQ(ret.ParamName(), "will_fail");
   registry.DeclareParameter(
     "parameter1", std::make_unique<ignition::msgs::Boolean>());
@@ -88,7 +88,7 @@ TEST(ParametersRegistry, SetParameter)
   ret = registry.SetParameter(
     "parameter1", std::make_unique<ignition::msgs::StringMsg>());
   EXPECT_FALSE(ret);
-  EXPECT_EQ(ret.ErrorType(), ParameterErrorType::InvalidType);
+  EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
   EXPECT_EQ(ret.ParamName(), "parameter1");
   EXPECT_EQ(ret.ParamType(), "ign_msgs.Boolean");
 }

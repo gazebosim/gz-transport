@@ -66,7 +66,7 @@ ParametersClient::ParametersClient(
 {}
 
 //////////////////////////////////////////////////
-static ParameterError
+static ParameterResult
 getParameterCommon(
   const ParametersClientPrivate & _dataPtr,
   const std::string & _parameterName,
@@ -81,46 +81,17 @@ getParameterCommon(
 
   if (!_dataPtr.node.Request(service, req, _dataPtr.timeoutMs, _parameterValue, result))
   {
-    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
+    return ParameterResult{ParameterResultType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    return ParameterError{ParameterErrorType::NotDeclared, _parameterName};
+    return ParameterResult{ParameterResultType::NotDeclared, _parameterName};
   }
-  return ParameterError{ParameterErrorType::NoError};
+  return ParameterResult{ParameterResultType::Success};
 }
 
 //////////////////////////////////////////////////
-// ParameterError
-// ParametersClient::Parameter(
-//   const std::string & _parameterName,
-//   std::unique_ptr<google::protobuf::Message> & _parameter) const
-// {
-//   msgs::ParameterValue res;
-//   auto ret = getParameterCommon(*this->dataPtr, _parameterName, res);
-//   if (!ret) {
-//     return ret;
-//   }
-//   auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
-//   if (!ignTypeOpt) {
-//     return ParameterError{
-//       ParameterErrorType::Unexpected, _parameterName};
-//   }
-//   auto ignType = addIgnMsgsPrefix(*ignTypeOpt);
-//   _parameter = ignition::msgs::Factory::New(ignType);
-//   if (!_parameter) {
-//     return ParameterError{
-//       ParameterErrorType::Unexpected, _parameterName, ignType};
-//   }
-//   if (!res.data().UnpackTo(_parameter.get())) {
-//     return ParameterError{
-//       ParameterErrorType::Unexpected, _parameterName, ignType};
-//   }
-//   return ParameterError{ParameterErrorType::NoError};
-// }
-
-//////////////////////////////////////////////////
-ParameterError
+ParameterResult
 ParametersClient::Parameter(
   const std::string & _parameterName,
   google::protobuf::Message & _parameter) const
@@ -129,24 +100,24 @@ ParametersClient::Parameter(
   auto ret = getParameterCommon(*this->dataPtr, _parameterName, res);
   auto ignTypeOpt = getIgnTypeFromAnyProto(res.data());
   if (!ignTypeOpt) {
-    return ParameterError{
-      ParameterErrorType::Unexpected,
+    return ParameterResult{
+      ParameterResultType::Unexpected,
       _parameterName};
   }
   auto ignType = *ignTypeOpt;
   if (ignType != _parameter.GetDescriptor()->name()) {
-    return ParameterError{
-      ParameterErrorType::InvalidType, _parameterName, ignType};
+    return ParameterResult{
+      ParameterResultType::InvalidType, _parameterName, ignType};
   }
   if (!res.data().UnpackTo(&_parameter)) {
-    return ParameterError{
-      ParameterErrorType::Unexpected, _parameterName, ignType};
+    return ParameterResult{
+      ParameterResultType::Unexpected, _parameterName, ignType};
   }
-  return ParameterError{ParameterErrorType::NoError};
+  return ParameterResult{ParameterResultType::Success};
 }
 
 //////////////////////////////////////////////////
-ParameterError
+ParameterResult
 ParametersClient::SetParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -162,29 +133,29 @@ ParametersClient::SetParameter(
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
-    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
+    return ParameterResult{ParameterResultType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    return ParameterError{ParameterErrorType::Unexpected, _parameterName};
+    return ParameterResult{ParameterResultType::Unexpected, _parameterName};
   }
   if (res.data() == msgs::ParameterError::SUCCESS) {
-    return ParameterError{ParameterErrorType::NoError};
+    return ParameterResult{ParameterResultType::Success};
   }
   if (res.data() == msgs::ParameterError::NOT_DECLARED) {
-    return ParameterError{ParameterErrorType::NotDeclared, _parameterName};
+    return ParameterResult{ParameterResultType::NotDeclared, _parameterName};
   }
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
-    return ParameterError{
-      ParameterErrorType::InvalidType,
+    return ParameterResult{
+      ParameterResultType::InvalidType,
       _parameterName,
       _msg.GetDescriptor()->name()};
   }
-  return ParameterError{ParameterErrorType::Unexpected, _parameterName};
+  return ParameterResult{ParameterResultType::Unexpected, _parameterName};
 }
 
 //////////////////////////////////////////////////
-ParameterError
+ParameterResult
 ParametersClient::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
@@ -200,23 +171,23 @@ ParametersClient::DeclareParameter(
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
-    return ParameterError{ParameterErrorType::ClientTimeout, _parameterName};
+    return ParameterResult{ParameterResultType::ClientTimeout, _parameterName};
   }
   if (!result)
   {
-    return ParameterError{ParameterErrorType::Unexpected, _parameterName};
+    return ParameterResult{ParameterResultType::Unexpected, _parameterName};
   }
   if (res.data() == msgs::ParameterError::SUCCESS) {
-    return ParameterError{ParameterErrorType::NoError};
+    return ParameterResult{ParameterResultType::Success};
   }
   if (res.data() == msgs::ParameterError::ALREADY_DECLARED) {
-    return ParameterError{ParameterErrorType::AlreadyDeclared, _parameterName};
+    return ParameterResult{ParameterResultType::AlreadyDeclared, _parameterName};
   }
   if (res.data() == msgs::ParameterError::INVALID_TYPE) {
-    return ParameterError{
-      ParameterErrorType::InvalidType, _parameterName, _msg.GetDescriptor()->name()};
+    return ParameterResult{
+      ParameterResultType::InvalidType, _parameterName, _msg.GetDescriptor()->name()};
   }
-  return ParameterError{ParameterErrorType::Unexpected, _parameterName};
+  return ParameterResult{ParameterResultType::Unexpected, _parameterName};
 }
 
 //////////////////////////////////////////////////

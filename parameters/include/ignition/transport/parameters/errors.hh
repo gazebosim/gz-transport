@@ -33,8 +33,8 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
         enum class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-        ParameterErrorType {
-          NoError,
+        ParameterResultType {
+          Success,
           AlreadyDeclared,
           InvalidType,
           NotDeclared,
@@ -42,71 +42,27 @@ namespace ignition
           Unexpected,
         };
 
-        class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterError {
-          public: ParameterError(ParameterErrorType _errorType)
+        class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
+          public: ParameterResult(ParameterResultType _errorType)
           : errorType(_errorType)
           {}
-          public: ParameterError(ParameterErrorType _errorType, std::string _paramName)
+          public: ParameterResult(ParameterResultType _errorType, std::string _paramName)
           : errorType(_errorType), paramName{_paramName}
           {}
-          public: ParameterError(
-            ParameterErrorType _errorType, std::string _paramName, std::string _paramType)
+          public: ParameterResult(
+            ParameterResultType _errorType, std::string _paramName, std::string _paramType)
           : errorType(_errorType), paramName{_paramName}, paramType{_paramType}
           {}
 
-          public: ParameterErrorType ErrorType() const {return errorType;}
+          public: ParameterResultType ErrorType() const {return errorType;}
           public: const std::string & ParamName() const {return paramName;}
           public: const std::string & ParamType() const {return paramType;}
 
-          public: explicit operator bool() const {return errorType == ParameterErrorType::NoError;}
-          private: ParameterErrorType errorType;
+          public: explicit operator bool() const {return errorType == ParameterResultType::Success;}
+          private: ParameterResultType errorType;
           private: std::string paramName;
           private: std::string paramType;
         };
-
-      // class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-      // ParameterAlreadyDeclaredException : public std::runtime_error
-      // {
-      //   public: ParameterAlreadyDeclaredException(
-      //     const char * _prefix , const char * _paramName)
-      //   : std::runtime_error(
-      //     std::string{_prefix} + ": parameter [" +
-      //     _paramName + "] is already declared")
-      //   {}
-      // };
-
-      // class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterInvalidTypeException
-      // : public std::invalid_argument
-      // {
-      //   public: ParameterInvalidTypeException(
-      //     const char * _prefix, const char * _paramName,
-      //     const char * _expectedParamType, const char * _providedParamType)
-      //   : std::invalid_argument(
-      //     std::string{_prefix} + ": parameter [" +
-      //     _paramName + "] is of type [" + _expectedParamType + "] but type [" +
-      //     _providedParamType + "] was provided")
-      //   {}
-
-      //   public: ParameterInvalidTypeException(
-      //     const char * _prefix, const char * _paramName,
-      //     const char * _providedParamType)
-      //   : std::invalid_argument(
-      //     std::string{_prefix} + ": provided parameter type [" +
-      //     _providedParamType + "] for parameter [" + _paramName +
-      //     "] is invalid")
-      //   {}
-      // };
-
-      // class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterNotDeclaredException
-      // : public std::runtime_error
-      // {
-      //   public: ParameterNotDeclaredException(
-      //     const char * _prefix , const char * _paramName)
-      //   : std::runtime_error(
-      //     std::string{_prefix} + ": parameter [" +
-      //     _paramName + "] is not declared")
-      //   {}
-      // };
       }
     }
   }
