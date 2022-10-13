@@ -6,7 +6,6 @@ list(APPEND gtest_sources cmd/ParamCommandAPI_TEST.cc)
 ign_add_component(
   parameters SOURCES ${sources} GET_TARGET_NAME param_lib_target)
 
-message(WARNING "ignition-utils${IGN_UTILS_VER}")
 target_link_libraries(${param_lib_target}
   PUBLIC
     ignition-utils${IGN_UTILS_VER}::ignition-utils${IGN_UTILS_VER})
