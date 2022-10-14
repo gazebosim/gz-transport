@@ -28,7 +28,7 @@
 #include <ignition/msgs/parameter_declarations.pb.h>
 
 #include "ignition/transport/config.hh"
-#include "ignition/transport/parameters/errors.hh"
+#include "ignition/transport/parameters/result.hh"
 #include "ignition/transport/parameters/Export.hh"
 
 namespace ignition
@@ -52,9 +52,9 @@ namespace ignition
         /// \param[in] _msg Protobuf message to be used as the initial
         ///   parameter value.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterErrorType::AlreadyDeclared if the parameter was already
+        /// - ParameterResultType::AlreadyDeclared if the parameter was already
         ///   declared.
-        /// - ParameterErrorType::InvalidType if the parameter type is not
+        /// - ParameterResultType::InvalidType if the parameter type is not
         ///   valid.
         public: virtual ParameterResult DeclareParameter(
           const std::string & _parameterName,
@@ -64,9 +64,9 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
-        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
-        /// - ParameterErrorType::Unexpected, if an unexpected error happened.
+        /// - ParameterResultType::NotDeclared if the parameter was not declared.
+        /// - ParameterResultType::InvalidType if the parameter type was invalid.
+        /// - ParameterResultType::Unexpected, if an unexpected error happened.
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
           google::protobuf::Message & _parameter) const = 0;
@@ -78,8 +78,8 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
-        /// - ParameterErrorType::Unexpected, if an unexpected error happened.
+        /// - ParameterResultType::NotDeclared if the parameter was not declared.
+        /// - ParameterResultType::Unexpected, if an unexpected error happened.
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> & _parameter) const = 0;
@@ -88,8 +88,8 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be set.
         /// \param[in] _msg Protobuf message to be used as the parameter value.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterErrorType::NotDeclared if the parameter was not declared.
-        /// - ParameterErrorType::InvalidType if the parameter type was invalid.
+        /// - ParameterResultType::NotDeclared if the parameter was not declared.
+        /// - ParameterResultType::InvalidType if the parameter type was invalid.
         public: virtual ParameterResult SetParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;

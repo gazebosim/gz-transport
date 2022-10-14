@@ -18,7 +18,7 @@
 #include <ostream>
 #include <sstream>
 
-#include "ignition/transport/parameters/errors.hh"
+#include "ignition/transport/parameters/result.hh"
 
 using namespace ignition;
 using namespace transport;
@@ -46,7 +46,7 @@ ParameterResult::ParameterResult(
 {}
 
 //////////////////////////////////////////////////
-ParameterResultType ParameterResult::ErrorType() const
+ParameterResultType ParameterResult::ResultType() const
 {
   return errorType;
 }
@@ -75,7 +75,7 @@ ignition::transport::parameters::operator<<(
   std::ostream & os, const ParameterResult & ret)
 {
   std::ostringstream ss;
-  switch (ret.ErrorType()) {
+  switch (ret.ResultType()) {
     case ParameterResultType::Success:
       ss << "parameter operation succeeded";
       break;

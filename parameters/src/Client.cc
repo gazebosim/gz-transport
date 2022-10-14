@@ -26,7 +26,7 @@
 #include "ignition/msgs/parameter_name.pb.h"
 #include "ignition/msgs/parameter_value.pb.h"
 
-#include "ignition/transport/parameters/errors.hh"
+#include "ignition/transport/parameters/result.hh"
 
 #include "Utils.hh"
 

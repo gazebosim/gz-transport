@@ -51,7 +51,7 @@ namespace ignition
             const std::string & _paramName,
             const std::string & _paramType);
 
-          public: ParameterResultType ErrorType() const;
+          public: ParameterResultType ResultType() const;
           public: const std::string & ParamName() const;
           public: const std::string & ParamType() const;
 

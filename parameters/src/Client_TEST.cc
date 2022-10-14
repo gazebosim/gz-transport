@@ -77,7 +77,7 @@ TEST_F(ParametersClientTest, Parameter)
       msgs::Boolean msg;
       auto ret = client.Parameter("parameter3", msg);
       EXPECT_FALSE(ret);
-      EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
+      EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
       EXPECT_EQ(ret.ParamName(), "parameter3");
     }
   }
@@ -113,7 +113,7 @@ TEST_F(ParametersClientTest, SetParameter)
     msgs::Boolean msg;
     auto ret = client.SetParameter("parameter2", msg);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterResultType::InvalidType);
+    EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
     EXPECT_EQ(ret.ParamName(), "parameter2");
   }
   {
@@ -121,7 +121,7 @@ TEST_F(ParametersClientTest, SetParameter)
     msgs::Boolean msg;
     auto ret = client.SetParameter("parameter_doesnt_exist", msg);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterResultType::NotDeclared);
+    EXPECT_EQ(ret.ResultType(), ParameterResultType::NotDeclared);
     EXPECT_EQ(ret.ParamName(), "parameter_doesnt_exist");
   }
   {
@@ -152,7 +152,7 @@ TEST_F(ParametersClientTest, DeclareParameter)
     msgs::Boolean msg;
     auto ret = client.DeclareParameter("parameter1", msg);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ErrorType(), ParameterResultType::AlreadyDeclared);
+    EXPECT_EQ(ret.ResultType(), ParameterResultType::AlreadyDeclared);
   }
   {
     ParametersClient client{"/ns"};
