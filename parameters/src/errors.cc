@@ -31,18 +31,18 @@ ParameterResult::ParameterResult(ParameterResultType _errorType)
 
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(
-  ParameterResultType _errorType, std::string _paramName)
-: errorType{_errorType}, paramName{std::move(_paramName)}
+  ParameterResultType _errorType, const std::string & _paramName)
+: errorType{_errorType}, paramName{_paramName}
 {}
 
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(
   ParameterResultType _errorType,
-  std::string _paramName,
-  std::string _paramType)
+  const std::string & _paramName,
+  const std::string & _paramType)
 : errorType{_errorType}
-, paramName{std::move(_paramName)}
-, paramType{std::move(_paramType)}
+, paramName{_paramName}
+, paramType{_paramType}
 {}
 
 //////////////////////////////////////////////////

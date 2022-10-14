@@ -19,9 +19,7 @@
 #define IGNITION_TRANSPORT_PARAMETERS_EXCEPTIONS_HH_
 
 #include <ostream>
-#include <stdexcept>
 #include <string>
-#include <utility>
 
 #include "ignition/transport/config.hh"
 #include "ignition/transport/parameters/Export.hh"
@@ -47,11 +45,11 @@ namespace ignition
         class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
           public: explicit ParameterResult(ParameterResultType _errorType);
           public: ParameterResult(
-            ParameterResultType _errorType, std::string _paramName);
+            ParameterResultType _errorType, const std::string & _paramName);
           public: ParameterResult(
             ParameterResultType _errorType,
-            std::string _paramName,
-            std::string _paramType);
+            const std::string & _paramName,
+            const std::string & _paramType);
 
           public: ParameterResultType ErrorType() const;
           public: const std::string & ParamName() const;
