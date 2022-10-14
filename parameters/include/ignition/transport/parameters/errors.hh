@@ -45,29 +45,19 @@ namespace ignition
         };
 
         class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
-          public: explicit ParameterResult(ParameterResultType _errorType)
-          : errorType(_errorType)
-          {}
+          public: explicit ParameterResult(ParameterResultType _errorType);
           public: ParameterResult(
-            ParameterResultType _errorType, std::string _paramName)
-          : errorType(_errorType), paramName{std::move(_paramName)}
-          {}
+            ParameterResultType _errorType, std::string _paramName);
           public: ParameterResult(
             ParameterResultType _errorType,
             std::string _paramName,
-            std::string _paramType)
-          : errorType(_errorType)
-          , paramName{std::move(_paramName)}
-          , paramType{std::move(_paramType)}
-          {}
+            std::string _paramType);
 
-          public: ParameterResultType ErrorType() const {return errorType;}
-          public: const std::string & ParamName() const {return paramName;}
-          public: const std::string & ParamType() const {return paramType;}
+          public: ParameterResultType ErrorType() const;
+          public: const std::string & ParamName() const;
+          public: const std::string & ParamType() const;
 
-          public: explicit operator bool() const {
-            return errorType == ParameterResultType::Success;
-          }
+          public: explicit operator bool() const;
 
           private: ParameterResultType errorType;
           private: std::string paramName;

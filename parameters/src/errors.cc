@@ -25,6 +25,51 @@ using namespace transport;
 using namespace parameters;
 
 //////////////////////////////////////////////////
+ParameterResult::ParameterResult(ParameterResultType _errorType)
+: errorType{_errorType}
+{}
+
+//////////////////////////////////////////////////
+ParameterResult::ParameterResult(
+  ParameterResultType _errorType, std::string _paramName)
+: errorType{_errorType}, paramName{std::move(_paramName)}
+{}
+
+//////////////////////////////////////////////////
+ParameterResult::ParameterResult(
+  ParameterResultType _errorType,
+  std::string _paramName,
+  std::string _paramType)
+: errorType{_errorType}
+, paramName{std::move(_paramName)}
+, paramType{std::move(_paramType)}
+{}
+
+//////////////////////////////////////////////////
+ParameterResultType ParameterResult::ErrorType() const
+{
+  return errorType;
+}
+
+//////////////////////////////////////////////////
+const std::string & ParameterResult::ParamName() const
+{
+  return paramName;
+}
+
+//////////////////////////////////////////////////
+const std::string & ParameterResult::ParamType() const
+{
+  return paramType;
+}
+
+//////////////////////////////////////////////////
+ParameterResult::operator bool() const
+{
+  return errorType == ParameterResultType::Success;
+}
+
+//////////////////////////////////////////////////
 std::ostream &
 ignition::transport::parameters::operator<<(
   std::ostream & os, const ParameterResult & ret)
