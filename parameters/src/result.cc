@@ -25,22 +25,22 @@ using namespace transport;
 using namespace parameters;
 
 //////////////////////////////////////////////////
-ParameterResult::ParameterResult(ParameterResultType _errorType)
-: errorType{_errorType}
+ParameterResult::ParameterResult(ParameterResultType _resultType)
+: resultType{_resultType}
 {}
 
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(
-  ParameterResultType _errorType, const std::string & _paramName)
-: errorType{_errorType}, paramName{_paramName}
+  ParameterResultType _resultType, const std::string & _paramName)
+: resultType{_resultType}, paramName{_paramName}
 {}
 
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(
-  ParameterResultType _errorType,
+  ParameterResultType _resultType,
   const std::string & _paramName,
   const std::string & _paramType)
-: errorType{_errorType}
+: resultType{_resultType}
 , paramName{_paramName}
 , paramType{_paramType}
 {}
@@ -48,7 +48,7 @@ ParameterResult::ParameterResult(
 //////////////////////////////////////////////////
 ParameterResultType ParameterResult::ResultType() const
 {
-  return errorType;
+  return resultType;
 }
 
 //////////////////////////////////////////////////
@@ -66,7 +66,7 @@ const std::string & ParameterResult::ParamType() const
 //////////////////////////////////////////////////
 ParameterResult::operator bool() const
 {
-  return errorType == ParameterResultType::Success;
+  return resultType == ParameterResultType::Success;
 }
 
 //////////////////////////////////////////////////

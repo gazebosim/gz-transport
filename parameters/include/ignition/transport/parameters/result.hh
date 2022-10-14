@@ -33,6 +33,7 @@ namespace ignition
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
         enum class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+        /// \brief Possible result types of the different parameters opeartions.
         ParameterResultType {
           Success,
           AlreadyDeclared,
@@ -42,26 +43,46 @@ namespace ignition
           Unexpected,
         };
 
+        /// \brief The return type used in all falible parameters methods.
         class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
-          public: explicit ParameterResult(ParameterResultType _errorType);
+          /// \brief Construct.
+          /// \param _resultType Type of result of the operation.
+          public: explicit ParameterResult(ParameterResultType _resultType);
+
+          /// \brief Construct.
+          /// \param _resultType Type of result of the operation.
+          /// \param _paramName Name of the related parameter.
           public: ParameterResult(
-            ParameterResultType _errorType, const std::string & _paramName);
+            ParameterResultType _resultType, const std::string & _paramName);
+
+          /// \brief Construct.
+          /// \param _resultType Type of result of the operation.
+          /// \param _paramName Name of the related parameter.
+          /// \param _paramType Type of the related parameter.
           public: ParameterResult(
-            ParameterResultType _errorType,
+            ParameterResultType _resultType,
             const std::string & _paramName,
             const std::string & _paramType);
 
+          /// \brief  Return the result type.
           public: ParameterResultType ResultType() const;
+
+          /// \brief  Return the related parameter name.
           public: const std::string & ParamName() const;
+
+          /// \brief  Return the related parameter type.
           public: const std::string & ParamType() const;
 
+          /// \brief Coercion to bool type.
+          /// True if ParameterErrorType::Success, else False.
           public: explicit operator bool() const;
 
-          private: ParameterResultType errorType;
+          private: ParameterResultType resultType;
           private: std::string paramName;
           private: std::string paramType;
         };
 
+        /// \brief Stream operator, for debug output.
         std::ostream & operator<<(std::ostream &, const ParameterResult &);
       }
     }
