@@ -47,35 +47,42 @@ namespace ignition
         class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
           /// \brief Construct.
           /// \param _resultType Type of result of the operation.
-          public: explicit ParameterResult(ParameterResultType _resultType);
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          explicit ParameterResult(ParameterResultType _resultType);
 
           /// \brief Construct.
           /// \param _resultType Type of result of the operation.
           /// \param _paramName Name of the related parameter.
-          public: ParameterResult(
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          ParameterResult(
             ParameterResultType _resultType, const std::string & _paramName);
 
           /// \brief Construct.
           /// \param _resultType Type of result of the operation.
           /// \param _paramName Name of the related parameter.
           /// \param _paramType Type of the related parameter.
-          public: ParameterResult(
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          ParameterResult(
             ParameterResultType _resultType,
             const std::string & _paramName,
             const std::string & _paramType);
 
           /// \brief  Return the result type.
-          public: ParameterResultType ResultType() const;
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          ParameterResultType ResultType() const;
 
           /// \brief  Return the related parameter name.
-          public: const std::string & ParamName() const;
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          const std::string & ParamName() const;
 
           /// \brief  Return the related parameter type.
-          public: const std::string & ParamType() const;
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          const std::string & ParamType() const;
 
           /// \brief Coercion to bool type.
           /// True if ParameterErrorType::Success, else False.
-          public: explicit operator bool() const;
+          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+          explicit operator bool() const;
 
           private: ParameterResultType resultType;
           private: std::string paramName;
@@ -83,6 +90,7 @@ namespace ignition
         };
 
         /// \brief Stream operator, for debug output.
+        IGNITION_TRANSPORT_PARAMETERS_VISIBLE
         std::ostream & operator<<(std::ostream &, const ParameterResult &);
       }
     }
