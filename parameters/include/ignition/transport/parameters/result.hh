@@ -44,7 +44,7 @@ namespace ignition
         };
 
         /// \brief The return type used in all falible parameters methods.
-        class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParameterResult {
+        class ParameterResult {
           /// \brief Construct.
           /// \param _resultType Type of result of the operation.
           public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
