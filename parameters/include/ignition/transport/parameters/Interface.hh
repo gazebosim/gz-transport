@@ -64,8 +64,10 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not declared.
-        /// - ParameterResultType::InvalidType if the parameter type was invalid.
+        /// - ParameterResultType::NotDeclared if the parameter was not
+        ///   declared.
+        /// - ParameterResultType::InvalidType if the parameter type was
+        ///   invalid.
         /// - ParameterResultType::Unexpected, if an unexpected error happened.
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
@@ -78,7 +80,8 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be requested.
         /// \param[out] _parameter Output were the parameter value will be set.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not declared.
+        /// - ParameterResultType::NotDeclared if the parameter was not
+        ///   declared.
         /// - ParameterResultType::Unexpected, if an unexpected error happened.
         public: virtual ParameterResult Parameter(
           const std::string & _parameterName,
@@ -88,8 +91,10 @@ namespace ignition
         /// \param[in] _parameterName Name of the parameter to be set.
         /// \param[in] _msg Protobuf message to be used as the parameter value.
         /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not declared.
-        /// - ParameterResultType::InvalidType if the parameter type was invalid.
+        /// - ParameterResultType::NotDeclared if the parameter was not
+        ///   declared.
+        /// - ParameterResultType::InvalidType if the parameter type was
+        ///   invalid.
         public: virtual ParameterResult SetParameter(
           const std::string & _parameterName,
           const google::protobuf::Message & _msg) = 0;

@@ -38,7 +38,8 @@ TEST(ParameterResult, ConstructorsAndGetters)
     EXPECT_EQ(res.ParamType(), "");
   }
   {
-    ParameterResult res{ParameterResultType::InvalidType, "asd", "ign_msgs.Type"};
+    ParameterResult res{
+      ParameterResultType::InvalidType, "asd", "ign_msgs.Type"};
     EXPECT_EQ(res.ResultType(), ParameterResultType::InvalidType);
     EXPECT_EQ(res.ParamName(), "asd");
     EXPECT_EQ(res.ParamType(), "ign_msgs.Type");
