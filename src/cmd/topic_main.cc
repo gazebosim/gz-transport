@@ -118,8 +118,8 @@ void addTopicFlags(CLI::App &_app)
     [opt](){
       opt->command = TopicCommand::kTopicInfo;
     },
-R"("Get info about a topic. E.g.:
-  ign topic -i -i /foo)")
+R"(Get info about a topic. E.g.:
+  gz topic -i -t /foo)")
     ->needs(topicOpt);
 
   command->add_flag_callback("-e,--echo",
@@ -127,7 +127,7 @@ R"("Get info about a topic. E.g.:
       opt->command = TopicCommand::kTopicEcho;
     },
 R"(Output data to screen. E.g.:
-  ign topic -e -t /foo)")
+  gz topic -e -t /foo)")
     ->needs(topicOpt);
 
   command->add_flag_callback("--json-output",
@@ -142,7 +142,7 @@ R"(Output data to screen. E.g.:
 R"(Publish a message.
 arg is the message data. The format expected is
 the same used by Protobuf DebugString(). E.g.:
-  ign topic -t /foo -m ignition.msgs.StringMsg \
+  gz topic -t /foo -m gz.msgs.StringMsg \
     -p 'data:"Custom data"')")
     ->needs(topicOpt)
     ->needs(msgTypeOpt);
@@ -153,7 +153,7 @@ the same used by Protobuf DebugString(). E.g.:
 //////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
-  CLI::App app{"Introspect Ignition topics"};
+  CLI::App app{"Introspect Gazebotopics"};
 
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;

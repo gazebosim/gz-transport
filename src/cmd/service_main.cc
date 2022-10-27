@@ -16,6 +16,7 @@
  */
 
 #include <gz/utils/cli/CLI.hpp>
+#include <gz/utils/cli/GzFormatter.hpp>
 
 #include "gz.hh"
 
@@ -94,22 +95,33 @@ void addServiceFlags(CLI::App &_app)
                                     opt->timeout, "Timeout in milliseconds.");
 
   auto command = _app.add_option_group("command", "Command to be executed");
+
   command->add_flag_callback("-l,--list",
       [opt](){
         opt->command = ServiceCommand::kServiceList;
-      }, "List available services");
+      }, "List all services.");
 
   command->add_flag_callback("-i,--info",
       [opt](){
         opt->command = ServiceCommand::kServiceInfo;
-      }, "Get information about a service")
+      },"Get info about a service.")
     ->needs(serviceOpt);
 
   command->add_option_function<std::string>("-r,--req",
       [opt](const std::string &_reqData){
         opt->command = ServiceCommand::kServiceReq;
         opt->reqData = _reqData;
-      }, "Perform a service request")
+      },
+R"(Request a service.
+Arg is the input data.
+The format expected is
+the same used by Protobuf DebugString(). E.g.:
+  gz service -s /echo \
+    --reqtype gz.msgs.StringMsg \
+    --reptype gz.msgs.StringMsg \
+    --timeout 2000 \
+    --req 'data: "Hello"'
+)")
     ->needs(serviceOpt)
     ->needs(reqTypeOpt)
     ->needs(repTypeOpt)
@@ -121,7 +133,7 @@ void addServiceFlags(CLI::App &_app)
 //////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
-  CLI::App app{"Introspect Ignition services"};
+  CLI::App app{"Introspect Gazebo services"};
 
   app.set_help_all_flag("--help-all", "Show all help");
 
@@ -131,5 +143,6 @@ int main(int argc, char** argv)
   });
 
   addServiceFlags(app);
+  app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
 }
