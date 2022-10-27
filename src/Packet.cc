@@ -183,7 +183,7 @@ SubscriptionMsg::SubscriptionMsg(const transport::Header &_header,
 }
 
 //////////////////////////////////////////////////
-transport::Header SubscriptionMsg::Header() const
+Header SubscriptionMsg::Header() const
 {
   return this->header;
 }

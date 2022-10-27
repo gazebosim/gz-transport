@@ -28,12 +28,12 @@ using namespace ignition;
 
 static int statisticsCount = 0;
 
-void cb(const ignition::msgs::StringMsg & /*_msg*/)
+void cb(const msgs::StringMsg & /*_msg*/)
 {
   // no-op
 }
 
-void statsCb(const ignition::msgs::Metric & /*_msg*/)
+void statsCb(const msgs::Metric & /*_msg*/)
 {
   statisticsCount++;
 }
@@ -43,10 +43,10 @@ TEST(topicStatistics, SingleProcessPublishStatistics)
   statisticsCount = 0;
   std::string topic = "/foo";
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<msgs::StringMsg>(topic);
   EXPECT_TRUE(pub);
 
-  ignition::msgs::StringMsg msg;
+  msgs::StringMsg msg;
   msg.set_data("Hello");
 
   EXPECT_TRUE(node.Subscribe(topic, cb));

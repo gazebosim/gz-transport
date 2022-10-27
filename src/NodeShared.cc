@@ -736,7 +736,7 @@ void NodeShared::RecvSrvRequest()
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
-    if (repType == ignition::msgs::Empty().GetTypeName())
+    if (repType == msgs::Empty().GetTypeName())
     {
       return;
     }
@@ -1105,7 +1105,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
-      if (_repType == ignition::msgs::Empty().GetTypeName())
+      if (_repType == msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
@@ -1886,7 +1886,7 @@ void NodeSharedPrivate::PublishThread()
 }
 
 //////////////////////////////////////////////////
-std::optional<transport::TopicStatistics> NodeShared::TopicStats(
+std::optional<TopicStatistics> NodeShared::TopicStats(
     const std::string &_topic) const
 {
   if (this->dataPtr->topicStats.find(_topic) != this->dataPtr->topicStats.end())

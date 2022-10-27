@@ -158,11 +158,11 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicPub(const char *_topic,
   }
 
   // Create the message, and populate the field with _msgData
-  auto msg = ignition::msgs::Factory::New(_msgType, _msgData);
+  auto msg = msgs::Factory::New(_msgType, _msgData);
   if (msg)
   {
     // Create the node and advertise the topic
-    ignition::transport::Node node;
+    Node node;
     auto pub = node.Advertise(_topic, msg->GetTypeName());
 
     // Publish the message
@@ -216,7 +216,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
   }
 
   // Create the request, and populate the field with _reqData
-  auto req = ignition::msgs::Factory::New(_reqType, _reqData);
+  auto req = msgs::Factory::New(_reqType, _reqData);
   if (!req)
   {
     std::cerr << "Unable to create request of type[" << _reqType << "] "
@@ -225,7 +225,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
   }
 
   // Create the response.
-  auto rep = ignition::msgs::Factory::New(_repType);
+  auto rep = msgs::Factory::New(_repType);
   if (!rep)
   {
     std::cerr << "Unable to create response of type[" << _repType << "].\n";
@@ -233,7 +233,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdServiceReq(const char *_service,
   }
 
   // Create the node.
-  ignition::transport::Node node;
+  Node node;
   bool result;
 
   // Request the service.
@@ -286,7 +286,7 @@ extern "C" void IGNITION_TRANSPORT_VISIBLE cmdTopicEcho(const char *_topic,
   // messages.
   if (_count <= 0)
   {
-    ignition::transport::waitForShutdown();
+    waitForShutdown();
   }
   else
   {

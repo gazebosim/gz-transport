@@ -31,7 +31,7 @@ static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without output.
-void srvWithoutOutput(const ignition::msgs::Int32 &_req)
+void srvWithoutOutput(const msgs::Int32 &_req)
 {
   EXPECT_GE(_req.data(), 0);
 }
