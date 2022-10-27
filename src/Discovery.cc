@@ -15,17 +15,28 @@
  *
 */
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
 #include <zmq.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include <vector>
 
 #include "gz/transport/Discovery.hh"
+
+// Compatibility macro for ZMQ_FD_T
+#if (ZMQ_VERSION >= 40303)
+  #define ZMQ_FD_T zmq_fd_t
+#else
+// Logic from newer zmq.h
+  #if defined _WIN32
+  // Windows uses a pointer-sized unsigned integer to store the socket fd.
+    #if defined _WIN64
+      #define ZMQ_FD_T unsigned __int64
+    #else
+      #define ZMQ_FD_T unsigned int
+    #endif
+  #else
+    #define ZMQ_FD_T int
+  #endif
+#endif
 
 namespace gz
 {
@@ -36,18 +47,10 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
   {
-#ifdef _WIN32
-// Disable warning C4838
-#pragma warning(push)
-#pragma warning(disable: 4838)
-#endif
     zmq::pollitem_t items[] =
     {
-      {0, _sockets.at(0), ZMQ_POLLIN, 0},
+      {0, static_cast<ZMQ_FD_T>(_sockets.at(0)), ZMQ_POLLIN, 0},
     };
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
 
     try
     {

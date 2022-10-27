@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <future>
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz.hh"

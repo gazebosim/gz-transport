@@ -1,8 +1,138 @@
 ## Gazebo Transport 12.X
 
-### Gazebo Transport 12.0.0 (202X-XX-XX)
+### Gazebo Transport 12.0.0 (2022-09-22)
+
+1. Improved windows instructions
+    * [Pull request #360](https://github.com/gazebosim/gz-transport/pull/360)
+
+1. Improved instructions
+    * [Pull request #359](https://github.com/gazebosim/gz-transport/pull/359)
+
+1. Fix table in "Nodes and topics tutorial"
+    * [Pull request #356](https://github.com/gazebosim/gz-transport/pull/356)
+
+1. Update link
+    * [Pull request #358](https://github.com/gazebosim/gz-transport/pull/358)
+
+1. Tweak section title.
+    * [Pull request #357](https://github.com/gazebosim/gz-transport/pull/357)
+
+1. Fix Docker build and relay tutorial instructions
+    * [Pull request #355](https://github.com/gazebosim/gz-transport/pull/355)
+
+1. Fix bench example compilation.
+    * [Pull request #352](https://github.com/gazebosim/gz-transport/pull/352)
+
+1. Download examples matching the version number
+    * [Pull request #354](https://github.com/gazebosim/gz-transport/pull/354)
+
+1. Tweak topic statistics tutorial
+    * [Pull request #353](https://github.com/gazebosim/gz-transport/pull/353)
+
+1. Don't use ignition/msgs.hh
+    * [Pull request #315](https://github.com/gazebosim/gz-transport/pull/315)
+
+1. Remove left-over from Discovery_TEST
+    * [Pull request #343](https://github.com/gazebosim/gz-transport/pull/343)
+
+1. Suppress protobuf related Windows warnings
+    * [Pull request #334](https://github.com/gazebosim/gz-transport/pull/334)
+
+1. Remove problematic discovery test
+    * [Pull request #336](https://github.com/gazebosim/gz-transport/pull/336)
+
+1. ign -> gz Provisional Finale: Source Migration : gz-transport
+    * [Pull request #329](https://github.com/gazebosim/gz-transport/pull/329)
+
+1. ign -> gz migrations
+    * [Pull request #328](https://github.com/gazebosim/gz-transport/pull/328)
+
+1. Use auto for loop iterators
+    * [Pull request #326](https://github.com/gazebosim/gz-transport/pull/326)
+
+1. Update GoogleTest to latest version
+    * [Pull request #316](https://github.com/gazebosim/gz-transport/pull/316)
+
+1. ign -> gz Partial Docs Migration and Project Name Followups : gz-transport
+    * [Pull request #325](https://github.com/gazebosim/gz-transport/pull/325)
+
+1. Migrate ignition-transport
+    * [Pull request #324](https://github.com/gazebosim/gz-transport/pull/324)
+
+1. Rename CMake project to gz
+    * [Pull request #320](https://github.com/gazebosim/gz-transport/pull/320)
+
+1. ign -> gz Macro Migration : gz-transport
+    * [Pull request #319](https://github.com/gazebosim/gz-transport/pull/319)
+
+1. [ign -> gz] CMake functions
+    * [Pull request #322](https://github.com/gazebosim/gz-transport/pull/322)
+
+1. ign -> gz Environment Variable Migration
+    * [Pull request #318](https://github.com/gazebosim/gz-transport/pull/318)
+
+1. ign -> gz Namespace Migration : gz-transport
+    * [Pull request #311](https://github.com/gazebosim/gz-transport/pull/311)
+
+1. ign -> gz migration
+    * [Pull request #310](https://github.com/gazebosim/gz-transport/pull/310)
+
+1. Use ign-utils instead of ign-cmake utilities
+    * [Pull request #307](https://github.com/gazebosim/gz-transport/pull/307)
+
+1. Remove Bionic from future releases (Garden+)
+    * [Pull request #297](https://github.com/gazebosim/gz-transport/pull/297)
+
+1. Bumps in garden: ign-transport12 use ign-math7
+    * [Pull request #285](https://github.com/gazebosim/gz-transport/pull/285)
+
+1. Bumps in garden : ci_matching_branch/bump_garden_ign-transport12
+    * [Pull request #280](https://github.com/gazebosim/gz-transport/pull/280)
+
 
 ## Gazebo Transport 11.X
+
+### Gazebo Transport 11.1.0 (2022-06-01)
+
+1. Add option to output messages in JSON format
+    * [Pull request #288](https://github.com/gazebosim/gz-transport/pull/288)
+
+1. Use libexec to install lib binaries
+    * [Pull request #279](https://github.com/gazebosim/gz-transport/pull/279)
+    * [Pull request #314](https://github.com/gazebosim/gz-transport/pull/314)
+
+1. Use `exec` instead of `popen` to run `ign-launch` binary
+    * [Pull request #300](https://github.com/gazebosim/gz-transport/pull/300)
+
+1. Focal CI: static checkers, doxygen linters, compiler warnings
+    * [Pull request #298](https://github.com/gazebosim/gz-transport/pull/298)
+
+1. Add Ubuntu Jammy CI
+    * [Pull request #293](https://github.com/gazebosim/gz-transport/pull/293)
+
+1. Corrected a typo in `topic_main.cc`
+    * [Pull request #292](https://github.com/gazebosim/gz-transport/pull/292)
+
+1. Remove no username error messages
+    * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
+
+1. Try `USER` variable to retrieve the username.
+    * [Pull request #282](https://github.com/gazebosim/gz-transport/pull/282)
+
+1. Documented the default value of `IGN_PARTITION`
+    * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/gazebosim/gz-transport/pull/273)
+
+1. Make zmq check for post 4.3.1 not to include 4.3.1
+    * [Pull request #237](https://github.com/gazebosim/gz-transport/pull/237)
+
+1. NetUtils: simplify logic in `determineInterfaces`
+    * [Pull request #257](https://github.com/gazebosim/gz-transport/pull/257)
+
+1. Fix Homebrew warning (backport from Fortress) (#268)
+    * [Pull request #270](https://github.com/gazebosim/gz-transport/pull/270)
 
 ### Gazebo Transport 11.0.0 (2021-09-28)
 
@@ -174,6 +304,26 @@
 1. Addition of topic statistics that can report number of dropped messages
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/gazebosim/gz-transport/pull/205)
+
+### Gazebo Transport 8.3.0 (2022-07-27)
+
+1. Ignition -> Gazebo
+    * [Pull request #330](https://github.com/gazebosim/gz-transport/pull/330)
+
+1. Bash completion for flags
+    * [Pull request #312](https://github.com/gazebosim/gz-transport/pull/312)
+
+1. Focal CI: static checkers, doxygen linters, compiler warnings
+    * [Pull request #298](https://github.com/gazebosim/gz-transport/pull/298)
+
+1. Remove no username error messages
+    * [Pull request #286](https://github.com/gazebosim/gz-transport/pull/286)
+
+1. Documented the default value of `GZ_PARTITION`
+    * [Pull request #281](https://github.com/gazebosim/gz-transport/pull/281)
+
+1. Remove static on `registrationCb` and `unregistrationCb`.
+    * [Pull request #273](https://github.com/gazebosim/gz-transport/pull/273)
 
 ### Gazebo Transport 8.2.1 (2021-10-27)
 

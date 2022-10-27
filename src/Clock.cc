@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/time.pb.h>
 
 #include <chrono>
 #include <ctime>
 #include <iostream>
 #include <mutex>
 
-#include <gz/msgs.hh>
 #include <gz/transport/Clock.hh>
 #include <gz/transport/Node.hh>
 

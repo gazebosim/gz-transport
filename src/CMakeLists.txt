@@ -2,15 +2,6 @@
 # "gtest_sources" variable.
 gz_get_libsources_and_unittests(sources gtest_sources)
 
-if (MSVC)
-  # Warning #4251 is the "dll-interface" warning that tells you when types used
-  # by a class are not being exported. These generated source files have private
-  # members that don't get exported, so they trigger this warning. However, the
-  # warning is not important since those members do not need to be interfaced
-  # with.
-  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
-endif()
-
 # Create the library target.
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 
@@ -23,6 +14,11 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ${ZeroMQ_TARGET}
 )
+
+target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
+  SYSTEM PUBLIC 
+    $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:CPPZMQ::CPPZMQ,INTERFACE_INCLUDE_DIRECTORIES>)
 
 # Windows system library provides UUID
 if (NOT MSVC)

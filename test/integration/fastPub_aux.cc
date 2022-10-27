@@ -14,9 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/vector3d.pb.h>
+
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "test_config.hh"

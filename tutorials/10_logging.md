@@ -25,7 +25,7 @@ cd ~/gz_transport_tutorial
 
 ## Record
 
-Download the [record.cc](https://github.com/gazebosim/gz-transport/raw/main/example/record.cc)
+Download the [record.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/record.cc)
 file within the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -126,7 +126,7 @@ stops the log recording as expected.
 
 ## Play back
 
-Download the [playback.cc](https://github.com/gazebosim/gz-transport/raw/main/example/playback.cc)
+Download the [playback.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/playback.cc)
 file within the `gz_transport_tutorial` folder and open it with your favorite
 editor:
 
@@ -215,7 +215,7 @@ thread until all messages have been published.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt)
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/CMakeLists.txt)
 file within the `gz_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
@@ -228,8 +228,12 @@ cd build
 Run `cmake` and build the code.
 
 ```{.sh}
+# Linux and MacOS
 cmake ..
 make
+
+# Windows
+cmake --build . --config Release
 ```
 
 ## Running the examples
@@ -239,7 +243,12 @@ Open two new terminals and from your `build/` directory run the recorder.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./log_record tutorial.tlog
+
+# Windows
+.\Release\log_record.exe tutorial.tlog
+
 Press Ctrl+C to finish recording.
   Recording...
 ```
@@ -261,7 +270,11 @@ gz topic -t /foo -e
 And from terminal 1, playback your log file:
 
 ```{.sh}
+# Linux and MacOS
 ./log_playback tutorial.tlog
+
+# Windows
+.\Release\log_playback.exe tutorial.tlog
 ```
 
 You should receive one message in terminal 2:
@@ -270,7 +283,7 @@ You should receive one message in terminal 2:
 data: "Hello log"
 ```
 
-## Using `gz` for recording and playing back
+## Using gz for recording and playing back
 
 As an alternative to the C++ API, we could use the `gz` suite of command line
 tools for recording and playing back messages.

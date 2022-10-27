@@ -18,7 +18,7 @@ set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -97,9 +97,11 @@ else ()
 endif()
 
 #--------------------------------------
-# Find gz-tools
-gz_find_package(gz-tools2 QUIET)
+# Find if command is available. This is used to enable tests.
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
 find_program(HAVE_GZ_TOOLS gz)
+set (GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find SQLite3

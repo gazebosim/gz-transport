@@ -14,6 +14,9 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
 #include <csignal>
@@ -22,7 +25,6 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/AdvertiseOptions.hh"
