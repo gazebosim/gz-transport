@@ -104,7 +104,7 @@ void addServiceFlags(CLI::App &_app)
   command->add_flag_callback("-i,--info",
       [opt](){
         opt->command = ServiceCommand::kServiceInfo;
-      },"Get info about a service.")
+      }, "Get info about a service.")
     ->needs(serviceOpt);
 
   command->add_option_function<std::string>("-r,--req",
