@@ -1,5 +1,13 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.3.0 (2022-10-31)
+
+1. Add parameters component
+    * [Pull request #305](https://github.com/gazebosim/ign-transport/pull/305)
+
+1. Fix build for Debian Bullseye
+    * [Pull request #363](https://github.com/gazebosim/ign-transport/pull/363)
+
 ### Gazebo Transport 11.2.0 (2022-08-16)
 
 1. Remove problematic discovery test
