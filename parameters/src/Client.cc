@@ -21,10 +21,10 @@
 #include <sstream>
 #include <string>
 
-#include "ignition/msgs/boolean.pb.h"
+#include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/parameter_error.pb.h>
-#include "ignition/msgs/parameter_name.pb.h"
-#include "ignition/msgs/parameter_value.pb.h"
+#include <ignition/msgs/parameter_name.pb.h>
+#include <ignition/msgs/parameter_value.pb.h>
 
 #include "ignition/transport/parameters/result.hh"
 
