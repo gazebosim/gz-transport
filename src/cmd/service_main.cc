@@ -86,7 +86,7 @@ void addServiceFlags(CLI::App &_app)
   auto opt = std::make_shared<ServiceOptions>();
 
   auto serviceOpt = _app.add_option("-s,--service",
-                                    opt->service, "Name of a service");
+                                    opt->service, "Name of a service.");
   auto reqTypeOpt = _app.add_option("--reqtype",
                                     opt->reqType, "Type of a request.");
   auto repTypeOpt = _app.add_option("--reptype",
@@ -94,7 +94,7 @@ void addServiceFlags(CLI::App &_app)
   auto timeoutOpt = _app.add_option("--timeout",
                                     opt->timeout, "Timeout in milliseconds.");
 
-  auto command = _app.add_option_group("command", "Command to be executed");
+  auto command = _app.add_option_group("command", "Command to be executed.");
 
   command->add_flag_callback("-l,--list",
       [opt](){
@@ -113,7 +113,7 @@ void addServiceFlags(CLI::App &_app)
         opt->reqData = _reqData;
       },
 R"(Request a service.
-Arg is the input data.
+TEXT is the input data.
 The format expected is
 the same used by Protobuf DebugString(). E.g.:
   gz service -s /echo \
@@ -134,8 +134,6 @@ the same used by Protobuf DebugString(). E.g.:
 int main(int argc, char** argv)
 {
   CLI::App app{"Introspect Gazebo services"};
-
-  app.set_help_all_flag("--help-all", "Show all help");
 
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;

@@ -93,20 +93,20 @@ void addTopicFlags(CLI::App &_app)
   auto opt = std::make_shared<TopicOptions>();
 
   auto topicOpt = _app.add_option("-t,--topic",
-                                  opt->topic, "Name of a topic");
+                                  opt->topic, "Name of a topic.");
   auto msgTypeOpt = _app.add_option("-m,--msgtype",
-                                    opt->msgType, "Type of message to publish");
+                                   opt->msgType, "Type of message to publish.");
   auto durationOpt = _app.add_option("-d,--duration",
                                      opt->duration,
-                                     "Duration (seconds) to run");
+                                     "Duration (seconds) to run.");
   auto countOpt = _app.add_option("-n,--num",
                                   opt->count,
-                                  "Number of messages to echo and then exit");
+                                  "Number of messages to echo and then exit.");
 
   durationOpt->excludes(countOpt);
   countOpt->excludes(durationOpt);
 
-  auto command = _app.add_option_group("command", "Command to be executed");
+  auto command = _app.add_option_group("command", "Command to be executed.");
 
   command->add_flag_callback("-l,--list",
     [opt](){
@@ -132,7 +132,7 @@ R"(Output data to screen. E.g.:
 
   command->add_flag_callback("--json-output",
       [opt]() { opt->msgOutputFormat = MsgOutputFormat::kJSON; },
-      "Output messages in JSON format");
+      "Output messages in JSON format.");
 
   command->add_option_function<std::string>("-p,--pub",
       [opt](const std::string &_msgData){
@@ -140,7 +140,7 @@ R"(Output data to screen. E.g.:
         opt->msgData = _msgData;
       },
 R"(Publish a message.
-arg is the message data. The format expected is
+TEXT is the message data. The format expected is
 the same used by Protobuf DebugString(). E.g.:
   gz topic -t /foo -m gz.msgs.StringMsg \
     -p 'data:"Custom data"')")
@@ -153,7 +153,7 @@ the same used by Protobuf DebugString(). E.g.:
 //////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
-  CLI::App app{"Introspect Gazebotopics"};
+  CLI::App app{"Introspect Gazebo topics"};
 
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
