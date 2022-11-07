@@ -18,7 +18,14 @@
 #ifndef IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 #define IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
 #include <ignition/msgs/int32.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #include <ignition/transport/test_config.h>
 
 #include <string>
