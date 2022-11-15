@@ -21,11 +21,11 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ign.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/test_config.h"
+#include "gz.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 // Global constants.
 static const std::string g_topic   = "/topic"; // NOLINT(*)

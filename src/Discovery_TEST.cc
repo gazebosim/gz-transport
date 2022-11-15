@@ -22,14 +22,14 @@
 #include <thread>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants used for multiple tests.

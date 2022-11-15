@@ -28,23 +28,23 @@
 #include <vector>
 #include <thread>
 
-#include <ignition/transport/Clock.hh>
-#include <ignition/transport/Discovery.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/MessageInfo.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/TransportTypes.hh>
+#include <gz/transport/Clock.hh>
+#include <gz/transport/Discovery.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/MessageInfo.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/TransportTypes.hh>
 
 #include "Console.hh"
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Recorder::Implementation
+class gz::transport::log::Recorder::Implementation
 {
   /// \brief Data type stored in dataQueue
   public: struct LogData

@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/SubscriptionHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
 
 namespace ignition
 {

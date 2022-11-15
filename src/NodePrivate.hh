@@ -15,16 +15,16 @@
  *
 */
 
-#ifndef IGN_TRANSPORT_NODEPRIVATE_HH_
-#define IGN_TRANSPORT_NODEPRIVATE_HH_
+#ifndef GZ_TRANSPORT_NODEPRIVATE_HH_
+#define GZ_TRANSPORT_NODEPRIVATE_HH_
 
 #include <string>
 #include <unordered_set>
 
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/NodeShared.hh"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeShared.hh"
 
 namespace ignition
 {

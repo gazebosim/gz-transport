@@ -21,13 +21,13 @@
 
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Clock.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Clock.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check WallClock functionality.

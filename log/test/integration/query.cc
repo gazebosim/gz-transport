@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/log/Log.hh"
+#include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
+using namespace gz;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

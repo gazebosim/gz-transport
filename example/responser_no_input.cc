@@ -18,12 +18,12 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Provide a "quote" service.
 /// Well OK, it's just single-quote service but do you really need more?
-bool srvQuote(ignition::msgs::StringMsg &_rep)
+bool srvQuote(gz::msgs::StringMsg &_rep)
 {
   std::string awesomeQuote = "This is it! This is the answer. It says here..."
     "that a bolt of lightning is going to strike the clock tower at precisely "
@@ -42,7 +42,7 @@ bool srvQuote(ignition::msgs::StringMsg &_rep)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/quote";
 
   // Advertise a service call.
@@ -53,5 +53,5 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

@@ -21,7 +21,7 @@
 # top-level entry point in ign-tools.
 
 # TODO: In Fortress+, remove --force-version and --versions. Add --help-all.
-# Update ../ign_TEST.cc accordingly.
+# Update ../gz_TEST.cc accordingly.
 GZ_SERVICE_COMPLETION_LIST="
   -h --help
   -v --version
@@ -37,7 +37,7 @@ GZ_SERVICE_COMPLETION_LIST="
 "
 
 # TODO: In Fortress+, remove --force-version and --versions. Add
-# `-v --version` and --json-output. Update ../ign_TEST.cc accordingly.
+# `-v --version` and --json-output. Update ../gz_TEST.cc accordingly.
 GZ_TOPIC_COMPLETION_LIST="
   -h --help
   -v --version

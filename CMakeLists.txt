@@ -15,7 +15,9 @@ set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project()
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/transport
+)
 
 #============================================================================
 # Set project-specific options

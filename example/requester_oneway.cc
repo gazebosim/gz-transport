@@ -17,16 +17,16 @@
 
 #include <iostream>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/oneway" service.

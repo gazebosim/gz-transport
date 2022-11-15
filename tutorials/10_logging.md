@@ -33,8 +33,8 @@ file within the `ign_transport_tutorial` folder and open it with your favorite e
 #include <iostream>
 #include <regex>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Recorder.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
 
   // Record all topics
   const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
   // Begin recording, saving received messages to the given file
   const auto result = recorder.Start(argv[1]);
-  if (ignition::transport::log::RecorderError::SUCCESS != result)
+  if (gz::transport::log::RecorderError::SUCCESS != result)
   {
     std::cerr << "Failed to start recording: " << static_cast<int64_t>(result)
               << "\n";
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
             << std::endl;
 
   // Wait until the interrupt signal is sent.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   recorder.Stop();
 
@@ -80,14 +80,14 @@ int main(int argc, char *argv[])
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/transport/log/Recorder.hh>
 ```
 
 The `Recorder.hh` header contains all the recording functionality. Make sure
 that is included in your source code.
 
 ```{.cpp}
-ignition::transport::log::Recorder recorder;
+gz::transport::log::Recorder recorder;
 
 // Record all topics
 const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
@@ -114,13 +114,13 @@ a parameter with the name of the log file.
 
 ```{.cpp}
 // Wait until the interrupt signal is sent.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 
 recorder.Stop();
 ```
 
 In our example, we are logging messages until the user hits `CTRL-C`. The
-function `ignition::transport::waitForShutdown()` captures the appropriate
+function `gz::transport::waitForShutdown()` captures the appropriate
 signal and blocks the execution until that event occurs. Then, `recorder.Stop()`
 stops the log recording as expected.
 
@@ -134,7 +134,7 @@ editor:
 #include <cstdint>
 #include <iostream>
 #include <regex>
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/log/Playback.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  ignition::transport::log::Playback player(argv[1]);
+  gz::transport::log::Playback player(argv[1]);
 
   // Playback all topics
   const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
@@ -178,14 +178,14 @@ int main(int argc, char *argv[])
 ### Walkthrough
 
 ```{.cpp}
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/log/Playback.hh>
 ```
 
 The `Playback.hh` header contains all the log play back functionality. Make sure
 that is included in your source code.
 
 ```{.cpp}
-ignition::transport::log::Playback player(argv[1]);
+gz::transport::log::Playback player(argv[1]);
 
 // Playback all topics
 const int64_t addTopicResult = player.AddTopic(std::regex(".*"));

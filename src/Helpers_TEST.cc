@@ -15,11 +15,11 @@
  *
 */
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the env() function.

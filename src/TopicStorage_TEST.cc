@@ -20,12 +20,12 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TopicStorage.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global variables.
