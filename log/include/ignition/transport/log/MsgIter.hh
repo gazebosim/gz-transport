@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,98 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
-#ifndef IGNITION_TRANSPORT_LOG_MSGITER_HH_
-#define IGNITION_TRANSPORT_LOG_MSGITER_HH_
-
-#include <memory>
-
+#include <gz/transport/log/MsgIter.hh>
 #include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/Message.hh>
-
-namespace ignition
-{
-  namespace transport
-  {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward Declarations
-      class MsgIterPrivate;
-      class Log;
-
-      /// \brief Implements iterator for reading messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE MsgIter
-      {
-        /// \brief Default constructor
-        public: MsgIter();
-
-        /// \brief Move Constructor
-        /// \param[in] _orig the instance being copied
-        public: MsgIter(MsgIter &&_orig);  // NOLINT
-
-        /// \brief Destructor;
-        public: ~MsgIter();
-
-        /// \brief Copy-assignment operator
-        /// \param[in] _orig the instance being copied
-        /// \return a reference to this instance
-        // public: MsgIter &operator=(const MsgIter &_orig);
-
-        /// \brief Prefix increment
-        /// \return a reference to this instance
-        public: MsgIter &operator++();
-
-        /// \brief Equality operator
-        /// \param[in] _other the iterator this is being compared to
-        /// \return true if the two iterator point to the same message
-        public: bool operator==(const MsgIter &_other) const;
-
-        /// \brief Inequality operator
-        /// \param[in] _other the iterator this is being compared to
-        /// \return false if the two iterator point to the same message
-        public: bool operator!=(const MsgIter &_other) const;
-
-        /// \brief Move assignement operator
-        /// \param[in] _other the new iterator replacing the current one
-        /// \return The updated MsgIter.
-        public: MsgIter& operator=(MsgIter &&_other); // NOLINT
-
-        /// \brief Dereference Operator
-        /// \return a reference to the message this is pointing to
-        public: const Message &operator*() const;
-
-        /// \brief arrow dereference operator
-        /// \return a pointer to the message this is pointing to
-        public: const Message *operator->() const;
-
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::*
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-        /// \brief Private Implementation Pointer
-        private: std::unique_ptr<MsgIterPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-
-        /// \brief Construct with private implementation
-        /// \param[in] _pimpl a private implementation pointer
-        /// \internal
-        private: MsgIter(
-            std::unique_ptr<MsgIterPrivate> &&_pimpl);  // NOLINT(build/c++11)
-
-        /// \brief can use private constructor
-        friend class Batch;
-      };
-      }
-    }
-  }
-}
-#endif

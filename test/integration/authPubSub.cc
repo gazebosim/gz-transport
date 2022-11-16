@@ -20,11 +20,11 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -37,7 +37,7 @@ TEST(authPubSub, InvalidAuth)
   setenv("IGN_TRANSPORT_PASSWORD", "test", 1);
 
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
@@ -51,7 +51,7 @@ TEST(authPubSub, InvalidAuth)
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str(), "bad", "invalid");
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(1);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));

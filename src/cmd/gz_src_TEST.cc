@@ -22,11 +22,11 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ign.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/test_config.h"
+#include "gz.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 // Global constants.
 static const std::string g_topic   = "/topic"; // NOLINT(*)
@@ -65,7 +65,7 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
@@ -160,7 +160,7 @@ TEST(ignTest, cmdServiceReq)
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_service, srvEcho));
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(10);
 
   // A null service name should generate an error message.

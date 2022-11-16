@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,87 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
-#ifndef IGNITION_TRANSPORT_LOG_BATCH_HH_
-#define IGNITION_TRANSPORT_LOG_BATCH_HH_
-
-#include <memory>
-
+#include <gz/transport/log/Batch.hh>
 #include <ignition/transport/config.hh>
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/MsgIter.hh>
-
-namespace ignition
-{
-  namespace transport
-  {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward declaration
-      class BatchPrivate;
-      class Log;
-
-      /// \brief Holds the result of a query for messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE Batch
-      {
-        /// \brief Default constructor
-        public: Batch();
-
-        /// \brief move constructor
-        /// \param[in] _old the instance being moved into this one
-        public: Batch(Batch &&_old);  // NOLINT
-
-        /// \brief Move assignement operator
-        /// \param[in] _other the new Batch replacing the current one
-        /// \return The updated Batch instance.
-        public: Batch& operator=(Batch &&_other); // NOLINT
-
-        /// \brief destructor
-        public: ~Batch();
-
-        /// \brief typedef for prettiness
-        public: using iterator = MsgIter;
-
-        /// \brief Iterator to first message in batch
-        /// \remarks the lowercase function name is required to support
-        ///   range-based for loops
-        /// \return an iterator to the start of the messages
-        public: iterator begin();
-
-        /// \brief Iterator to one past the last message in a batch
-        /// \remarks the lowercase function name is required to support
-        ///   range-based for loops
-        /// \return an iterator that is not equal to any iterator that points
-        ///   to a valid message
-        public: iterator end();
-
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::*
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-        /// \brief Private implementation
-        private: std::unique_ptr<BatchPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-
-        /// \brief Construct with private implementation
-        /// \param[in] _pimpl a private implementation pointer
-        /// \internal
-        private: Batch(
-            std::unique_ptr<BatchPrivate> &&_pimpl);  // NOLINT(build/c++11)
-
-        /// \brief Log can use private constructor
-        friend class Log;
-      };
-      }
-    }
-  }
-}
-#endif

@@ -22,11 +22,11 @@
   #include <filesystem>
 #endif
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool cbExecuted;
 static bool cbStatsExecuted;
@@ -37,7 +37,7 @@ static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const ignition::msgs::Vector3d &_msg)
+void cb(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -47,9 +47,9 @@ void cb(const ignition::msgs::Vector3d &_msg)
 
 //////////////////////////////////////////////////
 void cbRaw(const char *_msgData, const size_t _size,
-           const ignition::transport::MessageInfo &_info)
+           const transport::MessageInfo &_info)
 {
-  ignition::msgs::Vector3d v;
+  msgs::Vector3d v;
 
   EXPECT_TRUE(v.GetTypeName() == _info.Type());
 
@@ -64,7 +64,7 @@ void cbRaw(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const ignition::msgs::Vector3d &_msg)
+void cb2(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -73,7 +73,7 @@ void cb2(const ignition::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void statsCb(const ignition::msgs::Metric & /*_msg*/)
+void statsCb(const msgs::Metric & /*_msg*/)
 {
   cbStatsExecuted = true;
 }
@@ -99,7 +99,7 @@ void runSubscriber()
 
   // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                ignition::msgs::Vector3d().GetTypeName()));
+                                msgs::Vector3d().GetTypeName()));
 
   int interval = 100;
 

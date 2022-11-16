@@ -18,12 +18,12 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const ignition::msgs::StringMsg &_msg)
+void cb(const gz::msgs::StringMsg &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -31,7 +31,7 @@ void cb(const ignition::msgs::StringMsg &_msg)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
   // Statistics are published on the `/statistics` topic. You echo the
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }

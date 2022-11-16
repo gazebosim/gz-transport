@@ -25,7 +25,7 @@
 
 #include <vector>
 
-#include "ignition/transport/Discovery.hh"
+#include "gz/transport/Discovery.hh"
 
 namespace ignition
 {

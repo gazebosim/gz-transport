@@ -20,18 +20,18 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/test_config.h"
 
 #ifdef _MSC_VER
 #    define popen _popen
 #    define pclose _pclose
 #endif
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
@@ -62,7 +62,7 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;
@@ -70,7 +70,7 @@ bool srvEcho(const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
 
 //////////////////////////////////////////////////
 /// \brief Topic callback
-void topicCB(const ignition::msgs::StringMsg &_msg)
+void topicCB(const msgs::StringMsg &_msg)
 {
   g_topicCBStr = _msg.data();
 }
@@ -210,14 +210,14 @@ TEST(ignTest, ServiceInfo)
 /// \brief Check 'ign topic -l' running the advertiser on the same process.
 TEST(ignTest, TopicListSameProc)
 {
-  ignition::transport::Node node;
+  transport::Node node;
 
-  ignition::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  auto pub = node.Advertise<ignition::msgs::Vector3d>("/foo");
+  auto pub = node.Advertise<msgs::Vector3d>("/foo");
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
@@ -241,14 +241,14 @@ TEST(ignTest, TopicListSameProc)
 /// \brief Check 'ign topic -i' running the advertiser on the same process.
 TEST(ignTest, TopicInfoSameProc)
 {
-  ignition::transport::Node node;
+  transport::Node node;
 
-  ignition::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  auto pub = node.Advertise<ignition::msgs::Vector3d>("/foo");
+  auto pub = node.Advertise<msgs::Vector3d>("/foo");
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
@@ -297,7 +297,7 @@ TEST(ignTest, ServiceListSameProc)
 /// \brief Check 'ign service -i' running the advertiser on the same process.
 TEST(ignTest, ServiceInfoSameProc)
 {
-  ignition::transport::Node node;
+  transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'ign service -i' command.
@@ -323,7 +323,7 @@ TEST(ignTest, ServiceInfoSameProc)
 /// \brief Check 'ign topic -p' to send a message.
 TEST(ignTest, TopicPublish)
 {
-  ignition::transport::Node node;
+  transport::Node node;
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
@@ -372,14 +372,14 @@ TEST(ignTest, TopicPublish)
 /// \brief Check 'ign service -r' to request a service.
 TEST(ignTest, ServiceRequest)
 {
-  ignition::transport::Node node;
+  transport::Node node;
 
   // Advertise a service.
   std::string service = "/echo";
   std::string value = "10";
   EXPECT_TRUE(node.Advertise(service, srvEcho));
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(10);
 
   // Check the 'ign service -r' command.
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
   // in your system.
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
-  ignition::transport::env("LD_LIBRARY_PATH", value);
+  transport::env("LD_LIBRARY_PATH", value);
   // Add the directory where ignition transport has been built.
   value = std::string(IGN_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);

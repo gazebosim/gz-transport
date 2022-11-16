@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/parameters/Registry.hh"
+#include "gz/transport/parameters/Registry.hh"
 
 #include <memory>
 #include <mutex>

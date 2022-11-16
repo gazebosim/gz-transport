@@ -28,7 +28,7 @@ folder and open it with your favorite editor:
 #include <string>
 #include <thread>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 /// brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
@@ -51,10 +51,10 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   }
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Publish messages at 1Hz.
@@ -82,10 +82,10 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 ```
 
-The line `#include <ignition/transport.hh>` contains all the Ignition
+The line `#include <gz/transport.hh>` contains all the Ignition
 Transport headers for using the transport library.
 
 The next line includes the generated protobuf code that we are going to use
@@ -93,10 +93,10 @@ for our messages. We are going to publish `StringMsg` type protobuf messages.
 
 ```{.cpp}
 // Create a transport node and advertise a topic.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string topic = "/foo";
 
-auto pub = node.Advertise<ignition::msgs::StringMsg>(topic);
+auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
 if (!pub)
 {
   std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -112,7 +112,7 @@ object.
 
 ```{.cpp}
 // Prepare the message.
-ignition::msgs::StringMsg msg;
+gz::msgs::StringMsg msg;
 msg.set_data("HELLO");
 
 // Publish messages at 1Hz.
@@ -139,11 +139,11 @@ file into the `ign_transport_tutorial` folder and open it with your favorite edi
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
-void cb(const ignition::msgs::StringMsg &_msg)
+void cb(const gz::msgs::StringMsg &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -151,7 +151,7 @@ void cb(const ignition::msgs::StringMsg &_msg)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 ```{.cpp}
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
-void cb(const ignition::msgs::StringMsg &_msg)
+void cb(const gz::msgs::StringMsg &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -186,7 +186,7 @@ depending on the type of the topic advertised. In our case, we know that topic
 `/foo` will contain a Protobuf `StringMsg` type.
 
 ```{.cpp}
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string topic = "/foo";
 
 // Subscribe to a topic by registering a callback.
@@ -202,7 +202,7 @@ given topic name by specifying your subscription callback function.
 
 ```{.cpp}
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 If you don't have any other tasks to do besides waiting for incoming messages,
@@ -271,14 +271,14 @@ We can declare the throttling option using the following code :
 
 ```{.cpp}
   // Create a transport node and advertise a topic with throttling enabled.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
   // Setting the throttling option
-  ignition::transport::AdvertiseMessageOptions opts;
+  gz::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
 
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic, opts);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic, opts);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -289,7 +289,7 @@ We can declare the throttling option using the following code :
 ### Walkthrough
 
 ```{.cpp}
-  ignition::transport::AdvertiseMessageOptions opts;
+  gz::transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
 ```
 
@@ -298,7 +298,7 @@ to pass message rate as an argument to *SetMsgsPerSec()* method. In our case, th
 name is opts and the message rate specified is 1 msg/sec.
 
 ```{.cpp}
-  auto pub = node.Advertise<ignition::msgs::StringMsg>(topic, opts);
+  auto pub = node.Advertise<gz::msgs::StringMsg>(topic, opts);
 ```
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
@@ -316,9 +316,9 @@ We can declare the throttling option using the following code :
 
 ```{.cpp}
   // Create a transport node and subscribe to a topic with throttling enabled.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 ```
@@ -326,7 +326,7 @@ We can declare the throttling option using the following code :
 ### Walkthrough
 
 ```{.cpp}
-  ignition::transport::SubscribeOptions opts;
+  gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   node.Subscribe(topic, cb, opts);
 ```
@@ -340,7 +340,7 @@ using the *Subscribe()* method with opts passed as an argument to it.
 
 As you have seen in the examples so far, the callbacks used by the
 subscribers contain a specific protobuf parameter, such as
-`ignition::msgs::StringMsg`. As the name of this section suggests, it is also
+`gz::msgs::StringMsg`. As the name of this section suggests, it is also
 possible to create a generic subscriber callback that can receive messages of
 different types. This use case might be interesting if you are building a bridge
 between Ignition Transport and another protocol or if you want to just print the
@@ -353,14 +353,14 @@ Download the [subscriber_generic.cc](https://github.com/ignitionrobotics/ign-tra
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// brief Function called each time a topic update is received.
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
 void cb(const google::protobuf::Message &_msg,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
@@ -369,7 +369,7 @@ void cb(const google::protobuf::Message &_msg,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
 /// Note that this callback uses the generic signature, hence it may receive
 /// messages with different types.
 void cb(const google::protobuf::Message &_msg,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
   std::cout << _msg.DebugString() << std::endl;
@@ -406,14 +406,14 @@ function ``cb()``. It enables us to receive topic updates with different message
 types, such as `Int32` or `String` from the subscribed topic.
 Furthermore, we don't need to worry about the type of the topic advertised while
 specifying the callback function. The parameter
-`ignition::transport::MessageInfo &_info` provides some information about the
+`gz::transport::MessageInfo &_info` provides some information about the
 message received (e.g.: the topic name).
 
 ```{.cpp}
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -423,7 +423,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
   return 0;
 }
 ```
@@ -574,9 +574,9 @@ We can declare the topic remapping option using the following code:
 
 ```{.cpp}
   // Create a transport node and remap a topic.
-  ignition::transport::NodeOptions nodeOptions;
+  gz::transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap("/foo", "/bar");
-  ignition::transport::Node node(nodeOptions);
+  gz::transport::Node node(nodeOptions);
   std::string topic = "/foo";
 ```
 

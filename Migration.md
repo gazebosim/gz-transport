@@ -27,7 +27,7 @@ release will remove the deprecated code.
 1. NodeShared::TriggerSubscriberCallbacks
     * [BitBucket pull request 404](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/404)
 
-1. The discovery wire protocol changed to use ignition::msgs::Discovery
+1. The discovery wire protocol changed to use gz::msgs::Discovery
    instead of C-structs. The Packet.hh header file is deprecated, which
    contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
    version of the wire protocal has bumped from 9 to 10. This means Ignition
@@ -38,7 +38,7 @@ release will remove the deprecated code.
 
 ### Removed
 
-1. The `ign.hh` file is not longer installed.
+1. The `gz.hh` file is not longer installed.
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 ## Ignition Transport 4.X to 5.X
@@ -50,4 +50,3 @@ release will remove the deprecated code.
    functions have been deprecated.
     * [BitBucket pull request 260](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/260)
     * [BitBucket pull request 228](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/228)
-

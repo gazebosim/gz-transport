@@ -22,7 +22,7 @@
 #include <string>
 #include <thread>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);
@@ -45,10 +45,10 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   auto pub = node.Advertise(topic, msg.GetTypeName());

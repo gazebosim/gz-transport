@@ -32,10 +32,10 @@ folder and open it with your favorite editor:
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
-bool srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep)
+bool srvEcho(const gz::msgs::StringMsg &_req,
+  gz::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -49,11 +49,11 @@ int main(int argc, char **argv)
 {
   // Let's print the list of our network interfaces.
   std::cout << "List of network interfaces in this machine:" << std::endl;
-  for (const auto &netIface : ignition::transport::determineInterfaces())
+  for (const auto &netIface : gz::transport::determineInterfaces())
     std::cout << "\t" << netIface << std::endl;
 
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/echo";
 
   // Advertise a service call.
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -72,10 +72,10 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 ```
 
-The line ``#include <ignition/transport.hh>`` contains the Ignition Transport
+The line ``#include <gz/transport.hh>`` contains the Ignition Transport
 header for using the transport library.
 
 The next line includes the generated Protobuf code that we are going to use
@@ -84,8 +84,8 @@ for our services.
 
 
 ```{.cpp}
-bool srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep)
+bool srvEcho(const gz::msgs::StringMsg &_req,
+  gz::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -107,7 +107,7 @@ response with the same data contained in the request.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/echo";
 
 // Advertise a service call.
@@ -118,7 +118,7 @@ if (!node.Advertise(service, srvEcho))
 }
 
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 We declare a *Node* that will offer all the transport functionality. In our
@@ -139,19 +139,19 @@ folder and open it with your favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
-  ignition::msgs::StringMsg rep;
+  gz::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 
@@ -174,13 +174,13 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
-ignition::msgs::StringMsg rep;
+gz::msgs::StringMsg rep;
 bool result;
 unsigned int timeout = 5000;
 ```
@@ -234,9 +234,9 @@ Download the [requester_async.cc](https://github.com/ignitionrobotics/ign-transp
 ```{.cpp}
 #include <iostream>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
-void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -248,10 +248,10 @@ void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   std::cout << "Press <CTRL-C> to exit" << std::endl;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
   node.Request("/echo", req, responseCb);
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 ### Walkthrough
 
 ```{.cpp}
-void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -287,10 +287,10 @@ case, we know that the service ``/echo`` will answer with a Protobuf
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
 // Request the "/echo" service.
@@ -320,11 +320,11 @@ Download the [responser_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 ```{.cpp}
 #include <iostream>
 #include <string>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 #include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
-void srvOneway(const ignition::msgs::StringMsg &_req)
+void srvOneway(const gz::msgs::StringMsg &_req)
 {
   std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
@@ -333,7 +333,7 @@ void srvOneway(const ignition::msgs::StringMsg &_req)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/oneway";
 
   // Advertise a oneway service.
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 //////////////////////////////////////////////////
-void srvOneway(const ignition::msgs::StringMsg &_req)
+void srvOneway(const gz::msgs::StringMsg &_req)
 {
   std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
@@ -367,7 +367,7 @@ the value of the input parameter is printed on the screen.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/oneway";
 
 // Advertise a oneway service.
@@ -394,17 +394,17 @@ Download the [requester_oneway.cc](https://github.com/ignitionrobotics/ign-trans
 
 ```{.cpp}
 #include <iostream>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 #include <ignition/msgs.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // Prepare the input parameters.
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data("HELLO");
 
   // Request the "/oneway" service.
@@ -425,10 +425,10 @@ int main(int argc, char **argv)
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // Prepare the input parameters.
-ignition::msgs::StringMsg req;
+gz::msgs::StringMsg req;
 req.set_data("HELLO");
 
 // Request the "/oneway" service.
@@ -462,9 +462,9 @@ favorite editor:
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
-bool srvQuote(ignition::msgs::StringMsg &_rep)
+bool srvQuote(gz::msgs::StringMsg &_rep)
 {
   std::string awesomeQuote = "This is it! This is the answer. It says here..."
     "that a bolt of lightning is going to strike the clock tower at precisely "
@@ -483,7 +483,7 @@ bool srvQuote(ignition::msgs::StringMsg &_rep)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/quote";
 
   // Advertise a service call.
@@ -494,14 +494,14 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }
 ```
 
 ### Walkthrough
 
 ```{.cpp}
-bool srvQuote(ignition::msgs::StringMsg &_rep)
+bool srvQuote(gz::msgs::StringMsg &_rep)
 ```
 
 Service doesn't receive anything. The signature of the callback contains the
@@ -510,7 +510,7 @@ the quote.
 
 ```{.cpp}
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 std::string service = "/quote";
 
 // Advertise a service call.
@@ -521,7 +521,7 @@ if (!node.Advertise(service, srvQuote))
 }
 
 // Zzzzzz.
-ignition::transport::waitForShutdown();
+gz::transport::waitForShutdown();
 ```
 
 We declare a *Node* that will offer all the transport functionality. In our
@@ -541,15 +541,15 @@ favorite editor:
 ```{.cpp}
 #include <iostream>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  ignition::msgs::StringMsg rep;
+  gz::msgs::StringMsg rep;
   bool result;
   unsigned int timeout = 5000;
 

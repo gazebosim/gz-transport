@@ -18,10 +18,10 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
-void srvOneway(const ignition::msgs::StringMsg &_req)
+void srvOneway(const gz::msgs::StringMsg &_req)
 {
   std::cout << "Request received: [" << _req.data() << "]" << std::endl;
 }
@@ -30,7 +30,7 @@ void srvOneway(const ignition::msgs::StringMsg &_req)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/oneway";
 
   // Advertise a oneway service.
@@ -41,5 +41,5 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

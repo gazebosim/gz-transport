@@ -22,15 +22,15 @@
 #include <regex>
 #include <string>
 
-#include <ignition/transport/log/Export.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/NodeOptions.hh>
+#include <gz/transport/log/Export.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/NodeOptions.hh>
 #include "../Console.hh"
 
-using namespace ignition;
-ignition::transport::log::PlaybackHandlePtr g_playbackHandler;
+using namespace gz;
+transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////
 int verbosity(int _level)
@@ -40,7 +40,7 @@ int verbosity(int _level)
     std::cerr << "Invalid verbosity level\n";
     return INVALID_VERSION;
   }
-  ignition::transport::log::__verbosity = _level;
+  transport::log::__verbosity = _level;
   return SUCCESS;
 }
 

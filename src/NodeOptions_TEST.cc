@@ -17,12 +17,12 @@
 
 #include <string>
 
-#include "ignition/transport/NetUtils.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/NetUtils.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check that IGN_PARTITION is set.

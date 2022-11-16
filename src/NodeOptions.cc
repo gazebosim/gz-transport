@@ -18,13 +18,13 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/TopicUtils.hh"
 
 #include "NodeOptionsPrivate.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
-#define IGNITION_TRANSPORT_LOG_RAIISQLITE3_HH_
+#ifndef GZ_TRANSPORT_LOG_RAIISQLITE3_HH_
+#define GZ_TRANSPORT_LOG_RAIISQLITE3_HH_
 
 #include <string>
 
