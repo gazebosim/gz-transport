@@ -89,7 +89,7 @@ namespace ignition
 #pragma warning(disable: 4251)
 #endif
         /// \brief Private Implementation Pointer
-        public: std::unique_ptr<MsgIterPrivate> dataPtr;
+        private: std::unique_ptr<MsgIterPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

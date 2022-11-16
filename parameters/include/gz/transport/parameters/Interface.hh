@@ -27,9 +27,9 @@
 
 #include <ignition/msgs/parameter_declarations.pb.h>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/parameters/result.hh"
-#include "ignition/transport/parameters/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/parameters/result.hh"
+#include "gz/transport/parameters/Export.hh"
 
 namespace ignition
 {

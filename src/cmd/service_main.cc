@@ -17,7 +17,7 @@
 
 #include <ignition/utils/cli/CLI.hpp>
 
-#include "ign.hh"
+#include "gz.hh"
 
 #include <ignition/transport/config.hh>
 

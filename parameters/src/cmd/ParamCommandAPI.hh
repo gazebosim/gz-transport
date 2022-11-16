@@ -18,7 +18,7 @@
 #ifndef IGNITION_TRANSPORT_PARAMETERS_CMD_PARAMCOMMANDAPI_HH_
 #define IGNITION_TRANSPORT_PARAMETERS_CMD_PARAMCOMMANDAPI_HH_
 
-#include "ignition/transport/parameters/Export.hh"
+#include "gz/transport/parameters/Export.hh"
 
 /// \brief External hook to get a list of available models.
 /// \param[in] _ns Namespace of the parameter registry.
