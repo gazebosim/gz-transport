@@ -1,5 +1,16 @@
 ## Ignition Transport 8
 
+### Gazebo Transport 8.4.0 (2022-11-17)
+
+1. ign -> gz : Remove redundant namespace references.
+    * [Pull request #345](https://github.com/gazebosim/gz-transport/pull/345)
+
+1. Backport Windows fix from main branch.
+    * [Pull request #350](https://github.com/gazebosim/gz-transport/pull/350)
+
+1. ign -> gz Migrate Ignition Headers : gz-transport.
+    * [Pull request #347](https://github.com/gazebosim/gz-transport/pull/347)
+
 ### Gazebo Transport 8.3.0 (2022-07-27)
 
 1. Ignition -> Gazebo
