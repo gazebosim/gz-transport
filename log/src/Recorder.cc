@@ -180,7 +180,7 @@ class gz::transport::log::Recorder::Implementation
 Recorder::Implementation::Implementation()
 {
   // Use wall clock for synchronization by default.
-  this->clock = gz::transport::WallClock::Instance();
+  this->clock = WallClock::Instance();
   // Make a lambda to wrap a member function callback
   this->rawCallback = [this](
       const char *_data, std::size_t _len, const transport::MessageInfo &_info)
@@ -212,7 +212,7 @@ Recorder::Implementation::~Implementation()
 void Recorder::Implementation::OnMessageReceived(
           const char *_data,
           std::size_t _len,
-          const gz::transport::MessageInfo &_info)
+          const MessageInfo &_info)
 {
   LDBG("RX'" << _info.Topic() << "'[" << _info.Type() << "]\n");
 

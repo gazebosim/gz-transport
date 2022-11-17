@@ -47,7 +47,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const gz::msgs::Int32 &_rep, const bool _result)
+void response(const msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), g_data);
   EXPECT_TRUE(_result);
@@ -58,7 +58,7 @@ void response(const gz::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const gz::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   g_wrongResponseExecuted = true;
 }
@@ -120,7 +120,7 @@ TEST(twoProcSrvCallWithoutInput, SrvTwoProcs)
 /// should verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
-  gz::msgs::Vector3d wrongRep;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -156,8 +156,8 @@ TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 /// are used.
 TEST(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
-  gz::msgs::Int32 goodRep;
-  gz::msgs::Vector3d badRep;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 2000;
 

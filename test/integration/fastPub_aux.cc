@@ -30,14 +30,14 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  gz::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
   pub.Publish(msg);
 }

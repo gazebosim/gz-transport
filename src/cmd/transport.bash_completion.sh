@@ -34,7 +34,6 @@ GZ_SERVICE_COMPLETION_LIST="
 
 GZ_TOPIC_COMPLETION_LIST="
   -h --help
-  -v --version
   -t --topic
   -m --msgtype
   -d --duration
