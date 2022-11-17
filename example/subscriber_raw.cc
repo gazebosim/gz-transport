@@ -18,14 +18,14 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const char *_data, const size_t _size,
-        const ignition::transport::MessageInfo &_info)
+        const gz::transport::MessageInfo &_info)
 {
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
 
   std::cout << "Msg length: " << _size << " bytes" << std::endl;
@@ -35,7 +35,7 @@ void cb(const char *_data, const size_t _size,
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/foo";
 
   // Subscribe to a topic by registering a callback.
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 
   return 0;
 }

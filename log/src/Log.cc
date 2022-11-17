@@ -26,20 +26,20 @@
 #include <string>
 #include <utility>
 
-#include "ignition/transport/log/Descriptor.hh"
-#include "ignition/transport/log/Log.hh"
-#include "ignition/transport/log/SqlStatement.hh"
+#include "gz/transport/log/Descriptor.hh"
+#include "gz/transport/log/Log.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "Console.hh"
 #include "Descriptor.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief Private implementation
-class ignition::transport::log::Log::Implementation
+class gz::transport::log::Log::Implementation
 {
   /// \internal \sa Log::Descriptor()
   public: const log::Descriptor *Descriptor() const;

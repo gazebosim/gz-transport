@@ -50,7 +50,7 @@
 #include <mutex>
 #include <vector>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 DEFINE_bool(h, false, "Show help");
 DEFINE_bool(t, false, "Throughput testing");
@@ -87,12 +87,12 @@ class FloodSub
 
   /// \brief Dummy callback.
   /// \param[in] _msg The message.
-  public: void OnMsg(const ignition::msgs::Bytes & /*_msg*/)
+  public: void OnMsg(const gz::msgs::Bytes & /*_msg*/)
   {
   }
 
   /// \brief Communication node.
-  private: ignition::transport::Node node;
+  private: gz::transport::Node node;
 };
 
 /// \brief A class that publishes on a number of `/benchmark/flood/*`
@@ -112,7 +112,7 @@ class FloodPub
       std::ostringstream stream;
       stream << "/benchmark/flood/"  << i;
       this->floodPubs.push_back(
-          this->node.Advertise<ignition::msgs::Bytes>(stream.str()));
+          this->node.Advertise<gz::msgs::Bytes>(stream.str()));
     }
     if (!this->floodPubs.empty())
       this->runThread = std::thread(&FloodPub::RunLoop, this);
@@ -135,7 +135,7 @@ class FloodPub
   /// \brief Run the publishers.
   private: void RunLoop()
   {
-    ignition::msgs::Bytes msg;
+    gz::msgs::Bytes msg;
     int size = 1000;
     char *byteData = new char[size];
     std::memset(byteData, '0', size);
@@ -144,7 +144,7 @@ class FloodPub
     this->running = true;
     while (this->running)
     {
-      for (ignition::transport::Node::Publisher &pub : this->floodPubs)
+      for (gz::transport::Node::Publisher &pub : this->floodPubs)
       {
         pub.Publish(msg);
       }
@@ -153,7 +153,7 @@ class FloodPub
   }
 
   /// \brief Communication node.
-  private: ignition::transport::Node node;
+  private: gz::transport::Node node;
 
   /// \brief Run thread.
   private: std::thread runThread;
@@ -162,7 +162,7 @@ class FloodPub
   private: bool running{false};
 
   /// \brief The publishers.
-  private: std::vector<ignition::transport::Node::Publisher> floodPubs;
+  private: std::vector<gz::transport::Node::Publisher> floodPubs;
 };
 
 /// \brief The ReplyTester subscribes to the benchmark topics, and relays
@@ -173,14 +173,14 @@ class FloodPub
 ///   1. /benchmark/latency/request For latency testing
 ///   2. /benchmark/throughput/request For throughput testing.
 ///
-/// The incoming and outgoing message types are ignition::msgs::Bytes.
+/// The incoming and outgoing message types are gz::msgs::Bytes.
 class ReplyTester
 {
   /// Constructor that creates the publishers and subscribers.
   public: ReplyTester()
   {
     // Advertise on the throughput reply topic
-    this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
+    this->throughputPub = this->node.Advertise<gz::msgs::Bytes>(
         "/benchmark/throughput/reply");
     if (!this->throughputPub)
     {
@@ -190,7 +190,7 @@ class ReplyTester
     }
 
     // Advertise on the latency reply topic
-    this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
+    this->latencyPub = this->node.Advertise<gz::msgs::Bytes>(
         "/benchmark/latency/reply");
     if (!this->latencyPub)
     {
@@ -225,7 +225,7 @@ class ReplyTester
 
   /// \brief Function called each time a throughput message is received.
   /// \param[in] _msg Incoming message of variable size.
-  private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
+  private: void ThroughputCb(const gz::msgs::Bytes &_msg)
   {
     if (this->prevStamp > 0 && _msg.header().stamp().sec() != 0)
     {
@@ -246,19 +246,19 @@ class ReplyTester
 
   /// \brief Function called each time a latency message is received.
   /// \param[in] _msg Incoming message of variable size.
-  private: void LatencyCb(const ignition::msgs::Bytes &_msg)
+  private: void LatencyCb(const gz::msgs::Bytes &_msg)
   {
     this->latencyPub.Publish(_msg);
   }
 
   /// \brief The transport node
-  private: ignition::transport::Node node;
+  private: gz::transport::Node node;
 
   /// \brief The throughput publisher
-  private: ignition::transport::Node::Publisher throughputPub;
+  private: gz::transport::Node::Publisher throughputPub;
 
   /// \brief The latency publisher
-  private: ignition::transport::Node::Publisher latencyPub;
+  private: gz::transport::Node::Publisher latencyPub;
 
   private: int prevStamp = 0;
 };
@@ -305,7 +305,7 @@ class PubTester
   public: void Init()
   {
     // Throughput publisher
-    this->throughputPub = this->node.Advertise<ignition::msgs::Bytes>(
+    this->throughputPub = this->node.Advertise<gz::msgs::Bytes>(
         "/benchmark/throughput/request");
     if (!this->throughputPub)
     {
@@ -315,7 +315,7 @@ class PubTester
     }
 
     // Latency publisher
-    this->latencyPub = this->node.Advertise<ignition::msgs::Bytes>(
+    this->latencyPub = this->node.Advertise<gz::msgs::Bytes>(
         "/benchmark/latency/request");
     if (!this->latencyPub)
     {
@@ -535,7 +535,7 @@ class PubTester
 
   /// \brief Callback that handles throughput replies
   /// \param[in] _msg The reply message
-  private: void ThroughputCb(const ignition::msgs::Bytes &_msg)
+  private: void ThroughputCb(const gz::msgs::Bytes &_msg)
   {
     // Lock
     std::unique_lock<std::mutex> lk(this->mutex);
@@ -564,7 +564,7 @@ class PubTester
 
   /// \brief Callback that handles latency replies
   /// \param[in] _msg The reply message
-  private: void LatencyCb(const ignition::msgs::Bytes &_msg)
+  private: void LatencyCb(const gz::msgs::Bytes &_msg)
   {
     // End the time.
     this->timeEnd = std::chrono::high_resolution_clock::now();
@@ -604,7 +604,7 @@ class PubTester
   private: std::mutex mutex;
 
   /// \brief Message that is sent.
-  private: ignition::msgs::Bytes msg;
+  private: gz::msgs::Bytes msg;
 
   /// \brief Size of the message currently under test
   private: uint64_t dataSize = 0;
@@ -619,13 +619,13 @@ class PubTester
   private: uint64_t sentMsgs = 100;
 
   /// \brief Communication node
-  private: ignition::transport::Node node;
+  private: gz::transport::Node node;
 
   /// \brief Throughput publisher
-  private: ignition::transport::Node::Publisher throughputPub;
+  private: gz::transport::Node::Publisher throughputPub;
 
   /// \brief Latency publisher
-  private: ignition::transport::Node::Publisher latencyPub;
+  private: gz::transport::Node::Publisher latencyPub;
 
   /// \brief Used to stop the test.
   private: bool stop = false;

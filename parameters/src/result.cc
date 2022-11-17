@@ -18,7 +18,7 @@
 #include <ostream>
 #include <sstream>
 
-#include "ignition/transport/parameters/result.hh"
+#include "gz/transport/parameters/result.hh"
 
 using namespace ignition;
 using namespace transport;

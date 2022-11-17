@@ -18,9 +18,9 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/Uuid.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 #ifdef _WIN32

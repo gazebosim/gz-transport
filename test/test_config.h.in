@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_TEST_CONFIG_HH_
-#define IGNITION_TRANSPORT_TEST_CONFIG_HH_
+#ifndef GZ_TRANSPORT_TEST_CONFIG_HH_
+#define GZ_TRANSPORT_TEST_CONFIG_HH_
 
 #define IGN_PATH "@HAVE_IGN_TOOLS@"
 #define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
@@ -52,7 +52,7 @@
   #include <unistd.h>
 #endif
 
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/Helpers.hh"
 
 #if (_MSC_VER >= 1400) // Visual Studio 2005
   #include <sstream>

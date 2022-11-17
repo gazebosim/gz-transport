@@ -18,12 +18,12 @@
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Provide an "echo" service.
-bool srvEcho(const ignition::msgs::StringMsg &_req,
-  ignition::msgs::StringMsg &_rep)
+bool srvEcho(const gz::msgs::StringMsg &_req,
+  gz::msgs::StringMsg &_rep)
 {
   // Set the response's content.
   _rep.set_data(_req.data());
@@ -37,11 +37,11 @@ int main(int argc, char **argv)
 {
   // Let's print the list of our network interfaces.
   std::cout << "List of network interfaces in this machine:" << std::endl;
-  for (const auto &netIface : ignition::transport::determineInterfaces())
+  for (const auto &netIface : gz::transport::determineInterfaces())
     std::cout << "\t" << netIface << std::endl;
 
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string service = "/echo";
 
   // Advertise a service.
@@ -52,5 +52,5 @@ int main(int argc, char **argv)
   }
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

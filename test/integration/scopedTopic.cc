@@ -19,12 +19,12 @@
 #include <string>
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Node.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -43,14 +43,14 @@ TEST(ScopedTopicTest, ProcessTest)
   testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
     partition.c_str());
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
   transport::AdvertiseMessageOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(pub.Publish(msg));

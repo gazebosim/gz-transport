@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 
@@ -48,7 +48,7 @@ static std::mutex dataMutex;
 void TrackMessages(std::vector<MessageInformation> &_archive,
                    const char *_data,
                    std::size_t _len,
-                   const ignition::transport::MessageInfo &_msgInfo)
+                   const gz::transport::MessageInfo &_msgInfo)
 {
   MessageInformation info;
   info.data = std::string(_data, _len);
@@ -104,13 +104,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -119,12 +119,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+    gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -133,7 +133,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -156,7 +156,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 
   // Ensure playback times are reasonable.
   const std::chrono::milliseconds expectedDuration{
-    numChirps * ignition::transport::log::test::DelayBetweenChirps_ms};
+    numChirps * gz::transport::log::test::DelayBetweenChirps_ms};
   // Windows uses system clock for sleep, and playback uses a steady clock.
   // This can lead to errors.
 #ifdef _WIN32
@@ -178,13 +178,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 //////////////////////////////////////////////////
 TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 {
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   const std::string logName =
     "file:playbackReplayNoSuchTopic?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   EXPECT_FALSE(playback.AddTopic("/DNE"));
@@ -204,13 +204,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -220,12 +220,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -234,7 +234,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -271,13 +271,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -287,12 +287,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -301,7 +301,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Clear out the old data so we can recreate it during the playback
@@ -380,13 +380,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder_orig;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder_orig;
 
   for (const std::string &topic : topics)
   {
@@ -394,16 +394,16 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
   }
   recorder_orig.AddTopic(std::regex(".*"));
 
-  ignition::transport::log::Recorder recorder(std::move(recorder_orig));
+  gz::transport::log::Recorder recorder(std::move(recorder_orig));
 
   const std::string logName =
     "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -412,7 +412,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback_orig(logName);
+  gz::transport::log::Playback playback_orig(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -422,7 +422,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
   incomingData.clear();
 
   playback_orig.AddTopic(std::regex(".*"));
-  ignition::transport::log::Playback playback(std::move(playback_orig));
+  gz::transport::log::Playback playback(std::move(playback_orig));
   const auto handle = playback.Start();
 
   std::cout << "Waiting to for playback to finish..." << std::endl;
@@ -450,13 +450,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -465,12 +465,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+    gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -479,7 +479,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -498,7 +498,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
   // Wait until approximately half of the chirps have been played back
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms *
+          gz::transport::log::test::DelayBetweenChirps_ms *
           numChirps / 2));
 
   // Pause Playback
@@ -529,7 +529,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
   // Playback around a quarter of the total number of chirps
   std::this_thread::sleep_for(
         std::chrono::milliseconds(
-          ignition::transport::log::test::DelayBetweenChirps_ms *
+          gz::transport::log::test::DelayBetweenChirps_ms *
           numChirps / 4));
 
   handle->Pause();
@@ -572,13 +572,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -587,12 +587,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+    gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -601,7 +601,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Make a copy of the data so we can compare it later
@@ -618,7 +618,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
   const auto handle = playback.Start();
 
   std::chrono::milliseconds totalDurationMs(
-      ignition::transport::log::test::DelayBetweenChirps_ms * numChirps);
+      gz::transport::log::test::DelayBetweenChirps_ms * numChirps);
 
   // Wait until approximately an tenth of the chirps have been played back
   std::this_thread::sleep_for(totalDurationMs / 10);
@@ -688,13 +688,13 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   auto callback = [&incomingData](
       const char *_data,
       std::size_t _len,
-      const ignition::transport::MessageInfo &_msgInfo)
+      const gz::transport::MessageInfo &_msgInfo)
   {
     TrackMessages(incomingData, _data, _len, _msgInfo);
   };
 
-  ignition::transport::Node node;
-  ignition::transport::log::Recorder recorder;
+  gz::transport::Node node;
+  gz::transport::log::Recorder recorder;
 
   for (const std::string &topic : topics)
   {
@@ -703,12 +703,12 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   }
 
   const std::string logName = "file:playbackReplayLog?mode=memory&cache=shared";
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
     recorder.Start(logName));
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-    ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+    gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -717,7 +717,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Create playback before stopping so sqlite memory database is shared
-  ignition::transport::log::Playback playback(logName);
+  gz::transport::log::Playback playback(logName);
   recorder.Stop();
 
   // Clear out the old data so we can recreate it during the playback
@@ -731,7 +731,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   const auto handle = playback.Start();
 
   std::chrono::milliseconds totalDurationMs(
-      ignition::transport::log::test::DelayBetweenChirps_ms * numChirps);
+      gz::transport::log::test::DelayBetweenChirps_ms * numChirps);
 
   // Wait until approximately an tenth of the chirps have been played back
   std::this_thread::sleep_for(totalDurationMs / 10);
@@ -744,9 +744,9 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   // Seek to time after about 10 messages have been published
   // and play two messages from that point of time.
   handle->Seek(std::chrono::milliseconds(
-      ignition::transport::log::test::DelayBetweenChirps_ms * 10));
+      gz::transport::log::test::DelayBetweenChirps_ms * 10));
   handle->Step(std::chrono::milliseconds(
-      ignition::transport::log::test::DelayBetweenChirps_ms * 2));
+      gz::transport::log::test::DelayBetweenChirps_ms * 2));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
   const MessageInformation firstMessageData{incomingData.back()};
@@ -756,7 +756,7 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   // Play about 5 messages before pausing again
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
-        ignition::transport::log::test::DelayBetweenChirps_ms * 5));
+        gz::transport::log::test::DelayBetweenChirps_ms * 5));
 
   handle->Pause();
 
@@ -768,9 +768,9 @@ TEST(playback, IGN_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   // Seek to time after about 10 messages have been published
   // and play two messages from that point of time.
   handle->Seek(std::chrono::milliseconds(
-      ignition::transport::log::test::DelayBetweenChirps_ms * 10));
+      gz::transport::log::test::DelayBetweenChirps_ms * 10));
   handle->Step(std::chrono::milliseconds(
-      ignition::transport::log::test::DelayBetweenChirps_ms * 2));
+      gz::transport::log::test::DelayBetweenChirps_ms * 2));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
   const MessageInformation thirdMessageData{incomingData.back()};
@@ -802,7 +802,7 @@ int main(int argc, char **argv)
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
 
-  setenv(ignition::transport::log::SchemaLocationEnvVar.c_str(),
+  setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
          IGN_TRANSPORT_LOG_SQL_PATH, 1);
 
   ::testing::InitGoogleTest(&argc, argv);

@@ -15,16 +15,16 @@
  *
 */
 
-#include "ignition/transport/log/Descriptor.hh"
+#include "gz/transport/log/Descriptor.hh"
 #include "Descriptor.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 /// \brief test hook for Descriptor
-class ignition::transport::log::Log
+class gz::transport::log::Log
 {
   /// \brief Construct a descriptor
   public: static Descriptor Construct()

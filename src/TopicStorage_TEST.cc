@@ -20,12 +20,12 @@
 #include <string>
 #include <vector>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TopicStorage.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TopicStorage.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global variables.
@@ -487,9 +487,9 @@ TEST(TopicStorageTest, HasTopicWithType)
 
   std::string ctrl = "ctrl_address";
   MessagePublisher publisher1(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid1,
-    "type1", ignition::transport::AdvertiseMessageOptions());
+    "type1", AdvertiseMessageOptions());
   MessagePublisher publisher2(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid2,
-    "type2", ignition::transport::AdvertiseMessageOptions());
+    "type2", AdvertiseMessageOptions());
 
   TopicStorage<MessagePublisher> test;
 

@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/parameters/Registry.hh"
+#include "gz/transport/parameters/Registry.hh"
 
 #include <memory>
 #include <mutex>
@@ -33,7 +33,7 @@
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
 
-#include <ignition/transport/parameters/result.hh>
+#include <gz/transport/parameters/result.hh>
 
 #include "Utils.hh"
 

@@ -20,11 +20,11 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
@@ -51,7 +51,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const ignition::msgs::Int32 &/*_msg*/)
+void cb(const msgs::Int32 &/*_msg*/)
 {
   cbExecuted = true;
   ++counter;
@@ -59,8 +59,8 @@ void cb(const ignition::msgs::Int32 &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cbInfo(const ignition::msgs::Int32 &_msg,
-            const ignition::transport::MessageInfo &_info)
+void cbInfo(const msgs::Int32 &_msg,
+            const transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
@@ -80,7 +80,7 @@ void genericCb(const transport::ProtoMsg &/*_msg*/)
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
+void cbVector(const msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
   ++counter;
@@ -88,7 +88,7 @@ void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
 
 //////////////////////////////////////////////////
 void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
-           const ignition::transport::MessageInfo &/*_info*/)
+           const transport::MessageInfo &/*_info*/)
 {
   cbRawExecuted = true;
   ++counter;
@@ -102,7 +102,7 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
@@ -115,7 +115,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 
-  ignition::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
@@ -141,7 +141,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
@@ -154,7 +154,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str());
 
-  ignition::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
@@ -220,7 +220,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 
   transport::Node node;
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                ignition::msgs::Int32().GetTypeName()));
+                                msgs::Int32().GetTypeName()));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -375,7 +375,7 @@ TEST(twoProcPubSub, SubThrottled)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   transport::Node node;
-  ignition::transport::SubscribeOptions opts;
+  transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 

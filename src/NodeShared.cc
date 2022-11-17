@@ -43,15 +43,15 @@
 #pragma warning(pop)
 #endif
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/RepHandler.hh"
-#include "ignition/transport/ReqHandler.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 #include "NodeSharedPrivate.hh"
 
@@ -60,7 +60,7 @@
 #endif
 
 using namespace std::chrono_literals;
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 const char kIgnAuthDomain[] = "ign-auth";
@@ -755,7 +755,7 @@ void NodeShared::RecvSrvRequest()
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
-    if (repType == ignition::msgs::Empty().GetTypeName())
+    if (repType == msgs::Empty().GetTypeName())
     {
       return;
     }
@@ -1124,7 +1124,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
-      if (_repType == ignition::msgs::Empty().GetTypeName())
+      if (_repType == msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
@@ -1850,7 +1850,7 @@ void NodeSharedPrivate::PublishThread()
 }
 
 //////////////////////////////////////////////////
-std::optional<transport::TopicStatistics> NodeShared::TopicStats(
+std::optional<TopicStatistics> NodeShared::TopicStats(
     const std::string &_topic) const
 {
   if (this->dataPtr->topicStats.find(_topic) != this->dataPtr->topicStats.end())

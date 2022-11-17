@@ -17,13 +17,13 @@
 
 #include <chrono>
 
-#include <ignition/transport/log/QualifiedTime.hh>
+#include <gz/transport/log/QualifiedTime.hh>
 
-using namespace ignition::transport::log;
+using namespace gz::transport::log;
 
 //////////////////////////////////////////////////
 /// \internal Implementation for QualifiedTime
-class ignition::transport::log::QualifiedTime::Implementation
+class gz::transport::log::QualifiedTime::Implementation
 {
   /// \internal \sa QualifiedTime(const std::chrono::nanoseconds&, Qualifier)
   public: Implementation(const Time &_time,
@@ -209,7 +209,7 @@ static bool EndPointEqual(const QualifiedTime &_t1, const QualifiedTime &_t2)
 }
 
 //////////////////////////////////////////////////
-class ignition::transport::log::QualifiedTimeRange::Implementation
+class gz::transport::log::QualifiedTimeRange::Implementation
 {
   /// \internal \sa QualifiedTimeRange()
   public: Implementation(const QualifiedTime &_begin,
