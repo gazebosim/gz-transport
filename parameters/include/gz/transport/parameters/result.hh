@@ -32,9 +32,10 @@ namespace gz
     {
       // Inline bracket to help doxygen filtering.
       inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-        enum class GZ_TRANSPORT_PARAMETERS_VISIBLE
-        /// \brief Possible result types of the different parameters opeartions.
-        ParameterResultType {
+
+        /// \brief Possible result types of the different parameters operations.
+        enum class ParameterResultType
+        {
           Success,
           AlreadyDeclared,
           InvalidType,
