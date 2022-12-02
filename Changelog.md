@@ -1,12 +1,17 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.3.1 (2022-12-01)
+
+1. Fix CLI configuration install path to ignition
+    * [Pull request #372](https://github.com/gazebosim/gz-transport/pull/372)
+
 ### Gazebo Transport 11.3.0 (2022-10-31)
 
 1. Add parameters component
-    * [Pull request #305](https://github.com/gazebosim/ign-transport/pull/305)
+    * [Pull request #305](https://github.com/gazebosim/gz-transport/pull/305)
 
 1. Fix build for Debian Bullseye
-    * [Pull request #363](https://github.com/gazebosim/ign-transport/pull/363)
+    * [Pull request #363](https://github.com/gazebosim/gz-transport/pull/363)
 
 ### Gazebo Transport 11.2.0 (2022-08-16)
 
