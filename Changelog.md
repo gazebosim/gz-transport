@@ -1,5 +1,10 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.3.2 (2022-12-08)
+
+1. Fix include/ignition/.../parameters header files
+    * [Pull request #374](https://github.com/gazebosim/gz-transport/pull/374)
+
 ### Gazebo Transport 11.3.1 (2022-12-01)
 
 1. Fix CLI configuration install path to ignition
