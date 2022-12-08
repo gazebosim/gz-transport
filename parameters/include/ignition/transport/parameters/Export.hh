@@ -15,5 +15,5 @@
  *
  */
 
-#include <gz/transport/parameters/results.hh>
+#include <gz/transport/parameters/Export.hh>
 #include <ignition/transport/config.hh>
