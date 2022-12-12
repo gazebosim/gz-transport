@@ -30,7 +30,7 @@ static int g_data = 5;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without output.
-void srvWithoutOutput(const gz::msgs::Int32 &_req)
+void srvWithoutOutput(const msgs::Int32 &_req)
 {
   EXPECT_EQ(_req.data(), g_data);
 }

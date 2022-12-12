@@ -39,7 +39,7 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   transport::Node node;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
 #ifndef GZ_TRANSPORT_DETAIL_NODE_HH_
 #define GZ_TRANSPORT_DETAIL_NODE_HH_

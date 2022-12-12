@@ -44,7 +44,7 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
     g_partition.c_str());
 
   int64_t timeout = 500;
-  gz::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
 
   transport::Node node;

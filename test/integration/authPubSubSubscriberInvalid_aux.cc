@@ -30,7 +30,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const gz::msgs::Int32 &/*_msg*/)
+void cb(const msgs::Int32 &/*_msg*/)
 {
   std::cerr << "CALLBACK\n";
   cbExecuted = true;

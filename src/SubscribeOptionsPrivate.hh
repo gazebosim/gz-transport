@@ -29,7 +29,7 @@ namespace gz
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
     /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
-    /// ignition/transport/SubscribeOptionsPrivate.hh
+    /// gz/transport/SubscribeOptionsPrivate.hh
     /// \brief Private data for the SubscribeOptions class.
     class SubscribeOptionsPrivate
     {
