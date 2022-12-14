@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-transport12 VERSION 12.0.0)
+project(gz-transport12 VERSION 12.1.0)
 
 #============================================================================
 # Find gz-cmake
@@ -18,7 +18,7 @@ set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
