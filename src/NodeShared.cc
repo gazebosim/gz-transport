@@ -1397,7 +1397,7 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnSubscribers(const MessagePublisher &/*_pub*/)
 {
-  std::cout << "Nodeshared::OnSubscribers()" << std::endl;
+  //std::cout << "Nodeshared::OnSubscribers()" << std::endl;
   // Get the list of local subscribers.
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
   auto topics = this->localSubscribers.Data();
