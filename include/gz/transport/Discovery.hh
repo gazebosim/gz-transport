@@ -398,6 +398,17 @@ namespace gz
         return true;
       }
 
+      /// \brief ToDo.
+      public: void SendSubscriber(const MessagePublisher &_pub) const
+      {
+        Pub pub;
+        pub.SetTopic(_pub.Topic());
+        pub.SetPUuid(this->pUuid);
+
+        // Send a discovery request.
+        this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBE, pub);
+      }
+
       /// \brief Register a node from this process as a remote subscriber.
       /// \param[in] _pub Contains information about the subscriber.
       public: void Register(const MessagePublisher &_pub) const
@@ -573,6 +584,13 @@ namespace gz
         this->unregistrationCb = _cb;
       }
 
+      /// \brief ToDo.
+      public: void SubscribersCb(const DiscoveryCallback<Pub> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->subscribersCb = _cb;
+      }
+
       /// \brief Print the current discovery state.
       public: void PrintCurrentState() const
       {
@@ -617,11 +635,29 @@ namespace gz
 
       /// \brief Get the list of topics currently advertised in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void TopicList(std::vector<std::string> &_topics) const
+      public: void TopicList(std::vector<std::string> &_topics)
       {
+        this->remoteSubscribers.Clear();
+
+        // Request the list of subscribers.
+        Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
+        this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBERS, pub);
+
         this->WaitForInit();
         std::lock_guard<std::mutex> lock(this->mutex);
         this->info.TopicList(_topics);
+
+        std::vector<std::string> remoteSubs;
+        this->remoteSubscribers.TopicList(remoteSubs);
+
+        // Add the remote subscribers
+        for (auto const &t : remoteSubs)
+        {
+          if (std::find(_topics.begin(), _topics.end(), t) == _topics.end())
+          {
+            _topics.push_back(t);
+          }
+        }
       }
 
       /// \brief Check if ready/initialized. If not, then wait on the
@@ -926,6 +962,7 @@ namespace gz
         DiscoveryCallback<Pub> disconnectCb;
         DiscoveryCallback<Pub> registerCb;
         DiscoveryCallback<Pub> unregisterCb;
+        DiscoveryCallback<Pub> subscribersReqCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
@@ -933,6 +970,7 @@ namespace gz
           disconnectCb = this->disconnectionCb;
           registerCb = this->registrationCb;
           unregisterCb = this->unregistrationCb;
+          subscribersReqCb = this->subscribersCb;
         }
 
         switch (msg.type())
@@ -981,6 +1019,15 @@ namespace gz
               break;
             }
 
+            // Save the subscriber as a remote subscriber.
+            Pub publisher;
+            publisher.SetFromDiscovery(msg);
+
+            {
+              std::lock_guard<std::mutex> lock(this->mutex);
+              this->remoteSubscribers.AddPublisher(publisher);
+            }
+
             // Check if at least one of my nodes advertises the topic requested.
             Addresses_M<Pub> addresses;
             {
@@ -1008,6 +1055,16 @@ namespace gz
               this->SendMsg(DestinationType::ALL,
                   msgs::Discovery::ADVERTISE, nodeInfo);
             }
+
+            break;
+          }
+          case msgs::Discovery::SUBSCRIBERS:
+          {
+            Pub publisher;
+            publisher.SetFromDiscovery(msg);
+
+            if (subscribersReqCb)
+              subscribersReqCb(publisher);
 
             break;
           }
@@ -1132,6 +1189,7 @@ namespace gz
           }
           case msgs::Discovery::HEARTBEAT:
           case msgs::Discovery::BYE:
+          case msgs::Discovery::SUBSCRIBERS:
             break;
           default:
             std::cerr << "Discovery::SendMsg() error: Unrecognized message"
@@ -1450,8 +1508,17 @@ namespace gz
       /// \brief Callback executed when a new remote subscriber is unregistered.
       private: DiscoveryCallback<Pub> unregistrationCb;
 
+      /// \brief Callback executed when a SUBSCRIBERS message is received.
+      private: DiscoveryCallback<Pub> subscribersCb;
+
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
+
+      /// \brief Local subscribers.
+      private: TopicStorage<Pub> localSubscribers;
+
+      /// \brief Remote subscribers.
+      private: TopicStorage<Pub> remoteSubscribers;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

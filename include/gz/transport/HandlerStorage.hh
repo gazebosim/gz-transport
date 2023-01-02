@@ -159,6 +159,12 @@ namespace gz
         return true;
       }
 
+      /// \brief ToDo.
+      public: TopicServiceCalls_M &AllHandlers()
+      {
+        return this->data;
+      }
+
       /// \brief Add a request handler to a topic. A request handler stores
       /// the callback and types associated to a service call request.
       /// \param[in] _topic Topic name.

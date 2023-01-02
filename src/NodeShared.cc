@@ -353,6 +353,9 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->UnregistrationsCb(
       std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
 
+  this->dataPtr->msgDiscovery->SubscribersCb(
+      std::bind(&NodeShared::OnSubscribers, this, std::placeholders::_1));
+
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
@@ -1392,6 +1395,24 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
+void NodeShared::OnSubscribers(const MessagePublisher &/*_pub*/)
+{
+  std::cout << "Nodeshared::OnSubscribers()" << std::endl;
+  // Get the list of local subscribers.
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  auto topics = this->localSubscribers.Data();
+
+  // Reply to the SUBSCRIBERS request.
+  for (auto const &topic : topics)
+  {
+    MessagePublisher publisher;
+    publisher.SetTopic(topic);
+
+    this->dataPtr->msgDiscovery->SendSubscriber(publisher);
+  }
+}
+
+//////////////////////////////////////////////////
 bool NodeShared::InitializeSockets()
 {
   try
@@ -1660,6 +1681,19 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
   return removed;
 }
 
+// //////////////////////////////////////////////////
+std::vector<std::string> NodeShared::HandlerWrapper::Data()
+{
+  std::vector<std::string> topics;
+
+  for (auto &aPair : this->normal.AllHandlers())
+    topics.push_back(aPair.first);
+
+  for (auto &aPair : this->raw.AllHandlers())
+    topics.push_back(aPair.first);
+
+  return topics;
+}
 
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityOnNewConnection()
