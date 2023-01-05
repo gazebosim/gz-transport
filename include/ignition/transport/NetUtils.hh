@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,61 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
-#ifndef IGN_TRANSPORT_NETUTILS_HH_
-#define IGN_TRANSPORT_NETUTILS_HH_
-
-#include <string>
-#include <vector>
-
-#include "ignition/transport/config.hh"
-#include "ignition/transport/Export.hh"
-
-namespace ignition
-{
-  namespace transport
-  {
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \brief Determine if an IP is private.
-    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
-    /// roscpp/src/libros/network.cpp
-    /// \param[in] _ip Input IP address.
-    /// \return true if the IP address is private.
-    bool isPrivateIP(const char *_ip);
-
-    /// \brief Determine if an IP is private.
-    /// \param[in] _hostname Hostname
-    /// \param[out] _ip IP associated to the input hostname.
-    /// \return 0 when success.
-    int hostnameToIp(char *_hostname, std::string &_ip);
-
-    /// \brief Determine IP or hostname.
-    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
-    /// roscpp/src/libros/network.cpp
-    /// \return The IP or hostname of this host.
-    std::string IGNITION_TRANSPORT_VISIBLE determineHost();
-
-    /// \brief Determine the list of network interfaces for this machine.
-    /// Reference: https://github.com/ros/ros_comm/blob/hydro-devel/clients/
-    /// roscpp/src/libros/network.cpp
-    /// \return The list of network interfaces.
-    std::vector<std::string> IGNITION_TRANSPORT_VISIBLE determineInterfaces();
-
-    /// \brief Determine the computer's hostname.
-    /// \return The computer's hostname.
-    std::string IGNITION_TRANSPORT_VISIBLE hostname();
-
-    /// \brief Determine your login name.
-    /// \return Name used to gain access to the computer.
-    /// On linux and Mac only, if determination
-    /// of your login name failes then a string of the form "error-UUID"
-    /// is returned where UUID is a universally unique identifier.
-    std::string IGNITION_TRANSPORT_VISIBLE username();
-    }
-  }
-}
-
-#endif
+#include <gz/transport/NetUtils.hh>
+#include <ignition/transport/config.hh>

@@ -18,7 +18,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "ignition/transport/parameters/Registry.hh"
+#include "gz/transport/parameters/Registry.hh"
 #include "ParamCommandAPI.hh"
 
 #include <ignition/msgs/boolean.pb.h>

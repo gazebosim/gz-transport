@@ -1,5 +1,5 @@
 # Used only for internal testing.
-set(ign_library_path "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/ignition/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
+set(gz_library_path "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate a configuration file for internal testing.
 # Note that the major version of the library is included in the name.
@@ -13,7 +13,7 @@ file(GENERATE
   INPUT "${CMAKE_CURRENT_BINARY_DIR}/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml.configured")
 
 # Used for the installed version.
-set(ign_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
+set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate the configuration file that is installed.
 # Note that the major version of the library is included in the name.

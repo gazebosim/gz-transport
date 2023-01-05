@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/parameters/Registry.hh"
+#include "gz/transport/parameters/Registry.hh"
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>

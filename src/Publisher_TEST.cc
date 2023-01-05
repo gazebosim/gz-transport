@@ -19,11 +19,11 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Publisher.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Publisher.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants.

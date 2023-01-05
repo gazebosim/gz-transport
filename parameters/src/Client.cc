@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/parameters/Client.hh"
+#include "gz/transport/parameters/Client.hh"
 
 #include <memory>
 #include <sstream>
@@ -26,7 +26,7 @@
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
 
-#include "ignition/transport/parameters/result.hh"
+#include "gz/transport/parameters/result.hh"
 
 #include "Utils.hh"
 

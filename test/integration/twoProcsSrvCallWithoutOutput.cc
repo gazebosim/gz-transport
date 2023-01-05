@@ -19,12 +19,12 @@
 #include <string>
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
@@ -48,7 +48,7 @@ void reset()
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  ignition::msgs::Vector3d wrongReq;
+  msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,

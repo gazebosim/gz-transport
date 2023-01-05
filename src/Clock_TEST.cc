@@ -21,13 +21,13 @@
 
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Clock.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/Clock.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/test_config.h"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check WallClock functionality.
@@ -61,16 +61,16 @@ using TimeBase = transport::NetworkClock::TimeBase;
 /// parameterized by transport::NetworkClock::TimeBase.
 class NetworkClockTest : public ::testing::TestWithParam<TimeBase>
 {
-  /// \brief Makes an ignition::msgs::Clock message out of the
+  /// \brief Makes an msgs::Clock message out of the
   /// given @p _secs and @p _nsecs.
   /// \param[in] _secs Seconds for the message to be made.
   /// \param[in] _nsecs Nanoseconds for the message to be made.
-  /// \return An ignition::msgs::Clock message.
-  protected: ignition::msgs::Clock MakeClockMessage(
+  /// \return An msgs::Clock message.
+  protected: msgs::Clock MakeClockMessage(
       const std::chrono::seconds& _secs,
       const std::chrono::nanoseconds& _nsecs)
   {
-    ignition::msgs::Clock clockMsg;
+    msgs::Clock clockMsg;
     switch (GetParam())
     {
       case TimeBase::SIM:
@@ -107,9 +107,9 @@ TEST_P(NetworkClockTest, Functionality)
   EXPECT_FALSE(clock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<ignition::msgs::Clock>(clockTopicName);
+      node.Advertise<msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(ignition::msgs::Clock());
+  clockPub.Publish(msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(clock.IsReady());
   const std::chrono::seconds expectedSecs{54321};
@@ -145,9 +145,9 @@ TEST(ClockTest, BadNetworkClock)
   EXPECT_FALSE(badTimebaseClock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<ignition::msgs::Clock>(clockTopicName);
+      node.Advertise<msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(ignition::msgs::Clock());
+  clockPub.Publish(msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(badTimebaseClock.IsReady());
   badTimebaseClock.SetTime(std::chrono::seconds(10));

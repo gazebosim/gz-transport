@@ -21,8 +21,8 @@
 #include <optional>
 #include <string>
 
-#include "ignition/transport/config.hh"
-#include "ignition/transport/parameters/Export.hh"
+#include "gz/transport/config.hh"
+#include "gz/transport/parameters/Export.hh"
 
 #if defined(_MSC_VER)
 #pragma warning(push)

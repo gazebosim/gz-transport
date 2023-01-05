@@ -30,7 +30,7 @@
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
 
-#include <ignition/transport/parameters/Client.hh>
+#include <gz/transport/parameters/Client.hh>
 
 using namespace ignition;
 using namespace transport;

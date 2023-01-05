@@ -22,14 +22,14 @@
 #include <thread>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Discovery.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/Uuid.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Discovery.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 // Global constants used for multiple tests.
@@ -45,27 +45,27 @@ static std::string service = testing::getRandomNumber(); // NOLINT(*)
 static std::string addr1   = "tcp://127.0.0.1:12345"; // NOLINT(*)
 static std::string ctrl1   = "tcp://127.0.0.1:12346"; // NOLINT(*)
 static std::string id1     = "identity1"; // NOLINT(*)
-static std::string pUuid1  = transport::Uuid().ToString(); // NOLINT(*)
-static std::string nUuid1  = transport::Uuid().ToString(); // NOLINT(*)
+static std::string pUuid1  = Uuid().ToString(); // NOLINT(*)
+static std::string nUuid1  = Uuid().ToString(); // NOLINT(*)
 static std::string addr2   = "tcp://127.0.0.1:12347"; // NOLINT(*)
 static std::string ctrl2   = "tcp://127.0.0.1:12348"; // NOLINT(*)
 static std::string id2     = "identity2"; // NOLINT(*)
-static std::string pUuid2  = transport::Uuid().ToString(); // NOLINT(*)
-static std::string nUuid2  = transport::Uuid().ToString(); // NOLINT(*)
+static std::string pUuid2  = Uuid().ToString(); // NOLINT(*)
+static std::string nUuid2  = Uuid().ToString(); // NOLINT(*)
 static bool connectionExecuted = false;
 static bool disconnectionExecuted = false;
 static int g_counter = 0;
 
 /// \brief Helper class to access the protected member variables of Discovery
 /// within the tests.
-template<typename T> class DiscoveryDerived : public transport::Discovery<T>
+template<typename T> class DiscoveryDerived : public Discovery<T>
 {
   // Documentation inherited.
   public: DiscoveryDerived(const std::string &_pUuid,
                            const std::string &_ip,
                            const int _port,
                            const bool _verbose = false)
-    : transport::Discovery<T>(_pUuid, _ip, _port, _verbose)
+    : Discovery<T>(_pUuid, _ip, _port, _verbose)
   {
   }
 
@@ -105,7 +105,7 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
+void onDiscoveryResponse(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.NUuid() != nUuid1)
@@ -120,7 +120,7 @@ void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received. This is
 /// used in the case of multiple publishers.
-void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
+void onDiscoveryResponseMultiple(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.Topic() != g_topic)
@@ -136,7 +136,7 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDisconnection(const transport::MessagePublisher &_publisher)
+void onDisconnection(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.PUuid() != pUuid1)

@@ -18,13 +18,13 @@
 #include <chrono>
 #include <string>
 
-#include "ignition/transport/log/Message.hh"
+#include "gz/transport/log/Message.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 using namespace std::chrono_literals;
 
-class ignition::transport::log::MessagePrivate
+class gz::transport::log::MessagePrivate
 {
   /// \brief Time received
   public: std::chrono::nanoseconds timeReceived = 0ns;

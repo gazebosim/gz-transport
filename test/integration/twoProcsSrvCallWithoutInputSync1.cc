@@ -20,11 +20,11 @@
 #include <string>
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -44,7 +44,7 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
     g_partition.c_str());
 
   int64_t timeout = 500;
-  ignition::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
 
   transport::Node node;

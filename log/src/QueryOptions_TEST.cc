@@ -20,11 +20,11 @@
 #include <string>
 #include <unordered_set>
 
-#include "ignition/transport/log/QualifiedTime.hh"
-#include "ignition/transport/log/QueryOptions.hh"
+#include "gz/transport/log/QualifiedTime.hh"
+#include "gz/transport/log/QueryOptions.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition::transport;
+using namespace gz::transport;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////

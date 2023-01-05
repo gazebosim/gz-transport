@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/transport/parameters/result.hh"
+#include "gz/transport/parameters/result.hh"
 
 #include "gtest/gtest.h"
 using namespace ignition;
