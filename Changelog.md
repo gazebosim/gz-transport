@@ -1,5 +1,16 @@
 ## Gazebo Transport 12.X
 
+### Gazebo Transport 12.1.0 (2023-01-11)
+
+1. Ignition to Gazebo renaming.
+    * [Pull request #347](https://github.com/gazebosim/gz-transport/pull/347)
+
+1. Use new ignition-specific formatter.
+    * [Pull request #296](https://github.com/gazebosim/gz-transport/pull/296)
+
+1. Remove warnings in Garden on Ubuntu 22.04.
+    * [Pull request #364](https://github.com/gazebosim/gz-transport/pull/364)
+
 ### Gazebo Transport 12.0.0 (2022-09-22)
 
 1. Improved windows instructions
