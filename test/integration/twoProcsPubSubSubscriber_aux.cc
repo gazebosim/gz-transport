@@ -14,13 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/statistic.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -37,7 +35,7 @@ static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const gz::msgs::Vector3d &_msg)
+void cb(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -47,9 +45,9 @@ void cb(const gz::msgs::Vector3d &_msg)
 
 //////////////////////////////////////////////////
 void cbRaw(const char *_msgData, const size_t _size,
-           const gz::transport::MessageInfo &_info)
+           const transport::MessageInfo &_info)
 {
-  gz::msgs::Vector3d v;
+  msgs::Vector3d v;
 
   EXPECT_TRUE(v.GetTypeName() == _info.Type());
 
@@ -64,7 +62,7 @@ void cbRaw(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb2(const gz::msgs::Vector3d &_msg)
+void cb2(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
@@ -73,7 +71,7 @@ void cb2(const gz::msgs::Vector3d &_msg)
 }
 
 //////////////////////////////////////////////////
-void statsCb(const gz::msgs::Metric & /*_msg*/)
+void statsCb(const msgs::Metric & /*_msg*/)
 {
   cbStatsExecuted = true;
 }
@@ -99,7 +97,7 @@ void runSubscriber()
 
   // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                gz::msgs::Vector3d().GetTypeName()));
+                                msgs::Vector3d().GetTypeName()));
 
   int interval = 100;
 

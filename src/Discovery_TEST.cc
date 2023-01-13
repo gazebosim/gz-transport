@@ -58,27 +58,27 @@ static std::string service = testing::getRandomNumber(); // NOLINT(*)
 static std::string addr1   = "tcp://127.0.0.1:12345"; // NOLINT(*)
 static std::string ctrl1   = "tcp://127.0.0.1:12346"; // NOLINT(*)
 static std::string id1     = "identity1"; // NOLINT(*)
-static std::string pUuid1  = transport::Uuid().ToString(); // NOLINT(*)
-static std::string nUuid1  = transport::Uuid().ToString(); // NOLINT(*)
+static std::string pUuid1  = Uuid().ToString(); // NOLINT(*)
+static std::string nUuid1  = Uuid().ToString(); // NOLINT(*)
 static std::string addr2   = "tcp://127.0.0.1:12347"; // NOLINT(*)
 static std::string ctrl2   = "tcp://127.0.0.1:12348"; // NOLINT(*)
 static std::string id2     = "identity2"; // NOLINT(*)
-static std::string pUuid2  = transport::Uuid().ToString(); // NOLINT(*)
-static std::string nUuid2  = transport::Uuid().ToString(); // NOLINT(*)
+static std::string pUuid2  = Uuid().ToString(); // NOLINT(*)
+static std::string nUuid2  = Uuid().ToString(); // NOLINT(*)
 static bool connectionExecuted = false;
 static bool disconnectionExecuted = false;
 static int g_counter = 0;
 
 /// \brief Helper class to access the protected member variables of Discovery
 /// within the tests.
-template<typename T> class DiscoveryDerived : public transport::Discovery<T>
+template<typename T> class DiscoveryDerived : public Discovery<T>
 {
   // Documentation inherited.
   public: DiscoveryDerived(const std::string &_pUuid,
                            const std::string &_ip,
                            const int _port,
                            const bool _verbose = false)
-    : transport::Discovery<T>(_pUuid, _ip, _port, _verbose)
+    : Discovery<T>(_pUuid, _ip, _port, _verbose)
   {
   }
 
@@ -118,7 +118,7 @@ void waitForCallback(int _maxIters, int _sleepTimeIter, const bool &_var)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
+void onDiscoveryResponse(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.NUuid() != nUuid1)
@@ -133,7 +133,7 @@ void onDiscoveryResponse(const transport::MessagePublisher &_publisher)
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received. This is
 /// used in the case of multiple publishers.
-void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
+void onDiscoveryResponseMultiple(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.Topic() != g_topic)
@@ -149,7 +149,7 @@ void onDiscoveryResponseMultiple(const transport::MessagePublisher &_publisher)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a discovery update is received.
-void onDisconnection(const transport::MessagePublisher &_publisher)
+void onDisconnection(const MessagePublisher &_publisher)
 {
   // This discovery event is not relevant for the test, ignore it.
   if (_publisher.PUuid() != pUuid1)
@@ -540,9 +540,16 @@ TEST(DiscoveryTest, TestActivity)
   discovery1.TestActivity(proc2Uuid, false);
 }
 
+/// Logic to disable the following test via Linux
+#if defined __linux__
+  #define TEST_NAME DISABLED_WrongIgnIp
+#else
+  #define TEST_NAME WrongIgnIp
+#endif  // defined __linux__
+
 //////////////////////////////////////////////////
 /// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
-TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))
+TEST(DiscoveryTest, TEST_NAME)
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;

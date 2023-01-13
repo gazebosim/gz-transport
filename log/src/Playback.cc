@@ -480,7 +480,7 @@ void PlaybackHandle::Implementation::CreatePublisher(
   {
     // Create a map for the message topic
     this->publishers[_topic] = std::unordered_map<std::string,
-      gz::transport::Node::Publisher>();
+      Node::Publisher>();
     firstMapIter = this->publishers.find(_topic);
   }
 

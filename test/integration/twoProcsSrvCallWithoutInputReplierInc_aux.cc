@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <climits>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -32,7 +32,7 @@ static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
-bool srvWithoutInput(gz::msgs::Int32 &_rep)
+bool srvWithoutInput(msgs::Int32 &_rep)
 {
   _rep.set_data(g_data);
   return true;

@@ -14,6 +14,9 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
 #include <csignal>
@@ -22,7 +25,6 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/AdvertiseOptions.hh"
@@ -72,7 +74,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const gz::msgs::Int32 &_msg)
+void cb(const msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
@@ -84,7 +86,7 @@ void cb(const gz::msgs::Int32 &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const gz::msgs::Int32 &_msg)
+void cb2(const msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
@@ -93,8 +95,8 @@ void cb2(const gz::msgs::Int32 &_msg)
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 /// This callback includes message information.
-void cbInfo(const gz::msgs::Int32 &_msg,
-            const gz::transport::MessageInfo &_info)
+void cbInfo(const msgs::Int32 &_msg,
+            const transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(_msg.data(), data);
@@ -107,14 +109,14 @@ void cbInfo(const gz::msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 void rawCbInfo(const char *_msgData, const size_t _size,
-               const gz::transport::MessageInfo &_info)
+               const transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
   EXPECT_TRUE(_info.IntraProcess());
   cbExecuted = true;
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   EXPECT_TRUE(msg.ParseFromArray(_msgData, _size));
   EXPECT_EQ(msg.data(), data);
 
@@ -132,8 +134,8 @@ void genericCb(const transport::ProtoMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-bool srvEcho(const gz::msgs::Int32 &_req,
-  gz::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req,
+  msgs::Int32 &_rep)
 {
   srvExecuted = true;
 
@@ -144,7 +146,7 @@ bool srvEcho(const gz::msgs::Int32 &_req,
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without input.
-bool srvWithoutInput(gz::msgs::Int32 &_rep)
+bool srvWithoutInput(msgs::Int32 &_rep)
 {
   srvExecuted = true;
   _rep.set_data(data);
@@ -153,7 +155,7 @@ bool srvWithoutInput(gz::msgs::Int32 &_rep)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without waiting for response.
-void srvWithoutOutput(const gz::msgs::Int32 &_req)
+void srvWithoutOutput(const msgs::Int32 &_req)
 {
   srvExecuted = true;
 
@@ -163,7 +165,7 @@ void srvWithoutOutput(const gz::msgs::Int32 &_req)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const gz::msgs::Int32 &_rep, const bool _result)
+void response(const msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
@@ -174,14 +176,14 @@ void response(const gz::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const gz::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const gz::msgs::Vector3d &/*_msg*/)
+void cbVector(const msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
 }
@@ -220,8 +222,8 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call.
-  public: bool Echo(const gz::msgs::Int32 &_req,
-    gz::msgs::Int32 &_rep)
+  public: bool Echo(const msgs::Int32 &_req,
+    msgs::Int32 &_rep)
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
@@ -231,7 +233,7 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call without input.
-  public: bool WithoutInput(gz::msgs::Int32 &_rep)
+  public: bool WithoutInput(msgs::Int32 &_rep)
   {
     _rep.set_data(data);
     this->callbackSrvExecuted = true;
@@ -240,14 +242,14 @@ class MyTestClass
 
   // Member function used as a callback for responding to a service call
   // without without waiting for a response.
-  public: void WithoutOutput(const gz::msgs::Int32 &_req)
+  public: void WithoutOutput(const msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
     this->callbackSrvExecuted = true;
   }
 
   /// \brief Response callback to a service request.
-  public: void EchoResponse(const gz::msgs::Int32 &_rep,
+  public: void EchoResponse(const msgs::Int32 &_rep,
     const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
@@ -257,7 +259,7 @@ class MyTestClass
   }
 
   /// \brief Response callback to a service request without input.
-  public: void WithoutInputResponse(const gz::msgs::Int32 &_rep,
+  public: void WithoutInputResponse(const msgs::Int32 &_rep,
     const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
@@ -267,7 +269,7 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const gz::msgs::Int32 &_msg)
+  public: void Cb(const msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
@@ -275,8 +277,8 @@ class MyTestClass
 
   /// \brief Member function called each time a topic update is received.
   /// This callback accepts a parameter with some message information.
-  public: void CbInfo(const gz::msgs::Int32 &_msg,
-                      const gz::transport::MessageInfo &_info)
+  public: void CbInfo(const msgs::Int32 &_msg,
+                      const transport::MessageInfo &_info)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
@@ -289,19 +291,19 @@ class MyTestClass
   /// \brief Advertise a topic and publish a message.
   public: void SendSomeData()
   {
-    gz::msgs::Int32 msg;
+    msgs::Int32 msg;
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    auto pub = this->node.Advertise<gz::msgs::Int32>("invalid topic");
+    auto pub = this->node.Advertise<msgs::Int32>("invalid topic");
     EXPECT_FALSE(pub);
     EXPECT_FALSE(pub.HasConnections());
 
-    auto pubId = this->node.Advertise<gz::msgs::Int32>("invalid topic");
+    auto pubId = this->node.Advertise<msgs::Int32>("invalid topic");
     EXPECT_FALSE(pubId);
     EXPECT_FALSE(pubId.Valid());
 
-    pubId = this->node.Advertise<gz::msgs::Int32>(g_topic);
+    pubId = this->node.Advertise<msgs::Int32>(g_topic);
     EXPECT_TRUE(pubId);
     EXPECT_TRUE(pubId.Valid());
     EXPECT_TRUE(pubId.HasConnections());
@@ -312,10 +314,10 @@ class MyTestClass
   /// blocking call.
   public: void TestServiceCall()
   {
-    gz::msgs::Int32 req;
-    gz::msgs::Int32 rep;
-    gz::msgs::Vector3d wrongReq;
-    gz::msgs::Vector3d wrongRep;
+    msgs::Int32 req;
+    msgs::Int32 rep;
+    msgs::Vector3d wrongReq;
+    msgs::Vector3d wrongRep;
     int timeout = 500;
     bool result;
 
@@ -354,8 +356,8 @@ class MyTestClass
   /// using non-blocking and blocking call.
   public: void TestServiceCallWithoutInput()
   {
-    gz::msgs::Int32 rep;
-    gz::msgs::Vector3d wrongRep;
+    msgs::Int32 rep;
+    msgs::Vector3d wrongRep;
     int timeout = 500;
     bool result;
 
@@ -391,8 +393,8 @@ class MyTestClass
   /// \brief Advertise and request a service without waiting for response.
   public: void TestServiceCallWithoutOutput()
   {
-    gz::msgs::Int32 req;
-    gz::msgs::Vector3d wrongReq;
+    msgs::Int32 req;
+    msgs::Vector3d wrongReq;
 
     req.set_data(data);
 
@@ -460,11 +462,11 @@ void CreatePubSubTwoThreads(
   transport::AdvertiseMessageOptions opts;
   opts.SetScope(_sc);
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node(_nodeOptions);
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
 
   // Subscribe to a topic in a different thread and wait until the callback is
@@ -496,9 +498,9 @@ TEST(NodePubTest, BoolOperatorTest)
   const transport::Node::Publisher pub_const;
   EXPECT_FALSE(pub);
   EXPECT_FALSE(pub_const);
-  pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
+  pub = node.Advertise<msgs::Vector3d>(g_topic);
   const transport::Node::Publisher pub2_const =
-      node2.Advertise<gz::msgs::Vector3d>(g_topic);
+      node2.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub2_const);
 }
@@ -509,7 +511,7 @@ TEST(NodeTest, PubWithoutAdvertise)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
@@ -534,7 +536,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
-  auto pub2 = node2.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub2 = node2.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub2);
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
@@ -571,15 +573,15 @@ TEST(NodeTest, PubSubSameThread)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
   // Advertise an illegal topic.
-  EXPECT_FALSE(node.Advertise<gz::msgs::Int32>("invalid topic"));
+  EXPECT_FALSE(node.Advertise<msgs::Int32>("invalid topic"));
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   // Subscribe to an illegal topic.
@@ -619,12 +621,12 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, genericCb));
@@ -663,11 +665,11 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
@@ -703,11 +705,11 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
@@ -743,11 +745,11 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
@@ -783,11 +785,11 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
@@ -824,20 +826,20 @@ TEST(NodeTest, PubSubSameThreadLambda)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   std::mutex mutex;
   std::condition_variable condition;
 
   bool executed = false;
-  std::function<void(const gz::msgs::Int32&)> subCb =
-    [&executed, &mutex, &condition](const gz::msgs::Int32 &_msg)
+  std::function<void(const msgs::Int32&)> subCb =
+    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
     std::lock_guard<std::mutex> lk(mutex);
@@ -871,19 +873,19 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   bool executed = false;
-  std::function<void(const gz::msgs::Int32&,
-                     const gz::transport::MessageInfo &)> subCb =
-    [&executed](const gz::msgs::Int32 &_msg,
-                const gz::transport::MessageInfo &_info)
+  std::function<void(const msgs::Int32&,
+                     const transport::MessageInfo &)> subCb =
+    [&executed](const msgs::Int32 &_msg,
+                const transport::MessageInfo &_info)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
@@ -918,11 +920,11 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub1);
-  auto pub2 = node1.Advertise<gz::msgs::StringMsg>(g_topic);
+  auto pub2 = node1.Advertise<msgs::StringMsg>(g_topic);
   EXPECT_FALSE(pub2);
-  auto pub3 = node2.Advertise<gz::msgs::StringMsg>(g_topic);
+  auto pub3 = node2.Advertise<msgs::StringMsg>(g_topic);
   EXPECT_TRUE(pub3);
 }
 
@@ -1014,14 +1016,14 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node1;
   transport::Node node2;
 
   {
-    auto pub1 = node1.Advertise<gz::msgs::Int32>(g_topic);
+    auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
     EXPECT_TRUE(pub1);
 
     // Subscribe to topic in node1.
@@ -1143,8 +1145,8 @@ TEST(NodeTest, TypeMismatch)
 {
   reset();
 
-  gz::msgs::Int32 rightMsg;
-  gz::msgs::Vector3d wrongMsg;
+  msgs::Int32 rightMsg;
+  msgs::Vector3d wrongMsg;
   rightMsg.set_data(1);
   wrongMsg.set_x(1);
   wrongMsg.set_y(2);
@@ -1152,7 +1154,7 @@ TEST(NodeTest, TypeMismatch)
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_FALSE(pub.Publish(wrongMsg));
@@ -1167,7 +1169,7 @@ TEST(NodeTest, ServiceCallAsync)
 {
   reset();
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -1294,7 +1296,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
   reset();
 
   transport::Node node;
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   // Advertise an invalid service name.
@@ -1336,8 +1338,8 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   reset();
 
-  std::function<bool(const gz::msgs::Int32 &, gz::msgs::Int32 &)>
-    advCb = [](const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
+  std::function<bool(const msgs::Int32 &, msgs::Int32 &)>
+    advCb = [](const msgs::Int32 &_req, msgs::Int32 &_rep)
     -> bool
   {
     EXPECT_EQ(_req.data(), data);
@@ -1346,19 +1348,19 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<gz::msgs::Int32,
-        gz::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32,
+        msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
-  std::function<void(const gz::msgs::Int32 &, const bool)> reqCb =
-    [&executed](const gz::msgs::Int32 &_rep, const bool _result)
+  std::function<void(const msgs::Int32 &, const bool)> reqCb =
+    [&executed](const msgs::Int32 &_rep, const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
     EXPECT_TRUE(_result);
     executed = true;
   };
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   EXPECT_TRUE((node.Request(g_topic, req, reqCb)));
@@ -1374,19 +1376,19 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   reset();
 
-  std::function<bool(gz::msgs::Int32 &)> advCb =
-    [](gz::msgs::Int32 &_rep) -> bool
+  std::function<bool(msgs::Int32 &)> advCb =
+    [](msgs::Int32 &_rep) -> bool
   {
     _rep.set_data(data);
     return true;
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<gz::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
-  std::function<void(const gz::msgs::Int32 &, const bool)> reqCb =
-    [&executed](const gz::msgs::Int32 &_rep, const bool _result)
+  std::function<void(const msgs::Int32 &, const bool)> reqCb =
+    [&executed](const msgs::Int32 &_rep, const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
     EXPECT_TRUE(_result);
@@ -1407,17 +1409,17 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
   bool executed = false;
 
-  std::function<void(const gz::msgs::Int32 &)> advCb =
-    [&executed](const gz::msgs::Int32 &_req)
+  std::function<void(const msgs::Int32 &)> advCb =
+    [&executed](const msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
     executed = true;
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<gz::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32>(g_topic, advCb)));
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   EXPECT_TRUE(node.Request(g_topic, req));
@@ -1430,7 +1432,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 {
   reset();
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -1548,7 +1550,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
   reset();
 
   transport::Node node;
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   // Advertise an invalid service name.
@@ -1601,8 +1603,8 @@ TEST(NodeTest, ServiceCallSync)
 {
   reset();
 
-  gz::msgs::Int32 req;
-  gz::msgs::Int32 rep;
+  msgs::Int32 req;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -1629,7 +1631,7 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
 {
   reset();
 
-  gz::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -1654,8 +1656,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 {
   reset();
 
-  gz::msgs::Int32 req;
-  gz::msgs::Int32 rep;
+  msgs::Int32 req;
+  msgs::Int32 rep;
   bool result;
   int64_t timeout = 1000;
 
@@ -1687,7 +1689,7 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
   reset();
 
-  gz::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
   int64_t timeout = 1000;
 
@@ -1720,11 +1722,11 @@ void createInfinitePublisher()
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   auto i = 0;
@@ -1801,16 +1803,16 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
-  gz::msgs::Vector3d msgV;
+  msgs::Vector3d msgV;
   msgV.set_x(1);
   msgV.set_y(2);
   msgV.set_z(3);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -1845,14 +1847,14 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 {
   reset();
 
-  gz::msgs::Vector3d msgV;
+  msgs::Vector3d msgV;
   msgV.set_x(1);
   msgV.set_y(2);
   msgV.set_z(3);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -1877,13 +1879,13 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub1);
 
   // Good subscriber.
@@ -1916,15 +1918,15 @@ TEST(NodeTest, SubThrottled)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
-  gz::transport::SubscribeOptions opts;
+  transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
@@ -1951,14 +1953,14 @@ TEST(NodeTest, PubThrottled)
 {
   reset();
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  gz::transport::AdvertiseMessageOptions opts;
+  transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -1989,8 +1991,8 @@ TEST(NodeTest, SrvRequestWrongReq)
 {
   reset();
 
-  gz::msgs::Vector3d wrongReq;
-  gz::msgs::Int32 rep;
+  msgs::Vector3d wrongReq;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2020,8 +2022,8 @@ TEST(NodeTest, SrvRequestWrongRep)
 {
   reset();
 
-  gz::msgs::Int32 req;
-  gz::msgs::Vector3d wrongRep;
+  msgs::Int32 req;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2049,7 +2051,7 @@ TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 {
   reset();
 
-  gz::msgs::Vector3d wrongRep;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2076,9 +2078,9 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
 {
   reset();
 
-  gz::msgs::Int32 req;
-  gz::msgs::Int32 goodRep;
-  gz::msgs::Vector3d badRep;
+  msgs::Int32 req;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2111,8 +2113,8 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 {
   reset();
 
-  gz::msgs::Int32 goodRep;
-  gz::msgs::Vector3d badRep;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2143,8 +2145,8 @@ TEST(NodeTest, TopicList)
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<gz::msgs::Int32>("topic1");
-  auto pub2 = node2.Advertise<gz::msgs::Int32>("topic2");
+  auto pub1 = node1.Advertise<msgs::Int32>("topic1");
+  auto pub2 = node2.Advertise<msgs::Int32>("topic2");
 
   node1.TopicList(topics);
   EXPECT_EQ(topics.size(), 2u);
@@ -2174,7 +2176,7 @@ TEST(NodeTest, TopicListRemap)
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
   transport::Node node(nodeOptions);
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
 
   node.TopicList(topics);
   ASSERT_EQ(1u, topics.size());
@@ -2247,14 +2249,14 @@ TEST(NodeTest, WrongTopicRemap)
 /// \brief Check the high water mark of the receiving message buffer.
 TEST(NodeTest, RcvHwm)
 {
-  EXPECT_EQ(gz::transport::kDefaultRcvHwm, gz::transport::rcvHwm());
+  EXPECT_EQ(transport::kDefaultRcvHwm, transport::rcvHwm());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the high water mark of the sending message buffer.
 TEST(NodeTest, SndHwm)
 {
-  EXPECT_EQ(gz::transport::kDefaultSndHwm, gz::transport::sndHwm());
+  EXPECT_EQ(transport::kDefaultSndHwm, transport::sndHwm());
 }
 
 //////////////////////////////////////////////////
@@ -2265,7 +2267,7 @@ TEST(NodePubTest, DestructionOrder)
 
   {
     transport::Node node;
-    pub = node.Advertise<gz::msgs::Vector3d>(g_topic);
+    pub = node.Advertise<msgs::Vector3d>(g_topic);
   }
 }
 
@@ -2275,7 +2277,7 @@ TEST(NodePubTest, DestructionOrder)
 /// and is able to terminate.
 TEST(NodeTest, waitForShutdownSIGINT)
 {
-  std::thread aThread([]{gz::transport::waitForShutdown();});
+  std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGINT);
   aThread.join();
@@ -2287,7 +2289,7 @@ TEST(NodeTest, waitForShutdownSIGINT)
 /// and is able to terminate.
 TEST(NodeTest, waitForShutdownSIGTERM)
 {
-  std::thread aThread([]{gz::transport::waitForShutdown();});
+  std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGTERM);
   aThread.join();

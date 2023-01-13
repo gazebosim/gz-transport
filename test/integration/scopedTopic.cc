@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Node.hh"
@@ -43,14 +43,14 @@ TEST(ScopedTopicTest, ProcessTest)
   testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
     partition.c_str());
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
   transport::AdvertiseMessageOptions opts;
   opts.SetScope(transport::Scope_t::PROCESS);
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(pub.Publish(msg));

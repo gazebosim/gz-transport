@@ -14,12 +14,14 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <gz/msgs.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
@@ -62,7 +64,7 @@ std::string custom_exec_str(std::string _cmd)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;
@@ -70,7 +72,7 @@ bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
 
 //////////////////////////////////////////////////
 /// \brief Topic callback
-void topicCB(const gz::msgs::StringMsg &_msg)
+void topicCB(const msgs::StringMsg &_msg)
 {
   g_topicCBStr = _msg.data();
 }
@@ -210,14 +212,14 @@ TEST(gzTest, ServiceInfo)
 /// \brief Check 'gz topic -l' running the advertiser on the same process.
 TEST(gzTest, TopicListSameProc)
 {
-  gz::transport::Node node;
+  transport::Node node;
 
-  gz::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  auto pub = node.Advertise<gz::msgs::Vector3d>("/foo");
+  auto pub = node.Advertise<msgs::Vector3d>("/foo");
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
@@ -241,14 +243,14 @@ TEST(gzTest, TopicListSameProc)
 /// \brief Check 'gz topic -i' running the advertiser on the same process.
 TEST(gzTest, TopicInfoSameProc)
 {
-  gz::transport::Node node;
+  transport::Node node;
 
-  gz::msgs::Vector3d msg;
+  msgs::Vector3d msg;
   msg.set_x(1.0);
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  auto pub = node.Advertise<gz::msgs::Vector3d>("/foo");
+  auto pub = node.Advertise<msgs::Vector3d>("/foo");
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
@@ -297,7 +299,7 @@ TEST(gzTest, ServiceListSameProc)
 /// \brief Check 'gz service -i' running the advertiser on the same process.
 TEST(gzTest, ServiceInfoSameProc)
 {
-  gz::transport::Node node;
+  transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   // Check the 'gz service -i' command.
@@ -323,7 +325,7 @@ TEST(gzTest, ServiceInfoSameProc)
 /// \brief Check 'gz topic -p' to send a message.
 TEST(gzTest, TopicPublish)
 {
-  gz::transport::Node node;
+  transport::Node node;
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
@@ -372,14 +374,14 @@ TEST(gzTest, TopicPublish)
 /// \brief Check 'gz service -r' to request a service.
 TEST(gzTest, ServiceRequest)
 {
-  gz::transport::Node node;
+  transport::Node node;
 
   // Advertise a service.
   std::string service = "/echo";
   std::string value = "10";
   EXPECT_TRUE(node.Advertise(service, srvEcho));
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(10);
 
   // Check the 'gz service -r' command.
@@ -540,7 +542,7 @@ int main(int argc, char **argv)
   // in your system.
   // Save the current value of LD_LIBRARY_PATH.
   std::string value = "";
-  gz::transport::env("LD_LIBRARY_PATH", value);
+  transport::env("LD_LIBRARY_PATH", value);
   // Add the directory where Gazebo Transport has been built.
   value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
   setenv("LD_LIBRARY_PATH", value.c_str(), 1);

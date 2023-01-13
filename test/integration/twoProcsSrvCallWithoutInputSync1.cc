@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -44,7 +44,7 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
     g_partition.c_str());
 
   int64_t timeout = 500;
-  gz::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
 
   transport::Node node;
