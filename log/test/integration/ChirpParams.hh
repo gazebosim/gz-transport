@@ -18,7 +18,14 @@
 #ifndef GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 #define GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
 #include <gz/msgs/int32.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #include <gz/transport/test_config.h>
 
 #include <string>

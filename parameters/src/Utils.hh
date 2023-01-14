@@ -24,7 +24,14 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/parameters/Export.hh"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4251)  // Missing dll-interface
+#endif  // defined(_MSC_VER)
 #include <google/protobuf/any.pb.h>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif  // defined(_MSC_VER)
 
 namespace ignition
 {
@@ -53,4 +60,4 @@ namespace ignition
   }
 }
 
-#endif
+#endif  // IGNITION_TRANSPORT_PARAMETERS_UTILS_HH_
