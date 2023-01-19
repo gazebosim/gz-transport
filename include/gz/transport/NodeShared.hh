@@ -220,7 +220,7 @@ namespace gz
 
       /// \brief Callback executed when a SUBSCRIBERS request is received.
       /// \param[in] _pub Request.
-      public: void OnSubscribers(const MessagePublisher &_pub);
+      public: void OnSubscribers();
 
       /// \brief Pass through to bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const

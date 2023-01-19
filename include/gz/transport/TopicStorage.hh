@@ -339,7 +339,13 @@ namespace gz
       public: void TopicList(std::vector<std::string> &_topics) const
       {
         for (auto const &topic : this->data)
+        {
+          for (auto const &p : topic.second)
+          {
+            std::cout << p.first << std::endl;
+          }
           _topics.push_back(topic.first);
+        }
       }
 
       /// \brief Print all the information for debugging purposes.

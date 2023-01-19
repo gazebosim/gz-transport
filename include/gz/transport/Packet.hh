@@ -47,6 +47,7 @@ namespace gz
     static const uint8_t NewConnection  = 6;
     static const uint8_t EndConnection  = 7;
     static const uint8_t Subscribers    = 8;
+    static const uint8_t SubscribersRep = 9;
 
     // Flag set when a discovery message is relayed.
     static const uint16_t FlagRelay   = 0b000000000000'0001;
@@ -58,7 +59,8 @@ namespace gz
     static const std::vector<std::string> MsgTypesStr =
     {
       "UNINITIALIZED", "ADVERTISE", "SUBSCRIBE", "UNADVERTISE", "HEARTBEAT",
-      "BYE", "NEW_CONNECTION", "END_CONNECTION", "SUBSCRIBERS"
+      "BYE", "NEW_CONNECTION", "END_CONNECTION", "SUBSCRIBERS",
+      "SUBSCRIBERS_REPLY"
     };
     }
   }

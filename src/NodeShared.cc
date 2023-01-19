@@ -354,7 +354,7 @@ NodeShared::NodeShared()
       std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
 
   this->dataPtr->msgDiscovery->SubscribersCb(
-      std::bind(&NodeShared::OnSubscribers, this, std::placeholders::_1));
+      std::bind(&NodeShared::OnSubscribers, this));
 
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
@@ -1395,7 +1395,7 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
-void NodeShared::OnSubscribers(const MessagePublisher &/*_pub*/)
+void NodeShared::OnSubscribers()
 {
   //std::cout << "Nodeshared::OnSubscribers()" << std::endl;
   // Get the list of local subscribers.
@@ -1407,8 +1407,10 @@ void NodeShared::OnSubscribers(const MessagePublisher &/*_pub*/)
   {
     MessagePublisher publisher;
     publisher.SetTopic(topic);
+    publisher.SetPUuid(this->pUuid);
+    publisher.SetAddr(this->myAddress);
 
-    this->dataPtr->msgDiscovery->SendSubscriber(publisher);
+    this->dataPtr->msgDiscovery->SendSubscriberRep(publisher);
   }
 }
 

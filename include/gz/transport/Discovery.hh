@@ -399,14 +399,11 @@ namespace gz
       }
 
       /// \brief ToDo.
-      public: void SendSubscriber(const MessagePublisher &_pub) const
+      public: void SendSubscriberRep(const MessagePublisher &_pub) const
       {
-        Pub pub;
-        pub.SetTopic(_pub.Topic());
-        pub.SetPUuid(this->pUuid);
-
-        // Send a discovery request.
-        this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBE, pub);
+        // Send a SUBSCRIBERS_REP as a response to SUBSCRIBERS.
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REP, _pub);
       }
 
       /// \brief Register a node from this process as a remote subscriber.
@@ -585,7 +582,7 @@ namespace gz
       }
 
       /// \brief ToDo.
-      public: void SubscribersCb(const DiscoveryCallback<Pub> &_cb)
+      public: void SubscribersCb(const std::function<void()> &_cb)
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->subscribersCb = _cb;
@@ -962,7 +959,7 @@ namespace gz
         DiscoveryCallback<Pub> disconnectCb;
         DiscoveryCallback<Pub> registerCb;
         DiscoveryCallback<Pub> unregisterCb;
-        DiscoveryCallback<Pub> subscribersReqCb;
+        std::function<void()> subscribersReqCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
@@ -1019,15 +1016,6 @@ namespace gz
               break;
             }
 
-            // Save the subscriber as a remote subscriber.
-            Pub publisher;
-            publisher.SetFromDiscovery(msg);
-
-            {
-              std::lock_guard<std::mutex> lock(this->mutex);
-              this->remoteSubscribers.AddPublisher(publisher);
-            }
-
             // Check if at least one of my nodes advertises the topic requested.
             Addresses_M<Pub> addresses;
             {
@@ -1060,12 +1048,23 @@ namespace gz
           }
           case msgs::Discovery::SUBSCRIBERS:
           {
+            if (subscribersReqCb)
+              subscribersReqCb();
+
+            break;
+          }
+          case msgs::Discovery::SUBSCRIBERS_REP:
+          {
+            std::cout << msg.DebugString() << std::endl;
+
+            // Save the subscriber as a remote subscriber.
             Pub publisher;
             publisher.SetFromDiscovery(msg);
 
-            if (subscribersReqCb)
-              subscribersReqCb(publisher);
-
+            {
+              std::lock_guard<std::mutex> lock(this->mutex);
+              this->remoteSubscribers.AddPublisher(publisher);
+            }
             break;
           }
           case msgs::Discovery::NEW_CONNECTION:
@@ -1171,6 +1170,8 @@ namespace gz
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
+        _pub.FillDiscovery(discoveryMsg);
+        std::cout << discoveryMsg.DebugString() << std::endl;
 
         switch (_type)
         {
@@ -1190,6 +1191,7 @@ namespace gz
           case msgs::Discovery::HEARTBEAT:
           case msgs::Discovery::BYE:
           case msgs::Discovery::SUBSCRIBERS:
+          case msgs::Discovery::SUBSCRIBERS_REP:
             break;
           default:
             std::cerr << "Discovery::SendMsg() error: Unrecognized message"
@@ -1509,7 +1511,7 @@ namespace gz
       private: DiscoveryCallback<Pub> unregistrationCb;
 
       /// \brief Callback executed when a SUBSCRIBERS message is received.
-      private: DiscoveryCallback<Pub> subscribersCb;
+      private: std::function<void()> subscribersCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
