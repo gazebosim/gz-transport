@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
@@ -37,7 +37,7 @@ TEST(authPubSub, InvalidAuth)
   setenv("GZ_TRANSPORT_PASSWORD", "test", 1);
 
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   // No subscribers yet.
@@ -51,7 +51,7 @@ TEST(authPubSub, InvalidAuth)
   testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
     partition.c_str(), "bad", "invalid");
 
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(1);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));

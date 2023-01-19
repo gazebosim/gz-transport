@@ -49,7 +49,11 @@ int main(int argc, char **argv)
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+  int size = msg.ByteSizeLong();
+#else
   int size = msg.ByteSize();
+#endif
 
   // Allocate space for the serialized message
   void *buffer = malloc(size);
@@ -62,7 +66,11 @@ int main(int argc, char **argv)
   msgRed.set_data("RED HELLO");
 
   // Get the size of the serialized message
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+  int sizeRed = msgRed.ByteSizeLong();
+#else
   int sizeRed = msgRed.ByteSize();
+#endif
 
   // Allocate space for the serialized message
   void *bufferRed = malloc(sizeRed);

@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+
 #include <chrono>
 #include <string>
 #include <thread>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
@@ -31,12 +32,12 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// \brief A publisher node.
 void advertiseAndPublish()
 {
-  gz::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(1);
 
   transport::Node node;
 
-  auto pub = node.Advertise<gz::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   for (auto i = 0; i < 15; ++i)

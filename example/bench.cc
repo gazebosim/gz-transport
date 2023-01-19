@@ -44,6 +44,7 @@
 #include <condition_variable>
 #include <csignal>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>

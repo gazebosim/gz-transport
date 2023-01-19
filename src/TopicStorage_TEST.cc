@@ -487,9 +487,9 @@ TEST(TopicStorageTest, HasTopicWithType)
 
   std::string ctrl = "ctrl_address";
   MessagePublisher publisher1(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid1,
-    "type1", gz::transport::AdvertiseMessageOptions());
+    "type1", AdvertiseMessageOptions());
   MessagePublisher publisher2(g_topic1, g_addr1, ctrl, g_pUuid1, g_nUuid2,
-    "type2", gz::transport::AdvertiseMessageOptions());
+    "type2", AdvertiseMessageOptions());
 
   TopicStorage<MessagePublisher> test;
 

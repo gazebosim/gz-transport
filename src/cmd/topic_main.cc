@@ -16,6 +16,7 @@
  */
 
 #include <gz/utils/cli/CLI.hpp>
+#include <gz/utils/cli/GzFormatter.hpp>
 
 #include "gz.hh"
 
@@ -92,46 +93,57 @@ void addTopicFlags(CLI::App &_app)
   auto opt = std::make_shared<TopicOptions>();
 
   auto topicOpt = _app.add_option("-t,--topic",
-                                  opt->topic, "Name of a topic");
+                                  opt->topic, "Name of a topic.");
   auto msgTypeOpt = _app.add_option("-m,--msgtype",
-                                    opt->msgType, "Type of message to publish");
+                                   opt->msgType, "Type of message to publish.");
   auto durationOpt = _app.add_option("-d,--duration",
                                      opt->duration,
-                                     "Duration (seconds) to run");
+                                     "Duration (seconds) to run.");
   auto countOpt = _app.add_option("-n,--num",
                                   opt->count,
-                                  "Number of messages to echo and then exit");
+                                  "Number of messages to echo and then exit.");
 
   durationOpt->excludes(countOpt);
   countOpt->excludes(durationOpt);
 
-  auto command = _app.add_option_group("command", "Command to be executed");
+  auto command = _app.add_option_group("command", "Command to be executed.");
 
   command->add_flag_callback("-l,--list",
     [opt](){
       opt->command = TopicCommand::kTopicList;
-    });
+    },
+    "List all topics.");
 
   command->add_flag_callback("-i,--info",
     [opt](){
       opt->command = TopicCommand::kTopicInfo;
-    })
+    },
+R"(Get info about a topic. E.g.:
+  gz topic -i -t /foo)")
     ->needs(topicOpt);
 
   command->add_flag_callback("-e,--echo",
     [opt](){
       opt->command = TopicCommand::kTopicEcho;
-    });
+    },
+R"(Output data to screen. E.g.:
+  gz topic -e -t /foo)")
+    ->needs(topicOpt);
 
   command->add_flag_callback("--json-output",
       [opt]() { opt->msgOutputFormat = MsgOutputFormat::kJSON; },
-      "Output messages in JSON format");
+      "Output messages in JSON format.");
 
   command->add_option_function<std::string>("-p,--pub",
       [opt](const std::string &_msgData){
         opt->command = TopicCommand::kTopicPub;
         opt->msgData = _msgData;
-      })
+      },
+R"(Publish a message.
+TEXT is the message data. The format expected is
+the same used by Protobuf DebugString(). E.g.:
+  gz topic -t /foo -m gz.msgs.StringMsg \
+    -p 'data:"Custom data"')")
     ->needs(topicOpt)
     ->needs(msgTypeOpt);
 
@@ -141,7 +153,7 @@ void addTopicFlags(CLI::App &_app)
 //////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
-  CLI::App app{"Introspect Ignition topics"};
+  CLI::App app{"Introspect Gazebo topics"};
 
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
@@ -149,5 +161,6 @@ int main(int argc, char** argv)
   });
 
   addTopicFlags(app);
+  app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
 }

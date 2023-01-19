@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -29,7 +29,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
-bool srvEcho(const gz::msgs::Int32 &_req, gz::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return true;

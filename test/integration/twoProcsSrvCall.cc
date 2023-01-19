@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -45,7 +47,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const gz::msgs::Int32 &_rep, const bool _result)
+void response(const msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
@@ -56,7 +58,7 @@ void response(const gz::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const gz::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
@@ -75,7 +77,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 
   reset();
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -120,8 +122,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 /// that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongReq)
 {
-  gz::msgs::Vector3d wrongReq;
-  gz::msgs::Int32 rep;
+  msgs::Vector3d wrongReq;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -160,8 +162,8 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongRep)
 {
-  gz::msgs::Int32 req;
-  gz::msgs::Vector3d wrongRep;
+  msgs::Int32 req;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -200,9 +202,9 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 /// are used.
 TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 {
-  gz::msgs::Int32 req;
-  gz::msgs::Int32 goodRep;
-  gz::msgs::Vector3d badRep;
+  msgs::Int32 req;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 2000;
 

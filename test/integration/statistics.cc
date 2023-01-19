@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/statistic.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
@@ -28,12 +29,12 @@ using namespace gz;
 
 static int statisticsCount = 0;
 
-void cb(const gz::msgs::StringMsg & /*_msg*/)
+void cb(const msgs::StringMsg & /*_msg*/)
 {
   // no-op
 }
 
-void statsCb(const gz::msgs::Metric & /*_msg*/)
+void statsCb(const msgs::Metric & /*_msg*/)
 {
   statisticsCount++;
 }
@@ -43,10 +44,10 @@ TEST(topicStatistics, SingleProcessPublishStatistics)
   statisticsCount = 0;
   std::string topic = "/foo";
   transport::Node node;
-  auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
+  auto pub = node.Advertise<msgs::StringMsg>(topic);
   EXPECT_TRUE(pub);
 
-  gz::msgs::StringMsg msg;
+  msgs::StringMsg msg;
   msg.set_data("Hello");
 
   EXPECT_TRUE(node.Subscribe(topic, cb));

@@ -30,7 +30,7 @@
 #pragma warning(pop)
 #endif
 
-#include <gz/msgs.hh>
+#include <gz/msgs/Factory.hh>
 
 #include "gz.hh"
 #include "gz/transport/config.hh"
@@ -157,11 +157,11 @@ extern "C" void cmdTopicPub(const char *_topic,
   }
 
   // Create the message, and populate the field with _msgData
-  auto msg = gz::msgs::Factory::New(_msgType, _msgData);
+  auto msg = msgs::Factory::New(_msgType, _msgData);
   if (msg)
   {
     // Create the node and advertise the topic
-    gz::transport::Node node;
+    Node node;
     auto pub = node.Advertise(_topic, msg->GetTypeName());
 
     // Publish the message
@@ -215,7 +215,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the request, and populate the field with _reqData
-  auto req = gz::msgs::Factory::New(_reqType, _reqData);
+  auto req = msgs::Factory::New(_reqType, _reqData);
   if (!req)
   {
     std::cerr << "Unable to create request of type[" << _reqType << "] "
@@ -224,7 +224,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the response.
-  auto rep = gz::msgs::Factory::New(_repType);
+  auto rep = msgs::Factory::New(_repType);
   if (!rep)
   {
     std::cerr << "Unable to create response of type[" << _repType << "].\n";
@@ -232,7 +232,7 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the node.
-  gz::transport::Node node;
+  Node node;
   bool result;
 
   // Request the service.
@@ -301,7 +301,7 @@ extern "C" void cmdTopicEcho(const char *_topic,
   // messages.
   if (_count <= 0)
   {
-    gz::transport::waitForShutdown();
+    waitForShutdown();
   }
   else
   {

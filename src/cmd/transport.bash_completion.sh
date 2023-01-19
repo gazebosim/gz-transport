@@ -30,12 +30,10 @@ GZ_SERVICE_COMPLETION_LIST="
   -l --list
   -i --info
   -r --req
-  --help-all
 "
 
 GZ_TOPIC_COMPLETION_LIST="
   -h --help
-  -v --version
   -t --topic
   -m --msgtype
   -d --duration

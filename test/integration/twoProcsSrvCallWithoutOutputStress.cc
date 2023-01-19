@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -39,7 +39,7 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
   testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
     g_partition.c_str());
 
-  gz::msgs::Int32 req;
+  msgs::Int32 req;
   transport::Node node;
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));

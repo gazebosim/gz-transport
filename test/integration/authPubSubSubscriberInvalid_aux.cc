@@ -14,13 +14,10 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
-#include <gz/msgs.hh>
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
@@ -33,7 +30,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const gz::msgs::Int32 &/*_msg*/)
+void cb(const msgs::Int32 &/*_msg*/)
 {
   std::cerr << "CALLBACK\n";
   cbExecuted = true;

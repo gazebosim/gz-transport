@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/time.pb.h>
 
 #include <chrono>
 #include <string>
 #include <thread>
-
-#include <gz/msgs.hh>
 
 #include "gz/transport/Clock.hh"
 #include "gz/transport/Node.hh"
@@ -61,16 +61,16 @@ using TimeBase = transport::NetworkClock::TimeBase;
 /// parameterized by transport::NetworkClock::TimeBase.
 class NetworkClockTest : public ::testing::TestWithParam<TimeBase>
 {
-  /// \brief Makes a gz::msgs::Clock message out of the
+  /// \brief Makes an msgs::Clock message out of the
   /// given @p _secs and @p _nsecs.
   /// \param[in] _secs Seconds for the message to be made.
   /// \param[in] _nsecs Nanoseconds for the message to be made.
-  /// \return A gz::msgs::Clock message.
-  protected: gz::msgs::Clock MakeClockMessage(
+  /// \return A msgs::Clock message.
+  protected: msgs::Clock MakeClockMessage(
       const std::chrono::seconds& _secs,
       const std::chrono::nanoseconds& _nsecs)
   {
-    gz::msgs::Clock clockMsg;
+    msgs::Clock clockMsg;
     switch (GetParam())
     {
       case TimeBase::SIM:
@@ -107,9 +107,9 @@ TEST_P(NetworkClockTest, Functionality)
   EXPECT_FALSE(clock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<gz::msgs::Clock>(clockTopicName);
+      node.Advertise<msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(gz::msgs::Clock());
+  clockPub.Publish(msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(clock.IsReady());
   const std::chrono::seconds expectedSecs{54321};
@@ -145,9 +145,9 @@ TEST(ClockTest, BadNetworkClock)
   EXPECT_FALSE(badTimebaseClock.IsReady());
   transport::Node node;
   transport::Node::Publisher clockPub =
-      node.Advertise<gz::msgs::Clock>(clockTopicName);
+      node.Advertise<msgs::Clock>(clockTopicName);
   const std::chrono::milliseconds sleepTime{100};
-  clockPub.Publish(gz::msgs::Clock());
+  clockPub.Publish(msgs::Clock());
   std::this_thread::sleep_for(sleepTime);
   EXPECT_FALSE(badTimebaseClock.IsReady());
   badTimebaseClock.SetTime(std::chrono::seconds(10));

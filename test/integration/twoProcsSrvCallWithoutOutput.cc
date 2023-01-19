@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/vector3d.pb.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <string>
-#include <gz/msgs.hh>
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -48,7 +49,7 @@ void reset()
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  gz::msgs::Vector3d wrongReq;
+  msgs::Vector3d wrongReq;
 
   std::string responser_path = testing::portablePathUnion(
     GZ_TRANSPORT_TEST_DIR,

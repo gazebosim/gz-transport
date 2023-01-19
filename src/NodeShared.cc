@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/empty.pb.h>
 
 #include <zmq.hpp>
 
@@ -27,8 +28,6 @@
 #include <thread>
 #include <vector>
 #include <unordered_map>
-
-#include <gz/msgs.hh>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"
@@ -809,7 +808,7 @@ void NodeShared::RecvSrvRequest()
 
     // If 'reptype' is msgs::Empty", this is a oneway request
     // and we don't send response
-    if (repType == gz::msgs::Empty().GetTypeName())
+    if (repType == msgs::Empty().GetTypeName())
     {
       return;
     }
@@ -1178,7 +1177,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
-      if (_repType == gz::msgs::Empty().GetTypeName())
+      if (_repType == msgs::Empty().GetTypeName())
       {
         this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
