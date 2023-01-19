@@ -45,7 +45,7 @@ namespace gz
       using UUIDHandler_M = std::map<std::string, std::shared_ptr<T>>;
       using UUIDHandler_Collection_M = std::map<std::string, UUIDHandler_M>;
 
-      /// \brief key is a topic name and value is UUIDHandler_M
+      /// \brief key is a topic name and value is UUIDHandler_Collection_M
       using TopicServiceCalls_M =
         std::map<std::string, UUIDHandler_Collection_M>;
 

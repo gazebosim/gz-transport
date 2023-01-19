@@ -441,6 +441,17 @@ namespace gz
         return this->info.Publishers(_topic, _publishers);
       }
 
+      /// \brief Get all the publishers' information known for a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _subscribers All remote subscribers for this topic.
+      /// \return True if the topic is found and there is at least one publisher
+      public: bool RemoteSubscribers(const std::string &_topic,
+                                     Addresses_M<Pub> &_subscribers) const
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        return this->remoteSubscribers.Publishers(_topic, _subscribers);
+      }
+
       /// \brief Unadvertise a new message. Broadcast a discovery
       /// message that will cancel all the discovery information for the topic
       /// advertised by a specific node.
@@ -638,6 +649,7 @@ namespace gz
 
         // Request the list of subscribers.
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
+        //std::cout << "Sending SUBSCRIBERS" << std::endl;
         this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBERS, pub);
 
         this->WaitForInit();
@@ -1055,7 +1067,7 @@ namespace gz
           }
           case msgs::Discovery::SUBSCRIBERS_REP:
           {
-            std::cout << msg.DebugString() << std::endl;
+            //std::cout << msg.DebugString() << std::endl;
 
             // Save the subscriber as a remote subscriber.
             Pub publisher;
@@ -1171,7 +1183,7 @@ namespace gz
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
         _pub.FillDiscovery(discoveryMsg);
-        std::cout << discoveryMsg.DebugString() << std::endl;
+        //std::cout << discoveryMsg.DebugString() << std::endl;
 
         switch (_type)
         {
@@ -1515,9 +1527,6 @@ namespace gz
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
-
-      /// \brief Local subscribers.
-      private: TopicStorage<Pub> localSubscribers;
 
       /// \brief Remote subscribers.
       private: TopicStorage<Pub> remoteSubscribers;

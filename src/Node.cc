@@ -914,6 +914,48 @@ bool Node::TopicInfo(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
+bool Node::TopicInfoSubscribers(const std::string &_topic,
+                              std::vector<MessagePublisher> &_subscribers) const
+{
+  // Construct a topic name with the partition and namespace
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
+  {
+    return false;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Get all the remote subscribers on the given topics
+  MsgAddresses_M subs;
+  if (!this->dataPtr->shared->dataPtr->msgDiscovery->RemoteSubscribers(
+        fullyQualifiedTopic, subs))
+  {
+    return false;
+  }
+
+  _subscribers.clear();
+
+  // Copy the subscribers.
+  for (MsgAddresses_M::iterator iter = subs.begin(); iter != subs.end(); ++iter)
+  {
+    for (std::vector<MessagePublisher>::iterator pubIter = iter->second.begin();
+         pubIter != iter->second.end(); ++pubIter)
+    {
+      // Add the subscriber if it doesn't already exist.
+      if (std::find(_subscribers.begin(), _subscribers.end(), *pubIter) ==
+          _subscribers.end())
+      {
+        _subscribers.push_back(*pubIter);
+      }
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool Node::ServiceInfo(const std::string &_service,
                        std::vector<ServicePublisher> &_publishers) const
 {

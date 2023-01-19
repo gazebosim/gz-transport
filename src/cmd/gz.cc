@@ -65,7 +65,12 @@ extern "C" void cmdTopicInfo(const char *_topic)
 
   // Get the publishers on the requested topic
   std::vector<MessagePublisher> publishers;
+  std::vector<MessagePublisher> subscribers;
+  std::vector<std::string> topics;
+  node.TopicList(topics);
+
   node.TopicInfo(_topic, publishers);
+  node.TopicInfoSubscribers(_topic, subscribers);
 
   if (!publishers.empty())
   {
@@ -85,6 +90,22 @@ extern "C" void cmdTopicInfo(const char *_topic)
   }
 
   // TODO(anyone): Add subscribers lists
+  if (!subscribers.empty())
+  {
+    std::cout << "Subscribers [Address, Message Type]:\n";
+
+    /// List the subscribers
+    for (std::vector<MessagePublisher>::iterator iter = subscribers.begin();
+        iter != subscribers.end(); ++iter)
+    {
+      std::cout << "  " << (*iter).Addr() << ", "
+        << (*iter).MsgTypeName() << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No subscribers on topic [" << _topic << "]\n";
+  }
 }
 
 //////////////////////////////////////////////////

@@ -1397,21 +1397,15 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnSubscribers()
 {
-  //std::cout << "Nodeshared::OnSubscribers()" << std::endl;
   // Get the list of local subscribers.
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  auto topics = this->localSubscribers.Data();
+  auto publishers = this->localSubscribers.Data2(this->myAddress, this->pUuid);
+
+  std::cout << "Publishers size: " << publishers.size() << std::endl;
 
   // Reply to the SUBSCRIBERS request.
-  for (auto const &topic : topics)
-  {
-    MessagePublisher publisher;
-    publisher.SetTopic(topic);
-    publisher.SetPUuid(this->pUuid);
-    publisher.SetAddr(this->myAddress);
-
+  for (auto const &publisher : publishers)
     this->dataPtr->msgDiscovery->SendSubscriberRep(publisher);
-  }
 }
 
 //////////////////////////////////////////////////
@@ -1683,18 +1677,37 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
   return removed;
 }
 
-// //////////////////////////////////////////////////
-std::vector<std::string> NodeShared::HandlerWrapper::Data()
+//////////////////////////////////////////////////
+std::vector<MessagePublisher> NodeShared::HandlerWrapper::Data2(\
+    const std::string &_addr, const std::string &_pUuid)
 {
-  std::vector<std::string> topics;
+  std::vector<MessagePublisher> res;
 
-  for (auto &aPair : this->normal.AllHandlers())
-    topics.push_back(aPair.first);
+  for (const auto &[topic, handlerCollection] : this->normal.AllHandlers())
+  {
+    for (const auto &[nUuid, handlerNode] : handlerCollection)
+    {
+      for (const auto &[hUuid, handler] : handlerNode)
+      {
+        res.push_back(MessagePublisher(topic, _addr, "", _pUuid, nUuid,
+          handler->TypeName(), AdvertiseMessageOptions()));
+      }
+    }
+  }
 
-  for (auto &aPair : this->raw.AllHandlers())
-    topics.push_back(aPair.first);
+  for (const auto &[topic, handlerCollection] : this->raw.AllHandlers())
+  {
+    for (const auto &[nUuid, handlerNode] : handlerCollection)
+    {
+      for (const auto &[hUuid, handler] : handlerNode)
+      {
+        res.push_back(MessagePublisher(topic, _addr, "", _pUuid, nUuid,
+          handler->TypeName(), AdvertiseMessageOptions()));
+      }
+    }
+  }
 
-  return topics;
+  return res;
 }
 
 //////////////////////////////////////////////////

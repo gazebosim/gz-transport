@@ -400,7 +400,8 @@ namespace gz
             const std::string &_nUuid);
 
         /// \brief ToDo.
-        public: std::vector<std::string> Data();
+        public: std::vector<MessagePublisher> Data2(const std::string &_addr,
+            const std::string &_pUuid);
 
         /// \brief Normal local subscriptions.
         public: HandlerStorage<ISubscriptionHandler> normal;
