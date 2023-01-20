@@ -1401,8 +1401,6 @@ void NodeShared::OnSubscribers()
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
   auto publishers = this->localSubscribers.Data2(this->myAddress, this->pUuid);
 
-  std::cout << "Publishers size: " << publishers.size() << std::endl;
-
   // Reply to the SUBSCRIBERS request.
   for (auto const &publisher : publishers)
     this->dataPtr->msgDiscovery->SendSubscriberRep(publisher);
