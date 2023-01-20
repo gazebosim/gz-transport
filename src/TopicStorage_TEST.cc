@@ -411,11 +411,16 @@ TEST(TopicStorageTest, TopicList)
   std::vector<std::string> topics;
   test.TopicList(topics);
 
-  EXPECT_EQ(topics.size(), 2u);
+  EXPECT_EQ(2u, topics.size());
   EXPECT_TRUE(std::find(topics.begin(), topics.end(), g_topic1) !=
     topics.end());
   EXPECT_TRUE(std::find(topics.begin(), topics.end(), g_topic2) !=
     topics.end());
+
+  test.Clear();
+  topics.clear();
+  test.TopicList(topics);
+  EXPECT_EQ(0u, topics.size());
 }
 
 //////////////////////////////////////////////////

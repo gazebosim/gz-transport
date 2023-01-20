@@ -670,7 +670,23 @@ namespace gz
       /// \param[in] _topic Name of the topic.
       /// \param[out] _publishers List of publishers on the topic
       /// \return False if unable to get topic info
+      public: bool GZ_DEPRECATED(13) TopicInfo(const std::string &_topic,
+                             std::vector<MessagePublisher> &_publishers) const;
+
+      /// \brief Get the information about a topic.
+      /// \param[in] _topic Name of the topic.
+      /// \param[out] _publishers List of publishers on the topic
+      /// \param[out] _subscribers List of subscribers on the topic
+      /// \return False if unable to get topic info
       public: bool TopicInfo(const std::string &_topic,
+                             std::vector<MessagePublisher> &_publishers,
+                             std::vector<MessagePublisher> &_subscribers) const;
+
+      /// \brief Get the information about a topic.
+      /// \param[in] _topic Name of the topic.
+      /// \param[out] _publishers List of publishers on the topic
+      /// \return False if unable to get topic info
+      public: bool TopicInfoSubscribers(const std::string &_topic,
                              std::vector<MessagePublisher> &_publishers) const;
 
       /// \brief Get the list of topics currently advertised in the network.

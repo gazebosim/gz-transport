@@ -45,7 +45,7 @@ namespace gz
       using UUIDHandler_M = std::map<std::string, std::shared_ptr<T>>;
       using UUIDHandler_Collection_M = std::map<std::string, UUIDHandler_M>;
 
-      /// \brief key is a topic name and value is UUIDHandler_M
+      /// \brief key is a topic name and value is UUIDHandler_Collection_M
       using TopicServiceCalls_M =
         std::map<std::string, UUIDHandler_Collection_M>;
 
@@ -157,6 +157,13 @@ namespace gz
 
         _handler = m.at(_nUuid).at(_hUuid);
         return true;
+      }
+
+      /// \brief Get a reference to all the handlers.
+      /// \return All the handlers.
+      public: TopicServiceCalls_M &AllHandlers()
+      {
+        return this->data;
       }
 
       /// \brief Add a request handler to a topic. A request handler stores

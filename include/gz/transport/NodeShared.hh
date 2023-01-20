@@ -218,6 +218,10 @@ namespace gz
       /// \param[in] _pub Information of the remote subscriber.
       public: void OnEndRegistration(const MessagePublisher &_pub);
 
+      /// \brief Callback executed when a SUBSCRIBERS request is received.
+      /// \param[in] _pub Request.
+      public: void OnSubscribers();
+
       /// \brief Pass through to bool Publishers(const std::string &_topic,
       /// Addresses_M<Pub> &_publishers) const
       /// \param[in] _topic Service name.
@@ -394,6 +398,13 @@ namespace gz
         public: bool RemoveHandlersForNode(
             const std::string &_fullyQualifiedTopic,
             const std::string &_nUuid);
+
+        /// \brief Convert all the HandlerStorages into a vector of publishers.
+        /// \param[in] _addr The pub/sub address.
+        /// \param[in] _pUuid The process UUID.
+        /// \return The vector of message publishers.
+        public: std::vector<MessagePublisher> Convert(const std::string &_addr,
+            const std::string &_pUuid);
 
         /// \brief Normal local subscriptions.
         public: HandlerStorage<ISubscriptionHandler> normal;
