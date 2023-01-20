@@ -441,7 +441,7 @@ namespace gz
         return this->info.Publishers(_topic, _publishers);
       }
 
-      /// \brief Get all the publishers' information known for a given topic.
+      /// \brief Get all the subscribers' information known for a given topic.
       /// \param[in] _topic Topic name.
       /// \param[out] _subscribers All remote subscribers for this topic.
       /// \return True if the topic is found and there is at least one publisher
@@ -1070,7 +1070,7 @@ namespace gz
           }
           case msgs::Discovery::SUBSCRIBERS_REP:
           {
-            // Save the subscriber as a remote subscriber.
+            // Save the remote subscriber.
             Pub publisher;
             publisher.SetFromDiscovery(msg);
 

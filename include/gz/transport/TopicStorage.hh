@@ -362,7 +362,7 @@ namespace gz
         }
       }
 
-      /// \brief ToDo.
+      /// \brief Clear the content.
       public: void Clear()
       {
         this->data.clear();

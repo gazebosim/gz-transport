@@ -1399,10 +1399,10 @@ void NodeShared::OnSubscribers()
 {
   // Get the list of local subscribers.
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  auto publishers = this->localSubscribers.Data2(this->myAddress, this->pUuid);
+  auto pubs = this->localSubscribers.Convert(this->myAddress, this->pUuid);
 
-  // Reply to the SUBSCRIBERS request.
-  for (auto const &publisher : publishers)
+  // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
+  for (auto const &publisher : pubs)
     this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
 }
 
@@ -1676,7 +1676,7 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
 }
 
 //////////////////////////////////////////////////
-std::vector<MessagePublisher> NodeShared::HandlerWrapper::Data2(\
+std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
     const std::string &_addr, const std::string &_pUuid)
 {
   std::vector<MessagePublisher> res;

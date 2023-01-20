@@ -676,7 +676,7 @@ namespace gz
       /// \brief Get the information about a topic.
       /// \param[in] _topic Name of the topic.
       /// \param[out] _publishers List of publishers on the topic
-      /// \param[out] _publishers List of subscribers on the topic
+      /// \param[out] _subscribers List of subscribers on the topic
       /// \return False if unable to get topic info
       public: bool TopicInfo(const std::string &_topic,
                              std::vector<MessagePublisher> &_publishers,

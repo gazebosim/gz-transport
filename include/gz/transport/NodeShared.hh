@@ -399,8 +399,11 @@ namespace gz
             const std::string &_fullyQualifiedTopic,
             const std::string &_nUuid);
 
-        /// \brief ToDo.
-        public: std::vector<MessagePublisher> Data2(const std::string &_addr,
+        /// \brief Convert all the HandlerStorages into a vector of publishers.
+        /// \param[in] _addr The pub/sub address.
+        /// \param[in] _pUuid The process UUID.
+        /// \return The vector of message publishers.
+        public: std::vector<MessagePublisher> Convert(const std::string &_addr,
             const std::string &_pUuid);
 
         /// \brief Normal local subscriptions.
