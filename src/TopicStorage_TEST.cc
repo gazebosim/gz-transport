@@ -418,6 +418,7 @@ TEST(TopicStorageTest, TopicList)
     topics.end());
 
   test.Clear();
+  topics.clear();
   test.TopicList(topics);
   EXPECT_EQ(0u, topics.size());
 }
