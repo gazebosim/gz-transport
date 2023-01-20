@@ -94,7 +94,7 @@ sudo apt-get remove libgz-transport.*-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs9-dev libgz-utils2-cli-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs10-dev libgz-utils2-cli-dev
 ```
 
 Clone the repository
