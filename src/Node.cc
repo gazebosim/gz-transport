@@ -873,7 +873,18 @@ std::unordered_set<std::string> &Node::SrvsAdvertised() const
 bool Node::TopicInfo(const std::string &_topic,
                      std::vector<MessagePublisher> &_publishers) const
 {
-  this->dataPtr->shared->dataPtr->msgDiscovery->WaitForInit();
+  std::vector<MessagePublisher> unused;
+  return this->TopicInfo(_topic, _publishers, unused);
+}
+
+//////////////////////////////////////////////////
+bool Node::TopicInfo(const std::string &_topic,
+                     std::vector<MessagePublisher> &_publishers,
+                     std::vector<MessagePublisher> &_subscribers) const
+{
+  // We trigger a topic list to update the list of remote subscribers.
+  std::vector<std::string> allTopics;
+  this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
 
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
@@ -882,74 +893,46 @@ bool Node::TopicInfo(const std::string &_topic,
   {
     return false;
   }
+
+  // Helper function to do some conversion.
+  auto convert = [](MsgAddresses_M &_input,
+                    std::vector<MessagePublisher> &_output)
+  {
+    _output.clear();
+
+    // Copy the publishers.
+    for (MsgAddresses_M::iterator iter = _input.begin();
+           iter != _input.end(); ++iter)
+    {
+      for (std::vector<MessagePublisher>::iterator pubIter =
+             iter->second.begin(); pubIter != iter->second.end(); ++pubIter)
+      {
+        // Add the publisher if it doesn't already exist.
+        if (std::find(_output.begin(), _output.end(), *pubIter) ==
+            _output.end())
+        {
+          _output.push_back(*pubIter);
+        }
+      }
+    }
+  };
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Get all the publishers on the given topics
   MsgAddresses_M pubs;
-  if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
+  if (this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
         fullyQualifiedTopic, pubs))
   {
-    return false;
+    convert(pubs, _publishers);
   }
-
-  _publishers.clear();
-
-  // Copy the publishers.
-  for (MsgAddresses_M::iterator iter = pubs.begin(); iter != pubs.end(); ++iter)
-  {
-    for (std::vector<MessagePublisher>::iterator pubIter = iter->second.begin();
-         pubIter != iter->second.end(); ++pubIter)
-    {
-      // Add the publisher if it doesn't already exist.
-      if (std::find(_publishers.begin(), _publishers.end(), *pubIter) ==
-          _publishers.end())
-      {
-        _publishers.push_back(*pubIter);
-      }
-    }
-  }
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool Node::TopicInfoSubscribers(const std::string &_topic,
-                              std::vector<MessagePublisher> &_subscribers) const
-{
-  // Construct a topic name with the partition and namespace
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-    this->Options().NameSpace(), _topic, fullyQualifiedTopic))
-  {
-    return false;
-  }
-
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   // Get all the remote subscribers on the given topics
   MsgAddresses_M subs;
-  if (!this->dataPtr->shared->dataPtr->msgDiscovery->RemoteSubscribers(
+  if (this->dataPtr->shared->dataPtr->msgDiscovery->RemoteSubscribers(
         fullyQualifiedTopic, subs))
   {
-    return false;
-  }
-
-  _subscribers.clear();
-
-  // Copy the subscribers.
-  for (MsgAddresses_M::iterator iter = subs.begin(); iter != subs.end(); ++iter)
-  {
-    for (std::vector<MessagePublisher>::iterator pubIter = iter->second.begin();
-         pubIter != iter->second.end(); ++pubIter)
-    {
-      // Add the subscriber if it doesn't already exist.
-      if (std::find(_subscribers.begin(), _subscribers.end(), *pubIter) ==
-          _subscribers.end())
-      {
-        _subscribers.push_back(*pubIter);
-      }
-    }
+    convert(subs, _subscribers);
   }
 
   return true;

@@ -1403,7 +1403,7 @@ void NodeShared::OnSubscribers()
 
   // Reply to the SUBSCRIBERS request.
   for (auto const &publisher : publishers)
-    this->dataPtr->msgDiscovery->SendSubscriberRep(publisher);
+    this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
 }
 
 //////////////////////////////////////////////////

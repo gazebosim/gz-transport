@@ -398,10 +398,10 @@ namespace gz
         return true;
       }
 
-      /// \brief ToDo.
-      public: void SendSubscriberRep(const MessagePublisher &_pub) const
+      /// \brief Send the response to a SUBSCRIBERS_REQ message.
+      /// \param[in] _pub Information to send.
+      public: void SendSubscribersRep(const MessagePublisher &_pub) const
       {
-        // Send a SUBSCRIBERS_REP as a response to SUBSCRIBERS.
         this->SendMsg(
           DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REP, _pub);
       }
@@ -592,7 +592,9 @@ namespace gz
         this->unregistrationCb = _cb;
       }
 
-      /// \brief ToDo.
+      /// \brief Register a callback to receive an event when a node requests
+      /// the list of remote subscribers.
+      /// \param[in] _cb Function callback.
       public: void SubscribersCb(const std::function<void()> &_cb)
       {
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -641,7 +643,8 @@ namespace gz
         std::cout << "---------------" << std::endl;
       }
 
-      /// \brief Get the list of topics currently advertised in the network.
+      /// \brief Get the list of topics currently advertised and subscribed
+      /// in the network.
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics)
       {
@@ -649,8 +652,8 @@ namespace gz
 
         // Request the list of subscribers.
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        //std::cout << "Sending SUBSCRIBERS" << std::endl;
-        this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBERS, pub);
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
 
         this->WaitForInit();
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -1058,7 +1061,7 @@ namespace gz
 
             break;
           }
-          case msgs::Discovery::SUBSCRIBERS:
+          case msgs::Discovery::SUBSCRIBERS_REQ:
           {
             if (subscribersReqCb)
               subscribersReqCb();
@@ -1067,8 +1070,6 @@ namespace gz
           }
           case msgs::Discovery::SUBSCRIBERS_REP:
           {
-            //std::cout << msg.DebugString() << std::endl;
-
             // Save the subscriber as a remote subscriber.
             Pub publisher;
             publisher.SetFromDiscovery(msg);
@@ -1183,7 +1184,6 @@ namespace gz
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
         _pub.FillDiscovery(discoveryMsg);
-        //std::cout << discoveryMsg.DebugString() << std::endl;
 
         switch (_type)
         {
@@ -1202,7 +1202,7 @@ namespace gz
           }
           case msgs::Discovery::HEARTBEAT:
           case msgs::Discovery::BYE:
-          case msgs::Discovery::SUBSCRIBERS:
+          case msgs::Discovery::SUBSCRIBERS_REQ:
           case msgs::Discovery::SUBSCRIBERS_REP:
             break;
           default:
@@ -1522,7 +1522,7 @@ namespace gz
       /// \brief Callback executed when a new remote subscriber is unregistered.
       private: DiscoveryCallback<Pub> unregistrationCb;
 
-      /// \brief Callback executed when a SUBSCRIBERS message is received.
+      /// \brief Callback executed when a SUBSCRIBERS_REQ message is received.
       private: std::function<void()> subscribersCb;
 
       /// \brief Addressing information.

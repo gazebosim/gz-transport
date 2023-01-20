@@ -159,7 +159,8 @@ namespace gz
         return true;
       }
 
-      /// \brief ToDo.
+      /// \brief Get a reference to all the handlers.
+      /// \return All the handlers.
       public: TopicServiceCalls_M &AllHandlers()
       {
         return this->data;
