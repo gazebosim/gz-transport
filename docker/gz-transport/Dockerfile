@@ -71,7 +71,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get clean
 
 # Gazebo transport
-RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport12 \
+RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport13 \
  && cd gz-transport \
  && mkdir build \
  && cd build \
