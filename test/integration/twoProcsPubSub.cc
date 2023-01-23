@@ -514,18 +514,17 @@ TEST(twoProcPubSub, TopicInfo)
 
   transport::Node node;
   std::vector<transport::MessagePublisher> publishers;
-  std::vector<transport::MessagePublisher> subscribers;
 
   // We need some time for discovering the other node.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-  EXPECT_FALSE(node.TopicInfo("@", publishers, subscribers));
+  EXPECT_FALSE(node.TopicInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);
 
-  EXPECT_FALSE(node.TopicInfo("/bogus", publishers, subscribers));
+  EXPECT_FALSE(node.TopicInfo("/bogus", publishers));
   EXPECT_EQ(publishers.size(), 0u);
 
-  EXPECT_TRUE(node.TopicInfo("/foo", publishers, subscribers));
+  EXPECT_TRUE(node.TopicInfo("/foo", publishers));
   EXPECT_EQ(publishers.size(), 1u);
   EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
