@@ -21,9 +21,9 @@
 #include <unordered_set>
 
 #include "gz/transport/log/Log.hh"
-#include "test_config.hh"
-#include "log/test_config.hh"
 #include "gtest/gtest.h"
+
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace gz::transport;
@@ -254,6 +254,9 @@ TEST(Log, OpenCorruptDatabase)
   std::string path =
     testing::portablePathUnion(GZ_TRANSPORT_LOG_TEST_PATH, "data");
   path = testing::portablePathUnion(path, "state.tlog");
+
+  std::cout << path << std::endl;
+
   logFile.Open(path);
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "
     << logFile.EndTime().count() << "ns";;

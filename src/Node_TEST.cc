@@ -34,7 +34,8 @@
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "test_config.hh"
+
+#include "test_utils.hh"
 
 using namespace gz;
 

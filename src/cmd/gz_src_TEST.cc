@@ -24,7 +24,6 @@
 #include "gtest/gtest.h"
 #include "gz.hh"
 #include "gz/transport/Node.hh"
-#include "test_config.hh"
 
 using namespace gz;
 

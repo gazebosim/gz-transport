@@ -26,7 +26,6 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
-#include "test_config.hh"
 
 #ifdef _MSC_VER
 #    define popen _popen

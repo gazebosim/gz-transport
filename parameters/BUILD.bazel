@@ -1,0 +1,72 @@
+load(
+    "@gz//bazel/skylark:build_defs.bzl",
+    "GZ_FEATURES",
+    "GZ_ROOT",
+    "GZ_VISIBILITY",
+    "cmake_configure_file",
+    "gz_configure_header",
+    "gz_export_header",
+    "gz_include_header",
+)
+load(
+    "@gz//bazel/lint:lint.bzl",
+    "add_lint_tests",
+)
+
+gz_export_header(
+    name = "include/gz/transport/parameters/Export.hh",
+    export_base = "GZ_TRANSPORT_PARAMETERS",
+    lib_name = "gz-transport-parameters",
+    visibility = ["//visibility:private"],
+)
+
+public_headers_no_gen = glob([
+    "include/gz/transport/parameters/*.hh",
+    "include/gz/transport/parameters/detail/*.hh",
+])
+
+private_headers = glob(["src/*.hh"])
+
+sources = glob(
+    ["src/*.cc"],
+    exclude = [
+        "src/*_TEST.cc",
+    ],
+)
+
+public_headers = public_headers_no_gen + [
+    "include/gz/transport/parameters/Export.hh",
+]
+
+cc_library(
+    name = "parameters",
+    srcs = sources + private_headers,
+    hdrs = public_headers,
+    includes = ["include"],
+    deps = [
+        GZ_ROOT + "transport",
+        "@sqlite3",
+    ],
+    visibility = GZ_VISIBILITY,
+)
+
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_BAZEL_PATH": "transport",
+    },
+    deps = [
+        ":parameters",
+        GZ_ROOT + "transport/test:utils",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in test_sources]
+
+add_lint_tests()

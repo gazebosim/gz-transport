@@ -27,20 +27,8 @@
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
-#include "test_config.hh"
 
-// Temporarily introduce a "DISABLED_ON_LINUX" macro.
-// It currently does not exist upstream.
-// This can be removed when it is in upstream gz-utils
-// or the discovery WrongGzIp test passes on linux
-#include <gz/utils/detail/ExtraTestMacros.hh>
-#if defined __linux__
-  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
-      DETAIL_GZ_UTILS_ADD_DISABLED_PREFIX(TestName)
-#else
-  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
-      TestName
-#endif  // defined __linux__
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace transport;
