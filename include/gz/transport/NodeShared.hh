@@ -219,7 +219,6 @@ namespace gz
       public: void OnEndRegistration(const MessagePublisher &_pub);
 
       /// \brief Callback executed when a SUBSCRIBERS request is received.
-      /// \param[in] _pub Request.
       public: void OnSubscribers();
 
       /// \brief Pass through to bool Publishers(const std::string &_topic,
