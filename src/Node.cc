@@ -400,7 +400,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       std::unique_lock<std::mutex> queueLock(
           this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push_back(std::move(pubMsgDetails));
+      this->dataPtr->shared->dataPtr->pubQueue.push_back(
+          std::move(pubMsgDetails));
     }
 
     this->dataPtr->shared->dataPtr->signalNewPub.notify_one();

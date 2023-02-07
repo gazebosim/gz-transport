@@ -753,8 +753,8 @@ namespace gz
       /// \return True on success.
       private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
-      /// \brief Helper function to remove handlers from the shared publish queue.
-      /// This is called when the node unsubscribes to a topic
+      /// \brief Helper function to remove handlers from the shared publish
+      /// queue. This is called when the node unsubscribes to a topic
       /// \param[in] _topic Topic that the node unsubcribed to.
       /// \return True on success.
       private: bool RemoveHandlersFromPubQueue(const std::string &_topic);
