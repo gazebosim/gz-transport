@@ -759,7 +759,6 @@ namespace gz
       /// \return True on success.
       private: bool RemoveHandlersFromPubQueue(const std::string &_topic);
 
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
