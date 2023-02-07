@@ -21,9 +21,9 @@
 #include <zmq.hpp>
 
 #include <atomic>
+#include <list>
 #include <map>
 #include <memory>
-#include <queue>
 #include <string>
 #include <vector>
 
@@ -175,9 +175,9 @@ namespace gz
       /// \brief Mutex to protect the pubThread and pubQueue.
       public: std::mutex pubThreadMutex;
 
-      /// \brief Queue onto which new messages are pushed. The pubThread
+      /// \brief List onto which new messages are pushed. The pubThread
       /// will pop off the messages and send them to local subscribers.
-      public: std::queue<std::unique_ptr<PublishMsgDetails>> pubQueue;
+      public: std::list<std::unique_ptr<PublishMsgDetails>> pubQueue;
 
       /// \brief used to signal when new work is available
       public: std::condition_variable signalNewPub;

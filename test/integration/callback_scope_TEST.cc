@@ -32,14 +32,13 @@ TEST(CallbackScope, CleanupCorrectly)
     auto msg2 = std::make_unique<gz::msgs::Int32>();
 
     std::function<void(const gz::msgs::Int32&)> callback =
-      [&msg2](const gz::msgs::Int32& msg) {
+      [&msg2](const gz::msgs::Int32 &) {
 
         if (nullptr == msg2)
         {
           FAIL();
         }
 
-        (void) msg;
         return;
       };
 
