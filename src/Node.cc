@@ -610,7 +610,12 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   // Remove handlers from shared pubQueue to avoid invoking callbacks after
   // unsuscribing to the topic
-  this->RemoveHandlersFromPubQueue(topic);
+  if (!this->RemoveHandlersFromPubQueue(topic))
+  {
+    std::cerr << "Error removing subscription handlers from publish queue "
+              << "when unsubscribing from Topic [" << _topic << "]"
+              <<  std::endl;
+  }
 
   // Remove the topic from the list of subscribed topics in this node.
   this->dataPtr->topicsSubscribed.erase(fullyQualifiedTopic);
